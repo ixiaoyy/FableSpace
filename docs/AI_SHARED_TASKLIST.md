@@ -38,7 +38,7 @@
 
 - `P3` · `done` · 玩家写回权限与语义治理边界：已完成 [`docs/WORLD_WRITEBACK_GOVERNANCE.md`](docs/WORLD_WRITEBACK_GOVERNANCE.md) 协议文档，定义 `private / local_public / global` 三层写回完整语义、AI 改写边界、moderation 审核机制、生命周期管理与系统衔接规则。
 - `P4` · `done` · 历史深度 / 尘封之眼 / Time Folds 协议 v0.1：已完成 [`docs/TIME_FOLDS_PROTOCOL.md`](docs/TIME_FOLDS_PROTOCOL.md) 协议文档，定义四层时间结构（present_state/recent_echoes/archived_layers/deep_history）、历史证据系统（四种来源+五级可信度）、旧地标回声机制、尘封之眼能力与跨时间任务边界。
-- `P5` · `in_progress` · World Writeback Protocol v0.1：已新增 [`docs/WORLD_WRITEBACK_PROTOCOL.md`](docs/WORLD_WRITEBACK_PROTOCOL.md) 协议草案，统一 `event / target / effect / visibility` 结构，并以 `observe / dwell / mark` 作为首批最小写回行为；后续进入 API / 持久化最小闭环实现阶段，实施顺序见 [`docs/WORLD_WRITEBACK_PLAN.md`](docs/WORLD_WRITEBACK_PLAN.md)。
+- `P5` · `done` · World Writeback Protocol v0.1：已完成后端实现，[`fablemap/writeback.py`](fablemap/writeback.py) 实现完整事件处理引擎（observe/dwell/mark），[`fablemap/web/router.py`](fablemap/web/router.py) 暴露 `POST /api/world/event` 端点，使用 JSON 文件持久化玩家状态与地点状态；前端接入与测试用例需要单独任务。
 
 ### A. 浏览器主舞台 / Web-2D
 
