@@ -447,8 +447,17 @@ def _render_showcase_markdown(showcase: dict[str, Any]) -> str:
         [
             "## Co-Creation Storyline",
             f"- City myth stage: `{co_creation.get('city_myth_stage')}`",
+            f"- Writing rights: `{', '.join(sorted((co_creation.get('writing_rights') or {}).keys())) or 'none'}`",
         ]
     )
+    memory_policy = co_creation.get("memory_policy") or {}
+    if memory_policy:
+        lines.append(
+            "- Memory policy: "
+            f"`{memory_policy.get('retention_model')}` with "
+            f"echo sources `{memory_policy.get('echo_sources')}` and "
+            f"anchor sources `{memory_policy.get('anchor_sources')}`"
+        )
     for mode in co_creation.get("participation_modes") or []:
         lines.append(
             f"- Mode: **{mode.get('name')}** / `{mode.get('visibility')}` / `{mode.get('status')}` -> {mode.get('player_action')} (capacity {mode.get('capacity_hint')})"

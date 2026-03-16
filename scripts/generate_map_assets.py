@@ -16,9 +16,10 @@ Setup:
 
 import os
 import sys
-import time
 from pathlib import Path
 from typing import Optional
+
+import replicate
 import requests
 
 # Asset specifications from MAP_ASSETS_PLAN.md
@@ -87,7 +88,7 @@ def ensure_output_dirs(base_path: str) -> tuple[Path, Path]:
 
 def generate_image(api_token: str, prompt: str, size: str = "1024x1024") -> Optional[bytes]:
     """
-    Generate an image using Replicate API (Stable Diffusion).
+    Generate an image using Replicate API.
 
     Args:
         api_token: Replicate API token
@@ -98,72 +99,42 @@ def generate_image(api_token: str, prompt: str, size: str = "1024x1024") -> Opti
         Image bytes or None if generation fails
     """
     try:
+        api_token = api_token.strip()
         print(f"  Generating: {prompt[:60]}...")
 
-        # Map size to width/height
-        size_map = {
-            "1024x1024": (1024, 1024),
-            "256x256": (256, 256),
+        size_to_aspect_ratio = {
+            "1024x1024": "1:1",
+            "256x256": "1:1",
         }
-        width, height = size_map.get(size, (1024, 1024))
+        aspect_ratio = size_to_aspect_ratio.get(size, "1:1")
 
-        # Call Replicate API
-        headers = {
-            "Authorization": f"Token {api_token}",
-            "Content-Type": "application/json",
-        }
-
-        payload = {
-            "version": "db21e45d3f7023abc9f30f647f2b0e2b3850c5d200c876e1d57fe4ddf5d5c6e3",  # Stable Diffusion 1.5
-            "input": {
+        client = replicate.Client(api_token=api_token)
+        output = client.run(
+            "black-forest-labs/flux-schnell",
+            input={
                 "prompt": prompt,
-                "width": width,
-                "height": height,
+                "aspect_ratio": aspect_ratio,
                 "num_outputs": 1,
-                "num_inference_steps": 50,
-                "guidance_scale": 7.5,
-            }
-        }
-
-        # Create prediction
-        response = requests.post(
-            "https://api.replicate.com/v1/predictions",
-            headers=headers,
-            json=payload,
-            timeout=30
+                "output_format": "png",
+                "output_quality": 100,
+            },
         )
-        response.raise_for_status()
-        prediction = response.json()
-        prediction_id = prediction["id"]
 
-        # Poll for completion
-        max_attempts = 120  # 10 minutes with 5-second intervals
-        for attempt in range(max_attempts):
-            response = requests.get(
-                f"https://api.replicate.com/v1/predictions/{prediction_id}",
-                headers=headers,
-                timeout=30
-            )
-            response.raise_for_status()
-            prediction = response.json()
-
-            if prediction["status"] == "succeeded":
-                output_urls = prediction.get("output", [])
-                if output_urls:
-                    # Download the image
-                    img_response = requests.get(output_urls[0], timeout=30)
-                    img_response.raise_for_status()
-                    return img_response.content
-                break
-            elif prediction["status"] == "failed":
-                print(f"    ✗ Generation failed: {prediction.get('error', 'Unknown error')}")
+        if isinstance(output, list):
+            if not output:
+                print("    [ERROR] Replicate returned no output")
                 return None
+            output = output[0]
 
-            # Wait before polling again
-            if attempt < max_attempts - 1:
-                time.sleep(5)
+        if hasattr(output, "read"):
+            return output.read()
 
-        print(f"    ✗ Generation timeout after {max_attempts * 5} seconds")
+        if isinstance(output, str):
+            img_response = requests.get(output, timeout=60)
+            img_response.raise_for_status()
+            return img_response.content
+
+        print(f"    [ERROR] Unsupported Replicate output type: {type(output).__name__}")
         return None
 
     except Exception as e:
@@ -174,19 +145,18 @@ def generate_image(api_token: str, prompt: str, size: str = "1024x1024") -> Opti
 def save_image(image_data: Optional[bytes], output_path: Path) -> bool:
     """Save image data to file."""
     if image_data is None:
-        # Create placeholder for now
         output_path.parent.mkdir(parents=True, exist_ok=True)
-        output_path.write_text(f"Placeholder for {output_path.name}")
-        print(f"    ✓ Created placeholder: {output_path.name}")
-        return True
+        output_path.write_text(f"Placeholder for {output_path.name}", encoding="utf-8")
+        print(f"    [placeholder] Created: {output_path.name}")
+        return False
 
     try:
         output_path.parent.mkdir(parents=True, exist_ok=True)
         output_path.write_bytes(image_data)
-        print(f"    ✓ Saved: {output_path.name}")
+        print(f"    [saved] {output_path.name}")
         return True
     except Exception as e:
-        print(f"    ✗ Failed to save {output_path.name}: {e}")
+        print(f"    [ERROR] Failed to save {output_path.name}: {e}")
         return False
 
 
@@ -235,7 +205,7 @@ def generate_pack(
 def main():
     """Main entry point."""
     # Setup
-    api_token = os.environ.get("REPLICATE_API_TOKEN")
+    api_token = os.environ.get("REPLICATE_API_TOKEN", "").strip()
     if not api_token:
         print("Error: REPLICATE_API_TOKEN environment variable not set")
         print("\nSetup instructions:")
@@ -269,10 +239,10 @@ def main():
     print(f"Output: {output_base}")
 
     if total_success == total_assets:
-        print("✓ All assets generated successfully!")
+        print("[OK] All assets generated successfully!")
         return 0
     else:
-        print(f"⚠ {total_assets - total_success} assets failed or skipped")
+        print(f"[WARN] {total_assets - total_success} assets failed or skipped")
         return 1
 
 
