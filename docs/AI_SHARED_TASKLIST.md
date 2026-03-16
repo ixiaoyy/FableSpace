@@ -36,7 +36,7 @@
 
 ### P. 协议与世界语法
 
-- `P3` · `planned` · 玩家写回权限与语义治理边界：定义 `private / local_public / global` 三层写回、AI 改写、可见性与 moderation 约束；建议在 [`docs/WORLD_WRITEBACK_PLAN.md`](docs/WORLD_WRITEBACK_PLAN.md) 的最小写回闭环跑通后立即跟进。
+- `P3` · `done` · 玩家写回权限与语义治理边界：已完成 [`docs/WORLD_WRITEBACK_GOVERNANCE.md`](docs/WORLD_WRITEBACK_GOVERNANCE.md) 协议文档，定义 `private / local_public / global` 三层写回完整语义、AI 改写边界、moderation 审核机制、生命周期管理与系统衔接规则。
 - `P4` · `planned` · 历史深度 / 尘封之眼 / Time Folds 协议 v0.1：定义历史证据来源、可信度、旧地标回声、深层入口与跨时间任务生成边界；优先级位于统一写回协议与治理边界之后。
 - `P5` · `in_progress` · World Writeback Protocol v0.1：已新增 [`docs/WORLD_WRITEBACK_PROTOCOL.md`](docs/WORLD_WRITEBACK_PROTOCOL.md) 协议草案，统一 `event / target / effect / visibility` 结构，并以 `observe / dwell / mark` 作为首批最小写回行为；后续进入 API / 持久化最小闭环实现阶段，实施顺序见 [`docs/WORLD_WRITEBACK_PLAN.md`](docs/WORLD_WRITEBACK_PLAN.md)。
 
