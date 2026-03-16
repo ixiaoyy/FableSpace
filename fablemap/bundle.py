@@ -796,10 +796,10 @@ def _render_map_observer_html(
                 <span class=\"semantic-zoom-label\" data-i18n=\"semanticZoomTitle\"></span>
                 <strong id=\"semantic-zoom-value\"></strong>
               </div>
-              <div class=\"map-zoom-controls\" aria-hidden=\"true\">
-                <button class=\"map-zoom-btn\" id=\"map-zoom-in\" title=\"Zoom in\">+</button>
-                <button class=\"map-zoom-btn\" id=\"map-zoom-out\" title=\"Zoom out\">\u2212</button>
-                <button class=\"map-zoom-btn\" id=\"map-zoom-reset\" title=\"Reset view\" style=\"font-size:13px\">&#x2302;</button>
+              <div class=\"map-zoom-controls\" role=\"group\" aria-label=\"Map zoom controls\">
+                <button class=\"map-zoom-btn\" id=\"map-zoom-in\" type=\"button\" title=\"Zoom in\" aria-label=\"Zoom in\">+</button>
+                <button class=\"map-zoom-btn\" id=\"map-zoom-out\" type=\"button\" title=\"Zoom out\" aria-label=\"Zoom out\">\u2212</button>
+                <button class=\"map-zoom-btn\" id=\"map-zoom-reset\" type=\"button\" title=\"Reset view\" aria-label=\"Reset view\" style=\"font-size:13px\">&#x2302;</button>
               </div>
               <svg id=\"observer-map\" viewBox=\"0 0 {viewport['width']} {viewport['height']}\" data-zoom-tier=\"survey\" role=\"img\" aria-labelledby=\"observer-map-title observer-map-desc\">
                 <title id=\"observer-map-title\">{escape(str(showcase.get('title') or 'FableMap Observer'))}</title>
@@ -1272,7 +1272,7 @@ def _render_preview_html(world: dict[str, Any], showcase: dict[str, Any], manife
       .legend-swatch.poi {{ background: #38bdf8; }}
       .legend-swatch.landmark {{ background: #fbbf24; }}
       .world-map-viewport {{ min-height: 0; display: flex; flex-direction: column; gap: 12px; padding: 14px; background: linear-gradient(180deg, rgba(15, 23, 42, 0.96), rgba(2, 6, 23, 0.98)); border: 1px solid #334155; border-radius: 20px; }}
-      #observer-map {{ width: 100%; height: 100%; min-height: 520px; display: block; cursor: grab; user-select: none; -webkit-user-select: none; }}
+      #observer-map {{ width: 100%; height: 100%; min-height: 520px; display: block; cursor: grab; user-select: none; -webkit-user-select: none; touch-action: none; }}
       #observer-map.is-panning {{ cursor: grabbing; }}
       .map-backdrop {{ fill: #020617; stroke: #334155; stroke-width: 2; }}
       .map-floor-tiles {{ fill: url(#floor-grid); opacity: 0.22; pointer-events: none; }}
@@ -1295,16 +1295,17 @@ def _render_preview_html(world: dict[str, Any], showcase: dict[str, Any], manife
       .map-feature.is-active, .map-feature:focus-visible {{ transform: translateY(-2px) scale(1.06); transform-origin: center; transform-box: fill-box; filter: drop-shadow(0 10px 16px rgba(15, 23, 42, 0.42)); }}
       .map-tooltip {{ position: fixed; pointer-events: none; z-index: 100; padding: 6px 10px; background: rgba(15,23,42,0.95); border: 1px solid #475569; border-radius: 8px; font-size: 12px; color: #e2e8f0; white-space: nowrap; opacity: 0; transition: opacity 0.12s ease; box-shadow: 0 4px 16px rgba(0,0,0,0.4); }}
       .map-tooltip.is-visible {{ opacity: 1; }}
-      .semantic-zoom-indicator {{ position: absolute; top: 12px; left: 12px; z-index: 2; display: inline-flex; align-items: baseline; gap: 8px; padding: 8px 12px; border-radius: 999px; border: 1px solid #334155; background: rgba(15, 23, 42, 0.88); color: #e2e8f0; box-shadow: 0 8px 24px rgba(2, 6, 23, 0.28); transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease; }}
+      .semantic-zoom-indicator {{ position: absolute; top: 12px; left: 12px; z-index: 2; display: inline-flex; align-items: baseline; gap: 8px; padding: 8px 12px; border-radius: 999px; border: 1px solid #334155; background: rgba(15, 23, 42, 0.88); color: #e2e8f0; box-shadow: 0 8px 24px rgba(2, 6, 23, 0.28); transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease; pointer-events: none; }}
       .semantic-zoom-label {{ font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: #94a3b8; }}
       #semantic-zoom-value {{ font-size: 13px; line-height: 1; }}
       .semantic-zoom-indicator[data-zoom-tier="survey"] {{ border-color: #334155; color: #cbd5e1; }}
       .semantic-zoom-indicator[data-zoom-tier="district"] {{ border-color: #0ea5e9; color: #bae6fd; background: rgba(8, 47, 73, 0.78); }}
       .semantic-zoom-indicator[data-zoom-tier="intimate"] {{ border-color: #c084fc; color: #f5d0fe; background: rgba(59, 7, 100, 0.78); }}
-      .map-zoom-controls {{ display: flex; gap: 6px; position: absolute; top: 12px; right: 12px; z-index: 2; }}
-      .map-zoom-btn {{ width: 32px; height: 32px; border-radius: 8px; border: 1px solid #475569; background: rgba(15,23,42,0.9); color: #e2e8f0; font-size: 18px; line-height: 1; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.15s; }}
+      .map-zoom-controls {{ display: flex; gap: 6px; position: absolute; top: 12px; right: 12px; z-index: 2; pointer-events: auto; }}
+      .map-zoom-btn {{ width: 32px; height: 32px; border-radius: 8px; border: 1px solid #475569; background: rgba(15,23,42,0.9); color: #e2e8f0; font-size: 18px; line-height: 1; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.15s, opacity 0.15s; }}
       .map-zoom-btn:hover {{ background: rgba(30,41,59,0.98); }}
-      .world-map-canvas {{ flex: 1; min-height: 0; position: relative; }}
+      .map-zoom-btn:disabled {{ opacity: 0.45; cursor: not-allowed; }}
+      .world-map-canvas {{ flex: 1; min-height: 0; position: relative; overflow: hidden; }}
       .map-feature text {{ fill: #0f172a; font-size: 10px; font-weight: 700; pointer-events: none; opacity: 0.66; transition: opacity 0.15s ease, font-size 0.15s ease, letter-spacing 0.15s ease; }}
       .poi-shadow, .landmark-shadow {{ fill: rgba(2, 6, 23, 0.4); pointer-events: none; }}
       .poi-base {{ fill: #334155; stroke: rgba(148, 163, 184, 0.3); stroke-width: 1.2; }}
@@ -1671,26 +1672,40 @@ def _render_preview_html(world: dict[str, Any], showcase: dict[str, Any], manife
       let vbH = initialViewBox ? initialViewBox.height : 520;
       const vbW0 = vbW;
       const vbH0 = vbH;
-      const MIN_ZOOM = 0.25;
-      const MAX_ZOOM = 6.0;
+      const MIN_ZOOM = 0.35;
+      const MAX_ZOOM = 5.0;
       const ZOOM_STEP = 0.18;
+      const zoomInBtn = document.getElementById("map-zoom-in");
+      const zoomOutBtn = document.getElementById("map-zoom-out");
+      const zoomResetBtn = document.getElementById("map-zoom-reset");
 
         function clampViewBox() {{
-          const pad = 0;
-          const minW = vbW0 * MIN_ZOOM;
-          const maxW = vbW0 * (1 / MIN_ZOOM);
+          const minW = vbW0 / MAX_ZOOM;
+          const maxW = vbW0 / MIN_ZOOM;
           vbW = Math.max(minW, Math.min(maxW, vbW));
-          vbH = Math.max(vbW0 * MIN_ZOOM * (vbH0 / vbW0), Math.min(vbW0 * (1 / MIN_ZOOM) * (vbH0 / vbW0), vbH));
+          vbH = vbW * (vbH0 / vbW0);
           // Relax clamping for player exploration
-          vbX = Math.max(-vbW0 * 1.5, Math.min(vbW0 * 1.5, vbX));
-          vbY = Math.max(-vbH0 * 1.5, Math.min(vbH0 * 1.5, vbY));
+          const padX = vbW0 * 1.5;
+          const padY = vbH0 * 1.5;
+          vbX = Math.max(-padX, Math.min(padX, vbX));
+          vbY = Math.max(-padY, Math.min(padY, vbY));
         }}
+
+      function updateZoomButtons() {{
+        if (!zoomInBtn || !zoomOutBtn || !zoomResetBtn) return;
+        const minW = vbW0 / MAX_ZOOM;
+        const maxW = vbW0 / MIN_ZOOM;
+        zoomInBtn.disabled = vbW <= minW + 0.01;
+        zoomOutBtn.disabled = vbW >= maxW - 0.01;
+        zoomResetBtn.disabled = Math.abs(vbW - vbW0) < 0.01 && Math.abs(vbH - vbH0) < 0.01 && Math.abs(vbX) < 0.01 && Math.abs(vbY) < 0.01;
+      }}
 
       function applyViewBox() {{
         if (!mapSvg) return;
         clampViewBox();
         mapSvg.setAttribute("viewBox", `${{vbX}} ${{vbY}} ${{vbW}} ${{vbH}}`);
         updateSemanticZoomTier();
+        updateZoomButtons();
       }}
 
       function updateSemanticZoomTier() {{
@@ -1722,15 +1737,15 @@ def _render_preview_html(world: dict[str, Any], showcase: dict[str, Any], manife
       }}
 
       function zoomAroundPoint(svgX, svgY, factor) {{
-        const newW = vbW / factor;
-        const newH = vbH / factor;
-        const clampedFactor = vbW0 / Math.max(vbW0 * MIN_ZOOM, Math.min(vbW0 / MIN_ZOOM, newW));
-        const adjustedW = vbW / clampedFactor;
-        const adjustedH = vbH / clampedFactor;
-        vbX = svgX - (svgX - vbX) * (adjustedW / vbW);
-        vbY = svgY - (svgY - vbY) * (adjustedH / vbH);
-        vbW = adjustedW;
-        vbH = adjustedH;
+        const desiredW = vbW / factor;
+        const minW = vbW0 / MAX_ZOOM;
+        const maxW = vbW0 / MIN_ZOOM;
+        const newW = Math.max(minW, Math.min(maxW, desiredW));
+        const newH = newW * (vbH0 / vbW0);
+        vbX = svgX - (svgX - vbX) * (newW / vbW);
+        vbY = svgY - (svgY - vbY) * (newH / vbH);
+        vbW = newW;
+        vbH = newH;
         applyViewBox();
       }}
 
@@ -1742,10 +1757,12 @@ def _render_preview_html(world: dict[str, Any], showcase: dict[str, Any], manife
       if (mapSvg) {{
         mapSvg.addEventListener("mousedown", (e) => {{
           if (e.button !== 0) return;
+          if (e.target && e.target.closest && e.target.closest(".map-feature")) return;
           panActive = true;
           panStartSvg = svgCoordsFromClient(e.clientX, e.clientY);
           panStartVb = {{ x: vbX, y: vbY }};
           mapSvg.classList.add("is-panning");
+          hideTooltip();
           e.preventDefault();
         }});
 
@@ -1825,13 +1842,13 @@ def _render_preview_html(world: dict[str, Any], showcase: dict[str, Any], manife
       }}
 
       // ── Zoom buttons ─────────────────────────────────────────────────────────
-      document.getElementById("map-zoom-in")?.addEventListener("click", () => {{
+      zoomInBtn?.addEventListener("click", () => {{
         zoomAroundPoint(vbX + vbW / 2, vbY + vbH / 2, 1 + ZOOM_STEP * 1.5);
       }});
-      document.getElementById("map-zoom-out")?.addEventListener("click", () => {{
+      zoomOutBtn?.addEventListener("click", () => {{
         zoomAroundPoint(vbX + vbW / 2, vbY + vbH / 2, 1 / (1 + ZOOM_STEP * 1.5));
       }});
-      document.getElementById("map-zoom-reset")?.addEventListener("click", () => {{
+      zoomResetBtn?.addEventListener("click", () => {{
         vbX = 0; vbY = 0; vbW = vbW0; vbH = vbH0;
         applyViewBox();
       }});
@@ -1978,6 +1995,7 @@ def _render_preview_html(world: dict[str, Any], showcase: dict[str, Any], manife
           node.textContent = currentLanguage === "zh-CN" ? node.dataset.labelZh : node.dataset.labelEn;
         }});
         updateSemanticZoomTier();
+        updateZoomButtons();
         const visibleTitle = heroTitle.textContent.trim() || t("untitledDistrict");
         document.title = `${{visibleTitle}} · ${{t("pageTitleSuffix")}}`;
       }}
