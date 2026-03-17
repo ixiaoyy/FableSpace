@@ -128,7 +128,13 @@ def _build_showcase(world: dict[str, Any], input_path: Path) -> dict[str, Any]:
     }
 
     mythline_threads = _build_mythline_threads(pois, memory_anchors, historical_echoes)
-    participation_entries = _build_participation_entries(pois, sprites, memory_anchors)
+    participation_entries = _build_participation_entries(
+        pois,
+        sprites,
+        memory_anchors,
+        co_creation.get("participation_modes") or [],
+        co_creation.get("open_threads") or [],
+    )
 
     return {
         "world_id": summary["world_id"],
@@ -208,46 +214,85 @@ def _build_participation_entries(
     pois: list[dict[str, Any]],
     sprites: list[dict[str, Any]],
     memory_anchors: list[dict[str, Any]],
+    participation_modes: list[dict[str, Any]],
+    open_threads: list[dict[str, Any]],
 ) -> list[dict[str, Any]]:
     entries: list[dict[str, Any]] = []
-    sprite_pois = [p for p in pois if p.get("sprite_spawn_hint")]
-    if sprite_pois:
+    mode_thread_counts: dict[str, int] = {mode.get("visibility") or "unknown": 0 for mode in participation_modes}
+    for thread in open_threads:
+        visibility = thread.get("visibility") or "unknown"
+        mode_thread_counts[visibility] = mode_thread_counts.get(visibility, 0) + 1
+
+    mode_targets = {
+        "private_capsules": ("secret_slot", len([p for p in pois if p.get("secret_slot")]), "记忆胶囊锚点"),
+        "street_legends": ("historical_echo", max(1, len(open_threads)), "可继承的街头传说槽位"),
+        "repair_rituals": ("sprite_anchor", max(len(sprites), len(memory_anchors), 1), "公共修复痕迹节点"),
+    }
+
+    for mode in participation_modes:
+        mode_id = mode.get("id") or "unknown_mode"
+        target_type, target_count, target_label_zh = mode_targets.get(
+            mode_id,
+            ("co_creation_node", max(1, mode.get("capacity_hint") or 0), "共创节点"),
+        )
+        capacity_hint = mode.get("capacity_hint")
         entries.append({
-            "action": "observe_sprite",
-            "label_en": f"Observe sprites at {len(sprite_pois)} active POI(s)",
-            "label_zh": f"在 {len(sprite_pois)} 个激活地点观测精灵",
-            "target_type": "poi_sprite",
-            "target_count": len(sprite_pois),
-            "reward_hint": "Sprite observation logs contribute to the district's collective field record.",
+            "action": mode.get("player_action") or mode_id,
+            "label_en": (
+                f"{mode.get('name') or 'Unknown mode'} · engage {target_count} {target_type.replace('_', ' ')} slot(s)"
+            ),
+            "label_zh": f"{mode.get('name') or '未知模式'}：可参与 {target_count} 个{target_label_zh}",
+            "target_type": target_type,
+            "target_count": target_count,
+            "visibility": mode.get("visibility"),
+            "status": mode.get("status"),
+            "capacity_hint": capacity_hint,
+            "open_thread_count": mode_thread_counts.get(mode.get("visibility") or "unknown", 0),
+            "reward_hint": (
+                f"Contributions enter the {mode.get('visibility') or 'shared'} layer and advance "
+                f"{mode_thread_counts.get(mode.get('visibility') or 'unknown', 0)} currently open myth thread(s)."
+            ),
         })
-    secret_pois = [p for p in pois if p.get("secret_slot")]
-    if secret_pois:
-        entries.append({
-            "action": "leave_memory",
-            "label_en": f"Deposit a memory capsule at {len(secret_pois)} secret slot(s)",
-            "label_zh": f"在 {len(secret_pois)} 个隐藏锚点留下记忆胶囊",
-            "target_type": "secret_slot",
-            "target_count": len(secret_pois),
-            "reward_hint": "Memory deposits become echoes that future visitors can surface.",
-        })
-    if memory_anchors:
-        entries.append({
-            "action": "unlock_anchor",
-            "label_en": f"Unlock {len(memory_anchors)} memory anchor(s) by visiting linked POIs",
-            "label_zh": f"走访关联地点解锁 {len(memory_anchors)} 个记忆锚点",
-            "target_type": "memory_anchor",
-            "target_count": len(memory_anchors),
-            "reward_hint": "Unlocked anchors feed back into the district's comfort and narrative score.",
-        })
-    if sprites:
-        entries.append({
-            "action": "collect_sprite",
-            "label_en": f"Collect {len(sprites)} sprite(s) linked to district POIs",
-            "label_zh": f"收集 {len(sprites)} 只与地区 POI 绑定的精灵",
-            "target_type": "sprite",
-            "target_count": len(sprites),
-            "reward_hint": "Each collected sprite carries a drop tag that tags your participation in the district story.",
-        })
+
+    if not entries:
+        sprite_pois = [p for p in pois if p.get("sprite_spawn_hint")]
+        if sprite_pois:
+            entries.append({
+                "action": "observe_sprite",
+                "label_en": f"Observe sprites at {len(sprite_pois)} active POI(s)",
+                "label_zh": f"在 {len(sprite_pois)} 个激活地点观测精灵",
+                "target_type": "poi_sprite",
+                "target_count": len(sprite_pois),
+                "reward_hint": "Sprite observation logs contribute to the district's collective field record.",
+            })
+        secret_pois = [p for p in pois if p.get("secret_slot")]
+        if secret_pois:
+            entries.append({
+                "action": "leave_memory",
+                "label_en": f"Deposit a memory capsule at {len(secret_pois)} secret slot(s)",
+                "label_zh": f"在 {len(secret_pois)} 个隐藏锚点留下记忆胶囊",
+                "target_type": "secret_slot",
+                "target_count": len(secret_pois),
+                "reward_hint": "Memory deposits become echoes that future visitors can surface.",
+            })
+        if memory_anchors:
+            entries.append({
+                "action": "unlock_anchor",
+                "label_en": f"Unlock {len(memory_anchors)} memory anchor(s) by visiting linked POIs",
+                "label_zh": f"走访关联地点解锁 {len(memory_anchors)} 个记忆锚点",
+                "target_type": "memory_anchor",
+                "target_count": len(memory_anchors),
+                "reward_hint": "Unlocked anchors feed back into the district's comfort and narrative score.",
+            })
+        if sprites:
+            entries.append({
+                "action": "collect_sprite",
+                "label_en": f"Collect {len(sprites)} sprite(s) linked to district POIs",
+                "label_zh": f"收集 {len(sprites)} 只与地区 POI 绑定的精灵",
+                "target_type": "sprite",
+                "target_count": len(sprites),
+                "reward_hint": "Each collected sprite carries a drop tag that tags your participation in the district story.",
+            })
     return entries[:4]
 
 

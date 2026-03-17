@@ -111,6 +111,12 @@ Make sure you've set the environment variable correctly and restarted your termi
 - Check the error message from Replicate
 - Try adjusting the prompt if specific elements aren't rendering well
 - Replicate may have rate limits on free tier
+- Failed generations are no longer written as placeholder `.png` files; re-run the script after fixing the issue
+
+### Output directory exists but images seem invalid
+- Existing filenames alone do **not** guarantee successful image generation
+- Verify file sizes and confirm the files can be opened as real PNG images
+- If earlier runs created placeholder text files, delete the invalid files before re-running generation
 
 ## Customization
 

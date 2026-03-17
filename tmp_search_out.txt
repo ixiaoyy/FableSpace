@@ -1,0 +1,104 @@
+=== KEYWORD: co_creation  match at line 336 ===
+      331:         landmarks=landmarks,
+      332:         sprites=sprites,
+      333:         memory_anchors=memory_anchors,
+      334:         vibe_profile=vibe_profile,
+      335:     )
+>>>   336:     co_creation = _build_co_creation_layer(
+      337:         world_id=world_id,
+      338:         dominant_faction=dominant_faction,
+      339:         pois=pois,
+      340:         memory_anchors=memory_anchors,
+      341:         historical_echoes=historical_echoes,
+
+=== KEYWORD: co_creation  match at line 363 ===
+      358:         "landmarks": landmarks,
+      359:         "factions": factions,
+      360:         "historical_echoes": historical_echoes,
+      361:         "memory_anchors": memory_anchors,
+      362:         "sprites": sprites,
+>>>   363:         "co_creation": co_creation,
+      364:         "state": {
+      365:             "version": "0.1",
+      366:             "visited": False,
+      367:             "poi_states": {
+      368:                 poi["id"]: {
+
+=== KEYWORD: co_creation  match at line 670 ===
+      665:             }
+      666:         )
+      667:     return echoes[:3]
+      668: 
+      669: 
+>>>   670: def _build_co_creation_layer(
+      671:     *,
+      672:     world_id: str,
+      673:     dominant_faction: str,
+      674:     pois: list[dict[str, Any]],
+      675:     memory_anchors: list[dict[str, Any]],
+
+=== KEYWORD: participation_modes  match at line 683 ===
+      678: ) -> dict[str, Any]:
+      679:     seed_poi = pois[0] if pois else {}
+      680:     private_mark_capacity = min(3, len(memory_anchors))
+      681:     local_legend_capacity = min(2, max(1, len(historical_echoes) or len(pois)))
+      682:     ritual_capacity = min(2, max(1, len([poi for poi in pois if poi.get("secret_slot")]) or 1))
+>>>   683:     participation_modes = [
+      684:         {
+      685:             "id": "private_capsules",
+      686:             "name": "Private Capsules",
+      687:             "visibility": "private",
+      688:             "player_action": "leave_emotion_capsule",
+
+=== KEYWORD: private_capsules  match at line 685 ===
+      680:     private_mark_capacity = min(3, len(memory_anchors))
+      681:     local_legend_capacity = min(2, max(1, len(historical_echoes) or len(pois)))
+      682:     ritual_capacity = min(2, max(1, len([poi for poi in pois if poi.get("secret_slot")]) or 1))
+      683:     participation_modes = [
+      684:         {
+>>>   685:             "id": "private_capsules",
+      686:             "name": "Private Capsules",
+      687:             "visibility": "private",
+      688:             "player_action": "leave_emotion_capsule",
+      689:             "capacity_hint": private_mark_capacity,
+      690:             "status": "open" if private_mark_capacity else "limited",
+
+=== KEYWORD: street_legends  match at line 693 ===
+      688:             "player_action": "leave_emotion_capsule",
+      689:             "capacity_hint": private_mark_capacity,
+      690:             "status": "open" if private_mark_capacity else "limited",
+      691:         },
+      692:         {
+>>>   693:             "id": "street_legends",
+      694:             "name": "Street Legends",
+      695:             "visibility": "local_public",
+      696:             "player_action": "add_place_legend",
+      697:             "capacity_hint": local_legend_capacity,
+      698:             "status": "open",
+
+=== KEYWORD: repair_rituals  match at line 701 ===
+      696:             "player_action": "add_place_legend",
+      697:             "capacity_hint": local_legend_capacity,
+      698:             "status": "open",
+      699:         },
+      700:         {
+>>>   701:             "id": "repair_rituals",
+      702:             "name": "Repair Rituals",
+      703:             "visibility": "global",
+      704:             "player_action": "contribute_repair_trace",
+      705:             "capacity_hint": ritual_capacity,
+      706:             "status": "open" if comfort_level >= 0.3 else "fragile",
+
+=== KEYWORD: participation_modes  match at line 716 ===
+      711:         "writing_rights": {
+      712:             "private": ["emotion_capsule", "memory_anchor_note"],
+      713:             "local_public": ["place_legend", "route_note"],
+      714:             "global": ["repair_trace", "district_broadcast_vote"],
+      715:         },
+>>>   716:         "participation_modes": participation_modes,
+      717:         "memory_policy": {
+      718:             "district_memory_open": True,
+      719:             "retention_model": "layered_echo",
+      720:             "echo_sources": len(historical_echoes),
+      721:             "anchor_sources": len(memory_anchors),
+

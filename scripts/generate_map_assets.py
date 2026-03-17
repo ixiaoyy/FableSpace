@@ -145,9 +145,7 @@ def generate_image(api_token: str, prompt: str, size: str = "1024x1024") -> Opti
 def save_image(image_data: Optional[bytes], output_path: Path) -> bool:
     """Save image data to file."""
     if image_data is None:
-        output_path.parent.mkdir(parents=True, exist_ok=True)
-        output_path.write_text(f"Placeholder for {output_path.name}", encoding="utf-8")
-        print(f"    [placeholder] Created: {output_path.name}")
+        print(f"    [failed] No image data returned for {output_path.name}")
         return False
 
     try:

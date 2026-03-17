@@ -1,111 +1,147 @@
-# FableMap 当前任务清单（项目管理版）
+# FableMap 当前任务清单（当前有效版）
 
-## 目标判断
+## 当前阶段结论
 
-基于当前仓库文档与任务表，FableMap 现阶段最重要的主线已经不是继续堆地图表现层，而是完成“玩家写回世界”的最小闭环。
+FableMap 现阶段已经不再处于“验证地图能否显示”的阶段。
 
-当前最核心的推进顺序应为：
+当前工程已经具备：
 
-1. 统一世界写回协议
-2. 打通最小写回闭环
-3. 补齐可见性与治理边界
-4. 再进入历史深度、社区化与长期世界事件
+- 稳定的 `nearby -> world -> bundle / web` 基础闭环
+- [`fablemap/writeback.py`](../fablemap/writeback.py) 支持的最小世界写回实现
+- 浏览器内 2D 世界地图主舞台与基础交互层
+- FastAPI + React 的当前工程化前后端结构
+- 围绕写回治理、时间褶皱与 AI-native 编排方向的协议文档基础
+
+因此，当前主线应收束为：
+
+> **在不破坏稳定世界底座的前提下，先补齐“写回闭环可用性”，再进入 AI-native 世界编排层。**
 
 ---
 
-## 一、当前进行中
+## 当前最高优先级
 
-### 1. P5 · World Writeback Protocol v0.1
+### 1. P6 · 写回闭环前端接入与验证
 **状态：in_progress**
 
-目标：统一玩家行为如何进入事件流，并让世界切片第一次具备可持续写回能力。
+目标：让已存在的写回协议与后端能力，真正在前端主舞台中可触发、可见、可验证。
 
 当前重点：
-- 定义 `observe / dwell / mark` 三种最小行为
-- 统一 `event / target / effect / visibility` 结构
-- 打通 API、持久化与前端动作入口
-- 验证同一 slice 再次进入时仍能看到写回痕迹
+
+1. 在前端接入 `observe / dwell / mark` 三种动作入口
+2. 对接 `POST /api/world/event`
+3. 在 UI 中显示结构化状态变化，而不只是一次性提示
+4. 验证重新进入同一 slice 后仍能看到写回痕迹
+5. 为后续编排器消费事件流提供稳定输入
+
+关键参考：
+
+- [`docs/WORLD_WRITEBACK_PROTOCOL.md`](WORLD_WRITEBACK_PROTOCOL.md)
+- [`docs/WORLD_WRITEBACK_GOVERNANCE.md`](WORLD_WRITEBACK_GOVERNANCE.md)
+- [`docs/PLAYER_STATE.md`](PLAYER_STATE.md)
+- [`docs/AI_SHARED_TASKLIST.md`](AI_SHARED_TASKLIST.md)
 
 ### 2. D3 · 玩家参与感与城市神话共创主线收束
 **状态：in_progress**
 
-目标：把“玩家如何参与城市神话共创”整理成更明确的产品主线与展示入口，为后续写回协议提供叙事承接层。
+目标：把“玩家如何参与城市神话共创”整理成统一入口，并与写回协议、可见性边界、前端入口形成一条闭环主线。
 
 当前重点：
-- 收束已有共创数据块、入口面板与叙事线索
-- 明确玩家参与路径与世界反馈关系
-- 为后续社区化与地点共创能力提供产品层接口
+
+1. 收束当前共创入口、神话线索与参与面板的文档口径
+2. 明确哪些参与行为属于即时反馈，哪些属于持久写回
+3. 为 `private / local_public / global` 三层可见性提供产品语义解释
+4. 为后续轻社区、地点传说、命名权演化提供上游定义
+
+关键参考：
+
+- [`docs/WORLD_WRITEBACK_PROTOCOL.md`](WORLD_WRITEBACK_PROTOCOL.md)
+- [`docs/WORLD_WRITEBACK_GOVERNANCE.md`](WORLD_WRITEBACK_GOVERNANCE.md)
+- [`docs/TIME_FOLDS_PROTOCOL.md`](TIME_FOLDS_PROTOCOL.md)
 
 ---
 
-## 二、本周待做
+## 本周主线
 
-### P0：主线补位
+### P0：稳定底座与协议层补平
 
-#### Map Assets 主线补位（M1）
+#### A. 写回闭环补平
 
-1. 将 [`docs/MAP_ASSETS_PLAN.md`](docs/MAP_ASSETS_PLAN.md)、[`docs/MAP_ASSETS_GENERATION_GUIDE.md`](docs/MAP_ASSETS_GENERATION_GUIDE.md) 与 [`scripts/generate_map_assets.py`](scripts/generate_map_assets.py) 收束为统一主线入口
-2. 明确 Pack A / Pack B 的 scene、icons、tiles 输出规范与命名约定
-3. 为后续 [`M2`](docs/AI_SHARED_TASKLIST.md:53) 资源生成与 [`M3`](docs/AI_SHARED_TASKLIST.md:54) 验收 / 前端接入建立任务边界，避免协作重叠
+1. 完成前端 `observe / dwell / mark` 动作接入
+2. 统一前端事件 payload、反馈渲染与错误处理
+3. 验证文件持久化结果与回访可见性
+4. 补齐写回链路测试与最小回归说明
 
-#### Map Assets 资源生成与落盘（M2）
+#### B. D3 与协议口径收束
 
-1. 以 [`scripts/generate_map_assets.py`](scripts/generate_map_assets.py) 为批量生成入口，校准 Pack A / Pack B 的 prompts、输出路径与命名一致性
-2. 对齐 [`docs/MAP_ASSETS_GENERATION_GUIDE.md`](docs/MAP_ASSETS_GENERATION_GUIDE.md) 与 [`docs/LOCAL_GPU_MAP_ASSETS_GUIDE.md`](docs/LOCAL_GPU_MAP_ASSETS_GUIDE.md) 的执行说明，明确 API 路径与本地 GPU 路径
-3. 将生成结果稳定落盘到 [`fablemap/demo_assets/new_map_assets/`](fablemap/demo_assets/new_map_assets/)，为后续 [`M3`](docs/AI_SHARED_TASKLIST.md:54) 验收与前端接入提供可检查资产
+1. 保持 D3 作为“玩家如何进入世界写回系统”的产品入口
+2. 对齐 `D3 -> P5/P6 -> P3 -> P4` 的上游下游关系
+3. 避免再新增脱离协议层的零散参与功能
 
-### P0：必须优先完成
+### P0：AI-native 架构演进准备
 
-#### 技术方向监控（新增）
+#### AIO1 · 世界编排器协议定义
 
-1. **AI 技术实况跟踪**：定期了解最新 AI 研究进展（Genie 3、Sora、世界模型等）
-2. **各大厂 AI 方向分析**：跟踪 Google DeepMind、OpenAI、Anthropic 等的研究方向
-3. **技术路线验证**：确保 FableMap 的技术选型不会被快速替代，及时调整架构方向
-4. **竞品与趋势分析**：识别可能影响项目价值的技术突破，提前规划应对策略
+1. 基于 [`docs/AI_NATIVE_WORLD_ORCHESTRATION.md`](AI_NATIVE_WORLD_ORCHESTRATION.md) 与 [`docs/AIO1_WORLD_ORCHESTRATOR_PLAN.md`](AIO1_WORLD_ORCHESTRATOR_PLAN.md) 收束输入输出边界
+2. 与现有 `world_state / player_state / writeback_events / governance / time folds` 对齐
+3. 明确失败降级策略：AI 编排失败时回落到规则编排或静默降级
+4. 形成可供后端 service、前端消费与任务拆分使用的统一协议文档
 
-#### 世界写回协议闭环
+#### AIO2 · 镜头引擎协议准备
 
-5. 完成 `WORLD_WRITEBACK_PROTOCOL.md` 的收束与确认
-6. 定义 `observe / dwell / mark` 的统一事件结构
-7. 实现最小事件接口：`POST /api/world/event`
-8. 实现最小文件级持久化，至少保存：
-   - player state
-   - slice state
-   - place marks
-   - recent echoes
-9. 前端接入三种动作：
-   - observe
-   - dwell
-   - mark
-10. 在 UI 中显示状态变化结果，而不只是一次性提示
-11. 验证”重新进入同一 slice 后写回结果仍存在”
+1. 定义 `lens schema`
+2. 定义 `vibe_profile -> lens` 映射关系
+3. 明确镜头切换对资源包、文案口吻、可见性与事件权重的影响
 
-### P0.5：紧跟其后
+#### AIO3 / AIO4 / AIO5 / AIO6 · 暂不直接实现
 
-8. 推进 P3 写回权限与治理边界
-9. 定义 `private / local_public / global`
-10. 明确默认 visibility 与最小 AI 改写边界
+这些方向仍然重要，但当前更适合作为 AIO1 之后的拆分任务，而不是直接跳实现层：
+
+- 世界记忆图谱
+- 行为到意义编译器
+- 城市人格代理
+- Scene Capsules
 
 ---
 
-## 三、待排期
+## 当前进行中但不应喧宾夺主的工作
 
-### 社区化与共创层
+### M1 / M2 · 地图资源主线
+**状态：in_progress**
+
+地图资源与资产生成仍可继续推进，但应服从当前主线：
+
+- 不应把资源包建设重新抬升为项目唯一主轴
+- 资源层应服务于镜头系统、主舞台与确定性映射
+- 新资产规划不应绕开当前协议层与 AI-native 主线
+
+关键参考：
+
+- [`docs/MAP_ASSETS_PLAN.md`](MAP_ASSETS_PLAN.md)
+- [`docs/MAP_ASSETS_GENERATION_GUIDE.md`](MAP_ASSETS_GENERATION_GUIDE.md)
+- [`docs/MAP_ASSETS_FRONTEND_BASELINE.md`](MAP_ASSETS_FRONTEND_BASELINE.md)
+
+---
+
+## 待排期
+
+### 第一组：AI-native 中层能力
+
+1. AIO1.2 · 动态信号接入层
+2. AIO1.3 · 规则 / 事件编排引擎
+3. AIO2 · 镜头引擎协议与切换入口
+4. AIO3 · 世界记忆图谱
+5. AIO4 · 行为到意义编译器
+6. AIO5 · 城市人格代理
+7. AIO6 · 生成式场景胶囊规范
+
+### 第二组：依赖写回与编排层的体验扩展
 
 1. E1 · 都市精灵共同发现、互助与交换生态
 2. E2 · 公共地标修复任务与城市荣誉榜
 3. E3 · 玩家命名权、地点传说与地点气质演化
 4. E4 · 玩家据点、幽灵回放与城市身份系统
 
-### 历史深度层
-
-5. P4 · 历史深度 / 尘封之眼 / Time Folds 协议 v0.1
-
-说明：以上任务都应建立在 P5 + P3 已成立的基础上再推进，否则容易变成无统一协议支撑的表现层扩张。
-
----
-
-## 四、长期项
+### 第三组：长期世界能力
 
 1. F1 · 审美宪法投票与社区转义规则治理
 2. F2 · 现实行为输入与人为扰动接口
@@ -115,64 +151,42 @@
 
 ---
 
-## 五、当前依赖关系与阻塞判断
+## 明确不再作为当前主线的方向
 
-当前依赖关系非常明确：
+以下方向可以保留为参考，但不应继续占据当前任务中心：
 
-- `E1 ~ E4` 依赖 `P5 + P3`
-- `P4` 依赖 `P5 + P3`
-- 长期社区能力、历史沉淀与大型世界事件，都依赖最小写回闭环先跑通
+1. 单纯继续堆地图表现层
+2. 把 bundle 页面继续当作核心产品形态去扩写
+3. 继续以 Godot-first 叙事作为近期执行口径
+4. 在编排层与镜头引擎缺位时继续无限扩写图标包 / UI 面板
+5. 转向全 AI 视频流主世界
 
-因此当前真正的瓶颈不是地图还能不能更炫，而是：
+相关边界参考：
 
-- 玩家行为能否进入统一事件流
-- 地点状态能否被稳定写回
-- 世界是否会记住玩家做过什么
-- 这些变化下次回来是否仍然存在
-
----
-
-## 六、已完成、暂不作为当前追逐重点
-
-### Web-2D 主舞台
-- W1
-- W1a
-- W2
-- W3
-
-### 视觉转义层
-- V1
-- V2
-- V3
-
-### 参与感基础层
-- C1
-- C2
-- C3
-
-### 世界入口深化
-- D1
-- D2
-
-结论：地图骨架、2D 主舞台、视觉转义、移动、缩放、回声、家园等前置层已经具备较强基础。当前最需要补的是“演化能力”，不是继续堆叠表现层。
+- [`docs/ARCHITECTURE_PRINCIPLES.md`](ARCHITECTURE_PRINCIPLES.md)
+- [`docs/WHAT_NOT_TO_BUILD.md`](WHAT_NOT_TO_BUILD.md)
 
 ---
 
-## 七、建议的当前主线
+## 当前依赖关系判断
 
-现阶段建议团队只盯住一条核心主线：
+当前依赖关系应理解为：
 
-**P5 → P3**
+- `P6` 是近期最直接的工程闭环任务
+- `D3` 为写回入口与产品语义收束提供上游定义
+- `P3 / P4` 已完成协议基础，为后续实现提供边界
+- `AIO1` 是下一阶段最值得投入的协议核心
+- `E1-E4` 依赖 `P6 + AIO1`，不宜提前扩张
 
-展开为：
+换句话说，当前顺序更应是：
 
-1. 先完成写回协议
-2. 再打通最小写回闭环
-3. 再补治理边界
-4. 然后才进入社区化、历史深度与长期世界事件
+1. 先把写回闭环真正接入前端并验证
+2. 再收束 D3 的参与语义与产品入口
+3. 再定义世界编排器协议
+4. 最后再进入记忆、城市人格、轻社区与长期世界事件
 
 ---
 
-## 八、短期执行口号
+## 当前执行口号
 
-> 先让玩家第一次真正写回世界，并且下次回来还能看到它还记得。
+> **先让玩家真正写回世界，再让世界开始主动编排回应。**

@@ -41,6 +41,15 @@ def create_api_router(service: WebService) -> APIRouter:
     def post_world_event(event: dict = Body(...)) -> dict:
         return service.writeback_event_payload(event)
 
+    @router.post("/api/world/orchestrate")
+    def post_world_orchestrate(
+        slice_id: str = Body(...),
+        player_id: str = Body(...),
+        lat: float = Body(...),
+        lon: float = Body(...),
+    ) -> dict:
+        return service.orchestrate_world(slice_id, player_id, lat, lon)
+
     @router.get("/generated/{file_path:path}")
     def get_generated_file(file_path: str):
         return FileResponse(service.generated_file_path(file_path))

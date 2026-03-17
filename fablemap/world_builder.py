@@ -688,6 +688,7 @@ def _build_co_creation_layer(
             "player_action": "leave_emotion_capsule",
             "capacity_hint": private_mark_capacity,
             "status": "open" if private_mark_capacity else "limited",
+            "lens_hint": "hearth",
         },
         {
             "id": "street_legends",
@@ -696,6 +697,7 @@ def _build_co_creation_layer(
             "player_action": "add_place_legend",
             "capacity_hint": local_legend_capacity,
             "status": "open",
+            "lens_hint": "chronicle",
         },
         {
             "id": "repair_rituals",
@@ -704,6 +706,7 @@ def _build_co_creation_layer(
             "player_action": "contribute_repair_trace",
             "capacity_hint": ritual_capacity,
             "status": "open" if comfort_level >= 0.3 else "fragile",
+            "lens_hint": "oracle",
         },
     ]
     return {
