@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { getAssetIconSrc, getAssetPack } from './mapAssets/manifest.js'
 
 const ICON_MAP = {
   whispering_grove: '🌿',
@@ -138,6 +139,19 @@ function getIcon(fantasyType) {
   return ICON_MAP[fantasyType] || '◆'
 }
 
+function loadImage(src) {
+  return new Promise((resolve, reject) => {
+    if (!src) {
+      resolve(null)
+      return
+    }
+    const image = new Image()
+    image.onload = () => resolve(image)
+    image.onerror = reject
+    image.src = src
+  })
+}
+
 function getFactionColors(faction) {
   return FACTION_COLORS[faction] || null
 }
@@ -179,6 +193,7 @@ export default function WorldMap({ world, onPoiClick, activePoiId, familiarityMa
   const pois = world?.pois || []
   const vibe = region?.vibe_profile || 'quiet_rain'
   const palette = getPalette(vibe)
+  const assetPack = useMemo(() => getAssetPack(vibe), [vibe])
   const fam = familiarityMap || {}
 
   const tileGrid = map2d?.tile_grid || { columns: 32, rows: 24, tile_size: 16 }
@@ -221,33 +236,54 @@ export default function WorldMap({ world, onPoiClick, activePoiId, familiarityMa
     const canvas = canvasRef.current
     if (!canvas || !map2d) return
 
-    const ctx = canvas.getContext('2d')
-    const W = canvas.width
-    const H = canvas.height
-    const cellW = W / tileGrid.columns
-    const cellH = H / tileGrid.rows
-    const roadOccupancy = buildRoadOccupancy(roadNodes)
+    let disposed = false
 
-    const backgroundGradient = ctx.createLinearGradient(0, 0, 0, H)
-    backgroundGradient.addColorStop(0, '#f8eedb')
-    backgroundGradient.addColorStop(0.18, palette.glow)
-    backgroundGradient.addColorStop(0.45, palette.bg)
-    backgroundGradient.addColorStop(1, '#08111d')
-    ctx.fillStyle = backgroundGradient
-    ctx.fillRect(0, 0, W, H)
+    async function drawWorld() {
+      const ctx = canvas.getContext('2d')
+      const W = canvas.width
+      const H = canvas.height
+      const cellW = W / tileGrid.columns
+      const cellH = H / tileGrid.rows
+      const roadOccupancy = buildRoadOccupancy(roadNodes)
 
-    const sunGlow = ctx.createRadialGradient(W * 0.5, H * 0.14, 24, W * 0.5, H * 0.14, W * 0.46)
-    sunGlow.addColorStop(0, 'rgba(255,247,220,0.92)')
-    sunGlow.addColorStop(0.38, `${palette.glow}55`)
-    sunGlow.addColorStop(1, 'transparent')
-    ctx.fillStyle = sunGlow
-    ctx.fillRect(0, 0, W, H)
+      const sceneImage = await loadImage(assetPack.scene).catch(() => null)
+      const iconEntries = await Promise.all(
+        Object.entries(ICON_MAP).map(async ([fantasyType]) => {
+          const src = getAssetIconSrc(vibe, fantasyType)
+          const image = await loadImage(src).catch(() => null)
+          return [fantasyType, image]
+        }),
+      )
+      if (disposed) return
+      const assetIcons = new Map(iconEntries)
 
-    const vignette = ctx.createRadialGradient(W * 0.5, H * 0.42, 90, W * 0.5, H * 0.42, Math.max(W, H) * 0.78)
-    vignette.addColorStop(0, 'transparent')
-    vignette.addColorStop(1, 'rgba(11,16,24,0.42)')
-    ctx.fillStyle = vignette
-    ctx.fillRect(0, 0, W, H)
+      const backgroundGradient = ctx.createLinearGradient(0, 0, 0, H)
+      backgroundGradient.addColorStop(0, '#f8eedb')
+      backgroundGradient.addColorStop(0.18, palette.glow)
+      backgroundGradient.addColorStop(0.45, palette.bg)
+      backgroundGradient.addColorStop(1, '#08111d')
+      ctx.fillStyle = backgroundGradient
+      ctx.fillRect(0, 0, W, H)
+
+      if (sceneImage) {
+        ctx.save()
+        ctx.globalAlpha = 0.32
+        ctx.drawImage(sceneImage, 0, 0, W, H)
+        ctx.restore()
+      }
+
+      const sunGlow = ctx.createRadialGradient(W * 0.5, H * 0.14, 24, W * 0.5, H * 0.14, W * 0.46)
+      sunGlow.addColorStop(0, 'rgba(255,247,220,0.92)')
+      sunGlow.addColorStop(0.38, `${palette.glow}55`)
+      sunGlow.addColorStop(1, 'transparent')
+      ctx.fillStyle = sunGlow
+      ctx.fillRect(0, 0, W, H)
+
+      const vignette = ctx.createRadialGradient(W * 0.5, H * 0.42, 90, W * 0.5, H * 0.42, Math.max(W, H) * 0.78)
+      vignette.addColorStop(0, 'transparent')
+      vignette.addColorStop(1, 'rgba(11,16,24,0.42)')
+      ctx.fillStyle = vignette
+      ctx.fillRect(0, 0, W, H)
 
     ctx.strokeStyle = palette.grid
     ctx.lineWidth = 1
@@ -458,11 +494,17 @@ export default function WorldMap({ world, onPoiClick, activePoiId, familiarityMa
       ctx.roundRect(pos.x - cardWidth / 2, pos.y - cardHeight / 2, cardWidth, cardHeight, 7)
       ctx.stroke()
 
-      ctx.font = isActive ? '16px serif' : '14px serif'
-      ctx.textAlign = 'center'
-      ctx.textBaseline = 'middle'
-      ctx.fillStyle = palette.bg
-      ctx.fillText(getIcon(poi?.fantasy_type), pos.x, pos.y - 1)
+      const iconImage = assetIcons.get(poi?.fantasy_type)
+      if (iconImage) {
+        const iconSize = isActive ? 22 : 18
+        ctx.drawImage(iconImage, pos.x - iconSize / 2, pos.y - iconSize / 2 - 1, iconSize, iconSize)
+      } else {
+        ctx.font = isActive ? '16px serif' : '14px serif'
+        ctx.textAlign = 'center'
+        ctx.textBaseline = 'middle'
+        ctx.fillStyle = palette.bg
+        ctx.fillText(getIcon(poi?.fantasy_type), pos.x, pos.y - 1)
+      }
     })
 
     rankedNodes.slice(0, 6).forEach((node) => {
@@ -500,7 +542,13 @@ export default function WorldMap({ world, onPoiClick, activePoiId, familiarityMa
       ctx.lineWidth = 1.5
       ctx.stroke()
     })
-  }, [map2d, tileGrid, roadNodes, poiNodes, rankedNodes, spawnId, palette, hovered, activePoiId, ripples, poiMap, fam, landmarkNodes])
+    }
+
+    drawWorld()
+    return () => {
+      disposed = true
+    }
+  }, [map2d, tileGrid, roadNodes, poiNodes, rankedNodes, spawnId, palette, hovered, activePoiId, ripples, poiMap, fam, landmarkNodes, assetPack, vibe])
 
   useEffect(() => {
     if (ripples.length === 0) return
