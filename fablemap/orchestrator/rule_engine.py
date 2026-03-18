@@ -6,6 +6,8 @@ from ..dynamic_signals import get_time_signals, get_mock_signals
 from ..district_classifier import identify_district_type, get_district_mood
 from ..lens_engine import LensEngine, build_vibe_profile
 from ..behavior_compiler import BehaviorCompiler, build_trace
+from ..city_persona import CityPersonaAgent
+from ..scene_capsule import SceneCapsuleGenerator, CapsuleInput
 
 class RuleBasedOrchestrator:
     def __init__(self):
@@ -55,6 +57,30 @@ class RuleBasedOrchestrator:
             trace = build_trace(player_state.get("player_id", "unknown"), raw_events)
             meaning_vector = BehaviorCompiler().compile(trace)
 
+        # Generate city persona from meaning vector
+        city_persona = None
+        if meaning_vector is not None:
+            city_persona = CityPersonaAgent().generate(meaning_vector)
+
+        # Generate scene capsule from current orchestration context
+        capsule_input = CapsuleInput(
+            player_id=player_state.get("player_id", "unknown"),
+            poi_id=world_state.get("center_poi") or (pois[0].get("id") if pois else "unknown"),
+            district_type=district_type,
+            persona=city_persona,
+            lens=lens_output,
+            dwell_seconds=float(player_state.get("dwell_seconds", 0.0)),
+            visit_count=int(player_state.get("visit_count", 1)),
+            writeback_count=int(player_state.get("writeback_count", 0)),
+            mark_count=int(player_state.get("mark_count", 0)),
+            echo_count=int(player_state.get("echo_count", 0)),
+            event_types=[event.type for event in events],
+            visibility=str(player_state.get("capsule_visibility", "private")),
+        )
+        scene_capsule = SceneCapsuleGenerator().generate(capsule_input)
+
+        fallback_triggered = bool(scene_capsule and scene_capsule.is_fallback)
+
         return OrchestratorOutput(
             event_suggestions=events,
             poi_ranking=poi_ranking,
@@ -62,8 +88,10 @@ class RuleBasedOrchestrator:
             observer_effect=observer_effect,
             lens_output=lens_output,
             meaning_vector=meaning_vector,
+            city_persona=city_persona,
+            scene_capsule=scene_capsule,
             confidence_score=0.7,
-            fallback_triggered=False,
+            fallback_triggered=fallback_triggered,
             stage="orchestrate",
             status="completed",
             started_at=start_time,

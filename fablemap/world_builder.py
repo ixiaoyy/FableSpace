@@ -4,6 +4,7 @@ import hashlib
 import json
 from pathlib import Path
 from typing import Any
+import unicodedata
 
 from .overpass import fetch_overpass_data
 
@@ -279,9 +280,11 @@ def build_world(
     world_id = f"world-{_digest(f'{lat:.5f}', f'{lon:.5f}', radius)[:12]}"
     stable_seed = seed or _digest(world_id, radius)[:12]
 
-    pois = _build_pois(elements, fallback)
+    prefer_zh = _should_prefer_simplified_chinese(lat=lat, lon=lon, elements=elements)
+
+    pois = _build_pois(elements, fallback, prefer_zh=prefer_zh)
     roads = _build_roads(elements, fallback)
-    landmarks = _build_landmarks(elements, fallback)
+    landmarks = _build_landmarks(elements, fallback, prefer_zh=prefer_zh)
     theme = _pick_theme(pois)
     dominant_faction = _pick_faction(theme, pois)
     commerce_flux = round(min(1.0, len([p for p in pois if p["faction_alignment"] == "trade_guild"]) * 0.2 + len(roads) * 0.08), 2)
@@ -432,7 +435,12 @@ def write_world(output_path: str | Path, world: dict[str, Any]) -> None:
     path.write_text(json.dumps(world, ensure_ascii=False, indent=2), encoding="utf-8")
 
 
-def _build_pois(elements: list[dict[str, Any]], fallback: dict[str, float]) -> list[dict[str, Any]]:
+def _build_pois(
+    elements: list[dict[str, Any]],
+    fallback: dict[str, float],
+    *,
+    prefer_zh: bool = False,
+) -> list[dict[str, Any]]:
     pois: list[dict[str, Any]] = []
     for element in elements:
         tags = element.get("tags") or {}
@@ -440,7 +448,7 @@ def _build_pois(elements: list[dict[str, Any]], fallback: dict[str, float]) -> l
         if mapping is None:
             continue
         poi_id = f"{element.get('type', 'item')}-{element.get('id', 'unknown')}"
-        real_name = _preferred_real_name(tags)
+        real_name = _preferred_real_name(tags, prefer_zh=prefer_zh)
         real_type = _infer_osm_type(tags)
         district_role = _district_role(mapping["fantasy_type"], real_type)
         pois.append(
@@ -545,7 +553,12 @@ def _build_roads(elements: list[dict[str, Any]], fallback: dict[str, float]) -> 
     return sorted(roads, key=lambda item: item["id"])[:12]
 
 
-def _build_landmarks(elements: list[dict[str, Any]], fallback: dict[str, float]) -> list[dict[str, Any]]:
+def _build_landmarks(
+    elements: list[dict[str, Any]],
+    fallback: dict[str, float],
+    *,
+    prefer_zh: bool = False,
+) -> list[dict[str, Any]]:
     landmarks = []
     for element in elements:
         tags = element.get("tags") or {}
@@ -554,7 +567,7 @@ def _build_landmarks(elements: list[dict[str, Any]], fallback: dict[str, float])
         landmarks.append(
             {
                 "id": f"landmark-{element.get('type', 'item')}-{element.get('id', 'unknown')}",
-                "name": _preferred_real_name(tags) or "Unnamed Landmark",
+                "name": _preferred_real_name(tags, prefer_zh=prefer_zh) or "Unnamed Landmark",
                 "type": tags.get("tourism") or tags.get("historic"),
                 "description": "A place where the district's official story feels slightly unstable.",
                 "visual_hint": {
@@ -855,12 +868,133 @@ def _infer_osm_type(tags: dict[str, Any]) -> str:
     return "unknown"
 
 
-def _preferred_real_name(tags: dict[str, Any]) -> str | None:
-    for key in ("name:zh-Hans", "name:zh", "official_name:zh", "alt_name:zh", "name"):
+def _preferred_real_name(tags: dict[str, Any], *, prefer_zh: bool = False) -> str | None:
+    for key in ("name:zh-Hans", "name:zh", "official_name:zh", "alt_name:zh"):
         value = tags.get(key)
         if isinstance(value, str) and value.strip():
             return value.strip()
-    return None
+
+    base_name = tags.get("name")
+    if not (isinstance(base_name, str) and base_name.strip()):
+        return None
+
+    normalized_name = base_name.strip()
+    if prefer_zh:
+        translated_name = _translate_name_to_simplified_chinese(normalized_name)
+        if translated_name:
+            return translated_name
+    return normalized_name
+
+
+def _should_prefer_simplified_chinese(*, lat: float, lon: float, elements: list[dict[str, Any]]) -> bool:
+    if 18.0 <= lat <= 54.5 and 73.0 <= lon <= 135.5:
+        return True
+
+    country_keys = ("addr:country", "country", "ISO3166-1", "ISO3166-1:alpha2")
+    for element in elements:
+        tags = element.get("tags") or {}
+        for key in country_keys:
+            value = tags.get(key)
+            if isinstance(value, str) and value.strip().upper() in {"CN", "CHN", "中国", "中华人民共和国"}:
+                return True
+    return False
+
+
+def _translate_name_to_simplified_chinese(name: str) -> str | None:
+    if _contains_cjk(name):
+        return _to_simplified_chinese(name)
+
+    normalized = name.casefold()
+    punctuation_map = str.maketrans({"&": " ", "-": " ", "_": " ", "/": " "})
+    tokens = [token for token in normalized.translate(punctuation_map).split() if token]
+    if not tokens:
+        return None
+
+    direct_map = {
+        "hospital": "医院",
+        "clinic": "诊所",
+        "pharmacy": "药店",
+        "drugstore": "药店",
+        "park": "公园",
+        "garden": "花园",
+        "school": "学校",
+        "college": "学院",
+        "university": "大学",
+        "bank": "银行",
+        "restaurant": "餐厅",
+        "cafe": "咖啡馆",
+        "coffee": "咖啡",
+        "library": "图书馆",
+        "gym": "健身房",
+        "fitness": "健身",
+        "police": "警察局",
+        "station": "站",
+        "hotel": "酒店",
+        "mall": "商场",
+        "market": "市场",
+        "shop": "商店",
+        "supermarket": "超市",
+        "store": "商店",
+        "tower": "塔",
+        "gate": "门",
+        "bridge": "桥",
+        "road": "路",
+        "street": "街",
+        "avenue": "大道",
+        "plaza": "广场",
+        "center": "中心",
+        "centre": "中心",
+        "building": "大厦",
+        "museum": "博物馆",
+        "temple": "寺",
+    }
+    directional_map = {
+        "east": "东",
+        "west": "西",
+        "south": "南",
+        "north": "北",
+        "central": "中央",
+    }
+
+    translated_tokens = [direct_map.get(token, directional_map.get(token)) for token in tokens]
+    recognized = [token for token in translated_tokens if token]
+    if not recognized:
+        return None
+
+    if len(recognized) == 1 and len(tokens) > 1:
+        return recognized[0]
+    return "".join(recognized)
+
+
+def _contains_cjk(value: str) -> bool:
+    return any("CJK" in unicodedata.name(char, "") for char in value)
+
+
+def _to_simplified_chinese(value: str) -> str:
+    traditional_to_simplified = str.maketrans(
+        {
+            "臺": "台",
+            "門": "门",
+            "廣": "广",
+            "場": "场",
+            "醫": "医",
+            "圖": "图",
+            "書": "书",
+            "館": "馆",
+            "樓": "楼",
+            "學": "学",
+            "體": "体",
+            "藝": "艺",
+            "藥": "药",
+            "處": "处",
+            "國": "国",
+            "號": "号",
+            "樂": "乐",
+            "區": "区",
+            "會": "会",
+        }
+    )
+    return value.translate(traditional_to_simplified)
 
 
 def _fantasy_name(real_name: str | None, suffix: str, fantasy_type: str) -> str:

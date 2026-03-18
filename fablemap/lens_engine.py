@@ -30,15 +30,15 @@ class LensSchema:
 @dataclass
 class LensOutput:
     lens_id: str
-    label: str
-    tone: str
-    asset_pack_hint: str
-    visibility_bias: str
-    event_weight_modifiers: Dict[str, float]
-    ui_filter_hint: str
-    trigger_reason: str
-    confidence: float
-    fallback: bool
+    label: str = ""
+    tone: str = ""
+    asset_pack_hint: str = ""
+    visibility_bias: str = "private"
+    event_weight_modifiers: Dict[str, float] = field(default_factory=dict)
+    ui_filter_hint: str = ""
+    trigger_reason: str = ""
+    confidence: float = 0.0
+    fallback: bool = False
 
 
 _LENS_CATALOG: Dict[str, LensSchema] = {
@@ -145,8 +145,8 @@ class LensEngine:
         if vibe.district_type in ("park", "residential") and vibe.time_of_day in ("morning", "afternoon"):
             return "hearth", "park_residential_daytime", 0.82
 
-        # Rule 7: veil - night + industrial/mixed
-        if vibe.time_of_day == "night" and vibe.district_type in ("industrial", "mixed", "commercial"):
+        # Rule 7: veil - night + industrial/mixed + non-trivial density
+        if vibe.time_of_day == "night" and vibe.district_type in ("industrial", "mixed", "commercial") and vibe.observer_density >= 0.2:
             return "veil", "night_non_residential", 0.78
 
         # Rule 8: drift - night + low density + non-historic

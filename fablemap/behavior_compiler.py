@@ -97,7 +97,7 @@ class BehaviorCompiler:
     def compile(self, trace: BehaviorTrace) -> MeaningVector:
         events = trace.events
         if not events:
-            return MeaningVector(player_id=trace.player_id)
+            return MeaningVector(player_id=trace.player_id, myth_entry="unnamed_drifter")
 
         counts: Dict[str, int] = {}
         district_counts: Dict[str, int] = {}

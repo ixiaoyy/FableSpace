@@ -114,6 +114,68 @@ class WorldBuilderTests(unittest.TestCase):
         self.assertEqual(world["region"]["name"], "Around 漫游罗盘")
         self.assertEqual(world["landmarks"][0]["name"], "钟门")
 
+    def test_build_world_translates_plain_english_names_in_china_to_simplified_chinese(self) -> None:
+        world = build_world(
+            31.2304,
+            121.4737,
+            300,
+            source_data={
+                "elements": [
+                    {
+                        "type": "node",
+                        "id": 301,
+                        "lat": 31.2305,
+                        "lon": 121.4738,
+                        "tags": {
+                            "amenity": "hospital",
+                            "name": "East Hospital",
+                        },
+                    },
+                    {
+                        "type": "node",
+                        "id": 302,
+                        "lat": 31.2306,
+                        "lon": 121.4739,
+                        "tags": {
+                            "tourism": "attraction",
+                            "name": "South Gate",
+                        },
+                    },
+                ]
+            },
+            provider="fixture",
+        )
+        hospital = next(poi for poi in world["pois"] if poi["id"] == "node-301")
+        self.assertEqual(hospital["real_name"], "东医院")
+        self.assertEqual(hospital["fantasy_name"], "东医院 Sanctum")
+        self.assertEqual(world["region"]["name"], "Around 东医院")
+        self.assertEqual(world["landmarks"][0]["name"], "南门")
+
+    def test_build_world_keeps_non_china_english_names_without_translation(self) -> None:
+        world = build_world(
+            35.6580,
+            139.7016,
+            300,
+            source_data={
+                "elements": [
+                    {
+                        "type": "node",
+                        "id": 401,
+                        "lat": 35.6581,
+                        "lon": 139.7017,
+                        "tags": {
+                            "amenity": "hospital",
+                            "name": "East Hospital",
+                        },
+                    }
+                ]
+            },
+            provider="fixture",
+        )
+        hospital = next(poi for poi in world["pois"] if poi["id"] == "node-401")
+        self.assertEqual(hospital["real_name"], "East Hospital")
+        self.assertEqual(hospital["fantasy_name"], "East Hospital Sanctum")
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -1490,6 +1490,77 @@ export default function App() {
                         <p className="writeback-visibility-summary">等待行为轨迹输入。第一次写回后，这里会把事件流编译成更高层的玩家角色倾向。</p>
                       )}
                     </div>
+
+                    {/* AIO5 · 城市人格 */}
+                    <div className="behavior-insight-panel">
+                      <div className="writeback-visibility-header behavior-insight-header">
+                        <div>
+                          <p className="mini-label">AIO5 · 城市人格</p>
+                          <h3>城市对你的持续人格回应</h3>
+                        </div>
+                        {behaviorInsights?.city_persona && (
+                          <span className="writeback-persistence-badge">{behaviorInsights.city_persona.emotional_tone}</span>
+                        )}
+                      </div>
+                      {behaviorInsights?.city_persona ? (
+                        <>
+                          <p className="writeback-visibility-summary">
+                            {behaviorInsights.city_persona.greeting}
+                          </p>
+                          <div className="behavior-score-grid">
+                            <article className="behavior-score-card">
+                              <strong>称谓</strong>
+                              <span>{behaviorInsights.city_persona.address}</span>
+                            </article>
+                            <article className="behavior-score-card">
+                              <strong>回应偏好</strong>
+                              <span>{behaviorInsights.city_persona.response_bias}</span>
+                            </article>
+                            <article className="behavior-score-card">
+                              <strong>信任度</strong>
+                              <span>{behaviorInsights.city_persona.trust_level}</span>
+                            </article>
+                          </div>
+                          {behaviorInsights.city_persona.persona_tags?.length > 0 && (
+                            <div className="behavior-action-summary">
+                              {behaviorInsights.city_persona.persona_tags.map((tag) => (
+                                <span key={tag} className="d3-entry-pill">{tag}</span>
+                              ))}
+                            </div>
+                          )}
+                        </>
+                      ) : (
+                        <p className="writeback-visibility-summary">城市尚未对你形成人格印象。完成第一次写回后，这里会显示城市对你的称谓与情绪倾向。</p>
+                      )}
+                    </div>
+
+                    {/* AIO6 · 场景胶囊 */}
+                    {behaviorInsights?.scene_capsule && (
+                      <div className="scene-capsule-panel">
+                        <div className="scene-capsule-header">
+                          <div>
+                            <p className="mini-label">AIO6 · 场景胶囊 · {behaviorInsights.scene_capsule.capsule_type}</p>
+                            <h3 className="scene-capsule-title">{behaviorInsights.scene_capsule.title || '城市低语'}</h3>
+                          </div>
+                          <span className="scene-capsule-type-badge">{behaviorInsights.scene_capsule.visibility}</span>
+                        </div>
+                        <p className="scene-capsule-narrative">
+                          {behaviorInsights.scene_capsule.narrative || behaviorInsights.scene_capsule.narrative_fragment}
+                        </p>
+                        {behaviorInsights.scene_capsule.summary && (
+                          <p className="writeback-visibility-summary muted">{behaviorInsights.scene_capsule.summary}</p>
+                        )}
+                        <div className="d3-entry-pills">
+                          <span className="d3-entry-pill">asset · {behaviorInsights.scene_capsule.asset_pack_hint || behaviorInsights.scene_capsule.asset_hint || '-'}</span>
+                          <span className="d3-entry-pill">render · {behaviorInsights.scene_capsule.render_mode || 'toast'}</span>
+                          <span className="d3-entry-pill">ttl · {behaviorInsights.scene_capsule.ttl_seconds ?? behaviorInsights.scene_capsule.decay_turns ?? '-'}</span>
+                          {behaviorInsights.scene_capsule.is_fallback && (
+                            <span className="d3-entry-pill muted">fallback</span>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
                   </div>
                 </div>
               ) : (

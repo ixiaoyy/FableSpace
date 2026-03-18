@@ -66,8 +66,8 @@
 - `AIO2` · `done` · 镜头引擎 / Lens Engine 协议：定义 `lens schema`、`vibe_profile -> lens` 映射、镜头切换时的资源包 / 文案 / 可见性 / 事件权重规则。变更记录：[`docs/changes/2026-03-17-aio2-lens-engine-complete.md`](changes/2026-03-17-aio2-lens-engine-complete.md)。
 - `AIO3` · `done` · 世界记忆图谱：设计玩家、POI、zone、route、echo、历史片段与阵营关系的统一记忆索引结构。变更记录：[`docs/changes/2026-03-17-aio3-memory-graph-complete.md`](changes/2026-03-17-aio3-memory-graph-complete.md)。
 - `AIO4` · `done` · 行为到意义编译器：把连续行为模式编译成高阶世界含义，为个性化反馈与私人神话层提供中间层。五维语义向量（explorer/chronicler/restorer/recluse/resonant）+ myth_entry 映射，集成至编排器。变更记录：[`docs/changes/2026-03-17-aio4-behavior-compiler-complete.md`](changes/2026-03-17-aio4-behavior-compiler-complete.md)。
-- `AIO5` · `planned` · 城市人格代理：定义城市如何基于玩家路径、停留、写回与回访形成持续人格与回应。
-- `AIO6` · `planned` · 生成式场景胶囊规范：定义局部生成式表现层的触发条件、输入结构、输出格式与失败降级边界。
+- `AIO5` · `done` · 城市人格代理：基于 MeaningVector 生成城市对玩家的持续人格回应（称谓/情绪倾向/问候语/回应偏好/信任度），六种人格配置，EMA 滑动更新，集成至编排器。变更记录：[`docs/changes/2026-03-17-aio5-city-persona-complete.md`](changes/2026-03-17-aio5-city-persona-complete.md)。
+- `AIO6` · `done` · 生成式场景胶囊：定义局部生成式表现层的触发条件、输入结构、输出格式与失败降级边界。四种触发规则、六种胶囊类型、三级可见性、叙事模板，集成至编排器。变更记录：[`docs/changes/2026-03-18-aio6-scene-capsule-complete.md`](changes/2026-03-18-aio6-scene-capsule-complete.md)。
 
 ---
 

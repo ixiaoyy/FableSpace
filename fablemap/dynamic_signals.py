@@ -40,14 +40,34 @@ def get_time_signals() -> DynamicSignals:
     )
 
 def get_mock_signals(slice_id: str) -> DynamicSignals:
-    """Generate deterministic mock signals for testing"""
-    seed = hash(slice_id) % 100
+    """Generate deterministic mock signals for testing."""
+    normalized = (slice_id or "default").lower()
+
+    if "night" in normalized:
+        time_of_day = "night"
+    elif "evening" in normalized:
+        time_of_day = "evening"
+    elif "afternoon" in normalized:
+        time_of_day = "afternoon"
+    else:
+        seed = sum(ord(ch) for ch in normalized) % 100
+        time_of_day = "evening" if seed > 50 else "morning"
+
+    if "rain" in normalized or "storm" in normalized:
+        weather = "rainy"
+    elif "fog" in normalized or "mist" in normalized:
+        weather = "foggy"
+    else:
+        seed = sum(ord(ch) for ch in normalized) % 100
+        weather = "sunny" if seed < 70 else "rainy"
+
+    seed = sum(ord(ch) for ch in normalized) % 100
 
     return DynamicSignals(
-        time_of_day="evening" if seed > 50 else "morning",
+        time_of_day=time_of_day,
         day_of_week="friday" if seed > 70 else "monday",
-        is_holiday=seed > 90,
-        weather="sunny" if seed < 70 else "rainy",
+        is_holiday=seed > 90 or "holiday" in normalized or "festival" in normalized,
+        weather=weather,
         traffic_level=0.3 + (seed % 50) / 100,
         crowd_density=0.2 + (seed % 60) / 100,
     )

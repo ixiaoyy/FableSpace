@@ -71,7 +71,7 @@ class ApiTests(unittest.TestCase):
 
         self.assertIn('type="module" src="/src/main.jsx"', html)
         self.assertIn("ReactDOM.createRoot", main_js)
-        self.assertIn("World writeback MVP", app_js)
+        self.assertIn("Submit writeback event", app_js)
 
     def test_api_server_generates_fixture_preview(self) -> None:
         with TemporaryDirectory() as tmpdir:
@@ -189,8 +189,118 @@ class ApiTests(unittest.TestCase):
             "mark payload.tag must be one of safe, uncanny, warm_corner, return_again, rain_friendly",
         )
 
+    def test_api_server_orchestrate_returns_scene_capsule_payload(self) -> None:
+        with TemporaryDirectory() as tmpdir:
+            output_root = Path(tmpdir) / ".fablemap-api"
+            app = create_app(
+                output_root=output_root,
+                fixture_file=FIXTURE_PATH,
+                frontend_root=FRONTEND_ROOT,
+            )
+            with TestClient(app) as client:
+                response = client.post(
+                    "/api/world/orchestrate",
+                    json={
+                        "slice_id": "memory_night_festival",
+                        "player_id": "player_local",
+                        "lat": 35.6580,
+                        "lon": 139.7016,
+                    },
+                )
+                payload = response.json()
 
-class WebServiceTests(unittest.TestCase):
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("observer_effect", payload)
+        self.assertIn("events", payload)
+        self.assertIn("broadcasts", payload)
+        self.assertIn("lens_output", payload)
+        self.assertIn("scene_capsule", payload)
+        self.assertIsNotNone(payload["scene_capsule"])
+        self.assertIn(payload["scene_capsule"]["capsule_type"], {
+            "memory_reveal",
+            "dwell_aura",
+            "anomaly_glimpse",
+            "persona_whisper",
+            "legend_fragment",
+            "broadcast_echo",
+            "vision",
+            "echo",
+            "ritual",
+            "whisper",
+            "rift",
+        })
+        self.assertTrue(payload["scene_capsule"]["title"])
+        self.assertTrue(payload["scene_capsule"]["narrative"])
+        self.assertIn("text_blocks", payload["scene_capsule"])
+        self.assertIn("visual_hints", payload["scene_capsule"])
+        self.assertIn("interaction_hooks", payload["scene_capsule"])
+        self.assertIn("fallback_triggered", payload)
+
+
+    def test_api_server_writeback_accumulates_memory_graph_state(self) -> None:
+        """AIO3: repeated writeback events accumulate real visit_count/dwell in behavior_insights"""
+        with TemporaryDirectory() as tmpdir:
+            output_root = Path(tmpdir) / ".fablemap-api"
+            app = create_app(
+                output_root=output_root,
+                fixture_file=FIXTURE_PATH,
+                frontend_root=FRONTEND_ROOT,
+            )
+            with TestClient(app) as client:
+                # First observe
+                r1 = client.post(
+                    "/api/world/event",
+                    json={
+                        "event_type": "observe",
+                        "player_id": "player_local",
+                        "visibility": "private",
+                        "target": {
+                            "target_type": "poi",
+                            "target_id": "poi_aio3_test",
+                            "slice_id": "slice_aio3",
+                        },
+                        "payload": {},
+                        "source": {"client": "test", "surface": "api_test", "version": "v0.1"},
+                        "context": {"current_zone_id": "zone_aio3", "nearest_poi_id": "poi_aio3_test"},
+                    },
+                )
+                # Second dwell
+                r2 = client.post(
+                    "/api/world/event",
+                    json={
+                        "event_type": "dwell",
+                        "player_id": "player_local",
+                        "visibility": "private",
+                        "player_state": {"clarity": 10.0},
+                        "target": {
+                            "target_type": "poi",
+                            "target_id": "poi_aio3_test",
+                            "slice_id": "slice_aio3",
+                        },
+                        "payload": {},
+                        "source": {"client": "test", "surface": "api_test", "version": "v0.1"},
+                        "context": {"current_zone_id": "zone_aio3", "nearest_poi_id": "poi_aio3_test"},
+                    },
+                )
+
+        p1 = r1.json()
+        p2 = r2.json()
+        self.assertEqual(r1.status_code, 200)
+        self.assertEqual(r2.status_code, 200)
+
+        bi1 = p1["behavior_insights"]
+        bi2 = p2["behavior_insights"]
+
+        # visit_count accumulates across events
+        self.assertGreaterEqual(bi2["visit_count"], bi1["visit_count"])
+        # dwell event writes total_dwell_seconds into insights
+        self.assertGreater(bi2["total_dwell_seconds"], 0.0)
+        # mark_count present
+        self.assertIn("mark_count", bi2)
+        self.assertIn("echo_count", bi2)
+
+
+
     def test_frontend_static_dir_prefers_dist_when_available(self) -> None:
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)

@@ -4,6 +4,8 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from ..lens_engine import LensOutput
 from ..behavior_compiler import MeaningVector
+from ..city_persona import CityPersona
+from ..scene_capsule import CapsuleOutput
 
 @dataclass
 class ObserverEffect:
@@ -31,6 +33,8 @@ class OrchestratorOutput:
 
     lens_output: Optional[LensOutput] = None
     meaning_vector: Optional[MeaningVector] = None
+    city_persona: Optional[CityPersona] = None
+    scene_capsule: Optional[CapsuleOutput] = None
 
     # Task metadata (waoowaoo-inspired)
     stage: str = "orchestrate"

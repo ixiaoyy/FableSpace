@@ -1079,6 +1079,91 @@ button:disabled {
   gap: 8px;
 }
 
+/* AIO5 城市人格面板 */
+.city-persona-panel {
+  padding: 14px;
+  border-radius: 16px;
+  border: 1px solid rgba(56, 130, 180, 0.18);
+  background: linear-gradient(180deg, rgba(240, 248, 255, 0.96), rgba(225, 240, 254, 0.94));
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.city-persona-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.city-persona-card {
+  padding: 12px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(56, 130, 180, 0.12);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.city-persona-card strong {
+  color: #1e4d7a;
+  font-size: 13px;
+}
+
+.city-persona-card span {
+  color: #2563a8;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+/* AIO6 场景胶囊面板 */
+.scene-capsule-panel {
+  padding: 16px 18px;
+  border-radius: 16px;
+  border: 1px solid rgba(99, 160, 100, 0.22);
+  background: linear-gradient(180deg, rgba(240, 253, 244, 0.97), rgba(220, 246, 224, 0.95));
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.scene-capsule-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.scene-capsule-type-badge {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 3px 10px;
+  border-radius: 99px;
+  background: rgba(34, 120, 50, 0.12);
+  color: #166534;
+  border: 1px solid rgba(34, 120, 50, 0.18);
+}
+
+.scene-capsule-narrative {
+  font-size: 15px;
+  line-height: 1.7;
+  color: #14532d;
+  margin: 0;
+  font-style: italic;
+}
+
+.scene-capsule-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-size: 12px;
+  color: #166534;
+  opacity: 0.75;
+}
+
 .shared-task-card--gen {
   grid-column: 1 / -1;
   min-height: auto;
