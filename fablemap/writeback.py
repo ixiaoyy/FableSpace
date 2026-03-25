@@ -227,6 +227,7 @@ def _apply_event(
     target_bucket: dict[str, Any],
 ) -> dict[str, Any]:
     event_type = event["event_type"]
+    player_id = event["player_id"]
     target = event["target"]
     payload = event["payload"]
     context = event["context"]
@@ -305,7 +306,7 @@ def _apply_event(
             "target_familiarity_delta": 1,
             "local_echo_added": True,
         }
-    else:
+    elif event_type == "mark":
         tag = str(payload.get("tag") or "").strip().lower()
         note = str(payload.get("note") or "").strip()
         player_state["action_state"] = "interacting"

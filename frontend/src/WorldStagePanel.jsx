@@ -66,7 +66,78 @@ export default function WorldStagePanel({
   behaviorInsights,
   focusWritebackTarget,
   lastWritebackPoiId,
+  mapOnly = false,
 }) {
+  if (mapOnly) {
+    return (
+      <section className="panel preview-panel player-preview-panel storyboard-panel map-only-stage">
+        <div className="storyboard-map-frame map-only-stage__frame">
+          <div
+            className={`map-layer-toolbar map-only-stage__toolbar${mapLayerPanelOpen ? '' : ' is-collapsed'}`}
+            role="group"
+            aria-label="地图图层控制器"
+          >
+            <div className="map-layer-toolbar__header">
+              <div>
+                <span className="storyboard-category-label">地图</span>
+                <p className="map-layer-toolbar__copy">
+                  {result
+                    ? `${originLabel} · ${form.radius}m · ${result?.poi_count ?? 0} 个节点`
+                    : '正在准备附近地图'}
+                </p>
+              </div>
+              <div className="map-layer-toolbar__header-actions">
+                <button
+                  type="button"
+                  className="map-layer-toolbar__toggle"
+                  onClick={() => setMapLayerPanelOpen((current) => !current)}
+                  aria-expanded={mapLayerPanelOpen}
+                  aria-controls="map-layer-toolbar-panel"
+                >
+                  {mapLayerPanelOpen ? '收起控制器' : '图层'}
+                </button>
+              </div>
+            </div>
+            {mapLayerPanelOpen ? (
+              <div id="map-layer-toolbar-panel" className="map-layer-toolbar__panel">
+                <div className="map-layer-preset-row" role="toolbar" aria-label="地图图层预设">
+                  {mapLayerPresets.map((preset) => {
+                    const active = mapLayerOptions.every((layer) => Boolean(visibleMapLayers[layer.key]) === Boolean(preset.layers[layer.key]))
+                    return (
+                      <button
+                        key={preset.key}
+                        type="button"
+                        className={`map-layer-preset${active ? ' is-active' : ''}`}
+                        onClick={() => applyMapLayerPreset(preset.key)}
+                      >
+                        <strong>{preset.label}</strong>
+                        <span>{preset.hint}</span>
+                      </button>
+                    )
+                  })}
+                </div>
+                <div className="map-layer-toolbar__actions" role="toolbar" aria-label="图层快捷操作">
+                  <button type="button" className="map-layer-action" onClick={() => setAllMapLayers(true)}>全开</button>
+                  <button type="button" className="map-layer-action" onClick={() => setAllMapLayers(false)}>全关</button>
+                  <button type="button" className="map-layer-action" onClick={resetMapLayers}>重置默认</button>
+                </div>
+              </div>
+            ) : null}
+          </div>
+          <WorldMap
+            world={result?.world}
+            onPoiClick={handlePoiClick}
+            activePoiId={activePoiId}
+            familiarityMap={familiarityMap}
+            originLabel={originLabel}
+            ghostTraces={ghostTraces}
+            visibleLayers={visibleMapLayers}
+          />
+        </div>
+      </section>
+    )
+  }
+
   return (
     <section className="panel preview-panel player-preview-panel storyboard-panel">
       <div className="section-heading storyboard-heading">

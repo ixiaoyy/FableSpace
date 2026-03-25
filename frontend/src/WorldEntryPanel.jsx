@@ -9,6 +9,7 @@ export default function WorldEntryPanel({
   presetMeta,
   usePreset,
   locating,
+  autoEntering,
   useCurrentLocation,
   submitting,
   submitNearby,
@@ -21,11 +22,11 @@ export default function WorldEntryPanel({
     <section className="panel primary-panel">
       <div className="section-heading">
         <div>
-          <p className="mini-label">步骤 1</p>
-          <h2>选择入口并生成世界</h2>
+          <p className="mini-label">自动世界入口</p>
+          <h2>{autoEntering ? '正在根据定位进入世界' : '已经为你准备好附近世界'}</h2>
         </div>
         <p className="note muted">
-          优先用人类能理解的入口，再把坐标与种子折叠为高级选项。
+          首次进入会优先尝试浏览器定位并自动生成附近切片；下方控制保留给你重新定位、切换入口和微调参数。
           {lastSessionAt ? ` 已恢复上次记录：${new Date(lastSessionAt).toLocaleString()}` : ''}
         </p>
       </div>
@@ -60,13 +61,13 @@ export default function WorldEntryPanel({
       </div>
 
       <div className="actions origin-actions">
-        <button type="button" className="secondary" disabled={locating} onClick={useCurrentLocation}>
-          {locating ? '定位中...' : '用我的当前位置'}
+        <button type="button" className="secondary" disabled={locating || autoEntering} onClick={() => useCurrentLocation()}>
+          {locating || autoEntering ? '定位中...' : '重新获取我的位置'}
         </button>
-        <button type="button" disabled={submitting} onClick={() => submitNearby(false)}>
-          {submitting ? '生成中...' : '生成世界预览'}
+        <button type="button" disabled={submitting || autoEntering} onClick={() => submitNearby(false)}>
+          {submitting ? '生成中...' : '重新生成附近世界'}
         </button>
-        <button type="button" className="secondary" disabled={submitting} onClick={() => submitNearby(true)}>
+        <button type="button" className="secondary" disabled={submitting || autoEntering} onClick={() => submitNearby(true)}>
           刷新实时地图
         </button>
       </div>

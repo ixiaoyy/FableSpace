@@ -268,6 +268,72 @@ export default function WorldMap({
   const featuredPoi = activePoi || hoveredPoi || poiMap.get(spawnId) || poiMap.get(rankedNodes[0]?.id) || null
   const featuredFaction = featuredPoi ? getFactionColors(featuredPoi.faction_alignment) : null
   const presentFactions = [...new Set(pois.map((poi) => poi.faction_alignment).filter(Boolean))]
+  const focusNode = activePoiId
+    ? poiNodes.find((node) => node.id === activePoiId) || null
+    : poiNodes.find((node) => node.id === spawnId) || rankedNodes[0] || poiNodes[0] || null
+  const viewBounds = useMemo(() => {
+    const primaryPoints = poiNodes.map((node) => node.tile_position).filter(Boolean)
+    const secondaryPoints = landmarkNodes.map((node) => node.tile_position).filter(Boolean)
+    const fallbackPoints = roadNodes.flatMap((road) => road.points || []).filter(Boolean)
+    const points = primaryPoints.length ? primaryPoints : secondaryPoints.length ? secondaryPoints : fallbackPoints
+
+    if (!points.length) {
+      return null
+    }
+
+    let minX = Number.POSITIVE_INFINITY
+    let minY = Number.POSITIVE_INFINITY
+    let maxX = Number.NEGATIVE_INFINITY
+    let maxY = Number.NEGATIVE_INFINITY
+
+    points.forEach((point) => {
+      const x = Number(point.x) || 0
+      const y = Number(point.y) || 0
+      minX = Math.min(minX, x)
+      minY = Math.min(minY, y)
+      maxX = Math.max(maxX, x)
+      maxY = Math.max(maxY, y)
+    })
+
+    return { minX, minY, maxX, maxY }
+  }, [poiNodes, landmarkNodes, roadNodes])
+  const viewConfig = useMemo(() => {
+    const maxX = Math.max(tileGrid.columns - 1, 1)
+    const maxY = Math.max(tileGrid.rows - 1, 1)
+    const fallbackCenterX = (focusNode?.tile_position?.x ?? maxX / 2) / maxX
+    const fallbackCenterY = (focusNode?.tile_position?.y ?? maxY / 2) / maxY
+
+    if (!viewBounds) {
+      return {
+        zoom: 1.5,
+        centerX: fallbackCenterX,
+        centerY: fallbackCenterY,
+        offsetX: 0,
+        offsetY: 0.02,
+      }
+    }
+
+    const spanX = Math.max(viewBounds.maxX - viewBounds.minX, 3)
+    const spanY = Math.max(viewBounds.maxY - viewBounds.minY, 3)
+    const boundedSpanX = Math.min(spanX, maxX)
+    const boundedSpanY = Math.min(spanY, maxY)
+    const paddedSpanX = Math.max(6, boundedSpanX * 0.72)
+    const paddedSpanY = Math.max(5, boundedSpanY * 0.74)
+    const zoomX = maxX / Math.max(paddedSpanX, 1)
+    const zoomY = maxY / Math.max(paddedSpanY, 1)
+    const focusWeightX = focusNode?.tile_position?.x != null ? Number(focusNode.tile_position.x) * 0.18 : 0
+    const focusWeightY = focusNode?.tile_position?.y != null ? Number(focusNode.tile_position.y) * 0.18 : 0
+    const centerTileX = ((viewBounds.minX + viewBounds.maxX) * 0.5 + focusWeightX) / 1.18
+    const centerTileY = ((viewBounds.minY + viewBounds.maxY) * 0.5 + focusWeightY) / 1.18
+
+    return {
+      zoom: Math.max(1.7, Math.min(3.4, Math.min(zoomX, zoomY))),
+      centerX: Math.max(0.12, Math.min(0.88, centerTileX / maxX)),
+      centerY: Math.max(0.12, Math.min(0.88, centerTileY / maxY)),
+      offsetX: 0,
+      offsetY: 0.03,
+    }
+  }, [focusNode, tileGrid.columns, tileGrid.rows, viewBounds])
 
   function triggerRipple(x, y) {
     const id = Date.now()
@@ -276,8 +342,10 @@ export default function WorldMap({
   }
 
   function tileToCanvas(tx, ty, w, h) {
-    const px = (tx / Math.max(tileGrid.columns - 1, 1)) * w
-    const py = (ty / Math.max(tileGrid.rows - 1, 1)) * h
+    const normalizedX = tx / Math.max(tileGrid.columns - 1, 1)
+    const normalizedY = ty / Math.max(tileGrid.rows - 1, 1)
+    const px = (normalizedX - viewConfig.centerX) * w * viewConfig.zoom + w * (0.5 + viewConfig.offsetX)
+    const py = (normalizedY - viewConfig.centerY) * h * viewConfig.zoom + h * (0.5 + viewConfig.offsetY)
     return { x: px, y: py }
   }
 
@@ -294,8 +362,60 @@ export default function WorldMap({
       const cellW = W / tileGrid.columns
       const cellH = H / tileGrid.rows
       const roadOccupancy = buildRoadOccupancy(roadNodes)
+      const waterSeeds = poiNodes
+        .filter((node, index) => ((node.tile_position?.x || 0) + (node.tile_position?.y || 0) + index) % 5 === 0)
+        .slice(0, 3)
+      const blockSeeds = poiNodes.flatMap((node, index) => {
+        const tx = Number(node.tile_position?.x)
+        const ty = Number(node.tile_position?.y)
+        if (!Number.isFinite(tx) || !Number.isFinite(ty)) return []
 
-      const sceneImage = await loadImage(assetPack.scene).catch(() => null)
+        const clusterOffsets = [
+          { x: -2, y: -1 },
+          { x: 2, y: -1 },
+          { x: -1, y: 2 },
+          { x: 2, y: 2 },
+        ]
+
+        return clusterOffsets
+          .map((offset, offsetIndex) => {
+            const gx = Math.round(tx + offset.x + ((index + offsetIndex) % 2 === 0 ? 0 : 1))
+            const gy = Math.round(ty + offset.y + ((index + offsetIndex) % 3 === 0 ? 1 : 0))
+            if (gx < 1 || gy < 1 || gx > tileGrid.columns - 2 || gy > tileGrid.rows - 2) return null
+            if (hasRoadNearby(roadOccupancy, gx, gy, 1)) return null
+            return { x: gx, y: gy, seed: index * 10 + offsetIndex }
+          })
+          .filter(Boolean)
+      })
+      const roadsideStructures = roadNodes.flatMap((road, roadIndex) => {
+        const points = road.points || []
+        if (points.length < 2) return []
+
+        return points.flatMap((point, pointIndex) => {
+          if (pointIndex % 2 !== 0) return []
+          const tx = Number(point.x)
+          const ty = Number(point.y)
+          if (!Number.isFinite(tx) || !Number.isFinite(ty)) return []
+
+          const options = [
+            { x: tx - 1.4, y: ty - 1.1, w: 16, h: 10, roof: 5 },
+            { x: tx + 1.5, y: ty + 1.0, w: 18, h: 11, roof: 5 },
+          ]
+
+          return options
+            .map((item, sideIndex) => {
+              const gx = Math.round(item.x)
+              const gy = Math.round(item.y)
+              if (gx < 1 || gy < 1 || gx > tileGrid.columns - 2 || gy > tileGrid.rows - 2) return null
+              if (hasRoadNearby(roadOccupancy, gx, gy, 0)) return null
+              return {
+                ...item,
+                seed: roadIndex * 100 + pointIndex * 10 + sideIndex,
+              }
+            })
+            .filter(Boolean)
+        })
+      })
 
       const iconEntries = await Promise.all(
         Object.entries(ICON_MAP).map(async ([fantasyType]) => {
@@ -331,70 +451,103 @@ export default function WorldMap({
       const assetDecorations = new Map(decoEntries)
 
       const backgroundGradient = ctx.createLinearGradient(0, 0, 0, H)
-      backgroundGradient.addColorStop(0, '#f8eedb')
-      backgroundGradient.addColorStop(0.18, palette.glow)
-      backgroundGradient.addColorStop(0.45, palette.bg)
-      backgroundGradient.addColorStop(1, '#08111d')
+      backgroundGradient.addColorStop(0, '#f3ead8')
+      backgroundGradient.addColorStop(0.48, '#eadfca')
+      backgroundGradient.addColorStop(1, '#dfd2bb')
       ctx.fillStyle = backgroundGradient
       ctx.fillRect(0, 0, W, H)
 
-      if (sceneImage) {
+      const terrainGlow = ctx.createRadialGradient(W * 0.46, H * 0.24, 24, W * 0.46, H * 0.24, W * 0.88)
+      terrainGlow.addColorStop(0, 'rgba(255, 248, 232, 0.10)')
+      terrainGlow.addColorStop(0.5, 'rgba(247, 237, 212, 0.05)')
+      terrainGlow.addColorStop(1, 'rgba(223, 207, 174, 0.015)')
+      ctx.fillStyle = terrainGlow
+      ctx.fillRect(0, 0, W, H)
+
+      if (roadNodes.length > 0) {
+        const sweep = ctx.createLinearGradient(0, H * 0.18, W, H * 0.82)
+        sweep.addColorStop(0, 'rgba(255,255,255,0)')
+        sweep.addColorStop(0.5, 'rgba(255,248,236,0.018)')
+        sweep.addColorStop(1, 'rgba(255,255,255,0)')
+        ctx.fillStyle = sweep
+        ctx.fillRect(0, 0, W, H)
+      }
+
+      waterSeeds.forEach((node, index) => {
+        const tx = Number(node.tile_position?.x) || 0
+        const ty = Number(node.tile_position?.y) || 0
+        const pos = tileToCanvas(tx + (index - 1) * 1.2, ty + 2.2, W, H)
+        const pondW = cellW * (3.8 + index * 0.9)
+        const pondH = cellH * (1.5 + (index % 2) * 0.5)
+        const pondFill = ctx.createLinearGradient(pos.x, pos.y - pondH, pos.x, pos.y + pondH)
+        pondFill.addColorStop(0, 'rgba(158, 193, 205, 0.22)')
+        pondFill.addColorStop(1, 'rgba(111, 154, 168, 0.12)')
+        ctx.fillStyle = pondFill
+        ctx.beginPath()
+        ctx.ellipse(pos.x, pos.y, pondW, pondH, -0.12, 0, Math.PI * 2)
+        ctx.fill()
+
+        ctx.strokeStyle = 'rgba(233, 244, 246, 0.24)'
+        ctx.lineWidth = 1
+        ctx.beginPath()
+        ctx.ellipse(pos.x + 1, pos.y - 1, pondW * 0.8, pondH * 0.62, -0.12, 0, Math.PI * 2)
+        ctx.stroke()
+      })
+
+      blockSeeds.forEach((block) => {
+        const pos = tileToCanvas(block.x, block.y, W, H)
+        const width = cellW * (0.9 + (block.seed % 3) * 0.3)
+        const height = cellH * (0.55 + (block.seed % 2) * 0.18)
+        const rotation = ((block.seed % 5) - 2) * 0.08
         ctx.save()
-        ctx.globalAlpha = 0.32
-        ctx.drawImage(sceneImage, 0, 0, W, H)
+        ctx.translate(pos.x, pos.y)
+        ctx.rotate(rotation)
+
+        ctx.fillStyle = block.seed % 2 === 0 ? 'rgba(150, 126, 96, 0.08)' : 'rgba(124, 142, 104, 0.07)'
+        ctx.beginPath()
+        ctx.roundRect(-width / 2, -height / 2, width, height, 5)
+        ctx.fill()
+
+        ctx.strokeStyle = 'rgba(110, 90, 63, 0.08)'
+        ctx.lineWidth = 0.8
+        ctx.beginPath()
+        ctx.moveTo(-width * 0.28, -height / 2)
+        ctx.lineTo(-width * 0.28, height / 2)
+        ctx.moveTo(width * 0.08, -height / 2)
+        ctx.lineTo(width * 0.08, height / 2)
+        ctx.stroke()
         ctx.restore()
-      }
+      })
 
-      const sunGlow = ctx.createRadialGradient(W * 0.5, H * 0.14, 24, W * 0.5, H * 0.14, W * 0.46)
-      sunGlow.addColorStop(0, 'rgba(255,247,220,0.92)')
-      sunGlow.addColorStop(0.38, `${palette.glow}55`)
-      sunGlow.addColorStop(1, 'transparent')
-      ctx.fillStyle = sunGlow
-      ctx.fillRect(0, 0, W, H)
-
-      const vignette = ctx.createRadialGradient(W * 0.5, H * 0.42, 90, W * 0.5, H * 0.42, Math.max(W, H) * 0.78)
-      vignette.addColorStop(0, 'transparent')
-      vignette.addColorStop(1, 'rgba(11,16,24,0.42)')
-      ctx.fillStyle = vignette
-      ctx.fillRect(0, 0, W, H)
-
-    ctx.strokeStyle = palette.grid
-    ctx.lineWidth = 1
-    for (let col = 0; col <= tileGrid.columns; col += 2) {
-      ctx.beginPath()
-      ctx.moveTo(col * cellW, 0)
-      ctx.lineTo(col * cellW, H)
-      ctx.stroke()
-    }
-    for (let row = 0; row <= tileGrid.rows; row += 2) {
-      ctx.beginPath()
-      ctx.moveTo(0, row * cellH)
-      ctx.lineTo(W, row * cellH)
-      ctx.stroke()
-    }
-
-    for (let col = 0; col < tileGrid.columns - 1; col += 2) {
-      for (let row = 0; row < tileGrid.rows - 1; row += 2) {
-        if (hasRoadNearby(roadOccupancy, col, row, 1)) continue
-        const insetX = cellW * 0.12
-        const insetY = cellH * 0.16
-        const px = col * cellW + insetX
-        const py = row * cellH + insetY
-        const bw = cellW * 1.74
-        const bh = cellH * 1.58
-        const radius = Math.min(cellW, cellH) * 0.42
-        const fill = (col + row) % 4 === 0 ? palette.block : palette.blockAlt
-        ctx.fillStyle = fill
+      roadsideStructures.forEach((home) => {
+        const pos = tileToCanvas(home.x, home.y, W, H)
+        const w = home.w + (home.seed % 3)
+        const h = home.h + (home.seed % 2)
+        const roof = home.roof
+        ctx.fillStyle = 'rgba(101, 83, 62, 0.12)'
         ctx.beginPath()
-        ctx.roundRect(px, py, bw, bh, radius)
+        ctx.ellipse(pos.x, pos.y + h * 0.7, w * 0.78, h * 0.35, 0, 0, Math.PI * 2)
         ctx.fill()
 
-        ctx.fillStyle = 'rgba(255,255,255,0.05)'
+        ctx.fillStyle = home.seed % 2 === 0 ? 'rgba(222, 205, 176, 0.92)' : 'rgba(205, 188, 158, 0.9)'
         ctx.beginPath()
-        ctx.ellipse(px + bw * 0.5, py + bh * 0.28, bw * 0.34, bh * 0.18, 0, 0, Math.PI * 2)
+        ctx.roundRect(pos.x - w / 2, pos.y - h / 2, w, h, 4)
         ctx.fill()
-      }
-    }
+
+        ctx.fillStyle = home.seed % 2 === 0 ? 'rgba(145, 110, 81, 0.88)' : 'rgba(128, 98, 74, 0.84)'
+        ctx.beginPath()
+        ctx.moveTo(pos.x, pos.y - h / 2 - roof)
+        ctx.lineTo(pos.x + w / 2 + 1, pos.y - h / 2 + 1)
+        ctx.lineTo(pos.x - w / 2 - 1, pos.y - h / 2 + 1)
+        ctx.closePath()
+        ctx.fill()
+
+        ctx.fillStyle = 'rgba(246, 235, 210, 0.52)'
+        ctx.fillRect(pos.x - w * 0.22, pos.y - h * 0.06, 2.8, 3.8)
+        if (home.seed % 3 !== 0) {
+          ctx.fillRect(pos.x + w * 0.02, pos.y - h * 0.06, 2.8, 3.8)
+        }
+      })
 
     if (layers.factionZones) {
       poiNodes.forEach((node) => {
@@ -402,10 +555,10 @@ export default function WorldMap({
         const faction = getFactionColors(poi?.faction_alignment)
         if (!faction) return
         const pos = tileToCanvas(node.tile_position.x, node.tile_position.y, W, H)
-        const radius = Math.max(W, H) * 0.12
+        const radius = Math.max(W, H) * 0.11
         const haze = ctx.createRadialGradient(pos.x, pos.y, 0, pos.x, pos.y, radius)
-        haze.addColorStop(0, `${faction.zone}44`)
-        haze.addColorStop(0.45, `${faction.zone}18`)
+        haze.addColorStop(0, `${faction.zone}24`)
+        haze.addColorStop(0.42, `${faction.zone}10`)
         haze.addColorStop(1, 'transparent')
         ctx.beginPath()
         ctx.arc(pos.x, pos.y, radius, 0, Math.PI * 2)
@@ -415,17 +568,6 @@ export default function WorldMap({
     }
 
     const spawnNode = poiNodes.find((node) => node.id === spawnId) || rankedNodes[0]
-    if (spawnNode) {
-      const pos = tileToCanvas(spawnNode.tile_position.x, spawnNode.tile_position.y, W, H)
-      const radius = Math.max(W, H) * 0.26
-      const halo = ctx.createRadialGradient(pos.x, pos.y, 0, pos.x, pos.y, radius)
-      halo.addColorStop(0, `${palette.glow}22`)
-      halo.addColorStop(1, 'transparent')
-      ctx.beginPath()
-      ctx.arc(pos.x, pos.y, radius, 0, Math.PI * 2)
-      ctx.fillStyle = halo
-      ctx.fill()
-    }
 
     if (layers.roads) {
       roadNodes.forEach((road) => {
@@ -440,22 +582,8 @@ export default function WorldMap({
           const point = tileToCanvas(points[i].x, points[i].y, W, H)
           ctx.lineTo(point.x, point.y)
         }
-        if (style.glow) {
-          ctx.strokeStyle = `${palette.glow}20`
-          ctx.lineWidth = style.width + style.glow
-          ctx.lineCap = 'round'
-          ctx.lineJoin = 'round'
-          ctx.stroke()
-        }
-
-        ctx.beginPath()
-        ctx.moveTo(start.x, start.y)
-        for (let i = 1; i < points.length; i += 1) {
-          const point = tileToCanvas(points[i].x, points[i].y, W, H)
-          ctx.lineTo(point.x, point.y)
-        }
-        ctx.strokeStyle = 'rgba(70, 45, 20, 0.28)'
-        ctx.lineWidth = style.width + 2.8
+        ctx.strokeStyle = 'rgba(118, 92, 58, 0.24)'
+        ctx.lineWidth = Math.max(style.width + 2.8, 3.2)
         ctx.lineCap = 'round'
         ctx.lineJoin = 'round'
         ctx.stroke()
@@ -466,15 +594,13 @@ export default function WorldMap({
           const point = tileToCanvas(points[i].x, points[i].y, W, H)
           ctx.lineTo(point.x, point.y)
         }
-        ctx.strokeStyle = style.width >= 4 ? '#f5deb3' : '#dcc08c'
-        ctx.globalAlpha = Math.min(style.alpha + 0.12, 1)
-        ctx.lineWidth = style.width + 0.9
+        ctx.strokeStyle = 'rgba(205, 186, 150, 0.68)'
+        ctx.lineWidth = Math.max(style.width + 0.9, 1.8)
         ctx.lineCap = 'round'
         ctx.lineJoin = 'round'
         ctx.setLineDash(style.dash)
         ctx.stroke()
         ctx.setLineDash([])
-        ctx.globalAlpha = 1
       })
     }
 
@@ -522,34 +648,119 @@ export default function WorldMap({
         const buildingImage = assetBuildings.get(poi?.fantasy_type)
         const decoImage = assetDecorations.get(poi?.fantasy_type)
         const hasBuildingSprite = Boolean(buildingImage)
+        const footprint = node.footprint || { w: 2, h: 2 }
+        const clusterScale = isActive ? 1.08 : 1
+        const clusterHomes = [
+          { dx: -cellW * 1.78, dy: -cellH * 0.12, w: 28, h: 17, roof: 8, lane: false },
+          { dx: -cellW * 0.86, dy: cellH * 0.16, w: 26, h: 16, roof: 8, lane: true },
+          { dx: cellW * 0.12, dy: cellH * 0.05, w: 34, h: 21, roof: 10, lane: false },
+          { dx: cellW * 1.18, dy: cellH * 0.18, w: 26, h: 16, roof: 8, lane: true },
+          { dx: -cellW * 1.08, dy: cellH * 1.08, w: 24, h: 15, roof: 7, lane: false },
+          { dx: cellW * 0.08, dy: cellH * 1.22, w: 25, h: 16, roof: 8, lane: true },
+          { dx: cellW * 1.16, dy: cellH * 1.06, w: 23, h: 15, roof: 7, lane: false },
+        ].slice(0, Math.max(5, Math.min(7, footprint.w + footprint.h + 1)))
 
-        // 选中/悬停发光晕圈
-        if (isActive || isHovered) {
-          const glow = ctx.createRadialGradient(pos.x, pos.y - 6, 8, pos.x, pos.y - 6, isActive ? 54 : 38)
-          glow.addColorStop(0, `${glowColor}aa`)
-          glow.addColorStop(1, 'transparent')
+        const yardWidth = cellW * 3.35
+        const yardHeight = cellH * 2.28
+        ctx.fillStyle = isActive ? 'rgba(188, 168, 127, 0.18)' : 'rgba(176, 157, 120, 0.13)'
+        ctx.beginPath()
+        ctx.roundRect(pos.x - yardWidth / 2, pos.y - cellH * 0.42, yardWidth, yardHeight, 16)
+        ctx.fill()
+
+        ctx.strokeStyle = 'rgba(146, 121, 82, 0.16)'
+        ctx.lineWidth = 1.1
+        ctx.beginPath()
+        ctx.moveTo(pos.x - yardWidth * 0.42, pos.y + cellH * 0.56)
+        ctx.lineTo(pos.x + yardWidth * 0.42, pos.y + cellH * 0.56)
+        ctx.moveTo(pos.x - yardWidth * 0.16, pos.y - cellH * 0.02)
+        ctx.lineTo(pos.x - yardWidth * 0.12, pos.y + yardHeight * 0.48)
+        ctx.moveTo(pos.x + yardWidth * 0.14, pos.y - cellH * 0.02)
+        ctx.lineTo(pos.x + yardWidth * 0.18, pos.y + yardHeight * 0.48)
+        ctx.stroke()
+
+        clusterHomes.forEach((home, index) => {
+          const w = home.w * clusterScale
+          const h = home.h * clusterScale
+          const roof = home.roof * clusterScale
+          const hx = pos.x + home.dx
+          const hy = pos.y + home.dy
+          const wallFill = index === 2
+            ? 'rgba(222, 201, 166, 0.96)'
+            : index % 2 === 0
+              ? 'rgba(214, 193, 160, 0.9)'
+              : 'rgba(197, 177, 145, 0.88)'
+          const roofFill = index === 2
+            ? 'rgba(153, 114, 84, 0.9)'
+            : index % 2 === 0
+              ? 'rgba(142, 108, 80, 0.84)'
+              : 'rgba(126, 93, 68, 0.8)'
+
+          ctx.fillStyle = home.lane ? 'rgba(108, 90, 63, 0.16)' : 'rgba(104, 84, 60, 0.14)'
           ctx.beginPath()
-          ctx.arc(pos.x, pos.y - 6, isActive ? 54 : 38, 0, Math.PI * 2)
-          ctx.fillStyle = glow
+          ctx.ellipse(hx, hy + h * 0.68, w * 0.76, h * 0.33, 0, 0, Math.PI * 2)
           ctx.fill()
-        }
+
+          if (home.lane) {
+            ctx.fillStyle = 'rgba(231, 219, 192, 0.24)'
+            ctx.beginPath()
+            ctx.roundRect(hx - w * 0.32, hy + h * 0.3, w * 0.64, h * 0.22, 4)
+            ctx.fill()
+          }
+
+          ctx.fillStyle = wallFill
+          ctx.beginPath()
+          ctx.roundRect(hx - w / 2, hy - h / 2, w, h, 4)
+          ctx.fill()
+
+          ctx.fillStyle = roofFill
+          ctx.beginPath()
+          ctx.moveTo(hx, hy - h / 2 - roof)
+          ctx.lineTo(hx + w / 2 + 1.5, hy - h / 2 + 1)
+          ctx.lineTo(hx - w / 2 - 1.5, hy - h / 2 + 1)
+          ctx.closePath()
+          ctx.fill()
+
+          ctx.strokeStyle = 'rgba(90, 67, 46, 0.18)'
+          ctx.lineWidth = 0.9
+          ctx.beginPath()
+          ctx.moveTo(hx, hy - h / 2 - roof + 1)
+          ctx.lineTo(hx, hy + h * 0.44)
+          ctx.stroke()
+
+          ctx.fillStyle = 'rgba(246, 236, 214, 0.62)'
+          ctx.fillRect(hx - w * 0.26, hy - h * 0.12, 3.2, 4.2)
+          ctx.fillRect(hx + w * 0.04, hy - h * 0.12, 3.2, 4.2)
+          ctx.fillStyle = 'rgba(120, 84, 54, 0.34)'
+          ctx.fillRect(hx - 1.1, hy + h * 0.08, 2.2, h * 0.28)
+        })
 
         // 地面投影椭圆
-        ctx.fillStyle = 'rgba(15, 23, 42, 0.22)'
+        ctx.fillStyle = 'rgba(94, 74, 45, 0.22)'
         ctx.beginPath()
-        ctx.ellipse(pos.x, pos.y + 16, isActive ? 22 : 18, isActive ? 8 : 6, 0, 0, Math.PI * 2)
+        ctx.ellipse(pos.x, pos.y + 18, isActive ? 28 : 24, isActive ? 10 : 8, 0, 0, Math.PI * 2)
         ctx.fill()
 
         // 建筑 sprite 层：有图片时直接渲染建筑图，替代向量房屋
         if (hasBuildingSprite) {
-          const buildingSize = isActive ? 72 : 56
-          const buildingAlpha = isActive ? 1 : 0.88 + familiarity
+          const buildingSize = isActive ? 112 : 86
+          const buildingAlpha = isActive ? 0.96 : 0.9 + familiarity * 0.45
+          ctx.save()
+          ctx.globalAlpha = 0.1
+          ctx.drawImage(
+            buildingImage,
+            pos.x - buildingSize / 2 + 3,
+            pos.y - buildingSize * 0.78 + 8,
+            buildingSize,
+            buildingSize,
+          )
+          ctx.restore()
+
           ctx.save()
           ctx.globalAlpha = buildingAlpha
           ctx.drawImage(
             buildingImage,
             pos.x - buildingSize / 2,
-            pos.y - buildingSize * 0.78,
+            pos.y - buildingSize * 0.82,
             buildingSize,
             buildingSize,
           )
@@ -557,47 +768,58 @@ export default function WorldMap({
 
           // 环境装饰 sprite（树/路灯），绘制在建筑右侧稍偏后
           if (decoImage) {
-            const decoSize = isActive ? 28 : 22
+            const decoSize = isActive ? 36 : 28
             ctx.save()
-            ctx.globalAlpha = 0.7
+            ctx.globalAlpha = 0.66
             ctx.drawImage(
               decoImage,
-              pos.x + buildingSize * 0.32,
-              pos.y - buildingSize * 0.52,
+              pos.x + buildingSize * 0.28,
+              pos.y - buildingSize * 0.46,
               decoSize,
               decoSize,
             )
             ctx.restore()
           }
 
+          const parcelDots = [
+            { dx: -buildingSize * 0.22, dy: 10 },
+            { dx: buildingSize * 0.24, dy: 13 },
+            { dx: 0, dy: 18 },
+          ]
+          parcelDots.forEach((dot, index) => {
+            ctx.fillStyle = index === 1 ? 'rgba(110, 144, 94, 0.32)' : 'rgba(132, 118, 84, 0.24)'
+            ctx.beginPath()
+            ctx.arc(pos.x + dot.dx, pos.y + dot.dy, index === 2 ? 2.8 : 2.2, 0, Math.PI * 2)
+            ctx.fill()
+          })
+
           // 阵营光环边框（覆盖在建筑上方）
           if (faction) {
             ctx.beginPath()
             ctx.ellipse(pos.x, pos.y - buildingSize * 0.2, isActive ? 22 : 17, isActive ? 8 : 6, 0, 0, Math.PI * 2)
-            ctx.strokeStyle = `${faction.fill}cc`
-            ctx.lineWidth = 1.8
-            ctx.globalAlpha = 0.7 + familiarity
+            ctx.strokeStyle = `${faction.fill}66`
+            ctx.lineWidth = 1
+            ctx.globalAlpha = 0.24 + familiarity * 0.55
             ctx.stroke()
             ctx.globalAlpha = 1
           }
 
-          // 隐藏槽位虚线圈
-          if (hasSecret) {
+          if (hasSecret && isActive) {
             ctx.beginPath()
-            ctx.arc(pos.x, pos.y - buildingSize * 0.35, isActive ? 26 : 20, 0, Math.PI * 2)
-            ctx.strokeStyle = `${glowColor}77`
-            ctx.lineWidth = 1.2
+            ctx.arc(pos.x, pos.y - buildingSize * 0.35, 18, 0, Math.PI * 2)
+            ctx.strokeStyle = `${glowColor}38`
+            ctx.lineWidth = 0.9
             ctx.setLineDash([4, 4])
             ctx.stroke()
             ctx.setLineDash([])
           }
         } else {
           // 无建筑 sprite 时保留原向量绘制路径（降级）
-          if (hasSecret) {
+          if (hasSecret && isActive) {
             ctx.beginPath()
-            ctx.arc(pos.x, pos.y - 4, isActive ? 26 : 21, 0, Math.PI * 2)
-            ctx.strokeStyle = `${glowColor}77`
-            ctx.lineWidth = 1.2
+            ctx.arc(pos.x, pos.y - 4, 18, 0, Math.PI * 2)
+            ctx.strokeStyle = `${glowColor}55`
+            ctx.lineWidth = 1
             ctx.setLineDash([4, 4])
             ctx.stroke()
             ctx.setLineDash([])
@@ -606,9 +828,9 @@ export default function WorldMap({
           if (faction) {
             ctx.beginPath()
             ctx.arc(pos.x, pos.y - 4, isActive ? 22 : 18, 0, Math.PI * 2)
-            ctx.strokeStyle = `${faction.fill}aa`
-            ctx.lineWidth = 1.4
-            ctx.globalAlpha = 0.55 + familiarity
+            ctx.strokeStyle = `${faction.fill}66`
+            ctx.lineWidth = 1
+            ctx.globalAlpha = 0.24 + familiarity * 0.55
             ctx.stroke()
             ctx.globalAlpha = 1
           }
@@ -617,6 +839,17 @@ export default function WorldMap({
           ctx.beginPath()
           ctx.roundRect(pos.x - cardWidth / 2, pos.y - cardHeight / 2, cardWidth, cardHeight, 7)
           ctx.fill()
+
+          ctx.fillStyle = 'rgba(132, 118, 84, 0.18)'
+          ctx.beginPath()
+          ctx.roundRect(pos.x - cardWidth / 2 - 11, pos.y + cardHeight * 0.35, cardWidth + 22, 8, 4)
+          ctx.fill()
+
+          ctx.strokeStyle = 'rgba(94, 74, 45, 0.16)'
+          ctx.lineWidth = 6
+          ctx.beginPath()
+          ctx.roundRect(pos.x - cardWidth / 2, pos.y - cardHeight / 2, cardWidth, cardHeight, 7)
+          ctx.stroke()
 
           ctx.fillStyle = isActive ? glowColor : fillColor
           ctx.beginPath()
@@ -648,28 +881,66 @@ export default function WorldMap({
     }
 
     if (layers.labels) {
-      rankedNodes.slice(0, 6).forEach((node) => {
+      rankedNodes.slice(0, 8).forEach((node, index) => {
         const poi = poiMap.get(node.id)
         if (!poi) return
         const pos = tileToCanvas(node.tile_position.x, node.tile_position.y, W, H)
         const label = poi.real_name || poi.fantasy_name || 'unknown place'
+        const districtLabel = formatTag(poi.tags?.[0])
         const isActive = node.id === activePoiId
         const baseY = pos.y - (isActive ? 24 : 20)
+        const labelHeight = districtLabel && index < 4 ? 34 : 22
         ctx.font = isActive ? '600 13px sans-serif' : '500 12px sans-serif'
-        const width = Math.min(Math.max(ctx.measureText(label).width + 16, 80), 180)
+        const primaryWidth = ctx.measureText(label).width
+        const secondaryWidth = districtLabel && index < 4 ? ctx.measureText(districtLabel).width : 0
+        const width = Math.min(Math.max(Math.max(primaryWidth, secondaryWidth) + 18, 84), 188)
         const x = Math.max(12, Math.min(pos.x - width / 2, W - width - 12))
-        const y = Math.max(12, baseY - 10)
-        ctx.fillStyle = 'rgba(2, 6, 23, 0.78)'
-        ctx.strokeStyle = isActive ? `${palette.glow}99` : 'rgba(255,255,255,0.1)'
+        const y = Math.max(12, baseY - (labelHeight === 34 ? 18 : 10))
+        ctx.fillStyle = 'rgba(58, 47, 33, 0.58)'
+        ctx.strokeStyle = isActive ? `${palette.glow}55` : 'rgba(255,248,236,0.08)'
         ctx.lineWidth = 1
         ctx.beginPath()
-        ctx.roundRect(x, y, width, 22, 8)
+        ctx.roundRect(x, y, width, labelHeight, 8)
         ctx.fill()
         ctx.stroke()
-        ctx.fillStyle = isActive ? palette.ink : palette.label
+
+        ctx.fillStyle = isActive ? '#fff8ee' : '#f6edd9'
         ctx.textAlign = 'center'
         ctx.textBaseline = 'middle'
         ctx.fillText(label, x + width / 2, y + 11)
+
+        if (districtLabel && index < 4) {
+          ctx.font = '500 10px sans-serif'
+          ctx.fillStyle = 'rgba(248, 236, 210, 0.76)'
+          ctx.fillText(districtLabel, x + width / 2, y + 25)
+        }
+      })
+    }
+
+    if (layers.legend) {
+      const chips = [
+        roadNodes.length ? `道路 ${roadNodes.length}` : null,
+        poiNodes.length ? `地点 ${poiNodes.length}` : null,
+        landmarkNodes.length ? `地标 ${landmarkNodes.length}` : null,
+        originLabel ? `起点 ${originLabel}` : null,
+      ].filter(Boolean)
+
+      chips.slice(0, 4).forEach((chip, index) => {
+        const chipWidth = Math.min(Math.max(ctx.measureText(chip).width + 20, 78), 170)
+        const x = 18 + index * (chipWidth + 10)
+        const y = H - 42
+        ctx.fillStyle = 'rgba(82, 67, 49, 0.52)'
+        ctx.strokeStyle = 'rgba(255, 245, 228, 0.1)'
+        ctx.lineWidth = 1
+        ctx.beginPath()
+        ctx.roundRect(x, y, chipWidth, 24, 12)
+        ctx.fill()
+        ctx.stroke()
+        ctx.fillStyle = '#f8efdc'
+        ctx.font = '500 11px sans-serif'
+        ctx.textAlign = 'center'
+        ctx.textBaseline = 'middle'
+        ctx.fillText(chip, x + chipWidth / 2, y + 12)
       })
     }
 
@@ -686,9 +957,9 @@ export default function WorldMap({
           .filter(Boolean)
         if (positions.length < 2) return
         ctx.save()
-        ctx.globalAlpha = 0.38
-        ctx.strokeStyle = `${palette.glow}bb`
-        ctx.lineWidth = 1.5
+        ctx.globalAlpha = 0.22
+        ctx.strokeStyle = `${palette.glow}88`
+        ctx.lineWidth = 1.2
         ctx.setLineDash([4, 5])
         ctx.beginPath()
         positions.forEach((pos, i) => {
@@ -698,16 +969,16 @@ export default function WorldMap({
         ctx.stroke()
         // draw start dot
         ctx.setLineDash([])
-        ctx.globalAlpha = 0.55
-        ctx.fillStyle = `${palette.glow}99`
+        ctx.globalAlpha = 0.3
+        ctx.fillStyle = `${palette.glow}66`
         ctx.beginPath()
-        ctx.arc(positions[0].x, positions[0].y, 4, 0, Math.PI * 2)
+        ctx.arc(positions[0].x, positions[0].y, 3, 0, Math.PI * 2)
         ctx.fill()
         // draw end dot
-        ctx.fillStyle = palette.glow
-        ctx.globalAlpha = 0.8
+        ctx.fillStyle = `${palette.glow}88`
+        ctx.globalAlpha = 0.45
         ctx.beginPath()
-        ctx.arc(positions[positions.length - 1].x, positions[positions.length - 1].y, 5, 0, Math.PI * 2)
+        ctx.arc(positions[positions.length - 1].x, positions[positions.length - 1].y, 4, 0, Math.PI * 2)
         ctx.fill()
         ctx.restore()
       })
@@ -720,8 +991,8 @@ export default function WorldMap({
       const alpha = 1 - age
       ctx.beginPath()
       ctx.arc(ripple.x, ripple.y, radius, 0, Math.PI * 2)
-      ctx.strokeStyle = `rgba(255,255,255,${alpha * 0.55})`
-      ctx.lineWidth = 1.5
+      ctx.strokeStyle = `rgba(255,244,228,${alpha * 0.2})`
+      ctx.lineWidth = 1
       ctx.stroke()
     })
   }
@@ -747,7 +1018,7 @@ export default function WorldMap({
       const pos = tileToCanvas(node.tile_position.x, node.tile_position.y, W, H)
       const dx = pos.x - mx
       const dy = pos.y - my
-      return Math.sqrt(dx * dx + dy * dy) <= 18
+      return Math.sqrt(dx * dx + dy * dy) <= 28
     })
   }
 
