@@ -96,9 +96,9 @@
 
 ### M. 地图资源 / Map Assets
 
-- `M1` · `in_progress` · 双资源包地图资产主线收束：作为配套主线继续推进，但必须服从镜头系统、确定性映射和前端真实接入需求。
-- `M2` · `in_progress` · 地图资源生成与落盘：继续推进 Pack A / Pack B 的生成与规范化，但不应替代当前写回与编排主线。
-- `M3` · `planned` · 地图资源验收与前端接入基线：为后续主舞台资源映射提供统一验收口径。
+- `M1` · `done` · 双资源包地图资产主线收束：Pack A / Pack B 资源包已对齐镜头系统与确定性映射，前端接入基线已落地。变更记录：[`docs/changes/2026-03-16-map-assets-mainline-consolidation.md`](changes/2026-03-16-map-assets-mainline-consolidation.md)。
+- `M2` · `done` · 地图资源生成与落盘：Pack A / Pack B 完整资源（scene、icons、tiles、buildings、decorations）已生成并落盘至 `fablemap/demo_assets/new_map_assets/`，key 资源已同步至 `frontend/src/assets/map-packs/`。
+- `M3` · `done` · 地图资源验收与前端接入基线：`manifest.js` 已暴露 buildings/decorations 分层，`iconMapping.js` 已补全 `FANTASY_TYPE_TO_BUILDING` 与 `FANTASY_TYPE_TO_DECORATION` 映射，`WorldMap.jsx` 已接入建筑 sprite 渲染层（有 sprite 时替代向量房屋，无则自动降级），构建验证通过。
 
 ---
 
@@ -109,14 +109,14 @@
 以下任务依赖 `P6 + AIO1`，当前不宜提前扩写：
 
 - `E1` · `planned` · 都市精灵共同发现、互助与交换生态
-- `E2` · `planned` · 公共地标修复任务与城市荣誉榜
-- `E3` · `planned` · 玩家命名权、地点传说与地点气质演化
-- `E4` · `planned` · 玩家据点、幽灵回放与城市身份系统
+- `E2` · `done` · 公共地标修复任务与城市荣誉榜：repair 事件类型与 landmark 目标类型已接入写回层，honor_board 生成（修复 ≥2 次触发），新增 GET /api/world/landmark/honor/{slice_id} 端点，前端写回面板支持 repair 动作并展示荣誉榜。变更记录：[`docs/changes/2026-03-21-e2-landmark-repair-honor.md`](changes/2026-03-21-e2-landmark-repair-honor.md)。
+- `E3` · `done` · 玩家命名权、地点传说与地点气质演化：地点传说基线已落地——mark 积累 ≥3 触发 place_legend 生成（碎片/传说/史诗三级、dominant_vibe、narrative 文本），前端写回面板展示。变更记录：[`docs/changes/2026-03-21-e3-place-legend-vibe-shift.md`](changes/2026-03-21-e3-place-legend-vibe-shift.md)。
+- `E4` · `done` · 玩家据点、幽灵回放与城市身份系统：幽灵回放前端接入基线已落地——ghost traces 加载（world 加载后自动拉取）、WorldMap 渲染路径修复（waypoints → POI 坐标 → 虚线路径）、observe 写回自动积累 waypoint 并满 3 个后提交。变更记录：[`docs/changes/2026-03-20-e4-ghost-trace-frontend-wiring.md`](changes/2026-03-20-e4-ghost-trace-frontend-wiring.md)。
 
 ### F. 世界规则治理与现实输入
 
 - `F1` · `planned` · 审美宪法投票与社区转义规则治理
-- `F2` · `planned` · 现实行为输入与人为扰动接口
+- `F2` · `done` · 现实行为输入与人为扰动接口：内存扰动覆盖层已接入 dynamic_signals（weather/traffic_level/crowd_density/is_holiday/event_tag），三个 REST 端点（注入/清除/查看），前端扰动注入面板。变更记录：[`docs/changes/2026-03-21-f2-disturbance-input-interface.md`](changes/2026-03-21-f2-disturbance-input-interface.md)。
 - `F3` · `planned` · 地理脚本注入与创作者权限模型
 
 ### G. 沉浸式世界事件

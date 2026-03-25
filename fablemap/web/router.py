@@ -63,6 +63,29 @@ def create_api_router(service: WebService) -> APIRouter:
     def get_ghost_traces(player_id: str) -> dict:
         return service.get_ghost_traces_payload(player_id)
 
+    @router.get("/api/world/landmark/honor/{slice_id}")
+    def get_landmark_honor(slice_id: str) -> dict:
+        return service.landmark_honor_payload(slice_id)
+
+    @router.post("/api/world/disturbance")
+    def post_disturbance(
+        slice_id: str = Body(...),
+        weather: str | None = Body(None),
+        traffic_level: float | None = Body(None),
+        crowd_density: float | None = Body(None),
+        is_holiday: bool | None = Body(None),
+        event_tag: str | None = Body(None),
+    ) -> dict:
+        return service.inject_disturbance_payload(slice_id, weather, traffic_level, crowd_density, is_holiday, event_tag)
+
+    @router.delete("/api/world/disturbance/{slice_id}")
+    def delete_disturbance(slice_id: str) -> dict:
+        return service.clear_disturbance_payload(slice_id)
+
+    @router.get("/api/world/disturbance/{slice_id}")
+    def get_disturbance(slice_id: str) -> dict:
+        return service.get_disturbance_payload(slice_id)
+
     @router.get("/generated/{file_path:path}")
     def get_generated_file(file_path: str):
         return FileResponse(service.generated_file_path(file_path))

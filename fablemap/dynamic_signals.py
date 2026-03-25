@@ -1,6 +1,25 @@
 """Dynamic Signals - Time, Weather, Traffic"""
 from datetime import datetime
-from typing import Optional
+from typing import Any, Optional
+
+# In-memory disturbance override store: slice_id -> override dict
+_disturbance_overrides: dict[str, dict[str, Any]] = {}
+
+
+def inject_disturbance(slice_id: str, **kwargs: Any) -> None:
+    """Inject a disturbance override for a slice. Keys: weather, traffic_level, crowd_density, is_holiday, event_tag."""
+    _disturbance_overrides[slice_id] = {k: v for k, v in kwargs.items() if v is not None}
+
+
+def clear_disturbance(slice_id: str) -> None:
+    """Remove disturbance override for a slice."""
+    _disturbance_overrides.pop(slice_id, None)
+
+
+def get_disturbance(slice_id: str) -> dict[str, Any]:
+    """Return current disturbance override for a slice, or empty dict."""
+    return dict(_disturbance_overrides.get(slice_id, {}))
+
 
 class DynamicSignals:
     def __init__(
@@ -63,11 +82,12 @@ def get_mock_signals(slice_id: str) -> DynamicSignals:
 
     seed = sum(ord(ch) for ch in normalized) % 100
 
+    override = _disturbance_overrides.get(slice_id, {})
     return DynamicSignals(
         time_of_day=time_of_day,
         day_of_week="friday" if seed > 70 else "monday",
-        is_holiday=seed > 90 or "holiday" in normalized or "festival" in normalized,
-        weather=weather,
-        traffic_level=0.3 + (seed % 50) / 100,
-        crowd_density=0.2 + (seed % 60) / 100,
+        is_holiday=override.get("is_holiday", seed > 90 or "holiday" in normalized or "festival" in normalized),
+        weather=override.get("weather", weather),
+        traffic_level=override.get("traffic_level", 0.3 + (seed % 50) / 100),
+        crowd_density=override.get("crowd_density", 0.2 + (seed % 60) / 100),
     )

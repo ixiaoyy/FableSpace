@@ -12,6 +12,7 @@ from fablemap.writeback import WritebackEngine, WritebackStore
 from fablemap.orchestrator.rule_engine import RuleBasedOrchestrator
 from fablemap.memory_graph import WorldMemoryGraph
 from fablemap.behavior_compiler import BehaviorCompiler, build_trace
+from fablemap.dynamic_signals import inject_disturbance, clear_disturbance, get_disturbance
 
 from .config import ApiSettings
 
@@ -322,7 +323,7 @@ class WebService:
 
     def record_ghost_trace_payload(self, player_id: str, waypoints: list, mood_arc: list, visibility: str = "local_public") -> dict[str, Any]:
         try:
-            trace = self.memory_graph.record_ghost_trace(player_id, waypoints, mood_arc, visibility)
+            trace = self.memory_graph.record_ghost_trace(player_id, waypoints, mood_arc=mood_arc, visibility=visibility)
             return {
                 "trace_id": trace.trace_id,
                 "player_id": trace.player_id,
@@ -355,6 +356,34 @@ class WebService:
         except Exception as exc:
             raise HTTPException(status_code=500, detail=str(exc)) from exc
 
+    def landmark_honor_payload(self, slice_id: str) -> dict[str, Any]:
+        try:
+            store_state = self.writeback.store.load()
+            slice_bucket = store_state.get("slices", {}).get(slice_id, {})
+            targets = slice_bucket.get("targets", {})
+            board = []
+            for target_id, bucket in targets.items():
+                if bucket.get("target_type") == "landmark" and bucket.get("repair_count", 0) > 0:
+                    board.append({
+                        "landmark_id": target_id,
+                        "repair_count": bucket["repair_count"],
+                        "honor_board": bucket.get("honor_board", []),
+                    })
+            board.sort(key=lambda x: -x["repair_count"])
+            return {"slice_id": slice_id, "landmarks": board}
+        except Exception as exc:
+            raise HTTPException(status_code=500, detail=str(exc)) from exc
+
+    def inject_disturbance_payload(self, slice_id: str, weather: str | None, traffic_level: float | None, crowd_density: float | None, is_holiday: bool | None, event_tag: str | None) -> dict[str, Any]:
+        inject_disturbance(slice_id, weather=weather, traffic_level=traffic_level, crowd_density=crowd_density, is_holiday=is_holiday, event_tag=event_tag)
+        return {"slice_id": slice_id, "active": get_disturbance(slice_id)}
+
+    def clear_disturbance_payload(self, slice_id: str) -> dict[str, Any]:
+        clear_disturbance(slice_id)
+        return {"slice_id": slice_id, "active": {}}
+
+    def get_disturbance_payload(self, slice_id: str) -> dict[str, Any]:
+        return {"slice_id": slice_id, "active": get_disturbance(slice_id)}
 
 
 def _is_within_root(candidate: Path, root: Path) -> bool:

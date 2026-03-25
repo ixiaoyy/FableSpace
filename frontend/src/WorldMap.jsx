@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { getAssetIconSrc, getAssetPack } from './mapAssets/manifest.js'
+import { getAssetBuildingSrc, getAssetDecorationSrc, getAssetIconSrc, getAssetPack } from './mapAssets/manifest.js'
+import { getBuildingKey, getDecorationKey } from './mapAssets/iconMapping.js'
 import { loadImage } from './mapAssets/loadImage.js'
 
 const DEFAULT_MAP_LAYERS = {
@@ -295,6 +296,7 @@ export default function WorldMap({
       const roadOccupancy = buildRoadOccupancy(roadNodes)
 
       const sceneImage = await loadImage(assetPack.scene).catch(() => null)
+
       const iconEntries = await Promise.all(
         Object.entries(ICON_MAP).map(async ([fantasyType]) => {
           const src = getAssetIconSrc(vibe, fantasyType)
@@ -302,8 +304,31 @@ export default function WorldMap({
           return [fantasyType, image]
         }),
       )
+
+      // 预加载建筑 sprite（每种 fantasyType 对应一个建筑类型键名）
+      const buildingEntries = await Promise.all(
+        Object.entries(ICON_MAP).map(async ([fantasyType]) => {
+          const buildingKey = getBuildingKey(fantasyType)
+          const src = buildingKey ? getAssetBuildingSrc(vibe, buildingKey) : null
+          const image = src ? await loadImage(src).catch(() => null) : null
+          return [fantasyType, image]
+        }),
+      )
+
+      // 预加载装饰 sprite
+      const decoEntries = await Promise.all(
+        Object.entries(ICON_MAP).map(async ([fantasyType]) => {
+          const decoKey = getDecorationKey(fantasyType)
+          const src = decoKey ? getAssetDecorationSrc(vibe, decoKey) : null
+          const image = src ? await loadImage(src).catch(() => null) : null
+          return [fantasyType, image]
+        }),
+      )
+
       if (disposed) return
       const assetIcons = new Map(iconEntries)
+      const assetBuildings = new Map(buildingEntries)
+      const assetDecorations = new Map(decoEntries)
 
       const backgroundGradient = ctx.createLinearGradient(0, 0, 0, H)
       backgroundGradient.addColorStop(0, '#f8eedb')
@@ -494,7 +519,11 @@ export default function WorldMap({
         const cardWidth = isActive ? 34 : 28
         const cardHeight = isActive ? 28 : 24
         const roofHeight = isActive ? 11 : 9
+        const buildingImage = assetBuildings.get(poi?.fantasy_type)
+        const decoImage = assetDecorations.get(poi?.fantasy_type)
+        const hasBuildingSprite = Boolean(buildingImage)
 
+        // 选中/悬停发光晕圈
         if (isActive || isHovered) {
           const glow = ctx.createRadialGradient(pos.x, pos.y - 6, 8, pos.x, pos.y - 6, isActive ? 54 : 38)
           glow.addColorStop(0, `${glowColor}aa`)
@@ -505,60 +534,115 @@ export default function WorldMap({
           ctx.fill()
         }
 
+        // 地面投影椭圆
         ctx.fillStyle = 'rgba(15, 23, 42, 0.22)'
         ctx.beginPath()
         ctx.ellipse(pos.x, pos.y + 16, isActive ? 22 : 18, isActive ? 8 : 6, 0, 0, Math.PI * 2)
         ctx.fill()
 
-        if (hasSecret) {
-          ctx.beginPath()
-          ctx.arc(pos.x, pos.y - 4, isActive ? 26 : 21, 0, Math.PI * 2)
-          ctx.strokeStyle = `${glowColor}77`
-          ctx.lineWidth = 1.2
-          ctx.setLineDash([4, 4])
-          ctx.stroke()
-          ctx.setLineDash([])
-        }
+        // 建筑 sprite 层：有图片时直接渲染建筑图，替代向量房屋
+        if (hasBuildingSprite) {
+          const buildingSize = isActive ? 72 : 56
+          const buildingAlpha = isActive ? 1 : 0.88 + familiarity
+          ctx.save()
+          ctx.globalAlpha = buildingAlpha
+          ctx.drawImage(
+            buildingImage,
+            pos.x - buildingSize / 2,
+            pos.y - buildingSize * 0.78,
+            buildingSize,
+            buildingSize,
+          )
+          ctx.restore()
 
-        if (faction) {
-          ctx.beginPath()
-          ctx.arc(pos.x, pos.y - 4, isActive ? 22 : 18, 0, Math.PI * 2)
-          ctx.strokeStyle = `${faction.fill}aa`
-          ctx.lineWidth = 1.4
-          ctx.globalAlpha = 0.55 + familiarity
-          ctx.stroke()
-          ctx.globalAlpha = 1
-        }
+          // 环境装饰 sprite（树/路灯），绘制在建筑右侧稍偏后
+          if (decoImage) {
+            const decoSize = isActive ? 28 : 22
+            ctx.save()
+            ctx.globalAlpha = 0.7
+            ctx.drawImage(
+              decoImage,
+              pos.x + buildingSize * 0.32,
+              pos.y - buildingSize * 0.52,
+              decoSize,
+              decoSize,
+            )
+            ctx.restore()
+          }
 
-        ctx.fillStyle = '#fff5df'
-        ctx.beginPath()
-        ctx.roundRect(pos.x - cardWidth / 2, pos.y - cardHeight / 2, cardWidth, cardHeight, 7)
-        ctx.fill()
+          // 阵营光环边框（覆盖在建筑上方）
+          if (faction) {
+            ctx.beginPath()
+            ctx.ellipse(pos.x, pos.y - buildingSize * 0.2, isActive ? 22 : 17, isActive ? 8 : 6, 0, 0, Math.PI * 2)
+            ctx.strokeStyle = `${faction.fill}cc`
+            ctx.lineWidth = 1.8
+            ctx.globalAlpha = 0.7 + familiarity
+            ctx.stroke()
+            ctx.globalAlpha = 1
+          }
 
-        ctx.fillStyle = isActive ? glowColor : fillColor
-        ctx.beginPath()
-        ctx.moveTo(pos.x, pos.y - cardHeight / 2 - roofHeight)
-        ctx.lineTo(pos.x + cardWidth / 2 - 1, pos.y - cardHeight / 2 + 2)
-        ctx.lineTo(pos.x - cardWidth / 2 + 1, pos.y - cardHeight / 2 + 2)
-        ctx.closePath()
-        ctx.fill()
-
-        ctx.strokeStyle = 'rgba(101, 67, 33, 0.32)'
-        ctx.lineWidth = 1.5
-        ctx.beginPath()
-        ctx.roundRect(pos.x - cardWidth / 2, pos.y - cardHeight / 2, cardWidth, cardHeight, 7)
-        ctx.stroke()
-
-        const iconImage = assetIcons.get(poi?.fantasy_type)
-        if (iconImage) {
-          const iconSize = isActive ? 22 : 18
-          ctx.drawImage(iconImage, pos.x - iconSize / 2, pos.y - iconSize / 2 - 1, iconSize, iconSize)
+          // 隐藏槽位虚线圈
+          if (hasSecret) {
+            ctx.beginPath()
+            ctx.arc(pos.x, pos.y - buildingSize * 0.35, isActive ? 26 : 20, 0, Math.PI * 2)
+            ctx.strokeStyle = `${glowColor}77`
+            ctx.lineWidth = 1.2
+            ctx.setLineDash([4, 4])
+            ctx.stroke()
+            ctx.setLineDash([])
+          }
         } else {
-          ctx.font = isActive ? '16px serif' : '14px serif'
-          ctx.textAlign = 'center'
-          ctx.textBaseline = 'middle'
-          ctx.fillStyle = palette.bg
-          ctx.fillText(getIcon(poi?.fantasy_type), pos.x, pos.y - 1)
+          // 无建筑 sprite 时保留原向量绘制路径（降级）
+          if (hasSecret) {
+            ctx.beginPath()
+            ctx.arc(pos.x, pos.y - 4, isActive ? 26 : 21, 0, Math.PI * 2)
+            ctx.strokeStyle = `${glowColor}77`
+            ctx.lineWidth = 1.2
+            ctx.setLineDash([4, 4])
+            ctx.stroke()
+            ctx.setLineDash([])
+          }
+
+          if (faction) {
+            ctx.beginPath()
+            ctx.arc(pos.x, pos.y - 4, isActive ? 22 : 18, 0, Math.PI * 2)
+            ctx.strokeStyle = `${faction.fill}aa`
+            ctx.lineWidth = 1.4
+            ctx.globalAlpha = 0.55 + familiarity
+            ctx.stroke()
+            ctx.globalAlpha = 1
+          }
+
+          ctx.fillStyle = '#fff5df'
+          ctx.beginPath()
+          ctx.roundRect(pos.x - cardWidth / 2, pos.y - cardHeight / 2, cardWidth, cardHeight, 7)
+          ctx.fill()
+
+          ctx.fillStyle = isActive ? glowColor : fillColor
+          ctx.beginPath()
+          ctx.moveTo(pos.x, pos.y - cardHeight / 2 - roofHeight)
+          ctx.lineTo(pos.x + cardWidth / 2 - 1, pos.y - cardHeight / 2 + 2)
+          ctx.lineTo(pos.x - cardWidth / 2 + 1, pos.y - cardHeight / 2 + 2)
+          ctx.closePath()
+          ctx.fill()
+
+          ctx.strokeStyle = 'rgba(101, 67, 33, 0.32)'
+          ctx.lineWidth = 1.5
+          ctx.beginPath()
+          ctx.roundRect(pos.x - cardWidth / 2, pos.y - cardHeight / 2, cardWidth, cardHeight, 7)
+          ctx.stroke()
+
+          const iconImage = assetIcons.get(poi?.fantasy_type)
+          if (iconImage) {
+            const iconSize = isActive ? 22 : 18
+            ctx.drawImage(iconImage, pos.x - iconSize / 2, pos.y - iconSize / 2 - 1, iconSize, iconSize)
+          } else {
+            ctx.font = isActive ? '16px serif' : '14px serif'
+            ctx.textAlign = 'center'
+            ctx.textBaseline = 'middle'
+            ctx.fillStyle = palette.bg
+            ctx.fillText(getIcon(poi?.fantasy_type), pos.x, pos.y - 1)
+          }
         }
       })
     }
@@ -590,21 +674,41 @@ export default function WorldMap({
     }
 
     if (layers.ghostTraces && ghostTraces.length > 0) {
-      ghostTraces.forEach((trace, index) => {
-        const tx = Number(trace?.x)
-        const ty = Number(trace?.y)
-        if (!Number.isFinite(tx) || !Number.isFinite(ty)) return
-        const pos = tileToCanvas(tx, ty, W, H)
-        const radius = 8 + (index % 3) * 3
+      const poiNodeMap = new Map(poiNodes.map((n) => [n.id, n]))
+      ghostTraces.forEach((trace) => {
+        const waypoints = trace?.waypoints || []
+        const positions = waypoints
+          .map((wp) => {
+            const node = poiNodeMap.get(wp?.poi_id)
+            if (!node) return null
+            return tileToCanvas(Number(node.x), Number(node.y), W, H)
+          })
+          .filter(Boolean)
+        if (positions.length < 2) return
         ctx.save()
-        ctx.globalAlpha = 0.5
-        ctx.strokeStyle = `${palette.glow}aa`
-        ctx.fillStyle = `${palette.glow}44`
-        ctx.lineWidth = 1.2
+        ctx.globalAlpha = 0.38
+        ctx.strokeStyle = `${palette.glow}bb`
+        ctx.lineWidth = 1.5
+        ctx.setLineDash([4, 5])
         ctx.beginPath()
-        ctx.arc(pos.x, pos.y, radius, 0, Math.PI * 2)
-        ctx.fill()
+        positions.forEach((pos, i) => {
+          if (i === 0) ctx.moveTo(pos.x, pos.y)
+          else ctx.lineTo(pos.x, pos.y)
+        })
         ctx.stroke()
+        // draw start dot
+        ctx.setLineDash([])
+        ctx.globalAlpha = 0.55
+        ctx.fillStyle = `${palette.glow}99`
+        ctx.beginPath()
+        ctx.arc(positions[0].x, positions[0].y, 4, 0, Math.PI * 2)
+        ctx.fill()
+        // draw end dot
+        ctx.fillStyle = palette.glow
+        ctx.globalAlpha = 0.8
+        ctx.beginPath()
+        ctx.arc(positions[positions.length - 1].x, positions[positions.length - 1].y, 5, 0, Math.PI * 2)
+        ctx.fill()
         ctx.restore()
       })
     }

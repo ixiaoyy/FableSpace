@@ -20,6 +20,42 @@ FableMap 现阶段已经不再处于“验证地图能否显示”的阶段。
 
 ## 当前最高优先级
 
+### 0. T0 · 工程收敛与可维护性治理
+**状态：proposed**
+
+目标：在不破坏当前可运行闭环的前提下，把项目从“功能持续堆叠的原型态”收敛为“可持续迭代的工程态”，为后续写回、编排与 AI-native 扩展建立稳定边界。
+
+问题判断：
+
+1. [`frontend/src/App.jsx`](../frontend/src/App.jsx) 职责过多，页面状态、API、持久化与业务编排混杂
+2. [`frontend/src/WorldMap.jsx`](../frontend/src/WorldMap.jsx) 同时承担视觉配置、资源加载、语义映射与 Canvas 渲染
+3. [`fablemap/web/service.py`](../fablemap/web/service.py) 过度中心化，API 层与领域编排层边界不清
+4. [`docs/ARCHITECTURE.md`](ARCHITECTURE.md) 仍以 Godot-first 口径为主，和当前 FastAPI + React 实现存在偏移
+
+整改原则：
+
+1. 先收缩主链路，再继续扩展能力
+2. 先拆模块边界，再补体验与视觉增强
+3. 先统一文档与契约，再进入多线并行开发
+4. 新功能接入不得继续向超大文件追加核心逻辑
+
+近期重点：
+
+1. 明确当前唯一主链路为 `坐标输入 -> nearby preview -> world map -> writeback -> feedback`
+2. 重写当前 Web 实现架构说明，补齐正式模块边界与实验模块边界
+3. 拆分 [`frontend/src/App.jsx`](../frontend/src/App.jsx) 的 API、session、hooks、页面面板职责
+4. 拆分 [`frontend/src/WorldMap.jsx`](../frontend/src/WorldMap.jsx) 的配置、纯函数、资源加载与 renderer
+5. 把 [`fablemap/web/service.py`](../fablemap/web/service.py) 收敛为薄应用入口，迁移复杂逻辑到独立 application services
+6. 合并前端重复常量与标签字典，建立共享配置单一来源
+7. 为核心链路补齐 contract test、纯函数测试与 lint/type-check 闸门
+
+关键参考：
+
+- [`docs/ARCHITECTURE.md`](ARCHITECTURE.md)
+- [`docs/ARCHITECTURE_PRINCIPLES.md`](ARCHITECTURE_PRINCIPLES.md)
+- [`docs/STRATEGIC_ANALYSIS.md`](STRATEGIC_ANALYSIS.md)
+- [`docs/WHAT_NOT_TO_BUILD.md`](WHAT_NOT_TO_BUILD.md)
+
 ### 1. P6 · 写回闭环前端接入与验证
 **状态：in_progress**
 
@@ -61,6 +97,39 @@ FableMap 现阶段已经不再处于“验证地图能否显示”的阶段。
 ---
 
 ## 本周主线
+
+### P0：工程收敛与重构准备
+
+#### A. 主链路收敛
+
+1. 把当前版本唯一主链路固定为 `坐标输入 -> nearby preview -> world map -> writeback -> feedback`
+2. 将 orchestration、ghost trace、disturbance、scene capsule、city persona 标记为增强或实验模块，而不是继续并列主线
+3. 约束新增需求必须服务主链路，不再无边界扩张页面与 service
+
+#### B. 前端大文件拆分准备
+
+1. 抽离 [`frontend/src/App.jsx`](../frontend/src/App.jsx) 中的 API client、session persistence 与页面装配逻辑
+2. 规划 hooks 分层：backend status、world preview、writeback、map layers、poi filters
+3. 合并共享常量，消除标签字典与展示映射的重复定义
+4. 将页面区块改造成可独立维护的组件，而不是继续追加到单文件
+
+#### C. 地图模块治理准备
+
+1. 抽离 [`frontend/src/WorldMap.jsx`](../frontend/src/WorldMap.jsx) 中的 palette、icon、road style、tag label 配置
+2. 抽离 geometry、ranking、occupancy 等纯函数工具
+3. 抽离 map asset preload 与 renderer，避免组件继续承担完整地图系统
+
+#### D. 后端服务层收敛准备
+
+1. 将 [`fablemap/web/service.py`](../fablemap/web/service.py) 收敛为 API facade
+2. 把 nearby、writeback、orchestration、insight 逻辑迁移到 application services
+3. 统一 API schema、错误格式与响应契约
+
+#### E. 质量护栏补齐
+
+1. 为核心纯函数补测试
+2. 为 nearby、writeback、orchestrate 补 contract test
+3. 接入 lint、format 与 type-check 基线
 
 ### P0：稳定底座与协议层补平
 
@@ -160,6 +229,8 @@ FableMap 现阶段已经不再处于“验证地图能否显示”的阶段。
 3. 继续以 Godot-first 叙事作为近期执行口径
 4. 在编排层与镜头引擎缺位时继续无限扩写图标包 / UI 面板
 5. 转向全 AI 视频流主世界
+6. 把所有实验能力都继续并列堆进 [`frontend/src/App.jsx`](../frontend/src/App.jsx) 或 [`fablemap/web/service.py`](../fablemap/web/service.py)
+7. 在未完成模块边界收敛前继续扩大前端状态数量与后端隐式依赖
 
 相关边界参考：
 
@@ -187,6 +258,16 @@ FableMap 现阶段已经不再处于“验证地图能否显示”的阶段。
 
 ---
 
+## 协作补充说明：工程治理共识
+
+为避免团队继续在现有大文件与模糊边界上追加功能，后续协作默认遵守以下共识：
+
+1. 前端新增主流程能力时，优先新增模块、hooks 或独立组件，不直接向 [`frontend/src/App.jsx`](../frontend/src/App.jsx) 追加大量业务逻辑
+2. 地图系统新增能力时，优先进入 config、utils、asset loader 或 renderer，不直接扩大 [`frontend/src/WorldMap.jsx`](../frontend/src/WorldMap.jsx) 的职责
+3. 后端新增领域能力时，优先进入 application 或 domain 模块，不直接堆入 [`fablemap/web/service.py`](../fablemap/web/service.py)
+4. 对外宣讲与内部协作时，默认以 FastAPI + React Web 形态作为当前正式工程口径；Godot 仅保留为历史设计参考或远期分支
+5. 如新增实验功能，必须标记其归属为 核心 / 增强 / 实验，避免再次形成并列主线
+
 ## 当前执行口号
 
-> **先让玩家真正写回世界，再让世界开始主动编排回应。**
+> **先让系统变得可维护，再让玩家真正写回世界，最后让世界开始主动编排回应。**

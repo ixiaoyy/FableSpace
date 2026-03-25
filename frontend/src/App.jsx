@@ -1,78 +1,31 @@
-import { useEffect, useMemo, useState } from 'react'
-import WorldMap from './WorldMap'
-import WorldDensityIndicator from './WorldDensityIndicator'
-
-function getDefaultApiBase() {
-  const envBase = import.meta.env.VITE_API_BASE?.trim()
-  if (envBase) {
-    return envBase.replace(/\/$/, '')
-  }
-  return ''
-}
-
-function createApiClient(getBaseUrl) {
-  async function readJson(response) {
-    const raw = await response.text()
-    let payload = {}
-
-    if (raw) {
-      try {
-        payload = JSON.parse(raw)
-      } catch {
-        const snippet = raw.trim().slice(0, 80)
-        if (snippet.startsWith('<')) {
-          throw new Error(`API returned HTML instead of JSON. The frontend is likely talking to the Vite shell, not FastAPI. (${response.url})`)
-        }
-        throw new Error(`API returned invalid JSON (${response.status}): ${snippet}`)
-      }
-    }
-
-    if (!response.ok) {
-      throw new Error(payload.error || payload.detail || `HTTP ${response.status}`)
-    }
-    return payload
-  }
-
-  return {
-    async getHealth() {
-      const response = await fetch(`${getBaseUrl()}/api/health`, { cache: 'no-store' })
-      return readJson(response)
-    },
-    async getMeta() {
-      const response = await fetch(`${getBaseUrl()}/api/meta`, { cache: 'no-store' })
-      return readJson(response)
-    },
-    async createNearbyPreview(form) {
-      const response = await fetch(`${getBaseUrl()}/api/nearby`, {
-        method: 'POST',
-        body: new URLSearchParams(form),
-      })
-      return readJson(response)
-    },
-    async submitWorldEvent(event) {
-      const response = await fetch(`${getBaseUrl()}/api/world/event`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(event),
-      })
-      return readJson(response)
-    },
-    async postGhostTrace(payload) {
-      const response = await fetch(`${getBaseUrl()}/api/ghost/trace`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      })
-      return readJson(response)
-    },
-    async getGhostTraces(playerId) {
-      const response = await fetch(`${getBaseUrl()}/api/ghost/traces/${encodeURIComponent(playerId)}`, { cache: 'no-store' })
-      return readJson(response)
-    },
-  }
-}
+import { useEffect, useMemo, useRef, useState } from 'react'
+import WorldEntryPanel from './WorldEntryPanel'
+import WorldSliceResultPanel from './WorldSliceResultPanel'
+import WorldStagePanel from './WorldStagePanel'
+import { createApiClient, getDefaultApiBase } from './services/apiClient'
+import {
+  buildSliceHighlights,
+  buildWorldAtmosphere,
+  buildWritebackResidue,
+  buildWritebackRevisitSummary,
+  buildWritebackTimeline,
+  clampObserveIntensity,
+  formatCoordinates,
+  formatTagLabel,
+  getActionButtonText,
+  getPoiFactionLabel,
+  getPoiTypeLabel,
+  getWritebackTargetSummary,
+  matchesPoiSearch,
+  normalizeSearchText,
+  pickPresetMeta,
+} from './services/appDisplay'
+import {
+  loadPersistedWorldSession,
+  loadPersistedWritebackSession,
+  persistWorldSession,
+  persistWritebackSession,
+} from './services/sessionPersistence'
 
 const LOCATION_PRESETS = [
   {
@@ -141,6 +94,11 @@ const WRITEBACK_ACTIONS = [
     label: '标记',
     hint: '给地点留下可回访的语义标签，为后续世界编排提供稳定输入。',
   },
+  {
+    eventType: 'repair',
+    label: '修复',
+    hint: '为地标贡献一次修复，积累城市荣誉榜排名。仅对 landmark 目标有效。',
+  },
 ]
 
 const VISIBILITY_OPTIONS = [
@@ -178,283 +136,6 @@ const VISIBILITY_OPTIONS = [
     participationReward: '通常只会作为候选提案进入更高层筛选，不保证立即成为全局叙事。',
   },
 ]
-
-const TAG_LABELS_ZH = {
-  verdant_district: '绿意城区',
-  healing_quarter: '疗愈街区',
-  market_quarter: '市集街区',
-  bureau_district: '秩序街区',
-  scholar_quarter: '学识街区',
-  threshold_district: '边界地带',
-  trade_guild: '贸易行会',
-  order_bureau: '秩序局',
-  clinic_circle: '诊疗环',
-  memory_collective: '记忆共社',
-  night_bloom: '夜绽社',
-  ghibli_town: '绿野町',
-  quiet_rain: '静雨',
-  neon_nostalgia: '霓虹怀旧',
-  amber_evening: '琥珀夜色',
-  iron_blue: '铁蓝',
-  chalk_dawn: '粉笔黎明',
-  whispering_grove: '低语林苑',
-  healing_sanctum: '疗愈圣所',
-  supply_outpost: '补给站',
-  judgement_tower: '裁定塔',
-  ember_parlor: '余烬馆',
-  lore_academy: '学识堂',
-  debt_cathedral: '债务堂',
-  feast_hall: '宴飨厅',
-  refuel_station: '补能站',
-  memory_archive: '记忆档案馆',
-  spirit_sanctum: '灵息圣所',
-  dormant_lot: '静置空场',
-  remedy_post: '疗护铺',
-  labor_forge: '劳作工坊',
-  contract_spire: '契约尖塔',
-}
-
-const PROVIDER_LABELS_ZH = {
-  live: '实时地图',
-  fixture: '离线样例',
-  unknown: '未知来源',
-}
-
-const CACHE_STATUS_LABELS_ZH = {
-  fresh: '新生成',
-  hit: '命中缓存',
-  miss: '缓存未命中',
-  stale: '旧缓存',
-  bypassed: '跳过缓存',
-  unknown: '未知状态',
-}
-
-const VISIBILITY_LABELS_ZH = {
-  private: '仅自己可见',
-  local_public: '区域公开',
-  global: '城市神话层候选',
-}
-
-function formatTagLabel(value, fallback = '未分类') {
-  if (!value) {
-    return fallback
-  }
-  return TAG_LABELS_ZH[value] || value.replace(/_/g, ' ')
-}
-
-function formatProviderLabel(value) {
-  if (!value) {
-    return PROVIDER_LABELS_ZH.unknown
-  }
-  return PROVIDER_LABELS_ZH[value] || value
-}
-
-function formatCacheStatusLabel(value) {
-  if (!value) {
-    return CACHE_STATUS_LABELS_ZH.unknown
-  }
-  return CACHE_STATUS_LABELS_ZH[value] || value
-}
-
-function formatVisibilityLabel(value) {
-  if (!value) {
-    return VISIBILITY_LABELS_ZH.private
-  }
-  return VISIBILITY_LABELS_ZH[value] || value
-}
-
-function normalizeSearchText(value) {
-  return String(value || '').trim().toLowerCase()
-}
-
-function getPoiTypeLabel(poi) {
-  return formatTagLabel(poi?.fantasy_type || poi?.real_type || '', '未分类地点')
-}
-
-function getPoiFactionLabel(poi) {
-  return formatTagLabel(poi?.faction || poi?.district || poi?.alignment || '', '未知势力')
-}
-
-function matchesPoiSearch(poi, query) {
-  if (!query) {
-    return true
-  }
-
-  const searchableText = [
-    poi?.id,
-    poi?.real_name,
-    poi?.fantasy_name,
-    poi?.real_type,
-    poi?.fantasy_type,
-    poi?.satire_hook,
-    poi?.emotion_hook,
-    poi?.faction,
-    poi?.district,
-    poi?.alignment,
-  ]
-    .filter(Boolean)
-    .join(' ')
-    .toLowerCase()
-
-  return searchableText.includes(query)
-}
-
-function clampObserveIntensity(value) {
-  const parsed = Number(value)
-  if (!Number.isFinite(parsed)) {
-    return 1
-  }
-  return Math.min(3, Math.max(1, Math.round(parsed)))
-}
-
-function getWritebackTargetSummary(activePoi, form) {
-  const targetName = activePoi?.real_name || activePoi?.fantasy_name || form.targetId || '当前地点'
-  const zoneName = form.zoneId || '当前区域'
-
-  if (form.eventType === 'dwell') {
-    return `你将对 ${zoneName} 发起一次驻足写回。`
-  }
-  if (form.eventType === 'mark') {
-    return `你将为 ${targetName} 留下一枚「${form.tag}」标记。`
-  }
-  return `你将观察 ${targetName}，并累积该地点的熟悉度。`
-}
-
-function getActionButtonText(eventType, busy) {
-  if (busy) {
-    if (eventType === 'dwell') return '驻足写回中...'
-    if (eventType === 'mark') return '标记写回中...'
-    return '观察写回中...'
-  }
-
-  if (eventType === 'dwell') return '驻足'
-  if (eventType === 'mark') return '留下标记'
-  return '观察'
-}
-
-function buildWritebackTimeline(payload) {
-  if (!payload) {
-    return []
-  }
-
-  const steps = []
-  const eventType = payload?.event?.event_type || '-'
-  const targetId = payload?.event?.target?.target_id || '-'
-  const visibility = payload?.event?.visibility || '-'
-  const playerState = payload?.player_state || {}
-  const placeState = payload?.place_state || {}
-  const worldFeedback = payload?.world_feedback || {}
-  const effects = worldFeedback?.effects || {}
-
-  steps.push({
-    id: 'event',
-    title: '事件写入',
-    text: `${eventType} 已发送到 ${targetId}，可见性为 ${formatVisibilityLabel(visibility)}。`,
-  })
-
-  steps.push({
-    id: 'player',
-    title: '玩家状态变化',
-    text: `action=${playerState.action_state || '-'} · clarity=${playerState.clarity ?? '-'} · tension=${playerState.tension ?? '-'} · attunement=${playerState.attunement ?? '-'}`,
-  })
-
-  steps.push({
-    id: 'place',
-    title: '地点状态变化',
-    text: `familiarity=${placeState.familiarity ?? '-'} · mark_count=${placeState.mark_count ?? '-'} · last_event=${placeState.last_event_type || '-'}`,
-  })
-
-  steps.push({
-    id: 'world',
-    title: '世界反馈',
-    text: worldFeedback.summary || '世界暂时保持沉默。',
-  })
-
-  if ((worldFeedback.broadcast_hints || []).length) {
-    steps.push({
-      id: 'broadcast',
-      title: '广播提示',
-      text: worldFeedback.broadcast_hints.join(' · '),
-    })
-  }
-
-  if ((worldFeedback.revealed_fields || []).length) {
-    steps.push({
-      id: 'revealed',
-      title: '可见字段',
-      text: worldFeedback.revealed_fields.join(' · '),
-    })
-  }
-
-  if (Object.keys(effects.player_effects || {}).length || Object.keys(effects.place_effects || {}).length || Object.keys(effects.world_effects || {}).length) {
-    steps.push({
-      id: 'effects',
-      title: '结构化 effects',
-      text: JSON.stringify(effects),
-    })
-  }
-
-  steps.push({
-    id: 'persistence',
-    title: '持久化',
-    text: `${payload?.persistence?.storage || '未知存储'} · events=${payload?.persistence?.stored_event_count ?? '-'} · ${payload?.persistence?.state_file || '-'}`,
-  })
-
-  return steps
-}
-
-function buildWritebackResidue(placeState) {
-  if (!placeState) {
-    return []
-  }
-
-  const residues = []
-  const echoes = Array.isArray(placeState.recent_echoes) ? placeState.recent_echoes.filter(Boolean) : []
-  const marks = Array.isArray(placeState.marks) ? placeState.marks.filter(Boolean) : []
-
-  if (echoes.length) {
-    residues.push({
-      id: 'echoes',
-      title: '最近回声',
-      items: echoes.slice(-3),
-    })
-  }
-
-  if (marks.length) {
-    residues.push({
-      id: 'marks',
-      title: '最近标记',
-      items: marks.slice(-3).map((mark) => {
-        const tag = mark?.tag || '未标记'
-        const note = mark?.note ? ` · ${mark.note}` : ''
-        return `${tag}${note}`
-      }),
-    })
-  }
-
-  return residues
-}
-
-function buildWritebackRevisitSummary(result, writebackResult, familiarityMap, writebackForm) {
-  const currentSliceId = result?.world_id || ''
-  const persistedSliceId = writebackResult?.event?.target?.slice_id || writebackForm?.sliceId || ''
-  const sameSlice = Boolean(currentSliceId && persistedSliceId && currentSliceId === persistedSliceId)
-  const targetId = writebackResult?.event?.target?.target_id || writebackForm?.targetId || ''
-  const familiarity = targetId ? familiarityMap?.[targetId] ?? 0 : 0
-  const storedEvents = writebackResult?.persistence?.stored_event_count ?? 0
-  const lastEventType = writebackResult?.event?.event_type || writebackResult?.place_state?.last_event_type || '-'
-
-  return {
-    sameSlice,
-    currentSliceId,
-    persistedSliceId,
-    targetId,
-    familiarity,
-    storedEvents,
-    lastEventType,
-    hasResidue: Boolean(storedEvents || familiarity || (writebackResult?.place_state?.recent_echoes || []).length || (writebackResult?.place_state?.marks || []).length),
-  }
-}
 
 const DEFAULT_VISIBLE_MAP_LAYERS = {
   roads: true,
@@ -521,171 +202,10 @@ const MAP_LAYER_PRESETS = [
   },
 ]
 
-const LAST_WORLD_STORAGE_KEY = 'fablemap:last-world-session'
-const LAST_WRITEBACK_STORAGE_KEY = 'fablemap:last-writeback-session'
-
-function isPersistedResultUsable(result) {
-  return Boolean(result && typeof result === 'object' && result.preview_url)
-}
-
-function isWritebackResultUsable(result) {
-  return Boolean(result && typeof result === 'object' && result.event && result.persistence)
-}
-
-function loadPersistedWorldSession() {
-  if (typeof window === 'undefined') {
-    return null
-  }
-
-  try {
-    const raw = window.localStorage.getItem(LAST_WORLD_STORAGE_KEY)
-    if (!raw) {
-      return null
-    }
-    const payload = JSON.parse(raw)
-    if (!payload || typeof payload !== 'object') {
-      return null
-    }
-
-    const restoredResult = payload.result && typeof payload.result === 'object' ? payload.result : null
-
-    return {
-      form: payload.form && typeof payload.form === 'object' ? { ...initialForm, ...payload.form } : null,
-      result: isPersistedResultUsable(restoredResult) ? restoredResult : null,
-      originLabel: typeof payload.originLabel === 'string' ? payload.originLabel : '',
-      originHint: typeof payload.originHint === 'string' ? payload.originHint : '',
-      visibleLayers:
-        payload.visibleLayers && typeof payload.visibleLayers === 'object'
-          ? { ...DEFAULT_VISIBLE_MAP_LAYERS, ...payload.visibleLayers }
-          : DEFAULT_VISIBLE_MAP_LAYERS,
-      mapLayerPanelOpen: typeof payload.mapLayerPanelOpen === 'boolean' ? payload.mapLayerPanelOpen : true,
-      lastUpdatedAt: typeof payload.lastUpdatedAt === 'string' ? payload.lastUpdatedAt : '',
-    }
-  } catch {
-    return null
-  }
-}
-
-function loadPersistedWritebackSession() {
-  if (typeof window === 'undefined') {
-    return null
-  }
-
-  try {
-    const raw = window.localStorage.getItem(LAST_WRITEBACK_STORAGE_KEY)
-    if (!raw) {
-      return null
-    }
-    const payload = JSON.parse(raw)
-    if (!payload || typeof payload !== 'object') {
-      return null
-    }
-
-    return {
-      sliceId: typeof payload.sliceId === 'string' ? payload.sliceId : '',
-      activePoiId: typeof payload.activePoiId === 'string' ? payload.activePoiId : null,
-      activePoi: payload.activePoi && typeof payload.activePoi === 'object' ? payload.activePoi : null,
-      familiarityMap: payload.familiarityMap && typeof payload.familiarityMap === 'object' ? payload.familiarityMap : {},
-      writebackForm:
-        payload.writebackForm && typeof payload.writebackForm === 'object'
-          ? { ...initialWritebackForm, ...payload.writebackForm }
-          : null,
-      writebackResult: isWritebackResultUsable(payload.writebackResult) ? payload.writebackResult : null,
-      lastUpdatedAt: typeof payload.lastUpdatedAt === 'string' ? payload.lastUpdatedAt : '',
-    }
-  } catch {
-    return null
-  }
-}
-
-function persistWorldSession(session) {
-  if (typeof window === 'undefined') {
-    return
-  }
-
-  try {
-    window.localStorage.setItem(
-      LAST_WORLD_STORAGE_KEY,
-      JSON.stringify({
-        ...session,
-        result: isPersistedResultUsable(session?.result) ? session.result : null,
-        lastUpdatedAt: new Date().toISOString(),
-      })
-    )
-  } catch {
-  }
-}
-
-function persistWritebackSession(session) {
-  if (typeof window === 'undefined') {
-    return
-  }
-
-  try {
-    window.localStorage.setItem(
-      LAST_WRITEBACK_STORAGE_KEY,
-      JSON.stringify({
-        ...session,
-        writebackForm:
-          session?.writebackForm && typeof session.writebackForm === 'object'
-            ? { ...initialWritebackForm, ...session.writebackForm }
-            : null,
-        writebackResult: isWritebackResultUsable(session?.writebackResult) ? session.writebackResult : null,
-        familiarityMap:
-          session?.familiarityMap && typeof session.familiarityMap === 'object' ? session.familiarityMap : {},
-        lastUpdatedAt: new Date().toISOString(),
-      })
-    )
-  } catch {
-  }
-}
-
-function formatCoordinates(lat, lon) {
-  const latNumber = Number(lat)
-  const lonNumber = Number(lon)
-  if (!Number.isFinite(latNumber) || !Number.isFinite(lonNumber)) {
-    return '坐标未设置'
-  }
-  return `${latNumber.toFixed(4)}, ${lonNumber.toFixed(4)}`
-}
-
-function pickPresetMeta(form) {
-  return LOCATION_PRESETS.find(
-    (preset) =>
-      preset.lat === form.lat &&
-      preset.lon === form.lon &&
-      preset.radius === form.radius &&
-      preset.mode === form.mode
-  )
-}
-
-function buildSliceHighlights(result) {
-  if (!result) {
-    return []
-  }
-
-  return [
-    result.region_theme ? `这片区域当前被“${formatTagLabel(result.region_theme, '未命名切片')}”主导。` : '世界主题仍在等待生成。',
-    result.dominant_faction ? `主导势力是 ${formatTagLabel(result.dominant_faction, '未显形势力')}。` : '主导势力尚未显形。',
-    result.poi_count
-      ? `附近浮现 ${result.poi_count} 个可观察节点，可直接点入。`
-      : '这次切片还没有稳定的观察节点。',
-  ]
-}
-
-function buildWorldAtmosphere(result) {
-  if (!result) {
-    return '先选择一个入口，世界才会开始组织自己的语气。'
-  }
-
-  const sourceText = formatProviderLabel(result.provider)
-  const cacheText = formatCacheStatusLabel(result.cache_status)
-  return `现实骨架来自 ${sourceText}，当前缓存状态为 ${cacheText}。你现在看到的不是表单结果，而是一段可进入的局部世界。`
-}
 
 export default function App() {
-  const restoredSession = useMemo(loadPersistedWorldSession, [])
-  const restoredWritebackSession = useMemo(loadPersistedWritebackSession, [])
+  const restoredSession = useMemo(() => loadPersistedWorldSession(initialForm, DEFAULT_VISIBLE_MAP_LAYERS), [])
+  const restoredWritebackSession = useMemo(() => loadPersistedWritebackSession(initialWritebackForm), [])
   const [apiBase, setApiBase] = useState(getDefaultApiBase)
   const [checking, setChecking] = useState(false)
   const [submitting, setSubmitting] = useState(false)
@@ -713,6 +233,10 @@ export default function App() {
     typeof restoredSession?.mapLayerPanelOpen === 'boolean' ? restoredSession.mapLayerPanelOpen : true
   )
   const [ghostTraces, setGhostTraces] = useState([])
+  const [disturbanceForm, setDisturbanceForm] = useState({ weather: '', traffic_level: '', crowd_density: '', event_tag: '' })
+  const [disturbanceActive, setDisturbanceActive] = useState(null)
+  const [disturbanceSubmitting, setDisturbanceSubmitting] = useState(false)
+  const pendingWaypointsRef = useRef([])
   const [activePoi, setActivePoi] = useState(restoredWritebackSession?.activePoi || null)
   const [familiarityMap, setFamiliarityMap] = useState(restoredWritebackSession?.familiarityMap || {})
   const [poiSearch, setPoiSearch] = useState('')
@@ -721,7 +245,7 @@ export default function App() {
   const [poiOnlyFamiliar, setPoiOnlyFamiliar] = useState(false)
 
   const api = useMemo(() => createApiClient(() => apiBase.replace(/\/$/, '')), [apiBase])
-  const presetMeta = pickPresetMeta(form)
+  const presetMeta = pickPresetMeta(form, LOCATION_PRESETS)
   const previewUrl = result?.preview_url || ''
   const worldPois = result?.world?.pois || []
   const normalizedPoiSearch = normalizeSearchText(poiSearch)
@@ -748,6 +272,8 @@ export default function App() {
     : '生成切片后可按名称、势力与类型筛选 POI'
   const recentEchoes = writebackResult?.place_state?.recent_echoes || []
   const recentMarks = writebackResult?.place_state?.marks || []
+  const placeLegend = writebackResult?.place_state?.place_legend || null
+  const honorBoard = writebackResult?.place_state?.honor_board || []
   const playerState = writebackResult?.player_state || null
   const feedback = writebackResult?.world_feedback || null
   const writebackTimeline = buildWritebackTimeline(writebackResult)
@@ -1084,11 +610,52 @@ export default function App() {
         setFamiliarityMap((current) => ({ ...current, ...poiFam }))
       }
       setBehaviorInsights(payload?.behavior_insights || null)
+      if (writebackForm.eventType === 'observe' && targetId) {
+        const waypoint = { poi_id: targetId, timestamp: new Date().toISOString(), action_state: 'observe' }
+        pendingWaypointsRef.current = [...pendingWaypointsRef.current, waypoint]
+        if (pendingWaypointsRef.current.length >= 3) {
+          const waypoints = pendingWaypointsRef.current
+          pendingWaypointsRef.current = []
+          api.postGhostTrace({
+            player_id: writebackForm.playerId,
+            waypoints,
+            mood_arc: ['curious'],
+            visibility: writebackForm.visibility || 'local_public',
+          }).then((data) => {
+            if (data?.trace_id) {
+              setGhostTraces((current) => [...current, data])
+            }
+          }).catch(() => {})
+        }
+      }
     } catch (error) {
       setWritebackError(`写回失败：${error.message || String(error)}`)
     } finally {
       setWritebackSubmitting(false)
     }
+  }
+
+  async function submitDisturbance() {
+    if (!result?.world_id) return
+    setDisturbanceSubmitting(true)
+    try {
+      const payload = {
+        slice_id: result.world_id,
+        weather: disturbanceForm.weather || null,
+        traffic_level: disturbanceForm.traffic_level ? parseFloat(disturbanceForm.traffic_level) : null,
+        crowd_density: disturbanceForm.crowd_density ? parseFloat(disturbanceForm.crowd_density) : null,
+        event_tag: disturbanceForm.event_tag || null,
+      }
+      const data = await api.injectDisturbance(payload)
+      setDisturbanceActive(data?.active || null)
+    } catch {}
+    finally { setDisturbanceSubmitting(false) }
+  }
+
+  async function clearDisturbance() {
+    if (!result?.world_id) return
+    await api.clearDisturbance(result.world_id).catch(() => {})
+    setDisturbanceActive(null)
   }
 
   useEffect(() => {
@@ -1097,6 +664,13 @@ export default function App() {
 
   useEffect(() => {
     setOrchestrationEvents([])
+  }, [result?.world_id, writebackForm.playerId])
+
+  useEffect(() => {
+    if (!result?.world_id || !writebackForm.playerId) return
+    api.getGhostTraces(writebackForm.playerId)
+      .then((data) => setGhostTraces(data?.traces || []))
+      .catch(() => {})
   }, [result?.world_id, writebackForm.playerId])
 
   useEffect(() => {
@@ -1111,14 +685,17 @@ export default function App() {
   }, [form, result, originLabel, originHint, visibleMapLayers, mapLayerPanelOpen])
 
   useEffect(() => {
-    persistWritebackSession({
-      sliceId: result?.world_id || writebackForm.sliceId,
-      activePoiId,
-      activePoi,
-      familiarityMap,
-      writebackForm,
-      writebackResult,
-    })
+    persistWritebackSession(
+      {
+        sliceId: result?.world_id || writebackForm.sliceId,
+        activePoiId,
+        activePoi,
+        familiarityMap,
+        writebackForm,
+        writebackResult,
+      },
+      initialWritebackForm
+    )
   }, [activePoi, activePoiId, familiarityMap, result, writebackForm, writebackResult])
 
   return (
@@ -1166,863 +743,92 @@ export default function App() {
       </section>
 
       <div className="grid main-grid">
-        <section className="panel primary-panel">
-          <div className="section-heading">
-            <div>
-              <p className="mini-label">步骤 1</p>
-              <h2>选择入口并生成世界</h2>
-            </div>
-            <p className="note muted">
-              优先用人类能理解的入口，再把坐标与种子折叠为高级选项。
-              {lastSessionAt ? ` 已恢复上次记录：${new Date(lastSessionAt).toLocaleString()}` : ''}
-            </p>
-          </div>
+        <WorldEntryPanel
+          lastSessionAt={lastSessionAt}
+          originLabel={originLabel}
+          originHint={originHint}
+          form={form}
+          locationPresets={LOCATION_PRESETS}
+          presetMeta={presetMeta}
+          usePreset={usePreset}
+          locating={locating}
+          useCurrentLocation={useCurrentLocation}
+          submitting={submitting}
+          submitNearby={submitNearby}
+          advancedOpen={advancedOpen}
+          setAdvancedOpen={setAdvancedOpen}
+          updateForm={updateForm}
+          errorText={errorText}
+        />
 
-          <div className="origin-card">
-            <div className="origin-card-copy">
-              <strong>{originLabel}</strong>
-              <p className="note muted">{originHint}</p>
-            </div>
-            <div className="origin-card-meta">
-              <span>{formatCoordinates(form.lat, form.lon)}</span>
-              <span>{form.radius}m 半径</span>
-            </div>
-          </div>
-
-          <div className="preset-grid">
-            {LOCATION_PRESETS.map((preset) => {
-              const active = preset.id === presetMeta?.id
-              return (
-                <button
-                  key={preset.id}
-                  type="button"
-                  className={`preset-card${active ? ' active' : ''}`}
-                  onClick={() => usePreset(preset)}
-                >
-                  <span className="preset-title">{preset.title}</span>
-                  <span className="preset-subtitle">{preset.subtitle}</span>
-                  <span className="preset-meta">{preset.mode === 'fixture' ? '离线稳定' : '实时地图'} · {preset.radius}m</span>
-                </button>
-              )
-            })}
-          </div>
-
-          <div className="actions origin-actions">
-            <button type="button" className="secondary" disabled={locating} onClick={useCurrentLocation}>
-              {locating ? '定位中...' : '用我的当前位置'}
-            </button>
-            <button type="button" disabled={submitting} onClick={() => submitNearby(false)}>
-              {submitting ? '生成中...' : '生成世界预览'}
-            </button>
-            <button type="button" className="secondary" disabled={submitting} onClick={() => submitNearby(true)}>
-              刷新实时地图
-            </button>
-          </div>
-
-          <button
-            type="button"
-            className="ghost-toggle"
-            onClick={() => setAdvancedOpen((current) => !current)}
-          >
-            {advancedOpen ? '收起高级参数' : '展开高级参数'}
-          </button>
-
-          {advancedOpen ? (
-            <div className="advanced-panel">
-              <div className="row">
-                <div>
-                  <label htmlFor="lat">纬度</label>
-                  <input id="lat" type="number" step="0.000001" value={form.lat} onChange={(event) => updateForm('lat', event.target.value)} />
-                </div>
-                <div>
-                  <label htmlFor="lon">经度</label>
-                  <input id="lon" type="number" step="0.000001" value={form.lon} onChange={(event) => updateForm('lon', event.target.value)} />
-                </div>
-                <div>
-                  <label htmlFor="radius">半径（米）</label>
-                  <input id="radius" type="number" min="1" step="1" value={form.radius} onChange={(event) => updateForm('radius', event.target.value)} />
-                </div>
-              </div>
-
-              <div className="row-2">
-                <div>
-                  <label htmlFor="mode">世界来源</label>
-                  <select id="mode" value={form.mode} onChange={(event) => updateForm('mode', event.target.value)}>
-                    <option value="live">实时 OSM</option>
-                    <option value="fixture">离线演示样例</option>
-                  </select>
-                </div>
-                <div>
-                  <label htmlFor="seed">种子</label>
-                  <input id="seed" type="text" placeholder="可选的稳定种子" value={form.seed} onChange={(event) => updateForm('seed', event.target.value)} />
-                </div>
-              </div>
-            </div>
-          ) : null}
-
-          {errorText ? <p className="note error-note">{errorText}</p> : null}
-        </section>
-
-        <section className="panel secondary-panel">
-          <div className="section-heading">
-            <div>
-              <p className="mini-label">步骤 2</p>
-              <h2>当前切片结果</h2>
-            </div>
-            <p className="note muted">生成成功后，这里先给出世界摘要，再进入地图和文字观察窗。</p>
-          </div>
-
-          {result ? (
-            <div className="result-stack">
-              <div className="result-card emphasis-card story-card">
-                <p className="mini-label">世界快照</p>
-                <h3 className="story-card-title">{formatTagLabel(result.region_theme, '未命名切片')}</h3>
-                <p className="note story-card-copy">{worldAtmosphere}</p>
-                <div className="story-chip-row">
-                  <span>势力 · {formatTagLabel(result.dominant_faction, '-')}</span>
-                  <span>地点 · {result.poi_count ?? '-'}</span>
-                  <span>道路 · {result.road_count ?? '-'}</span>
-                  <span>地标 · {result.landmark_count ?? '-'}</span>
-                </div>
-              </div>
-
-              <div className="result-grid">
-                <div className="result-card">
-                  <p className="mini-label">你将进入什么</p>
-                  <div className="story-bullets">
-                    {sliceHighlights.map((item) => (
-                      <div key={item} className="story-bullet">{item}</div>
-                    ))}
-                  </div>
-                </div>
-                <div className="result-card">
-                  <p className="mini-label">下一步</p>
-                  <div className="story-bullets">
-                    <div className="story-bullet">先打开下方地图，悬停节点查看地点名字与讽刺钩子。</div>
-                    <div className="story-bullet">点击一个节点，页面会把它提升为当前观察目标。</div>
-                    <div className="story-bullet">如果要看更完整的文本世界，再打开文字预览。</div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="link-row action-links">
-                <a className="button-link" href={result.preview_url} target="_blank" rel="noreferrer">打开预览</a>
-                <a href={result.world_url} target="_blank" rel="noreferrer">世界数据 world.json</a>
-                <a href={result.manifest_url} target="_blank" rel="noreferrer">资源清单 manifest.json</a>
-              </div>
-            </div>
-          ) : (
-            <div className="empty-state story-empty-state">
-              <div>
-                <p className="empty-title">还没有打开任何世界切片</p>
-                <p className="note muted">先选一个入口：可以用预设地点，也可以直接用浏览器定位。</p>
-                <div className="empty-chips">
-                  <span>{statusOk ? '服务已就绪' : '先确认服务'}</span>
-                  <span>推荐先试演示样例世界</span>
-                  <span>生成后可直接点地图节点</span>
-                </div>
-              </div>
-            </div>
-          )}
-        </section>
+        <WorldSliceResultPanel
+          result={result}
+          statusOk={statusOk}
+          worldAtmosphere={worldAtmosphere}
+          sliceHighlights={sliceHighlights}
+        />
       </div>
 
-      <section className="panel preview-panel player-preview-panel storyboard-panel">
-        <div className="section-heading storyboard-heading">
-          <div>
-            <p className="mini-label">步骤 3</p>
-            <h2>进入 2D 世界地图</h2>
-          </div>
-          <div className="storyboard-heading-copy">
-            <p className="note muted">这里不再是平面预览区，而是你附近切片被转译成 2D 游戏世界地图的主舞台。</p>
-          </div>
-        </div>
-
-        <div className="storyboard-shell">
-          <div className="storyboard-shell-top">
-            <div className="storyboard-category">
-              <span className="storyboard-category-label">世界气候层</span>
-              <div className="storyboard-chip-row">
-                <span className={`storyboard-chip${result ? '' : ' storyboard-chip--empty'}`}>
-                  {result ? '切片已就绪' : '待生成'}
-                </span>
-                <span className="storyboard-chip">{formatTagLabel(result?.world?.region?.vibe_profile, '静雨')}</span>
-                <span className="storyboard-chip">{formatTagLabel(result?.dominant_faction, '未显形势力')}</span>
-                <span className="storyboard-chip">{formatTagLabel(result?.region_theme, '未命名切片')}</span>
-              </div>
-            </div>
-            <div className="storyboard-category">
-              <span className="storyboard-category-label">进入设定</span>
-              <div className="storyboard-chip-row">
-                <span className="storyboard-chip">{originLabel}</span>
-                <span className="storyboard-chip">{form.radius}m 半径</span>
-                <span className="storyboard-chip">{result?.landmark_count ?? 0} 个地标</span>
-              </div>
-            </div>
-          </div>
-
-          <div className="storyboard-map-frame">
-            <div
-              className={`map-layer-toolbar${mapLayerPanelOpen ? '' : ' is-collapsed'}`}
-              role="group"
-              aria-label="地图图层控制器"
-            >
-              <div className="map-layer-toolbar__header">
-                <div>
-                  <span className="storyboard-category-label">图层控制器</span>
-                  <p className="map-layer-toolbar__copy">按需折叠世界骨架、标签与残影，同时保留地图主舞台。</p>
-                </div>
-                <div className="map-layer-toolbar__header-actions">
-                  <span className="map-layer-toolbar__summary">
-                    已开启 {Object.values(visibleMapLayers).filter(Boolean).length} / {MAP_LAYER_OPTIONS.length} 层
-                  </span>
-                  <button
-                    type="button"
-                    className="map-layer-toolbar__toggle"
-                    onClick={() => setMapLayerPanelOpen((current) => !current)}
-                    aria-expanded={mapLayerPanelOpen}
-                    aria-controls="map-layer-toolbar-panel"
-                  >
-                    {mapLayerPanelOpen ? '收起控制器' : '展开控制器'}
-                  </button>
-                </div>
-              </div>
-              {mapLayerPanelOpen ? (
-                <div id="map-layer-toolbar-panel" className="map-layer-toolbar__panel">
-                  <div className="map-layer-preset-row" role="toolbar" aria-label="地图图层预设">
-                    {MAP_LAYER_PRESETS.map((preset) => {
-                      const active = MAP_LAYER_OPTIONS.every((layer) => Boolean(visibleMapLayers[layer.key]) === Boolean(preset.layers[layer.key]))
-                      return (
-                        <button
-                          key={preset.key}
-                          type="button"
-                          className={`map-layer-preset${active ? ' is-active' : ''}`}
-                          onClick={() => applyMapLayerPreset(preset.key)}
-                        >
-                          <strong>{preset.label}</strong>
-                          <span>{preset.hint}</span>
-                        </button>
-                      )
-                    })}
-                  </div>
-                  <div className="map-layer-toolbar__actions" role="toolbar" aria-label="图层快捷操作">
-                    <button type="button" className="map-layer-action" onClick={() => setAllMapLayers(true)}>全开</button>
-                    <button type="button" className="map-layer-action" onClick={() => setAllMapLayers(false)}>全关</button>
-                    <button type="button" className="map-layer-action" onClick={resetMapLayers}>重置默认</button>
-                  </div>
-                  <div className="map-layer-toolbar__grid">
-                    {MAP_LAYER_OPTIONS.map((layer) => (
-                      <label key={layer.key} className={`map-layer-toggle${visibleMapLayers[layer.key] ? ' is-active' : ''}`}>
-                        <input
-                          type="checkbox"
-                          checked={Boolean(visibleMapLayers[layer.key])}
-                          onChange={() => toggleMapLayer(layer.key)}
-                        />
-                        <span className="map-layer-toggle__text">
-                          <strong>{layer.label}</strong>
-                          <span>{layer.hint}</span>
-                        </span>
-                      </label>
-                    ))}
-                  </div>
-                </div>
-              ) : null}
-            </div>
-            <WorldMap
-              world={result?.world}
-              onPoiClick={handlePoiClick}
-              activePoiId={activePoiId}
-              familiarityMap={familiarityMap}
-              originLabel={originLabel}
-              ghostTraces={ghostTraces}
-              visibleLayers={visibleMapLayers}
-            />
-          </div>
-
-          <div className="storyboard-shell-bottom">
-            <div className="storyboard-lane">
-              <div className="storyboard-lane-header">
-                <span className="storyboard-category-label">探索引导</span>
-                <span className="storyboard-lane-meta">按 2D 世界地图的方式进入，而不是读表单</span>
-              </div>
-              {result?.world_id ? (
-                <WorldDensityIndicator
-                  sliceId={result.world_id}
-                  playerId={writebackForm.playerId}
-                  lat={form.lat}
-                  lon={form.lon}
-                  onEvent={handleOrchestrationEvent}
-                />
-              ) : null}
-              <div className="shared-task-grid">
-                <article className={`shared-task-card shared-task-card--gen${result ? ' is-done' : submitting ? ' is-loading' : ''}`}>
-                  <span className="shared-task-index">00</span>
-                  <div className="shared-task-gen-body">
-                    <h3>{result ? formatTagLabel(result.region_theme, '世界已生成') : '生成当前切片'}</h3>
-                    <p className="shared-task-gen-meta">
-                      {result
-                        ? `${result.poi_count ?? 0} 个节点 · ${result.road_count ?? 0} 条路径 · ${formatTagLabel(result.dominant_faction, '未知势力')}`
-                        : `${originLabel} · ${form.radius}m · ${form.mode === 'fixture' ? '离线样例' : '实时地图'}`
-                      }
-                    </p>
-                    {!result ? (
-                      <div className="shared-task-gen-actions">
-                        <button
-                          type="button"
-                          className="shared-task-gen-btn"
-                          disabled={submitting}
-                          onClick={() => submitNearby(false)}
-                        >
-                          {submitting ? '生成中...' : '生成世界'}
-                        </button>
-                        <button
-                          type="button"
-                          className="shared-task-gen-btn secondary"
-                          disabled={submitting}
-                          onClick={() => submitNearby(true)}
-                        >
-                          刷新
-                        </button>
-                      </div>
-                    ) : (
-                      <div className="shared-task-gen-actions">
-                        <button
-                          type="button"
-                          className="shared-task-gen-btn secondary"
-                          disabled={submitting}
-                          onClick={() => submitNearby(true)}
-                        >
-                          {submitting ? '刷新中...' : '重新生成'}
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                </article>
-                <article className={`shared-task-card${resolvedActivePoi ? ' is-active' : ''}`}>
-                  <span className="shared-task-index">01</span>
-                  <div>
-                    <h3>选一个据点</h3>
-                    <p>{resolvedActivePoi ? `${resolvedActivePoi.fantasy_name} 已成为当前主据点。` : '先在地图上点击一个节点，把它变成你这次进入世界的主据点。'}</p>
-                  </div>
-                </article>
-                <article className="shared-task-card">
-                  <span className="shared-task-index">02</span>
-                  <div>
-                    <h3>读地图气氛</h3>
-                    <p>{resolvedActivePoi?.satire_hook || '悬停节点先读名字、阵营、钩子，再决定往哪一块世界深入。'}</p>
-                  </div>
-                </article>
-                <article className="shared-task-card">
-                  <span className="shared-task-index">03</span>
-                  <div>
-                    <h3>留下你的动静</h3>
-                    <p>{writebackResult ? `最近一次观察已经落在 ${writebackResult?.event?.target?.target_id || writebackForm.targetId || '当前地点'}。` : '点“驻足观察”，把这次进入留成地点的第一层痕迹。'}</p>
-                  </div>
-                </article>
-                <article className="shared-task-card shared-task-card--visibility">
-                  <span className="shared-task-index">04</span>
-                  <div>
-                    <h3>决定这次写回留在哪一层</h3>
-                    <p>{selectedVisibilityMeta.title} · {selectedVisibilityMeta.hint}</p>
-                  </div>
-                </article>
-              </div>
-
-              <div className="storyboard-lane poi-filter-lane">
-                <div className="storyboard-lane-header">
-                  <span className="storyboard-category-label">POI 搜索与筛选</span>
-                  <span className="storyboard-lane-meta">不必在地图上逐个试点，可以先缩小候选节点范围</span>
-                </div>
-
-                <div className="poi-filter-toolbar">
-                  <label className="poi-filter-field poi-filter-field--search">
-                    <span>搜索词</span>
-                    <input
-                      type="text"
-                      value={poiSearch}
-                      onChange={(event) => setPoiSearch(event.target.value)}
-                      placeholder="输入地点名、钩子、势力或 POI ID"
-                    />
-                  </label>
-
-                  <label className="poi-filter-field">
-                    <span>地点类型</span>
-                    <select value={poiTypeFilter} onChange={(event) => setPoiTypeFilter(event.target.value)}>
-                      <option value="all">全部类型</option>
-                      {poiTypeOptions.map((option) => (
-                        <option key={option} value={option}>{option}</option>
-                      ))}
-                    </select>
-                  </label>
-
-                  <label className="poi-filter-field">
-                    <span>所属势力</span>
-                    <select value={poiFactionFilter} onChange={(event) => setPoiFactionFilter(event.target.value)}>
-                      <option value="all">全部势力</option>
-                      {poiFactionOptions.map((option) => (
-                        <option key={option} value={option}>{option}</option>
-                      ))}
-                    </select>
-                  </label>
-
-                  <label className="poi-filter-toggle">
-                    <input
-                      type="checkbox"
-                      checked={poiOnlyFamiliar}
-                      onChange={(event) => setPoiOnlyFamiliar(event.target.checked)}
-                    />
-                    <span>只看已积累熟悉度的节点</span>
-                  </label>
-
-                  <button
-                    type="button"
-                    className="secondary poi-filter-reset"
-                    onClick={() => {
-                      setPoiSearch('')
-                      setPoiTypeFilter('all')
-                      setPoiFactionFilter('all')
-                      setPoiOnlyFamiliar(false)
-                    }}
-                    disabled={!poiSearch && poiTypeFilter === 'all' && poiFactionFilter === 'all' && !poiOnlyFamiliar}
-                  >
-                    清空筛选
-                  </button>
-                </div>
-
-                <div className="poi-filter-summary-row">
-                  <span className="poi-filter-summary">{poiSearchSummary}</span>
-                  {resolvedActivePoi ? (
-                    <span className="poi-filter-summary poi-filter-summary--active">
-                      当前主据点：{resolvedActivePoi.fantasy_name}
-                    </span>
-                  ) : null}
-                </div>
-
-                {result ? (
-                  filteredWorldPois.length ? (
-                    <div className="poi-filter-results">
-                      {filteredWorldPois.slice(0, 12).map((poi) => {
-                        const isActive = poi.id === resolvedActivePoi?.id
-                        const familiarity = familiarityMap?.[poi.id] ?? 0
-                        return (
-                          <button
-                            key={poi.id}
-                            type="button"
-                            className={`poi-filter-card${isActive ? ' is-active' : ''}`}
-                            onClick={() => handlePoiClick(poi.id, poi)}
-                          >
-                            <div className="poi-filter-card-top">
-                              <strong>{poi.fantasy_name || poi.real_name || poi.id}</strong>
-                              <span>{getPoiTypeLabel(poi)}</span>
-                            </div>
-                            <p>{poi.satire_hook || poi.emotion_hook || '这个节点暂时还没有公开钩子。'}</p>
-                            <div className="poi-filter-card-meta">
-                              <span>{getPoiFactionLabel(poi)}</span>
-                              <span>familiarity · {familiarity}</span>
-                            </div>
-                          </button>
-                        )
-                      })}
-                    </div>
-                  ) : (
-                    <div className="storyboard-placeholder-card poi-filter-empty">
-                      <strong>没有符合条件的 POI</strong>
-                      <p>当前搜索词或筛选条件没有匹配到节点。可以先放宽类型、势力或熟悉度限制。</p>
-                    </div>
-                  )
-                ) : (
-                  <div className="storyboard-placeholder-card poi-filter-empty">
-                    <strong>等待世界切片生成</strong>
-                    <p>生成当前切片后，这里会出现可搜索、可筛选、可快速选中的 POI 列表。</p>
-                  </div>
-                )}
-              </div>
-
-              {orchestrationEvents.length ? (
-                <div className="storyboard-lane orchestration-lane">
-                  <div className="storyboard-lane-header">
-                    <span className="storyboard-category-label">编排事件</span>
-                    <span className="storyboard-lane-meta">世界编排器正在根据当前切片与你的位置发出信号</span>
-                  </div>
-                  <div className="orchestration-event-grid">
-                    {orchestrationEvents.map((event, index) => (
-                      <article key={`${event.type}-${event.priority}-${index}`} className="orchestration-event-card">
-                        <strong>{event.type || 'unknown_event'}</strong>
-                        <span>priority · {event.priority ?? '-'}</span>
-                      </article>
-                    ))}
-                  </div>
-                </div>
-              ) : null}
-
-              <div className="storyboard-lane d3-lane">
-                <div className="storyboard-lane-header">
-                  <span className="storyboard-category-label">D3 · 玩家参与入口</span>
-                  <span className="storyboard-lane-meta">把写回动作解释成城市神话共创的上游入口，而不是孤立按钮</span>
-                </div>
-                <div className="d3-entry-hero">
-                  <div>
-                    <p className="mini-label">城市神话共创入口</p>
-                    <h3>{selectedVisibilityMeta.participationLabel}</h3>
-                    <p>{selectedVisibilityMeta.semantics}</p>
-                  </div>
-                  <div className="d3-entry-pill-group">
-                    <span className="d3-entry-pill">当前动作 · {selectedActionMeta.label}</span>
-                    <span className="d3-entry-pill">可见性 · {selectedVisibilityMeta.title}</span>
-                    <span className="d3-entry-pill">目标 · {writebackForm.eventType === 'dwell' ? '区域' : '地点'}</span>
-                  </div>
-                </div>
-
-                <div className="d3-entry-grid">
-                  {VISIBILITY_OPTIONS.map((option, index) => {
-                    const active = writebackForm.visibility === option.value
-                    return (
-                      <article key={option.value} className={`d3-entry-card${active ? ' is-active' : ''}`}>
-                        <span className="d3-entry-index">0{index + 1}</span>
-                        <strong>{option.participationLabel}</strong>
-                        <p>{option.semantics}</p>
-                        <div className="d3-entry-copy">
-                          <span>{option.participationAction}</span>
-                          <span>{option.participationReward}</span>
-                        </div>
-                      </article>
-                    )
-                  })}
-                </div>
-
-                <div className="d3-flow-grid">
-                  <article className="d3-flow-card">
-                    <strong>即时反馈</strong>
-                    <p>{selectedActionMeta.label} 会先改变玩家状态、地点状态与当前切片反馈，属于你这次进入的即时回响。</p>
-                  </article>
-                  <article className="d3-flow-card">
-                    <strong>持久写回</strong>
-                    <p>{selectedVisibilityMeta.participationAction}</p>
-                  </article>
-                  <article className="d3-flow-card">
-                    <strong>神话推进</strong>
-                    <p>{selectedVisibilityMeta.participationReward}</p>
-                  </article>
-                </div>
-              </div>
-            </div>
- 
-            <div className="storyboard-lane">
-              <div className="storyboard-lane-header">
-                <span className="storyboard-category-label">当前舞台卡</span>
-                <span className="storyboard-lane-meta">把选中的地点当成 RPG 世界节点来看</span>
-              </div>
-              {resolvedActivePoi ? (
-                <div className="storyboard-stage-stack">
-                  <div className="poi-detail-bar storyboard-poi-bar">
-                    <span className="poi-detail-name">{resolvedActivePoi.fantasy_name}</span>
-                    <span className="poi-detail-type muted">{formatTagLabel(resolvedActivePoi.fantasy_type, '未分类地点')}</span>
-                    <span className="poi-detail-satire">{resolvedActivePoi.satire_hook}</span>
-                    <span className="poi-detail-emotion muted">{resolvedActivePoi.emotion_hook}</span>
-                  </div>
-
-                  <div className="writeback-action-panel">
-                    <div className="writeback-action-header">
-                      <div>
-                        <p className="mini-label">P6 · 写回动作</p>
-                        <h3>在主舞台直接触发观察 / 驻足 / 标记</h3>
-                      </div>
-                      <span className="writeback-action-target">{writebackTargetSummary}</span>
-                    </div>
-
-                    <div className="writeback-action-grid">
-                      {WRITEBACK_ACTIONS.map((action) => {
-                        const active = writebackForm.eventType === action.eventType
-                        return (
-                          <button
-                            key={action.eventType}
-                            type="button"
-                            className={`writeback-action-card${active ? ' is-active' : ''}`}
-                            onClick={() => applyWritebackAction(action.eventType)}
-                          >
-                            <strong>{action.label}</strong>
-                            <span>{action.hint}</span>
-                          </button>
-                        )
-                      })}
-                    </div>
-
-                    <div className="writeback-quick-panel">
-                      <div className="writeback-quick-meta">
-                        <strong>{selectedActionMeta.label}</strong>
-                        <span>{selectedActionMeta.hint}</span>
-                      </div>
-
-                      {writebackForm.eventType === 'observe' ? (
-                        <label className="writeback-inline-field">
-                          <span>观察强度</span>
-                          <input
-                            type="number"
-                            min="1"
-                            max="3"
-                            step="1"
-                            value={writebackForm.intensity}
-                            onChange={(event) => updateWritebackForm('intensity', event.target.value)}
-                          />
-                        </label>
-                      ) : null}
-
-                      {writebackForm.eventType === 'mark' ? (
-                        <label className="writeback-inline-field">
-                          <span>标记类型</span>
-                          <select value={writebackForm.tag} onChange={(event) => updateWritebackForm('tag', event.target.value)}>
-                            <option value="safe">safe</option>
-                            <option value="uncanny">uncanny</option>
-                            <option value="warm_corner">warm_corner</option>
-                            <option value="return_again">return_again</option>
-                            <option value="rain_friendly">rain_friendly</option>
-                          </select>
-                        </label>
-                      ) : null}
-
-                      <label className="writeback-inline-field writeback-inline-field--wide">
-                        <span>补充说明</span>
-                        <input
-                          type="text"
-                          value={writebackForm.note}
-                          onChange={(event) => updateWritebackForm('note', event.target.value)}
-                          placeholder="可选的一句备注，用于帮助你回访时辨认这次写回"
-                        />
-                      </label>
-
-                      <label className="writeback-inline-field">
-                        <span>可见性</span>
-                        <select value={writebackForm.visibility} onChange={(event) => updateWritebackForm('visibility', event.target.value)}>
-                          {VISIBILITY_OPTIONS.map((option) => (
-                            <option key={option.value} value={option.value}>{option.label}</option>
-                          ))}
-                        </select>
-                      </label>
-
-                      <button
-                        type="button"
-                        className="writeback-primary-btn"
-                        disabled={writebackSubmitting}
-                        onClick={submitWriteback}
-                      >
-                        {getActionButtonText(writebackForm.eventType, writebackSubmitting)}
-                      </button>
-                    </div>
-
-                    <div className="writeback-visibility-panel">
-                      <div className="writeback-visibility-header">
-                        <div>
-                          <p className="mini-label">D3 · 参与与可见性</p>
-                          <h3>这次写回准备留在什么层</h3>
-                        </div>
-                        <span className={`writeback-visibility-badge writeback-visibility-badge--${selectedVisibilityMeta.value}`}>
-                          {selectedVisibilityMeta.title}
-                        </span>
-                      </div>
-                      <p className="writeback-visibility-summary">{selectedVisibilityMeta.title} · {selectedVisibilityMeta.hint}</p>
-                      <div className="writeback-visibility-grid">
-                        {VISIBILITY_OPTIONS.map((option) => (
-                          <article key={option.value} className={`writeback-visibility-card${writebackForm.visibility === option.value ? ' is-active' : ''}`}>
-                            <strong>{option.label}</strong>
-                            <span>{option.title}</span>
-                            <p>{option.access}</p>
-                          </article>
-                        ))}
-                      </div>
-                    </div>
-
-                    {writebackError ? <p className="note error-note">{writebackError}</p> : null}
-
-                    {writebackTimeline.length ? (
-                      <div className="writeback-structured-panel">
-                        <div className="writeback-structured-header">
-                          <div>
-                            <p className="mini-label">结构化状态变化</p>
-                            <h3>本次写回已经产生可验证的状态链路</h3>
-                          </div>
-                          <span className="writeback-persistence-badge">{writebackResult?.persistence?.stored_event_count ?? 0} stored events</span>
-                        </div>
-
-                        <div className={`writeback-revisit-banner${revisitSummary.sameSlice ? ' is-valid' : ''}`}>
-                          <div>
-                            <strong>{revisitSummary.sameSlice ? '回访验证成功' : '等待同一 slice 回访验证'}</strong>
-                            <p>
-                              {revisitSummary.sameSlice
-                                ? `当前切片 ${revisitSummary.currentSliceId} 与最近一次写回目标一致，说明这次进入仍然挂着你上次留下的痕迹。`
-                                : `最近写回记录来自 ${revisitSummary.persistedSliceId || '未知 slice'}，当前切片为 ${revisitSummary.currentSliceId || '尚未生成'}。重新进入同一 slice 时，这里会继续显示残留痕迹。`}
-                            </p>
-                          </div>
-                          <div className="writeback-revisit-stats">
-                            <span>last_event={revisitSummary.lastEventType}</span>
-                            <span>familiarity={revisitSummary.familiarity}</span>
-                            <span>stored_events={revisitSummary.storedEvents}</span>
-                          </div>
-                        </div>
-
-                        <div className="writeback-timeline">
-                          {writebackTimeline.map((item) => (
-                            <article key={item.id} className="writeback-timeline-item">
-                              <strong>{item.title}</strong>
-                              <p>{item.text}</p>
-                            </article>
-                          ))}
-                        </div>
-
-                        {writebackResidues.length ? (
-                          <div className="writeback-residue-grid">
-                            {writebackResidues.map((group) => (
-                              <article key={group.id} className="writeback-residue-card">
-                                <strong>{group.title}</strong>
-                                <ul>
-                                  {group.items.map((item) => (
-                                    <li key={item}>{item}</li>
-                                  ))}
-                                </ul>
-                              </article>
-                            ))}
-                          </div>
-                        ) : null}
-                      </div>
-                    ) : (
-                      <div className="storyboard-placeholder-card writeback-placeholder-card">
-                        <strong>等待第一次主舞台写回</strong>
-                        <p>先在上方选择 observe、dwell 或 mark，然后直接把动作提交到 [`/api/world/event`](frontend/src/App.jsx:52)。这里会显示玩家状态、地点状态、世界反馈与持久化结果。</p>
-                      </div>
-                    )}
-
-                    <div className="behavior-insight-panel">
-                      <div className="writeback-visibility-header behavior-insight-header">
-                        <div>
-                          <p className="mini-label">AIO4 · 行为到意义</p>
-                          <h3>这段行动正在形成怎样的玩家含义</h3>
-                        </div>
-                        <span className="writeback-persistence-badge">{behaviorInsights?.dominant_meaning || 'waiting_trace'}</span>
-                      </div>
-                      {behaviorInsights ? (
-                        <>
-                          <p className="writeback-visibility-summary">
-                            myth entry · {behaviorInsights.myth_entry || 'unnamed_drifter'} · dominant district · {behaviorInsights.dominant_district || 'unknown'}
-                          </p>
-                          <div className="behavior-score-grid">
-                            <article className="behavior-score-card">
-                              <strong>explorer</strong>
-                              <span>{behaviorInsights.explorer_score ?? 0}</span>
-                            </article>
-                            <article className="behavior-score-card">
-                              <strong>chronicler</strong>
-                              <span>{behaviorInsights.chronicler_score ?? 0}</span>
-                            </article>
-                            <article className="behavior-score-card">
-                              <strong>restorer</strong>
-                              <span>{behaviorInsights.restorer_score ?? 0}</span>
-                            </article>
-                            <article className="behavior-score-card">
-                              <strong>recluse</strong>
-                              <span>{behaviorInsights.recluse_score ?? 0}</span>
-                            </article>
-                            <article className="behavior-score-card">
-                              <strong>共振度</strong>
-                              <span>{behaviorInsights.resonant_score ?? 0}</span>
-                            </article>
-                          </div>
-                          <div className="behavior-action-summary">
-                            {Object.entries(behaviorInsights.action_counts || {}).map(([key, value]) => (
-                              <span key={key} className="d3-entry-pill">{key} · {value}</span>
-                            ))}
-                          </div>
-                        </>
-                      ) : (
-                        <p className="writeback-visibility-summary">等待行为轨迹输入。第一次写回后，这里会把事件流编译成更高层的玩家角色倾向。</p>
-                      )}
-                    </div>
-
-                    {/* AIO5 · 城市人格 */}
-                    <div className="behavior-insight-panel">
-                      <div className="writeback-visibility-header behavior-insight-header">
-                        <div>
-                          <p className="mini-label">AIO5 · 城市人格</p>
-                          <h3>城市对你的持续人格回应</h3>
-                        </div>
-                        {behaviorInsights?.city_persona && (
-                          <span className="writeback-persistence-badge">{behaviorInsights.city_persona.emotional_tone}</span>
-                        )}
-                      </div>
-                      {behaviorInsights?.city_persona ? (
-                        <>
-                          <p className="writeback-visibility-summary">
-                            {behaviorInsights.city_persona.greeting}
-                          </p>
-                          <div className="behavior-score-grid">
-                            <article className="behavior-score-card">
-                              <strong>称谓</strong>
-                              <span>{behaviorInsights.city_persona.address}</span>
-                            </article>
-                            <article className="behavior-score-card">
-                              <strong>回应偏好</strong>
-                              <span>{behaviorInsights.city_persona.response_bias}</span>
-                            </article>
-                            <article className="behavior-score-card">
-                              <strong>信任度</strong>
-                              <span>{behaviorInsights.city_persona.trust_level}</span>
-                            </article>
-                          </div>
-                          {behaviorInsights.city_persona.persona_tags?.length > 0 && (
-                            <div className="behavior-action-summary">
-                              {behaviorInsights.city_persona.persona_tags.map((tag) => (
-                                <span key={tag} className="d3-entry-pill">{tag}</span>
-                              ))}
-                            </div>
-                          )}
-                        </>
-                      ) : (
-                        <p className="writeback-visibility-summary">城市尚未对你形成人格印象。完成第一次写回后，这里会显示城市对你的称谓与情绪倾向。</p>
-                      )}
-                    </div>
-
-                    {/* AIO6 · 场景胶囊 */}
-                    {behaviorInsights?.scene_capsule && (
-                      <div className="scene-capsule-panel">
-                        <div className="scene-capsule-header">
-                          <div>
-                            <p className="mini-label">AIO6 · 场景胶囊 · {behaviorInsights.scene_capsule.capsule_type}</p>
-                            <h3 className="scene-capsule-title">{behaviorInsights.scene_capsule.title || '城市低语'}</h3>
-                          </div>
-                          <span className="scene-capsule-type-badge">{behaviorInsights.scene_capsule.visibility}</span>
-                        </div>
-                        <p className="scene-capsule-narrative">
-                          {behaviorInsights.scene_capsule.narrative || behaviorInsights.scene_capsule.narrative_fragment}
-                        </p>
-                        {behaviorInsights.scene_capsule.summary && (
-                          <p className="writeback-visibility-summary muted">{behaviorInsights.scene_capsule.summary}</p>
-                        )}
-                        <div className="d3-entry-pills">
-                          <span className="d3-entry-pill">资源提示 · {behaviorInsights.scene_capsule.asset_pack_hint || behaviorInsights.scene_capsule.asset_hint || '-'}</span>
-                          <span className="d3-entry-pill">渲染方式 · {behaviorInsights.scene_capsule.render_mode || 'toast'}</span>
-                          <span className="d3-entry-pill">持续时间 · {behaviorInsights.scene_capsule.ttl_seconds ?? behaviorInsights.scene_capsule.decay_turns ?? '-'}</span>
-                          {behaviorInsights.scene_capsule.is_fallback && (
-                            <span className="d3-entry-pill muted">回退内容</span>
-                          )}
-                        </div>
-                      </div>
-                    )}
-
-                  </div>
-                </div>
-              ) : (
-                <div className="storyboard-placeholder-card">
-                  <strong>等待你选中第一块地图据点</strong>
-                  <p>这张地图应该像 2D 游戏世界入口，而不是静态平面图。先点一个地点，右侧信息就会变成你的当前舞台卡。</p>
-                  {writebackResult && lastWritebackPoiId ? (
-                    <button type="button" className="storyboard-inline-btn" onClick={focusWritebackTarget}>
-                      回到上次写回目标
-                    </button>
-                  ) : null}
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      </section>
+      <WorldStagePanel
+        result={result}
+        originLabel={originLabel}
+        form={form}
+        statusOk={statusOk}
+        mapLayerPanelOpen={mapLayerPanelOpen}
+        setMapLayerPanelOpen={setMapLayerPanelOpen}
+        visibleMapLayers={visibleMapLayers}
+        mapLayerOptions={MAP_LAYER_OPTIONS}
+        mapLayerPresets={MAP_LAYER_PRESETS}
+        applyMapLayerPreset={applyMapLayerPreset}
+        setAllMapLayers={setAllMapLayers}
+        resetMapLayers={resetMapLayers}
+        toggleMapLayer={toggleMapLayer}
+        activePoiId={activePoiId}
+        familiarityMap={familiarityMap}
+        ghostTraces={ghostTraces}
+        handlePoiClick={handlePoiClick}
+        writebackForm={writebackForm}
+        handleOrchestrationEvent={handleOrchestrationEvent}
+        submitting={submitting}
+        submitNearby={submitNearby}
+        resolvedActivePoi={resolvedActivePoi}
+        writebackResult={writebackResult}
+        selectedVisibilityMeta={selectedVisibilityMeta}
+        poiSearch={poiSearch}
+        setPoiSearch={setPoiSearch}
+        poiTypeFilter={poiTypeFilter}
+        setPoiTypeFilter={setPoiTypeFilter}
+        poiTypeOptions={poiTypeOptions}
+        poiFactionFilter={poiFactionFilter}
+        setPoiFactionFilter={setPoiFactionFilter}
+        poiFactionOptions={poiFactionOptions}
+        poiOnlyFamiliar={poiOnlyFamiliar}
+        setPoiOnlyFamiliar={setPoiOnlyFamiliar}
+        poiSearchSummary={poiSearchSummary}
+        filteredWorldPois={filteredWorldPois}
+        orchestrationEvents={orchestrationEvents}
+        disturbanceForm={disturbanceForm}
+        setDisturbanceForm={setDisturbanceForm}
+        disturbanceSubmitting={disturbanceSubmitting}
+        submitDisturbance={submitDisturbance}
+        disturbanceActive={disturbanceActive}
+        clearDisturbance={clearDisturbance}
+        selectedActionMeta={selectedActionMeta}
+        visibilityOptions={VISIBILITY_OPTIONS}
+        writebackTargetSummary={writebackTargetSummary}
+        writebackActions={WRITEBACK_ACTIONS}
+        applyWritebackAction={applyWritebackAction}
+        updateWritebackForm={updateWritebackForm}
+        writebackSubmitting={writebackSubmitting}
+        submitWriteback={submitWriteback}
+        writebackError={writebackError}
+        writebackTimeline={writebackTimeline}
+        revisitSummary={revisitSummary}
+        writebackResidues={writebackResidues}
+        behaviorInsights={behaviorInsights}
+        focusWritebackTarget={focusWritebackTarget}
+        lastWritebackPoiId={lastWritebackPoiId}
+      />
 
       <section className="panel admin-panel">
         <div className="admin-header">
@@ -2148,6 +954,9 @@ export default function App() {
                   <div><strong>类型：</strong> {writebackResult.place_state?.target_type || '-'}</div>
                   <div><strong>熟悉度：</strong> {writebackResult.place_state?.familiarity ?? '-'}</div>
                   <div><strong>标记数：</strong> {writebackResult.place_state?.mark_count ?? '-'}</div>
+                  {writebackResult.place_state?.repair_count > 0 ? (
+                    <div><strong>修复次数：</strong> {writebackResult.place_state.repair_count}</div>
+                  ) : null}
                   <div><strong>最近事件：</strong> {writebackResult.place_state?.last_event_type || '-'}</div>
                   <div><strong>已存事件：</strong> {writebackResult.persistence?.stored_event_count ?? '-'}</div>
                 </div>
@@ -2178,6 +987,28 @@ export default function App() {
                 {recentMarks.map((entry) => (
                   <div key={entry.event_id} className="subtle-block">
                     <strong>{entry.tag}</strong> · {entry.visibility} {entry.note ? `· ${entry.note}` : ''}
+                  </div>
+                ))}
+              </div>
+            ) : null}
+
+            {placeLegend ? (
+              <div className="result-card stacked-card">
+                <h3>地点传说（{placeLegend.tier}）</h3>
+                <p className="subtle-block">{placeLegend.narrative}</p>
+                {placeLegend.vibe_summary ? (
+                  <div className="subtle-block"><strong>气质：</strong>{placeLegend.vibe_summary}</div>
+                ) : null}
+                <div className="subtle-block"><strong>印记总数：</strong>{placeLegend.mark_count}</div>
+              </div>
+            ) : null}
+
+            {honorBoard.length > 0 ? (
+              <div className="result-card stacked-card">
+                <h3>城市荣誉榜</h3>
+                {honorBoard.map((entry, i) => (
+                  <div key={entry.player_id} className="subtle-block">
+                    <strong>#{i + 1} {entry.player_id}</strong> · 修复 {entry.contributions} 次
                   </div>
                 ))}
               </div>
