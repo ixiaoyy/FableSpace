@@ -1,1 +1,43 @@
-placeholder
+Total lines: 121
+80: 
+81: class TestCityIdentityEvolution:
+82:     def _make_meaning(self, dominant: str, **kwargs) -> MeaningVector:
+83:         defaults = dict(
+84:             player_id="p1",
+85:             dominant_meaning=dominant,
+86:             explorer_score=0.0,
+87:             chronicler_score=0.0,
+88:             restorer_score=0.0,
+89:             recluse_score=0.0,
+90:             resonant_score=0.0,
+91:             wanderer_score=1.0,
+92:             myth_entry=None,
+93:         )
+94:         defaults.update(kwargs)
+95:         return MeaningVector(**defaults)
+96: 
+97:     def test_home_dweller_persona_has_home_tag(self):
+98:         agent = CityPersonaAgent()
+99:         meaning = self._make_meaning("resonant", resonant_score=0.8)
+100:         persona = agent.generate(meaning)
+101:         # 有据点的高共鸣玩家应有 resonant 相关标签
+102:         assert persona.dominant_meaning == "resonant"
+103:         assert persona.trust_level > 0.5
+104: 
+105:     def test_evolve_with_home_boosts_trust(self):
+106:         agent = CityPersonaAgent()
+107:         meaning = self._make_meaning("resonant", resonant_score=0.8)
+108:         persona = agent.generate(meaning)
+109:         evolved = agent.evolve_with_home(persona, comfort_score=0.8)
+110:         assert evolved.trust_level > persona.trust_level
+111:         assert "home_bound" in evolved.persona_tags
+112: 
+113:     def test_merge_updates_existing_persona(self):
+114:         agent = CityPersonaAgent()
+115:         m1 = self._make_meaning("explorer", explorer_score=0.7)
+116:         m2 = self._make_meaning("resonant", resonant_score=0.9)
+117:         persona = agent.generate(m1)
+118:         merged = agent.merge(persona, m2)
+119:         # merge 后 trust 是加权平均，不应超过 1.0
+120:         assert 0.0 <= merged.trust_level <= 1.0
+121:         assert merged.dominant_meaning == "resonant"

@@ -49,25 +49,32 @@
 
 ## P0：当前最高优先级任务
 
-### P. 写回协议与可用性
+### T0. 工程收敛与可维护性治理
 
-- `P6` · `done` · 写回闭环前端接入与验证：在前端接入 `observe / dwell / mark` 三种动作入口，对接 `POST /api/world/event`，显示结构化状态变化，并验证同一 slice 回访时仍能看到写回痕迹。变更记录：[`docs/changes/2026-03-17-p6-writeback-frontend-verification.md`](changes/2026-03-17-p6-writeback-frontend-verification.md)。
+- `T0.1` · `planned` · 主链路收束：将当前唯一主链路固定为 `坐标输入 -> nearby preview -> world map -> writeback -> feedback`，把 orchestration、ghost trace、disturbance、scene capsule、city persona 统一标记为增强或实验模块，不再并列主线。依据：[`docs/CURRENT_TASKS.md`](CURRENT_TASKS.md)。
+- `T0.2` · `planned` · 前端边界拆分：继续收敛 [`frontend/src/App.jsx`](../frontend/src/App.jsx) 与 [`frontend/src/hooks/useWorldSession.js`](../frontend/src/hooks/useWorldSession.js)，拆分 API、session persistence、writeback、map layers、poi filters 与页面装配职责，建立共享配置单一来源。
+- `T0.3` · `planned` · 地图模块治理：拆分 [`frontend/src/WorldMap.jsx`](../frontend/src/WorldMap.jsx) 中的 palette、icon、road style、tag label 配置，以及 geometry、occupancy、asset preload、renderer 等职责，避免继续向超大地图组件叠加核心逻辑。
+- `T0.4` · `planned` · 后端服务层收敛：以 [`fablemap/api_service.py`](../fablemap/api_service.py) 为当前已存在的应用入口基线，后续新增领域逻辑优先进入独立 application / domain 模块；历史文档中对 `fablemap/web/service.py` 的引用应视为待清理旧口径。
+- `T0.5` · `planned` · 质量护栏补齐：为 nearby、writeback、orchestrate 等核心链路补 contract test、纯函数测试，以及 lint / format / type-check 基线。
+
+### P. 写回闭环补平
+
+- `P6-R1` · `planned` · 写回主链路补平：在现有 `observe / dwell / mark / repair` 基础上，统一前端事件 payload、反馈渲染、错误处理与回访可见性验证，确保写回能力从“已接入”提升为“稳定可验证”。关键实现基线见 [`frontend/src/hooks/useWorldSession.js`](../frontend/src/hooks/useWorldSession.js) 与 [`fablemap/writeback.py`](../fablemap/writeback.py)。
 - `P3` · `done` · 玩家写回权限与语义治理边界：见 [`docs/WORLD_WRITEBACK_GOVERNANCE.md`](WORLD_WRITEBACK_GOVERNANCE.md)。
 - `P4` · `done` · 历史深度 / Time Folds 协议：见 [`docs/TIME_FOLDS_PROTOCOL.md`](TIME_FOLDS_PROTOCOL.md)。
-- `P5` · `done` · World Writeback Protocol 后端实现：[`fablemap/writeback.py`](../fablemap/writeback.py) 与 [`fablemap/web/router.py`](../fablemap/web/router.py) 已形成最小写回链路。
+- `P5` · `done` · World Writeback Protocol 后端实现：见 [`fablemap/writeback.py`](../fablemap/writeback.py)。
+- `P6` · `done` · 写回闭环前端接入与验证：变更记录：[`docs/changes/2026-03-17-p6-writeback-frontend-verification.md`](changes/2026-03-17-p6-writeback-frontend-verification.md)。
 
 ### D. 玩家参与与共创入口
 
-- `D3` · `done` · 玩家参与感与城市神话共创主线收束：participation_modes（private_capsules/street_legends/repair_rituals）与 AIO2 镜头引擎 lens_hint 对齐，可见性语义（private/local_public/global）与写回协议统一。变更记录：[`docs/changes/2026-03-17-d3-co-creation-lens-alignment.md`](changes/2026-03-17-d3-co-creation-lens-alignment.md)。“玩家如何进入世界写回系统”作为产品入口重新整理，对齐参与面板、神话线程、可见性层级与写回语义，不再只作为叙事汇总文档。
+- `D3-R1` · `planned` · D3 口径收束与共享入口对齐：保留 [`D3`](AI_SHARED_TASKLIST.md:61) 作为“玩家如何进入世界写回系统”的产品入口，但后续文档与实现必须与写回协议、可见性边界与前端入口保持单一口径，不再分裂成独立叙事支线。
+- `D3` · `done` · 玩家参与感与城市神话共创主线收束：变更记录：[`docs/changes/2026-03-17-d3-co-creation-lens-alignment.md`](changes/2026-03-17-d3-co-creation-lens-alignment.md)。
 
-### AIO. AI-native 架构演进
+### AIO. AI-native 架构演进准备
 
-- `AIO1` · `done` · 世界编排器协议定义：见 [`docs/WORLD_ORCHESTRATOR_PROTOCOL.md`](WORLD_ORCHESTRATOR_PROTOCOL.md)。协议已完成，包含完整输入输出结构、8 种事件类型、失败降级策略、前后端消费关系。变更记录：[`docs/changes/2026-03-17-aio1-world-orchestrator-protocol-complete.md`](changes/2026-03-17-aio1-world-orchestrator-protocol-complete.md)。
-- `AIO2` · `done` · 镜头引擎 / Lens Engine 协议：定义 `lens schema`、`vibe_profile -> lens` 映射、镜头切换时的资源包 / 文案 / 可见性 / 事件权重规则。变更记录：[`docs/changes/2026-03-17-aio2-lens-engine-complete.md`](changes/2026-03-17-aio2-lens-engine-complete.md)。
-- `AIO3` · `done` · 世界记忆图谱：设计玩家、POI、zone、route、echo、历史片段与阵营关系的统一记忆索引结构。变更记录：[`docs/changes/2026-03-17-aio3-memory-graph-complete.md`](changes/2026-03-17-aio3-memory-graph-complete.md)。
-- `AIO4` · `done` · 行为到意义编译器：把连续行为模式编译成高阶世界含义，为个性化反馈与私人神话层提供中间层。五维语义向量（explorer/chronicler/restorer/recluse/resonant）+ myth_entry 映射，集成至编排器。变更记录：[`docs/changes/2026-03-17-aio4-behavior-compiler-complete.md`](changes/2026-03-17-aio4-behavior-compiler-complete.md)。
-- `AIO5` · `done` · 城市人格代理：基于 MeaningVector 生成城市对玩家的持续人格回应（称谓/情绪倾向/问候语/回应偏好/信任度），六种人格配置，EMA 滑动更新，集成至编排器。变更记录：[`docs/changes/2026-03-17-aio5-city-persona-complete.md`](changes/2026-03-17-aio5-city-persona-complete.md)。
-- `AIO6` · `done` · 生成式场景胶囊：定义局部生成式表现层的触发条件、输入结构、输出格式与失败降级边界。四种触发规则、六种胶囊类型、三级可见性、叙事模板，集成至编排器。变更记录：[`docs/changes/2026-03-18-aio6-scene-capsule-complete.md`](changes/2026-03-18-aio6-scene-capsule-complete.md)。
+- `AIO1-R1` · `planned` · 编排器落地准备：在 [`docs/WORLD_ORCHESTRATOR_PROTOCOL.md`](WORLD_ORCHESTRATOR_PROTOCOL.md) 已完成的前提下，优先收束现有 `world_state / player_state / writeback_events / governance / time folds` 的实现消费边界，明确失败降级与前后端接线方式。
+- `AIO2-R1` · `planned` · 镜头引擎接线准备：基于已完成协议，为 `vibe_profile -> lens`、资源包切换、文案口吻、可见性与事件权重建立明确接线点，避免继续把镜头能力散落到视图层和地图渲染层。
+- `AIO3-AIO6` · `reference_only` · 世界记忆图谱、行为到意义编译器、城市人格代理、生成式场景胶囊协议均已完成并保留为下一阶段参考，不作为当前最高优先实现主线。
 
 ---
 
@@ -130,22 +137,21 @@
 
 ### 第一优先级
 
-1. `P6`：把写回闭环真正接进前端并可验证
-2. `D3`：把玩家参与与共创语义收束成统一入口
-3. `AIO1`：定义世界编排器协议边界
+1. `T0.1-T0.3`：先完成主链路收束、前端边界拆分与地图模块治理
+2. `T0.4-T0.5`：补齐后端服务层收敛与测试 / type-check / lint 护栏
+3. `P6-R1`：把写回链路从“已接入”补平为“稳定可验证”
 
 ### 第二优先级
 
-4. `AIO2`：补齐镜头引擎协议
-5. `AIO3`：设计世界记忆图谱
-6. `M3`：补资源验收与前端接入基线
+4. `D3-R1`：统一玩家参与入口、可见性语义与前端共享口径
+5. `AIO1-R1`：把编排器协议从文档层推进到实现接线准备
+6. `AIO2-R1`：明确镜头引擎与资源包 / 文案 / 权重的接线点
 
 ### 第三优先级
 
-7. `AIO4`
-8. `AIO5`
-9. `AIO6`
-10. `E1-E4`
+7. `M1-M3`：继续地图资源与前端资产基线，但不得盖过主链路
+8. `E1-E4`：依赖写回闭环与编排层，不应提前扩张
+9. `F1-F3 / G1-G2`：保留为中长期方向
 
 ---
 

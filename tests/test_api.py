@@ -7,6 +7,7 @@ from fastapi.testclient import TestClient
 
 from fablemap.api import create_app
 from fablemap.api_service import build_health_payload, build_meta_payload, build_nearby_payload
+from fablemap.application.web_payloads import build_behavior_insights, build_orchestrate_payload, record_memory_graph_event
 from fablemap.web.config import ApiSettings
 from fablemap.web.service import WebService
 
@@ -73,7 +74,8 @@ class ApiTests(unittest.TestCase):
 
         self.assertIn('type="module" src="/src/main.jsx"', html)
         self.assertIn("ReactDOM.createRoot", main_js)
-        self.assertIn("submitWorldEvent", app_js)
+        self.assertIn("useWorldSession", app_js)
+        self.assertIn("WorldStagePanel", app_js)
 
     def test_api_server_generates_fixture_preview(self) -> None:
         with TemporaryDirectory() as tmpdir:
@@ -384,6 +386,132 @@ class ApiServiceTests(unittest.TestCase):
         self.assertEqual(payload["world_url"], "http://127.0.0.1:8950/generated/run-demo123/world.json")
         self.assertEqual(payload["frontend_url"], "http://127.0.0.1:8950/")
         self.assertEqual(result, {"provider": "fixture", "region_name": "Test Region"})
+
+
+class WebPayloadTests(unittest.TestCase):
+    def test_record_memory_graph_event_tracks_observe_dwell_and_mark(self) -> None:
+        from fablemap.memory_graph import WorldMemoryGraph
+
+        memory_graph = WorldMemoryGraph()
+        record_memory_graph_event(
+            memory_graph,
+            {
+                "event_type": "observe",
+                "player_id": "player_test",
+                "target": {"target_id": "poi_test"},
+            },
+        )
+        record_memory_graph_event(
+            memory_graph,
+            {
+                "event_type": "dwell",
+                "player_id": "player_test",
+                "player_state": {"clarity": 12.5},
+                "target": {"target_id": "poi_test"},
+            },
+        )
+        record_memory_graph_event(
+            memory_graph,
+            {
+                "event_type": "mark",
+                "player_id": "player_test",
+                "emotion": "warm",
+                "target": {
+                    "target_id": "poi_test",
+                    "content": "leave a note",
+                },
+            },
+        )
+
+        history = memory_graph.get_player_history("player_test", "poi_test")
+        self.assertIsNotNone(history)
+        self.assertEqual(history.visit_count, 3)
+        self.assertEqual(history.total_dwell_time, 12.5)
+        self.assertEqual(len(history.marks), 1)
+        self.assertEqual(history.marks[0], "leave a note")
+        self.assertEqual(history.emotions[0], "warm")
+
+    def test_build_behavior_insights_uses_memory_graph_history(self) -> None:
+        from fablemap.memory_graph import WorldMemoryGraph
+
+        memory_graph = WorldMemoryGraph()
+        event = {
+            "event_type": "dwell",
+            "player_id": "player_test",
+            "visibility": "local_public",
+            "target": {"target_id": "poi_test"},
+            "player_state": {"clarity": 7.0},
+        }
+        record_memory_graph_event(memory_graph, event)
+        payload = {
+            "event": event,
+            "world_feedback": {"summary": "memory deepens"},
+            "place_state": {"familiarity": 2, "stored_events": 1},
+            "player_state": {"clarity": 7.0},
+        }
+
+        insights = build_behavior_insights(payload=payload, memory_graph=memory_graph)
+
+        self.assertEqual(insights["feedback_summary"], "memory deepens")
+        self.assertEqual(insights["familiarity"], 2)
+        self.assertGreaterEqual(insights["visit_count"], 1)
+        self.assertGreater(insights["total_dwell_seconds"], 0.0)
+        self.assertIn("city_persona", insights)
+        self.assertIn("scene_capsule", insights)
+
+    def test_build_orchestrate_payload_projects_contract_fields(self) -> None:
+        with TemporaryDirectory() as tmpdir:
+            output_root = Path(tmpdir) / ".fablemap-api"
+            app = create_app(
+                output_root=output_root,
+                fixture_file=FIXTURE_PATH,
+                frontend_root=FRONTEND_ROOT,
+            )
+            with TestClient(app) as client:
+                response = client.post(
+                    "/api/world/orchestrate",
+                    json={
+                        "slice_id": "memory_projection_test",
+                        "player_id": "player_test",
+                        "lat": 35.6580,
+                        "lon": 139.7016,
+                    },
+                )
+
+        self.assertEqual(response.status_code, 200)
+        original_payload = response.json()
+
+        service = WebService(ApiSettings(output_root=Path(tmpdir) / "shadow-output"))
+        world_state = {
+            "slice_id": "memory_projection_test",
+            "observer_count": original_payload["observer_effect"]["observer_count"],
+            "center_poi": "memory_projection_test",
+            "pois": [{"id": "memory_projection_test", "name": "memory_projection_test"}],
+        }
+        player_state = {
+            "player_id": "player_test",
+            "lat": 35.6580,
+            "lon": 139.7016,
+            "visit_count": 1,
+            "writeback_count": 0,
+            "echo_count": 0,
+            "mark_count": 0,
+            "dwell_seconds": 0.0,
+        }
+        orchestration_result = service.orchestrator.orchestrate(world_state, player_state)
+
+        payload = build_orchestrate_payload(
+            result=orchestration_result,
+            relationship_strength=0.25,
+        )
+
+        self.assertIn("observer_effect", payload)
+        self.assertIn("broadcasts", payload)
+        self.assertIn("events", payload)
+        self.assertIn("lens_output", payload)
+        self.assertIn("scene_capsule", payload)
+        self.assertIn("fallback_triggered", payload)
+        self.assertEqual(payload["relationship_strength"], 0.25)
 
 
 class GhostTraceApiTests(unittest.TestCase):

@@ -59,6 +59,7 @@ export const MAP_ASSET_PACKS = {
       ground_02: packATileGround02,
       water_01: packATileWater01,
       magic_01: packATileMagic01,
+      garden_01: packATileGround02,
     },
     buildings: {
       house: packABuildingHouse01,
@@ -88,6 +89,7 @@ export const MAP_ASSET_PACKS = {
       ground_02: packBTileGround02,
       water_01: packBTileWater01,
       garden_01: packBTileGarden01,
+      magic_01: packBTileGarden01,
     },
     buildings: {
       house: packBBuildingHouse01,

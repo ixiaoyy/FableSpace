@@ -2,184 +2,17 @@ import AdminDebugPanel from './AdminDebugPanel'
 import WorldEntryPanel from './WorldEntryPanel'
 import WorldSliceResultPanel from './WorldSliceResultPanel'
 import WorldStagePanel from './WorldStagePanel'
-import { formatCoordinates, formatTagLabel, getActionButtonText } from './services/appDisplay'
+import {
+  DEFAULT_VISIBLE_MAP_LAYERS,
+  INITIAL_FORM,
+  INITIAL_WRITEBACK_FORM,
+  LOCATION_PRESETS,
+  MAP_LAYER_OPTIONS,
+  MAP_LAYER_PRESETS,
+  VISIBILITY_OPTIONS,
+  WRITEBACK_ACTIONS,
+} from './appShellConfig'
 import { useWorldSession } from './hooks/useWorldSession'
-
-const LOCATION_PRESETS = [
-  {
-    id: 'shanghai-bund',
-    title: '上海外滩',
-    subtitle: '高密度都市切片 / 近代地标 / 江岸夜景',
-    lat: '31.2400',
-    lon: '121.4900',
-    radius: '320',
-    mode: 'live',
-  },
-  {
-    id: 'beijing-tiananmen',
-    title: '北京天安门周边',
-    subtitle: '纪念性空间 / 中轴线 / 大尺度城市界面',
-    lat: '39.9087',
-    lon: '116.3975',
-    radius: '360',
-    mode: 'live',
-  },
-  {
-    id: 'fixture-demo',
-    title: '离线演示样例',
-    subtitle: '离线可用，仅用于确认生成链路，不代表国内风格',
-    lat: '35.6580',
-    lon: '139.7016',
-    radius: '300',
-    mode: 'fixture',
-  },
-]
-
-const initialForm = {
-  lat: '31.2304',
-  lon: '121.4737',
-  radius: '300',
-  mode: 'live',
-  seed: '',
-}
-
-const initialWritebackForm = {
-  playerId: 'player_local',
-  eventType: 'observe',
-  visibility: 'private',
-  targetType: 'poi',
-  targetId: 'poi_clocktower_01',
-  sliceId: 'slice_demo_shibuya',
-  zoneId: 'zone_shibuya_core',
-  intensity: '1',
-  tag: 'safe',
-  note: '',
-}
-
-const WRITEBACK_ACTIONS = [
-  {
-    eventType: 'observe',
-    label: '观察',
-    hint: '留下第一层观察痕迹，提升地点熟悉度与玩家 attunement。',
-  },
-  {
-    eventType: 'dwell',
-    label: '驻足',
-    hint: '让区域开始记住你的步频，提升 clarity 并降低 tension。',
-  },
-  {
-    eventType: 'mark',
-    label: '标记',
-    hint: '给地点留下可回访的语义标签，为后续世界编排提供稳定输入。',
-  },
-  {
-    eventType: 'repair',
-    label: '修复',
-    hint: '为地标贡献一次修复，积累城市荣誉榜排名。仅对 landmark 目标有效。',
-  },
-]
-
-const VISIBILITY_OPTIONS = [
-  {
-    value: 'private',
-    label: 'private',
-    title: '留给你自己',
-    hint: '默认私有。适合观察记录、个人驻足痕迹、私密地点标记，不进入公共空间。',
-    access: '仅你自己可见，可随时删除，不会进入广播或公共回声池。',
-    semantics: '把一次进入先留成你自己的隐秘回声，适合试探、记忆和未成熟的判断。',
-    participationLabel: '私人记忆胶囊',
-    participationAction: '适合用 observe 或 mark 留下一次仅自己可回访的地点感受。',
-    participationReward: '会先沉淀为可回访的个人痕迹，不直接进入他人可见层。',
-  },
-  {
-    value: 'local_public',
-    label: 'local_public',
-    title: '分享到当前区域',
-    hint: '适合区域传闻、公共情绪标签与轻量共创句子，会留在目标 zone 的局部公共层。',
-    access: '需要满足区域熟悉度与内容门槛，通过后只在该区域内对其他玩家可见。',
-    semantics: '把你对这片街区的理解交给同一地区的后来者，形成可继承的街头传说。',
-    participationLabel: '街区传说条目',
-    participationAction: '适合把 note 写成一句传闻、提示或地方气质描述。',
-    participationReward: '若通过门槛，会进入当前区域的局部公共层，推进本地 myth thread。',
-  },
-  {
-    value: 'global',
-    label: 'global',
-    title: '尝试进入城市神话层',
-    hint: '高门槛公共表达，适合修复痕迹、长期命名与可能影响全城叙事的内容。',
-    access: '普通玩家不能直接稳定写入，需要精选、冷却或更高权限才能晋升。',
-    semantics: '这不是普通广播，而是尝试把一次行动抬升成整座城市会记得的神话材料。',
-    participationLabel: '城市神话提案',
-    participationAction: '适合修复行为、长期命名候选或希望影响全城语义的记录。',
-    participationReward: '通常只会作为候选提案进入更高层筛选，不保证立即成为全局叙事。',
-  },
-]
-
-const DEFAULT_VISIBLE_MAP_LAYERS = {
-  roads: true,
-  pois: true,
-  landmarks: true,
-  factionZones: true,
-  labels: true,
-  legend: true,
-  ghostTraces: true,
-}
-
-const MAP_LAYER_OPTIONS = [
-  { key: 'roads', label: '道路', hint: '显示路径骨架与道路发光' },
-  { key: 'pois', label: 'POI', hint: '显示可点击节点与据点交互' },
-  { key: 'landmarks', label: '地标', hint: '显示大型地标与装饰图标' },
-  { key: 'factionZones', label: '阵营影响区', hint: '显示势力扩散光晕' },
-  { key: 'labels', label: '标签', hint: '显示地点名与地图说明' },
-  { key: 'legend', label: '图例', hint: '显示右下角图例与阵营色板' },
-  { key: 'ghostTraces', label: 'Ghost traces', hint: '显示玩家残影与回访痕迹' },
-]
-
-const MAP_LAYER_PRESETS = [
-  {
-    key: 'explore',
-    label: '探索',
-    hint: '保留完整世界信息，适合第一次进入切片',
-    layers: {
-      roads: true,
-      pois: true,
-      landmarks: true,
-      factionZones: true,
-      labels: true,
-      legend: true,
-      ghostTraces: true,
-    },
-  },
-  {
-    key: 'navigation',
-    label: '导航',
-    hint: '突出路径、地标与路标，减少干扰信息',
-    layers: {
-      roads: true,
-      pois: true,
-      landmarks: true,
-      factionZones: false,
-      labels: true,
-      legend: false,
-      ghostTraces: false,
-    },
-  },
-  {
-    key: 'narrative',
-    label: '叙事',
-    hint: '保留阵营、标签与残影，强调世界气氛',
-    layers: {
-      roads: false,
-      pois: true,
-      landmarks: true,
-      factionZones: true,
-      labels: true,
-      legend: true,
-      ghostTraces: true,
-    },
-  },
-]
-
 
 export default function App() {
   const {
@@ -266,8 +99,8 @@ export default function App() {
     writebackTargetSummary,
     writebackTimeline,
   } = useWorldSession({
-    initialForm,
-    initialWritebackForm,
+    initialForm: INITIAL_FORM,
+    initialWritebackForm: INITIAL_WRITEBACK_FORM,
     locationPresets: LOCATION_PRESETS,
     defaultVisibleMapLayers: DEFAULT_VISIBLE_MAP_LAYERS,
     mapLayerOptions: MAP_LAYER_OPTIONS,
@@ -276,93 +109,118 @@ export default function App() {
     visibilityOptions: VISIBILITY_OPTIONS,
   })
 
-  return (
-    <div className="wrap app-shell page-enter map-first-app-shell">
-      <WorldStagePanel
-        result={result}
-        originLabel={originLabel}
-        form={form}
-        statusOk={statusOk}
-        mapLayerPanelOpen={mapLayerPanelOpen}
-        setMapLayerPanelOpen={setMapLayerPanelOpen}
-        visibleMapLayers={visibleMapLayers}
-        mapLayerOptions={MAP_LAYER_OPTIONS}
-        mapLayerPresets={MAP_LAYER_PRESETS}
-        applyMapLayerPreset={applyMapLayerPreset}
-        setAllMapLayers={setAllMapLayers}
-        resetMapLayers={resetMapLayers}
-        toggleMapLayer={toggleMapLayer}
-        activePoiId={activePoiId}
-        familiarityMap={familiarityMap}
-        ghostTraces={ghostTraces}
-        handlePoiClick={handlePoiClick}
-        writebackForm={writebackForm}
-        handleOrchestrationEvent={handleOrchestrationEvent}
-        submitting={submitting}
-        submitNearby={submitNearby}
-        resolvedActivePoi={resolvedActivePoi}
-        writebackResult={writebackResult}
-        selectedVisibilityMeta={selectedVisibilityMeta}
-        poiSearch={poiSearch}
-        setPoiSearch={setPoiSearch}
-        poiTypeFilter={poiTypeFilter}
-        setPoiTypeFilter={setPoiTypeFilter}
-        poiTypeOptions={poiTypeOptions}
-        poiFactionFilter={poiFactionFilter}
-        setPoiFactionFilter={setPoiFactionFilter}
-        poiFactionOptions={poiFactionOptions}
-        poiOnlyFamiliar={poiOnlyFamiliar}
-        setPoiOnlyFamiliar={setPoiOnlyFamiliar}
-        poiSearchSummary={poiSearchSummary}
-        filteredWorldPois={filteredWorldPois}
-        orchestrationEvents={orchestrationEvents}
-        disturbanceForm={disturbanceForm}
-        setDisturbanceForm={setDisturbanceForm}
-        disturbanceSubmitting={disturbanceSubmitting}
-        submitDisturbance={submitDisturbance}
-        disturbanceActive={disturbanceActive}
-        clearDisturbance={clearDisturbance}
-        selectedActionMeta={selectedActionMeta}
-        visibilityOptions={VISIBILITY_OPTIONS}
-        writebackTargetSummary={writebackTargetSummary}
-        writebackActions={WRITEBACK_ACTIONS}
-        applyWritebackAction={applyWritebackAction}
-        updateWritebackForm={updateWritebackForm}
-        writebackSubmitting={writebackSubmitting}
-        submitWriteback={submitWriteback}
-        writebackError={writebackError}
-        writebackTimeline={writebackTimeline}
-        revisitSummary={revisitSummary}
-        writebackResidues={writebackResidues}
-        behaviorInsights={behaviorInsights}
-        focusWritebackTarget={focusWritebackTarget}
-        lastWritebackPoiId={lastWritebackPoiId}
-        mapOnly
-      />
+  const visibleLayerCount = Object.values(visibleMapLayers).filter(Boolean).length
+  const entryStatusText = autoEntering
+    ? '正在自动进入附近世界'
+    : submitting
+      ? '正在刷新当前切片'
+      : result
+        ? '当前切片已就绪'
+        : '等待生成附近切片'
 
-      <AdminDebugPanel
-        adminOpen={adminOpen}
-        setAdminOpen={setAdminOpen}
-        apiBase={apiBase}
-        setApiBase={setApiBase}
-        checking={checking}
-        checkBackend={checkBackend}
-        statusOk={statusOk}
-        statusText={statusText}
-        statusDetail={statusDetail}
-        writebackForm={writebackForm}
-        updateWritebackForm={updateWritebackForm}
-        writebackSubmitting={writebackSubmitting}
-        submitWriteback={submitWriteback}
-        writebackError={writebackError}
-        writebackResult={writebackResult}
-        playerState={playerState}
-        feedback={feedback}
-        recentEchoes={recentEchoes}
-        recentMarks={recentMarks}
-        placeLegend={placeLegend}
-        honorBoard={honorBoard}
-      />
+  return (
+    <div className="wrap app-shell page-enter map-first-app-shell world-app-shell">
+      <header className="world-app-shell__hero panel">
+        <div className="world-app-shell__hero-copy">
+          <p className="mini-label">World shell</p>
+          <h1>{result ? '世界入口已连通，继续向地图推进' : '先选入口，再进入你附近的世界切片'}</h1>
+          <p className="note muted world-app-shell__hero-note">
+            顶部保留入口与结果摘要，中段直接放地图主舞台，后台工具继续折叠在底部，减少首页来回滚动与信息跳转。
+          </p>
+        </div>
+        <div className="world-app-shell__hero-metrics">
+          <div className="world-shell-metric-card">
+            <span className="world-shell-metric-card__label">入口状态</span>
+            <strong>{entryStatusText}</strong>
+            <span>{originLabel}</span>
+          </div>
+          <div className="world-shell-metric-card">
+            <span className="world-shell-metric-card__label">地图图层</span>
+            <strong>{visibleLayerCount} / {MAP_LAYER_OPTIONS.length}</strong>
+            <span>{form.radius}m 半径 · {form.mode === 'fixture' ? '离线样例' : '实时地图'}</span>
+          </div>
+          <div className="world-shell-metric-card">
+            <span className="world-shell-metric-card__label">世界节点</span>
+            <strong>{result?.poi_count ?? 0}</strong>
+            <span>{result ? `${result.landmark_count ?? 0} 个地标 · ${result.road_count ?? 0} 条路径` : '生成后可直接点击节点进入观察'}</span>
+          </div>
+        </div>
+      </header>
+
+      <section className="world-app-shell__top-grid" aria-label="世界入口与切片摘要">
+        <WorldEntryPanel
+          lastSessionAt={lastSessionAt}
+          originLabel={originLabel}
+          originHint={originHint}
+          form={form}
+          locationPresets={LOCATION_PRESETS}
+          presetMeta={presetMeta}
+          usePreset={usePreset}
+          locating={locating}
+          autoEntering={autoEntering}
+          useCurrentLocation={useCurrentLocation}
+          submitting={submitting}
+          submitNearby={submitNearby}
+          advancedOpen={advancedOpen}
+          setAdvancedOpen={setAdvancedOpen}
+          updateForm={updateForm}
+          errorText={errorText}
+        />
+
+        <WorldSliceResultPanel
+          result={result}
+          statusOk={statusOk}
+          worldAtmosphere={worldAtmosphere}
+          sliceHighlights={sliceHighlights}
+        />
+      </section>
+
+      <div className="world-app-shell__stage">
+        <WorldStagePanel
+          result={result}
+          originLabel={originLabel}
+          form={form}
+          mapLayerPanelOpen={mapLayerPanelOpen}
+          setMapLayerPanelOpen={setMapLayerPanelOpen}
+          visibleMapLayers={visibleMapLayers}
+          mapLayerOptions={MAP_LAYER_OPTIONS}
+          mapLayerPresets={MAP_LAYER_PRESETS}
+          applyMapLayerPreset={applyMapLayerPreset}
+          setAllMapLayers={setAllMapLayers}
+          resetMapLayers={resetMapLayers}
+          activePoiId={activePoiId}
+          familiarityMap={familiarityMap}
+          ghostTraces={ghostTraces}
+          handlePoiClick={handlePoiClick}
+          mapOnly
+        />
+      </div>
+
+      <div className="world-app-shell__admin">
+        <AdminDebugPanel
+          adminOpen={adminOpen}
+          setAdminOpen={setAdminOpen}
+          apiBase={apiBase}
+          setApiBase={setApiBase}
+          checking={checking}
+          checkBackend={checkBackend}
+          statusOk={statusOk}
+          statusText={statusText}
+          statusDetail={statusDetail}
+          writebackForm={writebackForm}
+          updateWritebackForm={updateWritebackForm}
+          writebackSubmitting={writebackSubmitting}
+          submitWriteback={submitWriteback}
+          writebackError={writebackError}
+          writebackResult={writebackResult}
+          playerState={playerState}
+          feedback={feedback}
+          recentEchoes={recentEchoes}
+          recentMarks={recentMarks}
+          placeLegend={placeLegend}
+          honorBoard={honorBoard}
+        />
+      </div>
     </div>
   )
 }

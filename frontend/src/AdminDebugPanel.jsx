@@ -67,6 +67,7 @@ export default function AdminDebugPanel({
                     <option value="observe">观察</option>
                     <option value="dwell">驻足</option>
                     <option value="mark">标记</option>
+                    <option value="repair">修复</option>
                   </select>
                 </div>
                 <div>
@@ -85,6 +86,7 @@ export default function AdminDebugPanel({
                     <option value="poi">地点</option>
                     <option value="zone">区域</option>
                     <option value="route">路径</option>
+                    <option value="landmark">地标</option>
                     <option value="home">家园</option>
                     <option value="world">世界</option>
                   </select>
