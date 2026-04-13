@@ -1,4 +1,9 @@
+import { useState } from 'react'
 import { formatTagLabel } from './services/appDisplay'
+import ChatPanel from './ChatPanel'
+import {
+  getCharactersForPoi,
+} from './services/characterEngine'
 import WorldStageWritebackActionPanel from './WorldStageWritebackActionPanel'
 import WorldStageWritebackInsightsPanel from './WorldStageWritebackInsightsPanel'
 import {
@@ -147,6 +152,66 @@ export default function WorldStageActivePoiPanel({
   lastWritebackPoiId,
   focusWritebackTarget,
 }) {
+  // Derive characters from current POI
+  const characters = resolvedActivePoi && world
+    ? getCharactersForPoi(resolvedActivePoi, world, familiarityMap?.[resolvedActivePoi.id] || 0, writebackResult)
+    : []
+  const activeCharacter = characters[0] || null
+
+  // Chat messages state (would come from writeback history in real implementation)
+  const [chatMessages, setChatMessages] = useState([])
+  const [chatSending, setChatSending] = useState(false)
+
+  // Placeholder: no actual chat logic yet, just UI
+  async function handleSendMessage(content) {
+    // Add player message immediately (optimistic)
+    const playerMsg = {
+      id: `msg-${Date.now()}`,
+      role: 'player',
+      content,
+      timestamp: Date.now(),
+    }
+    setChatMessages(prev => [...prev, playerMsg])
+    setChatSending(true)
+
+    // Try to call the backend API
+    try {
+      const res = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          character_id: activeCharacter?.id || `faction-${resolvedActivePoi?.faction_alignment || 'unknown'}`,
+          message: content,
+          world_id: world?.world_id || result?.world_id || '',
+          poi_id: resolvedActivePoi?.id || '',
+          player_id: writebackForm?.playerId || 'player',
+          history: chatMessages,
+        }),
+      })
+      const data = await res.json()
+
+      const charMsg = {
+        id: `msg-${Date.now() + 1}`,
+        role: 'character',
+        content: data.response || data.character_name ? `${data.character_name}：${data.response}` : '对方没有回应。',
+        timestamp: Date.now(),
+      }
+      setChatMessages(prev => [...prev, charMsg])
+    } catch (err) {
+      // If API call fails, use fallback response
+      const charMsg = {
+        id: `msg-${Date.now() + 1}`,
+        role: 'character',
+        content: activeCharacter
+          ? `这里是 ${activeCharacter.name}。${activeCharacter.description || '我还没有想好该说什么。'}`
+          : '这个地点还没有角色。',
+        timestamp: Date.now(),
+      }
+      setChatMessages(prev => [...prev, charMsg])
+    }
+    setChatSending(false)
+  }
+
   return (
     <div className="storyboard-lane" ref={panelRef}>
       <div className="storyboard-lane-header">
@@ -194,6 +259,15 @@ export default function WorldStageActivePoiPanel({
             writebackResidues={writebackResidues}
             behaviorInsights={behaviorInsights}
           />
+
+          {activeCharacter && (
+            <ChatPanel
+              character={activeCharacter}
+              messages={chatMessages}
+              onSendMessage={handleSendMessage}
+              sending={chatSending}
+            />
+          )}
         </div>
       ) : (
         <div className="storyboard-placeholder-card">

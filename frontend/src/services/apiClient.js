@@ -79,5 +79,13 @@ export function createApiClient(getBaseUrl) {
       const response = await fetch(`${getBaseUrl()}/api/world/disturbance/${encodeURIComponent(sliceId)}`, { method: 'DELETE' })
       return readJson(response)
     },
+    async chat(payload) {
+      const response = await fetch(`${getBaseUrl()}/api/chat`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      })
+      return readJson(response)
+    },
   }
 }

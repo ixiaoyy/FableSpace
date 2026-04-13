@@ -286,6 +286,148 @@ class WebService:
     def get_disturbance_payload(self, slice_id: str) -> dict[str, Any]:
         return {"slice_id": slice_id, "active": get_disturbance(slice_id)}
 
+    def chat_response_payload(
+        self,
+        character_id: str,
+        message: str,
+        world_id: str,
+        poi_id: str,
+        player_id: str,
+        history: list,
+    ) -> dict[str, Any]:
+        """Generate a simple character response based on archetype and mood."""
+        from ..writeback import _session_path
+
+        # Load world to get character data
+        world = {}
+        session_file = _session_path(world_id, player_id)
+        if session_file and session_file.exists():
+            try:
+                world = json.loads(session_file.read_text("utf-8"))
+            except Exception:
+                pass
+
+        # Determine character archetype and mood from world data
+        archetype = "wanderer"
+        mood = "curious"
+        character_name = "未知角色"
+        character_description = "这个角色还没有被赋予身份。"
+
+        factions = world.get("factions", [])
+        for faction in factions:
+            if f"faction-{faction.get('id', '')}" == character_id:
+                archetype = _archetype_from_faction(faction)
+                mood = faction.get("emotional_tone", "curious")
+                character_name = faction.get("name", "未知势力")
+                character_description = faction.get("doctrine", "")
+                break
+
+        # Generate response based on archetype
+        response = _generate_response(archetype, mood, message, character_description)
+
+        return {
+            "character_id": character_id,
+            "character_name": character_name,
+            "response": response,
+            "mood": mood,
+            "archetype": archetype,
+            "poi_id": poi_id,
+            "timestamp": _now_ms(),
+        }
+
+
+def _archetype_from_faction(faction: dict) -> str:
+    """Map faction archetype to character archetype."""
+    mapping = {
+        "trade_guild": "merchant",
+        "order_bureau": "guardian",
+        "clinic_circle": "healer",
+        "memory_collective": "scholar",
+        "night_bloom": "wanderer",
+    }
+    faction_id = faction.get("id", "")
+    return mapping.get(faction_id, "wanderer")
+
+
+# ─── Simple rule-based response generator ────────────────────────────────────
+
+_CHARACTER_GREETINGS = {
+    "merchant": ["交易？你来得正好。", "补给的时间到了？", "欢迎来到交易站。"],
+    "guardian": ["请说明你来意。", "这片区域在我的守护之下。", "来者何人？"],
+    "healer": ["这里是疗愈之所。", "你受伤了吗？", "让我看看你的状况。"],
+    "scholar": ["有什么值得记录的？", "知识是最宝贵的财富。", "这座城市的记忆在我这里。"],
+    "wanderer": ["你来了。", "又一个过路人。", "这里没有什么特别的事。"],
+}
+
+_CHARACTER_RESPONSES = {
+    "merchant": [
+        "贸易是这座城市的血脉。每一笔交易都在改变着什么。",
+        "我这里有各种物品和信息。你想要什么？",
+        "价格公道，童叟无欺。但如果你付不起，那就另说了。",
+    ],
+    "guardian": [
+        "我会守护这片区域，直到最后一人离开。",
+        "秩序是这里的基石。没有秩序，就只有混乱。",
+        "这片土地见证过太多故事。我只是其中之一。",
+    ],
+    "healer": [
+        "伤痛总会留下痕迹，无论身体还是心灵。",
+        "每一次疗愈都是一次重建。希望是最强的药剂。",
+        "这里不评判来者，只治愈需要被治愈的人。",
+    ],
+    "scholar": [
+        "这座城市的每一块砖都有自己的故事。",
+        "记忆是最容易被遗忘的东西。但我不会忘。",
+        "让我告诉你一些你不知道的事。",
+    ],
+    "wanderer": [
+        "我来过这里很多次了。每次都不一样。",
+        "城市在变，但某些东西永远不会变。",
+        "我没有固定的身份。我是这座城市的一部分。",
+    ],
+}
+
+
+def _generate_response(archetype: str, mood: str, message: str, description: str) -> str:
+    """Generate a simple response based on archetype and mood."""
+    import random
+
+    responses = _CHARACTER_RESPONSES.get(archetype, _CHARACTER_RESPONSES["wanderer"])
+
+    if not message.strip():
+        greetings = _CHARACTER_GREETINGS.get(archetype, _CHARACTER_GREETINGS["wanderer"])
+        return random.choice(greetings)
+
+    # Check for specific keywords
+    msg_lower = message.lower()
+    if any(k in msg_lower for k in ["你好", "hi", "hello", "hi!"]):
+        if mood == "warm":
+            return "你好，欢迎来到这里。"
+        elif mood == "wary":
+            return "你好。你来这里做什么？"
+        else:
+            return "你好。有什么事？"
+
+    if any(k in msg_lower for k in ["再见", "bye", "走", "离开"]):
+        return "后会有期。"
+
+    if any(k in msg_lower for k in ["谢谢", "thank"]):
+        return "不必言谢。这是我的职责。"
+
+    # Default: random response from archetype pool
+    base = random.choice(responses)
+
+    # Add description flavor occasionally
+    if description and random.random() < 0.3:
+        return f"{base}\n\n这座{archetype}的教义说：{description}"
+
+    return base
+
+
+def _now_ms() -> int:
+    import time
+    return int(time.time() * 1000)
+
 
 def _sanitize_snapshot_id(value: str) -> str:
     allowed = [ch.lower() if ch.isalnum() else "-" for ch in (value or "").strip()]

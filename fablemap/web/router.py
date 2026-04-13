@@ -90,6 +90,19 @@ def create_api_router(service: WebService) -> APIRouter:
     def get_disturbance(slice_id: str) -> dict:
         return service.get_disturbance_payload(slice_id)
 
+    @router.post("/api/chat")
+    def post_chat(
+        character_id: str = Body(...),
+        message: str = Body(...),
+        world_id: str = Body(...),
+        poi_id: str = Body(...),
+        player_id: str = Body(...),
+        history: list = Body([]),
+    ) -> dict:
+        return service.chat_response_payload(
+            character_id, message, world_id, poi_id, player_id, history
+        )
+
     @router.get("/generated/{file_path:path}")
     def get_generated_file(file_path: str):
         return FileResponse(service.generated_file_path(file_path))
