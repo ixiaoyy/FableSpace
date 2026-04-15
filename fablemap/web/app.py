@@ -13,6 +13,7 @@ from .service import WebService
 def create_web_app(settings: ApiSettings) -> FastAPI:
     service = WebService(settings)
     app = FastAPI(title="FableMap API", version="0.1.0")
+    app.state.sillytavern_url = settings.sillytavern_url
     app.add_middleware(
         CORSMiddleware,
         allow_origins=["*"],

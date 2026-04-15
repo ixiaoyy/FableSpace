@@ -1,4 +1,0 @@
-rc=0
-To github.com:ixiaoyy/FableMap.git
-   b6cc43c..6fc471d  main -> main
-

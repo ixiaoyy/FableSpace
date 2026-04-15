@@ -54,6 +54,40 @@ function buildLandmarkMarkerContent(landmark) {
   `
 }
 
+function buildTavernMarkerContent({ tavern, isActive }) {
+  const accessIcon = tavern?.access === 'password' ? '🔒' : tavern?.access === 'private' ? '👤' : '🔓'
+  const statusColor = tavern?.status === 'open' ? '#22c55e' : '#ef4444'
+  const label = tavern?.name || '酒馆'
+
+  return `
+    <div style="
+      display:flex;
+      align-items:center;
+      gap:6px;
+      padding:8px 12px;
+      border-radius:999px;
+      border:1px solid ${isActive ? 'rgba(251,191,36,0.9)' : 'rgba(217,119,6,0.5)'};
+      background:${isActive
+        ? 'linear-gradient(135deg,#d97706,#f59e0b)'
+        : 'linear-gradient(135deg,rgba(30,20,5,0.92),rgba(50,35,10,0.95))'};
+      color:${isActive ? '#fff' : '#fcd34d'};
+      box-shadow:0 8px 24px rgba(217,119,6,0.3);
+      white-space:nowrap;
+      font:600 12px/1.2 Segoe UI,Arial,sans-serif;
+    ">
+      <span style="font-size:14px;">${accessIcon}</span>
+      <span style="font-weight:700;">${label}</span>
+      <span style="
+        width:8px;
+        height:8px;
+        border-radius:50%;
+        background:${statusColor};
+        box-shadow:0 0 6px ${statusColor};
+      "></span>
+    </div>
+  `
+}
+
 export class AMapAdapter extends MapAdapter {
   constructor() {
     super()
@@ -61,6 +95,7 @@ export class AMapAdapter extends MapAdapter {
     this._container = null
     this._poiMarkers = []
     this._landmarkMarkers = []
+    this._tavernMarkers = []
     this._ready = Boolean(window.AMap)
     this._error = ''
   }
@@ -212,6 +247,40 @@ export class AMapAdapter extends MapAdapter {
       this._poiMarkers = newMarkers
       this._map.add(newMarkers)
       this.fitBounds(newMarkers.map((m) => m.getPosition()), 80, 16)
+    } else if (type === 'tavern') {
+      // Remove existing tavern markers
+      this._tavernMarkers.forEach((m) => m.setMap(null))
+      this._tavernMarkers = []
+
+      if (!markers?.length) return
+
+      const { activeTavernId, onTavernClick } = opts
+      const newMarkers = markers
+        .map((marker) => {
+          const lat = Number(marker.lat)
+          const lon = Number(marker.lon)
+          if (!Number.isFinite(lat) || !Number.isFinite(lon)) return null
+
+          const amapMarker = new window.AMap.Marker({
+            position: [lon, lat],
+            anchor: 'bottom-center',
+            offset: new window.AMap.Pixel(0, 0),
+            content: buildTavernMarkerContent({
+              tavern: marker,
+              isActive: marker.id === activeTavernId,
+            }),
+          })
+
+          if (onTavernClick) {
+            amapMarker.on('click', () => onTavernClick(marker))
+          }
+
+          return amapMarker
+        })
+        .filter(Boolean)
+
+      this._tavernMarkers = newMarkers
+      this._map.add(newMarkers)
     } else if (type === 'landmark') {
       // Remove existing landmark markers
       this._landmarkMarkers.forEach((m) => m.setMap(null))

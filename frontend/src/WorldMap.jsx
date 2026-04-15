@@ -67,6 +67,9 @@ export default function WorldMap({
   originLabel,
   ghostTraces = [],
   visibleLayers,
+  taverns = [],
+  onTavernClick,
+  activeTavernId,
 }) {
   const containerRef = useRef(null)
   const adapterRef = useRef(null)
@@ -271,6 +274,21 @@ export default function WorldMap({
 
     adapter.setMarkers(landmarks, 'landmark', {})
   }, [landmarks, layers.landmarks])
+
+  // Update tavern markers when taverns change
+  useEffect(() => {
+    const adapter = adapterRef.current
+    if (!adapter) return
+
+    adapter.setMarkers(taverns, 'tavern', {
+      activeTavernId,
+      onTavernClick: (marker) => {
+        if (onTavernClick) {
+          onTavernClick(marker.id, marker)
+        }
+      },
+    })
+  }, [taverns, activeTavernId, onTavernClick])
 
   // Sync selectedPoi with activePoiId
   useEffect(() => {

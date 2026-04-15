@@ -15,6 +15,7 @@ _ALLOWED_TARGET_TYPES = {"poi", "zone", "route", "home", "world", "landmark"}
 _ALLOWED_VISIBILITY = {"private", "local_public", "global"}
 _ALLOWED_MARK_TAGS = {"safe", "uncanny", "warm_corner", "return_again", "rain_friendly"}
 _ALLOWED_ACTION_STATES = {"idle", "moving", "observing", "interacting", "collecting", "listening", "tracing", "returning_home"}
+_CHAT_HISTORY_MAX = 50
 _DEFAULT_PLAYER_STATE = {
     "action_state": "idle",
     "clarity": 0,
@@ -54,6 +55,58 @@ class WritebackStore:
             json.dumps(state, ensure_ascii=False, indent=2, sort_keys=True),
             encoding="utf-8",
         )
+
+    def get_taverns(self) -> dict[str, dict[str, Any]]:
+        """Get all managed taverns."""
+        state = self.load()
+        return state.get("taverns", {})
+
+    def get_chat_history(
+        self,
+        player_id: str,
+        poi_id: str,
+        character_id: str | None = None,
+        limit: int = 50,
+    ) -> list[dict[str, Any]]:
+        """Load chat messages for a player + POI (optionally filtered by character)."""
+        state = self.load()
+        messages: list[dict[str, Any]] = state.get("chat_messages", [])
+        filtered = [
+            m for m in messages
+            if m.get("player_id") == player_id
+            and m.get("poi_id") == poi_id
+            and (character_id is None or m.get("character_id") == character_id)
+        ]
+        # Return newest last, trim to limit
+        return filtered[-limit:]
+
+    def add_chat_message(
+        self,
+        player_id: str,
+        poi_id: str,
+        character_id: str,
+        role: str,
+        content: str,
+        timestamp: str,
+    ) -> dict[str, Any]:
+        """Append a chat message and persist to disk."""
+        msg = {
+            "message_id": f"msg_{uuid.uuid4().hex[:12]}",
+            "player_id": player_id,
+            "poi_id": poi_id,
+            "character_id": character_id,
+            "role": role,
+            "content": content,
+            "timestamp": timestamp,
+        }
+        state = self.load()
+        messages: list[dict[str, Any]] = state.setdefault("chat_messages", [])
+        messages.append(msg)
+        # Keep last _CHAT_HISTORY_MAX messages total
+        if len(messages) > _CHAT_HISTORY_MAX:
+            del messages[:-_CHAT_HISTORY_MAX]
+        self.save(state)
+        return msg
 
 
 class WritebackEngine:
@@ -121,6 +174,32 @@ class WritebackEngine:
                 "stored_event_count": len(events),
             },
         }
+
+    # ─── Chat history methods ──────────────────────────────────────────────────
+
+    def get_chat_history(
+        self,
+        player_id: str,
+        poi_id: str,
+        character_id: str | None = None,
+        limit: int = 50,
+    ) -> list[dict[str, Any]]:
+        """Get chat history for a player + POI (optionally filtered by character)."""
+        return self.store.get_chat_history(player_id, poi_id, character_id, limit)
+
+    def add_chat_message(
+        self,
+        player_id: str,
+        poi_id: str,
+        character_id: str,
+        role: str,
+        content: str,
+        timestamp: str | None = None,
+    ) -> dict[str, Any]:
+        """Add a chat message to history."""
+        if timestamp is None:
+            timestamp = _utc_now_iso()
+        return self.store.add_chat_message(player_id, poi_id, character_id, role, content, timestamp)
 
 
 def _normalize_event(event: dict[str, Any]) -> dict[str, Any]:
@@ -419,6 +498,7 @@ def _default_store_state() -> dict[str, Any]:
         "players": {},
         "slices": {},
         "events": [],
+        "taverns": {},
     }
 
 

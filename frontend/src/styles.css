@@ -3564,3 +3564,525 @@ iframe {
   opacity: 0.4;
   cursor: not-allowed;
 }
+
+/* ─────────────────────────────────────────
+   LLMConfigForm — AI 后端配置表单
+   ───────────────────────────────────────── */
+
+.llm-config-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.form-section-header {
+  margin-bottom: 8px;
+}
+
+.form-section-header h4 {
+  margin: 0 0 6px;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--shell-title);
+}
+
+.llm-config-form .form-hint {
+  font-size: 12px;
+  color: var(--shell-text-soft);
+  margin-top: 4px;
+}
+
+.llm-config-form .link-btn {
+  background: none;
+  border: none;
+  color: var(--shell-accent);
+  font-size: 12px;
+  cursor: pointer;
+  text-decoration: underline;
+  margin-left: 8px;
+}
+
+.llm-config-form .link-btn:hover {
+  color: var(--shell-accent-2);
+}
+
+/* Backend grid */
+.backend-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 8px;
+}
+
+.backend-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  background: rgba(30, 41, 59, 0.6);
+  border: 1px solid var(--shell-border);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.backend-btn:hover {
+  background: rgba(51, 65, 85, 0.7);
+  border-color: var(--shell-border-strong);
+}
+
+.backend-btn.active {
+  background: rgba(96, 165, 250, 0.2);
+  border-color: var(--shell-accent);
+}
+
+.backend-icon {
+  font-size: 18px;
+}
+
+.backend-label {
+  font-size: 13px;
+  color: var(--shell-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Form group */
+.llm-config-form .form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.llm-config-form .form-group label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--shell-text);
+  display: flex;
+  align-items: center;
+}
+
+/* ─────────────────────────────────────────
+   TavernCreatePanel — 创建酒馆面板
+   ───────────────────────────────────────── */
+
+.tavern-create-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 20px;
+  background: rgba(15, 23, 42, 0.7);
+  border: 1px solid var(--shell-border);
+  border-radius: 12px;
+  max-width: 600px;
+}
+
+.tavern-create-header {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.tavern-create-header h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--shell-title);
+}
+
+.tavern-create-steps {
+  display: flex;
+  gap: 8px;
+}
+
+.step-btn {
+  padding: 6px 14px;
+  background: rgba(30, 41, 59, 0.6);
+  border: 1px solid var(--shell-border);
+  border-radius: 6px;
+  color: var(--shell-text-soft);
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.step-btn:hover {
+  background: rgba(51, 65, 85, 0.7);
+}
+
+.step-btn.active {
+  background: rgba(96, 165, 250, 0.2);
+  border-color: var(--shell-accent);
+  color: var(--shell-accent);
+}
+
+.tavern-create-step {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 4px 0;
+}
+
+.form-note {
+  padding: 10px 14px;
+  background: rgba(96, 165, 250, 0.1);
+  border-radius: 8px;
+  font-size: 13px;
+  color: var(--shell-text-soft);
+}
+
+.form-note p {
+  margin: 0 0 4px;
+}
+
+.form-note p:last-child {
+  margin-bottom: 0;
+}
+
+.tavern-create-step .form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.tavern-create-step .form-group label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--shell-text);
+}
+
+.tavern-create-step .form-group input[type="text"],
+.tavern-create-step .form-group input[type="password"],
+.tavern-create-step .form-group input[type="number"],
+.tavern-create-step .form-group textarea,
+.tavern-create-step .form-group select {
+  padding: 10px 12px;
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid var(--shell-border);
+  border-radius: 8px;
+  color: var(--shell-text);
+  font-size: 14px;
+  font-family: inherit;
+  resize: vertical;
+  transition: border-color 0.15s;
+}
+
+.tavern-create-step .form-group input:focus,
+.tavern-create-step .form-group textarea:focus,
+.tavern-create-step .form-group select:focus {
+  outline: none;
+  border-color: var(--shell-accent);
+}
+
+.tavern-create-step .form-group input::placeholder,
+.tavern-create-step .form-group textarea::placeholder {
+  color: var(--shell-text-soft);
+}
+
+.form-hint {
+  font-size: 12px;
+  color: var(--shell-text-soft);
+  margin: 0;
+}
+
+.tavern-create-step .form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.access-options {
+  display: flex;
+  gap: 10px;
+}
+
+.access-option {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  background: rgba(30, 41, 59, 0.5);
+  border: 1px solid var(--shell-border);
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--shell-text);
+  transition: all 0.15s;
+}
+
+.access-option:hover {
+  border-color: var(--shell-border-strong);
+}
+
+.access-option input[type="radio"] {
+  accent-color: var(--shell-accent);
+}
+
+.character-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.character-list label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--shell-text);
+}
+
+.character-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  background: rgba(30, 41, 59, 0.5);
+  border: 1px solid var(--shell-border);
+  border-radius: 8px;
+}
+
+.character-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.character-info strong {
+  font-size: 14px;
+  color: var(--shell-title);
+}
+
+.character-info .muted {
+  font-size: 12px;
+  color: var(--shell-text-soft);
+}
+
+.btn-remove {
+  padding: 4px 10px;
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 6px;
+  color: #f87171;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.btn-remove:hover {
+  background: rgba(239, 68, 68, 0.25);
+}
+
+.manual-add {
+  margin-top: 8px;
+}
+
+.manual-add summary {
+  cursor: pointer;
+  color: var(--shell-text-soft);
+  font-size: 13px;
+}
+
+.form-error {
+  padding: 10px 14px;
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 8px;
+  color: #f87171;
+  font-size: 13px;
+}
+
+.tavern-create-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding-top: 4px;
+}
+
+.btn-secondary {
+  padding: 8px 18px;
+  background: rgba(51, 65, 85, 0.6);
+  border: 1px solid var(--shell-border);
+  border-radius: 8px;
+  color: var(--shell-text);
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.btn-secondary:hover {
+  background: rgba(71, 85, 105, 0.7);
+}
+
+.btn-primary {
+  padding: 8px 18px;
+  background: rgba(96, 165, 250, 0.25);
+  border: 1px solid rgba(96, 165, 250, 0.5);
+  border-radius: 8px;
+  color: var(--shell-accent);
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.btn-primary:hover {
+  background: rgba(96, 165, 250, 0.35);
+}
+
+.llm-config-form .form-group input[type="text"],
+.llm-config-form .form-group input[type="password"],
+.llm-config-form .form-group input[type="number"],
+.llm-config-form .form-group select {
+  padding: 10px 12px;
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid var(--shell-border);
+  border-radius: 8px;
+  color: var(--shell-text);
+  font-size: 14px;
+  transition: border-color 0.15s;
+}
+
+.llm-config-form .form-group input:focus,
+.llm-config-form .form-group select:focus {
+  outline: none;
+  border-color: var(--shell-accent);
+}
+
+.llm-config-form .form-group input::placeholder {
+  color: var(--shell-text-soft);
+}
+
+.param-hint {
+  font-weight: 400 !important;
+  color: var(--shell-text-soft);
+  margin-left: 8px;
+}
+
+/* Form row */
+.llm-config-form .form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+/* Advanced settings */
+.llm-config-form details.advanced-settings {
+  margin-top: 8px;
+  padding: 12px;
+  background: rgba(15, 23, 42, 0.4);
+  border-radius: 8px;
+}
+
+.llm-config-form details.advanced-settings summary {
+  cursor: pointer;
+  color: var(--shell-text-soft);
+  font-size: 13px;
+}
+
+.llm-config-form details.advanced-settings[open] summary {
+  margin-bottom: 12px;
+}
+
+/* Range inputs */
+.llm-config-form input[type="range"] {
+  width: 100%;
+  height: 6px;
+  background: rgba(51, 65, 85, 0.5);
+  border-radius: 3px;
+  appearance: none;
+  cursor: pointer;
+}
+
+.llm-config-form input[type="range"]::-webkit-slider-thumb {
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  background: var(--shell-accent);
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+/* Test connection */
+.test-connection {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.btn-test {
+  padding: 8px 16px;
+  background: rgba(34, 197, 94, 0.2);
+  border: 1px solid rgba(34, 197, 94, 0.4);
+  border-radius: 8px;
+  color: #4ade80;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.btn-test:hover:not(:disabled) {
+  background: rgba(34, 197, 94, 0.3);
+}
+
+.btn-test:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.test-result {
+  font-size: 13px;
+}
+
+.test-result.ok {
+  color: #4ade80;
+}
+
+.test-result.error {
+  color: #f87171;
+}
+
+/* Compact mode */
+.llm-config-form.compact {
+  gap: 12px;
+}
+
+.llm-config-form.compact .backend-grid {
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  gap: 6px;
+}
+
+.llm-config-form.compact .backend-btn {
+  padding: 6px 8px;
+}
+
+.llm-config-form.compact .backend-icon {
+  font-size: 14px;
+}
+
+.llm-config-form.compact .backend-label {
+  font-size: 11px;
+}
+/* Expression selector styles */
+.expression-selector {
+  background: var(--shell-panel);
+  border: 1px solid var(--shell-border);
+  color: var(--shell-text);
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+  margin-left: 8px;
+}
+
+.expression-selector:hover {
+  border-color: var(--shell-accent);
+}
+
+/* Chat room styles */
+.chat-char-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  background: var(--shell-panel);
+  border-bottom: 1px solid var(--shell-border);
+}

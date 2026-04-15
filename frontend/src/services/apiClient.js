@@ -87,5 +87,13 @@ export function createApiClient(getBaseUrl) {
       })
       return readJson(response)
     },
+    async getChatHistory(playerId, poiId, characterId = null) {
+      const params = new URLSearchParams({ player_id: playerId, poi_id: poiId })
+      if (characterId) params.append('character_id', characterId)
+      const response = await fetch(`${getBaseUrl()}/api/chat/history?${params}`, {
+        cache: 'no-store',
+      })
+      return readJson(response)
+    },
   }
 }

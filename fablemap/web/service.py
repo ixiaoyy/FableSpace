@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import logging
 import uuid
 from pathlib import Path
 from typing import Any
@@ -10,13 +11,34 @@ from urllib.request import Request, urlopen
 
 from fastapi import HTTPException
 
+logger = logging.getLogger(__name__)
+
+
+def _tavern_llm_config_to_client(tavern_config) -> "LLMConfig":
+    """Convert tavern.py LLMConfig to llm_clients.LLMConfig."""
+    from fablemap.llm_clients import LLMConfig
+    return LLMConfig(
+        backend=tavern_config.backend,
+        model=tavern_config.model,
+        api_key=tavern_config.api_key,
+        base_url=tavern_config.base_url,
+        temperature=tavern_config.temperature,
+        max_tokens=tavern_config.max_tokens,
+        top_p=tavern_config.top_p,
+    )
+
+logger = logging.getLogger(__name__)
+
 from fablemap.api_service import build_health_payload, build_meta_payload, build_nearby_payload
+from fablemap.llm_clients import create_client, LLMError
+from fablemap.prompt_builder import PromptBuildConfig, PromptBuilder
 from fablemap.application.web_payloads import build_behavior_insights, build_orchestrate_payload, record_memory_graph_event
 from fablemap.nearby import generate_nearby_preview
 from fablemap.writeback import WritebackEngine, WritebackStore
 from fablemap.orchestrator.rule_engine import RuleBasedOrchestrator
 from fablemap.memory_graph import WorldMemoryGraph
 from fablemap.dynamic_signals import inject_disturbance, clear_disturbance, get_disturbance
+from fablemap.tavern import TavernService as TavernServiceCore, TavernStore as TavernStoreCore
 
 from .config import ApiSettings
 
@@ -28,6 +50,9 @@ class WebService:
         self.writeback = WritebackEngine(WritebackStore(self.settings.output_root / "writeback"))
         self.orchestrator = RuleBasedOrchestrator()
         self.memory_graph = WorldMemoryGraph()
+        # Tavern service (new)
+        self.tavern_store = TavernStoreCore(self.settings.output_root / "taverns")
+        self.tavern_service = TavernServiceCore(self.tavern_store)
 
     def health_payload(self) -> dict[str, Any]:
         return build_health_payload(
@@ -74,12 +99,16 @@ class WebService:
                 source_file=source_file,
                 refresh=refresh,
             )
-            return build_nearby_payload(
+            
+            # Inject managed taverns
+            payload = build_nearby_payload(
                 result=result,
                 base_url=base_url,
                 mode=normalized_mode,
                 run_id=run_id,
             )
+            self._inject_managed_taverns(payload, lat, lon, radius)
+            return payload
         except ValueError as exc:
             raise HTTPException(status_code=400, detail=str(exc)) from exc
         except HTTPException:
@@ -286,6 +315,358 @@ class WebService:
     def get_disturbance_payload(self, slice_id: str) -> dict[str, Any]:
         return {"slice_id": slice_id, "active": get_disturbance(slice_id)}
 
+    # ─── Tavern Service (based on tavern.py) ─────────────────────────────
+
+    def list_taverns_payload(
+        self,
+        lat: float | None = None,
+        lon: float | None = None,
+        radius: float = 5000,
+        access: str | None = None,
+        owner_id: str = "",
+    ) -> dict[str, Any]:
+        """List all taverns with optional location filter"""
+        taverns = self.tavern_service.list_taverns(
+            lat=lat, lon=lon, radius=radius, access=access, owner_id=owner_id
+        )
+        return {"taverns": taverns, "count": len(taverns)}
+
+    def get_tavern_payload(self, tavern_id: str, user_id: str = "") -> dict[str, Any]:
+        """Get a specific tavern by ID"""
+        return self.tavern_service.get_tavern(tavern_id, user_id)
+
+    def create_tavern_payload(self, data: dict[str, Any], owner_id: str = "") -> dict[str, Any]:
+        """Create a new tavern"""
+        return self.tavern_service.create_tavern(data, owner_id)
+
+    def update_tavern_payload(self, tavern_id: str, data: dict[str, Any], user_id: str = "") -> dict[str, Any]:
+        """Update a tavern"""
+        return self.tavern_service.update_tavern(tavern_id, data, user_id)
+
+    def delete_tavern_payload(self, tavern_id: str, user_id: str = "") -> dict[str, str]:
+        """Delete a tavern"""
+        return self.tavern_service.delete_tavern(tavern_id, user_id)
+
+    def enter_tavern_payload(
+        self, tavern_id: str, password: str = "", user_id: str = ""
+    ) -> dict[str, Any]:
+        """Enter a tavern (verify password)"""
+        return self.tavern_service.enter_tavern(tavern_id, password, user_id)
+
+    def add_character_payload(
+        self, tavern_id: str, data: dict[str, Any], user_id: str = ""
+    ) -> dict[str, Any]:
+        """Add a character to a tavern"""
+        return self.tavern_service.add_character(tavern_id, data, user_id)
+
+    def update_character_payload(
+        self, tavern_id: str, char_id: str, data: dict[str, Any], user_id: str = ""
+    ) -> dict[str, Any]:
+        """Update a character"""
+        return self.tavern_service.update_character(tavern_id, char_id, data, user_id)
+
+    def delete_character_payload(
+        self, tavern_id: str, char_id: str, user_id: str = ""
+    ) -> dict[str, str]:
+        """Delete a character"""
+        return self.tavern_service.delete_character(tavern_id, char_id, user_id)
+
+    def import_character_card_payload(
+        self, tavern_id: str, card_data: dict[str, Any], user_id: str = ""
+    ) -> dict[str, Any]:
+        """Import a SillyTavern character card"""
+        return self.tavern_service.import_character_card(tavern_id, card_data, user_id)
+
+    # Chat methods using tavern service
+    def tavern_chat_payload(
+        self,
+        tavern_id: str,
+        character_id: str,
+        message: str,
+        visitor_id: str,
+    ) -> dict[str, Any]:
+        """Send a chat message and get AI response"""
+        from .tavern import ChatMessage
+
+        tavern = self.tavern_store.get_tavern(tavern_id)
+        if not tavern:
+            raise HTTPException(status_code=404, detail="酒馆不存在")
+
+        # Find character
+        character = next((c for c in tavern.characters if c.id == character_id), None)
+        if not character:
+            raise HTTPException(status_code=404, detail="角色不存在")
+
+        # Check if tavern is open
+        if tavern.status != "open":
+            return {
+                "character_id": character_id,
+                "character_name": character.name,
+                "response": "此店暂时歇业中。",
+                "mood": "neutral",
+            }
+
+        # Get LLM config
+        llm_config = self.tavern_store.get_llm_config(tavern_id)
+        if not llm_config or not llm_config.is_configured():
+            return {
+                "character_id": character_id,
+                "character_name": character.name,
+                "response": "此店暂未配置 AI，无法回应。",
+                "mood": "neutral",
+            }
+
+        # Build messages using PromptBuilder
+        messages = self.tavern_store.get_chat_history(
+            tavern_id, visitor_id, character_id, limit=20
+        )
+
+        # Convert to prompt_builder.ChatMessage format
+        prompt_messages = [
+            {"id": m.id, "role": m.role, "content": m.content, "name": "", "timestamp": m.timestamp or ""}
+            for m in messages
+        ]
+        prompt_messages_obj = [
+            ChatMessage(id=m.id, role=m.role, content=m.content)
+            for m in messages
+        ]
+
+        # Determine output format based on backend
+        output_format = "openai"
+        if llm_config.backend in ("claude",):
+            output_format = "claude"
+        elif llm_config.backend in ("ooba", "mancer", "vllm", "tabby", "koboldcpp", "togetherai", "llamacpp", "infermaticai", "dreamgen", "featherless", "huggingface", "generic", "ollama"):
+            output_format = "textgen"
+
+        # Build prompt
+        config = PromptBuildConfig(
+            tavern_name=tavern.name,
+            tavern_scene_prompt=tavern.scene_prompt or "",
+            char_name=character.name,
+            char_personality=character.personality or "",
+            char_scenario=character.scenario or "",
+            char_first_mes=character.first_mes or "",
+            char_system_prompt=character.system_prompt or "",
+            user_name=visitor_id[:16] or "旅人",
+            world_info_entries=[e.to_dict() if hasattr(e, "to_dict") else e for e in tavern.world_info],
+            output_format=output_format,
+            history_max_messages=20,
+        )
+        builder = PromptBuilder(config)
+        prompt_result = builder.build(prompt_messages_obj, message)
+
+        # Call LLM using the new llm_clients
+        try:
+            llm_config_obj = _tavern_llm_config_to_client(llm_config)
+            llm_config_obj = create_client(llm_config_obj)
+            response = llm_config_obj.complete(prompt_result["messages"])
+            response_text = response.content
+        except LLMError as e:
+            logger.warning(f"LLM call failed: {e}, falling back to rule-based response")
+            response_text = self._fallback_response(message, character.name)
+        except Exception as e:
+            logger.error(f"Unexpected error during LLM call: {e}")
+            response_text = self._fallback_response(message, character.name)
+
+        # Save messages
+        now = _utc_now_iso()
+        self.tavern_store.add_chat_message(
+            ChatMessage(
+                id=f"msg_{uuid.uuid4().hex[:12]}",
+                tavern_id=tavern_id,
+                character_id=character_id,
+                visitor_id=visitor_id,
+                role="user",
+                content=message,
+                timestamp=now,
+            )
+        )
+        self.tavern_store.add_chat_message(
+            ChatMessage(
+                id=f"msg_{uuid.uuid4().hex[:12]}",
+                tavern_id=tavern_id,
+                character_id=character_id,
+                visitor_id=visitor_id,
+                role="assistant",
+                content=response_text,
+                timestamp=now,
+            )
+        )
+
+        # Record token usage
+        token_count = self._count_tokens(llm_config.backend, llm_config.model, message, response_text, response)
+        self.tavern_store.add_token_usage(tavern_id, token_count)
+
+        return {
+            "character_id": character_id,
+            "character_name": character.name,
+            "response": response_text,
+            "mood": "curious",
+            "timestamp": _now_ms(),
+        }
+
+    def _count_tokens(
+        self,
+        backend: str,
+        model: str,
+        input_text: str,
+        output_text: str,
+        response,
+    ) -> int:
+        """
+        Count tokens for input and output text.
+        Uses LLM API usage data when available, falls back to TokenCounter.
+        """
+        from fablemap.token_counter import get_counter
+
+        total = 0
+        # Try to use LLM API usage data
+        if response and hasattr(response, "usage") and response.usage:
+            usage = response.usage
+            if isinstance(usage, dict):
+                # OpenAI format: total_tokens
+                if "total_tokens" in usage:
+                    return usage["total_tokens"]
+                # Anthropic format: input_tokens + output_tokens
+                if "input_tokens" in usage:
+                    total += usage["input_tokens"]
+                    total += usage.get("output_tokens", 0)
+                    if total > 0:
+                        return total
+                # Try prompt/completion tokens
+                total += usage.get("prompt_tokens", 0)
+                total += usage.get("completion_tokens", 0)
+                if total > 0:
+                    return total
+            elif isinstance(usage, (int, float)):
+                return int(usage)
+
+        # Fallback: use TokenCounter
+        counter = get_counter(backend)
+        if backend == "claude":
+            # Claude uses cl100k_base equivalent
+            counter = get_counter("cl100k_base")
+        total = counter.count(input_text) + counter.count(output_text)
+        return total
+
+    def _fallback_response(self, message: str, char_name: str) -> str:
+        """Rule-based fallback when LLM is unavailable."""
+        msg_lower = message.lower()
+        if any(k in msg_lower for k in ["你好", "hi", "hello"]):
+            return "你好，欢迎光临。"
+        if any(k in msg_lower for k in ["再见", "bye", "离开"]):
+            return "后会有期，有空再来。"
+        if any(k in msg_lower for k in ["谢谢", "thank"]):
+            return "不客气。"
+        import random
+        responses = [
+            "我明白了。让我想想……",
+            "嗯，这很有趣。",
+            "你说的这些，我倒是有所耳闻。",
+            "这里每天都有新故事。你想聊什么？",
+        ]
+        return random.choice(responses)
+
+    def test_llm_payload(
+        self,
+        tavern_id: str,
+        llm_config_data: dict[str, Any],
+    ) -> dict[str, Any]:
+        """Test LLM configuration by sending a simple prompt."""
+        from fablemap.llm_clients import create_client, LLMConfig, LLMError
+
+        try:
+            cfg = LLMConfig(
+                backend=llm_config_data.get("backend", "openai"),
+                model=llm_config_data.get("model", ""),
+                api_key=llm_config_data.get("api_key", ""),
+                base_url=llm_config_data.get("base_url", ""),
+                temperature=float(llm_config_data.get("temperature", 0.8)),
+                max_tokens=int(llm_config_data.get("max_tokens", 256)),
+                top_p=float(llm_config_data.get("top_p", 1.0)),
+            )
+
+            if not cfg.api_key and not cfg.base_url:
+                return {"ok": False, "message": "请提供 API Key 或 Base URL"}
+
+            client = create_client(cfg)
+            test_messages = [
+                {"role": "user", "content": "你好，请回复一个简单的问候。"},
+            ]
+            response = client.complete(test_messages)
+            return {
+                "ok": True,
+                "message": "连接成功",
+                "model": response.model,
+                "preview": response.content[:200],
+            }
+        except LLMError as e:
+            return {"ok": False, "message": f"连接失败：{str(e)[:200]}"}
+        except Exception as e:
+            logger.error(f"test_llm failed: {e}")
+            return {"ok": False, "message": f"连接失败：{str(e)[:200]}"}
+
+    def tavern_chat_history_payload(
+        self,
+        tavern_id: str,
+        visitor_id: str,
+        character_id: str | None = None,
+    ) -> dict[str, Any]:
+        """Get chat history for a tavern"""
+        messages = self.tavern_store.get_chat_history(
+            tavern_id, visitor_id, character_id, limit=50
+        )
+        return {
+            "tavern_id": tavern_id,
+            "visitor_id": visitor_id,
+            "character_id": character_id,
+            "messages": [m.to_dict() for m in messages],
+            "count": len(messages),
+        }
+
+    def _inject_managed_taverns(self, payload: dict[str, Any], center_lat: float, center_lon: float, radius: int):
+        """Inject managed taverns into the POI list of a nearby result."""
+        managed_taverns = self.writeback.store.get_taverns()
+        if not managed_taverns:
+            return
+
+        world = payload.get("world")
+        if not world or not isinstance(world, dict):
+            return
+
+        pois = world.setdefault("pois", [])
+        
+        # Simple distance check for injection (radius is in meters, but we use degree expansion for speed)
+        # 1 deg approx 111000 meters
+        deg_radius = radius / 111000.0
+        
+        for tid, data in managed_taverns.items():
+            t_lat = data.get("lat")
+            t_lon = data.get("lon")
+            if t_lat is None or t_lon is None:
+                continue
+            
+            if abs(t_lat - center_lat) <= deg_radius and abs(t_lon - center_lon) <= deg_radius:
+                # Convert managed tavern to POI format
+                poi = {
+                    "id": data["id"],
+                    "osm_type": "managed_tavern",
+                    "real_name": data["name"],
+                    "fantasy_name": data["name"],
+                    "fantasy_type": "managed_tavern",
+                    "position": {"lat": t_lat, "lon": t_lon},
+                    "description": data.get("description", ""),
+                    "faction_alignment": "neutral",
+                    "managed": True,
+                    "visual_hint": {
+                        "style": "managed_gold",
+                        "palette": "gold_and_black",
+                    }
+                }
+                # Check if already exists by ID
+                if not any(p.get("id") == poi["id"] for p in pois):
+                    pois.append(poi)
+
     def chat_response_payload(
         self,
         character_id: str,
@@ -295,19 +676,86 @@ class WebService:
         player_id: str,
         history: list,
     ) -> dict[str, Any]:
-        """Generate a simple character response based on archetype and mood."""
-        from ..writeback import _session_path
+        """Generate a character response and persist the chat exchange to writeback."""
+        from ..writeback import _utc_now_iso
 
-        # Load world to get character data
+        # Save player's message to writeback
+        self.writeback.add_chat_message(
+            player_id=player_id,
+            poi_id=poi_id,
+            character_id=character_id,
+            role="player",
+            content=message,
+        )
+
+        # Determine character archetype and mood from the message
+        archetype, mood, character_name, character_description = self._derive_character_info(
+            character_id, world_id
+        )
+
+        # Generate response based on archetype
+        response = _generate_response(archetype, mood, message, character_description)
+
+        # Save character's response to writeback
+        char_msg = self.writeback.add_chat_message(
+            player_id=player_id,
+            poi_id=poi_id,
+            character_id=character_id,
+            role="character",
+            content=response,
+        )
+
+        return {
+            "character_id": character_id,
+            "character_name": character_name,
+            "response": response,
+            "mood": mood,
+            "archetype": archetype,
+            "poi_id": poi_id,
+            "timestamp": _now_ms(),
+            "character_message": char_msg,
+        }
+
+    def chat_history_payload(
+        self,
+        player_id: str,
+        poi_id: str,
+        character_id: str | None = None,
+    ) -> dict[str, Any]:
+        """Get chat history for a player + POI (optionally filtered by character)."""
+        messages = self.writeback.get_chat_history(
+            player_id=player_id,
+            poi_id=poi_id,
+            character_id=character_id,
+            limit=50,
+        )
+        return {
+            "player_id": player_id,
+            "poi_id": poi_id,
+            "character_id": character_id,
+            "messages": messages,
+            "count": len(messages),
+        }
+
+    def _derive_character_info(self, character_id: str, world_id: str) -> tuple[str, str, str, str]:
+        """Derive archetype, mood, name, and description from faction data."""
+        import json
+        from ..writeback import _utc_now_iso
+
         world = {}
-        session_file = _session_path(world_id, player_id)
-        if session_file and session_file.exists():
-            try:
-                world = json.loads(session_file.read_text("utf-8"))
-            except Exception:
-                pass
+        try:
+            # Try to find world JSON in output root
+            for f in self.settings.output_root.glob(f"{world_id}/*.json"):
+                try:
+                    data = json.loads(f.read_text("utf-8"))
+                    if data.get("world_id") == world_id or data.get("world_id"):
+                        world = data
+                        break
+                except Exception:
+                    continue
+        except Exception:
+            pass
 
-        # Determine character archetype and mood from world data
         archetype = "wanderer"
         mood = "curious"
         character_name = "未知角色"
@@ -322,18 +770,68 @@ class WebService:
                 character_description = faction.get("doctrine", "")
                 break
 
-        # Generate response based on archetype
-        response = _generate_response(archetype, mood, message, character_description)
+        # If character_id looks like a POI-based character (not faction)
+        if character_id.startswith("char_") or character_id.startswith("npc_"):
+            archetype = "wanderer"
+            mood = "mysterious"
+            character_name = "旅人"
+            character_description = ""
 
-        return {
-            "character_id": character_id,
-            "character_name": character_name,
-            "response": response,
-            "mood": mood,
-            "archetype": archetype,
-            "poi_id": poi_id,
-            "timestamp": _now_ms(),
-        }
+        return archetype, mood, character_name, character_description
+
+    # ─── Quick Reply Manager ──────────────────────────────────────────────
+
+    def get_quick_reply_manager(self):
+        """Get the quick reply manager (lazy initialization)."""
+        if not hasattr(self, "_quick_reply_manager"):
+            from fablemap.quick_replies import QuickReplyManager
+            self._quick_reply_manager = QuickReplyManager()
+            # Load from storage if available
+            storage_path = self.settings.output_root / "quick_replies.json"
+            self._quick_reply_manager.load_from_file(storage_path)
+        return self._quick_reply_manager
+
+    # ─── Command Manager ──────────────────────────────────────────────────
+
+    def get_command_manager(self):
+        """Get the slash command manager (lazy initialization)."""
+        if not hasattr(self, "_command_manager"):
+            from fablemap.slash_commands import get_command_manager
+            self._command_manager = get_command_manager()
+        return self._command_manager
+
+    # ─── Extension Manager ────────────────────────────────────────────────
+
+    def get_extension_manager(self):
+        """Get the extension manager (lazy initialization)."""
+        if not hasattr(self, "_extension_manager"):
+            from fablemap.extensions import get_extension_manager
+            self._extension_manager = get_extension_manager()
+        return self._extension_manager
+
+    # ─── Group Chat Sessions ─────────────────────────────────────────────
+
+    def create_group_chat_session(self, group_manager) -> str:
+        """Create a new group chat session and return its ID."""
+        if not hasattr(self, "_group_chat_sessions"):
+            self._group_chat_sessions = {}
+        session_id = str(uuid.uuid4())
+        self._group_chat_sessions[session_id] = group_manager
+        return session_id
+
+    def get_group_chat_session(self, session_id: str):
+        """Get a group chat session by ID."""
+        return getattr(self, "_group_chat_sessions", {}).get(session_id)
+
+    # ─── Preset Manager ───────────────────────────────────────────────────
+
+    def get_preset_manager(self):
+        """Get the LLM preset manager (lazy initialization)."""
+        if not hasattr(self, "_preset_manager"):
+            from fablemap.presets import PresetManager
+            storage_path = self.settings.output_root / "presets.json"
+            self._preset_manager = PresetManager(storage_path)
+        return self._preset_manager
 
 
 def _archetype_from_faction(faction: dict) -> str:
@@ -422,6 +920,14 @@ def _generate_response(archetype: str, mood: str, message: str, description: str
         return f"{base}\n\n这座{archetype}的教义说：{description}"
 
     return base
+
+
+
+
+
+def _utc_now_iso() -> str:
+    from datetime import UTC, datetime
+    return datetime.now(UTC).replace(microsecond=0).isoformat().replace("+00:00", "Z")
 
 
 def _now_ms() -> int:

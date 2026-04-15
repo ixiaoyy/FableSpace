@@ -1,4 +1,0 @@
-114: def _compute_trust(meaning: MeaningVector, base: float) -> float:
-140:     def generate(self, meaning: MeaningVector) -> CityPersona:
-164:     def evolve_with_home(self, persona: CityPersona, comfort_score: float) -> CityPersona:
-182:     def merge(self, existing: CityPersona, new_meaning: MeaningVector) -> CityPersona:

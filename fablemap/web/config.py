@@ -20,6 +20,7 @@ class ApiSettings:
     frontend_root: Path | None = DEFAULT_FRONTEND_ROOT
     frontend_dist: Path | None = None
     frontend_public: Path | None = None
+    sillytavern_url: str = "http://127.0.0.1:8000"
 
     def resolved(self) -> "ApiSettings":
         resolved_frontend_root = self.frontend_root.resolve() if self.frontend_root else None

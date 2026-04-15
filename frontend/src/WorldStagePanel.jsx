@@ -66,6 +66,9 @@ export default function WorldStagePanel({
   behaviorInsights,
   focusWritebackTarget,
   lastWritebackPoiId,
+  taverns = [],
+  onTavernClick,
+  activeTavernId,
   mapOnly = false,
 }) {
   const activePoiPanelRef = useRef(null)
@@ -100,6 +103,9 @@ export default function WorldStagePanel({
           toolbarLabel="地点视图"
           toolbarCopy={result ? `${originLabel} · ${form.radius}m · ${result?.poi_count ?? 0} 个候选地点` : '正在准备附近地点切片'}
           toolbarClassName="map-layer-toolbar map-only-stage__toolbar"
+          taverns={taverns}
+          onTavernClick={onTavernClick}
+          activeTavernId={activeTavernId}
         />
         <div className="map-only-stage__feedback" aria-live="polite">
           <div>
@@ -175,6 +181,9 @@ export default function WorldStagePanel({
           familiarityMap={familiarityMap}
           originLabel={originLabel}
           ghostTraces={ghostTraces}
+          taverns={taverns}
+          onTavernClick={onTavernClick}
+          activeTavernId={activeTavernId}
         />
 
         <div className="storyboard-shell-bottom">

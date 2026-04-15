@@ -44,8 +44,8 @@ export class MapAdapter {
   /**
    * Set all markers of a given type. Replaces existing markers of that type.
    * @param {Array<object>} markers - Array of marker descriptors
-   * @param {'poi'|'landmark'} type
-   * @param {object} opts - { activePoiId, familiarityMap, onMarkerClick }
+   * @param {'poi'|'landmark'|'tavern'} type
+   * @param {object} opts - { activePoiId, familiarityMap, onMarkerClick, activeTavernId, onTavernClick }
    */
   setMarkers(markers, type, opts) {
     throw new Error('Not implemented')

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { formatTagLabel } from './services/appDisplay'
 import ChatPanel from './ChatPanel'
 import {
@@ -158,13 +158,41 @@ export default function WorldStageActivePoiPanel({
     : []
   const activeCharacter = characters[0] || null
 
-  // Chat messages state (would come from writeback history in real implementation)
+  // Chat messages state — loaded from writeback when POI changes
   const [chatMessages, setChatMessages] = useState([])
   const [chatSending, setChatSending] = useState(false)
+  const [chatLoading, setChatLoading] = useState(false)
 
-  // Placeholder: no actual chat logic yet, just UI
+  // Load chat history from writeback when the active POI changes
+  useEffect(() => {
+    if (!resolvedActivePoi) {
+      setChatMessages([])
+      return
+    }
+    const poiId = resolvedActivePoi.id
+    const playerId = writebackForm?.playerId || 'player'
+    const characterId = activeCharacter?.id || `faction-${resolvedActivePoi.faction_alignment || 'unknown'}`
+
+    setChatLoading(true)
+    fetch(`/api/chat/history?player_id=${encodeURIComponent(playerId)}&poi_id=${encodeURIComponent(poiId)}&character_id=${encodeURIComponent(characterId)}`)
+      .then(r => r.json())
+      .then(data => {
+        if (Array.isArray(data.messages)) {
+          setChatMessages(data.messages.map(m => ({
+            id: m.message_id,
+            role: m.role,
+            content: m.content,
+            timestamp: m.timestamp ? new Date(m.timestamp).getTime() : Date.now(),
+          })))
+        }
+      })
+      .catch(() => {
+        // Silently fail — chat history is optional
+      })
+      .finally(() => setChatLoading(false))
+  }, [resolvedActivePoi?.id, writebackForm?.playerId])
+
   async function handleSendMessage(content) {
-    // Add player message immediately (optimistic)
     const playerMsg = {
       id: `msg-${Date.now()}`,
       role: 'player',
@@ -174,31 +202,29 @@ export default function WorldStageActivePoiPanel({
     setChatMessages(prev => [...prev, playerMsg])
     setChatSending(true)
 
-    // Try to call the backend API
+    const characterId = activeCharacter?.id || `faction-${resolvedActivePoi?.faction_alignment || 'unknown'}`
     try {
       const res = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          character_id: activeCharacter?.id || `faction-${resolvedActivePoi?.faction_alignment || 'unknown'}`,
+          character_id: characterId,
           message: content,
-          world_id: world?.world_id || result?.world_id || '',
+          world_id: world?.world_id || '',
           poi_id: resolvedActivePoi?.id || '',
           player_id: writebackForm?.playerId || 'player',
-          history: chatMessages,
+          history: [],  // Backend reads from writeback store
         }),
       })
       const data = await res.json()
-
       const charMsg = {
         id: `msg-${Date.now() + 1}`,
         role: 'character',
-        content: data.response || data.character_name ? `${data.character_name}：${data.response}` : '对方没有回应。',
-        timestamp: Date.now(),
+        content: data.response || '对方没有回应。',
+        timestamp: data.timestamp ? (data.timestamp > 1e12 ? data.timestamp : data.timestamp * 1000) : Date.now(),
       }
       setChatMessages(prev => [...prev, charMsg])
     } catch (err) {
-      // If API call fails, use fallback response
       const charMsg = {
         id: `msg-${Date.now() + 1}`,
         role: 'character',

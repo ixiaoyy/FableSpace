@@ -1,4 +1,4 @@
-import { useRef } from 'react'
+import { useRef, useEffect, useState } from 'react'
 import AdminDebugPanel from './AdminDebugPanel'
 import WorldEntryPanel from './WorldEntryPanel'
 import WorldSliceResultPanel from './WorldSliceResultPanel'
@@ -17,9 +17,13 @@ import { useScrollToWorldStage } from './hooks/useScrollToWorldStage'
 import { useWorldSession } from './hooks/useWorldSession'
 import { buildAppPanelProps } from './services/appPanelProps'
 import { buildEntryStatusText, buildHeroMetrics, buildStageStatusViewModel } from './services/appShellViewModel'
+import { getDefaultTavernService } from './services/tavernService'
 
 export default function App() {
   const stageRef = useRef(null)
+  const [taverns, setTaverns] = useState([])
+  const [activeTavernId, setActiveTavernId] = useState(null)
+  const [tavernFetchError, setTavernFetchError] = useState(null)
   const {
     activePoiId,
     adminOpen,
@@ -114,11 +118,45 @@ export default function App() {
     visibilityOptions: VISIBILITY_OPTIONS,
   })
 
+  // Fetch nearby taverns when map center changes
+  useEffect(() => {
+    if (!form?.lat || !form?.lon) return
+
+    let cancelled = false
+    setTavernFetchError(null)
+
+    async function fetchTaverns() {
+      try {
+        const service = getDefaultTavernService()
+        const result = await service.listTaverns({
+          lat: form.lat,
+          lon: form.lon,
+          radius: form.radius || 5000,
+        })
+        if (!cancelled) {
+          setTaverns(Array.isArray(result) ? result : (result.taverns || []))
+        }
+      } catch (err) {
+        if (!cancelled) {
+          setTavernFetchError(err.message)
+          setTaverns([])
+        }
+      }
+    }
+
+    fetchTaverns()
+
+    return () => {
+      cancelled = true
+    }
+  }, [form?.lat, form?.lon, form?.radius])
+
   const entryStatusText = buildEntryStatusText({
     autoEntering,
     submitting,
     result,
   })
+
   const heroMetrics = buildHeroMetrics({
     entryStatusText,
     form,
@@ -262,7 +300,7 @@ export default function App() {
           <strong>{stageStatus.label}</strong>
           <p>{stageStatus.title}</p>
         </div>
-        <WorldStagePanel {...mapStageProps} />
+        <WorldStagePanel {...mapStageProps} taverns={taverns} activeTavernId={activeTavernId} onTavernClick={(id, marker) => setActiveTavernId(id)} />
       </div>
 
       {adminOpen ? (

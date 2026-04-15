@@ -21,6 +21,9 @@ export default function WorldStageMapFrame({
   toolbarLabel,
   toolbarCopy,
   toolbarClassName,
+  taverns = [],
+  onTavernClick,
+  activeTavernId,
 }) {
   return (
     <div className={className}>
@@ -46,6 +49,9 @@ export default function WorldStageMapFrame({
         originLabel={originLabel}
         ghostTraces={ghostTraces}
         visibleLayers={visibleMapLayers}
+        taverns={taverns}
+        onTavernClick={onTavernClick}
+        activeTavernId={activeTavernId}
       />
     </div>
   )
