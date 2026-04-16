@@ -25,9 +25,9 @@ def _tavern_llm_config_to_client(tavern_config) -> "LLMConfig":
         temperature=tavern_config.temperature,
         max_tokens=tavern_config.max_tokens,
         top_p=tavern_config.top_p,
+        frequency_penalty=getattr(tavern_config, 'frequency_penalty', 0.0),
+        presence_penalty=getattr(tavern_config, 'presence_penalty', 0.0),
     )
-
-logger = logging.getLogger(__name__)
 
 from fablemap.api_service import build_health_payload, build_meta_payload, build_nearby_payload
 from fablemap.llm_clients import create_client, LLMError
@@ -457,9 +457,9 @@ class WebService:
 
         # Call LLM using the new llm_clients
         try:
-            llm_config_obj = _tavern_llm_config_to_client(llm_config)
-            llm_config_obj = create_client(llm_config_obj)
-            response = llm_config_obj.complete(prompt_result["messages"])
+            llm_client_config = _tavern_llm_config_to_client(llm_config)
+            llm_client = create_client(llm_client_config)
+            response = llm_client.complete(prompt_result["messages"])
             response_text = response.content
         except LLMError as e:
             logger.warning(f"LLM call failed: {e}, falling back to rule-based response")

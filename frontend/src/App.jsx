@@ -1,8 +1,11 @@
 import { useRef, useEffect, useState } from 'react'
 import AdminDebugPanel from './AdminDebugPanel'
+import TavernOwnerPanel from './TavernOwnerPanel'
 import WorldEntryPanel from './WorldEntryPanel'
 import WorldSliceResultPanel from './WorldSliceResultPanel'
 import WorldStagePanel from './WorldStagePanel'
+import TavernEntryPanel from './TavernEntryPanel'
+import TavernChatRoom from './TavernChatRoom'
 import {
   DEFAULT_VISIBLE_MAP_LAYERS,
   INITIAL_FORM,
@@ -20,10 +23,29 @@ import { buildEntryStatusText, buildHeroMetrics, buildStageStatusViewModel } fro
 import { getDefaultTavernService } from './services/tavernService'
 
 export default function App() {
+  const [view, setView] = useState('map') // 'map' | 'owner'
   const stageRef = useRef(null)
   const [taverns, setTaverns] = useState([])
   const [activeTavernId, setActiveTavernId] = useState(null)
+  const [enteredTavern, setEnteredTavern] = useState(null)
   const [tavernFetchError, setTavernFetchError] = useState(null)
+
+  // Visitor ID — persisted across sessions
+  const [visitorId] = useState(() => {
+    const stored = localStorage.getItem('fablemap_visitor_id')
+    if (stored) return stored
+    const newId = `visitor_${Date.now()}_${Math.random().toString(36).slice(2)}`
+    localStorage.setItem('fablemap_visitor_id', newId)
+    return newId
+  })
+
+  useEffect(() => {
+    // Sync visitor ID to localStorage on mount
+    if (!localStorage.getItem('fablemap_visitor_id')) {
+      const newId = `visitor_${Date.now()}_${Math.random().toString(36).slice(2)}`
+      localStorage.setItem('fablemap_visitor_id', newId)
+    }
+  }, [])
   const {
     activePoiId,
     adminOpen,
@@ -271,11 +293,25 @@ export default function App() {
     <div className="wrap app-shell page-enter map-first-app-shell world-app-shell">
       <header className="world-app-shell__hero panel">
         <div className="world-app-shell__hero-copy">
-          <p className="mini-label">Place-first shell</p>
-          <h1>{result ? '地点入口已连通，先选地点再进入叙事' : '先选入口，马上进入你附近的地点切片'}</h1>
+          <p className="mini-label">Cyber Tavern Platform</p>
+          <h1>{view === 'map' ? (result ? '地点入口已连通，先选地点再进入叙事' : '先选入口，马上进入你附近的地点切片') : '我是店主：酒馆管理与 AI 配置'}</h1>
           <p className="note muted world-app-shell__hero-note">
-            首页先只保留入口、结果摘要和地点舞台，优先让你立即进入、立即选点、立即开始后续事件与写回。
+            {view === 'map' ? '首页先只保留入口、结果摘要和地点舞台，优先让你立即进入、立即选点、立即开始后续事件与写回。' : '在这里管理你拥有的赛博酒馆，导入 SillyTavern 角色卡，配置 AI 后端，并监控 Token 消耗。'}
           </p>
+          <div className="hero-actions">
+            <button 
+              className={view === 'map' ? 'primary' : 'secondary'} 
+              onClick={() => setView('map')}
+            >
+              🗺️ 发现酒馆
+            </button>
+            <button 
+              className={view === 'owner' ? 'primary' : 'secondary'} 
+              onClick={() => setView('owner')}
+            >
+              🍺 我是店主
+            </button>
+          </div>
         </div>
         <div className="world-app-shell__hero-metrics" aria-label="当前动作提示">
           {heroMetrics.cards.map((card) => (
@@ -286,22 +322,53 @@ export default function App() {
             </article>
           ))}
         </div>
+        {enteredTavern && (
+          <div className="world-app-shell__hero-actions">
+            <button className="secondary" onClick={() => setEnteredTavern(null)}>
+              🚪 离开酒馆
+            </button>
+          </div>
+        )}
       </header>
 
-      <section className="world-app-shell__top-grid" aria-label="地点入口与切片摘要">
-        <WorldEntryPanel {...entryPanelProps} />
-
-        <WorldSliceResultPanel {...resultPanelProps} />
-      </section>
-
-      <div ref={stageRef} className="world-app-shell__stage">
-        <div className={`world-app-shell__stage-status${stageStatus.classNameSuffix}`} aria-live="polite">
-          <span className="mini-label">地点舞台</span>
-          <strong>{stageStatus.label}</strong>
-          <p>{stageStatus.title}</p>
+      {enteredTavern ? (
+        <div className="tavern-chat-view slide-up">
+          <TavernChatRoom
+            roomId={enteredTavern.id}
+            roomName={enteredTavern.name}
+            roomDescription={enteredTavern.description}
+            characters={enteredTavern.characters}
+            scenePrompt={enteredTavern.scene_prompt}
+            visitorId={visitorId}
+          />
         </div>
-        <WorldStagePanel {...mapStageProps} taverns={taverns} activeTavernId={activeTavernId} onTavernClick={(id, marker) => setActiveTavernId(id)} />
-      </div>
+      ) : view === 'map' ? (
+        <>
+          <section className="world-app-shell__top-grid" aria-label="地点入口与切片摘要">
+            <WorldEntryPanel {...entryPanelProps} />
+            <WorldSliceResultPanel {...resultPanelProps} />
+          </section>
+
+          <div ref={stageRef} className="world-app-shell__stage">
+            <div className={`world-app-shell__stage-status${stageStatus.classNameSuffix}`} aria-live="polite">
+              <span className="mini-label">地点舞台</span>
+              <strong>{stageStatus.label}</strong>
+              <p>{stageStatus.title}</p>
+            </div>
+            <WorldStagePanel {...mapStageProps} taverns={taverns} activeTavernId={activeTavernId} onTavernClick={(id, marker) => setActiveTavernId(id)} />
+          </div>
+
+          {activeTavernId && (
+            <TavernEntryPanel 
+              tavernId={activeTavernId}
+              onEnter={(tavern) => setEnteredTavern(tavern)}
+              onClose={() => setActiveTavernId(null)}
+            />
+          )}
+        </>
+      ) : (
+        <TavernOwnerPanel ownerId={visitorId} />
+      )}
 
       {adminOpen ? (
         <div className="world-app-shell__admin">
