@@ -16,6 +16,14 @@ demo-output/
 # IDE
 .idea/
 
+# CC-Panes session history (binary db files)
+.ccpanes/
+
+# Environment variables (sensitive)
+.env.local
+.env
+*.env
+
 # OS
 .DS_Store
 Thumbs.db

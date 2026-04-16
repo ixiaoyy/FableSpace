@@ -1,781 +1,529 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { getAssetIconSrc, getAssetPack } from './mapAssets/manifest.js'
+import { createMapAdapter } from './mapAdapter'
 
-const ICON_MAP = {
-  whispering_grove: '🌿',
-  healing_sanctum: '✚',
-  supply_outpost: '📦',
-  judgement_tower: '🏛',
-  ember_parlor: '☕',
-  lore_academy: '📚',
-  debt_cathedral: '🏦',
-  feast_hall: '🍽',
-  refuel_station: '⚡',
-  memory_archive: '🗄',
-  spirit_sanctum: '🕯',
-  dormant_lot: '🅿',
-  remedy_post: '💊',
-  labor_forge: '💪',
-  contract_spire: '🏢',
+const SNAPSHOT_STORAGE_KEY = 'fablemap.activeMapSnapshot'
+
+function getSnapshotId(world) {
+  const raw = world?.slice_id || world?.id || world?.source?.label || world?.source?.name || 'default'
+  return String(raw)
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 80) || 'default'
 }
 
-const FACTION_COLORS = {
-  trade_guild: { fill: '#d97706', glow: '#fbbf24', zone: '#7c2d12' },
-  order_bureau: { fill: '#3b82f6', glow: '#93c5fd', zone: '#172554' },
-  clinic_circle: { fill: '#14b8a6', glow: '#5eead4', zone: '#134e4a' },
-  memory_collective: { fill: '#8b5cf6', glow: '#c4b5fd', zone: '#3b0764' },
-  night_bloom: { fill: '#10b981', glow: '#6ee7b7', zone: '#052e16' },
+function renderSnapshotTiles(snapshotManifest) {
+  const tiles = snapshotManifest?.tiles || []
+  return tiles.map((tile, index) => (
+    <img
+      key={`${tile.file || tile.source || 'tile'}-${index}`}
+      src={tile.file}
+      alt="snapshot tile"
+      style={{
+        position: 'absolute',
+        left: tile.left || 0,
+        top: tile.top || 0,
+        width: tile.width || 'auto',
+        height: tile.height || 'auto',
+        pointerEvents: 'none',
+        userSelect: 'none',
+      }}
+    />
+  ))
 }
 
-const ROAD_STYLE = {
-  iron_lane: { width: 5, alpha: 0.9, dash: [], glow: 12 },
-  trade_route: { width: 4, alpha: 0.8, dash: [], glow: 10 },
-  market_street: { width: 3, alpha: 0.68, dash: [], glow: 8 },
-  lantern_lane: { width: 2.4, alpha: 0.55, dash: [], glow: 5 },
-  threshold_path: { width: 1.5, alpha: 0.34, dash: [7, 5], glow: 0 },
-  ritual_path: { width: 1.2, alpha: 0.28, dash: [3, 7], glow: 0 },
+function computeMapCenter(world, pois, landmarks) {
+  const sourceLat = Number(world?.source?.lat)
+  const sourceLon = Number(world?.source?.lon)
+  if (Number.isFinite(sourceLat) && Number.isFinite(sourceLon)) {
+    return [sourceLon, sourceLat]
+  }
+
+  for (const poi of pois) {
+    const lat = Number(poi?.position?.lat)
+    const lon = Number(poi?.position?.lon)
+    if (Number.isFinite(lat) && Number.isFinite(lon)) {
+      return [lon, lat]
+    }
+  }
+
+  for (const landmark of landmarks) {
+    const lat = Number(landmark?.position?.lat)
+    const lon = Number(landmark?.position?.lon)
+    if (Number.isFinite(lat) && Number.isFinite(lon)) {
+      return [lon, lat]
+    }
+  }
+
+  return null
 }
 
-const VIBE_PALETTE = {
-  ghibli_town: {
-    bg: '#0f1b12',
-    panel: 'rgba(12, 25, 18, 0.84)',
-    road: '#7dd3a7',
-    avenue: '#dcfce7',
-    node: '#4ade80',
-    glow: '#bbf7d0',
-    ink: '#effef4',
-    label: '#d1fae5',
-    block: 'rgba(53, 84, 60, 0.34)',
-    blockAlt: 'rgba(32, 52, 36, 0.3)',
-    grid: 'rgba(255,255,255,0.05)',
-  },
-  quiet_rain: {
-    bg: '#09111d',
-    panel: 'rgba(9, 17, 29, 0.84)',
-    road: '#60a5fa',
-    avenue: '#dbeafe',
-    node: '#7dd3fc',
-    glow: '#bfdbfe',
-    ink: '#f8fbff',
-    label: '#dbeafe',
-    block: 'rgba(30, 41, 59, 0.46)',
-    blockAlt: 'rgba(15, 23, 42, 0.38)',
-    grid: 'rgba(255,255,255,0.06)',
-  },
-  neon_nostalgia: {
-    bg: '#14091f',
-    panel: 'rgba(20, 9, 31, 0.84)',
-    road: '#c084fc',
-    avenue: '#f5d0fe',
-    node: '#e879f9',
-    glow: '#f5d0fe',
-    ink: '#fdf4ff',
-    label: '#f5d0fe',
-    block: 'rgba(76, 29, 149, 0.32)',
-    blockAlt: 'rgba(45, 11, 67, 0.34)',
-    grid: 'rgba(255,255,255,0.06)',
-  },
-  amber_evening: {
-    bg: '#1a1200',
-    panel: 'rgba(26, 18, 0, 0.84)',
-    road: '#f59e0b',
-    avenue: '#fef3c7',
-    node: '#fbbf24',
-    glow: '#fde68a',
-    ink: '#fffaf0',
-    label: '#fef3c7',
-    block: 'rgba(120, 53, 15, 0.34)',
-    blockAlt: 'rgba(69, 26, 3, 0.34)',
-    grid: 'rgba(255,255,255,0.05)',
-  },
-  iron_blue: {
-    bg: '#081019',
-    panel: 'rgba(8, 16, 25, 0.84)',
-    road: '#94a3b8',
-    avenue: '#e2e8f0',
-    node: '#cbd5e1',
-    glow: '#f8fafc',
-    ink: '#f8fafc',
-    label: '#e2e8f0',
-    block: 'rgba(30, 41, 59, 0.4)',
-    blockAlt: 'rgba(15, 23, 42, 0.34)',
-    grid: 'rgba(255,255,255,0.05)',
-  },
-  chalk_dawn: {
-    bg: '#151610',
-    panel: 'rgba(21, 22, 16, 0.84)',
-    road: '#d6d3b0',
-    avenue: '#faf7d4',
-    node: '#f1efc2',
-    glow: '#f8f6dc',
-    ink: '#fffef2',
-    label: '#f8f6dc',
-    block: 'rgba(64, 63, 43, 0.38)',
-    blockAlt: 'rgba(38, 39, 27, 0.34)',
-    grid: 'rgba(255,255,255,0.05)',
-  },
-}
+export default function WorldMap({
+  world,
+  onPoiClick,
+  activePoiId,
+  familiarityMap,
+  originLabel,
+  ghostTraces = [],
+  visibleLayers,
+  taverns = [],
+  onTavernClick,
+  activeTavernId,
+}) {
+  const containerRef = useRef(null)
+  const adapterRef = useRef(null)
+  const snapshotId = useMemo(() => getSnapshotId(world), [world])
+  const autoSaveTriggeredRef = useRef(false)
+  const [sdkReady, setSdkReady] = useState(false)
+  const [sdkError, setSdkError] = useState('')
+  const [selectedPoi, setSelectedPoi] = useState(null)
+  const [snapshotManifest, setSnapshotManifest] = useState(null)
+  const [snapshotStatus, setSnapshotStatus] = useState('未发现本地快照')
+  const [snapshotBusy, setSnapshotBusy] = useState(false)
+  const [preferSnapshot, setPreferSnapshot] = useState(() => {
+    try {
+      return window.localStorage.getItem(SNAPSHOT_STORAGE_KEY) === '1'
+    } catch {
+      return false
+    }
+  })
 
-const DEFAULT_PALETTE = {
-  bg: '#0f172a',
-  panel: 'rgba(15, 23, 42, 0.84)',
-  road: '#64748b',
-  avenue: '#e2e8f0',
-  node: '#94a3b8',
-  glow: '#cbd5e1',
-  ink: '#f8fafc',
-  label: '#e2e8f0',
-  block: 'rgba(30, 41, 59, 0.42)',
-  blockAlt: 'rgba(15, 23, 42, 0.36)',
-  grid: 'rgba(255,255,255,0.05)',
-}
+  const pois = world?.pois || []
+  const landmarks = world?.landmarks || []
+  const fam = familiarityMap || {}
+  const layers = visibleLayers || {}
 
-function getPalette(vibe) {
-  return VIBE_PALETTE[vibe] || DEFAULT_PALETTE
-}
+  const center = useMemo(() => computeMapCenter(world, pois, landmarks), [world, pois, landmarks])
+  const usingSnapshot = preferSnapshot && Boolean(snapshotManifest)
 
-function getIcon(fantasyType) {
-  return ICON_MAP[fantasyType] || '◆'
-}
+  // Initialize adapter
+  useEffect(() => {
+    const adapter = createMapAdapter()
+    adapterRef.current = adapter
 
-function loadImage(src) {
-  return new Promise((resolve, reject) => {
-    if (!src) {
-      resolve(null)
+    adapter
+      .loadSdk()
+      .then(() => {
+        setSdkReady(true)
+        setSdkError('')
+      })
+      .catch((error) => {
+        setSdkError(error.message || '地图初始化失败')
+      })
+  }, [])
+
+  // Load snapshot manifest and auto-prefer if it exists
+  useEffect(() => {
+    let cancelled = false
+
+    async function loadSnapshotManifest() {
+      try {
+        const response = await fetch(`/map-snapshots/${snapshotId}/manifest.json`, { cache: 'no-store' })
+        if (!response.ok) {
+          throw new Error('manifest not found')
+        }
+        const manifest = await response.json()
+        if (cancelled) return
+
+        setSnapshotManifest(manifest)
+        setSnapshotStatus(`已加载本地快照 · ${manifest.tiles?.length || 0} 张瓦片`)
+        // Auto-prefer cached snapshot to skip AMap tile requests
+        setPreferSnapshot(true)
+      } catch {
+        if (cancelled) return
+        setSnapshotManifest(null)
+        setSnapshotStatus('未发现本地快照')
+        // Ensure we show the live map when no snapshot exists
+        setPreferSnapshot(false)
+      }
+    }
+
+    loadSnapshotManifest()
+
+    return () => {
+      cancelled = true
+    }
+  }, [snapshotId])
+
+  // Persist snapshot preference
+  useEffect(() => {
+    try {
+      window.localStorage.setItem(SNAPSHOT_STORAGE_KEY, preferSnapshot ? '1' : '0')
+    } catch {
+      // ignore persistence failures
+    }
+  }, [preferSnapshot])
+
+  // Create/destroy map when SDK and center are ready.
+  // Skip creating the live map if we already have a cached snapshot —
+  // this avoids unnecessary AMap tile requests on return visits.
+  useEffect(() => {
+    if (!sdkReady || !containerRef.current || !center) return
+    if (preferSnapshot && snapshotManifest) return // Use cached snapshot instead
+
+    const adapter = adapterRef.current
+    if (!adapter) return
+
+    try {
+      adapter.createMap(containerRef.current, {
+        center,
+        zoom: 16,
+        pitch: 35,
+        mapStyle: 'amap://styles/darkblue',
+      })
+    } catch (err) {
+      setSdkError(err.message || '地图创建失败')
+    }
+
+    return () => {
+      adapter.destroy()
+    }
+  }, [sdkReady, center, preferSnapshot, snapshotManifest])
+
+  // Auto-save snapshot after map tiles have loaded.
+  // Only triggers once per snapshotId when there is no existing snapshot.
+  useEffect(() => {
+    if (preferSnapshot && snapshotManifest) return // Already have a snapshot
+    if (autoSaveTriggeredRef.current) return // Already triggered for this snapshot
+    if (snapshotBusy) return // Save already in progress
+    if (!sdkReady) return
+
+    const adapter = adapterRef.current
+    if (!adapter || !containerRef.current) return
+
+    // Get the underlying AMap map instance to listen for 'complete'
+    const mapInstance = adapter._getMap()
+    if (!mapInstance) return
+
+    autoSaveTriggeredRef.current = true
+    setSnapshotBusy(true)
+    setSnapshotStatus('正在保存快照…')
+
+    const doCapture = () => {
+      captureSnapshot()
+      setSnapshotBusy(false)
+    }
+
+    // Wait for AMap tiles to finish loading before capturing
+    if (typeof mapInstance.on === 'function') {
+      const handler = () => {
+        mapInstance.off('complete', handler)
+        setTimeout(doCapture, 800)
+      }
+      mapInstance.on('complete', handler)
+      // Fallback: if 'complete' never fires, save anyway after 5s
+      const fallback = setTimeout(() => {
+        mapInstance.off('complete', handler)
+        doCapture()
+      }, 5000)
+      return () => {
+        mapInstance.off('complete', handler)
+        clearTimeout(fallback)
+        setSnapshotBusy(false)
+        autoSaveTriggeredRef.current = false
+      }
+    } else {
+      setTimeout(doCapture, 2000)
+    }
+
+    return () => {
+      setSnapshotBusy(false)
+      autoSaveTriggeredRef.current = false
+    }
+  }, [sdkReady, preferSnapshot, snapshotManifest, snapshotId])
+
+  // Update center when it changes
+  useEffect(() => {
+    const adapter = adapterRef.current
+    if (!adapter || !center) return
+    adapter.setCenter(center[0], center[1])
+  }, [center])
+
+  // Update POI markers when pois change
+  useEffect(() => {
+    const adapter = adapterRef.current
+    if (!adapter) return
+
+    if (layers.pois === false) {
+      adapter.setMarkers([], 'poi', {})
       return
     }
-    const image = new Image()
-    image.onload = () => resolve(image)
-    image.onerror = reject
-    image.src = src
-  })
-}
 
-function getFactionColors(faction) {
-  return FACTION_COLORS[faction] || null
-}
-
-function formatTag(value) {
-  return value ? value.replace(/_/g, ' ') : 'unclassified'
-}
-
-function drawFloatingMotes(ctx, palette, W, H, tick) {
-  const moteCount = 24
-  for (let index = 0; index < moteCount; index += 1) {
-    const seed = index * 19.37
-    const drift = tick * (0.12 + (index % 5) * 0.025)
-    const x = ((Math.sin(seed * 2.1 + drift) + 1) * 0.5) * W
-    const y = (((index * 37) % H) + drift * 38) % (H + 40) - 20
-    const radius = 1.2 + (index % 3) * 0.75
-    const alpha = 0.06 + ((Math.sin(seed + tick * 0.8) + 1) * 0.5) * 0.14
-
-    ctx.beginPath()
-    ctx.arc(x, y, radius, 0, Math.PI * 2)
-    ctx.fillStyle = `${palette.glow}${Math.round(alpha * 255)
-      .toString(16)
-      .padStart(2, '0')}`
-    ctx.fill()
-  }
-}
-
-function drawNodeBeacon(ctx, x, y, color, tick, scale = 1) {
-  for (let ring = 0; ring < 2; ring += 1) {
-    const phase = (tick * 0.9 + ring * 0.5) % 1
-    const radius = (18 + phase * 26) * scale
-    const alpha = (1 - phase) * 0.24
-    ctx.beginPath()
-    ctx.arc(x, y, radius, 0, Math.PI * 2)
-    ctx.strokeStyle = `${color}${Math.round(alpha * 255)
-      .toString(16)
-      .padStart(2, '0')}`
-    ctx.lineWidth = 1.2
-    ctx.stroke()
-  }
-}
-
-function buildRoadOccupancy(roadNodes) {
-  const occupied = new Set()
-  roadNodes.forEach((road) => {
-    ;(road.points || []).forEach((pt) => {
-      if (Number.isFinite(pt?.x) && Number.isFinite(pt?.y)) {
-        occupied.add(`${Math.round(pt.x)}:${Math.round(pt.y)}`)
-      }
+    adapter.setMarkers(pois, 'poi', {
+      activePoiId,
+      familiarityMap: fam,
+      onMarkerClick: (marker) => {
+        setSelectedPoi(marker)
+        if (onPoiClick) {
+          onPoiClick(marker.id, marker)
+        }
+      },
     })
-  })
-  return occupied
-}
+  }, [pois, fam, activePoiId, onPoiClick, layers.pois])
 
-function hasRoadNearby(occupied, x, y, radius = 1) {
-  for (let dx = -radius; dx <= radius; dx += 1) {
-    for (let dy = -radius; dy <= radius; dy += 1) {
-      if (occupied.has(`${x + dx}:${y + dy}`)) {
-        return true
-      }
-    }
-  }
-  return false
-}
-
-export default function WorldMap({ world, onPoiClick, activePoiId, familiarityMap, originLabel }) {
-  const canvasRef = useRef(null)
-  const [hovered, setHovered] = useState(null)
-  const [ripples, setRipples] = useState([])
-
-  const map2d = world?.map2d
-  const region = world?.region
-  const pois = world?.pois || []
-  const vibe = region?.vibe_profile || 'quiet_rain'
-  const palette = getPalette(vibe)
-  const assetPack = useMemo(() => getAssetPack(vibe), [vibe])
-  const fam = familiarityMap || {}
-
-  const tileGrid = map2d?.tile_grid || { columns: 32, rows: 24, tile_size: 16 }
-  const poiNodes = map2d?.renderables?.pois || []
-  const roadNodes = map2d?.renderables?.roads || []
-  const landmarkNodes = map2d?.renderables?.landmarks || []
-  const spawnId = map2d?.navigation?.spawn_node
-
-  const poiMap = useMemo(() => new Map(pois.map((poi) => [poi.id, poi])), [pois])
-  const rankedNodes = useMemo(() => {
-    return [...poiNodes].sort((a, b) => {
-      const poiA = poiMap.get(a.id)
-      const poiB = poiMap.get(b.id)
-      const scoreA = (a.id === activePoiId ? 50 : 0) + (a.id === spawnId ? 20 : 0) + (poiA?.secret_slot ? 10 : 0) + (fam[a.id] || 0)
-      const scoreB = (b.id === activePoiId ? 50 : 0) + (b.id === spawnId ? 20 : 0) + (poiB?.secret_slot ? 10 : 0) + (fam[b.id] || 0)
-      return scoreB - scoreA
-    })
-  }, [poiNodes, poiMap, activePoiId, spawnId, fam])
-
-  const labeledNodeIds = useMemo(() => new Set(rankedNodes.slice(0, 6).map((node) => node.id)), [rankedNodes])
-  const activePoi = activePoiId ? poiMap.get(activePoiId) || null : null
-  const hoveredPoi = hovered ? poiMap.get(hovered) || null : null
-  const featuredPoi = activePoi || hoveredPoi || poiMap.get(spawnId) || poiMap.get(rankedNodes[0]?.id) || null
-  const featuredFaction = featuredPoi ? getFactionColors(featuredPoi.faction_alignment) : null
-  const presentFactions = [...new Set(pois.map((poi) => poi.faction_alignment).filter(Boolean))]
-
-  function triggerRipple(x, y) {
-    const id = Date.now()
-    setRipples((prev) => [...prev, { id, x, y, born: Date.now() }])
-    setTimeout(() => setRipples((prev) => prev.filter((ripple) => ripple.id !== id)), 900)
-  }
-
-  function tileToCanvas(tx, ty, w, h) {
-    const px = (tx / Math.max(tileGrid.columns - 1, 1)) * w
-    const py = (ty / Math.max(tileGrid.rows - 1, 1)) * h
-    return { x: px, y: py }
-  }
-
+  // Update landmark markers when landmarks change
   useEffect(() => {
-    const canvas = canvasRef.current
-    if (!canvas || !map2d) return
+    const adapter = adapterRef.current
+    if (!adapter) return
 
-    let disposed = false
-
-    async function drawWorld() {
-      const ctx = canvas.getContext('2d')
-      const W = canvas.width
-      const H = canvas.height
-      const cellW = W / tileGrid.columns
-      const cellH = H / tileGrid.rows
-      const roadOccupancy = buildRoadOccupancy(roadNodes)
-      const tick = Date.now() / 1000
-
-      const sceneImage = await loadImage(assetPack.scene).catch(() => null)
-      const iconEntries = await Promise.all(
-        Object.entries(ICON_MAP).map(async ([fantasyType]) => {
-          const src = getAssetIconSrc(vibe, fantasyType)
-          const image = await loadImage(src).catch(() => null)
-          return [fantasyType, image]
-        }),
-      )
-      if (disposed) return
-      const assetIcons = new Map(iconEntries)
-
-      const backgroundGradient = ctx.createLinearGradient(0, 0, 0, H)
-      backgroundGradient.addColorStop(0, '#f8eedb')
-      backgroundGradient.addColorStop(0.18, palette.glow)
-      backgroundGradient.addColorStop(0.45, palette.bg)
-      backgroundGradient.addColorStop(1, '#08111d')
-      ctx.fillStyle = backgroundGradient
-      ctx.fillRect(0, 0, W, H)
-
-      if (sceneImage) {
-        ctx.save()
-        ctx.globalAlpha = 0.32
-        ctx.drawImage(sceneImage, 0, 0, W, H)
-        ctx.restore()
-      }
-
-      const sunGlow = ctx.createRadialGradient(W * 0.5, H * 0.14, 24, W * 0.5, H * 0.14, W * 0.46)
-      sunGlow.addColorStop(0, 'rgba(255,247,220,0.92)')
-      sunGlow.addColorStop(0.38, `${palette.glow}55`)
-      sunGlow.addColorStop(1, 'transparent')
-      ctx.fillStyle = sunGlow
-      ctx.fillRect(0, 0, W, H)
-
-      const vignette = ctx.createRadialGradient(W * 0.5, H * 0.42, 90, W * 0.5, H * 0.42, Math.max(W, H) * 0.78)
-      vignette.addColorStop(0, 'transparent')
-      vignette.addColorStop(1, 'rgba(11,16,24,0.42)')
-      ctx.fillStyle = vignette
-      ctx.fillRect(0, 0, W, H)
-
-      drawFloatingMotes(ctx, palette, W, H, tick)
-
-    ctx.strokeStyle = palette.grid
-    ctx.lineWidth = 1
-    for (let col = 0; col <= tileGrid.columns; col += 2) {
-      ctx.beginPath()
-      ctx.moveTo(col * cellW, 0)
-      ctx.lineTo(col * cellW, H)
-      ctx.stroke()
-    }
-    for (let row = 0; row <= tileGrid.rows; row += 2) {
-      ctx.beginPath()
-      ctx.moveTo(0, row * cellH)
-      ctx.lineTo(W, row * cellH)
-      ctx.stroke()
+    if (layers.landmarks === false) {
+      adapter.setMarkers([], 'landmark', {})
+      return
     }
 
-    for (let col = 0; col < tileGrid.columns - 1; col += 2) {
-      for (let row = 0; row < tileGrid.rows - 1; row += 2) {
-        if (hasRoadNearby(roadOccupancy, col, row, 1)) continue
-        const insetX = cellW * 0.12
-        const insetY = cellH * 0.16
-        const px = col * cellW + insetX
-        const py = row * cellH + insetY
-        const bw = cellW * 1.74
-        const bh = cellH * 1.58
-        const radius = Math.min(cellW, cellH) * 0.42
-        const fill = (col + row) % 4 === 0 ? palette.block : palette.blockAlt
-        ctx.fillStyle = fill
-        ctx.beginPath()
-        ctx.roundRect(px, py, bw, bh, radius)
-        ctx.fill()
+    adapter.setMarkers(landmarks, 'landmark', {})
+  }, [landmarks, layers.landmarks])
 
-        ctx.fillStyle = 'rgba(255,255,255,0.05)'
-        ctx.beginPath()
-        ctx.ellipse(px + bw * 0.5, py + bh * 0.28, bw * 0.34, bh * 0.18, 0, 0, Math.PI * 2)
-        ctx.fill()
-      }
-    }
-
-    poiNodes.forEach((node) => {
-      const poi = poiMap.get(node.id)
-      const faction = getFactionColors(poi?.faction_alignment)
-      if (!faction) return
-      const pos = tileToCanvas(node.tile_position.x, node.tile_position.y, W, H)
-      const radius = Math.max(W, H) * 0.12
-      const haze = ctx.createRadialGradient(pos.x, pos.y, 0, pos.x, pos.y, radius)
-      haze.addColorStop(0, `${faction.zone}44`)
-      haze.addColorStop(0.45, `${faction.zone}18`)
-      haze.addColorStop(1, 'transparent')
-      ctx.beginPath()
-      ctx.arc(pos.x, pos.y, radius, 0, Math.PI * 2)
-      ctx.fillStyle = haze
-      ctx.fill()
-    })
-
-    const spawnNode = poiNodes.find((node) => node.id === spawnId) || rankedNodes[0]
-    if (spawnNode) {
-      const pos = tileToCanvas(spawnNode.tile_position.x, spawnNode.tile_position.y, W, H)
-      const radius = Math.max(W, H) * 0.26
-      const halo = ctx.createRadialGradient(pos.x, pos.y, 0, pos.x, pos.y, radius)
-      halo.addColorStop(0, `${palette.glow}22`)
-      halo.addColorStop(1, 'transparent')
-      ctx.beginPath()
-      ctx.arc(pos.x, pos.y, radius, 0, Math.PI * 2)
-      ctx.fillStyle = halo
-      ctx.fill()
-      drawNodeBeacon(ctx, pos.x, pos.y - 4, palette.glow, tick, 1.08)
-    }
-
-    roadNodes.forEach((road) => {
-      const points = road.points || []
-      if (points.length < 2) return
-      const style = ROAD_STYLE[road.kind] || ROAD_STYLE.threshold_path
-
-      ctx.beginPath()
-      const start = tileToCanvas(points[0].x, points[0].y, W, H)
-      ctx.moveTo(start.x, start.y)
-      for (let i = 1; i < points.length; i += 1) {
-        const point = tileToCanvas(points[i].x, points[i].y, W, H)
-        ctx.lineTo(point.x, point.y)
-      }
-      if (style.glow) {
-        ctx.strokeStyle = `${palette.glow}20`
-        ctx.lineWidth = style.width + style.glow
-        ctx.lineCap = 'round'
-        ctx.lineJoin = 'round'
-        ctx.stroke()
-      }
-
-      ctx.beginPath()
-      ctx.moveTo(start.x, start.y)
-      for (let i = 1; i < points.length; i += 1) {
-        const point = tileToCanvas(points[i].x, points[i].y, W, H)
-        ctx.lineTo(point.x, point.y)
-      }
-      ctx.strokeStyle = 'rgba(70, 45, 20, 0.28)'
-      ctx.lineWidth = style.width + 2.8
-      ctx.lineCap = 'round'
-      ctx.lineJoin = 'round'
-      ctx.stroke()
-
-      ctx.beginPath()
-      ctx.moveTo(start.x, start.y)
-      for (let i = 1; i < points.length; i += 1) {
-        const point = tileToCanvas(points[i].x, points[i].y, W, H)
-        ctx.lineTo(point.x, point.y)
-      }
-      ctx.strokeStyle = style.width >= 4 ? '#f5deb3' : '#dcc08c'
-      ctx.globalAlpha = Math.min(style.alpha + 0.12, 1)
-      ctx.lineWidth = style.width + 0.9
-      ctx.lineCap = 'round'
-      ctx.lineJoin = 'round'
-      ctx.setLineDash(style.dash)
-      ctx.stroke()
-      ctx.setLineDash([])
-      ctx.globalAlpha = 1
-    })
-
-    landmarkNodes.forEach((node, index) => {
-      const pos = tileToCanvas(node.tile_position.x, node.tile_position.y, W, H)
-      const bob = Math.sin(tick * 1.8 + index * 0.9) * 4
-      ctx.save()
-      ctx.translate(pos.x, pos.y + bob)
-
-      const beaconGlow = ctx.createRadialGradient(0, -8, 2, 0, -8, 26)
-      beaconGlow.addColorStop(0, `${palette.glow}aa`)
-      beaconGlow.addColorStop(1, 'transparent')
-      ctx.fillStyle = beaconGlow
-      ctx.beginPath()
-      ctx.arc(0, -8, 26, 0, Math.PI * 2)
-      ctx.fill()
-
-      ctx.fillStyle = 'rgba(33, 15, 68, 0.24)'
-      ctx.beginPath()
-      ctx.ellipse(0, 15, 18, 7, 0, 0, Math.PI * 2)
-      ctx.fill()
-
-      ctx.fillStyle = '#6ee7f9'
-      ctx.beginPath()
-      ctx.moveTo(0, -16)
-      ctx.lineTo(10, 0)
-      ctx.lineTo(0, 12)
-      ctx.lineTo(-10, 0)
-      ctx.closePath()
-      ctx.fill()
-
-      ctx.strokeStyle = '#e0f2fe'
-      ctx.lineWidth = 2
-      ctx.stroke()
-
-      ctx.beginPath()
-      ctx.moveTo(0, -30)
-      ctx.lineTo(8, -16)
-      ctx.lineTo(0, -10)
-      ctx.closePath()
-      ctx.fillStyle = `${palette.glow}dd`
-      ctx.fill()
-      ctx.restore()
-    })
-
-    poiNodes.forEach((node) => {
-      const pos = tileToCanvas(node.tile_position.x, node.tile_position.y, W, H)
-      const poi = poiMap.get(node.id)
-      const faction = getFactionColors(poi?.faction_alignment)
-      const fillColor = faction?.fill || palette.node
-      const glowColor = faction?.glow || palette.glow
-      const isActive = node.id === activePoiId
-      const isHovered = node.id === hovered
-      const hasSecret = Boolean(poi?.secret_slot)
-      const familiarity = Math.min((fam[node.id] || 0) * 0.08, 0.45)
-      const cardWidth = isActive ? 34 : 28
-      const cardHeight = isActive ? 28 : 24
-      const roofHeight = isActive ? 11 : 9
-
-      if (isActive || isHovered) {
-        const glow = ctx.createRadialGradient(pos.x, pos.y - 6, 8, pos.x, pos.y - 6, isActive ? 54 : 38)
-        glow.addColorStop(0, `${glowColor}aa`)
-        glow.addColorStop(1, 'transparent')
-        ctx.beginPath()
-        ctx.arc(pos.x, pos.y - 6, isActive ? 54 : 38, 0, Math.PI * 2)
-        ctx.fillStyle = glow
-        ctx.fill()
-        drawNodeBeacon(ctx, pos.x, pos.y - 4, glowColor, tick + (isHovered ? 0.18 : 0), isActive ? 1 : 0.82)
-      }
-
-      ctx.fillStyle = 'rgba(15, 23, 42, 0.22)'
-      ctx.beginPath()
-      ctx.ellipse(pos.x, pos.y + 16, isActive ? 22 : 18, isActive ? 8 : 6, 0, 0, Math.PI * 2)
-      ctx.fill()
-
-      if (hasSecret) {
-        ctx.beginPath()
-        ctx.arc(pos.x, pos.y - 4, isActive ? 26 : 21, 0, Math.PI * 2)
-        ctx.strokeStyle = `${glowColor}77`
-        ctx.lineWidth = 1.2
-        ctx.setLineDash([4, 4])
-        ctx.stroke()
-        ctx.setLineDash([])
-      }
-
-      if (faction) {
-        ctx.beginPath()
-        ctx.arc(pos.x, pos.y - 4, isActive ? 22 : 18, 0, Math.PI * 2)
-        ctx.strokeStyle = `${faction.fill}aa`
-        ctx.lineWidth = 1.4
-        ctx.globalAlpha = 0.55 + familiarity
-        ctx.stroke()
-        ctx.globalAlpha = 1
-      }
-
-      ctx.fillStyle = '#fff5df'
-      ctx.beginPath()
-      ctx.roundRect(pos.x - cardWidth / 2, pos.y - cardHeight / 2, cardWidth, cardHeight, 7)
-      ctx.fill()
-
-      ctx.fillStyle = isActive ? glowColor : fillColor
-      ctx.beginPath()
-      ctx.moveTo(pos.x, pos.y - cardHeight / 2 - roofHeight)
-      ctx.lineTo(pos.x + cardWidth / 2 - 1, pos.y - cardHeight / 2 + 2)
-      ctx.lineTo(pos.x - cardWidth / 2 + 1, pos.y - cardHeight / 2 + 2)
-      ctx.closePath()
-      ctx.fill()
-
-      ctx.strokeStyle = 'rgba(101, 67, 33, 0.32)'
-      ctx.lineWidth = 1.5
-      ctx.beginPath()
-      ctx.roundRect(pos.x - cardWidth / 2, pos.y - cardHeight / 2, cardWidth, cardHeight, 7)
-      ctx.stroke()
-
-      const iconImage = assetIcons.get(poi?.fantasy_type)
-      if (iconImage) {
-        const iconSize = isActive ? 22 : 18
-        ctx.drawImage(iconImage, pos.x - iconSize / 2, pos.y - iconSize / 2 - 1, iconSize, iconSize)
-      } else {
-        ctx.font = isActive ? '16px serif' : '14px serif'
-        ctx.textAlign = 'center'
-        ctx.textBaseline = 'middle'
-        ctx.fillStyle = palette.bg
-        ctx.fillText(getIcon(poi?.fantasy_type), pos.x, pos.y - 1)
-      }
-    })
-
-    rankedNodes.slice(0, 6).forEach((node) => {
-      const poi = poiMap.get(node.id)
-      if (!poi) return
-      const pos = tileToCanvas(node.tile_position.x, node.tile_position.y, W, H)
-      const label = poi.real_name || poi.fantasy_name || 'unknown place'
-      const isActive = node.id === activePoiId
-      const baseY = pos.y - (isActive ? 24 : 20)
-      ctx.font = isActive ? '600 13px sans-serif' : '500 12px sans-serif'
-      const width = Math.min(Math.max(ctx.measureText(label).width + 16, 80), 180)
-      const x = Math.max(12, Math.min(pos.x - width / 2, W - width - 12))
-      const y = Math.max(12, baseY - 10)
-      ctx.fillStyle = 'rgba(2, 6, 23, 0.78)'
-      ctx.strokeStyle = isActive ? `${palette.glow}99` : 'rgba(255,255,255,0.1)'
-      ctx.lineWidth = 1
-      ctx.beginPath()
-      ctx.roundRect(x, y, width, 22, 8)
-      ctx.fill()
-      ctx.stroke()
-      ctx.fillStyle = isActive ? palette.ink : palette.label
-      ctx.textAlign = 'center'
-      ctx.textBaseline = 'middle'
-      ctx.fillText(label, x + width / 2, y + 11)
-    })
-
-    const now = Date.now()
-
-    ripples.forEach((ripple) => {
-      const age = (now - ripple.born) / 900
-      const radius = age * 46
-      const alpha = 1 - age
-      ctx.beginPath()
-      ctx.arc(ripple.x, ripple.y, radius, 0, Math.PI * 2)
-      ctx.strokeStyle = `rgba(255,255,255,${alpha * 0.55})`
-      ctx.lineWidth = 1.5
-      ctx.stroke()
-    })
-    }
-
-    drawWorld()
-    return () => {
-      disposed = true
-    }
-  }, [map2d, tileGrid, roadNodes, poiNodes, rankedNodes, spawnId, palette, hovered, activePoiId, ripples, poiMap, fam, landmarkNodes, assetPack, vibe])
-
+  // Update tavern markers when taverns change
   useEffect(() => {
-    if (ripples.length === 0) return
-    const raf = requestAnimationFrame(() => setRipples((current) => [...current]))
-    return () => cancelAnimationFrame(raf)
-  }, [ripples])
+    const adapter = adapterRef.current
+    if (!adapter) return
 
-  function getPoiAtPoint(mx, my, W, H) {
-    return poiNodes.find((node) => {
-      const pos = tileToCanvas(node.tile_position.x, node.tile_position.y, W, H)
-      const dx = pos.x - mx
-      const dy = pos.y - my
-      return Math.sqrt(dx * dx + dy * dy) <= 18
+    adapter.setMarkers(taverns, 'tavern', {
+      activeTavernId,
+      onTavernClick: (marker) => {
+        if (onTavernClick) {
+          onTavernClick(marker.id, marker)
+        }
+      },
     })
-  }
+  }, [taverns, activeTavernId, onTavernClick])
 
-  function handleMouseMove(event) {
-    const canvas = canvasRef.current
-    if (!canvas) return
-    const rect = canvas.getBoundingClientRect()
-    const scaleX = canvas.width / rect.width
-    const scaleY = canvas.height / rect.height
-    const mx = (event.clientX - rect.left) * scaleX
-    const my = (event.clientY - rect.top) * scaleY
-    const hit = getPoiAtPoint(mx, my, canvas.width, canvas.height)
-    setHovered(hit ? hit.id : null)
-  }
+  // Sync selectedPoi with activePoiId
+  useEffect(() => {
+    if (!selectedPoi && activePoiId) {
+      const activePoi = pois.find((poi) => poi.id === activePoiId) || null
+      if (activePoi) {
+        setSelectedPoi(activePoi)
+      }
+      return
+    }
 
-  function handleClick(event) {
-    const canvas = canvasRef.current
-    if (!canvas) return
-    const rect = canvas.getBoundingClientRect()
-    const scaleX = canvas.width / rect.width
-    const scaleY = canvas.height / rect.height
-    const mx = (event.clientX - rect.left) * scaleX
-    const my = (event.clientY - rect.top) * scaleY
-    const hit = getPoiAtPoint(mx, my, canvas.width, canvas.height)
-    if (!hit) return
-    triggerRipple(mx, my)
-    onPoiClick && onPoiClick(hit.id, poiMap.get(hit.id))
-  }
+    if (selectedPoi?.id && !pois.find((poi) => poi.id === selectedPoi.id)) {
+      setSelectedPoi(null)
+    }
+  }, [activePoiId, pois, selectedPoi])
 
-  if (!map2d) {
+  if (!center) {
     return (
       <div className="map-empty">
-        <p>Generate a world slice to see the map.</p>
+        <p>当前切片缺少可用经纬度，暂时无法加载地图。</p>
       </div>
     )
   }
 
-  return (
-    <div
-      className="world-map-wrap"
-      style={{
-        '--map-bg': palette.bg,
-        '--map-node': palette.node,
-        '--map-glow': palette.glow,
-        '--map-panel': palette.panel,
-      }}
-    >
-      <div className="map-sky-glow" />
-      <div className="map-overlay map-overlay-top">
-        <div className="map-biome-banner">
-          <span className="map-biome-kicker">FableMap World</span>
-          <strong>{region?.theme || formatTag(vibe)}</strong>
-          <span>{originLabel || 'Nearby slice'} · {poiNodes.length} places · {landmarkNodes.length} landmarks</span>
-        </div>
-        <div className="map-chip-row">
-          <div className="map-chip">{formatTag(vibe)}</div>
-          <div className="map-chip">{roadNodes.length} roads</div>
-          <div className="map-chip">{poiNodes.length} places</div>
-        </div>
+  if (sdkError && !usingSnapshot) {
+    return (
+      <div className="map-empty">
+        <p>{sdkError}</p>
       </div>
+    )
+  }
 
-      <canvas
-        ref={canvasRef}
-        width={960}
-        height={600}
-        className={`world-canvas cursor-${hovered ? 'pointer' : 'default'}`}
-        onMouseMove={handleMouseMove}
-        onMouseLeave={() => setHovered(null)}
-        onClick={handleClick}
+  async function captureSnapshot() {
+    const adapter = adapterRef.current
+    const container = containerRef.current
+    if (!adapter || !container) {
+      setSnapshotStatus('地图尚未完成加载，暂时无法抓取快照')
+      return
+    }
+
+    const tiles = adapter.collectTiles(container)
+    if (!tiles.length) {
+      setSnapshotStatus('当前视野未抓到可下载瓦片，请稍后重试')
+      return
+    }
+
+    setSnapshotBusy(true)
+    setSnapshotStatus(`正在保存快照 · ${tiles.length} 张瓦片`)
+
+    try {
+      const mapState = adapter.getMapState()
+      const response = await fetch(`/api/map/snapshot/${snapshotId}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          world_id: world?.slice_id || world?.id || null,
+          origin_label: originLabel || '',
+          captured_from: `${adapter.getProviderName()}-dom`,
+          captured_at: new Date().toISOString(),
+          center: mapState?.center || null,
+          zoom: mapState?.zoom ?? null,
+          width: mapState?.size?.width || container.clientWidth || 0,
+          height: mapState?.size?.height || container.clientHeight || 0,
+          tiles,
+        }),
+      })
+
+      const payload = await response.json().catch(() => ({}))
+      if (!response.ok) {
+        throw new Error(payload?.detail || '地图快照保存失败')
+      }
+
+      setSnapshotManifest(payload)
+      setPreferSnapshot(true)
+      setSnapshotStatus(`本地快照已保存 · ${payload.tiles?.length || 0} 张瓦片`)
+    } catch (error) {
+      setSnapshotStatus(error.message || '地图快照保存失败')
+    } finally {
+      setSnapshotBusy(false)
+    }
+  }
+
+  return (
+    <div className="world-map-wrap">
+      <div
+        ref={containerRef}
+        className="amap-container"
+        style={{
+          width: '100%',
+          minHeight: '600px',
+          height: 'min(72vh, 720px)',
+          opacity: usingSnapshot ? 0.01 : 1,
+          pointerEvents: usingSnapshot ? 'none' : 'auto',
+        }}
       />
 
-      {hoveredPoi ? (
-        <div className="map-tooltip">
-          <span className="map-tooltip-icon">{getIcon(hoveredPoi.fantasy_type)}</span>
-          <div>
-            <strong>{hoveredPoi.real_name || hoveredPoi.fantasy_name}</strong>
-            {hoveredPoi.faction_alignment ? (
-              <span className="map-tooltip-faction" style={getFactionColors(hoveredPoi.faction_alignment) ? { color: getFactionColors(hoveredPoi.faction_alignment).glow } : undefined}>
-                {formatTag(hoveredPoi.faction_alignment)}
-              </span>
-            ) : null}
-            <p>{hoveredPoi.satire_hook}</p>
-          </div>
+      {usingSnapshot ? (
+        <div
+          style={{
+            position: 'absolute',
+            inset: 0,
+            zIndex: 2,
+            overflow: 'hidden',
+            background: '#020617',
+          }}
+        >
+          {renderSnapshotTiles(snapshotManifest)}
         </div>
       ) : null}
 
-      {featuredPoi ? (
-        <div className="map-sidecar">
-          <div className="map-sidecar-kicker">{activePoi ? 'Current focus' : 'Suggested entry point'}</div>
-          <div className="map-sidecar-title-row">
-            <span className="map-sidecar-icon">{getIcon(featuredPoi.fantasy_type)}</span>
-            <div>
-              <h3>{featuredPoi.real_name || featuredPoi.fantasy_name}</h3>
-              <p>{featuredPoi.fantasy_name}</p>
-            </div>
+      <div
+        className="amap-topbar"
+        style={{
+          position: 'absolute',
+          top: 16,
+          left: 16,
+          right: 16,
+          zIndex: 11,
+          display: 'flex',
+          justifyContent: 'space-between',
+          gap: 12,
+          flexWrap: 'wrap',
+          pointerEvents: 'none',
+        }}
+      >
+        <div
+          style={{
+            padding: '10px 14px',
+            borderRadius: 16,
+            background: 'rgba(15,23,42,0.72)',
+            border: '1px solid rgba(255,255,255,0.12)',
+            backdropFilter: 'blur(12px)',
+            color: '#e2e8f0',
+            pointerEvents: 'auto',
+          }}
+        >
+          <strong style={{ display: 'block', marginBottom: 6 }}>
+            {usingSnapshot ? '本地地图快照' : '地图已接入'}
+          </strong>
+          <span style={{ fontSize: 13, color: '#cbd5e1', display: 'block', marginBottom: 10 }}>
+            {originLabel || '当前地点'} · {pois.length} 个地点 · {landmarks.length} 个地标
+          </span>
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            <button
+              type="button"
+              onClick={captureSnapshot}
+              disabled={snapshotBusy || !sdkReady}
+              style={{
+                pointerEvents: 'auto',
+                border: '1px solid rgba(59,130,246,0.45)',
+                background: 'rgba(37,99,235,0.22)',
+                color: '#dbeafe',
+                borderRadius: 999,
+                padding: '6px 12px',
+                cursor: snapshotBusy || !sdkReady ? 'not-allowed' : 'pointer',
+              }}
+            >
+              {snapshotBusy ? '保存中...' : '抓取当前快照'}
+            </button>
+            <button
+              type="button"
+              onClick={() => setPreferSnapshot((current) => !current)}
+              disabled={!snapshotManifest}
+              style={{
+                pointerEvents: 'auto',
+                border: '1px solid rgba(251,191,36,0.35)',
+                background: snapshotManifest ? 'rgba(251,191,36,0.16)' : 'rgba(148,163,184,0.12)',
+                color: snapshotManifest ? '#fef3c7' : '#94a3b8',
+                borderRadius: 999,
+                padding: '6px 12px',
+                cursor: snapshotManifest ? 'pointer' : 'not-allowed',
+              }}
+            >
+              {usingSnapshot ? '切回在线地图' : '优先本地快照'}
+            </button>
           </div>
+        </div>
+        <div
+          style={{
+            padding: '10px 14px',
+            borderRadius: 16,
+            background: 'rgba(15,23,42,0.72)',
+            border: '1px solid rgba(255,255,255,0.12)',
+            backdropFilter: 'blur(12px)',
+            color: '#e2e8f0',
+            pointerEvents: 'auto',
+          }}
+        >
+          <strong style={{ display: 'block', marginBottom: 6 }}>状态</strong>
+          <span style={{ fontSize: 13, color: '#cbd5e1', display: 'block', marginBottom: 6 }}>
+            {adapterRef.current?.getProviderName() || 'map'} {sdkReady ? '已就绪' : '加载中'} · 残影 {ghostTraces.length}
+          </span>
+          <span style={{ fontSize: 13, color: '#cbd5e1', display: 'block' }}>{snapshotStatus}</span>
+          <span style={{ fontSize: 12, color: '#93c5fd', display: 'block', marginTop: 6 }}>
+            快照 ID · {snapshotId}
+          </span>
+        </div>
+      </div>
 
-          <div className="map-sidecar-chip-row">
-            <span className="map-sidecar-chip">{formatTag(featuredPoi.fantasy_type)}</span>
-            {featuredPoi.faction_alignment ? (
-              <span className="map-sidecar-chip" style={featuredFaction ? { borderColor: `${featuredFaction.glow}66`, color: featuredFaction.glow } : undefined}>
-                {formatTag(featuredPoi.faction_alignment)}
-              </span>
-            ) : null}
-            {featuredPoi.secret_slot ? <span className="map-sidecar-chip">hidden slot</span> : null}
+      {selectedPoi ? (
+        <div
+          className="amap-sidecar"
+          style={{
+            position: 'absolute',
+            right: 16,
+            bottom: 16,
+            zIndex: 11,
+            maxWidth: 360,
+            padding: 16,
+            borderRadius: 18,
+            background: 'rgba(15,23,42,0.84)',
+            border: '1px solid rgba(255,255,255,0.12)',
+            backdropFilter: 'blur(14px)',
+            color: '#e2e8f0',
+          }}
+        >
+          <div style={{ fontSize: 12, color: '#93c5fd', marginBottom: 8 }}>当前地点</div>
+          <strong style={{ display: 'block', fontSize: 18, marginBottom: 6 }}>
+            {selectedPoi.fantasy_name || selectedPoi.real_name || selectedPoi.id}
+          </strong>
+          <div style={{ fontSize: 13, color: '#cbd5e1', marginBottom: 10 }}>
+            {selectedPoi.real_name || '未命名现实地点'}
           </div>
-
-          <p className="map-sidecar-copy">{featuredPoi.satire_hook}</p>
-          {featuredPoi.emotion_hook ? <p className="map-sidecar-subcopy">{featuredPoi.emotion_hook}</p> : null}
-          {featuredPoi.rumor_hook ? <p className="map-sidecar-rumor">{featuredPoi.rumor_hook}</p> : null}
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 10 }}>
+            <span className="storyboard-chip">熟悉度 {fam[selectedPoi.id] ?? 0}</span>
+            {selectedPoi.faction_alignment ? <span className="storyboard-chip">{selectedPoi.faction_alignment}</span> : null}
+            {selectedPoi.fantasy_type ? <span className="storyboard-chip">{selectedPoi.fantasy_type}</span> : null}
+          </div>
+          <p style={{ margin: 0, fontSize: 14, lineHeight: 1.6, color: '#e2e8f0' }}>
+            {selectedPoi.satire_hook || selectedPoi.emotion_hook || '这个地点暂时还没有公开钩子。'}
+          </p>
         </div>
       ) : null}
-
-      <div className="map-legend">
-        {presentFactions.map((faction) => {
-          const colors = getFactionColors(faction)
-          return colors ? (
-            <span key={faction} className="map-legend-faction">
-              <span className="map-legend-swatch" style={{ background: colors.fill }} />
-              {formatTag(faction)}
-            </span>
-          ) : null
-        })}
-      </div>
-
-      <div className="map-bottom-dock">
-        <div className="map-dock-item">
-          <span className="map-dock-icon">🗺️</span>
-          <div>
-            <strong>{roadNodes.length}</strong>
-            <span>Roads</span>
-          </div>
-        </div>
-        <div className="map-dock-item">
-          <span className="map-dock-icon">🏠</span>
-          <div>
-            <strong>{poiNodes.length}</strong>
-            <span>Settlements</span>
-          </div>
-        </div>
-        <div className="map-dock-item">
-          <span className="map-dock-icon">💎</span>
-          <div>
-            <strong>{landmarkNodes.length}</strong>
-            <span>Landmarks</span>
-          </div>
-        </div>
-        <div className="map-dock-item map-dock-item-emphasis">
-          <span className="map-dock-icon">✨</span>
-          <div>
-            <strong>{presentFactions.length}</strong>
-            <span>Factions</span>
-          </div>
-        </div>
-      </div>
-
-      {labeledNodeIds.size > 0 ? <div className="map-caption">2D world slice · click a settlement to turn it into your current stage card.</div> : null}
     </div>
   )
 }

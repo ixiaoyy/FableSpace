@@ -1,297 +1,138 @@
 # FableMap
 
-> Turn real places into living fantasy worlds.
+> Turn real places into cyber taverns.
 
 ## 项目简介
 
-FableMap（寓言地图）是一个把真实世界地理数据转译成可探索、可记忆、可共创幻想世界的开源项目。
+FableMap 是一个**赛博酒馆 UGC 平台**。
 
-它不是单纯把 POI 换成奇幻名字，而是试图在真实城市之上长出一个持续运转的第二世界：现实中的道路、建筑、公园、医院、商店等 OSM 元素，会被解释为异世界中的地形、机构、叙事节点与社会关系。
+地图上的每个区域都可以成为一个虚拟酒馆，用户可以开店、配置 AI NPC、接待访客。
 
-目标不是做一个普通地图工具，也不是只做一张“死的漂亮地图”，而是做一个“让现实世界长出神话”的生成引擎。
+**一句话定位**：每个人都可以在真实地图上开一间自己的赛博酒馆。
 
 ## 核心理念
 
-- **真实地图是骨架**：使用 OSM / Overpass 数据作为不可违背的空间约束
-- **LLM/规则系统是灵魂**：把现实地点翻译成异世界语义、任务和叙事
-- **游戏引擎是身体**：让生成结果在 Godot 中变成可行走、可交互的场景
-
-## 项目气质
-
-FableMap 的未来目标不是做“把警察局换成魔法塔”的轻量玩具，而是做一个更偏**黑暗、复杂、社会化**的现实空间 RPG。
-
-- **阵营与权力**：区域不只是地点集合，而是资源、立场与控制权的博弈场
-- **黑色幽默与现实讽刺**：写字楼、健身房、便利店和医院，都可以被解构成带有社会隐喻的异世界机构
-- **隐秘历史与谜团探索**：地点之下埋藏真实历史残响、碎片化叙事和可追踪线索
-- **现实信号驱动的动荡**：交通、人流、消费与城市节奏可以逐步成为世界事件的动态输入
-
-同时，FableMap 的另一条长期主线是更偏**审美、情感、自我表达与治愈收集**的体验：
-
-- **风格化现实重构**：把日常街道变成吉卜力、王家卫、印象派或脏冷赛博风格的平行城市
-- **情感锚点与私密叙事**：让长椅、路口、咖啡店和雨夜车站成为记忆容器与秘密花园
-- **都市精灵与收藏系统**：把现实地点转化为可发现、可收集、可装扮的温柔生态
-- **镜像家园**：把你在现实中捡到的风格碎片、纪念物和精灵带回一个可持续装扮的私人空间
-
-## 最终想实现的世界
-
-FableMap 最终想实现的，不是一张“好看的奇幻地图”，而是一个覆盖在真实城市之上的活神话层。你看到的仍然是熟悉的道路、街区和建筑骨架，但它已经不再只是导航底图，而是一张会解释现实、回应玩家、并被玩家共同改写的世界地图。
-
-- **同一座城市，两条长期世界线**：一条偏黑暗、成人、社会寓言，强调阵营、权力、讽刺、事件与现实压力；另一条偏审美、情感、治愈收集，强调记忆、表达、风格切换、精灵与家园。
-- **玩家不是游客，而是共创者**：玩家可以留下情绪胶囊、私密记忆、地点传说、镜像家园、公共修复痕迹，甚至逐步参与地点命名、规则讨论与城市气质塑造。
-- **城市会记住发生过什么**：地点会累积回声、广播、状态变化与集体行为结果；同一条街不会每次都像随机地图，而会逐步长出历史感与“被谁改变过”的痕迹。
-- **先在浏览器里成型，再继续长出更强身体**：近期先把浏览器里的 **2D 世界地图本体** 做出来，让地图本身成为入口、观察窗和交互层，而不是做成“带地图的 HTML 页面”；后续再扩展到更强的引擎身体与更完整的持续世界。
-
-当前仓库还在验证 `nearby -> world -> preview` 的 Web-2D 入口闭环，还没有把这些长期机制全部实现；当前 `bundle/index.html` 的地图观察窗也仍属于过渡层，不是最终形态。但项目目标已经明确：让现实地图不只是被观看，而是被探索、被表达、被共同改写，并最终在浏览器里成为一张可交互的 2D 世界地图本体。
-
-## MVP 目标
-
-第一版只证明一个闭环：
-
-1. 输入一个现实坐标
-2. 抓取周边 OSM 数据
-3. 生成幻想世界 JSON
-4. 保持同一区域生成结果稳定
-5. 在 Godot 中实例化为可探索场景
-
-## 第一版模块
-
-- **Generate CLI**：输入坐标，输出稳定的 `world.json`
-- **Overpass Adapter**：支持真实地图抓取、超时、有限重试与清晰错误信息
-- **Local Cache Layer**：缓存原始 Overpass JSON，提高在线开发稳定性
-- **World Builder**：将真实地理实体映射为当前世界 Schema
-- **Inspect CLI**：读取已生成世界文件、输出稳定摘要，并做最小结构校验
-- **Demo Runner**：用固定 demo fixture 生成可复现的 `world.json` 与 `summary.json`
-- **Showcase Runner**：把 `world.json` 整理成更适合展示的 `showcase.json` 与 `showcase.md`
-- **Static Bundle Export**：把世界与展示文件导出成固定目录结构的静态 bundle，并附带 `manifest.json`
-- **Nearby Preview Runner**：输入附近坐标后，直接产出 `world.json` 与 `bundle/index.html`
-- **Future Godot Consumer**：将 JSON 转为 Godot 中的节点与可探索场景
-
-## 当前已实现原型
-
-仓库当前已经不只停留在设计阶段，而是具备了一个最小可运行原型：
-
-- 可通过 `python -m fablemap generate` 生成世界 JSON
-- 可通过 `python -m fablemap inspect --input <world.json>` 输出世界摘要
-- 可通过 `python -m fablemap.demo --output-dir demo-output` 一键生成稳定 demo 输出
-- 可通过 `python -m fablemap.showcase --input demo-output/world.json` 生成展示样品文件
-- 可通过 `python -m fablemap.bundle --input demo-output/world.json` 导出固定结构的静态包
-- 可通过 `python -m fablemap nearby --lat ... --lon ... --radius ...` 直接导出附近地图异世界预览
-- 可通过 `python -m fablemap page` 启动旧的一体式本地页面服务，以页面方式触发 nearby 生成与预览
-- 可通过 `python -m fablemap api` 启动基于 FastAPI 的分离后端，并托管工程化后的 React 前端
-- [`fablemap/web/app.py`](fablemap/web/app.py)、[`fablemap/web/router.py`](fablemap/web/router.py)、[`fablemap/web/service.py`](fablemap/web/service.py)、[`fablemap/web/config.py`](fablemap/web/config.py) 已形成更清晰的 FastAPI Web 分层
-- [`frontend/package.json`](frontend/package.json)、[`frontend/vite.config.js`](frontend/vite.config.js)、[`frontend/src/App.jsx`](frontend/src/App.jsx)、[`frontend/src/main.jsx`](frontend/src/main.jsx)、[`frontend/src/styles.css`](frontend/src/styles.css) 已组成当前 React + Vite 前端结构
-- 新后端已提供 `/api/meta`，用于向前端下发默认配置与可用端点信息
-- API 返回拼装逻辑已抽到 [`fablemap/api_service.py`](fablemap/api_service.py)，便于后续继续扩展接口层
-- 仓库根目录入口页 `index.html` 与生成后的 `bundle/index.html` 都支持中英双语切换
-- 生成后的 `bundle/index.html` 已具备地图式世界观察窗 v1：基于 `roads / pois / landmarks` 渲染 SVG 主舞台，并支持点选查看地点详情
-- 对明显非法的世界文件，`inspect` 会返回最小 schema 校验错误
-- 支持离线 fixture 模式与在线 Overpass 模式
-- 在线请求具备超时、有限重试与可读错误信息
-- 已具备最小本地缓存层，减少重复请求外部地图服务
-- 已有基础单元测试覆盖 CLI、world builder、Overpass 与 cache 链路
-
-这意味着 FableMap 已经从“概念文档”进入了“可迭代工程原型”阶段。
-
-## 30 秒进入世界
-
-如果你现在想体验最新的 FastAPI + React 工程化前后端入口，可以直接运行：
-
-- `python -m pip install -r requirements.txt`
-- `cd frontend && npm install`
-- `cd frontend && npm run build`
-- `python -m fablemap api`
-
-其中 [`requirements.txt`](requirements.txt) 包含 FastAPI 侧依赖，而 [`frontend/package.json`](frontend/package.json) 定义了 React + Vite 前端依赖与构建脚本。
-
-默认会启动分离后的后端 API 服务，并在可用时自动打开：
-
-- `http://127.0.0.1:8950/`
-
-此时访问的是工程化前端入口 [`frontend/index.html`](frontend/index.html)，开发期由 Vite 加载 [`frontend/src/main.jsx`](frontend/src/main.jsx)；构建后 FastAPI 会优先托管 `frontend/dist/`，并由 React 调用 `/api/health`、`/api/meta` 和 `/api/nearby` 与后端通信。
-
-如果你想继续使用旧的一体式页面服务，也仍然可以运行：
-
-- `python -m fablemap page`
-
-默认会启动旧入口：
-
-- `http://127.0.0.1:8765/`
-
-进入新的分离式前端后你可以：
-
-- 用 **离线样例（fixture）** 模式稳定试跑
-- 切到 **真实 nearby（在线 Overpass）** 模式体验真实地图生成
-- 直接点 **“用我的当前位置”**，把你所在街区作为世界切片入口
-- 用 **预设地点** 一键体验几个更适合展示的真实地点
-- 在页面里直接看到新生成的 bundle 预览页
-- 在入口页和生成后的预览页之间都使用中英切换，并可显式切到中文
-- 在结果卡片里看到更完整的真实性信息：坐标、半径、OSM 链接、区域主题、主导派系、seed、生成时间等
-
-当前分离后的三个关键入口分别是：
-
-- [`frontend/index.html`](frontend/index.html)：React + Vite 入口模板
-- [`frontend/src/App.jsx`](frontend/src/App.jsx)：前端主界面与交互逻辑
-- [`frontend/src/main.jsx`](frontend/src/main.jsx)：React 挂载入口
-- 仓库根目录 `index.html`：旧的一体式页面入口
-- 生成后的 `bundle/index.html`：世界切片观察窗 / 静态预览页
-
-如果你只是想先看新的前端壳，不先启动服务，也可以直接打开：
-
-- [`frontend/index.html`](frontend/index.html)
-
-但要真正触发 nearby 生成，仍然需要先启动 [`python -m fablemap api`](fablemap/__main__.py:1) 或 [`python -m fablemap page`](fablemap/__main__.py:1)。
-
-如果你想先体验一个稳定、无网络依赖的样例世界切片，可以直接运行：
-
-- `python -m fablemap.demo --output-dir demo-output`
-
-运行后会生成：
-
-- `demo-output/world.json`
-- `demo-output/summary.json`
-
-如果想继续走现有 CLI 链路，可以再执行：
-
-- `python -m fablemap inspect --input demo-output/world.json`
-
-如果想把生成出的世界切片整理成更适合观察的样品，再执行：
-
-- `python -m fablemap.showcase --input demo-output/world.json`
-
-运行后还会额外生成：
-
-- `demo-output/showcase.json`
-- `demo-output/showcase.md`
-
-如果想继续导出成更接近 Godot 消费方向的固定静态包，再执行：
-
-- `python -m fablemap.bundle --input demo-output/world.json`
-
-默认会生成：
-
-- `demo-output/bundle/manifest.json`
-- `demo-output/bundle/world.json`
-- `demo-output/bundle/summary.json`
-- `demo-output/bundle/showcase.json`
-- `demo-output/bundle/showcase.md`
-- `demo-output/bundle/index.html`
-
-如果你只是想**马上进入**当前样例世界切片，生成 bundle 后可以直接打开：
-
-- `demo-output/bundle/index.html`
-
-如果你想开始体验“把附近真实地图变成异世界”的第一版最小闭环，可以直接运行：
-
-- `python -m fablemap nearby --lat 35.6580 --lon 139.7016 --radius 300 --output-dir nearby-output`
-
-如果你只想离线稳定试跑，不依赖在线 Overpass，可改用 fixture：
-
-- `python -m fablemap nearby --lat 35.6580 --lon 139.7016 --radius 300 --output-dir nearby-output --source-file tests/fixtures/overpass_sample.json`
-
-运行后默认会生成：
-
-- `nearby-output/world.json`
-- `nearby-output/bundle/index.html`
-- `nearby-output/bundle/manifest.json`
-
-其中最直接的体验入口是：
-
-- `nearby-output/bundle/index.html`
-
-其中 `manifest.json` 当前除了基础 `files` / `entrypoints` 外，还会提供：
-
-- `slots`：稳定资源槽位，适合下游按固定名称读取
-- `resources`：可遍历资源清单，适合 Godot 或其他消费层统一扫描
-
-## 未来设计钩子
-
-以下方向不是当前 MVP 的阻塞项，但会决定 FableMap 后续是否真正形成独特护城河：
-
-- **Causal Ripple Algorithm**：让单点事件向周边街区传播，形成阵营、经济、情绪与异常度的连锁反应
-- **Street as a Sentence**：把街道上的 POI 序列当作语义句子，推断整片区域的叙事气质、视觉风格与 NPC 语气
-- **The Ethereal Radio**：基于 GPS 与区域状态实时生成耳机叙事体验，降低新用户体验门槛并增强传播性
-- **Aesthetic Kernel**：让同一份世界数据能快速切换不同视觉滤镜与情绪氛围，提升创作反馈感
+- **真实地图是空间锚点**：酒馆必须坐落在真实地图上，访客可以在现实中回访虚拟酒馆所在的位置
+- **主人主权**：酒馆的内容、角色、氛围、访问规则完全由店主决定
+- **AI 即灵魂**：酒馆内的 NPC 由 AI 驱动，能和访客自然对话
+- **Token 即燃料**：酒馆的运营燃料是 LLM token，由店主自行承担
+- **开源可移植**：角色卡格式兼容 SillyTavern，数据可导出，不锁定用户
+
+## 当前产品方向
+
+当前唯一主链路：
+
+> **坐标输入 / 定位 → 真实底图 → 浏览酒馆 → 进入酒馆 → 配置 AI NPC → 对话互动 → 写回记忆 → 回访反馈**
+
+两种用户角色：
+
+- **探索者 (Explorer)**：打开地图 → 浏览酒馆 → 进入感兴趣的酒馆 → 和 AI NPC 聊天
+- **店主 (Tavernkeeper)**：打开地图 → 选择地点 → 创建酒馆 → 添加角色 → 配置 LLM → 开门迎客
+
+## 核心概念映射
+
+FableMap 赛博酒馆版使用全新的概念体系：
+
+| 旧概念 | 新概念（赛博酒馆） |
+|--------|------------------|
+| Place / POI | Tavern（酒馆） |
+| Faction | TavernCharacter（酒馆角色） |
+| World Info | WorldInfoEntry（世界知识条目） |
+| World | TavernScene（酒馆场景） |
+| Player State | VisitorState（访客状态） |
+| Fantasy Name | Tavern Name（自定义） |
+
+## 当前原型状态
+
+仓库当前已具备赛博酒馆平台的最小可运行闭环：
+
+- 可通过 `python -m fablemap api` 启动后端
+- 地图展示酒馆标记（基于现有 WorldMap.jsx）
+- 酒馆详情面板 + ChatPanel 对话界面
+- `/api/taverns/*` 酒馆管理（已实现基于网格的 CRUD）
+- `/api/chat` 基础对话端点
+- 写回机制（chat history writeback）
+- 角色引擎（characterEngine.js）基础结构
+
+当前已存在但**不再作为主线继续扩写**的部分：
+
+- [`frontend/src/WorldMap.jsx`](frontend/src/WorldMap.jsx) — 地图渲染（待整合酒馆标记）
+- [`frontend/src/worldMap/renderers.js`](frontend/src/worldMap/renderers.js)
+- [`frontend/src/worldMap/geometry.js`](frontend/src/worldMap/geometry.js)
+- [`frontend/src/mapAssets/manifest.js`](frontend/src/mapAssets/manifest.js)
+- [`frontend/src/mapAssets/iconMapping.js`](frontend/src/mapAssets/iconMapping.js)
+
+## 快速开始
+
+```
+# 安装依赖
+pip install -r requirements.txt
+cd frontend && npm install && npm run build
+
+# 启动后端
+python -m fablemap api
+
+# 访问
+http://127.0.0.1:8950/
+```
+
+## 核心模块
+
+### 后端 (`fablemap/`)
+
+| 模块 | 用途 |
+|------|------|
+| `tavern.py` | 酒馆核心: Tavern CRUD, 状态管理 |
+| `llm_clients.py` | LLM 客户端工厂: OpenAI / Claude / Ollama |
+| `char_card_parser.py` | SillyTavern 角色卡解析 (JSON / PNG tEXt) |
+| `world_info_injector.py` | 世界知识注入器 (关键词匹配) |
+| `api_service.py` | API 逻辑 |
+| `writeback.py` | 状态持久化 |
+| `web/router.py` | API 路由: `/api/taverns/*`, `/api/chat` |
+
+### 前端 (`frontend/src/`)
+
+| 模块 | 用途 |
+|------|------|
+| `services/tavernService.js` | 酒馆 CRUD, LLM 调用 |
+| `services/characterEngine.js` | 角色数据结构 |
+| `services/placeProtocol.js` | Place 协议 |
+| `services/apiClient.js` | API 客户端 |
+| `components/TavernMapPanel.jsx` | 酒馆地图面板 |
+| `components/TavernEntryPanel.jsx` | 酒馆入场（密码验证等） |
+| `components/TavernInterior.jsx` | 酒馆内部（角色列表 + ChatPanel） |
+| `components/ChatPanel.jsx` | 对话面板 |
+| `components/TavernOwnerPanel.jsx` | 店主管理面板 |
+| `hooks/useTavernSession.js` | 酒馆会话管理 |
+| `hooks/useTavernChat.js` | 酒馆对话 |
+
+## 核心 API 端点
+
+| 方法 | 端点 | 描述 |
+|------|------|------|
+| GET | `/api/taverns` | 列出附近/全部酒馆 |
+| POST | `/api/taverns` | 创建酒馆 |
+| GET | `/api/taverns/{id}` | 获取酒馆详情 |
+| PUT | `/api/taverns/{id}` | 更新酒馆 |
+| DELETE | `/api/taverns/{id}` | 删除酒馆 |
+| GET | `/api/taverns/{id}/characters` | 列出酒馆角色 |
+| POST | `/api/taverns/{id}/characters` | 添加角色 |
+| PUT | `/api/taverns/{id}/characters/{cid}` | 更新角色 |
+| DELETE | `/api/taverns/{id}/characters/{cid}` | 删除角色 |
+| POST | `/api/taverns/{id}/chat` | 发送消息并获取 AI 回复 |
+| GET | `/api/taverns/{id}/chat` | 获取对话历史 |
+| POST | `/api/taverns/{id}/enter` | 进入酒馆（验证密码） |
 
 ## 文档导航
 
-- [产品概述](docs/PRODUCT_BRIEF.md)
-- [PRD v0.1](docs/PRD_V0.1.md)
-- [系统架构](docs/ARCHITECTURE.md)
-- [世界 Schema](docs/WORLD_SCHEMA.md)
-- [万物转义协议](docs/UNIVERSAL_TRANSMUTATION_PROTOCOL.md)
-- [Dual-Track Mapping 规则表](docs/DUAL_TRACK_MAPPING.md)
-- [动态扰动解释层与状态接口对齐](docs/DISTURBANCE_INTERFACE_ALIGNMENT.md)
-- [开发路线图](docs/ROADMAP.md)
-- [长期体验方向](docs/LONG_TERM_EXPERIENCE.md)
-- [审美与情感系统](docs/AESTHETIC_EMOTION_SYSTEMS.md)
-- [Web-2D 灵觉视图设计说明](docs/WEB_2D_SPIRIT_VIEW.md)
-- [文化诠释框架](docs/CULTURAL_INTERPRETATION.md)
-- [视觉气质宣言](docs/STYLE_VIBES_MANIFESTO.md)
-- [Street as a Sentence 设计稿](docs/STREET_AS_A_SENTENCE.md)
-- [Causal Ripple Algorithm 设计稿](docs/CAUSAL_RIPPLE_ALGORITHM.md)
-- [Causal Ripple 规则草案 JSON](docs/CAUSAL_RIPPLE_RULES_V0.1.json)
-- [动态扰动模型](docs/DISTURBANCE_MODEL.md)
-- [阵营系统](docs/FACTION_SYSTEM.md)
-- [AI 参与开发协议](docs/AI参与开发协议.md)
-- [AI 协作共享任务列表](docs/AI_SHARED_TASKLIST.md)
-- [模块认领说明模板](docs/claims/README.md)
+- [产品概述](docs/PRODUCT_BRIEF.md) — 一句话定位、用户角色、核心场景
+- [赛博酒馆平台设计](docs/FABLEMAP_TAVERN_PLATFORM.md) — 完整产品设计文档（主线）
+- [系统架构](docs/ARCHITECTURE.md) — 系统分层、模块边界、API 端点
+- [当前任务清单](docs/CURRENT_TASKS.md) — 实施阶段与优先级
+- [明确不做清单](docs/WHAT_NOT_TO_BUILD.md) — 边界约束
+- [当前任务清单](docs/CURRENT_TASKS.md) — 实施阶段与优先级
+- [文档索引](docs/INDEX.md) — 文档总览
 
-协作者建议先阅读 `docs/AI_SHARED_TASKLIST.md` 选择任务；若任务涉及地点转义、动态扰动、玩家写回或历史深度，建议先补读 `docs/UNIVERSAL_TRANSMUTATION_PROTOCOL.md`；若任务直接涉及地点双轨命名与镜头切换，再补读 `docs/DUAL_TRACK_MAPPING.md`；若任务直接涉及扰动指标、状态字段与 UI / NPC / event 接口，再补读 `docs/DISTURBANCE_INTERFACE_ALIGNMENT.md`，再到 `docs/claims/` 提交认领说明后开始开发。
+## 一句话总结
 
-## 推荐命名策略
-
-当前项目名保留为 **FableMap**，中文名为 **寓言地图**。
-
-如果未来需要更强的品牌表达，可以把 `FableMap` 作为仓库/技术名，后续再评估 `Worldfold`、`LoreWalk` 等展示名。
-
-## 近期交付物
-
-- 已落地：`generate` CLI，输入坐标输出世界描述 JSON
-- 已落地：`inspect` CLI，读取世界文件、输出稳定摘要，并识别明显非法结构
-- 已落地：repo 内固定 fixture runner，可一键产出可复现的样例世界切片
-- 已落地：showcase runner，可把 `world.json` 整理成更适合观察的世界切片样品
-- 已落地：static bundle export，可导出固定目录结构与 `manifest.json`
-- 已落地：bundle manifest 资源槽位与资源清单增强，便于下游稳定读取
-- 已落地：bundle HTML 观察窗，可直接本地打开生成后的 `bundle/index.html`
-- 已落地：地图式世界观察窗 v1，bundle 预览页会基于 `roads / pois / landmarks` 渲染 SVG 地图主舞台与地点详情面板
-- 已明确：上述观察窗只是过渡层，下一阶段目标不是“更像地图的页面”，而是“浏览器中的 2D 世界地图本体”
-- 已落地：FastAPI + React + Vite 工程化前后端入口，可直接在浏览器触发 nearby 生成
-- 已落地：FastAPI Web 层拆分为 app / router / service / config 模块，便于后续扩展
-- 已落地：仓库根目录页面壳，可作为 nearby 页面体验入口
-- 已落地：入口页与预览页中英双语切换，支持显式切到中文
-- 已落地：nearby CLI 体验入口，可直接把附近坐标导出为 `world.json` 与 bundle 预览页
-- 已落地：`page` 本地页面服务，可在浏览器中触发 nearby 生成并嵌入预览
-- 已落地：Overpass 在线请求健壮性增强（超时 / 重试 / 错误提示）
-- 已落地：本地缓存层，缓存原始 Overpass JSON
-- 已沉淀：Web-2D 灵觉视图设计说明，明确共享地理骨架、多审美切换与浏览器 2D 的阶段路线
-- 下一步：把 `bundle/page` 从页面布局主导推进为浏览器内 2D 世界地图主舞台，补平移、缩放、悬停、聚焦与更稳定的地图相机 / 视口抽象
-- 下一步：在共享地理骨架上推进 OSM -> 2D 建筑实体、模式切换与世界对象图层，让地图不再只是 SVG 观察窗
-- 下一步：文化诠释词典与视觉气质宣言等核心设计资产
-- 后续：Godot Demo，支持加载 JSON 并进行基础探索
-
-## 项目状态
-
-当前阶段：**文档体系已建立，FastAPI + React 工程化原型已跑通**
-
-当前已完成：
-
-- 项目文档体系与协作协议
-- `python -m fablemap generate`
-- `python -m fablemap inspect`
-- `python -m fablemap.demo`
-- `python -m fablemap.showcase`
-- `python -m fablemap.bundle`
-- `python -m fablemap nearby`
-- `python -m fablemap page`
-- 世界 JSON 最小生成闭环
-- Overpass 在线抓取健壮性增强
-- 本地缓存层
-- bundle 地图式世界观察窗 v1
-- 对应的测试、认领文档与变更说明流程
-
-下一阶段：推进浏览器内 2D 世界地图主舞台（而不是继续把 bundle 做成说明页），并继续细化 nearby 世界入口、地图交互分层、双模式切换，以及 `bundle/manifest.json` 的 Godot 对接字段。
-
-中长期阶段：在稳定世界生成闭环之上，同时推进两条体验主线：
-
-- **权力与世界状态主线**：阵营政治、社会讽刺、历史谜团与现实动态事件
-- **审美与情感表达主线**：风格化相机、私密记忆空间、都市精灵与镜像家园
+FableMap 是一个**赛博酒馆 UGC 平台**：每个人都可以在真实地图上开一间自己的赛博酒馆，配置 AI NPC，接待访客。

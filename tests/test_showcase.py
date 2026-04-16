@@ -52,6 +52,19 @@ class ShowcaseTests(unittest.TestCase):
         self.assertEqual(showcase["continuity_threads"]["memory_anchor_count"], len(world["memory_anchors"]))
         self.assertEqual(showcase["co_creation_storyline"]["city_myth_stage"], world["co_creation"]["city_myth_stage"])
         self.assertGreater(len(showcase["co_creation_storyline"]["participation_modes"]), 0)
+        self.assertGreater(len(showcase["participation_entries"]), 0)
+        self.assertEqual(
+            showcase["participation_entries"][0]["action"],
+            world["co_creation"]["participation_modes"][0]["player_action"],
+        )
+        self.assertEqual(
+            showcase["participation_entries"][0]["open_thread_count"],
+            sum(
+                1
+                for thread in world["co_creation"]["open_threads"]
+                if thread.get("visibility") == world["co_creation"]["participation_modes"][0]["visibility"]
+            ),
+        )
         self.assertGreater(len(showcase["playable_hooks"]), 0)
         self.assertGreater(len(showcase["poi_highlights"]), 0)
         self.assertIn(world["region"]["name"], markdown)
@@ -59,9 +72,31 @@ class ShowcaseTests(unittest.TestCase):
         self.assertIn("World State", markdown)
         self.assertIn("Continuity Threads", markdown)
         self.assertIn("Co-Creation Storyline", markdown)
+        self.assertIn("Participation Entries", markdown)
+        self.assertIn(showcase["participation_entries"][0]["label_en"], markdown)
         self.assertIn("Playable Hooks", markdown)
         self.assertIn(showcase["poi_highlights"][0]["fantasy_name"], markdown)
 
+    def test_co_creation_participation_modes_have_lens_hint(self) -> None:
+        world = build_world(
+            lat=35.6580,
+            lon=139.7016,
+            radius=300,
+            source_data=json.loads(FIXTURE_PATH.read_text(encoding="utf-8")),
+            provider="fixture",
+        )
+        modes = world.get("co_creation", {}).get("participation_modes", [])
+        assert len(modes) == 3
+        for mode in modes:
+            assert "lens_hint" in mode, f"participation_mode '{mode.get('id')}' missing lens_hint"
+        ids = [m["id"] for m in modes]
+        assert "private_capsules" in ids
+        assert "street_legends" in ids
+        assert "repair_rituals" in ids
+        lens_hints = {m["id"]: m["lens_hint"] for m in modes}
+        assert lens_hints["private_capsules"] == "hearth"
+        assert lens_hints["street_legends"] == "chronicle"
+        assert lens_hints["repair_rituals"] == "oracle"
 
-if __name__ == "__main__":
-    unittest.main()
+
+

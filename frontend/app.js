@@ -207,6 +207,124 @@ function App() {
   const recentMarks = writebackResult?.place_state?.marks || [];
   const playerState = writebackResult?.player_state || null;
   const feedback = writebackResult?.world_feedback || null;
+  const metricCards = [
+    {
+      label: "Backend",
+      value: statusOk ? "Online" : "Offline",
+      tone: statusOk ? "ok" : "warn",
+      detail: statusOk ? "FastAPI connected" : "Waiting for service",
+    },
+    {
+      label: "World slice",
+      value: result?.world_id || "Not generated",
+      tone: result ? "accent" : "muted",
+      detail: result ? `${result.poi_count ?? 0} POI · ${result.landmark_count ?? 0} landmarks` : "Create a nearby preview first",
+    },
+    {
+      label: "Player state",
+      value: playerState?.action_state || "Idle",
+      tone: playerState ? "accent" : "muted",
+      detail: playerState
+        ? `clarity ${playerState.clarity ?? "-"} · tension ${playerState.tension ?? "-"}`
+        : "No writeback submitted",
+    },
+    {
+      label: "World feedback",
+      value: feedback?.summary || "No response yet",
+      tone: feedback ? "ok" : "muted",
+      detail: feedback?.broadcast_hints?.length
+        ? feedback.broadcast_hints.join(" · ")
+        : "Awaiting persistent world feedback",
+    },
+  ];
+  const activityItems = [
+    {
+      title: "Connection",
+      text: statusText,
+      meta: statusDetail || "Use Recheck to sync with backend metadata.",
+    },
+    {
+      title: "Nearby world",
+      text: result
+        ? `${result.region_theme || "Unknown theme"} · ${result.dominant_faction || "No faction"}`
+        : "Generate preview to unlock world summary.",
+      meta: result
+        ? `${result.provider || "provider -"} · cache ${result.cache_status || "-"}`
+        : "Supports live OSM and fixture demo modes.",
+    },
+    {
+      title: "Writeback loop",
+      text: writebackResult
+        ? `${writebackResult.place_state?.last_event_type || writebackForm.eventType} stored successfully`
+        : "Submit observe / dwell / mark to persist memory.",
+      meta: writebackResult
+        ? `stored events ${writebackResult.persistence?.stored_event_count ?? "-"}`
+        : "Recent echoes and marks will appear after writeback.",
+    },
+  ];
+  const heroHighlights = [
+    {
+      title: "One-page world console",
+      text: "从连接检查、切片生成到写回反馈，首页直接覆盖整个 MVP 操作链路。",
+    },
+    {
+      title: "Narrative aware data",
+      text: result
+        ? `当前世界主题为 ${result.region_theme || "Unknown"}，可继续围绕 ${result.dominant_faction || "neutral faction"} 扩展体验。`
+        : "尚未生成世界时，也能先查看操作指引和系统能力说明。",
+    },
+    {
+      title: "Persistent memory loop",
+      text: writebackResult
+        ? `最近一次 ${writebackResult.place_state?.last_event_type || writebackForm.eventType} 已回写并更新持久化状态。`
+        : "提交 observe、dwell、mark 后，首页会继续展示状态回流结果。",
+    },
+  ];
+  const capabilityCards = [
+    {
+      title: "Live map ingestion",
+      description: "支持 live OSM 与 fixture demo 双模式，便于本地调试与线上地图切换。",
+      badge: form.mode === "live" ? "Live active" : "Fixture active",
+    },
+    {
+      title: "Stateful player trace",
+      description: "玩家状态、地点熟悉度、事件痕迹和世界反馈可在同一页串联观察。",
+      badge: playerState ? "State captured" : "Waiting input",
+    },
+    {
+      title: "Embedded visual preview",
+      description: "生成完成后直接内嵌 bundle preview，减少来回跳转并提高迭代效率。",
+      badge: previewUrl ? "Preview ready" : "Preview pending",
+    },
+  ];
+  const journeySteps = [
+    {
+      step: "01",
+      title: "Connect backend",
+      text: "校验 FastAPI 服务、默认坐标与运行模式。",
+    },
+    {
+      step: "02",
+      title: "Generate slice",
+      text: "基于经纬度、半径和 seed 生成附近世界切片。",
+    },
+    {
+      step: "03",
+      title: "Write memory",
+      text: "提交 observe / dwell / mark，把玩家行为写回世界状态。",
+    },
+    {
+      step: "04",
+      title: "Review feedback",
+      text: "查看玩家状态、地点痕迹、广播提示与嵌入式预览。",
+    },
+  ];
+  const spotlightStats = [
+    { label: "POI", value: result?.poi_count ?? "--" },
+    { label: "Roads", value: result?.road_count ?? "--" },
+    { label: "Landmarks", value: result?.landmark_count ?? "--" },
+    { label: "Echoes", value: recentEchoes.length || "--" },
+  ];
 
   return React.createElement(
     React.Fragment,
@@ -230,6 +348,133 @@ function App() {
           React.createElement("span", { className: "tag" }, "FastAPI backend"),
           React.createElement("span", { className: "tag" }, "React frontend"),
           React.createElement("span", { className: "tag" }, "World writeback MVP")
+        )
+      ),
+      React.createElement(
+        "section",
+        { className: "panel story-panel" },
+        React.createElement(
+          "div",
+          { className: "story-head" },
+          React.createElement(
+            "div",
+            null,
+            React.createElement("p", { className: "eyebrow" }, "Live dashboard"),
+            React.createElement("h2", null, "World pulse")
+          ),
+          React.createElement(
+            "p",
+            { className: "note muted story-copy" },
+            "把连接状态、切片结果与写回反馈集中展示，便于快速观察当前世界是否完成闭环。"
+          )
+        ),
+        React.createElement(
+          "div",
+          { className: "metric-grid" },
+          ...metricCards.map((card) =>
+            React.createElement(
+              "div",
+              { key: card.label, className: `metric-card ${card.tone}` },
+              React.createElement("div", { className: "metric-label" }, card.label),
+              React.createElement("div", { className: "metric-value" }, card.value),
+              React.createElement("div", { className: "metric-detail" }, card.detail)
+            )
+          )
+        ),
+        React.createElement(
+          "div",
+          { className: "activity-list" },
+          ...activityItems.map((item) =>
+            React.createElement(
+              "div",
+              { key: item.title, className: "activity-item" },
+              React.createElement("div", { className: "activity-dot" }),
+              React.createElement(
+                "div",
+                { className: "activity-body" },
+                React.createElement("div", { className: "activity-title" }, item.title),
+                React.createElement("div", { className: "activity-text" }, item.text),
+                React.createElement("div", { className: "activity-meta" }, item.meta)
+              )
+            )
+          )
+        )
+      ),
+      React.createElement(
+        "section",
+        { className: "showcase-grid" },
+        React.createElement(
+          "div",
+          { className: "panel showcase-card showcase-card-wide" },
+          React.createElement("p", { className: "eyebrow" }, "Homepage expansion"),
+          React.createElement("h2", null, "Command center overview"),
+          React.createElement(
+            "p",
+            { className: "note muted" },
+            "首页不仅展示表单，还承担产品说明、操作引导与当前世界摘要，让首次进入的用户也能快速理解系统。"
+          ),
+          React.createElement(
+            "div",
+            { className: "badge-cloud" },
+            ...heroHighlights.map((item) =>
+              React.createElement(
+                "div",
+                { key: item.title, className: "showcase-pill" },
+                React.createElement("strong", null, item.title),
+                React.createElement("span", null, item.text)
+              )
+            )
+          )
+        ),
+        React.createElement(
+          "div",
+          { className: "panel showcase-card" },
+          React.createElement("p", { className: "eyebrow" }, "Current slice stats"),
+          React.createElement("h2", null, "Live snapshot"),
+          React.createElement(
+            "div",
+            { className: "mini-stat-grid" },
+            ...spotlightStats.map((item) =>
+              React.createElement(
+                "div",
+                { key: item.label, className: "mini-stat-card" },
+                React.createElement("span", { className: "mini-stat-label" }, item.label),
+                React.createElement("strong", { className: "mini-stat-value" }, item.value)
+              )
+            )
+          )
+        )
+      ),
+      React.createElement(
+        "section",
+        { className: "feature-layout" },
+        ...capabilityCards.map((item) =>
+          React.createElement(
+            "div",
+            { key: item.title, className: "panel feature-card" },
+            React.createElement("div", { className: "feature-badge" }, item.badge),
+            React.createElement("h2", null, item.title),
+            React.createElement("p", { className: "note muted" }, item.description)
+          )
+        )
+      ),
+      React.createElement(
+        "section",
+        { className: "panel journey-panel" },
+        React.createElement("p", { className: "eyebrow" }, "Workflow guide"),
+        React.createElement("h2", null, "Homepage journey"),
+        React.createElement(
+          "div",
+          { className: "journey-grid" },
+          ...journeySteps.map((item) =>
+            React.createElement(
+              "div",
+              { key: item.step, className: "journey-step" },
+              React.createElement("div", { className: "journey-step-no" }, item.step),
+              React.createElement("h3", null, item.title),
+              React.createElement("p", { className: "note muted" }, item.text)
+            )
+          )
         )
       ),
       React.createElement(

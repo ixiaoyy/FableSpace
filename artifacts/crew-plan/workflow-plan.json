@@ -1,0 +1,154 @@
+{
+  "objective": "Validate local manager workflow",
+  "manager_notes": [
+    "Always start from one shared task entry instead of a free-form chat request.",
+    "Do not assign implementation before scope, allowed files, and validation are explicit.",
+    "Prefer one active slice at a time; split oversized work before execution.",
+    "Treat CrewAI as an outer coordination layer, not a replacement for repo business logic.",
+    "Current objective: Validate local manager workflow"
+  ],
+  "roles": [
+    {
+      "name": "Manager",
+      "goal": "Read the objective, choose the smallest valid next slice, assign work, and enforce boundaries.",
+      "allowed_paths": [
+        "docs/",
+        "fablemap/",
+        "tests/",
+        "frontend/"
+      ],
+      "deliverables": [
+        "Task breakdown with status flow",
+        "Ownership decisions",
+        "Blocked/risk summary"
+      ]
+    },
+    {
+      "name": "Builder",
+      "goal": "Implement the approved slice only within the manager-defined file boundaries.",
+      "allowed_paths": [
+        "fablemap/",
+        "frontend/",
+        "scripts/",
+        "tests/"
+      ],
+      "deliverables": [
+        "Code changes",
+        "Notes about assumptions and touched files"
+      ]
+    },
+    {
+      "name": "Tester",
+      "goal": "Validate the slice with the smallest meaningful checks and report regressions clearly.",
+      "allowed_paths": [
+        "tests/",
+        "fablemap/",
+        "frontend/"
+      ],
+      "deliverables": [
+        "Verification summary",
+        "Failed checks and probable causes"
+      ]
+    },
+    {
+      "name": "Documenter",
+      "goal": "Keep tasklist, claim, and change records aligned with the real implementation state.",
+      "allowed_paths": [
+        "docs/",
+        "README.md"
+      ],
+      "deliverables": [
+        "Tasklist update",
+        "Claim/change record suggestions",
+        "Usage notes"
+      ]
+    }
+  ],
+  "tasks": [
+    {
+      "task_id": "T1",
+      "title": "Clarify scope and acceptance",
+      "summary": "Manager translates the raw request into a bounded slice with explicit acceptance checks.",
+      "status": "planned",
+      "owner": "Manager",
+      "inputs": [
+        "raw objective",
+        "current repo state",
+        "shared tasklist"
+      ],
+      "outputs": [
+        "bounded scope",
+        "acceptance checklist"
+      ],
+      "validation": [
+        "Scope mentions allowed files",
+        "Scope mentions what is out of bounds"
+      ],
+      "dependencies": []
+    },
+    {
+      "task_id": "T2",
+      "title": "Implement the smallest useful slice",
+      "summary": "Builder changes only the files needed for the agreed slice.",
+      "status": "planned",
+      "owner": "Builder",
+      "inputs": [
+        "scope from T1"
+      ],
+      "outputs": [
+        "code or config changes",
+        "touched file summary"
+      ],
+      "validation": [
+        "Changes stay inside approved paths",
+        "No unrelated refactor"
+      ],
+      "dependencies": [
+        "T1"
+      ]
+    },
+    {
+      "task_id": "T3",
+      "title": "Run verification",
+      "summary": "Tester runs focused checks for the changed slice and reports pass/fail with evidence.",
+      "status": "planned",
+      "owner": "Tester",
+      "inputs": [
+        "implementation diff",
+        "acceptance checklist"
+      ],
+      "outputs": [
+        "verification notes"
+      ],
+      "validation": [
+        "Every acceptance item is checked",
+        "Failures are actionable"
+      ],
+      "dependencies": [
+        "T2"
+      ]
+    },
+    {
+      "task_id": "T4",
+      "title": "Sync task records",
+      "summary": "Documenter updates task records to match the actual completed slice.",
+      "status": "planned",
+      "owner": "Documenter",
+      "inputs": [
+        "verification notes",
+        "touched files"
+      ],
+      "outputs": [
+        "tasklist/doc update proposal"
+      ],
+      "validation": [
+        "Status matches reality",
+        "Docs do not overclaim"
+      ],
+      "dependencies": [
+        "T3"
+      ]
+    }
+  ],
+  "generated_at": "2026-03-19T12:03:56.644655+00:00"
+}

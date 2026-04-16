@@ -110,9 +110,134 @@ class WorldBuilderTests(unittest.TestCase):
         )
         cafe = next(poi for poi in world["pois"] if poi["id"] == "node-201")
         self.assertEqual(cafe["real_name"], "漫游罗盘")
-        self.assertEqual(cafe["fantasy_name"], "漫游罗盘 Parlor")
-        self.assertEqual(world["region"]["name"], "Around 漫游罗盘")
+        self.assertEqual(cafe["fantasy_name"], "漫游罗盘馆")
+        self.assertEqual(world["region"]["name"], "漫游罗盘周边")
         self.assertEqual(world["landmarks"][0]["name"], "钟门")
+
+    def test_build_world_translates_plain_english_names_in_china_to_simplified_chinese(self) -> None:
+        world = build_world(
+            31.2304,
+            121.4737,
+            300,
+            source_data={
+                "elements": [
+                    {
+                        "type": "node",
+                        "id": 301,
+                        "lat": 31.2305,
+                        "lon": 121.4738,
+                        "tags": {
+                            "amenity": "hospital",
+                            "name": "East Hospital",
+                        },
+                    },
+                    {
+                        "type": "node",
+                        "id": 302,
+                        "lat": 31.2306,
+                        "lon": 121.4739,
+                        "tags": {
+                            "tourism": "attraction",
+                            "name": "South Gate",
+                        },
+                    },
+                ]
+            },
+            provider="fixture",
+        )
+        hospital = next(poi for poi in world["pois"] if poi["id"] == "node-301")
+        self.assertEqual(hospital["real_name"], "东医院")
+        self.assertEqual(hospital["fantasy_name"], "东医院圣所")
+        self.assertEqual(world["region"]["name"], "东医院周边")
+        self.assertEqual(world["landmarks"][0]["name"], "南门")
+
+    def test_build_world_keeps_non_china_english_names_without_translation(self) -> None:
+        world = build_world(
+            35.6580,
+            139.7016,
+            300,
+            source_data={
+                "elements": [
+                    {
+                        "type": "node",
+                        "id": 401,
+                        "lat": 35.6581,
+                        "lon": 139.7017,
+                        "tags": {
+                            "amenity": "hospital",
+                            "name": "East Hospital",
+                        },
+                    }
+                ]
+            },
+            provider="fixture",
+        )
+        hospital = next(poi for poi in world["pois"] if poi["id"] == "node-401")
+        self.assertEqual(hospital["real_name"], "East Hospital")
+        self.assertEqual(hospital["fantasy_name"], "East Hospital Sanctum")
+
+    def test_build_world_uses_generic_chinese_name_when_no_translatable_name_exists(self) -> None:
+        world = build_world(
+            31.2304,
+            121.4737,
+            300,
+            source_data={
+                "elements": [
+                    {
+                        "type": "node",
+                        "id": 501,
+                        "lat": 31.2305,
+                        "lon": 121.4738,
+                        "tags": {
+                            "tourism": "attraction",
+                            "name": "Shibuya Landmark",
+                        },
+                    },
+                    {
+                        "type": "node",
+                        "id": 502,
+                        "lat": 31.2306,
+                        "lon": 121.4739,
+                        "tags": {
+                            "amenity": "bank",
+                            "name": "Hi Inn",
+                        },
+                    },
+                ]
+            },
+            provider="fixture",
+        )
+        attraction = next(landmark for landmark in world["landmarks"] if landmark["id"] == "landmark-node-501")
+        bank = next(poi for poi in world["pois"] if poi["id"] == "node-502")
+        self.assertEqual(attraction["name"], "景点")
+        self.assertEqual(bank["real_name"], "海友酒店")
+        self.assertEqual(bank["fantasy_name"], "海友酒店堂")
+
+
+    def test_build_world_replaces_japanese_named_pois_with_generic_chinese_name_in_china(self) -> None:
+        world = build_world(
+            31.2304,
+            121.4737,
+            300,
+            source_data={
+                "elements": [
+                    {
+                        "type": "node",
+                        "id": 601,
+                        "lat": 31.2305,
+                        "lon": 121.4738,
+                        "tags": {
+                            "amenity": "restaurant",
+                            "name": "つるとんたん UDON NOODLE Brasserie 渋谷店",
+                        },
+                    }
+                ]
+            },
+            provider="fixture",
+        )
+        restaurant = next(poi for poi in world["pois"] if poi["id"] == "node-601")
+        self.assertEqual(restaurant["real_name"], "餐厅")
+        self.assertEqual(restaurant["fantasy_name"], "餐厅")
 
 
 if __name__ == "__main__":

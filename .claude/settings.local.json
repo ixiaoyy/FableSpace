@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python git_push.py)",
+      "Bash(powershell -Command \"cd d:\\\\work\\\\ai-; python check_status.py 2>&1\")",
+      "Bash(python -m pytest tests/test_world_builder.py -v --tb=short)",
+      "Bash(python -c \":*)",
+      "Bash(python3 -c \"content = open\\(''D:/work/ai-/fablemap/world_builder.py'', encoding=''utf-8''\\).read\\(\\); print\\(content[2000:6000]\\)\")",
+      "Bash(python d:/work/ai-/get_diff.py)",
+      "Bash(python -:*)",
+      "Bash(python d:/work/ai-/fablemap/writeback.py)",
+      "Bash(powershell -Command \"python d:/work/ai-/print_wb.py\")",
+      "Bash(python read_sections.py)",
+      "Bash(python read_test_middle.py)"
+    ]
+  }
+}

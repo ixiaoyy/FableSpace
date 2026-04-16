@@ -4,6 +4,7 @@ import hashlib
 import json
 from pathlib import Path
 from typing import Any
+import unicodedata
 
 from .overpass import fetch_overpass_data
 
@@ -279,16 +280,18 @@ def build_world(
     world_id = f"world-{_digest(f'{lat:.5f}', f'{lon:.5f}', radius)[:12]}"
     stable_seed = seed or _digest(world_id, radius)[:12]
 
-    pois = _build_pois(elements, fallback)
+    prefer_zh = _should_prefer_simplified_chinese(lat=lat, lon=lon, elements=elements)
+
+    pois = _build_pois(elements, fallback, prefer_zh=prefer_zh)
     roads = _build_roads(elements, fallback)
-    landmarks = _build_landmarks(elements, fallback)
+    landmarks = _build_landmarks(elements, fallback, prefer_zh=prefer_zh)
     theme = _pick_theme(pois)
     dominant_faction = _pick_faction(theme, pois)
     commerce_flux = round(min(1.0, len([p for p in pois if p["faction_alignment"] == "trade_guild"]) * 0.2 + len(roads) * 0.08), 2)
     anomaly_pressure = round(min(1.0, len(landmarks) * 0.25 + len([p for p in pois if p["secret_slot"]]) * 0.1), 2)
     comfort_level = round(min(1.0, len([p for p in pois if p["secret_slot"]]) * 0.18 + 0.2), 2)
     control_score = round(min(1.0, 0.25 + len(roads) * 0.08 + len(pois) * 0.03), 2)
-    region_name = _region_name(world_id, pois)
+    region_name = _region_name(world_id, pois, prefer_zh=prefer_zh)
     vibe_profile = _pick_vibe(pois)
 
     region = {
@@ -296,7 +299,7 @@ def build_world(
         "theme": theme,
         "atmosphere": "charged" if len(roads) >= 3 else "quiet",
         "dominant_landuse": _dominant_landuse(elements),
-        "narrative_summary": f"{region_name} is rendered as a {theme} with {len(pois)} mapped POIs and {len(roads)} traversable routes.",
+        "narrative_summary": _region_summary(region_name, theme, len(pois), len(roads), prefer_zh=prefer_zh),
         "visual_style": vibe_profile,
         "social_tension": round(min(1.0, 0.2 + len(roads) * 0.06), 2),
         "commerce_flux": commerce_flux,
@@ -432,7 +435,12 @@ def write_world(output_path: str | Path, world: dict[str, Any]) -> None:
     path.write_text(json.dumps(world, ensure_ascii=False, indent=2), encoding="utf-8")
 
 
-def _build_pois(elements: list[dict[str, Any]], fallback: dict[str, float]) -> list[dict[str, Any]]:
+def _build_pois(
+    elements: list[dict[str, Any]],
+    fallback: dict[str, float],
+    *,
+    prefer_zh: bool = False,
+) -> list[dict[str, Any]]:
     pois: list[dict[str, Any]] = []
     for element in elements:
         tags = element.get("tags") or {}
@@ -440,7 +448,7 @@ def _build_pois(elements: list[dict[str, Any]], fallback: dict[str, float]) -> l
         if mapping is None:
             continue
         poi_id = f"{element.get('type', 'item')}-{element.get('id', 'unknown')}"
-        real_name = _preferred_real_name(tags)
+        real_name = _preferred_real_name(tags, prefer_zh=prefer_zh)
         real_type = _infer_osm_type(tags)
         district_role = _district_role(mapping["fantasy_type"], real_type)
         pois.append(
@@ -448,22 +456,26 @@ def _build_pois(elements: list[dict[str, Any]], fallback: dict[str, float]) -> l
                 "id": poi_id,
                 "osm_type": real_type,
                 "real_name": real_name,
-                "fantasy_name": _fantasy_name(real_name, mapping["suffix"], mapping["fantasy_type"]),
+                "fantasy_name": _fantasy_name(real_name, mapping["suffix"], mapping["fantasy_type"], prefer_zh=prefer_zh),
                 "fantasy_type": mapping["fantasy_type"],
                 "position": _extract_position(element, fallback),
-                "description": f"A {real_type} recast as {mapping['fantasy_type']}.",
+                "description": (
+                    f"一个被转译为{mapping['fantasy_type']}的{real_type}。"
+                    if prefer_zh
+                    else f"A {real_type} recast as {mapping['fantasy_type']}."
+                ),
                 "tags": _compact_tags(tags),
                 "visual_hint": {
                     "style": mapping["vibe"],
                     "palette": mapping["palette"],
                 },
                 "state_ref": poi_id,
-                "satire_hook": mapping["satire"],
+                "satire_hook": _localized_satire(mapping["fantasy_type"], mapping["satire"], prefer_zh=prefer_zh),
                 "faction_alignment": mapping["faction"],
-                "emotion_hook": mapping["emotion"],
+                "emotion_hook": _localized_emotion(mapping["fantasy_type"], mapping["emotion"], prefer_zh=prefer_zh),
                 "district_role": district_role,
                 "ritual_affordances": _ritual_affordances(mapping["fantasy_type"], mapping["secret_slot"], mapping["sprite_spawn_hint"]),
-                "rumor_hook": _rumor_hook(real_name, mapping["fantasy_type"], district_role),
+                "rumor_hook": _rumor_hook(real_name, mapping["fantasy_type"], district_role, prefer_zh=prefer_zh),
                 "map_icon": _map_icon(mapping["fantasy_type"]),
                 "collision_radius": _collision_radius(mapping["fantasy_type"]),
                 "secret_slot": mapping["secret_slot"],
@@ -545,7 +557,12 @@ def _build_roads(elements: list[dict[str, Any]], fallback: dict[str, float]) -> 
     return sorted(roads, key=lambda item: item["id"])[:12]
 
 
-def _build_landmarks(elements: list[dict[str, Any]], fallback: dict[str, float]) -> list[dict[str, Any]]:
+def _build_landmarks(
+    elements: list[dict[str, Any]],
+    fallback: dict[str, float],
+    *,
+    prefer_zh: bool = False,
+) -> list[dict[str, Any]]:
     landmarks = []
     for element in elements:
         tags = element.get("tags") or {}
@@ -554,9 +571,13 @@ def _build_landmarks(elements: list[dict[str, Any]], fallback: dict[str, float])
         landmarks.append(
             {
                 "id": f"landmark-{element.get('type', 'item')}-{element.get('id', 'unknown')}",
-                "name": _preferred_real_name(tags) or "Unnamed Landmark",
+                "name": _preferred_real_name(tags, prefer_zh=prefer_zh) or ("未命名地标" if prefer_zh else "Unnamed Landmark"),
                 "type": tags.get("tourism") or tags.get("historic"),
-                "description": "A place where the district's official story feels slightly unstable.",
+                "description": (
+                    "一个让城区官方叙事显得略微不稳定的地点。"
+                    if prefer_zh
+                    else "A place where the district's official story feels slightly unstable."
+                ),
                 "visual_hint": {
                     "position": _extract_position(element, fallback),
                     "style": "memory_spire",
@@ -688,6 +709,7 @@ def _build_co_creation_layer(
             "player_action": "leave_emotion_capsule",
             "capacity_hint": private_mark_capacity,
             "status": "open" if private_mark_capacity else "limited",
+            "lens_hint": "hearth",
         },
         {
             "id": "street_legends",
@@ -696,6 +718,7 @@ def _build_co_creation_layer(
             "player_action": "add_place_legend",
             "capacity_hint": local_legend_capacity,
             "status": "open",
+            "lens_hint": "chronicle",
         },
         {
             "id": "repair_rituals",
@@ -704,6 +727,7 @@ def _build_co_creation_layer(
             "player_action": "contribute_repair_trace",
             "capacity_hint": ritual_capacity,
             "status": "open" if comfort_level >= 0.3 else "fragile",
+            "lens_hint": "oracle",
         },
     ]
     return {
@@ -808,9 +832,17 @@ def _pick_satire(pois: list[dict[str, Any]]) -> str:
     return pois[0]["satire_hook"] if pois else "Daily circulation shapes the district more than any single monument."
 
 
-def _region_name(world_id: str, pois: list[dict[str, Any]]) -> str:
+def _region_name(world_id: str, pois: list[dict[str, Any]], *, prefer_zh: bool = False) -> str:
     named_poi = next((poi for poi in pois if poi["real_name"]), None)
-    return f"Around {named_poi['real_name']}" if named_poi else f"Sector {world_id[-6:]}"
+    if named_poi:
+        return f"{named_poi['real_name']}周边" if prefer_zh else f"Around {named_poi['real_name']}"
+    return f"城区片段{world_id[-6:]}" if prefer_zh else f"Sector {world_id[-6:]}"
+
+
+def _region_summary(region_name: str, theme: str, poi_count: int, road_count: int, *, prefer_zh: bool = False) -> str:
+    if prefer_zh:
+        return f"{region_name} 被转译为 {theme}，映射了 {poi_count} 个地点与 {road_count} 条可通行路径。"
+    return f"{region_name} is rendered as a {theme} with {poi_count} mapped POIs and {road_count} traversable routes."
 
 
 def _dominant_landuse(elements: list[dict[str, Any]]) -> str:
@@ -852,17 +884,268 @@ def _infer_osm_type(tags: dict[str, Any]) -> str:
     return "unknown"
 
 
-def _preferred_real_name(tags: dict[str, Any]) -> str | None:
-    for key in ("name:zh-Hans", "name:zh", "official_name:zh", "alt_name:zh", "name"):
+def _preferred_real_name(tags: dict[str, Any], *, prefer_zh: bool = False) -> str | None:
+    for key in ("name:zh-Hans", "name:zh", "official_name:zh", "alt_name:zh"):
         value = tags.get(key)
         if isinstance(value, str) and value.strip():
             return value.strip()
-    return None
+
+    base_name = tags.get("name")
+    normalized_name = base_name.strip() if isinstance(base_name, str) and base_name.strip() else None
+    if not prefer_zh:
+        return normalized_name
+
+    if normalized_name:
+        translated_name = _translate_name_to_simplified_chinese(normalized_name)
+        if translated_name:
+            return translated_name
+
+    return _generic_real_name_zh(tags) or normalized_name
 
 
-def _fantasy_name(real_name: str | None, suffix: str, fantasy_type: str) -> str:
+def _should_prefer_simplified_chinese(*, lat: float, lon: float, elements: list[dict[str, Any]]) -> bool:
+    if 18.0 <= lat <= 54.5 and 73.0 <= lon <= 135.5:
+        return True
+
+    country_keys = ("addr:country", "country", "ISO3166-1", "ISO3166-1:alpha2")
+    for element in elements:
+        tags = element.get("tags") or {}
+        for key in country_keys:
+            value = tags.get(key)
+            if isinstance(value, str) and value.strip().upper() in {"CN", "CHN", "中国", "中华人民共和国"}:
+                return True
+    return False
+
+
+def _translate_name_to_simplified_chinese(name: str) -> str | None:
+    if _contains_japanese_kana(name):
+        return None
+
+    if _contains_cjk(name):
+        return _to_simplified_chinese(name)
+
+    normalized = name.casefold()
+    punctuation_map = str.maketrans({"&": " ", "-": " ", "_": " ", "/": " "})
+    tokens = [token for token in normalized.translate(punctuation_map).split() if token]
+    if not tokens:
+        return None
+
+    direct_map = {
+        "hospital": "医院",
+        "clinic": "诊所",
+        "pharmacy": "药店",
+        "drugstore": "药店",
+        "park": "公园",
+        "garden": "花园",
+        "school": "学校",
+        "college": "学院",
+        "university": "大学",
+        "bank": "银行",
+        "restaurant": "餐厅",
+        "cafe": "咖啡馆",
+        "coffee": "咖啡",
+        "library": "图书馆",
+        "gym": "健身房",
+        "fitness": "健身",
+        "police": "警察局",
+        "station": "站",
+        "hotel": "酒店",
+        "inn": "酒店",
+        "hostel": "旅舍",
+        "motel": "汽车旅馆",
+        "mall": "商场",
+        "market": "市场",
+        "shop": "商店",
+        "supermarket": "超市",
+        "store": "商店",
+        "tower": "塔",
+        "gate": "门",
+        "bridge": "桥",
+        "road": "路",
+        "street": "街",
+        "avenue": "大道",
+        "plaza": "广场",
+        "square": "广场",
+        "center": "中心",
+        "centre": "中心",
+        "building": "大厦",
+        "museum": "博物馆",
+        "theatre": "剧院",
+        "cinema": "影院",
+        "temple": "寺",
+        "memorial": "纪念地",
+        "monument": "纪念碑",
+        "garden": "花园",
+        "international": "国际",
+        "peoples": "人民",
+        "people's": "人民",
+        "mcdonalds": "麦当劳",
+        "starbucks": "星巴克",
+        "kfc": "肯德基",
+        "burger": "汉堡",
+        "king": "王",
+        "subway": "赛百味",
+        "metro": "地铁",
+        "line": "线",
+        "exit": "出口",
+        "entrance": "入口",
+        "tower": "塔",
+        "office": "办公楼",
+        "centerpoint": "中心点",
+        "home": "家园",
+        "express": "快捷",
+        "holiday": "假日",
+        "inns": "酒店",
+        "ji": "全季",
+        "hanting": "汉庭",
+        "rujia": "如家",
+        "homeinn": "如家",
+        "homeinns": "如家",
+        "hi": "海友",
+    }
+    directional_map = {
+        "east": "东",
+        "west": "西",
+        "south": "南",
+        "north": "北",
+        "central": "中央",
+    }
+
+    translated_tokens = [direct_map.get(token, directional_map.get(token)) for token in tokens]
+    recognized = [token for token in translated_tokens if token]
+    if not recognized:
+        return None
+
+    if len(recognized) == 1 and len(tokens) > 1:
+        return recognized[0]
+    return "".join(recognized)
+
+
+def _generic_real_name_zh(tags: dict[str, Any]) -> str | None:
+    return {
+        "hospital": "医院",
+        "clinic": "诊所",
+        "pharmacy": "药店",
+        "drugstore": "药店",
+        "park": "公园",
+        "garden": "花园",
+        "school": "学校",
+        "college": "学院",
+        "university": "大学",
+        "bank": "银行",
+        "restaurant": "餐厅",
+        "cafe": "咖啡馆",
+        "library": "图书馆",
+        "gym": "健身房",
+        "fitness": "健身房",
+        "police": "警察局",
+        "station": "站",
+        "hotel": "酒店",
+        "inn": "酒店",
+        "hostel": "旅舍",
+        "motel": "汽车旅馆",
+        "mall": "商场",
+        "market": "市场",
+        "shop": "商店",
+        "supermarket": "超市",
+        "store": "商店",
+        "museum": "博物馆",
+        "theatre": "剧院",
+        "cinema": "影院",
+        "temple": "寺",
+        "attraction": "景点",
+        "memorial": "纪念地",
+        "monument": "纪念碑",
+        "tower": "塔",
+        "gate": "门",
+        "bridge": "桥",
+        "building": "建筑",
+        "yes": "建筑",
+        "commercial": "商业建筑",
+        "residential": "住宅楼",
+        "apartments": "公寓",
+        "office": "办公楼",
+    }.get(_infer_osm_type(tags))
+
+def _contains_cjk(value: str) -> bool:
+    return any("CJK" in unicodedata.name(char, "") for char in value)
+
+
+
+def _contains_japanese_kana(value: str) -> bool:
+    return any("HIRAGANA" in unicodedata.name(char, "") or "KATAKANA" in unicodedata.name(char, "") for char in value)
+
+
+
+def _to_simplified_chinese(value: str) -> str:
+    traditional_to_simplified = str.maketrans(
+        {
+            "臺": "台",
+            "門": "门",
+            "廣": "广",
+            "場": "场",
+            "醫": "医",
+            "圖": "图",
+            "書": "书",
+            "館": "馆",
+            "樓": "楼",
+            "學": "学",
+            "體": "体",
+            "藝": "艺",
+            "藥": "药",
+            "處": "处",
+            "國": "国",
+            "號": "号",
+            "樂": "乐",
+            "區": "区",
+            "會": "会",
+        }
+    )
+    return value.translate(traditional_to_simplified)
+
+
+def _fantasy_name(real_name: str | None, suffix: str, fantasy_type: str, *, prefer_zh: bool = False) -> str:
     base = real_name or fantasy_type.replace("_", " ").title()
+    if prefer_zh and real_name and _contains_cjk(real_name):
+        zh_suffix = _fantasy_suffix_zh(suffix, fantasy_type)
+        return base if not zh_suffix or base.endswith(zh_suffix) else f"{base}{zh_suffix}"
     return base if base.endswith(suffix) else f"{base} {suffix}"
+
+
+def _fantasy_suffix_zh(suffix: str, fantasy_type: str) -> str:
+    return {
+        "Grove": "林苑",
+        "Sanctum": "圣所",
+        "Outpost": "站",
+        "Tower": "塔",
+        "Parlor": "馆",
+        "Academy": "学堂",
+        "Cathedral": "堂",
+        "Hall": "厅",
+        "Station": "站",
+        "Archive": "档案馆",
+        "Temple": "神殿",
+        "Lot": "空场",
+        "Post": "铺",
+        "Forge": "工坊",
+        "Spire": "尖塔",
+    }.get(suffix, {
+        "whispering_grove": "林苑",
+        "healing_sanctum": "圣所",
+        "supply_outpost": "站",
+        "judgement_tower": "塔",
+        "ember_parlor": "馆",
+        "lore_academy": "学堂",
+        "debt_cathedral": "堂",
+        "feast_hall": "厅",
+        "refuel_station": "站",
+        "memory_archive": "档案馆",
+        "spirit_sanctum": "神殿",
+        "dormant_lot": "空场",
+        "remedy_post": "铺",
+        "labor_forge": "工坊",
+        "contract_spire": "尖塔",
+    }.get(fantasy_type, ""))
 
 
 def _compact_tags(tags: dict[str, Any]) -> list[str]:
@@ -1064,8 +1347,61 @@ def _ritual_affordances(fantasy_type: str, secret_slot: bool, sprite_spawn_hint:
 
 
 
-def _rumor_hook(real_name: str | None, fantasy_type: str, district_role: str) -> str:
-    subject = real_name or fantasy_type.replace("_", " ")
+_SATIRE_HOOKS_ZH = {
+    "whispering_grove": "绿色喘息仍旧夹在通勤压力之间。",
+    "healing_sanctum": "照护像圣事一样被陈列，但可获得性依旧被配给。",
+    "supply_outpost": "货物总能买到，只是不是每个人都买得起。",
+    "judgement_tower": "秩序无处不在，舒适却少得多。",
+    "ember_parlor": "谈话很温暖，但时间始终明码标价。",
+    "lore_academy": "知识承诺流动性，也复制着层级。",
+    "debt_cathedral": "财富在这里被膜拜，体现在廊柱与队列里。",
+    "feast_hall": "快乐始终供应，只为出得起价的人开放。",
+    "refuel_station": "速度与便利掩盖了交易里真正流失的东西。",
+    "memory_archive": "公共记忆被保存在这里，等着仍愿意在意它的人。",
+    "spirit_sanctum": "即使会众减少，神圣感也没有真正退场。",
+    "dormant_lot": "空间先分配给机器，人才被排到后面。",
+    "remedy_post": "缓解可以买到，但身体会继续替价格埋单。",
+    "labor_forge": "身体像生产单元一样被优化与展示。",
+    "contract_spire": "层级通过楼层数和工牌颜色被表达出来。",
+}
+
+_EMOTION_HOOKS_ZH = {
+    "whispering_grove": "这里像一块安静的夹层，能容纳私人记忆慢慢沉下去。",
+    "healing_sanctum": "门口附近悬着一种焦虑却不肯熄灭的希望。",
+    "supply_outpost": "细小的日常让这片地带勉强维持着可生活感。",
+    "judgement_tower": "你会先被注视，然后才被允许靠近。",
+    "ember_parlor": "暖意、闲谈和等待在这里悄悄重叠。",
+    "lore_academy": "抱负与疲惫共用着同一条走廊。",
+    "debt_cathedral": "一种关于义务的低鸣始终悬着，不会真正散去。",
+    "feast_hall": "饥饿与庆祝被摆在同一张桌上。",
+    "refuel_station": "效率开始殖民每一次停顿。",
+    "memory_archive": "这里安静、克制，像积年照料留下的微尘。",
+    "spirit_sanctum": "有些比城市更古老的东西，正从这里看着你。",
+    "dormant_lot": "这里的空缺，本身就像一种被安排好的期待。",
+    "remedy_post": "小小的急迫感，与漫长的耐受并排存在。",
+    "labor_forge": "用力和疲惫都被公开表演出来。",
+    "contract_spire": "野心沿着冷白灯的走廊持续循环。",
+}
+
+
+def _localized_satire(fantasy_type: str, fallback: str, *, prefer_zh: bool = False) -> str:
+    if prefer_zh:
+        return _SATIRE_HOOKS_ZH.get(fantasy_type, fallback)
+    return fallback
+
+
+
+def _localized_emotion(fantasy_type: str, fallback: str, *, prefer_zh: bool = False) -> str:
+    if prefer_zh:
+        return _EMOTION_HOOKS_ZH.get(fantasy_type, fallback)
+    return fallback
+
+
+
+def _rumor_hook(real_name: str | None, fantasy_type: str, district_role: str, *, prefer_zh: bool = False) -> str:
+    subject = real_name or (fantasy_type.replace("_", " ") if not prefer_zh else _localized_emotion(fantasy_type, fantasy_type, prefer_zh=True))
+    if prefer_zh:
+        return f"人们说，{subject} 会在 {district_role} 失衡时，悄悄改变这片街区的走向。"
     return f"People say {subject} quietly shapes the district whenever the {district_role} falls out of sync."
 
 

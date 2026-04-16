@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(powershell -Command \"cd d:\\\\work\\\\ai-; python -c ''import fablemap.world_builder; print\\(hasattr\\(fablemap.world_builder, \"\"_should_prefer_simplified_chinese\"\"\\)\\)'' 2>&1\")",
+      "Bash(powershell -Command \"cd d:\\\\work\\\\ai-; Get-ChildItem -Recurse -Filter ''*.pyc'' | Remove-Item -Force; python -m pytest tests/test_bundle.py tests/test_cli.py tests/test_api.py -x -q --tb=short 2>&1 | Out-File -Encoding utf8 pytest_cache_test.txt; Get-Content pytest_cache_test.txt\")",
+      "Bash(powershell -Command \"cd d:\\\\work\\\\ai-; python -m pytest tests/test_page.py tests/test_lens_engine.py tests/test_orchestrator.py -q --tb=short 2>&1 | Out-File -Encoding utf8 pytest_partial.txt; Get-Content pytest_partial.txt\")",
+      "Bash(python -c \":*)",
+      "mcp__zread__read_file",
+      "Bash(python3 -c \":*)"
+    ],
+    "additionalDirectories": [
+      "d:\\work\\ai-\\fablemap\\web"
+    ]
+  }
+}

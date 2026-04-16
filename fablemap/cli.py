@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Any, Sequence
 
 from .cache import default_cache_dir
+from .crew_orchestrator import build_crewai_stub, run_managed_workflow, write_plan_files
 from .world_builder import build_world, write_world
 
 
@@ -78,6 +79,28 @@ def build_parser() -> argparse.ArgumentParser:
 
     inspect_parser = subparsers.add_parser("inspect", help="Inspect an existing world JSON.")
     inspect_parser.add_argument("--input", type=Path, required=True, help="Input world JSON file path")
+
+    crew_plan_parser = subparsers.add_parser(
+        "crew-plan",
+        help="Generate a manager-driven local workflow plan for multi-agent execution.",
+    )
+    crew_plan_parser.add_argument("--objective", required=True, help="High-level objective to break into managed tasks.")
+    crew_plan_parser.add_argument(
+        "--output-dir",
+        type=Path,
+        default=Path("artifacts") / "crew-plan",
+        help="Directory where workflow plan files will be written.",
+    )
+    crew_run_parser = subparsers.add_parser(
+        "crew-run",
+        help="Run the local manager workflow in stub mode, or validate live CrewAI prerequisites.",
+    )
+    crew_run_parser.add_argument("--objective", required=True, help="High-level objective to run through the managed workflow.")
+    crew_run_parser.add_argument(
+        "--live",
+        action="store_true",
+        help="Require live CrewAI prerequisites instead of returning a stub execution summary.",
+    )
     return parser
 
 
@@ -101,6 +124,10 @@ def main(argv: Sequence[str] | None = None) -> int:
             return run_api(args)
         if args.command == "inspect":
             return _run_inspect(args)
+        if args.command == "crew-plan":
+            return _run_crew_plan(args)
+        if args.command == "crew-run":
+            return _run_crew_run(args)
     except WorldSchemaError as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 4
@@ -160,6 +187,29 @@ def _run_inspect(args: argparse.Namespace) -> int:
     world = json.loads(args.input.read_text(encoding="utf-8"))
     _validate_world_schema(world)
     print(json.dumps(_build_inspect_summary(world, args.input), ensure_ascii=False, indent=2))
+    return 0
+
+
+def _run_crew_plan(args: argparse.Namespace) -> int:
+    written = write_plan_files(args.objective, args.output_dir)
+    print(
+        json.dumps(
+            {
+                "objective": args.objective,
+                "output_dir": str(args.output_dir),
+                "files": written,
+                "crewai": build_crewai_stub(args.objective),
+            },
+            ensure_ascii=False,
+            indent=2,
+        )
+    )
+    return 0
+
+
+def _run_crew_run(args: argparse.Namespace) -> int:
+    result = run_managed_workflow(args.objective, live=args.live)
+    print(json.dumps(result.to_dict(), ensure_ascii=False, indent=2))
     return 0
 
 

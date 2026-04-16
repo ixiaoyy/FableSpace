@@ -10,11 +10,12 @@ from typing import Any
 
 from fastapi import HTTPException
 
-_ALLOWED_EVENT_TYPES = {"observe", "dwell", "mark"}
-_ALLOWED_TARGET_TYPES = {"poi", "zone", "route", "home", "world"}
+_ALLOWED_EVENT_TYPES = {"observe", "dwell", "mark", "repair"}
+_ALLOWED_TARGET_TYPES = {"poi", "zone", "route", "home", "world", "landmark"}
 _ALLOWED_VISIBILITY = {"private", "local_public", "global"}
 _ALLOWED_MARK_TAGS = {"safe", "uncanny", "warm_corner", "return_again", "rain_friendly"}
 _ALLOWED_ACTION_STATES = {"idle", "moving", "observing", "interacting", "collecting", "listening", "tracing", "returning_home"}
+_CHAT_HISTORY_MAX = 50
 _DEFAULT_PLAYER_STATE = {
     "action_state": "idle",
     "clarity": 0,
@@ -54,6 +55,58 @@ class WritebackStore:
             json.dumps(state, ensure_ascii=False, indent=2, sort_keys=True),
             encoding="utf-8",
         )
+
+    def get_taverns(self) -> dict[str, dict[str, Any]]:
+        """Get all managed taverns."""
+        state = self.load()
+        return state.get("taverns", {})
+
+    def get_chat_history(
+        self,
+        player_id: str,
+        poi_id: str,
+        character_id: str | None = None,
+        limit: int = 50,
+    ) -> list[dict[str, Any]]:
+        """Load chat messages for a player + POI (optionally filtered by character)."""
+        state = self.load()
+        messages: list[dict[str, Any]] = state.get("chat_messages", [])
+        filtered = [
+            m for m in messages
+            if m.get("player_id") == player_id
+            and m.get("poi_id") == poi_id
+            and (character_id is None or m.get("character_id") == character_id)
+        ]
+        # Return newest last, trim to limit
+        return filtered[-limit:]
+
+    def add_chat_message(
+        self,
+        player_id: str,
+        poi_id: str,
+        character_id: str,
+        role: str,
+        content: str,
+        timestamp: str,
+    ) -> dict[str, Any]:
+        """Append a chat message and persist to disk."""
+        msg = {
+            "message_id": f"msg_{uuid.uuid4().hex[:12]}",
+            "player_id": player_id,
+            "poi_id": poi_id,
+            "character_id": character_id,
+            "role": role,
+            "content": content,
+            "timestamp": timestamp,
+        }
+        state = self.load()
+        messages: list[dict[str, Any]] = state.setdefault("chat_messages", [])
+        messages.append(msg)
+        # Keep last _CHAT_HISTORY_MAX messages total
+        if len(messages) > _CHAT_HISTORY_MAX:
+            del messages[:-_CHAT_HISTORY_MAX]
+        self.save(state)
+        return msg
 
 
 class WritebackEngine:
@@ -122,6 +175,32 @@ class WritebackEngine:
             },
         }
 
+    # ─── Chat history methods ──────────────────────────────────────────────────
+
+    def get_chat_history(
+        self,
+        player_id: str,
+        poi_id: str,
+        character_id: str | None = None,
+        limit: int = 50,
+    ) -> list[dict[str, Any]]:
+        """Get chat history for a player + POI (optionally filtered by character)."""
+        return self.store.get_chat_history(player_id, poi_id, character_id, limit)
+
+    def add_chat_message(
+        self,
+        player_id: str,
+        poi_id: str,
+        character_id: str,
+        role: str,
+        content: str,
+        timestamp: str | None = None,
+    ) -> dict[str, Any]:
+        """Add a chat message to history."""
+        if timestamp is None:
+            timestamp = _utc_now_iso()
+        return self.store.add_chat_message(player_id, poi_id, character_id, role, content, timestamp)
+
 
 def _normalize_event(event: dict[str, Any]) -> dict[str, Any]:
     if not isinstance(event, dict):
@@ -129,7 +208,7 @@ def _normalize_event(event: dict[str, Any]) -> dict[str, Any]:
 
     event_type = str(event.get("event_type") or "").strip().lower()
     if event_type not in _ALLOWED_EVENT_TYPES:
-        raise HTTPException(status_code=400, detail="event_type must be one of observe, dwell, mark")
+        raise HTTPException(status_code=400, detail="event_type must be one of observe, dwell, mark, repair")
 
     player_id = str(event.get("player_id") or "player_local").strip()
     if not player_id:
@@ -227,6 +306,7 @@ def _apply_event(
     target_bucket: dict[str, Any],
 ) -> dict[str, Any]:
     event_type = event["event_type"]
+    player_id = event["player_id"]
     target = event["target"]
     payload = event["payload"]
     context = event["context"]
@@ -305,7 +385,7 @@ def _apply_event(
             "target_familiarity_delta": 1,
             "local_echo_added": True,
         }
-    else:
+    elif event_type == "mark":
         tag = str(payload.get("tag") or "").strip().lower()
         note = str(payload.get("note") or "").strip()
         player_state["action_state"] = "interacting"
@@ -336,6 +416,27 @@ def _apply_event(
         world_effects = {
             "mark_catalog_updated": True,
         }
+        place_legend = _build_place_legend(target_id, slice_bucket.get("marks", []))
+        if place_legend:
+            target_bucket["place_legend"] = place_legend
+
+    elif event_type == "repair":
+        note = str(payload.get("note") or "").strip()
+        repair_count = int(target_bucket.get("repair_count", 0)) + 1
+        target_bucket["repair_count"] = repair_count
+        contributions = target_bucket.setdefault("player_contributions", {})
+        contributions[player_id] = int(contributions.get(player_id, 0)) + 1
+        broadcast_hints.append(f"{target_id} 收到了一次修复贡献，当前总修复次数：{repair_count}。")
+        revealed_fields.append("repair_count")
+        ui_state_changes["action_state"] = "interacting"
+        player_effects = {"action_state": "interacting", "clarity_delta": 1}
+        place_effects = {"repair_contributed": True, "repair_count": repair_count}
+        world_effects = {"honor_board_updated": True}
+        if repair_count >= 2:
+            sorted_contributors = sorted(contributions.items(), key=lambda x: -x[1])
+            target_bucket["honor_board"] = [
+                {"player_id": pid, "contributions": cnt} for pid, cnt in sorted_contributors
+            ]
 
     target_bucket["last_event_type"] = event_type
     target_bucket["last_event_at"] = event["timestamp"]
@@ -366,6 +467,9 @@ def _apply_event(
         "marks": deepcopy([item for item in slice_bucket.get("marks", []) if item.get("target_id") == target_id][-5:]),
         "last_event_type": target_bucket.get("last_event_type"),
         "last_event_at": target_bucket.get("last_event_at"),
+        "place_legend": deepcopy(target_bucket.get("place_legend")),
+        "repair_count": int(target_bucket.get("repair_count", 0)),
+        "honor_board": deepcopy(target_bucket.get("honor_board", [])),
     }
 
     world_feedback = {
@@ -394,6 +498,7 @@ def _default_store_state() -> dict[str, Any]:
         "players": {},
         "slices": {},
         "events": [],
+        "taverns": {},
     }
 
 
@@ -463,6 +568,47 @@ def _build_feedback_summary(*, event_type: str, target_id: str) -> str:
     if event_type == "dwell":
         return f"你在 {target_id} 驻足，区域熟悉度与清明度发生了轻微变化。"
     return f"你为 {target_id} 留下了一枚私人标记。"
+
+
+_TAG_VIBE_LABELS: dict[str, str] = {
+    "safe": "安全感",
+    "uncanny": "诡异气息",
+    "warm_corner": "温暖角落",
+    "return_again": "值得回访",
+    "rain_friendly": "雨天友好",
+}
+
+_LEGEND_THRESHOLDS = (3, 5, 10)
+
+
+def _build_place_legend(target_id: str, marks: list[dict[str, Any]]) -> dict[str, Any] | None:
+    poi_marks = [m for m in marks if m.get("target_id") == target_id]
+    if len(poi_marks) < _LEGEND_THRESHOLDS[0]:
+        return None
+    tag_counts: dict[str, int] = {}
+    for m in poi_marks:
+        tag = m.get("tag", "")
+        if tag:
+            tag_counts[tag] = tag_counts.get(tag, 0) + 1
+    if not tag_counts:
+        return None
+    dominant_tag = max(tag_counts, key=lambda t: tag_counts[t])
+    dominant_vibe = _TAG_VIBE_LABELS.get(dominant_tag, dominant_tag)
+    total = len(poi_marks)
+    tier = "碎片" if total < _LEGEND_THRESHOLDS[1] else "传说" if total < _LEGEND_THRESHOLDS[2] else "史诗"
+    vibe_summary = "、".join(
+        f"{_TAG_VIBE_LABELS.get(t, t)}×{c}" for t, c in sorted(tag_counts.items(), key=lambda x: -x[1])
+    )
+    narrative = f"来往于此处的人们留下了 {total} 枚印记，这里散发着{dominant_vibe}的气息。"
+    return {
+        "target_id": target_id,
+        "tier": tier,
+        "dominant_vibe": dominant_vibe,
+        "tag_counts": tag_counts,
+        "vibe_summary": vibe_summary,
+        "narrative": narrative,
+        "mark_count": total,
+    }
 
 
 def _utc_now_iso() -> str:
