@@ -265,3 +265,242 @@ class PresetManager:
         del self.presets[preset_id]
         self.save()
         return True
+
+# ─── Runtime presets (Tavern role-play bundles) ────────────────────────────────
+
+from copy import deepcopy as _deepcopy
+
+from .output_rules import default_output_rules, normalize_output_rules
+from .prompt_blocks import default_prompt_blocks, normalize_prompt_blocks
+
+
+RUNTIME_PRESET_VERSION = "1.0"
+
+
+def _coerce_float(value: Any, fallback: float, *, minimum: float, maximum: float) -> float:
+    try:
+        number = float(value)
+    except (TypeError, ValueError):
+        return fallback
+    return max(minimum, min(maximum, number))
+
+
+def _coerce_int(value: Any, fallback: int, *, minimum: int, maximum: int) -> int:
+    try:
+        number = int(value)
+    except (TypeError, ValueError):
+        return fallback
+    return max(minimum, min(maximum, number))
+
+
+def safe_llm_preset_config(value: Any) -> dict[str, Any]:
+    """Return model settings that are safe to serialize/share.
+
+    API keys, token usage, and unknown provider-specific fields are omitted.
+    """
+
+    if not isinstance(value, dict):
+        return {}
+
+    config: dict[str, Any] = {}
+    backend = str(value.get("backend") or "").strip()
+    model = str(value.get("model") or "").strip()
+    base_url = str(value.get("base_url") or "").strip()
+    if backend:
+        config["backend"] = backend
+    if model:
+        config["model"] = model
+    if base_url:
+        config["base_url"] = base_url
+    if "temperature" in value:
+        config["temperature"] = _coerce_float(value.get("temperature"), 0.8, minimum=0.0, maximum=2.0)
+    if "max_tokens" in value:
+        config["max_tokens"] = _coerce_int(value.get("max_tokens"), 4096, minimum=256, maximum=200000)
+    if "top_p" in value:
+        config["top_p"] = _coerce_float(value.get("top_p"), 0.95, minimum=0.01, maximum=1.0)
+    return config
+
+
+def safe_memory_policy(value: Any) -> dict[str, Any]:
+    """Normalize memory policy metadata without forcing a storage strategy yet."""
+
+    if not isinstance(value, dict):
+        return {}
+
+    allowed_modes = {"off", "visitor_state", "structured", "balanced", "long_context"}
+    mode = str(value.get("mode") or "visitor_state").strip()
+    if mode not in allowed_modes:
+        mode = "visitor_state"
+    return {
+        "mode": mode,
+        "short_term": bool(value.get("short_term", True)),
+        "mid_term": bool(value.get("mid_term", mode in {"structured", "balanced", "long_context"})),
+        "long_term": bool(value.get("long_term", mode in {"balanced", "long_context"})),
+        "budget_tokens": _coerce_int(value.get("budget_tokens"), 1200, minimum=0, maximum=200000),
+        "notes": str(value.get("notes") or "").strip()[:1000],
+    }
+
+
+def _runtime_preset(
+    *,
+    preset_id: str,
+    name: str,
+    description: str,
+    model_hint: str,
+    llm_config: dict[str, Any],
+    memory_policy: dict[str, Any],
+    prompt_blocks: list[dict[str, Any]] | None = None,
+    output_rules: list[dict[str, Any]] | None = None,
+) -> dict[str, Any]:
+    return {
+        "id": preset_id,
+        "name": name,
+        "description": description,
+        "version": RUNTIME_PRESET_VERSION,
+        "built_in": True,
+        "model_hint": model_hint,
+        "llm_config": safe_llm_preset_config(llm_config),
+        "prompt_blocks": normalize_prompt_blocks(prompt_blocks if prompt_blocks is not None else default_prompt_blocks()),
+        "memory_policy": safe_memory_policy(memory_policy),
+        "output_rules": normalize_output_rules(output_rules if output_rules is not None else default_output_rules()),
+    }
+
+
+def _blocks_with_disabled(*block_ids: str) -> list[dict[str, Any]]:
+    disabled = set(block_ids)
+    blocks = default_prompt_blocks()
+    for block in blocks:
+        if block.get("id") in disabled:
+            block["enabled"] = False
+    return blocks
+
+
+def default_runtime_presets() -> list[dict[str, Any]]:
+    """Built-in runtime presets shown to tavern owners."""
+
+    return [
+        _runtime_preset(
+            preset_id="balanced-roleplay",
+            name="平衡剧情",
+            description="适合多数中文角色扮演：保留世界书、访客关系和基础护栏，成本与稳定性平衡。",
+            model_hint="DeepSeek / OpenAI 兼容",
+            llm_config={
+                "backend": "openai",
+                "model": "gpt-4o-mini",
+                "temperature": 0.9,
+                "max_tokens": 4096,
+                "top_p": 0.95,
+            },
+            memory_policy={
+                "mode": "visitor_state",
+                "short_term": True,
+                "mid_term": False,
+                "long_term": False,
+                "budget_tokens": 900,
+                "notes": "使用当前访客关系和最近会话事实，不启用复杂记忆。",
+            },
+        ),
+        _runtime_preset(
+            preset_id="low-cost-fast",
+            name="低成本快速",
+            description="更短回复预算，关闭作者备注，适合公开酒馆的轻量接待。",
+            model_hint="DeepSeek / 本地小模型",
+            llm_config={
+                "backend": "deepseek",
+                "model": "deepseek-chat",
+                "base_url": "https://api.deepseek.com/v1",
+                "temperature": 1.0,
+                "max_tokens": 2048,
+                "top_p": 0.92,
+            },
+            memory_policy={
+                "mode": "visitor_state",
+                "short_term": True,
+                "mid_term": False,
+                "long_term": False,
+                "budget_tokens": 600,
+                "notes": "优先省 token，只保留轻量访客连续性。",
+            },
+            prompt_blocks=_blocks_with_disabled("author_note"),
+        ),
+        _runtime_preset(
+            preset_id="long-context-lore",
+            name="长上下文世界书",
+            description="提高回复预算并保留完整世界书段落，适合设定较多、剧情推进较慢的酒馆。",
+            model_hint="Claude / Gemini / OpenRouter 长上下文",
+            llm_config={
+                "backend": "openai-compatible",
+                "model": "anthropic/claude-3.5-haiku",
+                "base_url": "https://openrouter.ai/api/v1",
+                "temperature": 0.85,
+                "max_tokens": 12000,
+                "top_p": 0.9,
+            },
+            memory_policy={
+                "mode": "long_context",
+                "short_term": True,
+                "mid_term": True,
+                "long_term": True,
+                "budget_tokens": 2400,
+                "notes": "为后续结构化长期记忆和更多世界书预算预留空间。",
+            },
+        ),
+    ]
+
+
+def normalize_runtime_presets(value: Any) -> list[dict[str, Any]]:
+    if not isinstance(value, list):
+        return []
+
+    presets: list[dict[str, Any]] = []
+    seen: set[str] = set()
+    for index, raw_preset in enumerate(value):
+        if not isinstance(raw_preset, dict):
+            continue
+
+        preset_id = str(raw_preset.get("id") or f"runtime_preset_{index + 1}").strip()
+        if not preset_id:
+            preset_id = f"runtime_preset_{index + 1}"
+        if preset_id in seen:
+            preset_id = f"{preset_id}_{index + 1}"
+        seen.add(preset_id)
+
+        name = str(raw_preset.get("name") or raw_preset.get("title") or preset_id).strip() or "未命名预设"
+        presets.append(
+            {
+                "id": preset_id,
+                "name": name,
+                "description": str(raw_preset.get("description") or "").strip(),
+                "version": str(raw_preset.get("version") or RUNTIME_PRESET_VERSION).strip() or RUNTIME_PRESET_VERSION,
+                "built_in": bool(raw_preset.get("built_in", False)),
+                "model_hint": str(raw_preset.get("model_hint") or raw_preset.get("best_for") or "").strip(),
+                "llm_config": safe_llm_preset_config(raw_preset.get("llm_config") or raw_preset.get("config")),
+                "prompt_blocks": normalize_prompt_blocks(raw_preset.get("prompt_blocks")),
+                "memory_policy": safe_memory_policy(raw_preset.get("memory_policy")),
+                "output_rules": normalize_output_rules(raw_preset.get("output_rules")),
+            }
+        )
+
+    return presets
+
+
+def custom_runtime_presets(value: Any) -> list[dict[str, Any]]:
+    """Normalize and keep only owner-created presets."""
+
+    return [preset for preset in normalize_runtime_presets(value) if not preset.get("built_in")]
+
+
+def combine_runtime_presets(custom_presets: Any) -> list[dict[str, Any]]:
+    """Return built-ins followed by owner-created presets."""
+
+    return [*default_runtime_presets(), *custom_runtime_presets(custom_presets)]
+
+
+def find_runtime_preset(presets: list[dict[str, Any]], preset_id: str) -> dict[str, Any] | None:
+    needle = str(preset_id or "").strip()
+    if not needle:
+        return None
+    for preset in presets:
+        if preset.get("id") == needle:
+            return _deepcopy(preset)
+    return None

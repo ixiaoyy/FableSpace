@@ -55,8 +55,103 @@ def _clamp_chat_history_limit(value: Any, *, default: int = 50, maximum: int = 5
         return default
     return max(1, min(maximum, limit))
 
+
+def _world_info_keywords(value: Any) -> list[str]:
+    if isinstance(value, list):
+        return [str(item).strip() for item in value if str(item).strip()]
+    if isinstance(value, str):
+        return [item.strip() for item in value.replace("，", ",").replace("；", ",").replace(";", ",").split(",") if item.strip()]
+    return []
+
+
+def _world_info_order(entry: dict[str, Any]) -> int:
+    try:
+        return int(entry.get("order", entry.get("insertion_order", 100)))
+    except (TypeError, ValueError):
+        return 100
+
+
+def _world_info_probability(entry: dict[str, Any]) -> int:
+    try:
+        value = int(entry.get("probability", 100))
+    except (TypeError, ValueError):
+        value = 100
+    return max(0, min(100, value))
+
+
+def _world_info_title(entry: dict[str, Any]) -> str:
+    keys = _world_info_keywords(entry.get("keys"))
+    secondary = _world_info_keywords(entry.get("keys_secondary"))
+    if entry.get("constant") and not keys:
+        return "常驻设定"
+    return (keys or secondary or [entry.get("id") or "未命名条目"])[0]
+
+
+TAVERN_PACKAGE_TYPE = "fablemap_tavern_package"
+TAVERN_PACKAGE_VERSION = "1.0"
+
+
+def _safe_llm_preset(value: Any) -> dict[str, Any]:
+    if not isinstance(value, dict):
+        return {}
+    allowed = (
+        "backend",
+        "model",
+        "base_url",
+        "temperature",
+        "max_tokens",
+        "top_p",
+        "frequency_penalty",
+        "presence_penalty",
+    )
+    return {key: value[key] for key in allowed if key in value and value[key] not in (None, "")}
+
+
+def _safe_tavern_package_tavern(value: dict[str, Any]) -> dict[str, Any]:
+    allowed = (
+        "id",
+        "name",
+        "description",
+        "lat",
+        "lon",
+        "address",
+        "access",
+        "status",
+        "scene_prompt",
+    )
+    tavern = {key: value.get(key) for key in allowed if key in value}
+    tavern["llm_config"] = _safe_llm_preset(value.get("llm_config"))
+    return tavern
+
+
+def _package_list(package: dict[str, Any], tavern_payload: dict[str, Any], key: str) -> list[Any]:
+    value = package.get(key)
+    if isinstance(value, list):
+        return value
+    value = tavern_payload.get(key)
+    return value if isinstance(value, list) else []
+
+
+def _package_dict(package: dict[str, Any], tavern_payload: dict[str, Any], key: str) -> dict[str, Any]:
+    value = package.get(key)
+    if isinstance(value, dict):
+        return value
+    value = tavern_payload.get(key)
+    return value if isinstance(value, dict) else {}
+
 from fablemap.api_service import build_health_payload, build_meta_payload, build_nearby_payload
 from fablemap.llm_clients import create_client, LLMError
+from fablemap.output_rules import apply_output_rules, default_output_rules, normalize_output_rules
+from fablemap.presets import (
+    combine_runtime_presets,
+    custom_runtime_presets,
+    default_runtime_presets,
+    find_runtime_preset,
+    normalize_runtime_presets,
+    safe_llm_preset_config,
+    safe_memory_policy,
+)
+from fablemap.prompt_blocks import default_prompt_blocks, normalize_prompt_blocks
 from fablemap.prompt_builder import ChatMessage as PromptChatMessage, PromptBuildConfig, PromptBuilder
 from fablemap.application.web_payloads import build_behavior_insights, build_orchestrate_payload, record_memory_graph_event
 from fablemap.nearby import generate_nearby_preview
@@ -383,6 +478,347 @@ class WebService:
         """Compatibility wrapper for legacy router endpoints."""
         return self.update_tavern_payload(tavern_id, data, user_id)
 
+    def test_world_info_payload(self, tavern_id: str, data: dict[str, Any], user_id: str = "") -> dict[str, Any]:
+        """Deterministically test which WorldInfo entries a message would hit.
+
+        This does not call an LLM and does not persist anything. The caller may
+        pass a temporary ``world_info`` list to test unsaved editor changes.
+        """
+        tavern = self.get_tavern_payload(tavern_id, user_id)
+        if tavern.get("owner_id") and tavern.get("owner_id") != user_id:
+            raise HTTPException(status_code=403, detail="你不是此酒馆的主人")
+        payload = data or {}
+        message = str(payload.get("message") or "")
+        recent_messages = payload.get("recent_messages") or []
+        if not isinstance(recent_messages, list):
+            recent_messages = []
+
+        parts: list[str] = [message]
+        if payload.get("include_tavern_context"):
+            parts.extend([
+                str(tavern.get("name") or ""),
+                str(tavern.get("description") or ""),
+                str(tavern.get("scene_prompt") or ""),
+            ])
+        for item in recent_messages:
+            if isinstance(item, dict):
+                parts.append(str(item.get("content") or item.get("message") or ""))
+            else:
+                parts.append(str(item))
+        search_text = "\n".join(part for part in parts if part).lower()
+
+        source_entries = payload.get("world_info")
+        if not isinstance(source_entries, list):
+            source_entries = tavern.get("world_info") or []
+
+        entries: list[dict[str, Any]] = []
+        for index, raw_entry in enumerate(source_entries):
+            if not isinstance(raw_entry, dict):
+                continue
+            keys = _world_info_keywords(raw_entry.get("keys"))
+            keys_secondary = _world_info_keywords(raw_entry.get("keys_secondary"))
+            primary_hits = [key for key in keys if key.lower() in search_text]
+            secondary_hits = [key for key in keys_secondary if key.lower() in search_text]
+            constant = bool(raw_entry.get("constant"))
+            disabled = bool(raw_entry.get("disable"))
+            selective = bool(raw_entry.get("selective", True))
+            probability = _world_info_probability(raw_entry)
+            keyword_matched = constant or bool(primary_hits or (secondary_hits if selective else []))
+            if not selective and not constant:
+                keyword_matched = bool(primary_hits)
+
+            matched = (not disabled) and keyword_matched and probability > 0
+            if disabled:
+                status = "disabled"
+            elif not keyword_matched:
+                status = "not_matched"
+            elif probability <= 0:
+                status = "probability_zero"
+            elif probability < 100:
+                status = "matched_with_probability"
+            else:
+                status = "matched"
+
+            content = str(raw_entry.get("content") or "")
+            order = _world_info_order(raw_entry)
+            entries.append({
+                "id": raw_entry.get("id") or f"world_info_{index}",
+                "title": _world_info_title(raw_entry),
+                "matched": matched,
+                "keyword_matched": keyword_matched,
+                "matched_keys": primary_hits,
+                "matched_secondary_keys": secondary_hits,
+                "keys": keys,
+                "keys_secondary": keys_secondary,
+                "constant": constant,
+                "selective": selective,
+                "disable": disabled,
+                "depth": raw_entry.get("depth", 4),
+                "order": order,
+                "insertion_order": order,
+                "probability": probability,
+                "status": status,
+                "content_preview": content[:160],
+            })
+
+        entries.sort(key=lambda item: (not item["matched"], item["order"], str(item["title"])))
+        matches = [entry for entry in entries if entry["matched"]]
+        return {
+            "tavern_id": tavern_id,
+            "message": message,
+            "entry_count": len(entries),
+            "matched_count": len(matches),
+            "matches": matches,
+            "entries": entries,
+            "scanned_recent_count": len(recent_messages),
+            "include_tavern_context": bool(payload.get("include_tavern_context")),
+        }
+
+    def get_output_rules_payload(self, tavern_id: str, user_id: str = "") -> dict[str, Any]:
+        """Return owner-editable output cleanup rules for a tavern."""
+
+        tavern = self.tavern_store.get_tavern(tavern_id)
+        if not tavern:
+            raise HTTPException(status_code=404, detail="酒馆不存在")
+        if tavern.owner_id and tavern.owner_id != user_id:
+            raise HTTPException(status_code=403, detail="你不是此酒馆的主人")
+
+        rules = normalize_output_rules(tavern.output_rules)
+        if not rules:
+            rules = default_output_rules()
+        return {
+            "tavern_id": tavern_id,
+            "rules": rules,
+            "default_rules": default_output_rules(),
+        }
+
+    def save_output_rules_payload(self, tavern_id: str, data: dict[str, Any], user_id: str = "") -> dict[str, Any]:
+        """Persist output cleanup rules for a tavern."""
+
+        tavern = self.tavern_store.get_tavern(tavern_id)
+        if not tavern:
+            raise HTTPException(status_code=404, detail="酒馆不存在")
+        if tavern.owner_id and tavern.owner_id != user_id:
+            raise HTTPException(status_code=403, detail="你不是此酒馆的主人")
+
+        payload = data or {}
+        source_rules = payload.get("rules", payload.get("output_rules"))
+        rules = normalize_output_rules(source_rules)
+        tavern.output_rules = rules
+        tavern = self.tavern_store.update_tavern(tavern)
+        return {
+            "ok": True,
+            "tavern_id": tavern_id,
+            "rules": tavern.output_rules,
+            "tavern": tavern.to_dict_private(user_id),
+        }
+
+    def test_output_rules_payload(self, tavern_id: str, data: dict[str, Any], user_id: str = "") -> dict[str, Any]:
+        """Apply output cleanup rules to a sample text without saving."""
+
+        tavern = self.tavern_store.get_tavern(tavern_id)
+        if not tavern:
+            raise HTTPException(status_code=404, detail="酒馆不存在")
+        if tavern.owner_id and tavern.owner_id != user_id:
+            raise HTTPException(status_code=403, detail="你不是此酒馆的主人")
+
+        payload = data or {}
+        source_rules = payload.get("rules", payload.get("output_rules", tavern.output_rules))
+        result = apply_output_rules(payload.get("text", ""), source_rules)
+        return {
+            "tavern_id": tavern_id,
+            **result,
+        }
+
+    def get_prompt_blocks_payload(self, tavern_id: str, user_id: str = "") -> dict[str, Any]:
+        """Return owner-editable Prompt Blocks for a tavern."""
+
+        tavern = self.tavern_store.get_tavern(tavern_id)
+        if not tavern:
+            raise HTTPException(status_code=404, detail="酒馆不存在")
+        if tavern.owner_id and tavern.owner_id != user_id:
+            raise HTTPException(status_code=403, detail="你不是此酒馆的主人")
+
+        blocks = normalize_prompt_blocks(tavern.prompt_blocks)
+        if not blocks:
+            blocks = default_prompt_blocks()
+        return {
+            "tavern_id": tavern_id,
+            "blocks": blocks,
+            "default_blocks": default_prompt_blocks(),
+        }
+
+    def save_prompt_blocks_payload(self, tavern_id: str, data: dict[str, Any], user_id: str = "") -> dict[str, Any]:
+        """Persist Prompt Blocks for a tavern."""
+
+        tavern = self.tavern_store.get_tavern(tavern_id)
+        if not tavern:
+            raise HTTPException(status_code=404, detail="酒馆不存在")
+        if tavern.owner_id and tavern.owner_id != user_id:
+            raise HTTPException(status_code=403, detail="你不是此酒馆的主人")
+
+        payload = data or {}
+        blocks = normalize_prompt_blocks(payload.get("blocks", payload.get("prompt_blocks")))
+        tavern.prompt_blocks = blocks
+        tavern = self.tavern_store.update_tavern(tavern)
+        return {
+            "ok": True,
+            "tavern_id": tavern_id,
+            "blocks": tavern.prompt_blocks,
+            "tavern": tavern.to_dict_private(user_id),
+        }
+
+    def preview_prompt_blocks_payload(self, tavern_id: str, data: dict[str, Any], user_id: str = "") -> dict[str, Any]:
+        """Build a prompt preview with Prompt Blocks without calling an LLM."""
+
+        tavern = self.tavern_store.get_tavern(tavern_id)
+        if not tavern:
+            raise HTTPException(status_code=404, detail="酒馆不存在")
+        if tavern.owner_id and tavern.owner_id != user_id:
+            raise HTTPException(status_code=403, detail="你不是此酒馆的主人")
+
+        payload = data or {}
+        blocks = normalize_prompt_blocks(payload.get("blocks", payload.get("prompt_blocks", tavern.prompt_blocks)))
+        if not blocks:
+            blocks = default_prompt_blocks()
+
+        character_id = str(payload.get("character_id") or "").strip()
+        character = next((c for c in tavern.characters if c.id == character_id), None)
+        if not character:
+            character = tavern.characters[0] if tavern.characters else None
+        if not character:
+            raise HTTPException(status_code=400, detail="请先为酒馆添加角色")
+
+        message = str(payload.get("message") or "我想了解这里。")
+        visitor_name = _normalize_visitor_name(payload.get("visitor_name")) or "旅人"
+        config = PromptBuildConfig(
+            tavern_name=tavern.name,
+            tavern_scene_prompt=tavern.scene_prompt or "",
+            char_name=character.name,
+            char_personality=character.personality or "",
+            char_scenario=character.scenario or "",
+            char_first_mes=character.first_mes or "",
+            char_system_prompt=character.system_prompt or "",
+            user_name=visitor_name,
+            visitor_visit_count=int(payload.get("visitor_visit_count") or 0),
+            visitor_relationship_stage=str(payload.get("visitor_relationship_stage") or ""),
+            visitor_relationship_strength=float(payload.get("visitor_relationship_strength") or 0.0),
+            visitor_message_count=int(payload.get("visitor_message_count") or 0),
+            world_info_entries=[e.to_dict() if hasattr(e, "to_dict") else e for e in tavern.world_info],
+            prompt_blocks=blocks,
+            history_max_messages=8,
+        )
+        builder = PromptBuilder(config)
+        prompt_result = builder.build([], message)
+        messages = prompt_result.get("messages", [])
+        return {
+            "tavern_id": tavern_id,
+            "character_id": character.id,
+            "character_name": character.name,
+            "blocks": blocks,
+            "messages": messages,
+            "message_count": len(messages),
+        }
+
+    def get_runtime_presets_payload(self, tavern_id: str, user_id: str = "") -> dict[str, Any]:
+        """Return built-in and owner-created runtime presets for a tavern."""
+
+        tavern = self.tavern_store.get_tavern(tavern_id)
+        if not tavern:
+            raise HTTPException(status_code=404, detail="酒馆不存在")
+        if tavern.owner_id and tavern.owner_id != user_id:
+            raise HTTPException(status_code=403, detail="你不是此酒馆的主人")
+
+        custom_presets = custom_runtime_presets(tavern.runtime_presets)
+        return {
+            "tavern_id": tavern_id,
+            "active_preset_id": tavern.active_preset_id,
+            "presets": combine_runtime_presets(custom_presets),
+            "custom_presets": custom_presets,
+            "default_presets": default_runtime_presets(),
+            "memory_policy": safe_memory_policy(tavern.memory_policy),
+        }
+
+    def save_runtime_presets_payload(self, tavern_id: str, data: dict[str, Any], user_id: str = "") -> dict[str, Any]:
+        """Persist owner-created runtime presets for a tavern."""
+
+        tavern = self.tavern_store.get_tavern(tavern_id)
+        if not tavern:
+            raise HTTPException(status_code=404, detail="酒馆不存在")
+        if tavern.owner_id and tavern.owner_id != user_id:
+            raise HTTPException(status_code=403, detail="你不是此酒馆的主人")
+
+        payload = data or {}
+        custom_presets = custom_runtime_presets(payload.get("presets", payload.get("runtime_presets")))
+        tavern.runtime_presets = custom_presets
+        if "active_preset_id" in payload:
+            tavern.active_preset_id = str(payload.get("active_preset_id") or "").strip()
+        tavern = self.tavern_store.update_tavern(tavern)
+        return {
+            "ok": True,
+            "tavern_id": tavern_id,
+            "active_preset_id": tavern.active_preset_id,
+            "presets": combine_runtime_presets(tavern.runtime_presets),
+            "custom_presets": custom_runtime_presets(tavern.runtime_presets),
+            "tavern": tavern.to_dict_private(user_id),
+        }
+
+    def apply_runtime_preset_payload(self, tavern_id: str, data: dict[str, Any], user_id: str = "") -> dict[str, Any]:
+        """Apply a runtime preset to LLM params, Prompt Blocks, memory policy, and output rules."""
+
+        tavern = self.tavern_store.get_tavern(tavern_id)
+        if not tavern:
+            raise HTTPException(status_code=404, detail="酒馆不存在")
+        if tavern.owner_id and tavern.owner_id != user_id:
+            raise HTTPException(status_code=403, detail="你不是此酒馆的主人")
+
+        payload = data or {}
+        preset: dict[str, Any] | None = None
+        if isinstance(payload.get("preset"), dict):
+            normalized = normalize_runtime_presets([payload["preset"]])
+            preset = normalized[0] if normalized else None
+        if preset is None:
+            preset = find_runtime_preset(
+                combine_runtime_presets(tavern.runtime_presets),
+                str(payload.get("preset_id") or payload.get("id") or ""),
+            )
+        if preset is None:
+            raise HTTPException(status_code=404, detail="运行预设不存在")
+
+        llm_config = safe_llm_preset_config(preset.get("llm_config"))
+        if llm_config:
+            current_private = tavern.llm_config.to_dict_private()
+            preset_backend = llm_config.get("backend") or current_private.get("backend")
+            preserve_key = preset_backend == current_private.get("backend")
+            llm_config = {
+                **current_private,
+                **llm_config,
+                "api_key": current_private.get("api_key", "") if preserve_key else "",
+                "token_used": current_private.get("token_used", 0),
+            }
+
+        update_payload: dict[str, Any] = {
+            "active_preset_id": preset.get("id") or "",
+            "memory_policy": safe_memory_policy(preset.get("memory_policy")),
+        }
+        if llm_config:
+            update_payload["llm_config"] = llm_config
+        prompt_blocks = normalize_prompt_blocks(preset.get("prompt_blocks"))
+        if prompt_blocks:
+            update_payload["prompt_blocks"] = prompt_blocks
+        output_rules = normalize_output_rules(preset.get("output_rules"))
+        if output_rules:
+            update_payload["output_rules"] = output_rules
+
+        tavern_payload = self.update_tavern_payload(tavern_id, update_payload, user_id)
+        return {
+            "ok": True,
+            "tavern_id": tavern_id,
+            "active_preset_id": preset.get("id") or "",
+            "preset": preset,
+            "tavern": tavern_payload,
+        }
+
     def delete_tavern_payload(self, tavern_id: str, user_id: str = "") -> dict[str, str]:
         """Delete a tavern"""
         return self.tavern_service.delete_tavern(tavern_id, user_id)
@@ -464,6 +900,39 @@ class WebService:
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"语音合成失败: {e}")
 
+    def transcribe_voice_payload(
+        self,
+        tavern_id: str,
+        audio_bytes: bytes,
+        audio_format: str = "webm",
+        user_id: str = "",
+    ) -> dict[str, Any]:
+        """Transcribe uploaded audio using the tavern's STT config (Whisper/FasterWhisper)."""
+        tavern = self.tavern_store.get_tavern(tavern_id)
+        if not tavern:
+            raise HTTPException(status_code=404, detail="酒馆不存在")
+
+        vc = self.tavern_store.get_voice_config(tavern_id)
+        if not vc or not vc.enabled:
+            raise HTTPException(status_code=400, detail="语音未启用")
+        if vc.stt_provider == "browser":
+            raise HTTPException(status_code=400, detail="浏览器 STT 无需上传到后端")
+
+        # Import STT service
+        from fablemap.stt_service import transcribe_bytes
+
+        try:
+            text = transcribe_bytes(
+                audio_bytes,
+                format=audio_format,
+                provider=vc.stt_provider,
+                model=vc.stt_model or "base",
+                language="",  # auto-detect
+            )
+            return {"text": text, "provider": vc.stt_provider}
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"语音转写失败: {e}")
+
     def enter_tavern_payload(
         self, tavern_id: str, password: str = "", user_id: str = ""
     ) -> dict[str, Any]:
@@ -521,6 +990,124 @@ class WebService:
     ) -> dict[str, Any]:
         """Import a SillyTavern character card"""
         return self.tavern_service.import_character_card(tavern_id, card_data, user_id)
+
+    def export_tavern_package_payload(self, tavern_id: str, user_id: str = "") -> dict[str, Any]:
+        """Export a shareable tavern package without credentials or visitor data."""
+        tavern = self.tavern_store.get_tavern(tavern_id)
+        if not tavern:
+            raise HTTPException(status_code=404, detail="酒馆不存在")
+        if tavern.owner_id and tavern.owner_id != user_id:
+            raise HTTPException(status_code=403, detail="你不是此酒馆的主人")
+
+        tavern_payload = tavern.to_dict()
+        safe_tavern = _safe_tavern_package_tavern(tavern_payload)
+        safe_tavern.pop("password_hash", None)
+        llm_preset = _safe_llm_preset(tavern_payload.get("llm_config"))
+        return {
+            "type": TAVERN_PACKAGE_TYPE,
+            "version": TAVERN_PACKAGE_VERSION,
+            "exported_at": _utc_now_iso(),
+            "source": {
+                "tavern_id": tavern.id,
+                "author_id": tavern.owner_id,
+            },
+            "tavern": safe_tavern,
+            "characters": tavern_payload.get("characters", []),
+            "world_info": tavern_payload.get("world_info", []),
+            "groups": tavern_payload.get("groups", []),
+            "bookmarks": tavern_payload.get("bookmarks", []),
+            "chat_templates": tavern_payload.get("chat_templates", []),
+            "output_rules": tavern_payload.get("output_rules") or default_output_rules(),
+            "prompt_blocks": tavern_payload.get("prompt_blocks") or default_prompt_blocks(),
+            "runtime_presets": custom_runtime_presets(tavern_payload.get("runtime_presets")),
+            "default_runtime_presets": default_runtime_presets(),
+            "active_preset_id": tavern_payload.get("active_preset_id", ""),
+            "prompt_preset": {
+                "llm_config": llm_preset,
+            },
+            "memory_policy": safe_memory_policy(tavern_payload.get("memory_policy")),
+            "voice_config": tavern_payload.get("voice_config", {}),
+            "cover": tavern_payload.get("cover", ""),
+        }
+
+    def import_tavern_package_payload(self, data: dict[str, Any], user_id: str = "") -> dict[str, Any]:
+        """Import a shareable tavern package as a new tavern at a chosen coordinate."""
+        payload = data or {}
+        package = payload.get("package") if isinstance(payload.get("package"), dict) else payload
+        if not isinstance(package, dict):
+            raise HTTPException(status_code=400, detail="package is required")
+        if package.get("type") != TAVERN_PACKAGE_TYPE:
+            raise HTTPException(status_code=400, detail="不支持的酒馆包类型")
+
+        tavern_payload = package.get("tavern") if isinstance(package.get("tavern"), dict) else {}
+        if not tavern_payload:
+            raise HTTPException(status_code=400, detail="酒馆包缺少 tavern 数据")
+
+        try:
+            lat = float(payload.get("lat", tavern_payload.get("lat")))
+            lon = float(payload.get("lon", tavern_payload.get("lon")))
+        except (TypeError, ValueError) as exc:
+            raise HTTPException(status_code=400, detail="导入酒馆包时需要有效坐标") from exc
+
+        source_name = str(tavern_payload.get("name") or "导入酒馆").strip() or "导入酒馆"
+        tavern_id = str(payload.get("tavern_id") or f"tavern_{uuid.uuid4().hex[:12]}").strip()
+        raw_access = str(payload.get("access") or tavern_payload.get("access") or "private").strip()
+        access = raw_access if raw_access in {"public", "private", "password"} else "private"
+        if access == "password":
+            access = "private"
+
+        create_payload = {
+            "id": tavern_id,
+            "name": str(payload.get("name") or source_name).strip() or source_name,
+            "description": tavern_payload.get("description", ""),
+            "lat": lat,
+            "lon": lon,
+            "address": payload.get("address", tavern_payload.get("address", "")),
+            "access": access,
+            "scene_prompt": tavern_payload.get("scene_prompt", ""),
+        }
+        llm_preset = _safe_llm_preset(
+            _package_dict(package, tavern_payload, "prompt_preset").get("llm_config")
+            or tavern_payload.get("llm_config")
+        )
+        if llm_preset:
+            create_payload["llm_config"] = llm_preset
+
+        created = self.create_tavern_payload(create_payload, owner_id=user_id)
+
+        update_payload = {
+            "characters": _package_list(package, tavern_payload, "characters"),
+            "world_info": _package_list(package, tavern_payload, "world_info"),
+            "groups": _package_list(package, tavern_payload, "groups"),
+            "bookmarks": _package_list(package, tavern_payload, "bookmarks"),
+            "chat_templates": _package_list(package, tavern_payload, "chat_templates"),
+            "output_rules": _package_list(package, tavern_payload, "output_rules"),
+            "prompt_blocks": _package_list(package, tavern_payload, "prompt_blocks"),
+            "runtime_presets": _package_list(package, tavern_payload, "runtime_presets"),
+            "active_preset_id": str(package.get("active_preset_id") or tavern_payload.get("active_preset_id") or ""),
+            "memory_policy": _package_dict(package, tavern_payload, "memory_policy"),
+        }
+        if llm_preset:
+            update_payload["llm_config"] = llm_preset
+
+        imported = self.update_tavern_payload(created["id"], update_payload, user_id)
+        voice_config = _package_dict(package, tavern_payload, "voice_config")
+        if voice_config:
+            try:
+                self.save_voice_config_payload(imported["id"], voice_config, user_id)
+                imported = self.get_tavern_payload(imported["id"], user_id)
+            except HTTPException:
+                raise
+            except Exception:
+                logger.exception("Failed to import voice_config for tavern package %s", imported["id"])
+
+        return {
+            "ok": True,
+            "tavern_id": imported["id"],
+            "tavern": imported,
+            "characters": len(imported.get("characters", [])),
+            "world_info": len(imported.get("world_info", [])),
+        }
 
     def list_tavern_backups(self, tavern_id: str = "") -> dict[str, Any]:
         backup_dir = self.settings.output_root / "backups"
@@ -777,6 +1364,7 @@ class WebService:
             visitor_last_visit=prompt_visitor_state.last_visit if prompt_visitor_state else "",
             visitor_message_count=visitor_message_count,
             world_info_entries=[e.to_dict() if hasattr(e, "to_dict") else e for e in tavern.world_info],
+            prompt_blocks=normalize_prompt_blocks(tavern.prompt_blocks),
             output_format=output_format,
             history_max_messages=20,
         )
@@ -814,6 +1402,15 @@ class WebService:
                 technical_detail=str(e),
             )
 
+        output_rule_result = apply_output_rules(response_text, tavern.output_rules)
+        response_text = output_rule_result["text"]
+        if output_rule_result.get("errors"):
+            logger.warning(
+                "Output rule errors for tavern %s: %s",
+                tavern_id,
+                output_rule_result.get("errors"),
+            )
+
         # Save messages
         now = _utc_now_iso()
         self.tavern_store.add_chat_message(
@@ -845,6 +1442,7 @@ class WebService:
         token_count = self._count_tokens(llm_config.backend, llm_config.model, message, response_text, response)
         self.tavern_store.add_token_usage(tavern_id, token_count)
 
+        updated_visitor_state = None
         if visitor_id:
             visitor_state = self.tavern_store.get_visitor_state(tavern_id, visitor_id) or VisitorState(
                 visitor_id=visitor_id,
@@ -863,6 +1461,7 @@ class WebService:
                 visitor_state.visit_count,
             )
             self.tavern_store.update_visitor_state(tavern_id, visitor_state)
+            updated_visitor_state = visitor_state
 
         return {
             "character_id": character_id,
@@ -871,7 +1470,13 @@ class WebService:
             "mood": "curious",
             "degraded": bool(degradation),
             "degradation": degradation,
+            "output_rules": {
+                "changed": output_rule_result.get("changed", False),
+                "applied": output_rule_result.get("applied", []),
+                "errors": output_rule_result.get("errors", []),
+            },
             "tavern_status": "closed" if degradation else tavern.status,
+            "visitor_state": updated_visitor_state.to_dict() if updated_visitor_state else None,
             "timestamp": _now_ms(),
         }
 

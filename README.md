@@ -129,8 +129,8 @@ http://127.0.0.1:8950/
 - [赛博酒馆平台设计](docs/FABLEMAP_TAVERN_PLATFORM.md) — 完整产品设计文档（主线）
 - [系统架构](docs/ARCHITECTURE.md) — 系统分层、模块边界、API 端点
 - [当前任务清单](docs/CURRENT_TASKS.md) — 实施阶段与优先级
+- [共享任务清单](docs/AI_SHARED_TASKLIST.md) — 轻量酒馆体验壳、记忆系统与后续可认领待办
 - [明确不做清单](docs/WHAT_NOT_TO_BUILD.md) — 边界约束
-- [当前任务清单](docs/CURRENT_TASKS.md) — 实施阶段与优先级
 - [文档索引](docs/INDEX.md) — 文档总览
 
 ## 一句话总结

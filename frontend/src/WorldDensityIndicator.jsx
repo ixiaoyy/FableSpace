@@ -63,7 +63,7 @@ export default function WorldDensityIndicator({ sliceId, playerId, lat, lon, onE
             ))}
           </div>
         ) : (
-          <p className="world-intel-empty">当前没有新的公共广播，地点切片仍在低声组织自己。</p>
+          <p className="world-intel-empty">当前没有新的公共广播，附近地点仍在低声组织自己。</p>
         )}
       </div>
     </section>

@@ -154,9 +154,9 @@ export default function TavernDetailPanel({
         {/* Owner info */}
         {isOwner && tavern?.llm_config?.token_used > 0 && (
           <div className="tavern-detail-section">
-            <label className="tavern-detail-label">Token 消耗</label>
+            <label className="tavern-detail-label">AI 消耗</label>
             <div className="tavern-detail-token-stat">
-              累计使用 <strong>{tavern.llm_config.token_used.toLocaleString()}</strong> tokens
+              累计使用 <strong>{tavern.llm_config.token_used.toLocaleString()}</strong> 用量单位
             </div>
           </div>
         )}

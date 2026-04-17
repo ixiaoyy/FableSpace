@@ -9,7 +9,8 @@
 3. [docs/FABLEMAP_TAVERN_PLATFORM.md](FABLEMAP_TAVERN_PLATFORM.md) - 赛博酒馆平台完整设计文档（主线）
 4. [docs/ARCHITECTURE.md](ARCHITECTURE.md) - 系统分层、模块边界、API 端点
 5. [docs/CURRENT_TASKS.md](CURRENT_TASKS.md) - 当前实施阶段与优先级
-6. [docs/WHAT_NOT_TO_BUILD.md](WHAT_NOT_TO_BUILD.md) - 明确不做清单
+6. [docs/AI_SHARED_TASKLIST.md](AI_SHARED_TASKLIST.md) - 轻量酒馆体验壳、记忆系统与后续共享待办
+7. [docs/WHAT_NOT_TO_BUILD.md](WHAT_NOT_TO_BUILD.md) - 明确不做清单
 
 ---
 
@@ -24,6 +25,7 @@
 | [docs/FABLEMAP_TAVERN_PLATFORM.md](FABLEMAP_TAVERN_PLATFORM.md) | 赛博酒馆平台完整设计文档 | ✅ **主线** |
 | [docs/ARCHITECTURE.md](ARCHITECTURE.md) | 系统分层、模块边界、API 端点 | ✅ 当前有效 |
 | [docs/CURRENT_TASKS.md](CURRENT_TASKS.md) | 当前实施阶段与优先级 | ✅ 当前有效 |
+| [docs/AI_SHARED_TASKLIST.md](AI_SHARED_TASKLIST.md) | VisionTale 参考后的共享任务清单：开店向导、预设、记忆、世界书、UGC 包 | ✅ 待实现 / 可认领 |
 | [docs/WHAT_NOT_TO_BUILD.md](WHAT_NOT_TO_BUILD.md) | 明确不做清单、约束边界 | ✅ 当前有效 |
 | [docs/WORLD_SCHEMA.md](WORLD_SCHEMA.md) | 世界数据结构（含酒馆数据模型） | ✅ 当前有效 |
 
@@ -64,7 +66,8 @@
 3. [docs/FABLEMAP_TAVERN_PLATFORM.md](FABLEMAP_TAVERN_PLATFORM.md)
 4. [docs/ARCHITECTURE.md](ARCHITECTURE.md)
 5. [docs/CURRENT_TASKS.md](CURRENT_TASKS.md)
-6. [docs/WHAT_NOT_TO_BUILD.md](WHAT_NOT_TO_BUILD.md)
+6. [docs/AI_SHARED_TASKLIST.md](AI_SHARED_TASKLIST.md)
+7. [docs/WHAT_NOT_TO_BUILD.md](WHAT_NOT_TO_BUILD.md)
 
 ---
 

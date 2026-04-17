@@ -1,16 +1,44 @@
 import { useState } from 'react'
 import { getDefaultTavernService, parseCharacterCard, extractCharacterCardFromPng, getTavernAccessLabel, getTavernAccessIcon } from './services/tavernService'
-import LLMConfigForm, { DEFAULT_MODELS, DEFAULT_BASE_URLS } from './LLMConfigForm'
+import LLMConfigForm, { DEFAULT_MODELS, DEFAULT_BASE_URLS, LLM_BACKENDS } from './LLMConfigForm'
 import CharacterEditor, { createEmptyCharacterDraft } from './CharacterEditor'
 
+const CREATE_STEPS = [
+  { id: 1, title: '地点', hint: '把酒馆钉在真实地图上', icon: '📍' },
+  { id: 2, title: '酒馆', hint: '名称、氛围与入口规则', icon: '🏮' },
+  { id: 3, title: '角色', hint: '导入或创建第一个 NPC', icon: '🎭' },
+  { id: 4, title: 'AI', hint: '选择模型配方，可稍后再配', icon: '🤖' },
+  { id: 5, title: '开门', hint: '检查摘要并创建', icon: '🚪' },
+]
+
+const TOTAL_STEPS = CREATE_STEPS.length
+const LOCAL_NO_KEY_BACKENDS = ['ollama', 'local', 'localai']
+
+function hasUsableLlmConfig(config = {}) {
+  return Boolean(
+    config.api_key
+    || (LOCAL_NO_KEY_BACKENDS.includes(config.backend) && config.base_url)
+  )
+}
+
+function getBackendLabel(backend) {
+  return LLM_BACKENDS.find((item) => item.id === backend)?.label || backend || '未选择'
+}
+
+function formatCoordinate(value) {
+  const parsed = Number.parseFloat(value)
+  return Number.isFinite(parsed) ? parsed.toFixed(6) : '未填写'
+}
+
 /**
- * TavernCreatePanel — 创建酒馆的面板
+ * TavernCreatePanel — 3 分钟创建酒馆向导
  *
- * 用户可以：
- * 1. 填写酒馆基本信息（名称、描述、位置）
- * 2. 设置访问权限（公开/密码/私人）
- * 3. 配置 LLM（可选，暂时跳过）
- * 4. 导入 SillyTavern 角色卡
+ * 用户可以在一个轻量流程内完成：
+ * 1. 选择地图锚点
+ * 2. 填写酒馆门牌与入口规则
+ * 3. 导入 / 手动创建角色
+ * 4. 选择 AI 配方并测试连接（可跳过）
+ * 5. 检查摘要并开门营业
  *
  * @param {string} ownerId - 当前店主/访客身份 ID，用于后端 owner 权限校验
  */
@@ -28,34 +56,94 @@ export default function TavernCreatePanel({
     lon: initialLon,
     access: 'public',
     password: '',
-    // 角色
     characters: [],
     scene_prompt: '',
   })
   const [llmFormData, setLlmFormData] = useState({
     backend: 'openai',
-    model: DEFAULT_MODELS['openai'],
+    model: DEFAULT_MODELS.openai,
     api_key: '',
-    base_url: DEFAULT_BASE_URLS['openai'] || '',
+    base_url: DEFAULT_BASE_URLS.openai || '',
     temperature: 0.8,
     max_tokens: 4096,
     top_p: 0.95,
   })
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
-  const [step, setStep] = useState(1) // 1: 基本信息, 2: LLM配置, 3: 角色导入
+  const [step, setStep] = useState(1)
   const [editingCharacterIndex, setEditingCharacterIndex] = useState(null)
 
   const tavernService = getDefaultTavernService()
+  const currentStep = CREATE_STEPS.find((item) => item.id === step) || CREATE_STEPS[0]
+  const hasLlmConfig = hasUsableLlmConfig(llmFormData)
 
   function updateField(key, value) {
     setForm((prev) => ({ ...prev, [key]: value }))
   }
 
+  function validateStep(stepToValidate) {
+    setError('')
+
+    if (stepToValidate === 1) {
+      const lat = Number.parseFloat(form.lat)
+      const lon = Number.parseFloat(form.lon)
+      if (!Number.isFinite(lat) || !Number.isFinite(lon)) {
+        setError('请填写有效的地图坐标')
+        return false
+      }
+      if (lat < -90 || lat > 90 || lon < -180 || lon > 180) {
+        setError('坐标范围不正确：纬度应在 -90 到 90，经度应在 -180 到 180')
+        return false
+      }
+    }
+
+    if (stepToValidate === 2) {
+      if (!form.name.trim()) {
+        setError('请填写酒馆名称')
+        return false
+      }
+      if (form.access === 'password' && !form.password.trim()) {
+        setError('请设置访问密码，或改为公开 / 私人酒馆')
+        return false
+      }
+    }
+
+    return true
+  }
+
+  function goToStep(targetStep) {
+    if (targetStep === step) return
+    if (targetStep < step) {
+      setError('')
+      setStep(targetStep)
+      return
+    }
+    for (let next = step; next < targetStep; next += 1) {
+      if (!validateStep(next)) return
+    }
+    setError('')
+    setStep(targetStep)
+  }
+
+  function goNext() {
+    if (!validateStep(step)) return
+    setError('')
+    setStep((prev) => Math.min(TOTAL_STEPS, prev + 1))
+  }
+
+  function goPrevious() {
+    setError('')
+    setStep((prev) => Math.max(1, prev - 1))
+  }
+
   async function handleSubmit(e) {
     e.preventDefault()
-    if (!form.name.trim()) {
-      setError('请填写酒馆名称')
+    if (!validateStep(1)) {
+      setStep(1)
+      return
+    }
+    if (!validateStep(2)) {
+      setStep(2)
       return
     }
 
@@ -66,30 +154,29 @@ export default function TavernCreatePanel({
       const payload = {
         name: form.name.trim(),
         description: form.description.trim(),
-        lat: parseFloat(form.lat),
-        lon: parseFloat(form.lon),
+        lat: Number.parseFloat(form.lat),
+        lon: Number.parseFloat(form.lon),
         access: form.access,
-        password: form.access === 'password' ? form.password : '',
+        password: form.access === 'password' ? form.password.trim() : '',
         scene_prompt: form.scene_prompt,
         owner_id: ownerId || undefined,
       }
 
-      // 添加 LLM 配置（如果用户填写了）
-      if (llmFormData.api_key) {
+      // 添加 AI 配置（远端通常需要 API Key；Ollama/本地兼容后端可只填 API 地址）
+      if (hasLlmConfig) {
         payload.llm_config = {
           backend: llmFormData.backend,
           model: llmFormData.model,
           api_key: llmFormData.api_key,
           base_url: llmFormData.base_url,
-          temperature: parseFloat(llmFormData.temperature),
-          max_tokens: parseInt(llmFormData.max_tokens),
-          top_p: parseFloat(llmFormData.top_p),
+          temperature: Number.parseFloat(llmFormData.temperature),
+          max_tokens: Number.parseInt(llmFormData.max_tokens, 10),
+          top_p: Number.parseFloat(llmFormData.top_p),
         }
       }
 
       const tavern = await tavernService.createTavern(payload, ownerId)
 
-      // 添加角色
       const addedCharacters = []
       for (const char of form.characters) {
         const addedCharacter = await tavernService.addCharacter(tavern.id, char, ownerId)
@@ -111,29 +198,25 @@ export default function TavernCreatePanel({
     if (!file) return
 
     try {
-      // 尝试解析为 JSON
+      let charData
       if (file.name.endsWith('.json')) {
         const text = await file.text()
         const cardData = JSON.parse(text)
-        const charData = parseCharacterCard(cardData)
-        setForm((prev) => ({
-          ...prev,
-          characters: [...prev.characters, charData],
-        }))
-        return
+        charData = parseCharacterCard(cardData)
+      } else {
+        charData = await extractCharacterCardFromPng(file)
       }
 
-      // 尝试从 PNG 提取
-      const charData = await extractCharacterCardFromPng(file)
       setForm((prev) => ({
         ...prev,
         characters: [...prev.characters, charData],
       }))
+      setError('')
     } catch (err) {
       setError(`导入角色卡失败：${err.message}`)
+    } finally {
+      e.target.value = ''
     }
-
-    e.target.value = ''
   }
 
   function removeCharacter(index) {
@@ -162,38 +245,88 @@ export default function TavernCreatePanel({
     return tavernService.testLlmConfigDirect(config)
   }
 
+  const accessLabel = `${getTavernAccessIcon(form.access)} ${getTavernAccessLabel(form.access)}`
+  const aiStatus = hasLlmConfig
+    ? `${getBackendLabel(llmFormData.backend)} · ${llmFormData.model || '未填写模型'}`
+    : '稍后配置 AI（创建后会显示为未配置 / 歇业）'
+
   return (
     <div className="tavern-create-panel">
       <div className="tavern-create-header">
-        <h3>创建酒馆</h3>
-        <div className="tavern-create-steps">
-          <button
-            type="button"
-            className={`step-btn ${step === 1 ? 'active' : ''}`}
-            onClick={() => setStep(1)}
-          >
-            1. 基本信息
-          </button>
-          <button
-            type="button"
-            className={`step-btn ${step === 2 ? 'active' : ''}`}
-            onClick={() => setStep(2)}
-          >
-            2. AI 配置
-          </button>
-          <button
-            type="button"
-            className={`step-btn ${step === 3 ? 'active' : ''}`}
-            onClick={() => setStep(3)}
-          >
-            3. 角色
-          </button>
+        <div>
+          <h3>3 分钟开一间酒馆</h3>
+          <p className="tavern-create-intro">
+            按顺序完成地点、酒馆、角色、AI 和开门检查；复杂参数之后还能在店主后台慢慢调。
+          </p>
+        </div>
+        <div className="tavern-create-steps" aria-label="创建酒馆步骤">
+          {CREATE_STEPS.map((item) => (
+            <button
+              key={item.id}
+              type="button"
+              className={`step-btn ${step === item.id ? 'active' : ''}`}
+              onClick={() => goToStep(item.id)}
+              aria-current={step === item.id ? 'step' : undefined}
+            >
+              <span className="step-index">{item.icon} Step {item.id}</span>
+              <span className="step-title">{item.title}</span>
+              <span className="step-hint">{item.hint}</span>
+            </button>
+          ))}
         </div>
       </div>
 
       <form onSubmit={handleSubmit}>
-        {/* Step 1: 基本信息 */}
+        <div className="tavern-create-step-heading">
+          <span>{currentStep.icon}</span>
+          <div>
+            <h4>{currentStep.title}</h4>
+            <p>{currentStep.hint}</p>
+          </div>
+        </div>
+
+        {/* Step 1: 地点 */}
         {step === 1 && (
+          <div className="tavern-create-step">
+            <div className="location-anchor-card">
+              <strong>真实地点是 FableMap 和普通文游最大的差异。</strong>
+              <p>
+                酒馆会挂在这个坐标附近，访客从地图发现它。当前已带入你选中的地图点，
+                也可以手动微调。
+              </p>
+            </div>
+
+            <div className="form-row">
+              <div className="form-group">
+                <label>纬度 *</label>
+                <input
+                  type="number"
+                  step="0.000001"
+                  value={form.lat}
+                  onChange={(e) => updateField('lat', e.target.value)}
+                  placeholder="例如：31.230416"
+                />
+              </div>
+              <div className="form-group">
+                <label>经度 *</label>
+                <input
+                  type="number"
+                  step="0.000001"
+                  value={form.lon}
+                  onChange={(e) => updateField('lon', e.target.value)}
+                  placeholder="例如：121.473701"
+                />
+              </div>
+            </div>
+
+            <p className="form-hint">
+              小提示：之后可以从地图上重新选择位置；这里先保证酒馆有一个明确入口。
+            </p>
+          </div>
+        )}
+
+        {/* Step 2: 酒馆 */}
+        {step === 2 && (
           <div className="tavern-create-step">
             <div className="form-group">
               <label>酒馆名称 *</label>
@@ -207,52 +340,32 @@ export default function TavernCreatePanel({
             </div>
 
             <div className="form-group">
-              <label>场景描述</label>
+              <label>一句话简介</label>
               <textarea
                 value={form.description}
                 onChange={(e) => updateField('description', e.target.value)}
-                placeholder="描述这个酒馆的氛围和故事..."
+                placeholder="让访客在进入前知道这里是什么样的地方..."
                 rows={3}
                 maxLength={500}
               />
             </div>
 
             <div className="form-group">
-              <label>场景氛围提示词</label>
+              <label>场景氛围</label>
               <textarea
                 value={form.scene_prompt}
                 onChange={(e) => updateField('scene_prompt', e.target.value)}
                 placeholder="给 AI 的场景描述，例如：这是一个古朴的传达室，老式电话、搪瓷茶缸、堆积的报纸..."
-                rows={2}
+                rows={3}
               />
-            </div>
-
-            <div className="form-row">
-              <div className="form-group">
-                <label>纬度</label>
-                <input
-                  type="number"
-                  step="0.000001"
-                  value={form.lat}
-                  onChange={(e) => updateField('lat', e.target.value)}
-                />
-              </div>
-              <div className="form-group">
-                <label>经度</label>
-                <input
-                  type="number"
-                  step="0.000001"
-                  value={form.lon}
-                  onChange={(e) => updateField('lon', e.target.value)}
-                />
-              </div>
+              <p className="form-hint">不用写复杂指令，只要描述空间、气味、声音和第一眼能看到的东西。</p>
             </div>
 
             <div className="form-group">
-              <label>访问权限</label>
+              <label>入口规则</label>
               <div className="access-options">
                 {['public', 'password', 'private'].map((acc) => (
-                  <label key={acc} className="access-option">
+                  <label key={acc} className={`access-option ${form.access === acc ? 'active' : ''}`}>
                     <input
                       type="radio"
                       name="access"
@@ -268,43 +381,30 @@ export default function TavernCreatePanel({
 
             {form.access === 'password' && (
               <div className="form-group">
-                <label>密码</label>
+                <label>访问密码 *</label>
                 <input
                   type="password"
                   value={form.password}
                   onChange={(e) => updateField('password', e.target.value)}
-                  placeholder="设置访问密码"
+                  placeholder="设置访客进入密码"
                 />
               </div>
             )}
           </div>
         )}
 
-        {/* Step 2: LLM 配置 */}
-        {step === 2 && (
-          <div className="tavern-create-step">
-            <div className="form-note">
-              <p>配置 AI 后端，让你的酒馆 NPC 可以和访客聊天。</p>
-              <p>可以跳过此步骤，之后在酒馆列表的「AI 配置」按钮中配置。</p>
-            </div>
-
-            <LLMConfigForm
-              value={llmFormData}
-              onChange={(cfg) => setLlmFormData(cfg)}
-              compact={false}
-              tavernId={null}
-              testDirect={handleTestDirect}
-            />
-          </div>
-        )}
-
-        {/* Step 3: 角色导入 */}
+        {/* Step 3: 角色 */}
         {step === 3 && (
           <div className="tavern-create-step">
+            <div className="form-note">
+              <p>角色是酒馆的“店员”。可以先导入一张 SillyTavern 角色卡，也可以手动创建。</p>
+              <p>这一步不强制；没有角色时，酒馆仍可创建，但对话体验会更像普通旁白。</p>
+            </div>
+
             <div className="form-group">
-              <label>导入角色</label>
+              <label>导入角色卡</label>
               <p className="form-hint">
-                支持 SillyTavern Character Card 格式（JSON 或 PNG）
+                支持 SillyTavern Character Card 格式（JSON 或 PNG）。
               </p>
               <input
                 type="file"
@@ -313,14 +413,14 @@ export default function TavernCreatePanel({
               />
             </div>
 
-            {form.characters.length > 0 && (
+            {form.characters.length > 0 ? (
               <div className="character-list">
                 <label>已添加角色 ({form.characters.length})</label>
                 {form.characters.map((char, index) => (
                   <div key={index} className="character-item">
                     <div className="character-info">
-                      <strong>{char.name}</strong>
-                      <span className="muted">{char.description?.slice(0, 50)}...</span>
+                      <strong>{char.name || `未命名角色 ${index + 1}`}</strong>
+                      <span className="muted">{char.description?.slice(0, 80) || '暂无描述'}</span>
                     </div>
                     <div className="character-item-actions">
                       <button
@@ -341,6 +441,10 @@ export default function TavernCreatePanel({
                   </div>
                 ))}
               </div>
+            ) : (
+              <div className="wizard-warning">
+                还没有角色。建议至少添加 1 个 NPC，让访客进入后有明确对话对象。
+              </div>
             )}
 
             {editingCharacterIndex != null && form.characters[editingCharacterIndex] ? (
@@ -355,9 +459,8 @@ export default function TavernCreatePanel({
               </div>
             ) : null}
 
-            {/* 手动添加角色 */}
             <details className="manual-add">
-              <summary>手动添加角色</summary>
+              <summary>手动创建一个 NPC</summary>
               <ManualCharacterAdder
                 onAdd={(charData) => {
                   setForm((prev) => ({
@@ -370,44 +473,106 @@ export default function TavernCreatePanel({
           </div>
         )}
 
+        {/* Step 4: AI */}
+        {step === 4 && (
+          <div className="tavern-create-step">
+            <div className="form-note">
+              <p>选择一张 AI 配方卡，再补 API Key / API 地址即可。密钥只保存在你的服务端，不会展示给访客。</p>
+              <p>也可以直接跳过：酒馆会先创建为未配置状态，之后在“我的酒馆 / AI”里补上。</p>
+            </div>
+
+            <LLMConfigForm
+              value={llmFormData}
+              onChange={(cfg) => setLlmFormData(cfg)}
+              compact={false}
+              tavernId={null}
+              testDirect={handleTestDirect}
+            />
+          </div>
+        )}
+
+        {/* Step 5: 开门 */}
+        {step === 5 && (
+          <div className="tavern-create-step">
+            <div className="wizard-summary">
+              <div className="wizard-summary-card">
+                <span className="summary-kicker">地图锚点</span>
+                <strong>{formatCoordinate(form.lat)}, {formatCoordinate(form.lon)}</strong>
+                <p>访客会从这个真实坐标附近发现酒馆。</p>
+              </div>
+              <div className="wizard-summary-card">
+                <span className="summary-kicker">酒馆门牌</span>
+                <strong>{form.name.trim() || '还没有名称'}</strong>
+                <p>{form.description.trim() || '暂无简介'} · {accessLabel}</p>
+              </div>
+              <div className="wizard-summary-card">
+                <span className="summary-kicker">角色</span>
+                <strong>{form.characters.length} 个 NPC</strong>
+                <p>
+                  {form.characters.length > 0
+                    ? form.characters.map((char) => char.name || '未命名角色').join('、')
+                    : '可以先开门，之后再导入角色卡。'}
+                </p>
+              </div>
+              <div className="wizard-summary-card">
+                <span className="summary-kicker">AI 状态</span>
+                <strong>{hasLlmConfig ? '已准备配置' : '稍后配置'}</strong>
+                <p>{aiStatus}</p>
+              </div>
+            </div>
+
+            {!hasLlmConfig && (
+              <div className="wizard-warning">
+                你还没有配置 AI。酒馆会被创建出来，但访客聊天前需要店主补齐 AI 配置。
+              </div>
+            )}
+
+            <div className="location-anchor-card">
+              <strong>准备好了就开门。</strong>
+              <p>创建完成后，你可以继续在店主后台补世界书、记忆策略、输出修正和高级角色指令。</p>
+            </div>
+          </div>
+        )}
+
         {error && <div className="form-error">{error}</div>}
 
         <div className="tavern-create-actions">
+          <button
+            type="button"
+            className="btn-secondary"
+            onClick={onCancel}
+            disabled={submitting}
+          >
+            取消
+          </button>
           {step > 1 && (
             <button
               type="button"
               className="btn-secondary"
-              onClick={() => setStep(step - 1)}
+              onClick={goPrevious}
+              disabled={submitting}
             >
               上一步
             </button>
           )}
-          {step < 3 && (
+          {step < TOTAL_STEPS && (
             <button
               type="button"
               className="btn-primary"
-              onClick={() => setStep(step + 1)}
+              onClick={goNext}
+              disabled={submitting}
             >
               下一步
             </button>
           )}
-          {step === 3 && (
-            <>
-              <button
-                type="button"
-                className="btn-secondary"
-                onClick={onCancel}
-              >
-                取消
-              </button>
-              <button
-                type="submit"
-                className="btn-primary"
-                disabled={submitting}
-              >
-                {submitting ? '创建中...' : '创建酒馆'}
-              </button>
-            </>
+          {step === TOTAL_STEPS && (
+            <button
+              type="submit"
+              className="btn-primary"
+              disabled={submitting}
+            >
+              {submitting ? '创建中...' : '开门营业'}
+            </button>
           )}
         </div>
       </form>

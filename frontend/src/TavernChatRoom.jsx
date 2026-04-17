@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef } from 'react'
 import { getDefaultTavernService } from './services/tavernService'
+import TavernContextPanel from './TavernContextPanel'
 
 /**
- * TavernChatRoom — SillyTavern 风格的聊天房间
+ * TavernChatRoom — 酒馆三栏布局聊天房间
  *
  * 核心功能：
  * - 左侧：角色列表（可切换角色）
@@ -76,7 +77,7 @@ const EXPRESSION_LABELS = {
 
 const EXPRESSION_SOURCE_LABELS = {
   default: '默认表情',
-  fallback: '降级回应',
+  fallback: '临时规则回应',
   keyword: '关键词推断',
   llm: 'AI 推断',
   manual: '手动选择',
@@ -88,6 +89,40 @@ function getExpressionLabel(expression) {
 
 function getExpressionSourceLabel(source) {
   return EXPRESSION_SOURCE_LABELS[source] || source || EXPRESSION_SOURCE_LABELS.default
+}
+
+function getRelationshipStageLabel(stage) {
+  const labels = {
+    stranger: '初访者',
+    acquaintance: '熟面孔',
+    regular: '常客',
+    confidant: '熟客盟友',
+  }
+  return labels[stage] || stage || '未建立'
+}
+
+function formatMemoryTime(value) {
+  if (!value) return '暂无'
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return String(value).slice(0, 16)
+  return date.toLocaleString('zh-CN', {
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+  })
+}
+
+function getVisitorMemoryPayload(entryState, fallbackVisitCount = 0) {
+  const visitorState = entryState?.visitor_state || entryState || {}
+  const relationship = visitorState.relationship || entryState?.relationship || {}
+  return {
+    visitCount: Number(visitorState.visit_count ?? entryState?.visit_count ?? fallbackVisitCount ?? 0),
+    stage: relationship.stage || visitorState.relationship_stage || '',
+    strength: Number(relationship.strength ?? visitorState.relationship_strength ?? 0),
+    firstVisit: visitorState.first_visit || entryState?.first_visit || '',
+    lastVisit: visitorState.last_visit || entryState?.last_visit || '',
+  }
 }
 
 function normalizeSprites(rawSprites) {
@@ -220,7 +255,7 @@ function CharacterSidebar({ characters, selectedChar, onSelectChar }) {
 // Chat Message
 // ─────────────────────────────────────────
 
-function ChatMessage({ message, character, sprites, visitorNickname }) {
+function ChatMessage({ message, character, sprites, visitorNickname, voiceConfig, tavernId, onPlayTTS }) {
   const isUser = message.role === 'user'
   const isSystem = message.role === 'system'
   const expression = message.expression || DEFAULT_EXPRESSION
@@ -259,6 +294,15 @@ function ChatMessage({ message, character, sprites, visitorNickname }) {
         />
         <div className="message-meta">
           <span className="message-time">{formatTime(message.timestamp)}</span>
+          {!isUser && voiceConfig?.enabled && (
+            <button
+              className="btn-play-tts"
+              onClick={() => onPlayTTS(tavernId, message.content)}
+              title="播放语音"
+            >
+              🔊
+            </button>
+          )}
         </div>
       </div>
     </div>
@@ -269,8 +313,9 @@ function ChatMessage({ message, character, sprites, visitorNickname }) {
 // Chat Input Area
 // ─────────────────────────────────────────
 
-function ChatInputArea({ onSend, sending, character, placeholder }) {
+function ChatInputArea({ onSend, sending, character, placeholder, voiceConfig }) {
   const [text, setText] = useState('')
+  const [recording, setRecording] = useState(false)
   const textareaRef = useRef(null)
 
   const handleSend = () => {
@@ -293,6 +338,104 @@ function ChatInputArea({ onSend, sending, character, placeholder }) {
     e.target.style.height = Math.min(e.target.scrollHeight, 150) + 'px'
   }
 
+  // Speech-to-Text using Web Speech API or Backend STT
+  const handleRecord = async () => {
+    // Check if backend STT is enabled (not browser)
+    const useBackendSTT = voiceConfig?.enabled && voiceConfig?.stt_provider && voiceConfig?.stt_provider !== 'browser'
+
+    if (useBackendSTT) {
+      // Use backend STT (Whisper/FasterWhisper)
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+        const mediaRecorder = new MediaRecorder(stream)
+        const chunks = []
+
+        mediaRecorder.ondataavailable = (e) => {
+          if (e.data.size > 0) chunks.push(e.data)
+        }
+
+        mediaRecorder.onstop = async () => {
+          const blob = new Blob(chunks, { type: 'audio/webm' })
+          stream.getTracks().forEach(track => track.stop())
+          setRecording(false)
+
+          try {
+            const { transcribeVoice } = await import('./services/tavernService')
+            const result = await transcribeVoice(voiceConfig?.tavernId || '', blob)
+            setText((prev) => prev + (result.text || ''))
+            // Auto-resize after adding text
+            setTimeout(() => {
+              if (textareaRef.current) {
+                textareaRef.current.style.height = 'auto'
+                textareaRef.current.style.height = Math.min(textareaRef.current.scrollHeight, 150) + 'px'
+              }
+            }, 0)
+          } catch (err) {
+            console.error('Backend STT error:', err)
+            alert('语音转写失败：' + (err.message || '未知错误'))
+          }
+        }
+
+        setRecording(true)
+        mediaRecorder.start()
+
+        // Stop recording after 10 seconds max
+        setTimeout(() => {
+          if (mediaRecorder.state === 'recording') {
+            mediaRecorder.stop()
+          }
+        }, 10000)
+      } catch (err) {
+        console.error('Microphone access error:', err)
+        alert('无法访问麦克风，请检查权限设置。')
+      }
+      return
+    }
+
+    // Browser STT (Web Speech API)
+    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+      alert('您的浏览器不支持语音识别。请使用 Chrome 浏览器。')
+      return
+    }
+
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition
+    const recognition = new SpeechRecognition()
+
+    recognition.lang = 'zh-CN'
+    recognition.continuous = false
+    recognition.interimResults = false
+
+    recognition.onstart = () => {
+      setRecording(true)
+    }
+
+    recognition.onresult = (event) => {
+      const transcript = event.results[0][0].transcript
+      setText((prev) => prev + transcript)
+      // Auto-resize after adding text
+      setTimeout(() => {
+        if (textareaRef.current) {
+          textareaRef.current.style.height = 'auto'
+          textareaRef.current.style.height = Math.min(textareaRef.current.scrollHeight, 150) + 'px'
+        }
+      }, 0)
+    }
+
+    recognition.onerror = (event) => {
+      console.error('Speech recognition error:', event.error)
+      setRecording(false)
+    }
+
+    recognition.onend = () => {
+      setRecording(false)
+    }
+
+    recognition.start()
+  }
+
+  // Check if voice is enabled
+  const voiceEnabled = voiceConfig?.enabled && voiceConfig?.stt_provider === 'browser'
+
   return (
     <div className="chat-input-area">
       <div className="input-wrapper">
@@ -307,6 +450,17 @@ function ChatInputArea({ onSend, sending, character, placeholder }) {
           className="chat-textarea"
         />
         <div className="input-actions">
+          {voiceEnabled && (
+            <button
+              type="button"
+              className={`btn-voice-input ${recording ? 'recording' : ''}`}
+              onClick={handleRecord}
+              disabled={sending}
+              title={recording ? '正在录音...' : '语音输入 (STT)'}
+            >
+              {recording ? '🔴' : '🎤'}
+            </button>
+          )}
           <span className="char-count-hint">{text.length}</span>
           <button
             className="btn-send"
@@ -325,6 +479,7 @@ function ChatInputArea({ onSend, sending, character, placeholder }) {
       <div className="input-hints muted">
         <span>Enter 发送</span>
         <span>Shift+Enter 换行</span>
+        {voiceEnabled && <span>🎤 语音输入</span>}
       </div>
     </div>
   )
@@ -364,7 +519,7 @@ function CharacterDetail({ character, onClose }) {
         )}
         {character.system_prompt && (
           <div className="char-detail-section">
-            <label>系统提示词</label>
+            <label>角色指令（高级）</label>
             <p className="system-prompt-text">{character.system_prompt}</p>
           </div>
         )}
@@ -380,6 +535,91 @@ function CharacterDetail({ character, onClose }) {
         )}
       </div>
     </div>
+  )
+}
+
+// ─────────────────────────────────────────
+// Visitor Memory Panel
+// ─────────────────────────────────────────
+
+function TavernMemoryPanel({
+  entryState,
+  messages,
+  selectedChar,
+  visitorNickname,
+  roomName,
+  onClose,
+}) {
+  const memory = getVisitorMemoryPayload(entryState)
+  const userMessages = messages.filter((message) => message.role === 'user')
+  const assistantMessages = messages.filter((message) => message.role === 'assistant')
+  const recentUserMessage = [...userMessages].reverse().find((message) => message.content)
+  const recentAssistantMessage = [...assistantMessages].reverse().find((message) => message.content)
+  const strengthPercent = Math.max(0, Math.min(100, Math.round(memory.strength * 100)))
+
+  return (
+    <aside className="memory-detail-panel">
+      <div className="char-detail-header">
+        <h4>记忆</h4>
+        <button className="close-btn" onClick={onClose}>×</button>
+      </div>
+
+      <div className="memory-panel-section">
+        <span className="mini-label">当前关系</span>
+        <strong>{getRelationshipStageLabel(memory.stage)}</strong>
+        <div className="memory-strength-bar" aria-label={`关系强度 ${strengthPercent}%`}>
+          <span style={{ width: `${strengthPercent}%` }} />
+        </div>
+        <p className="muted">
+          {visitorNickname || '这位访客'} 已到访 {memory.visitCount || 0} 次。
+        </p>
+      </div>
+
+      <div className="memory-grid">
+        <div>
+          <span className="mini-label">首次到访</span>
+          <strong>{formatMemoryTime(memory.firstVisit)}</strong>
+        </div>
+        <div>
+          <span className="mini-label">最近到访</span>
+          <strong>{formatMemoryTime(memory.lastVisit)}</strong>
+        </div>
+        <div>
+          <span className="mini-label">本轮消息</span>
+          <strong>{messages.length}</strong>
+        </div>
+        <div>
+          <span className="mini-label">当前角色</span>
+          <strong>{selectedChar?.name || '未选择'}</strong>
+        </div>
+      </div>
+
+      <div className="memory-panel-section">
+        <span className="mini-label">本轮短期记忆</span>
+        {recentUserMessage || recentAssistantMessage ? (
+          <div className="memory-recent-list">
+            {recentUserMessage ? (
+              <p><strong>{visitorNickname || '访客'}：</strong>{recentUserMessage.content.slice(0, 90)}</p>
+            ) : null}
+            {recentAssistantMessage ? (
+              <p><strong>{selectedChar?.name || 'NPC'}：</strong>{recentAssistantMessage.content.slice(0, 90)}</p>
+            ) : null}
+          </div>
+        ) : (
+          <p className="muted">还没有本轮对话。发出第一句话后，这里会显示最新短期上下文。</p>
+        )}
+      </div>
+
+      <div className="memory-panel-section">
+        <span className="mini-label">系统会注入的稳定事实</span>
+        <ul className="memory-fact-list">
+          <li>酒馆：{roomName}</li>
+          <li>访客称呼：{visitorNickname || '旅人'}</li>
+          <li>关系阶段：{getRelationshipStageLabel(memory.stage)}</li>
+          <li>到访次数：{memory.visitCount || 0}</li>
+        </ul>
+      </div>
+    </aside>
   )
 }
 
@@ -429,6 +669,7 @@ function ExpressionSelector({ sprites = {}, availableExpressions = [], currentEx
  * @param {Array} props.characters - 角色列表
  * @param {string} props.visitorId - 访客 ID
  * @param {string} props.visitorNickname - 访客昵称（显示在用户消息旁）
+ * @param {object} props.entryState - 入场返回的访客记忆 / 回访状态
  * @param {function} props.onCharacterSwitch - 角色切换回调
  */
 export default function TavernChatRoom({
@@ -436,8 +677,10 @@ export default function TavernChatRoom({
   roomName = '未知地点',
   roomDescription = '',
   characters = [],
+  tavern = null,
   visitorId = 'visitor',
   visitorNickname = '',
+  entryState = null,
   onCharacterSwitch,
 }) {
   const [selectedChar, setSelectedChar] = useState(characters[0] || null)
@@ -451,6 +694,10 @@ export default function TavernChatRoom({
   const [degradationNotice, setDegradationNotice] = useState(null)
   const [sprites, setSprites] = useState({})
   const [availableExpressions, setAvailableExpressions] = useState([])
+  const [voiceConfig, setVoiceConfig] = useState(null)
+  const [memoryPanelOpen, setMemoryPanelOpen] = useState(false)
+  const [contextPanelOpen, setContextPanelOpen] = useState(false)
+  const [visitorMemoryState, setVisitorMemoryState] = useState(entryState)
   const messagesEndRef = useRef(null)
   const tavernService = getDefaultTavernService()
 
@@ -467,6 +714,10 @@ export default function TavernChatRoom({
       loadHistory()
     }
   }, [selectedChar?.id])
+
+  useEffect(() => {
+    setVisitorMemoryState(entryState)
+  }, [entryState])
 
   // Auto-scroll to bottom
   useEffect(() => {
@@ -493,6 +744,17 @@ export default function TavernChatRoom({
     if (!roomId || !selectedChar) return
     loadSprites()
   }, [selectedChar?.id, roomId])
+
+  // Load voice config when roomId changes
+  useEffect(() => {
+    if (!roomId) return
+    tavernService.getVoiceConfig(roomId).then((result) => {
+      setVoiceConfig(result.voice_config)
+    }).catch(() => {
+      // Voice config not available, silently ignore
+      setVoiceConfig({ enabled: false })
+    })
+  }, [roomId])
 
   async function loadSprites() {
     if (!roomId || !selectedChar) return
@@ -649,6 +911,9 @@ export default function TavernChatRoom({
       const isDegraded = Boolean(result.degraded)
       const nextExpression = isDegraded ? DEFAULT_EXPRESSION : currentExpression
       const nextExpressionSource = isDegraded ? 'fallback' : expressionSource
+      if (result.visitor_state) {
+        setVisitorMemoryState(result.visitor_state)
+      }
       const charMsg = {
         ...buildAssistantMessage({
           id: replyId,
@@ -662,7 +927,7 @@ export default function TavernChatRoom({
         setCurrentExpression(DEFAULT_EXPRESSION)
         setExpressionSource('fallback')
         setDegradationNotice(result.degradation || {
-          title: 'AI 后端暂时不可用',
+          title: 'AI 服务暂时不可用',
           message: '已切换为规则回应。',
           action: '店主可以在 AI 配置里测试连接。',
         })
@@ -678,19 +943,19 @@ export default function TavernChatRoom({
 
       if (status === 401) {
         title = '认证失败'
-        message = 'API 密钥无效或已过期，无法连接到 AI 后端。'
+        message = 'API 密钥无效或已过期，无法连接到 AI 服务。'
         action = '请店主在 AI 配置中检查 API Key 是否正确。'
       } else if (status === 403) {
         title = '无访问权限'
-        message = '没有权限访问该 AI 后端（可能被拒绝或 IP 未白名单）。'
+        message = '没有权限访问该 AI 服务（可能被拒绝或 IP 未白名单）。'
         action = '请店主确认 Base URL 和 API Key 的权限设置。'
       } else if (status === 429) {
         title = '请求过于频繁'
-        message = 'AI 后端限流了，稍等片刻后可重试。'
+        message = 'AI 服务限流了，稍等片刻后可重试。'
         action = '降低对话频率，或店主考虑升级 API 配额。'
       } else if (status && status >= 500) {
         title = '服务端暂时不可用'
-        message = err.message || 'AI 后端服务器出错，请稍后再试。'
+        message = err.message || 'AI 服务出错，请稍后再试。'
         action = '稍后重试；如果持续出现，请店主检查 AI 服务状态。'
       } else {
         title = '消息没有送达'
@@ -723,6 +988,23 @@ export default function TavernChatRoom({
     setShowDetail(true)
   }
 
+  async function handlePlayTTS(tavernId, text) {
+    if (!text || !tavernId) return
+    try {
+      const audioUrl = await tavernService.synthesizeVoice(tavernId, text)
+      // Play the audio
+      const audio = new Audio(audioUrl)
+      audio.play()
+      // Clean up the blob URL after playback
+      audio.addEventListener('ended', () => {
+        URL.revokeObjectURL(audioUrl)
+      })
+    } catch (err) {
+      console.error('TTS playback failed:', err)
+      alert('语音播放失败：' + (err.message || '未知错误'))
+    }
+  }
+
   return (
     <div className="tavern-chat-room">
       {/* Header */}
@@ -737,6 +1019,22 @@ export default function TavernChatRoom({
           {characters.length > 0 && (
             <span className="char-badge">{characters.length} 角色</span>
           )}
+          <button
+            type="button"
+            className={`btn-context-panel ${contextPanelOpen ? 'active' : ''}`}
+            onClick={() => setContextPanelOpen((open) => !open)}
+            title="上下文面板"
+          >
+            📋 上下文
+          </button>
+          <button
+            type="button"
+            className={`btn-memory-panel ${memoryPanelOpen ? 'active' : ''}`}
+            onClick={() => setMemoryPanelOpen((open) => !open)}
+            title="查看访客回访记忆"
+          >
+            🧠 记忆
+          </button>
         </div>
       </div>
 
@@ -790,7 +1088,7 @@ export default function TavernChatRoom({
 
               {degradationNotice ? (
                 <div className="chat-degradation-banner" role="status" aria-live="polite">
-                  <strong>{degradationNotice.title || 'AI 后端暂时不可用'}</strong>
+                  <strong>{degradationNotice.title || 'AI 服务暂时不可用'}</strong>
                   <span>{degradationNotice.message || '已切换为规则回应。'}</span>
                   {degradationNotice.action ? <small>{degradationNotice.action}</small> : null}
                 </div>
@@ -831,6 +1129,9 @@ export default function TavernChatRoom({
                     character={msg.character || selectedChar}
                     sprites={sprites}
                     visitorNickname={visitorNickname}
+                    voiceConfig={voiceConfig}
+                    tavernId={roomId}
+                    onPlayTTS={handlePlayTTS}
                   />
                 ))}
                 <div ref={messagesEndRef} />
@@ -841,6 +1142,7 @@ export default function TavernChatRoom({
                 onSend={handleSend}
                 sending={sending}
                 character={selectedChar}
+                voiceConfig={voiceConfig}
               />
             </>
           ) : (
@@ -855,6 +1157,30 @@ export default function TavernChatRoom({
           <CharacterDetail
             character={selectedChar}
             onClose={() => setShowDetail(false)}
+          />
+        )}
+
+        {memoryPanelOpen && (
+          <TavernMemoryPanel
+            entryState={visitorMemoryState}
+            messages={messages}
+            selectedChar={selectedChar}
+            visitorNickname={visitorNickname}
+            roomName={roomName}
+            onClose={() => setMemoryPanelOpen(false)}
+          />
+        )}
+
+        {contextPanelOpen && (
+          <TavernContextPanel
+            tavern={tavern}
+            selectedChar={selectedChar}
+            entryState={entryState}
+            messages={messages}
+            visitorNickname={visitorNickname}
+            roomName={roomName}
+            voiceConfig={voiceConfig}
+            onClose={() => setContextPanelOpen(false)}
           />
         )}
       </div>

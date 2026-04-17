@@ -20,34 +20,34 @@ export default function WorldEntryPanel({
   result,
 }) {
   const primaryActionText = autoEntering
-    ? '正在自动进入附近地点...'
+    ? '正在读取附近地点...'
     : submitting
-      ? '正在生成附近地点切片...'
-      : '立即进入附近地点'
+      ? '正在刷新附近内容...'
+      : '查看附近地点与酒馆'
 
   const primaryActionHint = autoEntering
-    ? '系统正在根据当前位置自动生成地点切片，请稍候。'
+    ? '系统正在根据当前位置准备附近地点和酒馆入口，请稍候。'
     : submitting
-      ? '正在刷新当前入口对应的地点切片，完成后会直接更新下方地点舞台。'
+      ? '正在刷新当前位置附近的地图内容，完成后会直接更新下方区域。'
       : result
-        ? '最近一次生成已经完成；页面会自动带到下方地点舞台，出现候选地点后可直接选择。'
-        : '点击主按钮后会按当前入口与半径生成地点切片，并把你带到下方地点舞台。'
+        ? '附近内容已经准备好；往下可以直接选择地点或进入酒馆。'
+        : '点击主按钮后，会按当前入口和范围显示附近地点与酒馆。'
 
   const actionStatusChip = autoEntering || submitting
-    ? '生成中'
+    ? '刷新中'
     : result
-      ? '已生成'
+      ? '已准备'
       : '待开始'
 
   return (
     <section className="panel primary-panel world-entry-panel">
       <div className="section-heading">
         <div>
-          <p className="mini-label">自动地点入口</p>
-          <h2>{autoEntering ? '正在根据定位进入地点切片' : '已经为你准备好附近地点'}</h2>
+          <p className="mini-label">附近入口</p>
+          <h2>{autoEntering ? '正在根据定位读取附近内容' : '先确定你想从哪里开始'}</h2>
         </div>
         <p className="note muted">
-          首次进入会优先尝试浏览器定位并自动生成附近地点切片；下方控制保留给你重新定位、切换入口和微调参数。
+          首次进入会优先尝试浏览器定位；你也可以使用预设地点或手动调整范围。
           {lastSessionAt ? ` 已恢复上次记录：${new Date(lastSessionAt).toLocaleString()}` : ''}
         </p>
       </div>
@@ -84,7 +84,7 @@ export default function WorldEntryPanel({
             >
               <span className="preset-title">{preset.title}</span>
               <span className="preset-subtitle">{preset.subtitle}</span>
-              <span className="preset-meta">{preset.mode === 'fixture' ? '离线稳定' : '实时切片'} · {preset.radius}m</span>
+              <span className="preset-meta">{preset.mode === 'fixture' ? '离线演示' : '实时地图'} · {preset.radius}m</span>
             </button>
           )
         })}
@@ -99,7 +99,7 @@ export default function WorldEntryPanel({
             {locating || autoEntering ? '定位中...' : '重新定位'}
           </button>
           <button type="button" className="secondary" disabled={submitting || autoEntering} onClick={() => submitNearby(true)}>
-            强制刷新地点切片
+            刷新附近内容
           </button>
         </div>
       </div>

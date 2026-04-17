@@ -9,8 +9,8 @@ export default function WorldStageDisturbancePanel({
   return (
     <div className="storyboard-lane">
       <div className="storyboard-lane-header">
-        <span className="storyboard-category-label">人为扰动注入</span>
-        <span className="storyboard-lane-meta">向当前地点切片注入天气、人流等外部信号，影响编排器输出</span>
+        <span className="storyboard-category-label">高级环境信号</span>
+        <span className="storyboard-lane-meta">给当前地点补充天气、人流等外部信号，影响高级编排器输出</span>
       </div>
       <div className="writeback-form-grid">
         <div>
@@ -43,11 +43,11 @@ export default function WorldStageDisturbancePanel({
         </div>
       </div>
       <div className="actions">
-        <button type="button" disabled={disturbanceSubmitting} onClick={submitDisturbance}>注入扰动</button>
-        {disturbanceActive ? <button type="button" onClick={clearDisturbance}>清除扰动</button> : null}
+        <button type="button" disabled={disturbanceSubmitting} onClick={submitDisturbance}>应用环境信号</button>
+        {disturbanceActive ? <button type="button" onClick={clearDisturbance}>清除环境信号</button> : null}
       </div>
       {disturbanceActive ? (
-        <div className="subtle-block">当前扰动：{JSON.stringify(disturbanceActive)}</div>
+        <div className="subtle-block">当前环境信号：{JSON.stringify(disturbanceActive)}</div>
       ) : null}
     </div>
   )

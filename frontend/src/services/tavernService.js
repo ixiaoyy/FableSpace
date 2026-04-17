@@ -137,6 +137,213 @@ export function createTavernService(getBaseUrl) {
     },
 
     /**
+     * 保存酒馆世界书
+     * @param {string} tavernId
+     * @param {Array<object>} worldInfo
+     * @param {string} userId
+     * @returns {Promise<object>} 更新后的酒馆
+     */
+    async saveWorldInfo(tavernId, worldInfo, userId = '') {
+      const response = await fetch(`${getBaseUrl()}/api/taverns/${encodeURIComponent(tavernId)}`, {
+        method: 'PUT',
+        headers: buildJsonHeaders(userId),
+        body: JSON.stringify({ world_info: worldInfo }),
+      })
+      return readJson(response)
+    },
+
+    /**
+     * 测试一句话会命中哪些世界书条目（不调用 AI，不保存）
+     * @param {string} tavernId
+     * @param {object} data — { message, world_info?, recent_messages?, include_tavern_context? }
+     * @param {string} userId
+     * @returns {Promise<object>}
+     */
+    async testWorldInfo(tavernId, data, userId = '') {
+      const response = await fetch(`${getBaseUrl()}/api/taverns/${encodeURIComponent(tavernId)}/world-info/test`, {
+        method: 'POST',
+        headers: buildJsonHeaders(userId),
+        body: JSON.stringify(data),
+      })
+      return readJson(response)
+    },
+
+    /**
+     * 获取酒馆输出修正规则
+     * @param {string} tavernId
+     * @param {string} userId
+     * @returns {Promise<object>} { rules, default_rules }
+     */
+    async getOutputRules(tavernId, userId = '') {
+      const response = await fetch(`${getBaseUrl()}/api/taverns/${encodeURIComponent(tavernId)}/output-rules`, {
+        cache: 'no-store',
+        headers: buildHeaders(userId),
+      })
+      return readJson(response)
+    },
+
+    /**
+     * 保存酒馆输出修正规则
+     * @param {string} tavernId
+     * @param {Array<object>} rules
+     * @param {string} userId
+     * @returns {Promise<object>} 更新后的规则和酒馆
+     */
+    async saveOutputRules(tavernId, rules, userId = '') {
+      const response = await fetch(`${getBaseUrl()}/api/taverns/${encodeURIComponent(tavernId)}/output-rules`, {
+        method: 'PUT',
+        headers: buildJsonHeaders(userId),
+        body: JSON.stringify({ rules }),
+      })
+      return readJson(response)
+    },
+
+    /**
+     * 预览输出修正规则效果（不保存）
+     * @param {string} tavernId
+     * @param {object} data — { text, rules? }
+     * @param {string} userId
+     * @returns {Promise<object>} { text, original_text, applied, errors }
+     */
+    async testOutputRules(tavernId, data, userId = '') {
+      const response = await fetch(`${getBaseUrl()}/api/taverns/${encodeURIComponent(tavernId)}/output-rules/test`, {
+        method: 'POST',
+        headers: buildJsonHeaders(userId),
+        body: JSON.stringify(data),
+      })
+      return readJson(response)
+    },
+
+    /**
+     * 获取酒馆 Prompt 段落
+     * @param {string} tavernId
+     * @param {string} userId
+     * @returns {Promise<object>} { blocks, default_blocks }
+     */
+    async getPromptBlocks(tavernId, userId = '') {
+      const response = await fetch(`${getBaseUrl()}/api/taverns/${encodeURIComponent(tavernId)}/prompt-blocks`, {
+        cache: 'no-store',
+        headers: buildHeaders(userId),
+      })
+      return readJson(response)
+    },
+
+    /**
+     * 保存酒馆 Prompt 段落
+     * @param {string} tavernId
+     * @param {Array<object>} blocks
+     * @param {string} userId
+     * @returns {Promise<object>}
+     */
+    async savePromptBlocks(tavernId, blocks, userId = '') {
+      const response = await fetch(`${getBaseUrl()}/api/taverns/${encodeURIComponent(tavernId)}/prompt-blocks`, {
+        method: 'PUT',
+        headers: buildJsonHeaders(userId),
+        body: JSON.stringify({ blocks }),
+      })
+      return readJson(response)
+    },
+
+    /**
+     * 预览 Prompt 段落组装结果（不调用 AI）
+     * @param {string} tavernId
+     * @param {object} data — { message, blocks?, character_id? }
+     * @param {string} userId
+     * @returns {Promise<object>}
+     */
+    async previewPromptBlocks(tavernId, data, userId = '') {
+      const response = await fetch(`${getBaseUrl()}/api/taverns/${encodeURIComponent(tavernId)}/prompt-blocks/preview`, {
+        method: 'POST',
+        headers: buildJsonHeaders(userId),
+        body: JSON.stringify(data),
+      })
+      return readJson(response)
+    },
+
+    /**
+     * 获取酒馆运行预设（内置 + 店主自定义）
+     * @param {string} tavernId
+     * @param {string} userId
+     * @returns {Promise<object>} { presets, custom_presets, default_presets, active_preset_id }
+     */
+    async getRuntimePresets(tavernId, userId = '') {
+      const response = await fetch(`${getBaseUrl()}/api/taverns/${encodeURIComponent(tavernId)}/runtime-presets`, {
+        cache: 'no-store',
+        headers: buildHeaders(userId),
+      })
+      return readJson(response)
+    },
+
+    /**
+     * 保存店主自定义运行预设
+     * @param {string} tavernId
+     * @param {Array<object>} presets
+     * @param {string} userId
+     * @returns {Promise<object>}
+     */
+    async saveRuntimePresets(tavernId, presets, userId = '') {
+      const response = await fetch(`${getBaseUrl()}/api/taverns/${encodeURIComponent(tavernId)}/runtime-presets`, {
+        method: 'PUT',
+        headers: buildJsonHeaders(userId),
+        body: JSON.stringify({ presets }),
+      })
+      return readJson(response)
+    },
+
+    /**
+     * 应用运行预设到 AI 参数、Prompt 段落、记忆策略和输出护栏
+     * @param {string} tavernId
+     * @param {object} data — { preset_id } 或 { preset }
+     * @param {string} userId
+     * @returns {Promise<object>}
+     */
+    async applyRuntimePreset(tavernId, data, userId = '') {
+      const response = await fetch(`${getBaseUrl()}/api/taverns/${encodeURIComponent(tavernId)}/runtime-presets/apply`, {
+        method: 'POST',
+        headers: buildJsonHeaders(userId),
+        body: JSON.stringify(data),
+      })
+      return readJson(response)
+    },
+
+    /**
+     * 导出可分享的酒馆包（不包含 API Key / 访客聊天 / 私密记忆）
+     * @param {string} tavernId
+     * @param {string} userId
+     * @returns {Promise<object>}
+     */
+    async exportTavernPackage(tavernId, userId = '') {
+      const response = await fetch(`${getBaseUrl()}/api/taverns/${encodeURIComponent(tavernId)}/package`, {
+        cache: 'no-store',
+        headers: buildHeaders(userId),
+      })
+      return readJson(response)
+    },
+
+    /**
+     * 导入酒馆包并挂载到指定坐标
+     * @param {object} packageData
+     * @param {object} options — { lat, lon, name, access, address }
+     * @param {string} userId
+     * @returns {Promise<object>}
+     */
+    async importTavernPackage(packageData, options = {}, userId = '') {
+      const response = await fetch(`${getBaseUrl()}/api/tavern-packages/import`, {
+        method: 'POST',
+        headers: buildJsonHeaders(userId),
+        body: JSON.stringify({
+          package: packageData,
+          lat: options.lat,
+          lon: options.lon,
+          name: options.name,
+          access: options.access,
+          address: options.address,
+        }),
+      })
+      return readJson(response)
+    },
+
+    /**
      * 测试 LLM 配置是否可用
      * @param {string} tavernId
      * @param {object} config — { backend, model, api_key, base_url }
@@ -645,6 +852,119 @@ export function getTavernStatusColor(status) {
   if (status === 'open') return '#22c55e'
   if (status === 'closed') return '#ef4444'
   return '#94a3b8'
+}
+
+// ─── Voice (TTS/STT) API ───────────────────────────────────────────────────────
+
+/**
+ * 获取酒馆的语音配置
+ * @param {string} tavernId
+ * @returns {Promise<object>}
+ */
+export async function getVoiceConfig(tavernId) {
+  const response = await fetch(`/api/taverns/${tavernId}/voice`, {
+    credentials: 'include',
+  })
+  if (!response.ok) {
+    throw new Error(`获取语音配置失败: ${response.status}`)
+  }
+  return response.json()
+}
+
+/**
+ * 保存酒馆的语音配置
+ * @param {string} tavernId
+ * @param {object} config - VoiceConfig object
+ * @returns {Promise<object>}
+ */
+export async function saveVoiceConfig(tavernId, config) {
+  const response = await fetch(`/api/taverns/${tavernId}/voice`, {
+    method: 'PUT',
+    credentials: 'include',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(config),
+  })
+  if (!response.ok) {
+    throw new Error(`保存语音配置失败: ${response.status}`)
+  }
+  return response.json()
+}
+
+/**
+ * 合成语音
+ * @param {string} tavernId
+ * @param {string} text - Text to synthesize
+ * @param {string} characterId - Optional character ID
+ * @returns {Promise<string>} - Audio URL (blob URL that must be consumed immediately)
+ */
+export async function synthesizeVoice(tavernId, text, characterId = '') {
+  const response = await fetch(`/api/taverns/${tavernId}/tts`, {
+    method: 'POST',
+    credentials: 'include',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ text, character_id: characterId }),
+  })
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({ error: 'Unknown error' }))
+    throw new Error(err.error || `语音合成失败: ${response.status}`)
+  }
+  // Return the audio as a blob URL
+  const blob = await response.blob()
+  return URL.createObjectURL(blob)
+}
+
+/**
+ * 转写语音为文字
+ * @param {string} tavernId
+ * @param {Blob|File} audioFile - Audio file to transcribe
+ * @returns {Promise<object>} - { text, provider }
+ */
+export async function transcribeVoice(tavernId, audioFile) {
+  const response = await fetch(`/api/taverns/${tavernId}/stt`, {
+    method: 'POST',
+    credentials: 'include',
+    body: audioFile,
+  })
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({ error: 'Unknown error' }))
+    throw new Error(err.error || `语音转写失败: ${response.status}`)
+  }
+  return response.json()
+}
+
+/**
+ * 获取可用的 TTS 提供者列表
+ * @returns {Promise<string[]>}
+ */
+export async function listTtsProviders() {
+  const response = await fetch('/api/tts/providers', {
+    credentials: 'include',
+  })
+  if (!response.ok) {
+    throw new Error(`获取 TTS 提供者失败: ${response.status}`)
+  }
+  const data = await response.json()
+  return data.providers || []
+}
+
+/**
+ * 获取 TTS 提供者的可用语音列表
+ * @param {string} provider
+ * @param {string} apiKey - Optional API key for the provider
+ * @returns {Promise<object[]>}
+ */
+export async function listTtsVoices(provider, apiKey = '') {
+  const response = await fetch('/api/tts/voices', {
+    method: 'POST',
+    credentials: 'include',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ provider, api_key: apiKey }),
+  })
+  if (!response.ok) {
+    throw new Error(`获取语音列表失败: ${response.status}`)
+  }
+  const data = await response.json()
+  return data.voices || []
 }
 
 /**

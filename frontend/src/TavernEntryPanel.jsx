@@ -41,8 +41,8 @@ export default function TavernEntryPanel({
     setEntering(true)
     setError(null)
     try {
-      await tavernService.enterTavern(tavernId, tavern.access === 'password' ? password : '', visitorId)
-      if (onEnter) onEnter(tavern)
+      const entryState = await tavernService.enterTavern(tavernId, tavern.access === 'password' ? password : '', visitorId)
+      if (onEnter) onEnter({ ...tavern, entry_state: entryState })
     } catch (err) {
       setError(`入场失败: ${err.message}`)
     } finally {

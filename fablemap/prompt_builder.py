@@ -18,6 +18,7 @@ import logging
 from dataclasses import dataclass, field
 from typing import Any, Optional
 
+from .prompt_blocks import normalize_prompt_blocks, truncate_to_budget
 from .world_info_injector import WorldInfoInjector, InjectionContext, MacroSubstitutor
 from .char_card_parser import ParsedCharacter
 
@@ -59,6 +60,8 @@ class PromptBuildConfig:
     visitor_message_count: int = 0
     # WorldInfo
     world_info_entries: list[dict] = field(default_factory=list)
+    # Prompt blocks (optional compatibility layer; empty means legacy builder)
+    prompt_blocks: list[dict] = field(default_factory=list)
     # Author's note
     author_note: str = ""
     author_note_depth: int = 3
@@ -126,6 +129,9 @@ class PromptBuilder:
             "context" (for injection)
         """
         config = self.config
+        if config.prompt_blocks:
+            return self._build_with_blocks(messages, new_message)
+
         result_messages: list[dict[str, str]] = []
 
         # ── Layer 0: Jailbreak ──────────────────────────────────────────────
@@ -283,6 +289,154 @@ class PromptBuilder:
             "prompt_string": "",
             "model": config.char_name,
         }
+
+    def _build_with_blocks(
+        self,
+        messages: list[ChatMessage],
+        new_message: str,
+    ) -> dict[str, Any]:
+        """Build prompt using configurable Prompt Blocks."""
+
+        config = self.config
+        result_messages: list[dict[str, str]] = []
+        blocks = normalize_prompt_blocks(config.prompt_blocks)
+
+        ctx = self._build_injection_context(messages, new_message)
+        for block in blocks:
+            if not block.get("enabled", True):
+                continue
+            block_type = block.get("type") or "custom"
+            if block_type == "world_info":
+                result_messages.extend(self.injector.inject(ctx, [m for m in messages]))
+                continue
+
+            content = self._render_prompt_block(block, new_message)
+            if not content:
+                continue
+            result_messages.append({
+                "role": "system",
+                "content": content,
+            })
+
+        history_msgs = self._format_history(messages)
+        result_messages.extend(history_msgs)
+
+        new_msg_content = self.macro.substitute(
+            new_message,
+            char_name=config.char_name,
+            user_name=config.user_name,
+            input_text=new_message,
+            persona=config.user_persona,
+            jailbreak=config.jailbreak,
+            extra=self._block_macros(new_message),
+        )
+        result_messages.append({
+            "role": "user",
+            "content": new_msg_content,
+        })
+
+        if config.output_format == "claude":
+            result_messages = self._to_claude_format(result_messages)
+        elif config.output_format == "textgen":
+            prompt_string = self._to_textgen_prompt(result_messages)
+            return {
+                "messages": result_messages,
+                "prompt_string": prompt_string,
+                "model": config.char_name,
+                "prompt_blocks": blocks,
+            }
+
+        return {
+            "messages": result_messages,
+            "prompt_string": "",
+            "model": config.char_name,
+            "prompt_blocks": blocks,
+        }
+
+    def _build_injection_context(self, messages: list[ChatMessage], new_message: str) -> InjectionContext:
+        config = self.config
+        recent_texts = [
+            m.content for m in messages[-config.history_max_messages:]
+        ]
+        return InjectionContext(
+            tavern_name=config.tavern_name,
+            tavern_description="",
+            tavern_scene_prompt=config.tavern_scene_prompt,
+            character_name=config.char_name,
+            character_personality=config.char_personality,
+            character_scenario=config.char_scenario,
+            character_system_prompt=config.char_system_prompt,
+            current_message=new_message,
+            recent_messages=recent_texts,
+            jailbreak=config.jailbreak,
+            author_note=config.author_note,
+            author_note_depth=config.author_note_depth,
+        )
+
+    def _visitor_facts(self) -> str:
+        config = self.config
+        visitor_facts = []
+        if config.visitor_relationship_stage:
+            visitor_facts.append(f"关系阶段={_relationship_stage_label(config.visitor_relationship_stage)}")
+        if config.visitor_visit_count > 0:
+            visitor_facts.append(f"到访次数={config.visitor_visit_count}")
+        if config.visitor_message_count > 0:
+            visitor_facts.append(f"历史消息数={config.visitor_message_count}")
+        if config.visitor_relationship_strength > 0:
+            strength_percent = max(0, min(100, round(float(config.visitor_relationship_strength) * 100)))
+            visitor_facts.append(f"关系强度={strength_percent}%")
+        if config.visitor_first_visit:
+            visitor_facts.append(f"首次到访={_compact_iso(config.visitor_first_visit)}")
+        if config.visitor_last_visit:
+            visitor_facts.append(f"最近到访={_compact_iso(config.visitor_last_visit)}")
+        return "；".join(visitor_facts)
+
+    def _block_macros(self, new_message: str = "") -> dict[str, Any]:
+        config = self.config
+        visitor_facts = self._visitor_facts()
+        return {
+            "tavern_name": config.tavern_name,
+            "tavern_scene_prompt": config.tavern_scene_prompt,
+            "char_name": config.char_name,
+            "char_personality": config.char_personality,
+            "char_personality_block": f"性格设定：{config.char_personality}\n" if config.char_personality else "",
+            "char_scenario": config.char_scenario,
+            "char_scenario_block": f"场景设定：{config.char_scenario}\n" if config.char_scenario else "",
+            "char_first_mes": config.char_first_mes,
+            "char_first_mes_block": f"开场白：{config.char_first_mes}\n" if config.char_first_mes else "",
+            "char_system_prompt": config.char_system_prompt,
+            "user_name": config.user_name,
+            "user_persona": config.user_persona,
+            "visitor_facts": visitor_facts,
+            "author_note": config.author_note,
+            "input": new_message,
+            **(config.extra_macros or {}),
+        }
+
+    def _render_prompt_block(self, block: dict[str, Any], new_message: str = "") -> str:
+        config = self.config
+        block_type = block.get("type") or "custom"
+        template = str(block.get("template") or "")
+
+        if block_type == "scene" and not config.tavern_scene_prompt:
+            return ""
+        if block_type == "visitor_state" and not self._visitor_facts():
+            return ""
+        if block_type == "author_note" and not config.author_note and "{{author_note}}" in template:
+            return ""
+        if block_type == "character" and template.strip() == "{{char_system_prompt}}" and not config.char_system_prompt:
+            return ""
+
+        rendered = self.macro.substitute(
+            template,
+            char_name=config.char_name,
+            user_name=config.user_name,
+            input_text=new_message,
+            persona=config.user_persona,
+            jailbreak=config.jailbreak,
+            extra=self._block_macros(new_message),
+        ).strip()
+        return truncate_to_budget(rendered, int(block.get("token_budget", 0) or 0))
 
     def _format_history(self, messages: list[ChatMessage]) -> list[dict[str, str]]:
         """Format chat history as messages."""

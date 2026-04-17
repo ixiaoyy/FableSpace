@@ -115,6 +115,8 @@ def test_visitor_name_is_used_in_prompt_and_persisted(monkeypatch):
         )
 
         assert payload["degraded"] is False
+        assert payload["visitor_state"]["visitor_id"] == "visitor_degrade"
+        assert payload["visitor_state"]["relationship"]["strength"] > 0
         assert any("当前访客称呼" in m.get("content", "") and "Mina" in m.get("content", "") for m in captured["messages"])
 
         history = service.tavern_store.get_chat_history(tavern.id, "visitor_degrade", "char_degrade")

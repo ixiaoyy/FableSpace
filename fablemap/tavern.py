@@ -316,7 +316,12 @@ class LLMConfig:
 
     def is_configured(self) -> bool:
         """检查是否已配置有效的 LLM"""
-        return bool(self.api_key and self.backend)
+        local_no_key_backends = {"ollama", "local", "localai"}
+        if not self.backend:
+            return False
+        if self.api_key:
+            return True
+        return self.backend in local_no_key_backends and bool(self.base_url)
 
 
 @dataclass
@@ -422,6 +427,11 @@ class Tavern:
     groups: list[dict[str, Any]] = field(default_factory=list)
     bookmarks: list[dict[str, Any]] = field(default_factory=list)
     chat_templates: list[dict[str, Any]] = field(default_factory=list)
+    output_rules: list[dict[str, Any]] = field(default_factory=list)
+    prompt_blocks: list[dict[str, Any]] = field(default_factory=list)
+    runtime_presets: list[dict[str, Any]] = field(default_factory=list)
+    active_preset_id: str = ""
+    memory_policy: dict[str, Any] = field(default_factory=dict)
     scene_prompt: str = ""
     llm_config: LLMConfig = field(default_factory=LLMConfig)
     voice_config: VoiceConfig = field(default_factory=VoiceConfig)
@@ -445,6 +455,11 @@ class Tavern:
             "groups": deepcopy(self.groups),
             "bookmarks": deepcopy(self.bookmarks),
             "chat_templates": deepcopy(self.chat_templates),
+            "output_rules": deepcopy(self.output_rules),
+            "prompt_blocks": deepcopy(self.prompt_blocks),
+            "runtime_presets": deepcopy(self.runtime_presets),
+            "active_preset_id": self.active_preset_id,
+            "memory_policy": deepcopy(self.memory_policy),
             "scene_prompt": self.scene_prompt,
             "llm_config": self.llm_config.to_dict(),  # 不包含 api_key
             "voice_config": self.voice_config.to_dict(),
@@ -490,6 +505,11 @@ class Tavern:
             groups=_normalize_metadata_list(d.get("groups", [])),
             bookmarks=_normalize_metadata_list(d.get("bookmarks", [])),
             chat_templates=_normalize_metadata_list(d.get("chat_templates", [])),
+            output_rules=_normalize_metadata_list(d.get("output_rules", [])),
+            prompt_blocks=_normalize_metadata_list(d.get("prompt_blocks", [])),
+            runtime_presets=_normalize_metadata_list(d.get("runtime_presets", [])),
+            active_preset_id=str(d.get("active_preset_id") or ""),
+            memory_policy=deepcopy(d.get("memory_policy", {})) if isinstance(d.get("memory_policy"), dict) else {},
             scene_prompt=d.get("scene_prompt", ""),
             llm_config=llm,
             voice_config=voice,
@@ -974,6 +994,11 @@ class TavernService:
             access=data.get("access", "public"),
             password_hash="",
             status="closed",
+            output_rules=_normalize_metadata_list(data.get("output_rules", [])),
+            prompt_blocks=_normalize_metadata_list(data.get("prompt_blocks", [])),
+            runtime_presets=_normalize_metadata_list(data.get("runtime_presets", [])),
+            active_preset_id=str(data.get("active_preset_id") or ""),
+            memory_policy=deepcopy(data.get("memory_policy", {})) if isinstance(data.get("memory_policy"), dict) else {},
             scene_prompt=data.get("scene_prompt", ""),
         )
 
@@ -984,15 +1009,17 @@ class TavernService:
 
         tavern = self.store.create_tavern(tavern)
 
-        # 保存 LLM 配置（包含 api_key）
+        # 保存 LLM 配置（包含 api_key；本地后端可仅凭 base_url 配置）
         llm_data = data.get("llm_config", {})
-        if llm_data.get("api_key"):
+        if llm_data:
             llm_config = LLMConfig.from_dict(llm_data)
+        else:
+            llm_config = None
+        if llm_config and llm_config.is_configured():
             self.store.save_llm_config(tavern_id, llm_config)
             # 更新 status
             tavern.llm_config = llm_config
-            if llm_config.is_configured():
-                tavern.status = "open"
+            tavern.status = "open"
             tavern = self.store.update_tavern(tavern)
 
         return tavern.to_dict_private(owner_id)
@@ -1035,9 +1062,13 @@ class TavernService:
                 for entry_data in data["world_info"]
                 if isinstance(entry_data, dict)
             ]
-        for metadata_key in ("groups", "bookmarks", "chat_templates"):
+        for metadata_key in ("groups", "bookmarks", "chat_templates", "output_rules", "prompt_blocks", "runtime_presets"):
             if metadata_key in data:
                 setattr(tavern, metadata_key, _normalize_metadata_list(data[metadata_key]))
+        if "active_preset_id" in data:
+            tavern.active_preset_id = str(data.get("active_preset_id") or "").strip()
+        if "memory_policy" in data:
+            tavern.memory_policy = deepcopy(data["memory_policy"]) if isinstance(data["memory_policy"], dict) else {}
 
         # 处理密码更新
         if "password" in data:
@@ -1051,19 +1082,26 @@ class TavernService:
         llm_data = data.get("llm_config")
         if llm_data:
             preserved_token_usage = self.store.get_token_usage(tavern_id) or tavern.llm_config.token_used
+            stored_llm_config = self.store.get_llm_config(tavern_id)
             llm_config = LLMConfig.from_dict(
                 {
                     **llm_data,
                     "token_used": llm_data.get("token_used", preserved_token_usage),
                 }
             )
-            if llm_config.api_key:
+            if (
+                not llm_config.api_key
+                and stored_llm_config
+                and stored_llm_config.backend == llm_config.backend
+            ):
+                llm_config.api_key = stored_llm_config.api_key
+            if llm_config.is_configured():
                 self.store.save_llm_config(tavern_id, llm_config)
                 tavern.llm_config = llm_config
-                if llm_config.is_configured():
-                    tavern.status = "open"
-                else:
-                    tavern.status = "closed"
+                tavern.status = "open"
+            else:
+                tavern.llm_config = llm_config
+                tavern.status = "closed"
 
         # 更新语音配置
         voice_data = data.get("voice_config")
@@ -1130,6 +1168,7 @@ class TavernService:
             "tavern_id": tavern_id,
             "visitor_id": user_id,
             "visit_count": visitor_state.visit_count if visitor_state else 0,
+            "visitor_state": visitor_state.to_dict() if visitor_state else None,
             "status": tavern.status,
             "characters": [c.to_dict() for c in tavern.characters],
             "scene_prompt": tavern.scene_prompt,

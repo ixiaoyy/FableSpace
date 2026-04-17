@@ -1,8 +1,13 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useRef } from 'react'
 import { getDefaultTavernService, getTavernAccessIcon, getTavernAccessLabel, getTavernStatusColor, getTavernStatusLabel } from './services/tavernService'
 import LLMConfigForm from './LLMConfigForm'
 import TavernCreatePanel from './TavernCreatePanel'
 import CharacterManagementModal from './CharacterManagementModal'
+import WorldBookEditor from './WorldBookEditor'
+import OutputRulesEditor from './OutputRulesEditor'
+import PromptBlockEditor from './PromptBlockEditor'
+import PresetManager from './PresetManager'
+import { OwnerAdvancedToolPanel, OwnerNextActionPanel, OwnerSectionNav } from './OwnerConsoleSections'
 
 const STATUS_FILTERS = [
   { id: 'all', label: '全部状态' },
@@ -16,6 +21,14 @@ const ACCESS_FILTERS = [
   { id: 'password', label: '密码' },
   { id: 'private', label: '私人' },
 ]
+
+const OWNER_SECTION_COPY = {
+  overview: { label: '总览', helper: '经营摘要' },
+  taverns: { label: '酒馆', helper: '基础管理' },
+  visitors: { label: '访客', helper: '回访与会话' },
+  ai: { label: 'AI', helper: '成本与配置' },
+  advanced: { label: '高级工具', helper: '世界书 / 护栏 / 数据' },
+}
 
 function formatCoordinate(value) {
   const numeric = Number(value)
@@ -86,6 +99,26 @@ function getTavernTokenUsage(tavern) {
   return Number.isFinite(usage) && usage > 0 ? usage : 0
 }
 
+function slugifyFilename(value) {
+  const normalized = String(value || 'tavern')
+    .trim()
+    .replace(/[\\/:*?"<>|]+/g, '-')
+    .replace(/\s+/g, '-')
+  return normalized || 'tavern'
+}
+
+function downloadJsonFile(filename, payload) {
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json;charset=utf-8' })
+  const url = URL.createObjectURL(blob)
+  const anchor = document.createElement('a')
+  anchor.href = url
+  anchor.download = filename
+  document.body.appendChild(anchor)
+  anchor.click()
+  anchor.remove()
+  URL.revokeObjectURL(url)
+}
+
 /**
  * TavernOwnerPanel — 店主管理面板
  *
@@ -95,6 +128,7 @@ function getTavernTokenUsage(tavern) {
  *   onTavernCreated — (tavern) => void — 酒馆创建/更新后回调
  *   initialTab     — number — 初始标签页（0=列表，1=创建）
  *   editTavern     — object — 初始要编辑的酒馆数据
+ *   createSignal   — number — 外部递增时直接打开创建向导
  */
 export default function TavernOwnerPanel({
   ownerId = '',
@@ -102,8 +136,11 @@ export default function TavernOwnerPanel({
   onTavernCreated,
   initialTab = 0,
   editTavern = null,
+  createSignal = 0,
+  createInitialLat = 0,
+  createInitialLon = 0,
 }) {
-  const [tab, setTab] = useState(initialTab)
+  const [ownerSection, setOwnerSection] = useState(initialTab === 1 ? 'taverns' : 'overview')
   const [myTaverns, setMyTaverns] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -111,6 +148,10 @@ export default function TavernOwnerPanel({
   const [editingTavern, setEditingTavern] = useState(editTavern)
   const [editingLlmTavern, setEditingLlmTavern] = useState(null)
   const [characterManagerTavern, setCharacterManagerTavern] = useState(null)
+  const [worldBookTavern, setWorldBookTavern] = useState(null)
+  const [outputRulesTavern, setOutputRulesTavern] = useState(null)
+  const [promptBlocksTavern, setPromptBlocksTavern] = useState(null)
+  const [presetManagerTavern, setPresetManagerTavern] = useState(null)
   const [llmFormData, setLlmFormData] = useState(null)
   const [savingLlm, setSavingLlm] = useState(false)
   const [llmSaveResult, setLlmSaveResult] = useState(null)
@@ -139,6 +180,9 @@ export default function TavernOwnerPanel({
   const [visitorError, setVisitorError] = useState('')
   const tavernService = getDefaultTavernService()
   const ownerLabel = ownerId || '未识别店主'
+  const packageInputRef = useRef(null)
+  const [packageBusy, setPackageBusy] = useState('')
+  const [packageStatus, setPackageStatus] = useState('')
 
   const ownerStats = useMemo(() => {
     return myTaverns.reduce(
@@ -146,12 +190,13 @@ export default function TavernOwnerPanel({
         const tokenUsed = getTavernTokenUsage(tavern)
         stats.total += 1
         stats.characters += tavern?.characters?.length || 0
+        stats.worldInfo += tavern?.world_info?.length || 0
         stats.tokens += tokenUsed
         if (tavern.status === 'open') stats.open += 1
         if (tavern.status === 'closed') stats.closed += 1
         return stats
       },
-      { total: 0, open: 0, closed: 0, characters: 0, tokens: 0 },
+      { total: 0, open: 0, closed: 0, characters: 0, worldInfo: 0, tokens: 0 },
     )
   }, [myTaverns])
 
@@ -229,6 +274,34 @@ export default function TavernOwnerPanel({
 
   const hasActiveFilters = statusFilter !== 'all' || accessFilter !== 'all' || Boolean(searchQuery.trim())
 
+  const ownerSections = useMemo(() => ([
+    {
+      id: 'overview',
+      ...OWNER_SECTION_COPY.overview,
+      badge: ownerStats.total ? `${ownerStats.total} 间` : '未开店',
+    },
+    {
+      id: 'taverns',
+      ...OWNER_SECTION_COPY.taverns,
+      badge: `${filteredTaverns.length}/${myTaverns.length}`,
+    },
+    {
+      id: 'visitors',
+      ...OWNER_SECTION_COPY.visitors,
+      badge: visitorStats.visitors ? `${visitorStats.visitors} 人` : `${chatStats.sessions} 会话`,
+    },
+    {
+      id: 'ai',
+      ...OWNER_SECTION_COPY.ai,
+      badge: ownerStats.tokens > 0 ? formatTokens(ownerStats.tokens) : '未消耗',
+    },
+    {
+      id: 'advanced',
+      ...OWNER_SECTION_COPY.advanced,
+      badge: '创作',
+    },
+  ]), [chatStats.sessions, filteredTaverns.length, myTaverns.length, ownerStats.total, ownerStats.tokens, visitorStats.visitors])
+
   useEffect(() => {
     if (!showCreate && !editingTavern) {
       refreshOwnerData()
@@ -253,14 +326,22 @@ export default function TavernOwnerPanel({
     }
   }, [chatSearchTavernId, myTaverns])
 
-  // Switch to create tab when editTavern prop is provided
+  // Switch to tavern management when editTavern prop is provided
   useEffect(() => {
     if (editTavern) {
       setEditingTavern(editTavern)
       setShowCreate(false)
-      setTab(1)
+      setOwnerSection('taverns')
     }
   }, [editTavern])
+
+  useEffect(() => {
+    if (createSignal > 0) {
+      setEditingTavern(null)
+      setShowCreate(true)
+      setOwnerSection('taverns')
+    }
+  }, [createSignal])
 
   async function fetchMyTaverns() {
     setLoading(true)
@@ -583,7 +664,7 @@ export default function TavernOwnerPanel({
     } else {
       setMyTaverns(prev => prev.map(t => t.id === newTavern.id ? newTavern : t))
     }
-    setTab(0)
+    setOwnerSection('taverns')
     if (onTavernCreated) onTavernCreated(newTavern)
   }
 
@@ -591,6 +672,92 @@ export default function TavernOwnerPanel({
     setMyTaverns(prev => prev.map(t => t.id === updatedTavern.id ? { ...t, ...updatedTavern } : t))
     setCharacterManagerTavern(updatedTavern)
     if (onTavernCreated) onTavernCreated(updatedTavern)
+  }
+
+  function handleWorldInfoUpdated(updatedTavern) {
+    setMyTaverns(prev => prev.map(t => t.id === updatedTavern.id ? { ...t, ...updatedTavern } : t))
+    setWorldBookTavern(updatedTavern)
+    if (onTavernCreated) onTavernCreated(updatedTavern)
+  }
+
+  function handleOutputRulesUpdated(updatedTavern) {
+    setMyTaverns(prev => prev.map(t => t.id === updatedTavern.id ? { ...t, ...updatedTavern } : t))
+    setOutputRulesTavern(updatedTavern)
+    if (onTavernCreated) onTavernCreated(updatedTavern)
+  }
+
+  function handlePromptBlocksUpdated(updatedTavern) {
+    setMyTaverns(prev => prev.map(t => t.id === updatedTavern.id ? { ...t, ...updatedTavern } : t))
+    setPromptBlocksTavern(updatedTavern)
+    if (onTavernCreated) onTavernCreated(updatedTavern)
+  }
+
+  function handlePresetApplied(updatedTavern) {
+    setMyTaverns(prev => prev.map(t => t.id === updatedTavern.id ? { ...t, ...updatedTavern } : t))
+    setPresetManagerTavern(updatedTavern)
+    if (onTavernCreated) onTavernCreated(updatedTavern)
+  }
+
+  async function handleExportPackage(tavern) {
+    if (!tavern?.id) return
+    setPackageBusy(`export:${tavern.id}`)
+    setPackageStatus('')
+    try {
+      const payload = await tavernService.exportTavernPackage(tavern.id, ownerId)
+      const filename = `${slugifyFilename(payload?.tavern?.name || tavern.name)}-fablemap-package.json`
+      downloadJsonFile(filename, payload)
+      setPackageStatus(`已导出《${tavern.name}》酒馆包，不包含 API Key 和访客聊天。`)
+    } catch (err) {
+      setPackageStatus(`导出失败：${err.message}`)
+    } finally {
+      setPackageBusy('')
+    }
+  }
+
+  function openPackageImport() {
+    packageInputRef.current?.click()
+  }
+
+  async function handlePackageFileChange(event) {
+    const file = event.target.files?.[0]
+    event.target.value = ''
+    if (!file) return
+
+    setPackageBusy('import')
+    setPackageStatus('')
+    try {
+      const packageData = JSON.parse(await file.text())
+      const tavernPayload = packageData?.tavern || {}
+      const defaultLat = tavernPayload.lat ?? createInitialLat ?? 0
+      const defaultLon = tavernPayload.lon ?? createInitialLon ?? 0
+      const latInput = window.prompt('导入酒馆包：请输入新酒馆纬度', String(defaultLat))
+      if (latInput == null) return
+      const lonInput = window.prompt('导入酒馆包：请输入新酒馆经度', String(defaultLon))
+      if (lonInput == null) return
+      const nameInput = window.prompt('导入后的酒馆名称', `${tavernPayload.name || '导入酒馆'} 副本`)
+      if (nameInput == null) return
+      const imported = await tavernService.importTavernPackage(
+        packageData,
+        {
+          lat: Number(latInput),
+          lon: Number(lonInput),
+          name: nameInput.trim() || `${tavernPayload.name || '导入酒馆'} 副本`,
+          access: 'private',
+        },
+        ownerId,
+      )
+      const newTavern = imported?.tavern
+      if (newTavern) {
+        setMyTaverns(prev => [newTavern, ...prev.filter(t => t.id !== newTavern.id)])
+        if (onTavernCreated) onTavernCreated(newTavern)
+      }
+      setPackageStatus(`已导入酒馆包：${newTavern?.name || nameInput}`)
+      setOwnerSection('taverns')
+    } catch (err) {
+      setPackageStatus(`导入失败：${err.message}`)
+    } finally {
+      setPackageBusy('')
+    }
   }
 
   function openLlmEdit(tavern) {
@@ -629,11 +796,11 @@ export default function TavernOwnerPanel({
     return (
       <div className="owner-create-container">
         <TavernCreatePanel
-          initialLat={0}
-          initialLon={0}
+          initialLat={createInitialLat || 0}
+          initialLon={createInitialLon || 0}
           ownerId={ownerId}
           onCreated={handleTavernCreated}
-          onCancel={() => { setShowCreate(false); setTab(0) }}
+          onCancel={() => { setShowCreate(false); setOwnerSection('taverns') }}
         />
       </div>
     )
@@ -667,138 +834,153 @@ export default function TavernOwnerPanel({
           {onClose ? (
             <button className="secondary" onClick={onClose}>返回</button>
           ) : null}
+          <button className="secondary" onClick={openPackageImport} disabled={packageBusy === 'import'}>
+            {packageBusy === 'import' ? '导入中...' : '导入酒馆包'}
+          </button>
+          <input
+            ref={packageInputRef}
+            type="file"
+            accept=".json,application/json"
+            style={{ display: 'none' }}
+            onChange={handlePackageFileChange}
+          />
           <button className="btn-primary" onClick={() => setShowCreate(true)}>
             + 创建新酒馆
           </button>
         </div>
       </header>
 
-      <section className="owner-overview" aria-label="我的酒馆摘要">
-        <article className="owner-overview-item">
-          <span className="mini-label">全部酒馆</span>
-          <strong>{ownerStats.total}</strong>
-          <p>当前身份拥有的酒馆数量</p>
-        </article>
-        <article className="owner-overview-item">
-          <span className="mini-label">营业中</span>
-          <strong>{ownerStats.open}</strong>
-          <p>{ownerStats.closed} 间正在歇业</p>
-        </article>
-        <article className="owner-overview-item">
-          <span className="mini-label">角色总数</span>
-          <strong>{ownerStats.characters}</strong>
-          <p>已导入或创建的 NPC</p>
-        </article>
-        <article className="owner-overview-item">
-          <span className="mini-label">Token 消耗</span>
-          <strong>{ownerStats.tokens > 0 ? ownerStats.tokens.toLocaleString() : '—'}</strong>
-          <p>来自已记录的 LLM 配置</p>
-        </article>
-      </section>
+      {packageStatus ? (
+        <div className="owner-package-status panel">{packageStatus}</div>
+      ) : null}
 
-      <TokenUsagePanel
-        tokenStats={tokenStats}
-        onManageLlm={openLlmEdit}
+      <OwnerSectionNav
+        sections={ownerSections}
+        activeSection={ownerSection}
+        onChange={setOwnerSection}
       />
 
-      <OwnerChatActivityPanel
-        sessions={chatSessions}
-        stats={chatStats}
-        loading={chatLoading}
-        error={chatError}
-        onRefresh={fetchOwnerChatSessions}
-        onOpenSession={openChatSessionDetail}
-      />
-
-      <OwnerChatSearchPanel
-        taverns={myTaverns}
-        selectedTavernId={chatSearchTavernId}
-        query={chatSearchQuery}
-        results={chatSearchResults}
-        loading={chatSearchLoading}
-        error={chatSearchError}
-        status={chatSearchStatus}
-        onSelectTavern={setChatSearchTavernId}
-        onQueryChange={setChatSearchQuery}
-        onSearch={runChatSearch}
-        onOpenResult={openChatSearchResult}
-        resolveSession={resolveChatSearchSession}
-      />
-
-      <OwnerVisitorStatePanel
-        visitors={visitorStates}
-        stats={visitorStats}
-        loading={visitorLoading}
-        error={visitorError}
-        onRefresh={() => fetchOwnerVisitorStates(myTaverns)}
-        onOpenVisitorSessions={openVisitorLatestSession}
-      />
-
-      <section className="owner-filters" aria-label="酒馆筛选">
-        <label className="owner-search">
-          <span className="mini-label">搜索酒馆</span>
-          <input
-            type="search"
-            value={searchQuery}
-            onChange={(event) => setSearchQuery(event.target.value)}
-            placeholder="按名称、描述、场景或角色搜索"
+      {ownerSection === 'overview' && (
+        <>
+          <section className="owner-overview" aria-label="我的酒馆摘要">
+            <article className="owner-overview-item">
+              <span className="mini-label">全部酒馆</span>
+              <strong>{ownerStats.total}</strong>
+              <p>当前身份拥有的酒馆数量</p>
+            </article>
+            <article className="owner-overview-item">
+              <span className="mini-label">营业中</span>
+              <strong>{ownerStats.open}</strong>
+              <p>{ownerStats.closed} 间正在歇业</p>
+            </article>
+            <article className="owner-overview-item">
+              <span className="mini-label">角色 / 世界书</span>
+              <strong>{ownerStats.characters} / {ownerStats.worldInfo}</strong>
+              <p>NPC 与背景设定条目</p>
+            </article>
+            <article className="owner-overview-item">
+              <span className="mini-label">AI 消耗</span>
+              <strong>{ownerStats.tokens > 0 ? ownerStats.tokens.toLocaleString() : '—'}</strong>
+              <p>来自已记录的 AI 对话</p>
+            </article>
+          </section>
+          <OwnerNextActionPanel
+            ownerStats={ownerStats}
+            visitorStats={visitorStats}
+            chatStats={chatStats}
+            onCreate={() => setShowCreate(true)}
+            onOpenSection={setOwnerSection}
           />
-        </label>
-        <label>
-          <span className="mini-label">营业状态</span>
-          <select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)}>
-            {STATUS_FILTERS.map((filter) => (
-              <option key={filter.id} value={filter.id}>{filter.label}</option>
-            ))}
-          </select>
-        </label>
-        <label>
-          <span className="mini-label">访问权限</span>
-          <select value={accessFilter} onChange={(event) => setAccessFilter(event.target.value)}>
-            {ACCESS_FILTERS.map((filter) => (
-              <option key={filter.id} value={filter.id}>{filter.label}</option>
-            ))}
-          </select>
-        </label>
-        <div className="owner-filter-summary">
-          <strong>{filteredTaverns.length}</strong>
-          <span> / {myTaverns.length} 间可见</span>
-          {hasActiveFilters ? (
-            <button type="button" className="button-link" onClick={clearFilters}>清除筛选</button>
-          ) : null}
-        </div>
-      </section>
+        </>
+      )}
 
-      {loading ? (
-        <div className="owner-loading panel">正在读取酒馆数据...</div>
-      ) : error ? (
-        <div className="owner-error panel">读取失败: {error}</div>
-      ) : myTaverns.length === 0 ? (
-        <div className="owner-empty panel">
-          <div className="empty-icon">🏚️</div>
-          <p>你还没有创建任何酒馆。现在就开始你的店主生涯吧！</p>
-          <button className="button-link" onClick={() => setShowCreate(true)}>立即创建</button>
-        </div>
-      ) : filteredTaverns.length === 0 ? (
-        <div className="owner-empty panel">
-          <div className="empty-icon">🔎</div>
-          <p>当前筛选没有匹配的酒馆。</p>
-          <button className="button-link" onClick={clearFilters}>清除筛选</button>
-        </div>
-      ) : (
-        <div className="owner-list">
-          {filteredTaverns.map(tavern => (
-            <TavernCard
-              key={tavern.id}
-              tavern={tavern}
-              onEdit={() => handleEditTavern(tavern)}
-              onToggleStatus={() => handleToggleStatus(tavern)}
-              onManageLlm={() => openLlmEdit(tavern)}
-              onManageCharacters={() => setCharacterManagerTavern(tavern)}
-              onDelete={() => setDeleteTarget(tavern.id)}
-            />
-          ))}
-        </div>
+      {ownerSection === 'ai' && (
+        <TokenUsagePanel
+          tokenStats={tokenStats}
+          onManageLlm={openLlmEdit}
+        />
+      )}
+
+      {ownerSection === 'visitors' && (
+        <>
+          <OwnerChatActivityPanel
+            sessions={chatSessions}
+            stats={chatStats}
+            loading={chatLoading}
+            error={chatError}
+            onRefresh={fetchOwnerChatSessions}
+            onOpenSession={openChatSessionDetail}
+          />
+
+          <OwnerChatSearchPanel
+            taverns={myTaverns}
+            selectedTavernId={chatSearchTavernId}
+            query={chatSearchQuery}
+            results={chatSearchResults}
+            loading={chatSearchLoading}
+            error={chatSearchError}
+            status={chatSearchStatus}
+            onSelectTavern={setChatSearchTavernId}
+            onQueryChange={setChatSearchQuery}
+            onSearch={runChatSearch}
+            onOpenResult={openChatSearchResult}
+            resolveSession={resolveChatSearchSession}
+          />
+
+          <OwnerVisitorStatePanel
+            visitors={visitorStates}
+            stats={visitorStats}
+            loading={visitorLoading}
+            error={visitorError}
+            onRefresh={() => fetchOwnerVisitorStates(myTaverns)}
+            onOpenVisitorSessions={openVisitorLatestSession}
+          />
+        </>
+      )}
+
+      {ownerSection === 'taverns' && (
+        <OwnerTavernManagementSection
+          loading={loading}
+          error={error}
+          myTaverns={myTaverns}
+          filteredTaverns={filteredTaverns}
+          searchQuery={searchQuery}
+          statusFilter={statusFilter}
+          accessFilter={accessFilter}
+          hasActiveFilters={hasActiveFilters}
+          packageBusy={packageBusy}
+          onSearchQueryChange={setSearchQuery}
+          onStatusFilterChange={setStatusFilter}
+          onAccessFilterChange={setAccessFilter}
+          onClearFilters={clearFilters}
+          onCreate={() => setShowCreate(true)}
+          onEdit={handleEditTavern}
+          onToggleStatus={handleToggleStatus}
+          onManageLlm={openLlmEdit}
+          onManageCharacters={setCharacterManagerTavern}
+          onManageWorldBook={setWorldBookTavern}
+          onManageOutputRules={setOutputRulesTavern}
+          onManagePromptBlocks={setPromptBlocksTavern}
+          onManagePresets={setPresetManagerTavern}
+          onExportPackage={handleExportPackage}
+          onDelete={(tavern) => setDeleteTarget(tavern.id)}
+        />
+      )}
+
+      {ownerSection === 'advanced' && (
+        <OwnerAdvancedToolPanel
+          taverns={myTaverns}
+          packageBusy={packageBusy}
+          onCreate={() => setShowCreate(true)}
+          onImportPackage={openPackageImport}
+          onManageLlm={openLlmEdit}
+          onManageCharacters={setCharacterManagerTavern}
+          onManageWorldBook={setWorldBookTavern}
+          onManageOutputRules={setOutputRulesTavern}
+          onManagePromptBlocks={setPromptBlocksTavern}
+          onManagePresets={setPresetManagerTavern}
+          onExportPackage={handleExportPackage}
+        />
       )}
 
       {characterManagerTavern && (
@@ -807,6 +989,42 @@ export default function TavernOwnerPanel({
           ownerId={ownerId}
           onClose={() => setCharacterManagerTavern(null)}
           onCharactersChanged={(chars) => handleCharactersUpdated({ ...characterManagerTavern, characters: chars })}
+        />
+      )}
+
+      {worldBookTavern && (
+        <WorldBookEditor
+          tavern={worldBookTavern}
+          ownerId={ownerId}
+          onClose={() => setWorldBookTavern(null)}
+          onWorldInfoChanged={handleWorldInfoUpdated}
+        />
+      )}
+
+      {outputRulesTavern && (
+        <OutputRulesEditor
+          tavern={outputRulesTavern}
+          ownerId={ownerId}
+          onClose={() => setOutputRulesTavern(null)}
+          onRulesChanged={handleOutputRulesUpdated}
+        />
+      )}
+
+      {promptBlocksTavern && (
+        <PromptBlockEditor
+          tavern={promptBlocksTavern}
+          ownerId={ownerId}
+          onClose={() => setPromptBlocksTavern(null)}
+          onBlocksChanged={handlePromptBlocksUpdated}
+        />
+      )}
+
+      {presetManagerTavern && (
+        <PresetManager
+          tavern={presetManagerTavern}
+          ownerId={ownerId}
+          onClose={() => setPresetManagerTavern(null)}
+          onPresetApplied={handlePresetApplied}
         />
       )}
 
@@ -860,6 +1078,16 @@ export default function TavernOwnerPanel({
                   {llmSaveResult.message}
                 </div>
               )}
+
+              {/* Voice Config Section */}
+              <VoiceConfigSection
+                tavernId={editingLlmTavern.id}
+                onSave={(voiceConfig) => {
+                  setMyTaverns(prev => prev.map(t =>
+                    t.id === editingLlmTavern.id ? { ...t, voice_config: voiceConfig } : t
+                  ))
+                }}
+              />
             </div>
           </div>
         </div>
@@ -887,24 +1115,137 @@ export default function TavernOwnerPanel({
   )
 }
 
+function OwnerTavernManagementSection({
+  loading,
+  error,
+  myTaverns,
+  filteredTaverns,
+  searchQuery,
+  statusFilter,
+  accessFilter,
+  hasActiveFilters,
+  packageBusy,
+  onSearchQueryChange,
+  onStatusFilterChange,
+  onAccessFilterChange,
+  onClearFilters,
+  onCreate,
+  onEdit,
+  onToggleStatus,
+  onManageLlm,
+  onManageCharacters,
+  onManageWorldBook,
+  onManageOutputRules,
+  onManagePromptBlocks,
+  onManagePresets,
+  onExportPackage,
+  onDelete,
+}) {
+  return (
+    <section className="owner-section-panel" aria-label="酒馆管理">
+      <div className="owner-section-heading">
+        <div>
+          <p className="mini-label">酒馆</p>
+          <h2>基础信息、营业状态与公开入口</h2>
+          <p className="note muted">常用经营动作放在这里；角色、世界书和护栏也可以从每张酒馆卡片进入。</p>
+        </div>
+        <button className="btn-primary" type="button" onClick={onCreate}>+ 创建新酒馆</button>
+      </div>
+
+      <section className="owner-filters" aria-label="酒馆筛选">
+        <label className="owner-search">
+          <span className="mini-label">搜索酒馆</span>
+          <input
+            type="search"
+            value={searchQuery}
+            onChange={(event) => onSearchQueryChange(event.target.value)}
+            placeholder="按名称、描述、场景或角色搜索"
+          />
+        </label>
+        <label>
+          <span className="mini-label">营业状态</span>
+          <select value={statusFilter} onChange={(event) => onStatusFilterChange(event.target.value)}>
+            {STATUS_FILTERS.map((filter) => (
+              <option key={filter.id} value={filter.id}>{filter.label}</option>
+            ))}
+          </select>
+        </label>
+        <label>
+          <span className="mini-label">访问权限</span>
+          <select value={accessFilter} onChange={(event) => onAccessFilterChange(event.target.value)}>
+            {ACCESS_FILTERS.map((filter) => (
+              <option key={filter.id} value={filter.id}>{filter.label}</option>
+            ))}
+          </select>
+        </label>
+        <div className="owner-filter-summary">
+          <strong>{filteredTaverns.length}</strong>
+          <span> / {myTaverns.length} 间可见</span>
+          {hasActiveFilters ? (
+            <button type="button" className="button-link" onClick={onClearFilters}>清除筛选</button>
+          ) : null}
+        </div>
+      </section>
+
+      {loading ? (
+        <div className="owner-loading panel">正在读取酒馆数据...</div>
+      ) : error ? (
+        <div className="owner-error panel">读取失败: {error}</div>
+      ) : myTaverns.length === 0 ? (
+        <div className="owner-empty panel">
+          <div className="empty-icon">🏚️</div>
+          <p>你还没有创建任何酒馆。现在就开始你的店主生涯吧！</p>
+          <button className="button-link" onClick={onCreate}>立即创建</button>
+        </div>
+      ) : filteredTaverns.length === 0 ? (
+        <div className="owner-empty panel">
+          <div className="empty-icon">🔎</div>
+          <p>当前筛选没有匹配的酒馆。</p>
+          <button className="button-link" onClick={onClearFilters}>清除筛选</button>
+        </div>
+      ) : (
+        <div className="owner-list">
+          {filteredTaverns.map(tavern => (
+            <TavernCard
+              key={tavern.id}
+              tavern={tavern}
+              onEdit={() => onEdit(tavern)}
+              onToggleStatus={() => onToggleStatus(tavern)}
+              onManageLlm={() => onManageLlm(tavern)}
+              onManageCharacters={() => onManageCharacters(tavern)}
+              onManageWorldBook={() => onManageWorldBook(tavern)}
+              onManageOutputRules={() => onManageOutputRules(tavern)}
+              onManagePromptBlocks={() => onManagePromptBlocks(tavern)}
+              onManagePresets={() => onManagePresets(tavern)}
+              onExportPackage={() => onExportPackage(tavern)}
+              packageBusy={packageBusy === `export:${tavern.id}`}
+              onDelete={() => onDelete(tavern)}
+            />
+          ))}
+        </div>
+      )}
+    </section>
+  )
+}
+
 function TokenUsagePanel({ tokenStats, onManageLlm }) {
   const rows = tokenStats.rows.slice(0, 8)
   const hasUsage = tokenStats.total > 0
 
   return (
-    <section className="owner-token-panel panel" aria-label="Token 统计面板">
+    <section className="owner-token-panel panel" aria-label="AI 消耗统计面板">
       <div className="owner-token-panel__header">
         <div>
-          <p className="mini-label">Token 统计</p>
-          <h2>LLM 使用量</h2>
+          <p className="mini-label">AI 消耗</p>
+          <h2>模型使用量</h2>
           <p className="note muted">
-            统计来自酒馆聊天链路记录的 token_used，用于店主观察模型消耗趋势。
+            统计来自酒馆聊天记录的模型用量，用于店主观察成本趋势。
           </p>
         </div>
         <div className="owner-token-total">
           <span>累计</span>
           <strong>{formatTokens(tokenStats.total)}</strong>
-          <small>tokens</small>
+          <small>用量单位</small>
         </div>
       </div>
 
@@ -928,7 +1269,7 @@ function TokenUsagePanel({ tokenStats, onManageLlm }) {
       </div>
 
       {rows.length === 0 ? (
-        <div className="owner-token-empty">创建酒馆后，这里会显示每间酒馆的 LLM 使用量。</div>
+        <div className="owner-token-empty">创建酒馆后，这里会显示每间酒馆的 AI 使用量。</div>
       ) : (
         <div className="owner-token-list">
           {rows.map(({ tavern, tokens, backend, model }) => {
@@ -1220,7 +1561,7 @@ function OwnerVisitorStatePanel({ visitors, stats, loading, error, onRefresh, on
           <p className="mini-label">回访状态</p>
           <h2>访客关系与回访</h2>
           <p className="note muted">
-            来自入场记录和聊天写回的 VisitorState，用来观察哪些访客正在形成持续关系。
+            来自入场记录和聊天记忆，用来观察哪些访客正在形成持续关系。
           </p>
         </div>
         <button type="button" className="secondary" onClick={onRefresh} disabled={loading}>
@@ -1296,11 +1637,27 @@ function OwnerVisitorStatePanel({ visitors, stats, loading, error, onRefresh, on
   )
 }
 
-function TavernCard({ tavern, onEdit, onToggleStatus, onManageLlm, onManageCharacters, onDelete }) {
+function TavernCard({
+  tavern,
+  onEdit,
+  onToggleStatus,
+  onManageLlm,
+  onManageCharacters,
+  onManageWorldBook,
+  onManageOutputRules,
+  onManagePromptBlocks,
+  onManagePresets,
+  onExportPackage,
+  packageBusy,
+  onDelete,
+}) {
   const isOpen = tavern.status === 'open'
   const tokenUsed = getTavernTokenUsage(tavern)
   const statusColor = getTavernStatusColor(tavern?.status)
   const charCount = tavern?.characters?.length || 0
+  const worldInfoCount = tavern?.world_info?.length || 0
+  const promptBlockCount = tavern?.prompt_blocks?.length || 0
+  const presetCount = tavern?.runtime_presets?.length || 0
 
   return (
     <div className={`tavern-card panel ${!isOpen ? 'is-closed' : ''}`}>
@@ -1317,17 +1674,24 @@ function TavernCard({ tavern, onEdit, onToggleStatus, onManageLlm, onManageChara
             {getTavernStatusLabel(tavern.status)}
           </span>
           <span className="char-count-badge">{charCount} 角色</span>
+          <span className="char-count-badge">{worldInfoCount} 世界书</span>
+          <span className="char-count-badge">{promptBlockCount || '默认'} 段落</span>
+          <span className="char-count-badge">{presetCount || '内置'} 预设</span>
         </div>
       </div>
 
       <div className="tavern-card__metrics">
         <div className="owner-metric">
-          <span className="mini-label">Token 消耗</span>
-          <strong>{tokenUsed > 0 ? `${formatTokens(tokenUsed)} tokens` : '—'}</strong>
+          <span className="mini-label">AI 消耗</span>
+          <strong>{tokenUsed > 0 ? formatTokens(tokenUsed) : '—'}</strong>
         </div>
         <div className="owner-metric">
           <span className="mini-label">访问权限</span>
           <strong>{getTavernAccessIcon(tavern.access)} {getTavernAccessLabel(tavern.access)}</strong>
+        </div>
+        <div className="owner-metric">
+          <span className="mini-label">语音</span>
+          <strong>{tavern.voice_config?.enabled ? '🔊 启用' : '—'}</strong>
         </div>
         <div className="owner-metric">
           <span className="mini-label">坐标</span>
@@ -1338,6 +1702,13 @@ function TavernCard({ tavern, onEdit, onToggleStatus, onManageLlm, onManageChara
       <div className="tavern-card__actions">
         <button className="secondary" onClick={onManageLlm}>AI 配置</button>
         <button className="secondary" onClick={onManageCharacters}>角色</button>
+        <button className="secondary" onClick={onManageWorldBook}>世界书</button>
+        <button className="secondary" onClick={onManagePromptBlocks}>段落</button>
+        <button className="secondary" onClick={onManagePresets}>预设</button>
+        <button className="secondary" onClick={onManageOutputRules}>护栏</button>
+        <button className="secondary" onClick={onExportPackage} disabled={packageBusy}>
+          {packageBusy ? '导出中...' : '导出包'}
+        </button>
         <button className="secondary" onClick={onEdit}>编辑</button>
         <button className={isOpen ? 'secondary' : ''} onClick={onToggleStatus}>
           {isOpen ? '歇业' : '开放'}
@@ -1400,7 +1771,7 @@ function TavernEditModal({ tavern, onSave, onClose }) {
                 </select>
               </div>
               <div className="form-group">
-                <label>场景设定 (AI Prompt)</label>
+                <label>场景氛围（给 AI 的剧情指令）</label>
                 <textarea
                   value={form.scene_prompt}
                   onChange={e => setForm(f => ({...f, scene_prompt: e.target.value}))}
@@ -1429,6 +1800,151 @@ function TavernEditModal({ tavern, onSave, onClose }) {
           </div>
         </form>
       </div>
+    </div>
+  )
+}
+
+// ─── Voice Config Section ─────────────────────────────────────────────────────
+
+function VoiceConfigSection({ tavernId, onSave }) {
+  const [config, setConfig] = useState({
+    enabled: false,
+    tts_provider: 'elevenlabs',
+    tts_voice: '',
+    tts_speed: 1.0,
+    auto_play: false,
+  })
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+  const [testing, setTesting] = useState(false)
+  const [result, setResult] = useState(null)
+
+  // Load voice config on mount
+  useEffect(() => {
+    if (!tavernId) return
+    setLoading(true)
+    tavernService.getVoiceConfig(tavernId).then((data) => {
+      setConfig(data.voice_config || {
+        enabled: false,
+        tts_provider: 'elevenlabs',
+        tts_voice: '',
+        tts_speed: 1.0,
+        auto_play: false,
+      })
+    }).catch(() => {
+      // Use defaults on error
+    }).finally(() => setLoading(false))
+  }, [tavernId])
+
+  async function handleSave() {
+    if (!tavernId) return
+    setSaving(true)
+    setResult(null)
+    try {
+      await tavernService.saveVoiceConfig(tavernId, config)
+      setResult({ ok: true, message: '语音配置已保存' })
+      if (onSave) onSave(config)
+    } catch (err) {
+      setResult({ ok: false, message: err.message })
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  async function handleTest() {
+    if (!tavernId) return
+    setTesting(true)
+    setResult(null)
+    try {
+      const audioUrl = await tavernService.synthesizeVoice(tavernId, '你好，这是语音测试')
+      const audio = new Audio(audioUrl)
+      audio.play()
+      setResult({ ok: true, message: '正在播放测试语音...' })
+    } catch (err) {
+      setResult({ ok: false, message: err.message })
+    } finally {
+      setTesting(false)
+    }
+  }
+
+  if (loading) {
+    return <div className="voice-config-section loading">加载中...</div>
+  }
+
+  return (
+    <div className="voice-config-section">
+      <h4 style={{ marginTop: 16, marginBottom: 12 }}>语音设置 (TTS)</h4>
+
+      <div className="form-group" style={{ marginBottom: 12 }}>
+        <label style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <input
+            type="checkbox"
+            checked={config.enabled}
+            onChange={e => setConfig(c => ({ ...c, enabled: e.target.checked }))}
+          />
+          启用语音合成 (TTS)
+        </label>
+      </div>
+
+      {config.enabled && (
+        <>
+          <div className="form-group" style={{ marginBottom: 12 }}>
+            <label>TTS 提供商</label>
+            <select
+              value={config.tts_provider}
+              onChange={e => setConfig(c => ({ ...c, tts_provider: e.target.value, tts_voice: '' }))}
+            >
+              <option value="elevenlabs">ElevenLabs</option>
+              <option value="openai_tts">OpenAI TTS</option>
+              <option value="edge_tts">Edge TTS (免费)</option>
+              <option value="silero">Silero (免费)</option>
+            </select>
+          </div>
+
+          <div className="form-group" style={{ marginBottom: 12 }}>
+            <label>语速</label>
+            <input
+              type="range"
+              min="0.5"
+              max="2.0"
+              step="0.1"
+              value={config.tts_speed}
+              onChange={e => setConfig(c => ({ ...c, tts_speed: parseFloat(e.target.value) }))}
+            />
+            <span className="form-hint">{config.tts_speed.toFixed(1)}x</span>
+          </div>
+
+          <div className="form-group">
+            <button
+              type="button"
+              className="secondary"
+              onClick={handleTest}
+              disabled={testing}
+              style={{ marginRight: 8 }}
+            >
+              {testing ? '测试中...' : '🔊 测试语音'}
+            </button>
+            <button
+              type="button"
+              className="primary"
+              onClick={handleSave}
+              disabled={saving}
+            >
+              {saving ? '保存中...' : '保存配置'}
+            </button>
+          </div>
+
+          <p className="form-hint" style={{ marginTop: 8 }}>
+            注：TTS 使用 AI 配置中的 API Key。免费提供商 (Edge/Silero) 无需 API Key。
+          </p>
+        </>
+      )}
+
+      {result && (
+        <div className={`llm-save-result ${result.ok ? 'ok' : 'error'}`} style={{ marginTop: 12 }}>
+          {result.message}
+        </div>
+      )}
     </div>
   )
 }

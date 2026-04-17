@@ -1,17 +1,17 @@
 export function buildEntryStatusText({ autoEntering, submitting, result }) {
   if (autoEntering) {
-    return '正在自动进入附近地点'
+    return '正在读取你附近的地点'
   }
 
   if (submitting) {
-    return '正在刷新当前地点切片'
+    return '正在刷新附近内容'
   }
 
   if (result) {
-    return '当前地点切片已就绪'
+    return '附近地图已准备好'
   }
 
-  return '等待生成附近地点切片'
+  return '等待查看附近地点'
 }
 
 export function buildHeroMetrics({
@@ -21,34 +21,66 @@ export function buildHeroMetrics({
   result,
   visibleMapLayers,
   originLabel,
+  view = 'map',
+  totalTaverns = 0,
+  matchingTaverns = 0,
+  openTaverns = 0,
 }) {
   const visibleLayerCount = Object.values(visibleMapLayers || {}).filter(Boolean).length
   const mapReady = Boolean(result?.world)
+
+  if (view === 'owner') {
+    return {
+      visibleLayerCount,
+      cards: [
+        {
+          id: 'create',
+          label: '开店路径',
+          value: '3 分钟向导',
+          detail: '地点 → 酒馆 → 角色 → AI → 开门，普通字段优先展示。',
+        },
+        {
+          id: 'manage',
+          label: '店主后台',
+          value: '酒馆 / 角色 / AI / 访客',
+          detail: '经营核心默认可见，世界书和调试能力后续放入高级区。',
+        },
+        {
+          id: 'memory',
+          label: '回访价值',
+          value: '访客关系可追踪',
+          detail: '常客、最近会话和关系阶段会在记忆面板里逐步沉淀。',
+        },
+      ],
+    }
+  }
 
   return {
     visibleLayerCount,
     cards: [
       {
-        id: 'entry',
-        label: '当前步骤',
-        value: result ? '地点入口已建立' : entryStatusText,
-        detail: result ? `当前入口锚定在 ${originLabel}` : `先确认入口：${originLabel}`,
+        id: 'taverns',
+        label: '附近酒馆',
+        value: totalTaverns > 0 ? `${matchingTaverns} / ${totalTaverns} 间` : '等待发现',
+        detail: openTaverns > 0
+          ? `${openTaverns} 间营业中，可从地图标记或列表卡片进入。`
+          : '刷新附近内容后，会显示可进入的公开酒馆。',
       },
       {
-        id: 'map',
-        label: '现在就做',
-        value: mapReady ? '先选一个地点' : '先生成附近地点',
+        id: 'location',
+        label: '当前位置',
+        value: originLabel,
         detail: mapReady
-          ? `空间容器已可点击 · 当前显示 ${visibleLayerCount} / ${mapLayerOptions.length} 个图层`
-          : `${form.radius}m 半径 · ${form.mode === 'fixture' ? '离线样例' : '实时地图'}`,
+          ? `地图已准备 · 当前显示 ${visibleLayerCount} / ${mapLayerOptions.length} 个图层`
+          : `${form.radius}m 范围 · ${form.mode === 'fixture' ? '离线样例' : '实时地图'}`,
       },
       {
-        id: 'world',
-        label: '地点规模',
-        value: result ? `${result?.poi_count ?? 0} 个候选地点` : '等待切片生成',
+        id: 'memory',
+        label: 'NPC 记忆',
+        value: '入场后可查看',
         detail: result
-          ? `${result.landmark_count ?? 0} 个地标 · ${result.road_count ?? 0} 条路径`
-          : '生成后即可选择地点并进入观察',
+          ? `${result?.poi_count ?? 0} 个附近地点可作为酒馆锚点或探索入口。`
+          : entryStatusText,
       },
     ],
   }
@@ -58,16 +90,16 @@ export function buildStageStatusViewModel({ autoEntering, submitting, result, ac
   if (autoEntering) {
     return {
       classNameSuffix: ' is-pending',
-      label: '地点切片生成中',
-      title: '系统正在根据当前位置生成附近地点切片，完成后会自动带你进入地点舞台。',
+      label: '正在读取附近地点',
+      title: '系统正在根据当前位置准备附近地点与酒馆入口，完成后会自动带你到地图区域。',
     }
   }
 
   if (submitting) {
     return {
       classNameSuffix: ' is-pending',
-      label: '地点切片生成中',
-      title: '正在准备地点内容与空间容器，请稍候，成功后页面会自动滚动到这里。',
+      label: '正在刷新附近内容',
+      title: '正在准备地点、酒馆和地图标记，请稍候，成功后页面会自动滚动到这里。',
     }
   }
 
@@ -75,21 +107,21 @@ export function buildStageStatusViewModel({ autoEntering, submitting, result, ac
     return {
       classNameSuffix: ' is-ready',
       label: '当前地点已锁定',
-      title: '你已经选中了一个地点，可以继续查看事件、角色线索与写回反馈。',
+      title: '你已经选中了一个地点，可以继续查看附近酒馆、地点线索和后续动作。',
     }
   }
 
   if (result) {
     return {
       classNameSuffix: ' is-ready',
-      label: '等待选择地点',
-      title: '切片已经生成，先从地点列表里选一个地点，再进入后续动作。',
+      label: '地图已准备',
+      title: '附近内容已经生成，可以从地图或酒馆列表中选择下一步。',
     }
   }
 
   return {
     classNameSuffix: '',
-    label: '等待生成地点切片',
-    title: '点击上方主按钮后，生成出的地点切片会出现在这里。',
+    label: '等待查看附近地点',
+    title: '点击上方主按钮后，附近地点和酒馆入口会出现在这里。',
   }
 }

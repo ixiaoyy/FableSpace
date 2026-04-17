@@ -18,7 +18,7 @@ from __future__ import annotations
 import logging
 import random
 import re
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, fields
 from typing import Optional
 
 logger = logging.getLogger(__name__)
@@ -112,7 +112,13 @@ class WorldInfoInjector:
         if entries:
             for e in entries:
                 if isinstance(e, dict):
-                    self.entries.append(WorldInfoEntry(**e))
+                    entry_data = dict(e)
+                    if "insertion_order" not in entry_data and "order" in entry_data:
+                        entry_data["insertion_order"] = entry_data.get("order")
+                    allowed_fields = {item.name for item in fields(WorldInfoEntry)}
+                    self.entries.append(
+                        WorldInfoEntry(**{key: value for key, value in entry_data.items() if key in allowed_fields})
+                    )
                 else:
                     self.entries.append(e)
 

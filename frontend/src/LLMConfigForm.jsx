@@ -7,6 +7,7 @@ import { getDefaultTavernService } from './services/tavernService'
  */
 export const LLM_BACKENDS = [
   { id: 'openai',      label: 'OpenAI',           icon: '🤖', docs: 'https://platform.openai.com/docs/models' },
+  { id: 'custom',      label: 'OpenAI 兼容',       icon: '🔌', docs: 'https://platform.openai.com/docs/api-reference/chat' },
   { id: 'claude',      label: 'Anthropic Claude', icon: '🧠', docs: 'https://docs.anthropic.com/claude/reference/models' },
   { id: 'openrouter',  label: 'OpenRouter',        icon: '🌐', docs: 'https://openrouter.ai/models' },
   { id: 'ollama',      label: 'Ollama (本地)',      icon: '🏠', docs: 'https://ollama.com/library' },
@@ -37,6 +38,7 @@ export const LLM_BACKENDS = [
  */
 export const DEFAULT_MODELS = {
   openai:      'gpt-4o-mini',
+  custom:      'gpt-4o-mini',
   claude:      'claude-3-5-haiku-20241022',
   openrouter:  'anthropic/claude-3.5-haiku',
   ollama:      'llama3.2',
@@ -67,6 +69,7 @@ export const DEFAULT_MODELS = {
  */
 export const DEFAULT_BASE_URLS = {
   openai:      'https://api.openai.com/v1',
+  custom:      '',
   claude:      'https://api.anthropic.com',
   openrouter:  'https://openrouter.ai/api/v1',
   groq:        'https://api.groq.com/openai/v1',
@@ -92,6 +95,92 @@ export const DEFAULT_BASE_URLS = {
 }
 
 /**
+ * 小白友好的配置配方。点击后填充模型参数，但保留用户已输入的 API Key。
+ */
+export const LLM_PRESETS = [
+  {
+    id: 'deepseek-cn-roleplay',
+    title: 'DeepSeek 中文文游',
+    badge: '推荐',
+    icon: '🔮',
+    description: '适合中文角色扮演、日常文游、低成本持续运营。',
+    bestFor: '中文 / 便宜 / 文风稳定',
+    config: {
+      backend: 'deepseek',
+      model: 'deepseek-chat',
+      base_url: DEFAULT_BASE_URLS.deepseek,
+      temperature: 1.1,
+      max_tokens: 8192,
+      top_p: 0.95,
+    },
+  },
+  {
+    id: 'openai-compatible',
+    title: 'OpenAI 兼容中转',
+    badge: '通用',
+    icon: '🔌',
+    description: '适合各种 OpenAI-compatible API 或自建网关。',
+    bestFor: '中转站 / 自定义 Base URL',
+    config: {
+      backend: 'custom',
+      model: 'gpt-4o-mini',
+      base_url: '',
+      temperature: 0.9,
+      max_tokens: 4096,
+      top_p: 0.95,
+    },
+  },
+  {
+    id: 'long-context-story',
+    title: '长上下文剧情',
+    badge: '长剧情',
+    icon: '🧠',
+    description: '适合世界书较多、剧情推进慢、需要更长上下文的酒馆。',
+    bestFor: '长剧情 / 世界书多 / 慢节奏',
+    config: {
+      backend: 'openrouter',
+      model: 'anthropic/claude-3.5-haiku',
+      base_url: DEFAULT_BASE_URLS.openrouter,
+      temperature: 0.85,
+      max_tokens: 12000,
+      top_p: 0.9,
+    },
+  },
+  {
+    id: 'ollama-local',
+    title: 'Ollama 本地测试',
+    badge: '本地',
+    icon: '🏠',
+    description: '适合本地隐私测试；不需要 API Key，但需要本机 Ollama 服务运行。',
+    bestFor: '本地 / 隐私 / 不花云 API',
+    config: {
+      backend: 'ollama',
+      model: 'llama3.2',
+      base_url: 'http://localhost:11434',
+      temperature: 0.8,
+      max_tokens: 4096,
+      top_p: 0.9,
+    },
+  },
+  {
+    id: 'minimal-stable',
+    title: '极简稳定',
+    badge: '省心',
+    icon: '⚙️',
+    description: '参数保守，适合先确认链路稳定，再逐步提高创意程度。',
+    bestFor: '新手 / 稳定 / 少调参',
+    config: {
+      backend: 'openai',
+      model: 'gpt-4o-mini',
+      base_url: DEFAULT_BASE_URLS.openai,
+      temperature: 0.7,
+      max_tokens: 4096,
+      top_p: 0.9,
+    },
+  },
+]
+
+/**
  * LLMConfigForm — 可复用的 LLM 配置表单
  *
  * Props:
@@ -114,6 +203,7 @@ export default function LLMConfigForm({ value = {}, onChange, compact = false, t
 
   const [testing, setTesting] = useState(false)
   const [testResult, setTestResult] = useState(null) // null | { ok: bool, message: string }
+  const [selectedPresetId, setSelectedPresetId] = useState('')
 
   function update(key, val) {
     const next = { ...config, [key]: val }
@@ -122,6 +212,18 @@ export default function LLMConfigForm({ value = {}, onChange, compact = false, t
       next.base_url = DEFAULT_BASE_URLS[val] || ''
       next.model   = DEFAULT_MODELS[val] || ''
     }
+    if (onChange) onChange(next)
+  }
+
+  function applyPreset(preset) {
+    if (!preset?.config) return
+    const next = {
+      ...config,
+      ...preset.config,
+      api_key: config.api_key || '',
+    }
+    setSelectedPresetId(preset.id)
+    setTestResult(null)
     if (onChange) onChange(next)
   }
 
@@ -154,14 +256,52 @@ export default function LLMConfigForm({ value = {}, onChange, compact = false, t
     <div className={`llm-config-form${compact ? ' compact' : ''}`}>
       {!compact && (
         <div className="form-section-header">
-          <h4>AI 后端配置</h4>
-          <p className="form-hint">选择 AI 服务商，配置 API Key，让你的 NPC 能和访客对话</p>
+          <h4>AI 配置</h4>
+          <p className="form-hint">选择 AI 服务，配置 API Key，让你的 NPC 能和访客对话</p>
+        </div>
+      )}
+
+      {!compact && (
+        <div className="llm-preset-section" aria-label="AI 配置预设">
+          <div className="llm-preset-section__header">
+            <div>
+              <strong>一键配置配方</strong>
+              <p className="form-hint">先选一个适合你的模式，再补 API Key；高级参数之后还能手动改。</p>
+            </div>
+            {selectedPresetId && (
+              <button
+                type="button"
+                className="link-btn"
+                onClick={() => setSelectedPresetId('')}
+              >
+                取消高亮
+              </button>
+            )}
+          </div>
+          <div className="llm-preset-grid">
+            {LLM_PRESETS.map((preset) => (
+              <button
+                key={preset.id}
+                type="button"
+                className={`llm-preset-card${selectedPresetId === preset.id ? ' active' : ''}`}
+                onClick={() => applyPreset(preset)}
+              >
+                <span className="llm-preset-card__badge">{preset.badge}</span>
+                <span className="llm-preset-card__title">
+                  <span>{preset.icon}</span>
+                  <strong>{preset.title}</strong>
+                </span>
+                <span className="llm-preset-card__desc">{preset.description}</span>
+                <span className="llm-preset-card__best">{preset.bestFor}</span>
+              </button>
+            ))}
+          </div>
         </div>
       )}
 
       {/* Backend selector */}
       <div className="form-group">
-        <label>AI 后端</label>
+        <label>AI 服务</label>
         <div className="backend-grid">
           {LLM_BACKENDS.map((b) => (
             <button
@@ -216,9 +356,9 @@ export default function LLMConfigForm({ value = {}, onChange, compact = false, t
       </div>
 
       {/* Base URL */}
-      {(config.backend === 'ollama' || config.backend === 'localai' || config.base_url) && (
+      {(config.backend === 'ollama' || config.backend === 'localai' || config.backend === 'custom' || config.base_url) && (
         <div className="form-group">
-          <label>API 地址 {config.backend === 'ollama' || config.backend === 'localai' ? '*' : '（可选）'}</label>
+          <label>API 地址 {config.backend === 'ollama' || config.backend === 'localai' || config.backend === 'custom' ? '*' : '（可选）'}</label>
           <input
             type="text"
             value={config.base_url}
@@ -226,9 +366,13 @@ export default function LLMConfigForm({ value = {}, onChange, compact = false, t
             placeholder={
               config.backend === 'ollama' ? 'http://localhost:11434' :
               config.backend === 'localai' ? 'http://localhost:8080/v1' :
+              config.backend === 'custom' ? 'https://your-endpoint.example.com/v1' :
               DEFAULT_BASE_URLS[config.backend] || ''
             }
           />
+          {config.backend === 'custom' && (
+            <p className="form-hint">填写 OpenAI 兼容接口的根地址，通常以 /v1 结尾。</p>
+          )}
         </div>
       )}
 
@@ -256,7 +400,7 @@ export default function LLMConfigForm({ value = {}, onChange, compact = false, t
 
           <div className="form-row">
             <div className="form-group">
-              <label>最大 Token: {config.max_tokens}</label>
+              <label>最长回复预算: {config.max_tokens}</label>
               <input
                 type="range"
                 min="256"

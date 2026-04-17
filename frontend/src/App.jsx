@@ -6,7 +6,9 @@ import WorldSliceResultPanel from './WorldSliceResultPanel'
 import WorldStagePanel from './WorldStagePanel'
 import TavernEntryPanel from './TavernEntryPanel'
 import TavernChatRoom from './TavernChatRoom'
-import VisitorNicknameModal from './VisitorNicknameModal'
+import FirstRunModeModal from './FirstRunModeModal'
+import TavernTemplateGallery from './TavernTemplateGallery'
+import ThemeToggle from './ThemeToggle'
 import {
   DEFAULT_VISIBLE_MAP_LAYERS,
   INITIAL_FORM,
@@ -24,6 +26,7 @@ import { buildEntryStatusText, buildHeroMetrics, buildStageStatusViewModel } fro
 import { getDefaultTavernService, getTavernAccessLabel, getTavernStatusLabel } from './services/tavernService'
 
 const MAX_TAVERN_MAP_MARKERS = 80
+const FIRST_RUN_MODE_STORAGE_KEY = 'fablemap_first_run_mode'
 
 function buildTavernSearchText(tavern) {
   const characters = Array.isArray(tavern?.characters) ? tavern.characters : []
@@ -91,7 +94,7 @@ function pickTavernsForMap(taverns, activeTavernId, limit = MAX_TAVERN_MAP_MARKE
 }
 
 export default function App() {
-  const [view, setView] = useState('map') // 'map' | 'owner'
+  const [view, setView] = useState('map') // 'map' | 'owner' | 'templates'
   const stageRef = useRef(null)
   const [taverns, setTaverns] = useState([])
   const [activeTavernId, setActiveTavernId] = useState(null)
@@ -103,6 +106,8 @@ export default function App() {
   const [tavernAccessFilter, setTavernAccessFilter] = useState('all')
   const [tavernStatusFilter, setTavernStatusFilter] = useState('all')
   const [tavernSortMode, setTavernSortMode] = useState('distance')
+  const [ownerCreateSignal, setOwnerCreateSignal] = useState(0)
+  const [homeSettingsOpen, setHomeSettingsOpen] = useState(false)
 
   // Visitor ID — persisted across sessions
   const [visitorId] = useState(() => {
@@ -117,6 +122,9 @@ export default function App() {
   const [visitorNickname, setVisitorNickname] = useState(() =>
     localStorage.getItem('fablemap_visitor_nickname') || ''
   )
+  const [firstRunMode, setFirstRunMode] = useState(() =>
+    localStorage.getItem(FIRST_RUN_MODE_STORAGE_KEY) || ''
+  )
 
   useEffect(() => {
     // Sync visitor ID to localStorage on mount
@@ -124,6 +132,9 @@ export default function App() {
       const newId = `visitor_${Date.now()}_${Math.random().toString(36).slice(2)}`
       localStorage.setItem('fablemap_visitor_id', newId)
     }
+    // Apply saved theme on mount
+    const savedTheme = localStorage.getItem('fablemap_theme') || 'dark'
+    document.documentElement.setAttribute('data-theme', savedTheme)
   }, [])
   const {
     activePoiId,
@@ -291,6 +302,52 @@ export default function App() {
     setTavernRefreshKey((key) => key + 1)
   }
 
+  function completeFirstRun({ nickname, mode }) {
+    localStorage.setItem('fablemap_visitor_nickname', nickname)
+    localStorage.setItem(FIRST_RUN_MODE_STORAGE_KEY, mode)
+    setVisitorNickname(nickname)
+    setFirstRunMode(mode)
+    setView(mode === 'owner' ? 'owner' : 'map')
+    if (mode === 'owner') {
+      setOwnerCreateSignal((signal) => signal + 1)
+    }
+  }
+
+  function resetFirstRunGuide() {
+    localStorage.removeItem(FIRST_RUN_MODE_STORAGE_KEY)
+    setFirstRunMode('')
+  }
+
+  function openDiscoverView() {
+    setEnteredTavern(null)
+    setView('map')
+  }
+
+  function openCreateTavern() {
+    setEnteredTavern(null)
+    setView('owner')
+    setOwnerCreateSignal((signal) => signal + 1)
+  }
+
+  function openOwnerView() {
+    setEnteredTavern(null)
+    setView('owner')
+  }
+
+  function openTemplateView() {
+    setEnteredTavern(null)
+    setView('templates')
+  }
+
+  function handleTemplateInstalled(tavern) {
+    if (tavern?.id) {
+      setTaverns((prev) => [tavern, ...prev.filter((item) => item.id !== tavern.id)])
+      setActiveTavernId(tavern.id)
+    }
+    refreshTaverns()
+    setView('owner')
+  }
+
   const entryStatusText = buildEntryStatusText({
     autoEntering,
     submitting,
@@ -304,6 +361,10 @@ export default function App() {
     result,
     visibleMapLayers,
     originLabel,
+    view,
+    totalTaverns: taverns.length,
+    matchingTaverns: filteredTaverns.length,
+    openTaverns: filteredTaverns.filter((tavern) => tavern.status === 'open').length,
   })
 
   const stageStatus = buildStageStatusViewModel({
@@ -411,25 +472,78 @@ export default function App() {
     <div className="wrap app-shell page-enter map-first-app-shell world-app-shell">
       <header className="world-app-shell__hero panel">
         <div className="world-app-shell__hero-copy">
-          <p className="mini-label">Cyber Tavern Platform</p>
-          <h1>{view === 'map' ? (result ? '地点入口已连通，先选地点再进入叙事' : '先选入口，马上进入你附近的地点切片') : '我是店主：酒馆管理与 AI 配置'}</h1>
+          <p className="mini-label">FableMap Tavern</p>
+          <h1>
+            {view === 'map'
+              ? '发现附近酒馆，进入会记住你的故事'
+              : view === 'templates'
+                ? '从模板安装一间酒馆，再放到真实地图上'
+                : '管理我的酒馆，或用向导开一间新店'}
+          </h1>
           <p className="note muted world-app-shell__hero-note">
-            {view === 'map' ? '首页先只保留入口、结果摘要和地点舞台，优先让你立即进入、立即选点、立即开始后续事件与写回。' : '在这里管理你拥有的赛博酒馆，导入 SillyTavern 角色卡，配置 AI 后端，并监控 Token 消耗。'}
+            {view === 'map'
+              ? '先看附近有什么酒馆，再选择是否进入对话；角色、地点和回访记忆都会围绕真实地图展开。'
+              : view === 'templates'
+                ? '模板不是脱离地图的文游市场，而是一组可安装的酒馆包：角色、世界书和预设会随坐标落地。'
+                : '店主只需要关注酒馆、角色、AI 和访客回访；世界书、数据和调试能力都放在后续高级入口里。'}
           </p>
           <div className="hero-actions">
             <button 
               className={view === 'map' ? 'primary' : 'secondary'} 
-              onClick={() => setView('map')}
+              onClick={openDiscoverView}
             >
-              🗺️ 发现酒馆
+              🔎 发现酒馆
             </button>
             <button 
-              className={view === 'owner' ? 'primary' : 'secondary'} 
-              onClick={() => setView('owner')}
+              className="secondary"
+              onClick={openCreateTavern}
             >
-              🍺 我是店主
+              ✨ 创建酒馆
+            </button>
+            <button
+              className={view === 'owner' ? 'primary' : 'secondary'}
+              onClick={openOwnerView}
+            >
+              🏮 我的酒馆
+            </button>
+            <button
+              className={view === 'templates' ? 'primary' : 'secondary'}
+              onClick={openTemplateView}
+            >
+              📦 模板
+            </button>
+            <button
+              className={`secondary subtle${homeSettingsOpen ? ' active' : ''}`}
+              onClick={() => setHomeSettingsOpen((open) => !open)}
+              title="打开设置与高级入口"
+            >
+              ⚙️ 设置
             </button>
           </div>
+          {homeSettingsOpen ? (
+            <div className="home-settings-panel" aria-label="设置与高级入口">
+              <div className="home-settings-row">
+                <span className="home-settings-label">主题</span>
+                <ThemeToggle compact />
+              </div>
+              <button type="button" className="button-link" onClick={resetFirstRunGuide}>
+                重新选择新手引导
+              </button>
+              <button
+                type="button"
+                className="button-link"
+                onClick={() => {
+                  setView('map')
+                  setAdvancedOpen((open) => !open)
+                }}
+              >
+                {advancedOpen ? '收起地图高级设置' : '打开地图高级设置'}
+              </button>
+              <button type="button" className="button-link" onClick={() => setAdminOpen((open) => !open)}>
+                {adminOpen ? '关闭调试后台' : '打开调试后台'}
+              </button>
+            </div>
+          ) : null}
         </div>
         <div className="world-app-shell__hero-metrics" aria-label="当前动作提示">
           {heroMetrics.cards.map((card) => (
@@ -456,9 +570,10 @@ export default function App() {
             roomName={enteredTavern.name}
             roomDescription={enteredTavern.description}
             characters={enteredTavern.characters}
-            scenePrompt={enteredTavern.scene_prompt}
+            tavern={enteredTavern}
             visitorId={visitorId}
             visitorNickname={visitorNickname}
+            entryState={enteredTavern.entry_state}
           />
         </div>
       ) : view === 'map' ? (
@@ -506,8 +621,23 @@ export default function App() {
             />
           )}
         </>
+      ) : view === 'templates' ? (
+        <>
+          <TavernTemplateGallery
+            ownerId={visitorId}
+            currentLat={form.lat}
+            currentLon={form.lon}
+            onInstalled={handleTemplateInstalled}
+            onOpenOwner={openOwnerView}
+          />
+        </>
       ) : (
-        <TavernOwnerPanel ownerId={visitorId} />
+        <TavernOwnerPanel
+          ownerId={visitorId}
+          createSignal={ownerCreateSignal}
+          createInitialLat={form.lat}
+          createInitialLon={form.lon}
+        />
       )}
 
       {adminOpen ? (
@@ -516,12 +646,11 @@ export default function App() {
         </div>
       ) : null}
 
-      {!visitorNickname && (
-        <VisitorNicknameModal
-          onSubmit={(nickname) => {
-            localStorage.setItem('fablemap_visitor_nickname', nickname)
-            setVisitorNickname(nickname)
-          }}
+      {(!visitorNickname || !firstRunMode) && (
+        <FirstRunModeModal
+          initialNickname={visitorNickname}
+          initialMode={firstRunMode}
+          onComplete={completeFirstRun}
         />
       )}
     </div>

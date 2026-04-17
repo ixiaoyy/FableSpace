@@ -37,9 +37,13 @@ def test_tavern_entry_tracks_named_visitor_state_for_owner_feedback():
                     headers={"X-User-Id": "visitor_returning"},
                 )
                 assert enter_response.status_code == 200
+                payload = enter_response.json()
+                assert payload["visitor_state"]["visitor_id"] == "visitor_returning"
+                assert payload["visitor_state"]["relationship"]["stage"] in {"stranger", "acquaintance"}
 
             anonymous_enter = client.post(f"/api/taverns/{tavern_id}/enter")
             assert anonymous_enter.status_code == 200
+            assert anonymous_enter.json()["visitor_state"] is None
 
             visitors_response = client.get(
                 f"/api/taverns/{tavern_id}/visitors",

@@ -117,7 +117,7 @@ export default function WorldStagePanel({
           originLabel={originLabel}
           ghostTraces={ghostTraces}
           toolbarLabel="地点视图"
-          toolbarCopy={result ? `${originLabel} · ${form.radius}m · ${result?.poi_count ?? 0} 个候选地点` : '正在准备附近地点切片'}
+          toolbarCopy={result ? `${originLabel} · ${form.radius}m · ${result?.poi_count ?? 0} 个候选地点` : '正在准备附近地点'}
           toolbarClassName="map-layer-toolbar map-only-stage__toolbar"
           taverns={taverns}
           totalTavernMatches={totalMatchingTaverns}
@@ -134,7 +134,7 @@ export default function WorldStagePanel({
                 ? resolvedActivePoi.satire_hook || '该地点已选中，可继续悬停或切换图层观察周边地点结构。'
                 : result
                   ? '先选一个地点，立即查看它的名字、阵营与地点钩子。'
-                  : '生成地点切片后，即可选择地点开始探索。'}
+                  : '刷新附近内容后，即可选择地点开始探索。'}
             </p>
           </div>
           <div className="map-only-stage__feedback-meta">
@@ -155,7 +155,7 @@ export default function WorldStagePanel({
           <h2>进入地点舞台</h2>
         </div>
         <div className="storyboard-heading-copy">
-          <p className="note muted">这里先作为地点选择与进入舞台，而不是继续扩写旧 2D 切片视图主舞台。</p>
+          <p className="note muted">这里先作为地点选择与酒馆发现入口；高级地图图层和调试内容默认折叠。</p>
         </div>
       </div>
 
@@ -165,11 +165,11 @@ export default function WorldStagePanel({
             <span className="storyboard-category-label">地点气候层</span>
             <div className="storyboard-chip-row">
               <span className={`storyboard-chip${result ? '' : ' storyboard-chip--empty'}`}>
-                {result ? '切片已就绪' : '待生成'}
+                {result ? '附近内容已就绪' : '待刷新'}
               </span>
               <span className="storyboard-chip">{formatTagLabel(result?.world?.region?.vibe_profile, '静雨')}</span>
               <span className="storyboard-chip">{formatTagLabel(result?.dominant_faction, '未显形势力')}</span>
-              <span className="storyboard-chip">{formatTagLabel(result?.region_theme, '未命名切片')}</span>
+              <span className="storyboard-chip">{formatTagLabel(result?.region_theme, '未命名区域')}</span>
             </div>
           </div>
           <div className="storyboard-category">
@@ -210,7 +210,7 @@ export default function WorldStagePanel({
           <div className="storyboard-lane">
             <div className="storyboard-lane-header">
               <span className="storyboard-category-label">探索引导</span>
-              <span className="storyboard-lane-meta">按“入口 / 地点 / 动作 / 写回”的顺序进入，而不是继续阅读旧舞台术语</span>
+              <span className="storyboard-lane-meta">按“入口 / 地点 / 酒馆 / 留下痕迹”的顺序进入</span>
             </div>
             {result?.world_id ? (
               <WorldDensityIndicator
@@ -225,11 +225,11 @@ export default function WorldStagePanel({
               <article className={`shared-task-card shared-task-card--gen${result ? ' is-done' : submitting ? ' is-loading' : ''}`}>
                 <span className="shared-task-index">00</span>
                 <div className="shared-task-gen-body">
-                  <h3>{result ? formatTagLabel(result.region_theme, '地点切片已生成') : '生成当前地点切片'}</h3>
+                  <h3>{result ? formatTagLabel(result.region_theme, '附近内容已准备') : '刷新附近内容'}</h3>
                   <p className="shared-task-gen-meta">
                     {result
                       ? `${result.poi_count ?? 0} 个候选地点 · ${result.road_count ?? 0} 条路径 · ${formatTagLabel(result.dominant_faction, '未知势力')}`
-                      : `${originLabel} · ${form.radius}m · ${form.mode === 'fixture' ? '离线样例' : '实时切片'}`
+                      : `${originLabel} · ${form.radius}m · ${form.mode === 'fixture' ? '离线样例' : '实时地图'}`
                     }
                   </p>
                   {!result ? (
@@ -240,7 +240,7 @@ export default function WorldStagePanel({
                         disabled={submitting}
                         onClick={() => submitNearby(false)}
                       >
-                        {submitting ? '生成中...' : '生成地点切片'}
+                        {submitting ? '刷新中...' : '刷新附近内容'}
                       </button>
                       <button
                         type="button"
@@ -289,7 +289,7 @@ export default function WorldStagePanel({
               <article className="shared-task-card shared-task-card--visibility">
                 <span className="shared-task-index">04</span>
                 <div>
-                  <h3>决定这次写回留在哪一层</h3>
+                  <h3>决定这次痕迹留在哪一层</h3>
                   <p>{selectedVisibilityMeta.title} · {selectedVisibilityMeta.hint}</p>
                 </div>
               </article>
@@ -338,7 +338,7 @@ export default function WorldStagePanel({
               <div className="storyboard-lane orchestration-lane">
                 <div className="storyboard-lane-header">
                   <span className="storyboard-category-label">编排事件</span>
-                  <span className="storyboard-lane-meta">切片编排器正在根据当前地点切片与你的位置发出信号</span>
+                  <span className="storyboard-lane-meta">高级编排器正在根据当前地点与你的位置发出信号</span>
                 </div>
                 <div className="orchestration-event-grid">
                   {orchestrationEvents.map((event, index) => (

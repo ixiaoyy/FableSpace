@@ -130,8 +130,8 @@ export default function WorldStagePoiFilterLane({
         )
       ) : (
         <div className="storyboard-placeholder-card poi-filter-empty">
-          <strong>等待地点切片生成</strong>
-          <p>生成当前地点切片后，这里会出现可搜索、可筛选、可快速选中的地点列表。</p>
+          <strong>等待附近内容</strong>
+          <p>刷新附近内容后，这里会出现可搜索、可筛选、可快速选中的地点列表。</p>
         </div>
       )}
     </div>

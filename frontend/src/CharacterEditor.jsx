@@ -224,13 +224,13 @@ export default function CharacterEditor({
       </div>
 
       <label className="character-editor-full">
-        <span>系统提示词</span>
+        <span>角色指令（高级）</span>
         <textarea
           value={draft.system_prompt}
           onChange={(event) => updateField('system_prompt', event.target.value)}
           disabled={disabled}
           rows={3}
-          placeholder="约束角色扮演、回复边界和语气"
+          placeholder="约束角色扮演、回复边界和语气；新手可先留空"
         />
       </label>
 

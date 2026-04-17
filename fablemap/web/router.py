@@ -177,6 +177,78 @@ def create_api_router(service: WebService) -> APIRouter:
         user_id = _get_user_id(request)
         return service.update_tavern_payload(tavern_id, data, user_id)
 
+    @router.post("/api/taverns/{tavern_id}/world-info/test")
+    def test_world_info(request: Request, tavern_id: str, data: dict = Body(...)) -> dict:
+        """Test which WorldInfo entries would match a message."""
+        user_id = _get_user_id(request)
+        return service.test_world_info_payload(tavern_id, data, user_id)
+
+    @router.get("/api/taverns/{tavern_id}/output-rules")
+    def get_output_rules(request: Request, tavern_id: str) -> dict:
+        """Get deterministic output cleanup rules for a tavern."""
+        user_id = _get_user_id(request)
+        return service.get_output_rules_payload(tavern_id, user_id)
+
+    @router.put("/api/taverns/{tavern_id}/output-rules")
+    def save_output_rules(request: Request, tavern_id: str, data: dict = Body(...)) -> dict:
+        """Save deterministic output cleanup rules for a tavern."""
+        user_id = _get_user_id(request)
+        return service.save_output_rules_payload(tavern_id, data, user_id)
+
+    @router.post("/api/taverns/{tavern_id}/output-rules/test")
+    def test_output_rules(request: Request, tavern_id: str, data: dict = Body(...)) -> dict:
+        """Preview output cleanup rules without saving."""
+        user_id = _get_user_id(request)
+        return service.test_output_rules_payload(tavern_id, data, user_id)
+
+    @router.get("/api/taverns/{tavern_id}/prompt-blocks")
+    def get_prompt_blocks(request: Request, tavern_id: str) -> dict:
+        """Get Prompt Blocks for a tavern."""
+        user_id = _get_user_id(request)
+        return service.get_prompt_blocks_payload(tavern_id, user_id)
+
+    @router.put("/api/taverns/{tavern_id}/prompt-blocks")
+    def save_prompt_blocks(request: Request, tavern_id: str, data: dict = Body(...)) -> dict:
+        """Save Prompt Blocks for a tavern."""
+        user_id = _get_user_id(request)
+        return service.save_prompt_blocks_payload(tavern_id, data, user_id)
+
+    @router.post("/api/taverns/{tavern_id}/prompt-blocks/preview")
+    def preview_prompt_blocks(request: Request, tavern_id: str, data: dict = Body(...)) -> dict:
+        """Preview Prompt Blocks without calling an LLM."""
+        user_id = _get_user_id(request)
+        return service.preview_prompt_blocks_payload(tavern_id, data, user_id)
+
+    @router.get("/api/taverns/{tavern_id}/runtime-presets")
+    def get_runtime_presets(request: Request, tavern_id: str) -> dict:
+        """Get built-in and owner-created runtime presets for a tavern."""
+        user_id = _get_user_id(request)
+        return service.get_runtime_presets_payload(tavern_id, user_id)
+
+    @router.put("/api/taverns/{tavern_id}/runtime-presets")
+    def save_runtime_presets(request: Request, tavern_id: str, data: dict = Body(...)) -> dict:
+        """Save owner-created runtime presets for a tavern."""
+        user_id = _get_user_id(request)
+        return service.save_runtime_presets_payload(tavern_id, data, user_id)
+
+    @router.post("/api/taverns/{tavern_id}/runtime-presets/apply")
+    def apply_runtime_preset(request: Request, tavern_id: str, data: dict = Body(...)) -> dict:
+        """Apply a runtime preset to tavern runtime configuration."""
+        user_id = _get_user_id(request)
+        return service.apply_runtime_preset_payload(tavern_id, data, user_id)
+
+    @router.get("/api/taverns/{tavern_id}/package")
+    def export_tavern_package(request: Request, tavern_id: str) -> dict:
+        """Export a shareable tavern package without secrets or visitor data."""
+        user_id = _get_user_id(request)
+        return service.export_tavern_package_payload(tavern_id, user_id)
+
+    @router.post("/api/tavern-packages/import")
+    def import_tavern_package(request: Request, data: dict = Body(...)) -> dict:
+        """Import a tavern package as a new tavern at a chosen coordinate."""
+        user_id = _get_user_id(request)
+        return service.import_tavern_package_payload(data, user_id)
+
     @router.delete("/api/taverns/{tavern_id}")
     def delete_tavern(request: Request, tavern_id: str) -> dict:
         """Delete a tavern"""
@@ -522,6 +594,26 @@ Do not explain. Just output the single emotion word."""
         os.write(fd, audio_bytes)
         os.close(fd)
         return FileResponse(tmp_path, media_type="audio/mpeg", filename="speech.mp3")
+
+    @router.post("/api/taverns/{tavern_id}/stt")
+    async def transcribe_voice(request: Request, tavern_id: str) -> dict:
+        """Transcribe uploaded audio using the tavern's STT config."""
+        from fastapi import UploadFile, File
+
+        # Read audio data from request body
+        try:
+            body = await request.body()
+            if not body:
+                return JSONResponse(status_code=400, content={"error": "No audio data"})
+
+            user_id = _get_user_id(request)
+            # Assume webm format by default
+            result = service.transcribe_voice_payload(
+                tavern_id, bytes(body), "webm", user_id
+            )
+            return result
+        except Exception as e:
+            return JSONResponse(status_code=500, content={"error": str(e)})
 
     # ─── Image Generation Routes ─────────────────────────────────────────────
 
@@ -1811,6 +1903,131 @@ Do not explain. Just output the single emotion word."""
         world_info = [e for e in world_info if e.get("id") != entry_id]
         service.update_tavern(tavern_id, {"world_info": world_info}, user_id)
         return {"ok": True}
+
+    @router.post("/api/worldinfo/test")
+    def test_worldinfo_hit(request: Request, data: dict = Body(...)) -> dict:
+        """
+        Test which WorldInfo entries match a given message.
+        No LLM involved — pure keyword/regex matching.
+        """
+        import re as _re
+
+        tavern_id = data.get("tavern_id", "")
+        test_text = data.get("text", "")
+        if not tavern_id:
+            return JSONResponse(status_code=400, content={"error": "tavern_id is required"})
+        if not test_text.strip():
+            return JSONResponse(status_code=400, content={"error": "text is required"})
+
+        user_id = _get_user_id(request)
+        tavern_data = service.get_tavern(tavern_id, user_id)
+        world_info = tavern_data.get("world_info", [])
+
+        text_lower = test_text.lower()
+        results = []
+
+        for entry in world_info:
+            entry_id = entry.get("id", "")
+            keys = entry.get("keys", [])
+            keys_secondary = entry.get("keys_secondary", [])
+            constant = entry.get("constant", False)
+            selective = entry.get("selective", True)
+            regex_scan = entry.get("regex_scan", False)
+            regex_pattern = entry.get("regex_pattern", "")
+            depth = entry.get("depth", 4)
+            insertion_order = entry.get("insertion_order", entry.get("order", 50))
+            probability = entry.get("probability", 100)
+            disable = entry.get("disable", False)
+            content_preview = str(entry.get("content", "") or "").strip()
+            if content_preview and len(content_preview) > 120:
+                content_preview = content_preview[:120] + "..."
+
+            if disable:
+                results.append({
+                    "id": entry_id,
+                    "title": keys[0] if keys else ("常驻设定" if constant else "未命名条目"),
+                    "matched": False,
+                    "reason": "已暂停",
+                    "constant": constant,
+                    "order": insertion_order,
+                    "depth": depth,
+                    "probability": probability,
+                    "content_preview": content_preview,
+                    "matched_keys": [],
+                })
+                continue
+
+            matched = False
+            matched_keys = []
+            matched_secondary = []
+            reason = ""
+
+            if constant:
+                matched = True
+                reason = "常驻条目，每轮都注入"
+            elif regex_scan and regex_pattern:
+                try:
+                    pattern = _re.compile(regex_pattern, _re.IGNORECASE)
+                    if pattern.search(test_text):
+                        matched = True
+                        matched_keys.append(f"regex:{regex_pattern[:40]}")
+                        reason = f"正则匹配 {regex_pattern[:40]}"
+                except _re.error as ex:
+                    reason = f"正则表达式错误: {ex}"
+            else:
+                all_keys = keys + keys_secondary
+                primary_keys = keys
+
+                if selective:
+                    # All keys must match
+                    all_matched = True
+                    for k in all_keys:
+                        kl = k.lower()
+                        if kl in text_lower:
+                            if k in primary_keys:
+                                matched_keys.append(k)
+                            else:
+                                matched_secondary.append(k)
+                        else:
+                            all_matched = False
+                            break
+                    if all_matched:
+                        matched = True
+                        reason = f"全部关键词命中（{len(all_keys)} 个）"
+                else:
+                    # Any primary key matches
+                    for k in primary_keys:
+                        kl = k.lower()
+                        if kl in text_lower:
+                            matched = True
+                            matched_keys.append(k)
+                            break
+                    if matched:
+                        reason = f"主关键词命中"
+
+            results.append({
+                "id": entry_id,
+                "title": keys[0] if keys else ("常驻设定" if constant else "未命名条目"),
+                "matched": matched,
+                "reason": reason or ("未命中" if not matched else ""),
+                "constant": constant,
+                "order": insertion_order,
+                "depth": depth,
+                "probability": probability,
+                "content_preview": content_preview,
+                "matched_keys": matched_keys,
+                "matched_secondary": matched_secondary,
+            })
+
+        # Sort: matched first, then by insertion order
+        results.sort(key=lambda r: (-int(r["matched"]), r["order"]))
+
+        return {
+            "text": test_text,
+            "total": len(results),
+            "matched_count": sum(1 for r in results if r["matched"]),
+            "results": results,
+        }
 
     # ===== Tokenizer API =====
     @router.get("/api/tokenizers")
