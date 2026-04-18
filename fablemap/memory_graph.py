@@ -1,7 +1,9 @@
 """Memory Graph for World State"""
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
 from dataclasses import dataclass, field
 from datetime import datetime
+
+from fablemap.memory.core import KeywordMemoryStore, MemoryAtom, MemorySearchResult, MemoryStore
 
 @dataclass
 class PlayerPOIRelation:
@@ -75,6 +77,77 @@ class GhostTrace:
     ended_at: str
     mood_arc: List[str]      # ["curious", "calm", "melancholic"]
     visibility: str = "local_public"
+
+
+class GraphMemoryStore(MemoryStore):
+    """Graph-aware MemoryStore placeholder.
+
+    This reserves the adapter shape for a future NetworkX or graph database
+    implementation. Today it delegates persistence and retrieval to the default
+    keyword store and exposes a small related-atoms helper with no new dependency.
+    """
+
+    def __init__(self, fallback: Optional[MemoryStore] = None, graph: Any = None):
+        self.fallback = fallback or KeywordMemoryStore()
+        self.graph = graph
+
+    @property
+    def graph_enabled(self) -> bool:
+        return self.graph is not None
+
+    def list_atoms(self, tavern_id: str, **filters: Any) -> list[MemoryAtom]:
+        return self.fallback.list_atoms(tavern_id, **filters)
+
+    def get_atom(self, tavern_id: str, memory_id: str) -> MemoryAtom | None:
+        return self.fallback.get_atom(tavern_id, memory_id)
+
+    def save_atom(self, tavern_id: str, atom: MemoryAtom) -> MemoryAtom:
+        return self.fallback.save_atom(tavern_id, atom)
+
+    def delete_atom(self, tavern_id: str, memory_id: str) -> bool:
+        return self.fallback.delete_atom(tavern_id, memory_id)
+
+    def search_atoms(
+        self,
+        tavern_id: str,
+        query: str,
+        *,
+        limit: int = 10,
+        **filters: Any,
+    ) -> list[MemorySearchResult]:
+        results = self.fallback.search_atoms(tavern_id, query, limit=limit, **filters)
+        if self.graph_enabled:
+            return [MemorySearchResult(hit.atom, hit.score, "graph_keyword") for hit in results]
+        return [MemorySearchResult(hit.atom, hit.score, "graph_stub:keyword_fallback") for hit in results]
+
+    def related_atoms(
+        self,
+        tavern_id: str,
+        atom: MemoryAtom,
+        *,
+        limit: int = 10,
+    ) -> list[MemorySearchResult]:
+        candidates = self.fallback.list_atoms(tavern_id, include_flagged=False)
+        results: list[MemorySearchResult] = []
+        for candidate in candidates:
+            if candidate.id == atom.id:
+                continue
+            score = 0.0
+            if atom.visitor_id and candidate.visitor_id == atom.visitor_id:
+                score += 0.35
+            if atom.character_id and candidate.character_id == atom.character_id:
+                score += 0.25
+            if atom.place_id and candidate.place_id == atom.place_id:
+                score += 0.2
+            if atom.subject and candidate.subject == atom.subject:
+                score += 0.15
+            if atom.dimension and candidate.dimension == atom.dimension:
+                score += 0.05
+            if score > 0:
+                results.append(MemorySearchResult(candidate, min(1.0, score), "graph_stub:shared_fields"))
+        results.sort(key=lambda hit: (hit.score, hit.atom.importance, hit.atom.updated_at or hit.atom.created_at), reverse=True)
+        return results[: max(1, int(limit or 1))]
+
 
 class WorldMemoryGraph:
     def __init__(self):

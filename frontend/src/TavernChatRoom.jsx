@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { getDefaultTavernService } from './services/tavernService'
 import TavernContextPanel from './TavernContextPanel'
+import TavernMemoryPanel from './TavernMemoryPanel'
 
 /**
  * TavernChatRoom — 酒馆三栏布局聊天房间
@@ -89,40 +90,6 @@ function getExpressionLabel(expression) {
 
 function getExpressionSourceLabel(source) {
   return EXPRESSION_SOURCE_LABELS[source] || source || EXPRESSION_SOURCE_LABELS.default
-}
-
-function getRelationshipStageLabel(stage) {
-  const labels = {
-    stranger: '初访者',
-    acquaintance: '熟面孔',
-    regular: '常客',
-    confidant: '熟客盟友',
-  }
-  return labels[stage] || stage || '未建立'
-}
-
-function formatMemoryTime(value) {
-  if (!value) return '暂无'
-  const date = new Date(value)
-  if (Number.isNaN(date.getTime())) return String(value).slice(0, 16)
-  return date.toLocaleString('zh-CN', {
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-  })
-}
-
-function getVisitorMemoryPayload(entryState, fallbackVisitCount = 0) {
-  const visitorState = entryState?.visitor_state || entryState || {}
-  const relationship = visitorState.relationship || entryState?.relationship || {}
-  return {
-    visitCount: Number(visitorState.visit_count ?? entryState?.visit_count ?? fallbackVisitCount ?? 0),
-    stage: relationship.stage || visitorState.relationship_stage || '',
-    strength: Number(relationship.strength ?? visitorState.relationship_strength ?? 0),
-    firstVisit: visitorState.first_visit || entryState?.first_visit || '',
-    lastVisit: visitorState.last_visit || entryState?.last_visit || '',
-  }
 }
 
 function normalizeSprites(rawSprites) {
@@ -231,7 +198,10 @@ function CharacterSidebar({ characters, selectedChar, onSelectChar }) {
           <div
             key={char.id}
             className={`char-item ${selectedChar?.id === char.id ? 'active' : ''}`}
-            onClick={() => onSelectChar(char)}
+            onClick={() => {
+              onSelectChar(char)
+              setExpanded(false)
+            }}
           >
             <CharacterAvatar
               character={char}
@@ -539,91 +509,6 @@ function CharacterDetail({ character, onClose }) {
 }
 
 // ─────────────────────────────────────────
-// Visitor Memory Panel
-// ─────────────────────────────────────────
-
-function TavernMemoryPanel({
-  entryState,
-  messages,
-  selectedChar,
-  visitorNickname,
-  roomName,
-  onClose,
-}) {
-  const memory = getVisitorMemoryPayload(entryState)
-  const userMessages = messages.filter((message) => message.role === 'user')
-  const assistantMessages = messages.filter((message) => message.role === 'assistant')
-  const recentUserMessage = [...userMessages].reverse().find((message) => message.content)
-  const recentAssistantMessage = [...assistantMessages].reverse().find((message) => message.content)
-  const strengthPercent = Math.max(0, Math.min(100, Math.round(memory.strength * 100)))
-
-  return (
-    <aside className="memory-detail-panel">
-      <div className="char-detail-header">
-        <h4>记忆</h4>
-        <button className="close-btn" onClick={onClose}>×</button>
-      </div>
-
-      <div className="memory-panel-section">
-        <span className="mini-label">当前关系</span>
-        <strong>{getRelationshipStageLabel(memory.stage)}</strong>
-        <div className="memory-strength-bar" aria-label={`关系强度 ${strengthPercent}%`}>
-          <span style={{ width: `${strengthPercent}%` }} />
-        </div>
-        <p className="muted">
-          {visitorNickname || '这位访客'} 已到访 {memory.visitCount || 0} 次。
-        </p>
-      </div>
-
-      <div className="memory-grid">
-        <div>
-          <span className="mini-label">首次到访</span>
-          <strong>{formatMemoryTime(memory.firstVisit)}</strong>
-        </div>
-        <div>
-          <span className="mini-label">最近到访</span>
-          <strong>{formatMemoryTime(memory.lastVisit)}</strong>
-        </div>
-        <div>
-          <span className="mini-label">本轮消息</span>
-          <strong>{messages.length}</strong>
-        </div>
-        <div>
-          <span className="mini-label">当前角色</span>
-          <strong>{selectedChar?.name || '未选择'}</strong>
-        </div>
-      </div>
-
-      <div className="memory-panel-section">
-        <span className="mini-label">本轮短期记忆</span>
-        {recentUserMessage || recentAssistantMessage ? (
-          <div className="memory-recent-list">
-            {recentUserMessage ? (
-              <p><strong>{visitorNickname || '访客'}：</strong>{recentUserMessage.content.slice(0, 90)}</p>
-            ) : null}
-            {recentAssistantMessage ? (
-              <p><strong>{selectedChar?.name || 'NPC'}：</strong>{recentAssistantMessage.content.slice(0, 90)}</p>
-            ) : null}
-          </div>
-        ) : (
-          <p className="muted">还没有本轮对话。发出第一句话后，这里会显示最新短期上下文。</p>
-        )}
-      </div>
-
-      <div className="memory-panel-section">
-        <span className="mini-label">系统会注入的稳定事实</span>
-        <ul className="memory-fact-list">
-          <li>酒馆：{roomName}</li>
-          <li>访客称呼：{visitorNickname || '旅人'}</li>
-          <li>关系阶段：{getRelationshipStageLabel(memory.stage)}</li>
-          <li>到访次数：{memory.visitCount || 0}</li>
-        </ul>
-      </div>
-    </aside>
-  )
-}
-
-// ─────────────────────────────────────────
 // Expression Selector Component
 // ─────────────────────────────────────────
 
@@ -698,6 +583,7 @@ export default function TavernChatRoom({
   const [memoryPanelOpen, setMemoryPanelOpen] = useState(false)
   const [contextPanelOpen, setContextPanelOpen] = useState(false)
   const [visitorMemoryState, setVisitorMemoryState] = useState(entryState)
+  const [createdMemories, setCreatedMemories] = useState([])
   const messagesEndRef = useRef(null)
   const tavernService = getDefaultTavernService()
 
@@ -914,6 +800,9 @@ export default function TavernChatRoom({
       if (result.visitor_state) {
         setVisitorMemoryState(result.visitor_state)
       }
+      if (result.created_memories && result.created_memories.length > 0) {
+        setCreatedMemories(result.created_memories)
+      }
       const charMsg = {
         ...buildAssistantMessage({
           id: replyId,
@@ -1022,7 +911,10 @@ export default function TavernChatRoom({
           <button
             type="button"
             className={`btn-context-panel ${contextPanelOpen ? 'active' : ''}`}
-            onClick={() => setContextPanelOpen((open) => !open)}
+            onClick={() => {
+              setContextPanelOpen((open) => !open)
+              setMemoryPanelOpen(false)
+            }}
             title="上下文面板"
           >
             📋 上下文
@@ -1030,7 +922,10 @@ export default function TavernChatRoom({
           <button
             type="button"
             className={`btn-memory-panel ${memoryPanelOpen ? 'active' : ''}`}
-            onClick={() => setMemoryPanelOpen((open) => !open)}
+            onClick={() => {
+              setMemoryPanelOpen((open) => !open)
+              setContextPanelOpen(false)
+            }}
             title="查看访客回访记忆"
           >
             🧠 记忆
@@ -1167,6 +1062,10 @@ export default function TavernChatRoom({
             selectedChar={selectedChar}
             visitorNickname={visitorNickname}
             roomName={roomName}
+            tavernId={roomId}
+            tavernService={tavernService}
+            visitorId={visitorId}
+            createdMemories={createdMemories}
             onClose={() => setMemoryPanelOpen(false)}
           />
         )}
@@ -1175,8 +1074,9 @@ export default function TavernChatRoom({
           <TavernContextPanel
             tavern={tavern}
             selectedChar={selectedChar}
-            entryState={entryState}
+            entryState={visitorMemoryState}
             messages={messages}
+            visitorId={visitorId}
             visitorNickname={visitorNickname}
             roomName={roomName}
             voiceConfig={voiceConfig}

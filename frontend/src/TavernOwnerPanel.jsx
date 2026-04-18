@@ -178,6 +178,10 @@ export default function TavernOwnerPanel({
   const [visitorStates, setVisitorStates] = useState([])
   const [visitorLoading, setVisitorLoading] = useState(false)
   const [visitorError, setVisitorError] = useState('')
+  const [memoryModalVisitor, setMemoryModalVisitor] = useState(null)
+  const [memoryModalAtoms, setMemoryModalAtoms] = useState([])
+  const [memoryModalLoading, setMemoryModalLoading] = useState(false)
+  const [memoryModalError, setMemoryModalError] = useState('')
   const tavernService = getDefaultTavernService()
   const ownerLabel = ownerId || '未识别店主'
   const packageInputRef = useRef(null)
@@ -444,6 +448,32 @@ export default function TavernOwnerPanel({
     } finally {
       setChatLoading(false)
     }
+  }
+
+  async function openVisitorMemoryModal(visitor) {
+    if (!visitor?.tavern_id || !visitor?.visitor_id) return
+    setMemoryModalVisitor(visitor)
+    setMemoryModalAtoms([])
+    setMemoryModalError('')
+    setMemoryModalLoading(true)
+    try {
+      const result = await tavernService.listMemories(
+        visitor.tavern_id,
+        { visitor_id: visitor.visitor_id, limit: 100 },
+        ownerId,
+      )
+      setMemoryModalAtoms(Array.isArray(result?.memories) ? result.memories : [])
+    } catch (err) {
+      setMemoryModalError(err.message)
+    } finally {
+      setMemoryModalLoading(false)
+    }
+  }
+
+  function closeMemoryModal() {
+    setMemoryModalVisitor(null)
+    setMemoryModalAtoms([])
+    setMemoryModalError('')
   }
 
   function resolveChatSearchSession(message = {}) {
@@ -934,6 +964,7 @@ export default function TavernOwnerPanel({
             error={visitorError}
             onRefresh={() => fetchOwnerVisitorStates(myTaverns)}
             onOpenVisitorSessions={openVisitorLatestSession}
+            onOpenVisitorMemory={openVisitorMemoryModal}
           />
         </>
       )}
@@ -1041,6 +1072,27 @@ export default function TavernOwnerPanel({
           onRefresh={refreshChatSessionDetail}
           onGenerateExport={generateChatExportText}
           onCopyExport={copyChatExportText}
+        />
+      )}
+
+      {/* Visitor Memory Modal */}
+      {memoryModalVisitor && (
+        <OwnerVisitorMemoryModal
+          visitor={memoryModalVisitor}
+          atoms={memoryModalAtoms}
+          loading={memoryModalLoading}
+          error={memoryModalError}
+          onClose={closeMemoryModal}
+          onPin={(id, pinned) => {
+            tavernService.togglePinMemory(memoryModalVisitor.tavern_id, id, pinned, ownerId)
+              .then(() => setMemoryModalAtoms(prev => prev.map(m => m.id === id ? { ...m, pinned } : m)))
+              .catch(err => alert('固定失败：' + err.message))
+          }}
+          onDelete={(id) => {
+            tavernService.deleteMemoryAtom(memoryModalVisitor.tavern_id, id, ownerId)
+              .then(() => setMemoryModalAtoms(prev => prev.filter(m => m.id !== id)))
+              .catch(err => alert('删除失败：' + err.message))
+          }}
         />
       )}
 
@@ -1551,7 +1603,7 @@ function OwnerChatSearchPanel({
   )
 }
 
-function OwnerVisitorStatePanel({ visitors, stats, loading, error, onRefresh, onOpenVisitorSessions }) {
+function OwnerVisitorStatePanel({ visitors, stats, loading, error, onRefresh, onOpenVisitorSessions, onOpenVisitorMemory }) {
   const rows = visitors.slice(0, 8)
 
   return (
@@ -1626,6 +1678,9 @@ function OwnerVisitorStatePanel({ visitors, stats, loading, error, onRefresh, on
                       查看会话
                     </button>
                   ) : null}
+                  <button type="button" className="button-link" onClick={() => onOpenVisitorMemory?.(visitor)}>
+                    查看记忆
+                  </button>
                   <time>{formatChatTimestamp(visitor.last_visit)}</time>
                 </div>
               </article>
@@ -1945,6 +2000,167 @@ function VoiceConfigSection({ tavernId, onSave }) {
           {result.message}
         </div>
       )}
+    </div>
+  )
+}
+
+// ─── Owner Visitor Memory Modal ───────────────────────────────────────────────
+
+const DIMENSION_LABELS_OWNER = {
+  fact: '事实',
+  emotion: '情感',
+  event: '事件',
+  preference: '偏好',
+  promise: '承诺',
+}
+
+const DIMENSION_COLORS_OWNER = {
+  fact: '#4a9eff',
+  emotion: '#ff6b9d',
+  event: '#ffd166',
+  preference: '#06d6a0',
+  promise: '#c77dff',
+}
+
+const HORIZON_LABELS_OWNER = { short: '短期', mid: '中期', long: '长期' }
+
+function formatMemoryTimeOwner(value) {
+  if (!value) return '暂无'
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return String(value).slice(0, 16)
+  return date.toLocaleString('zh-CN', {
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+  })
+}
+
+function OwnerVisitorMemoryModal({ visitor, atoms, loading, error, onClose, onPin, onDelete }) {
+  const [filterDim, setFilterDim] = useState('all')
+
+  const visitorLabel = visitor.visitor_name || (visitor.visitor_id ? visitor.visitor_id.slice(0, 16) : '匿名访客')
+
+  const dimTabs = ['all', 'fact', 'emotion', 'event', 'preference', 'promise']
+
+  const grouped = useMemo(() => {
+    const filtered = filterDim === 'all'
+      ? atoms
+      : atoms.filter(m => m.dimension === filterDim)
+
+    const groups = {}
+    filtered.forEach(atom => {
+      const dim = atom.dimension || 'fact'
+      if (!groups[dim]) groups[dim] = []
+      groups[dim].push(atom)
+    })
+    return groups
+  }, [atoms, filterDim])
+
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-content panel owner-memory-modal" onClick={e => e.stopPropagation()}>
+        <header className="modal-header">
+          <div>
+            <p className="mini-label">访客记忆</p>
+            <h3>{visitorLabel} 的结构化记忆</h3>
+            <p className="note muted">
+              {visitor.tavern_name || '未知酒馆'} · {atoms.length} 条记忆
+            </p>
+          </div>
+          <button className="close-btn" onClick={onClose}>&times;</button>
+        </header>
+
+        {error && <div className="owner-chat-detail-empty is-error">加载失败：{error}</div>}
+        {loading && <div className="owner-chat-detail-empty">正在加载记忆...</div>}
+
+        {!loading && !error && (
+          <>
+            <div className="memory-dim-tabs" role="tablist" style={{ marginBottom: 12 }}>
+              {dimTabs.map(d => (
+                <button
+                  key={d}
+                  role="tab"
+                  aria-selected={filterDim === d}
+                  className={`memory-dim-tab ${filterDim === d ? 'active' : ''}`}
+                  onClick={() => setFilterDim(d)}
+                >
+                  {d === 'all' ? '全部' : DIMENSION_LABELS_OWNER[d] || d}
+                  {d !== 'all' && atoms.filter(m => m.dimension === d).length > 0 && (
+                    <span style={{ marginLeft: 4, opacity: 0.7 }}>
+                      ({atoms.filter(m => m.dimension === d).length})
+                    </span>
+                  )}
+                </button>
+              ))}
+            </div>
+
+            {atoms.length === 0 ? (
+              <p className="owner-chat-detail-empty">该访客还没有结构化记忆。访客与 NPC 聊天后，系统会自动创建记忆。</p>
+            ) : Object.keys(grouped).length === 0 ? (
+              <p className="owner-chat-detail-empty">该分类下没有记忆。</p>
+            ) : (
+              <div className="owner-memory-modal-list">
+                {Object.entries(grouped).map(([dim, dimAtoms]) => {
+                  const color = DIMENSION_COLORS_OWNER[dim] || '#888'
+                  return (
+                    <div key={dim} className="owner-memory-modal-group">
+                      <div className="owner-memory-modal-group__header">
+                        <span
+                          className="memory-badge"
+                          style={{ background: color + '22', color }}
+                        >
+                          {DIMENSION_LABELS_OWNER[dim] || dim}
+                        </span>
+                        <span>{dimAtoms.length} 条</span>
+                      </div>
+                      {dimAtoms.map(atom => (
+                        <article key={atom.id} className="owner-memory-atom-row">
+                          <div className="owner-memory-atom-row__main">
+                            <p>{atom.content}</p>
+                            {atom.subject && (
+                              <small>关于：{atom.subject}</small>
+                            )}
+                          </div>
+                          <div className="owner-memory-atom-row__meta">
+                            <span className="memory-horizon-tag">
+                              {HORIZON_LABELS_OWNER[atom.horizon] || atom.horizon}
+                            </span>
+                            <span className={`visibility-badge visibility-${atom.visibility}`}>
+                              {atom.visibility === 'owner' ? '店主可见' : atom.visibility === 'public' ? '公开' : '私有'}
+                            </span>
+                            {atom.pinned && <span>📌</span>}
+                            <time>{formatMemoryTimeOwner(atom.updated_at || atom.created_at)}</time>
+                          </div>
+                          <div className="owner-memory-atom-row__actions">
+                            <button
+                              type="button"
+                              className="button-link"
+                              onClick={() => onPin(atom.id, !atom.pinned)}
+                            >
+                              {atom.pinned ? '取消固定' : '固定'}
+                            </button>
+                            <button
+                              type="button"
+                              className="button-link"
+                              onClick={() => {
+                                if (window.confirm('确定删除这条记忆？')) onDelete(atom.id)
+                              }}
+                              style={{ color: '#e74c3c' }}
+                            >
+                              删除
+                            </button>
+                          </div>
+                        </article>
+                      ))}
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+          </>
+        )}
+      </div>
     </div>
   )
 }

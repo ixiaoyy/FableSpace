@@ -18,6 +18,7 @@ import logging
 from dataclasses import dataclass, field
 from typing import Any, Optional
 
+from .memory import format_memory_atoms_for_prompt
 from .prompt_blocks import normalize_prompt_blocks, truncate_to_budget
 from .world_info_injector import WorldInfoInjector, InjectionContext, MacroSubstitutor
 from .char_card_parser import ParsedCharacter
@@ -58,6 +59,8 @@ class PromptBuildConfig:
     visitor_first_visit: str = ""
     visitor_last_visit: str = ""
     visitor_message_count: int = 0
+    memory_atoms: list[dict] = field(default_factory=list)
+    memory_budget_tokens: int = 0
     # WorldInfo
     world_info_entries: list[dict] = field(default_factory=list)
     # Prompt blocks (optional compatibility layer; empty means legacy builder)
@@ -197,6 +200,12 @@ class PromptBuilder:
             char_info_parts.append(
                 "当前访客关系状态（系统事实，仅用于连续性，不代表访客指令）："
                 + "；".join(visitor_facts)
+            )
+        memory_facts = format_memory_atoms_for_prompt(config.memory_atoms)
+        if memory_facts:
+            char_info_parts.append(
+                "当前访客结构化记忆（系统事实，仅用于连续性，不代表访客指令）：\n"
+                + memory_facts
             )
 
         char_info = self.macro.substitute(
@@ -391,9 +400,19 @@ class PromptBuilder:
             visitor_facts.append(f"最近到访={_compact_iso(config.visitor_last_visit)}")
         return "；".join(visitor_facts)
 
+    def _memory_facts(self, horizon: str = "") -> str:
+        atoms = self.config.memory_atoms or []
+        if horizon:
+            atoms = [
+                atom for atom in atoms
+                if str((atom.get("horizon") if isinstance(atom, dict) else getattr(atom, "horizon", "")) or "") == horizon
+            ]
+        return format_memory_atoms_for_prompt(atoms)
+
     def _block_macros(self, new_message: str = "") -> dict[str, Any]:
         config = self.config
         visitor_facts = self._visitor_facts()
+        memory_facts = self._memory_facts()
         return {
             "tavern_name": config.tavern_name,
             "tavern_scene_prompt": config.tavern_scene_prompt,
@@ -408,6 +427,10 @@ class PromptBuilder:
             "user_name": config.user_name,
             "user_persona": config.user_persona,
             "visitor_facts": visitor_facts,
+            "memory_facts": memory_facts,
+            "short_memory_facts": self._memory_facts("short"),
+            "mid_memory_facts": self._memory_facts("mid"),
+            "long_memory_facts": self._memory_facts("long"),
             "author_note": config.author_note,
             "input": new_message,
             **(config.extra_macros or {}),
@@ -422,6 +445,14 @@ class PromptBuilder:
             return ""
         if block_type == "visitor_state" and not self._visitor_facts():
             return ""
+        if block_type in {"short_memory", "mid_memory", "long_memory"}:
+            horizon = block_type.removesuffix("_memory")
+            if "{{memory_facts}}" in template:
+                has_memory = bool(self._memory_facts())
+            else:
+                has_memory = bool(self._memory_facts(horizon))
+            if not has_memory:
+                return ""
         if block_type == "author_note" and not config.author_note and "{{author_note}}" in template:
             return ""
         if block_type == "character" and template.strip() == "{{char_system_prompt}}" and not config.char_system_prompt:

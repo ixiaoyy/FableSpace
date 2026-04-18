@@ -142,15 +142,13 @@ class WorldInfoInjector:
         injected: list[dict[str, str]] = []
         order_map: dict[int, list[dict]] = {}
 
-        # Build searchable text from recent context
-        search_text = self._build_search_text(context)
-
         # Check each entry
         for entry in self.entries:
             if entry.disable:
                 continue
 
             # Try to match against search text
+            search_text = self._build_search_text(context, entry.depth)
             if entry.matches(search_text):
                 # Group by insertion order
                 if entry.insertion_order not in order_map:
@@ -219,8 +217,17 @@ class WorldInfoInjector:
 
         return "\n".join(parts)
 
-    def _build_search_text(self, context: InjectionContext) -> str:
+    def _build_search_text(self, context: InjectionContext, depth: int | None = None) -> str:
         """Build text to search against from context."""
+        if depth is None:
+            recent_messages = context.recent_messages
+        else:
+            try:
+                max_recent = max(0, int(depth))
+            except (TypeError, ValueError):
+                max_recent = 4
+            recent_messages = context.recent_messages[-max_recent:] if max_recent else []
+
         parts = [
             context.current_message,
             context.character_name,
@@ -230,13 +237,12 @@ class WorldInfoInjector:
             context.tavern_description,
             context.tavern_scene_prompt,
         ]
-        parts.extend(context.recent_messages)
+        parts.extend(recent_messages)
         return "\n".join(p for p in parts if p)
 
     def get_matching_entries(self, context: InjectionContext) -> list[WorldInfoEntry]:
         """Get list of entries that would match the current context."""
-        search_text = self._build_search_text(context)
-        return [e for e in self.entries if e.matches(search_text)]
+        return [e for e in self.entries if e.matches(self._build_search_text(context, e.depth))]
 
 
 # ─── Macro system (inspired by SillyTavern's macro system) ────────────────────

@@ -319,6 +319,42 @@ def create_api_router(service: WebService) -> APIRouter:
         user_id = _get_user_id(request)
         return service.delete_memory_atom_payload(tavern_id, memory_id, user_id)
 
+    @router.get("/api/taverns/{tavern_id}/memories")
+    def list_visitor_memories(request: Request, tavern_id: str) -> dict:
+        """List memories for a visitor with visibility filtering and keyword search."""
+        user_id = _get_user_id(request)
+        visitor_id = request.query_params.get("visitor_id", "")
+        scope = request.query_params.get("scope", "")
+        dimension = request.query_params.get("dimension", "")
+        horizon = request.query_params.get("horizon", "")
+        pinned_raw = request.query_params.get("pinned", "")
+        keyword = request.query_params.get("keyword", "")
+        try:
+            limit = int(request.query_params.get("limit", 50))
+        except ValueError:
+            limit = 50
+        try:
+            offset = int(request.query_params.get("offset", 0))
+        except ValueError:
+            offset = 0
+        pinned: bool | None = None
+        if pinned_raw.lower() in ("true", "1"):
+            pinned = True
+        elif pinned_raw.lower() in ("false", "0"):
+            pinned = False
+        return service.list_visitor_memories_payload(
+            tavern_id,
+            user_id,
+            visitor_id=visitor_id,
+            scope=scope,
+            dimension=dimension,
+            horizon=horizon,
+            pinned=pinned,
+            keyword=keyword,
+            limit=limit,
+            offset=offset,
+        )
+
     # ─── Character Routes ────────────────────────────────────────────────
 
     @router.get("/api/taverns/{tavern_id}/characters")

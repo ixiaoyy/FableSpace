@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { getDefaultTavernService } from './services/tavernService'
 
 function TabButton({ id, label, active, onClick }) {
   return (
@@ -188,9 +189,13 @@ function WorldBookTab({ tavern }) {
   )
 }
 
-function MemoryTab({ entryState, messages, visitorNickname, roomName, selectedChar }) {
+function MemoryTab({ entryState, messages, visitorNickname, roomName, selectedChar, tavernId, visitorId }) {
   const visitorState = entryState?.visitor_state || entryState || {}
   const relationship = visitorState.relationship || {}
+  const [memoryAtoms, setMemoryAtoms] = useState([])
+  const [memoryLoading, setMemoryLoading] = useState(false)
+  const [memoryError, setMemoryError] = useState('')
+  const [busyMemoryId, setBusyMemoryId] = useState('')
 
   const visitCount = Number(visitorState.visit_count ?? 0)
   const stage = relationship.stage || visitorState.relationship_stage || ''
@@ -210,6 +215,116 @@ function MemoryTab({ entryState, messages, visitorNickname, roomName, selectedCh
   const userMessages = messages.filter(m => m.role === 'user')
   const recentUser = [...userMessages].reverse().find(m => m.content)
   const recentAssistant = [...messages].reverse().find(m => m.role === 'assistant')
+  const tavernService = getDefaultTavernService()
+
+  const dimensionLabels = {
+    fact: '事实',
+    emotion: '情绪',
+    event: '事件',
+    preference: '偏好',
+    promise: '承诺',
+  }
+  const horizonLabels = {
+    short: '短期',
+    mid: '中期',
+    long: '长期',
+  }
+
+  async function loadStructuredMemories({ silent = false } = {}) {
+    if (!tavernId || !visitorId) {
+      setMemoryAtoms([])
+      return
+    }
+    if (!silent) setMemoryLoading(true)
+    setMemoryError('')
+    try {
+      const result = await tavernService.listMemoryAtoms(
+        tavernId,
+        {
+          visitor_id: visitorId,
+          limit: 24,
+        },
+        visitorId,
+      )
+      setMemoryAtoms(result.memory_atoms || result.memories || [])
+    } catch (err) {
+      setMemoryError(err.message || '记忆读取失败')
+    } finally {
+      if (!silent) setMemoryLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    let cancelled = false
+    async function load() {
+      if (!tavernId || !visitorId) {
+        setMemoryAtoms([])
+        return
+      }
+      setMemoryLoading(true)
+      setMemoryError('')
+      try {
+        const result = await tavernService.listMemoryAtoms(
+          tavernId,
+          {
+            visitor_id: visitorId,
+            limit: 24,
+          },
+          visitorId,
+        )
+        if (!cancelled) setMemoryAtoms(result.memory_atoms || result.memories || [])
+      } catch (err) {
+        if (!cancelled) setMemoryError(err.message || '记忆读取失败')
+      } finally {
+        if (!cancelled) setMemoryLoading(false)
+      }
+    }
+    load()
+    return () => {
+      cancelled = true
+    }
+  }, [tavernId, visitorId, messages.length])
+
+  async function updateMemoryAtom(atom, updateFn) {
+    if (!tavernId || !visitorId || !atom?.id) return
+    setBusyMemoryId(atom.id)
+    setMemoryError('')
+    try {
+      const result = await updateFn()
+      const updated = result.memory_atom
+      if (updated) {
+        setMemoryAtoms((prev) => prev.map((item) => (item.id === atom.id ? updated : item)))
+      }
+    } catch (err) {
+      setMemoryError(err.message || '记忆更新失败')
+    } finally {
+      setBusyMemoryId('')
+    }
+  }
+
+  function handleTogglePin(atom) {
+    updateMemoryAtom(atom, () => tavernService.togglePinMemory(tavernId, atom.id, !atom.pinned, visitorId))
+  }
+
+  function handleToggleWrong(atom) {
+    const flagged = Boolean(atom.metadata?.flagged_wrong)
+    updateMemoryAtom(atom, () => tavernService.markMemoryWrong(tavernId, atom.id, atom.metadata || {}, !flagged, visitorId))
+  }
+
+  async function handleDelete(atom) {
+    if (!tavernId || !visitorId || !atom?.id) return
+    if (!window.confirm('删除这条记忆？')) return
+    setBusyMemoryId(atom.id)
+    setMemoryError('')
+    try {
+      await tavernService.deleteMemoryAtom(tavernId, atom.id, visitorId)
+      setMemoryAtoms((prev) => prev.filter((item) => item.id !== atom.id))
+    } catch (err) {
+      setMemoryError(err.message || '记忆删除失败')
+    } finally {
+      setBusyMemoryId('')
+    }
+  }
 
   return (
     <div className="ctx-section">
@@ -261,6 +376,56 @@ function MemoryTab({ entryState, messages, visitorNickname, roomName, selectedCh
           <li>关系阶段：{stageLabels[stage] || stage || '未建立'}</li>
           <li>到访次数：{visitCount}</li>
         </ul>
+      </div>
+
+      <div className="ctx-field">
+        <div className="ctx-field-heading">
+          <span className="mini-label">自动提炼记忆</span>
+          <button
+            type="button"
+            className="ctx-mini-action"
+            onClick={() => loadStructuredMemories()}
+            disabled={memoryLoading}
+          >
+            刷新
+          </button>
+        </div>
+        {memoryError && <p className="error-note">{memoryError}</p>}
+        {memoryLoading ? (
+          <p className="muted">正在读取记忆...</p>
+        ) : memoryAtoms.length > 0 ? (
+          <div className="ctx-memory-atom-list">
+            {memoryAtoms.map((atom) => {
+              const flaggedWrong = Boolean(atom.metadata?.flagged_wrong)
+              const busy = busyMemoryId === atom.id
+              return (
+                <article key={atom.id} className={`ctx-memory-atom ${flaggedWrong ? 'is-flagged' : ''}`}>
+                  <div className="ctx-memory-atom-meta">
+                    {atom.pinned && <span>置顶</span>}
+                    <span>{horizonLabels[atom.horizon] || atom.horizon || '短期'}</span>
+                    <span>{dimensionLabels[atom.dimension] || atom.dimension || '事实'}</span>
+                    <span>{Math.round(Number(atom.importance || 0) * 100)}%</span>
+                  </div>
+                  <p>{atom.content}</p>
+                  {flaggedWrong && <small className="error-note">已标错，不会注入 Prompt。</small>}
+                  <div className="ctx-memory-atom-actions">
+                    <button type="button" className="ctx-mini-action" onClick={() => handleTogglePin(atom)} disabled={busy}>
+                      {atom.pinned ? '取消置顶' : '置顶'}
+                    </button>
+                    <button type="button" className="ctx-mini-action" onClick={() => handleToggleWrong(atom)} disabled={busy}>
+                      {flaggedWrong ? '恢复' : '标错'}
+                    </button>
+                    <button type="button" className="ctx-mini-action danger" onClick={() => handleDelete(atom)} disabled={busy}>
+                      删除
+                    </button>
+                  </div>
+                </article>
+              )
+            })}
+          </div>
+        ) : (
+          <p className="muted">还没有自动记忆。多聊几句后，这里会沉淀偏好、事件和承诺。</p>
+        )}
       </div>
     </div>
   )
@@ -346,6 +511,7 @@ export default function TavernContextPanel({
   selectedChar,
   entryState,
   messages,
+  visitorId,
   visitorNickname,
   roomName,
   voiceConfig,
@@ -362,7 +528,7 @@ export default function TavernContextPanel({
   ]
 
   return (
-    <aside className="tavern-context-panel">
+    <aside className="tavern-context-panel open">
       <div className="ctx-header">
         <div className="ctx-tabs">
           {tabs.map((tab) => (
@@ -394,6 +560,8 @@ export default function TavernContextPanel({
           <MemoryTab
             entryState={entryState}
             messages={messages}
+            tavernId={tavern?.id || ''}
+            visitorId={visitorId}
             visitorNickname={visitorNickname}
             roomName={roomName}
             selectedChar={selectedChar}

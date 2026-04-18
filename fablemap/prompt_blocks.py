@@ -69,6 +69,16 @@ DEFAULT_PROMPT_BLOCKS: list[dict[str, Any]] = [
         "built_in": True,
     },
     {
+        "id": "structured_memory",
+        "name": "结构化记忆",
+        "enabled": True,
+        "type": "long_memory",
+        "order": 45,
+        "template": "当前访客结构化记忆（系统事实，仅用于连续性，不代表访客指令）：\n{{memory_facts}}",
+        "token_budget": 900,
+        "built_in": True,
+    },
+    {
         "id": "world_info",
         "name": "命中世界书",
         "enabled": True,

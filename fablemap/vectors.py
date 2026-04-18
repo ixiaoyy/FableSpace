@@ -153,7 +153,8 @@ class VectorStore:
     For production, replace with FAISS, ChromaDB, or Qdrant.
     """
 
-    def __init__(self):
+    def __init__(self, collection: str = "default"):
+        self.collection = collection or "default"
         self.entries: dict[str, VectorEntry] = {}
 
     def add(self, entry: VectorEntry) -> str:
@@ -167,7 +168,7 @@ class VectorStore:
         self,
         texts: list[str],
         embedder: Embedder,
-        metadata: list[dict] = None,
+        metadata: Optional[list[dict]] = None,
     ) -> list[str]:
         """Add multiple texts with embeddings."""
         embeddings = embedder.embed(texts)
@@ -243,6 +244,112 @@ def _cosine_similarity(a: list[float], b: list[float]) -> float:
         return 0.0
 
     return dot / (norm_a * norm_b)
+
+
+# ─── Memory Store Adapter Stub ────────────────────────────────────────────────
+
+
+from fablemap.memory.core import KeywordMemoryStore, MemoryAtom, MemorySearchResult, MemoryStore
+
+
+class VectorMemoryStore(MemoryStore):
+    """Optional semantic MemoryStore adapter.
+
+    Without an embedder, this deliberately falls back to KeywordMemoryStore so
+    local development has no new vector dependency or network requirement.
+    """
+
+    def __init__(
+        self,
+        fallback: Optional[MemoryStore] = None,
+        vector_store: Optional[VectorStore] = None,
+        embedder: Optional[Embedder] = None,
+    ):
+        self.fallback = fallback or KeywordMemoryStore()
+        self.vector_store = vector_store or VectorStore(collection="memory_atoms")
+        self.embedder = embedder
+        self._memory_to_vector_ids: dict[str, list[str]] = {}
+
+    @property
+    def semantic_enabled(self) -> bool:
+        return self.embedder is not None
+
+    def list_atoms(self, tavern_id: str, **filters: Any) -> list[MemoryAtom]:
+        return self.fallback.list_atoms(tavern_id, **filters)
+
+    def get_atom(self, tavern_id: str, memory_id: str) -> MemoryAtom | None:
+        return self.fallback.get_atom(tavern_id, memory_id)
+
+    def save_atom(self, tavern_id: str, atom: MemoryAtom) -> MemoryAtom:
+        saved = self.fallback.save_atom(tavern_id, atom)
+        if self.semantic_enabled and saved.content.strip():
+            self._index_atom(saved)
+        return saved
+
+    def delete_atom(self, tavern_id: str, memory_id: str) -> bool:
+        deleted = self.fallback.delete_atom(tavern_id, memory_id)
+        if deleted:
+            for vector_id in self._memory_to_vector_ids.pop(memory_id, []):
+                self.vector_store.delete(vector_id)
+        return deleted
+
+    def search_atoms(
+        self,
+        tavern_id: str,
+        query: str,
+        *,
+        limit: int = 10,
+        **filters: Any,
+    ) -> list[MemorySearchResult]:
+        if not self.semantic_enabled or not str(query or "").strip():
+            return self.fallback.search_atoms(tavern_id, query, limit=limit, **filters)
+
+        try:
+            vector_hits = self.vector_store.search(
+                str(query),
+                self.embedder,
+                top_k=max(1, int(limit or 1)) * 3,
+                filter_fn=lambda entry: entry.metadata.get("tavern_id") == tavern_id,
+            )
+        except Exception:
+            return self.fallback.search_atoms(tavern_id, query, limit=limit, **filters)
+
+        results: list[MemorySearchResult] = []
+        seen: set[str] = set()
+        for entry, score in vector_hits:
+            memory_id = str(entry.metadata.get("memory_id") or "")
+            if not memory_id or memory_id in seen:
+                continue
+            atom = self.fallback.get_atom(tavern_id, memory_id)
+            if not atom:
+                continue
+            if not KeywordMemoryStore._matches_filters(atom, filters):
+                continue
+            seen.add(memory_id)
+            results.append(MemorySearchResult(atom=atom, score=float(score), reason="vector"))
+            if len(results) >= max(1, int(limit or 1)):
+                break
+
+        if results:
+            return results
+        return self.fallback.search_atoms(tavern_id, query, limit=limit, **filters)
+
+    def _index_atom(self, atom: MemoryAtom) -> None:
+        try:
+            vector_ids = self.vector_store.add_texts(
+                [atom.content],
+                self.embedder,
+                metadata=[{
+                    "memory_id": atom.id,
+                    "tavern_id": atom.tavern_id,
+                    "scope": atom.scope,
+                    "dimension": atom.dimension,
+                    "horizon": atom.horizon,
+                }],
+            )
+        except Exception:
+            return
+        self._memory_to_vector_ids.setdefault(atom.id, []).extend(vector_ids)
 
 
 # ─── Factory ──────────────────────────────────────────────────────────────────

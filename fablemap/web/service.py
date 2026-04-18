@@ -79,6 +79,14 @@ def _world_info_probability(entry: dict[str, Any]) -> int:
     return max(0, min(100, value))
 
 
+def _world_info_depth(entry: dict[str, Any]) -> int:
+    try:
+        value = int(entry.get("depth", 4))
+    except (TypeError, ValueError):
+        value = 4
+    return max(0, value)
+
+
 def _world_info_title(entry: dict[str, Any]) -> str:
     keys = _world_info_keywords(entry.get("keys"))
     secondary = _world_info_keywords(entry.get("keys_secondary"))
@@ -281,6 +289,8 @@ from fablemap.memory import (
     MEMORY_SCOPES,
     MEMORY_VISIBILITIES,
     MemoryAtom,
+    auto_create_memories_from_chat,
+    select_memory_atoms_for_prompt,
 )
 from fablemap.output_rules import apply_output_rules, default_output_rules, normalize_output_rules
 from fablemap.presets import (
@@ -634,19 +644,19 @@ class WebService:
         if not isinstance(recent_messages, list):
             recent_messages = []
 
-        parts: list[str] = [message]
+        base_parts: list[str] = [message]
         if payload.get("include_tavern_context"):
-            parts.extend([
+            base_parts.extend([
                 str(tavern.get("name") or ""),
                 str(tavern.get("description") or ""),
                 str(tavern.get("scene_prompt") or ""),
             ])
+        recent_parts: list[str] = []
         for item in recent_messages:
             if isinstance(item, dict):
-                parts.append(str(item.get("content") or item.get("message") or ""))
+                recent_parts.append(str(item.get("content") or item.get("message") or ""))
             else:
-                parts.append(str(item))
-        search_text = "\n".join(part for part in parts if part).lower()
+                recent_parts.append(str(item))
 
         source_entries = payload.get("world_info")
         if not isinstance(source_entries, list):
@@ -658,6 +668,9 @@ class WebService:
                 continue
             keys = _world_info_keywords(raw_entry.get("keys"))
             keys_secondary = _world_info_keywords(raw_entry.get("keys_secondary"))
+            depth = _world_info_depth(raw_entry)
+            entry_parts = [*base_parts, *(recent_parts[-depth:] if depth else [])]
+            search_text = "\n".join(part for part in entry_parts if part).lower()
             primary_hits = [key for key in keys if key.lower() in search_text]
             secondary_hits = [key for key in keys_secondary if key.lower() in search_text]
             constant = bool(raw_entry.get("constant"))
@@ -694,7 +707,7 @@ class WebService:
                 "constant": constant,
                 "selective": selective,
                 "disable": disabled,
-                "depth": raw_entry.get("depth", 4),
+                "depth": depth,
                 "order": order,
                 "insertion_order": order,
                 "probability": probability,
@@ -1155,6 +1168,79 @@ class WebService:
             "memory_atoms": atoms,
             "count": len(atoms),
             "filters": filters,
+        }
+
+    def list_visitor_memories_payload(
+        self,
+        tavern_id: str,
+        user_id: str = "",
+        *,
+        visitor_id: str = "",
+        scope: str = "",
+        dimension: str = "",
+        horizon: str = "",
+        pinned: bool | None = None,
+        keyword: str = "",
+        limit: int = 50,
+        offset: int = 0,
+    ) -> dict[str, Any]:
+        """List memories for a visitor with visibility rules and keyword filter.
+
+        Visibility rules:
+        - Tavern owner: sees 'owner' and 'public' atoms
+        - Visitor (visitor_id matches): additionally sees 'private' atoms
+        - Others: sees only 'public' atoms
+        """
+        tavern = self.tavern_store.get_tavern(tavern_id)
+        if not tavern:
+            raise HTTPException(status_code=404, detail="酒馆不存在")
+        if tavern.access == "private" and not _is_tavern_owner_obj(tavern, user_id):
+            raise HTTPException(status_code=403, detail="此酒馆是私人的")
+
+        filters = {
+            "scope": _memory_filter(scope, MEMORY_SCOPES),
+            "dimension": _memory_filter(dimension, MEMORY_DIMENSIONS),
+            "horizon": _memory_filter(horizon, MEMORY_HORIZONS),
+        }
+
+        keyword_lower = keyword.lower().strip() if keyword else ""
+        max_items = _clamp_memory_limit(limit, default=50, maximum=200)
+        start = max(0, int(offset or 0))
+
+        all_atoms = self.tavern_store.list_memory_atoms(tavern_id)
+        visible_atoms: list[MemoryAtom] = []
+
+        for atom in all_atoms:
+            if not _memory_atom_is_visible(atom, tavern, user_id):
+                continue
+            if visitor_id and atom.visitor_id and atom.visitor_id != visitor_id:
+                continue
+            if filters["scope"] and atom.scope != filters["scope"]:
+                continue
+            if filters["dimension"] and atom.dimension != filters["dimension"]:
+                continue
+            if filters["horizon"] and atom.horizon != filters["horizon"]:
+                continue
+            if pinned is not None and atom.pinned != pinned:
+                continue
+            if keyword_lower and keyword_lower not in f"{atom.content} {atom.subject}".lower():
+                continue
+            visible_atoms.append(atom)
+
+        page = visible_atoms[start:start + max_items]
+        return {
+            "tavern_id": tavern_id,
+            "memories": [atom.to_dict() for atom in page],
+            "total": len(visible_atoms),
+            "count": len(page),
+            "filters": {
+                "scope": filters["scope"],
+                "dimension": filters["dimension"],
+                "horizon": filters["horizon"],
+                "pinned": pinned,
+                "keyword": keyword,
+                "visitor_id": visitor_id,
+            },
         }
 
     def get_memory_atom_payload(self, tavern_id: str, memory_id: str, user_id: str = "") -> dict[str, Any]:
@@ -1630,6 +1716,27 @@ class WebService:
         elif llm_config.backend in ("ooba", "mancer", "vllm", "tabby", "koboldcpp", "togetherai", "llamacpp", "infermaticai", "dreamgen", "featherless", "huggingface", "generic", "ollama"):
             output_format = "textgen"
 
+        memory_policy = safe_memory_policy(tavern.memory_policy)
+        prompt_memory_atoms: list[MemoryAtom] = []
+        if memory_policy.get("mode") in {"structured", "balanced", "long_context"}:
+            try:
+                visible_atoms = [
+                    atom for atom in self.tavern_store.list_memory_atoms(tavern_id)
+                    if _memory_atom_is_visible(atom, tavern, visitor_id)
+                ]
+                prompt_memory_atoms = select_memory_atoms_for_prompt(
+                    visible_atoms,
+                    visitor_id=visitor_id,
+                    character_id=character_id,
+                    current_message=message,
+                    budget_tokens=memory_policy.get("budget_tokens", 1200),
+                    include_short=bool(memory_policy.get("short_term", True)),
+                    include_mid=bool(memory_policy.get("mid_term", True)),
+                    include_long=bool(memory_policy.get("long_term", True)),
+                )
+            except Exception:
+                prompt_memory_atoms = []
+
         # Build prompt
         config = PromptBuildConfig(
             tavern_name=tavern.name,
@@ -1646,6 +1753,8 @@ class WebService:
             visitor_first_visit=prompt_visitor_state.first_visit if prompt_visitor_state else "",
             visitor_last_visit=prompt_visitor_state.last_visit if prompt_visitor_state else "",
             visitor_message_count=visitor_message_count,
+            memory_atoms=[atom.to_dict() for atom in prompt_memory_atoms],
+            memory_budget_tokens=int(memory_policy.get("budget_tokens", 0) or 0),
             world_info_entries=[e.to_dict() if hasattr(e, "to_dict") else e for e in tavern.world_info],
             prompt_blocks=normalize_prompt_blocks(tavern.prompt_blocks),
             output_format=output_format,
@@ -1696,9 +1805,11 @@ class WebService:
 
         # Save messages
         now = _utc_now_iso()
+        user_message_id = f"msg_{uuid.uuid4().hex[:12]}"
+        assistant_message_id = f"msg_{uuid.uuid4().hex[:12]}"
         self.tavern_store.add_chat_message(
             TavernChatMessage(
-                id=f"msg_{uuid.uuid4().hex[:12]}",
+                id=user_message_id,
                 tavern_id=tavern_id,
                 character_id=character_id,
                 visitor_id=visitor_id,
@@ -1710,7 +1821,7 @@ class WebService:
         )
         self.tavern_store.add_chat_message(
             TavernChatMessage(
-                id=f"msg_{uuid.uuid4().hex[:12]}",
+                id=assistant_message_id,
                 tavern_id=tavern_id,
                 character_id=character_id,
                 visitor_id=visitor_id,
@@ -1746,6 +1857,26 @@ class WebService:
             self.tavern_store.update_visitor_state(tavern_id, visitor_state)
             updated_visitor_state = visitor_state
 
+        # Auto-create structured memories from this chat turn
+        created_memories: list[dict] = []
+        if visitor_id and tavern_id:
+            try:
+                atoms = auto_create_memories_from_chat(
+                    self.tavern_store,
+                    tavern_id,
+                    visitor_id,
+                    character_id,
+                    character.name if character else "",
+                    message,
+                    response_text,
+                    user_message_id=user_message_id,
+                    assistant_message_id=assistant_message_id,
+                    importance_threshold=0.5,
+                )
+                created_memories = [m.to_dict() for m in atoms]
+            except Exception:
+                pass  # Never interrupt chat for memory errors
+
         return {
             "character_id": character_id,
             "character_name": character.name,
@@ -1760,6 +1891,7 @@ class WebService:
             },
             "tavern_status": "closed" if degradation else tavern.status,
             "visitor_state": updated_visitor_state.to_dict() if updated_visitor_state else None,
+            "created_memories": created_memories,
             "timestamp": _now_ms(),
         }
 

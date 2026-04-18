@@ -3,7 +3,7 @@ from tempfile import TemporaryDirectory
 
 import pytest
 
-from fablemap.memory import MemoryAtom
+from fablemap.memory import MemoryAtom, auto_create_memories_from_chat, select_memory_atoms_for_prompt
 
 
 def test_memory_atom_normalizes_payload_defaults():
@@ -182,3 +182,223 @@ def test_memory_atoms_crud_filters_and_private_visibility():
         )
         remaining_ids = [item["id"] for item in alpha_after_delete["memory_atoms"]]
         assert private_id not in remaining_ids
+
+
+def test_auto_memory_pipeline_extracts_scores_and_merges():
+    from fablemap.web.config import ApiSettings
+    from fablemap.web.service import WebService
+
+    with TemporaryDirectory() as tmpdir:
+        service = WebService(
+            ApiSettings(output_root=Path(tmpdir), fixture_file=None, frontend_root=None)
+        )
+        owner_id = "owner_auto_memory"
+        visitor_id = "visitor_auto_memory"
+        tavern = service.create_tavern_payload(
+            {
+                "id": "tavern_auto_memory",
+                "name": "Auto Memory Tavern",
+                "description": "A tavern for auto memory tests.",
+                "lat": 31.23,
+                "lon": 121.47,
+            },
+            owner_id=owner_id,
+        )
+        tavern_id = tavern["id"]
+        character = service.add_character_payload(
+            tavern_id,
+            {"id": "char_keeper", "name": "Keeper"},
+            owner_id,
+        )
+
+        created = auto_create_memories_from_chat(
+            service.tavern_store,
+            tavern_id,
+            visitor_id,
+            character["id"],
+            character["name"],
+            "我喜欢茉莉茶。昨天我在桥边遇见了旧朋友。",
+            "我一定会记住这件事。",
+            user_message_id="msg_user_1",
+            assistant_message_id="msg_assistant_1",
+            importance_threshold=0.5,
+        )
+
+        assert len(created) == 3
+        dimensions = {atom.dimension for atom in created}
+        assert {"preference", "event", "promise"}.issubset(dimensions)
+        assert all(atom.visibility == "private" for atom in created)
+        assert all(atom.visitor_id == visitor_id for atom in created)
+
+        auto_create_memories_from_chat(
+            service.tavern_store,
+            tavern_id,
+            visitor_id,
+            character["id"],
+            character["name"],
+            "我喜欢茉莉茶。",
+            "",
+            user_message_id="msg_user_2",
+            importance_threshold=0.5,
+        )
+
+        stored = service.tavern_store.list_memory_atoms(tavern_id)
+        assert len(stored) == 3
+        preference = next(atom for atom in stored if atom.dimension == "preference")
+        assert preference.metadata["hit_count"] == 2
+        assert preference.source_message_ids == ["msg_user_1", "msg_user_2"]
+
+
+def test_select_memory_atoms_for_prompt_prioritizes_pin_horizon_relevance_and_flags():
+    atoms = [
+        MemoryAtom(
+            id="mem_short",
+            tavern_id="tavern_prompt_memory",
+            scope="visitor_character",
+            dimension="preference",
+            horizon="short",
+            content="访客喜欢茉莉茶。",
+            importance=0.6,
+            confidence=0.8,
+            visitor_id="visitor_alpha",
+            character_id="char_keeper",
+        ),
+        MemoryAtom(
+            id="mem_pinned",
+            tavern_id="tavern_prompt_memory",
+            scope="visitor_tavern",
+            dimension="promise",
+            horizon="short",
+            content="Keeper promised to keep a window seat for the visitor.",
+            importance=0.55,
+            confidence=0.7,
+            pinned=True,
+            visitor_id="visitor_alpha",
+            character_id="char_other",
+        ),
+        MemoryAtom(
+            id="mem_long",
+            tavern_id="tavern_prompt_memory",
+            scope="visitor_character",
+            dimension="event",
+            horizon="long",
+            content="访客昨天在桥边遇见旧朋友。",
+            importance=0.9,
+            confidence=0.9,
+            visitor_id="visitor_alpha",
+            character_id="char_keeper",
+        ),
+        MemoryAtom(
+            id="mem_wrong",
+            tavern_id="tavern_prompt_memory",
+            scope="visitor_character",
+            dimension="fact",
+            horizon="long",
+            content="这条记忆已经被标错。",
+            importance=1.0,
+            confidence=1.0,
+            visitor_id="visitor_alpha",
+            character_id="char_keeper",
+            metadata={"flagged_wrong": True},
+        ),
+    ]
+
+    selected = select_memory_atoms_for_prompt(
+        atoms,
+        visitor_id="visitor_alpha",
+        character_id="char_keeper",
+        current_message="还记得茉莉茶和桥边的事吗？",
+        budget_tokens=120,
+    )
+
+    assert [atom.id for atom in selected][:3] == ["mem_pinned", "mem_long", "mem_short"]
+    assert "mem_wrong" not in [atom.id for atom in selected]
+
+
+def test_structured_memory_is_injected_into_chat_prompt(monkeypatch):
+    from fablemap.tavern import LLMConfig
+    from fablemap.web.config import ApiSettings
+    from fablemap.web.service import WebService
+
+    with TemporaryDirectory() as tmpdir:
+        service = WebService(
+            ApiSettings(output_root=Path(tmpdir), fixture_file=None, frontend_root=None)
+        )
+        owner_id = "owner_prompt_memory"
+        visitor_id = "visitor_prompt_memory"
+        tavern = service.create_tavern_payload(
+            {
+                "id": "tavern_prompt_memory",
+                "name": "Prompt Memory Tavern",
+                "description": "A tavern for prompt memory tests.",
+                "lat": 31.23,
+                "lon": 121.47,
+            },
+            owner_id=owner_id,
+        )
+        tavern_id = tavern["id"]
+        service.update_tavern_payload(
+            tavern_id,
+            {
+                "status": "open",
+                "memory_policy": {
+                    "mode": "balanced",
+                    "short_term": True,
+                    "mid_term": True,
+                    "long_term": True,
+                    "budget_tokens": 800,
+                },
+            },
+            owner_id,
+        )
+        character = service.add_character_payload(
+            tavern_id,
+            {"id": "char_keeper", "name": "Keeper", "first_mes": "欢迎回来。"},
+            owner_id,
+        )
+        service.tavern_store.save_llm_config(
+            tavern_id,
+            LLMConfig(backend="openai", model="gpt-4o-mini", api_key="sk-test"),
+        )
+        service.create_memory_atom_payload(
+            tavern_id,
+            {
+                "scope": "visitor_character",
+                "dimension": "preference",
+                "horizon": "long",
+                "subject": visitor_id,
+                "visitor_id": visitor_id,
+                "character_id": character["id"],
+                "content": "访客喜欢茉莉茶，尤其是靠窗座位。",
+                "importance": 0.9,
+                "visibility": "private",
+            },
+            visitor_id,
+        )
+
+        captured = {}
+
+        class Response:
+            content = "茉莉茶和靠窗座位，都给你留着。"
+            usage = {"total_tokens": 13}
+
+        class CapturingClient:
+            def complete(self, messages):
+                captured["messages"] = messages
+                return Response()
+
+        monkeypatch.setattr("fablemap.web.service.create_client", lambda config: CapturingClient())
+
+        payload = service.tavern_chat_payload(
+            tavern_id=tavern_id,
+            character_id=character["id"],
+            message="我回来了，想坐老位置。",
+            visitor_id=visitor_id,
+            visitor_name="阿航",
+        )
+
+        prompt_text = "\n\n".join(message.get("content", "") for message in captured["messages"])
+        assert payload["degraded"] is False
+        assert "当前访客结构化记忆" in prompt_text
+        assert "访客喜欢茉莉茶" in prompt_text
+        assert "created_memories" in payload

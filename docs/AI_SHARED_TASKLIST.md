@@ -741,7 +741,7 @@ MemoryAtom {
 
 ---
 
-### FM-VT-P2-02：记忆自动提炼流水线
+### FM-VT-P2-02：记忆自动提炼流水线 `[done 2026-04-18]`
 
 **目标**：从聊天中提炼事实 / 情感 / 事件 / 承诺。
 
@@ -768,9 +768,16 @@ MemoryAtom {
 - 可用规则启发式作为 fallback。
 - 自动记忆必须能在 UI 中查看、删除、标错。
 
+**实现记录 2026-04-18**
+
+- `fablemap/memory/core.py` 新增规则启发式自动提炼：按事实 / 情绪 / 事件 / 偏好 / 承诺拆分候选、打分、去重合并并写入 `MemoryAtom`；`fablemap.memory` 继续 re-export 旧导入面。
+- `fablemap/web/service.py` 在聊天落库后自动生成结构化记忆，返回 `created_memories`，并保留聊天链路失败不受记忆错误影响。
+- `frontend/src/TavernMemoryPanel.jsx` 与 `TavernContextPanel.jsx` 展示结构化记忆，支持刷新、固定、删除和标错；标错记忆会被排除在 Prompt 注入之外。
+- 验证：记忆 / Prompt / LLM 相关测试 12 passed / 1 skipped；`py -3 -m compileall -q fablemap` 通过；前端 build 通过。
+
 ---
 
-### FM-VT-P2-03：记忆注入预算与优先级
+### FM-VT-P2-03：记忆注入预算与优先级 `[done 2026-04-18]`
 
 **目标**：避免记忆越多 Prompt 越爆。
 
@@ -792,6 +799,13 @@ MemoryAtom {
 - PromptBuilder 支持 `memory_budget_tokens`。
 - 超预算时自动裁剪低优先级记忆。
 - Chat API 可返回被注入的记忆摘要。
+
+**实现记录 2026-04-18**
+
+- `select_memory_atoms_for_prompt()` 按 pinned > long > mid > short、角色相关性、scope、关键词命中、重要度、置信度和更新时间排序，并按 token 预算裁剪。
+- `PromptBuildConfig` 增加 `memory_atoms` / `memory_budget_tokens`，legacy PromptBuilder 与 Prompt Block 模式均能注入结构化记忆。
+- 默认 Prompt Blocks 增加“结构化记忆”段落，无记忆时自动跳过。
+- Chat API 按酒馆 `memory_policy` 选择可见记忆并注入 Prompt。
 
 ---
 
@@ -890,7 +904,7 @@ PromptBlock {
 
 ---
 
-### FM-VT-P2-06：高级记忆图 / RAG 预研
+### FM-VT-P2-06：高级记忆图 / RAG 预研 `[done 2026-04-18]`
 
 **目标**：为后续 NetworkX 图数据库 / 向量检索做接口预留。
 
@@ -912,11 +926,19 @@ PromptBlock {
 - 当前 JSON 存储可作为默认实现。
 - 不引入强依赖，不阻塞本地运行。
 
+**实现记录 2026-04-18**
+
+- `fablemap/memory/core.py` 新增 `MemoryStore` 接口、`MemorySearchResult` 和 `KeywordMemoryStore`；默认实现包装现有 TavernStore JSON `_memory_atoms`，也支持轻量内存模式用于测试和后续适配。
+- `fablemap/vectors.py` 新增 `VectorMemoryStore` stub；没有 embedder 时自动回退到关键词检索，不引入向量数据库或本地模型依赖。
+- `fablemap/memory_graph.py` 新增 `GraphMemoryStore` stub；当前复用关键词存储并提供同访客 / 同角色 / 同地点的 related-atoms 轻量关联查询，为后续 NetworkX / 图数据库替换预留接口。
+- `fablemap.memory` re-export 新适配器，调用方可先面向 `MemoryStore` 编程，当前聊天链路仍走现有 JSON 持久化。
+- `tests/test_memory_store_adapters.py` 覆盖默认 JSON 适配器、向量 stub 回退和图 stub 关联查询。
+
 ---
 
 ## 7. 体验与视觉任务
 
-### FM-VT-UX-01：轻量浅色 / 暗色主题切换
+### FM-VT-UX-01：轻量浅色 / 暗色主题切换 `[done 2026-04-17]`
 
 参考 VisionTale 的浅色干净界面，但保留 FableMap 赛博气质。
 
@@ -925,9 +947,15 @@ PromptBlock {
 - 设置页可切换浅色 / 暗色。
 - 酒馆创建、对话、店主后台均可读。
 
+**实现记录**
+
+- 已新增 `ThemeToggle.jsx`，在设置区提供浅色 / 暗色切换，并通过 `localStorage` 持久化 `fablemap_theme`。
+- `styles.css` 已加入 dark 默认变量与 `[data-theme="light"]` 覆盖层，首页、发现页和主要面板使用语义变量。
+- 变更记录见 `docs/changes/2026-04-17-ux-01-02-theme-and-discovery-cards.md`。
+
 ---
 
-### FM-VT-UX-02：卡片化酒馆发现列表
+### FM-VT-UX-02：卡片化酒馆发现列表 `[done 2026-04-17]`
 
 字段：
 
@@ -945,9 +973,15 @@ PromptBlock {
 - 地图 marker 和列表选择联动。
 - 支持搜索、标签筛选、距离排序。
 
+**实现记录**
+
+- `WorldStageTavernDiscoveryLane.jsx` 已提供卡片化酒馆发现列表，展示名称、简介、距离、角色数、访问权限和营业状态。
+- 已支持搜索、入口筛选、状态筛选、排序、逐步加载和 `activeTavernId` marker / 列表联动。
+- 变更记录见 `docs/changes/2026-04-17-ux-01-02-theme-and-discovery-cards.md`。
+
 ---
 
-### FM-VT-UX-03：移动端酒馆体验
+### FM-VT-UX-03：移动端酒馆体验 `[done 2026-04-18]`
 
 重点：
 
@@ -960,11 +994,18 @@ PromptBlock {
 
 - 720px 以下可完整完成发现、入场、聊天、开店核心链路。
 
+**实现记录 2026-04-18**
+
+- `TavernChatRoom.jsx` 在手机端切换记忆 / 上下文时会互斥打开，选择角色后自动收起角色抽屉，减少小屏遮挡。
+- `TavernContextPanel.jsx` 增加 `open` 状态类，修复移动端抽屉被 transform 隐藏的问题。
+- `styles.css` 新增最终移动端覆盖：三栏聊天折叠为单列，角色列表变成可展开横向抽屉，聊天输入区贴底，上下文 / 记忆 / 角色详情变成底部抽屉。
+- 720px 以下保留上下文面板中的角色 / 场所 / 世界书 / 记忆 / AI 标签页。
+
 ---
 
 ## 8. 测试与验收任务
 
-### FM-VT-QA-01：开店向导回归测试
+### FM-VT-QA-01：开店向导回归测试 `[done 2026-04-18]`
 
 覆盖：
 
@@ -977,9 +1018,18 @@ PromptBlock {
 - 导入角色卡
 - 手动创建角色
 
+**实现记录 2026-04-18**
+
+- 新增 `tests/test_tavern_create_wizard_regression.py`，覆盖开店向导提交后的 payload 层行为。
+- 回归公开 / 密码 / 私人酒馆创建和入场边界；密码酒馆验证缺失、错误、正确密码路径，私人酒馆验证访客拒绝和店主进入。
+- 回归无 AI 配置保持 closed，本地 Ollama base_url-only 配置和远端 API Key 配置可 open。
+- 回归 AI 配置测试成功、缺少凭据失败和上游错误失败。
+- 回归 SillyTavern 角色卡导入、手动角色追加、标签 / 精灵图 / 世界书持久化。
+- 验证：`py -3 -m pytest tests/test_tavern_create_wizard_regression.py`、`py -3 -m compileall -q fablemap`、`npm --prefix .\frontend run build`。
+
 ---
 
-### FM-VT-QA-02：记忆权限测试
+### FM-VT-QA-02：记忆权限测试 `[done 2026-04-18]`
 
 覆盖：
 
@@ -988,9 +1038,18 @@ PromptBlock {
 - 其他访客不能读取别人的记忆
 - 导出酒馆包不包含访客私密记忆
 
+**实现记录 2026-04-18**
+
+- 新增 `tests/test_tavern_memory_permissions.py`，覆盖结构化记忆列表、单条读取和酒馆包导出的权限边界。
+- 回归访客只能读取自己的 private 记忆、与自己相关的 owner 记忆和 public 记忆。
+- 回归其他访客不能通过列表或单条读取访问别人的 private 记忆。
+- 回归店主能读取 owner / public 经营记忆，但不能读取访客 private 内容或私密 metadata。
+- 回归酒馆包导出不包含访客 private MemoryAtom 内容、ID 或私密 metadata。
+- 验证：`py -3 -m pytest tests/test_tavern_memory_permissions.py tests/test_tavern_memory_atoms.py`、`py -3 -m compileall -q fablemap`、`npm --prefix .\frontend run build`。
+
 ---
 
-### FM-VT-QA-03：世界书注入测试
+### FM-VT-QA-03：世界书注入测试 `[done 2026-04-18]`
 
 覆盖：
 
@@ -1002,6 +1061,13 @@ PromptBlock {
 - disabled
 - probability
 - 命中测试 API
+
+**实现记录 2026-04-18**
+
+- 新增 `tests/test_tavern_world_info_injection.py`，覆盖世界书命中测试 API 与 PromptBuilder 注入链路。
+- 回归常驻条目、主关键词、次级关键词、`order` 排序、`disable` 和 `probability: 0` 状态。
+- 补齐 `depth` 行为：命中测试 API 与 Prompt 注入均按每条世界书的 `depth` 只扫描最近历史，过旧消息不再触发低 depth 条目。
+- 验证：`py -3 -m pytest tests/test_tavern_router_compat.py tests/test_tavern_prompt_blocks.py tests/test_tavern_world_info_injection.py`、`py -3 -m compileall -q fablemap`、`npm --prefix .\frontend run build`。
 
 ---
 
@@ -1084,8 +1150,14 @@ PromptBlock {
 | FM-VT-P1-07 | Codex | done | 已实现输出护栏规则引擎、店主编辑器和保存/预览 API；验证 `pytest` 173 passed，前端 build 通过 |
 | FM-VT-P1-08 | Codex | done | 已完成店主控制台分组导航与高级工具台；抽出 OwnerConsoleSections；验证 `pytest` 173 passed，前端 build 通过 |
 | FM-VT-P2-01 | Codex | done | 已实现 MemoryAtom 模型、酒馆私有扩展桶持久化、CRUD API、前端 service 封装和权限测试；验证新增测试通过、前端 build 通过 |
-| FM-VT-P2-02 | 未认领 | todo |  |
-| FM-VT-P2-03 | 未认领 | todo |  |
+| FM-VT-P2-02 | Codex | done | 已实现规则启发式自动提炼、去重合并、聊天后写入、前端查看 / 固定 / 删除 / 标错；验证相关测试、compileall 和前端 build 通过 |
+| FM-VT-P2-03 | Codex | done | 已实现结构化记忆 Prompt 预算选择、优先级排序、PromptBuilder 注入和默认 Prompt Block 段落；验证相关测试、compileall 和前端 build 通过 |
 | FM-VT-P2-04 | Codex | done | 已实现 Prompt Block 段落引擎、店主编辑器和保存/预览 API；验证 `pytest` 177 passed，前端 build 通过 |
 | FM-VT-P2-05 | Codex | done | 已实现运行预设模型、店主预设管理器、保存/应用 API 和酒馆包导出；验证 `pytest` 180 passed，前端 build 通过 |
-| FM-VT-P2-06 | 未认领 | todo |  |
+| FM-VT-P2-06 | Codex | done | 已实现 MemoryStore 接口、KeywordMemoryStore 默认 JSON 适配器、VectorMemoryStore / GraphMemoryStore stub 和适配器测试；不引入新依赖 |
+| FM-VT-UX-01 | Codex | done | 已实现浅色 / 暗色主题切换和语义化主题变量；见 2026-04-17 UX 变更记录 |
+| FM-VT-UX-02 | Codex | done | 已确认并记录卡片化酒馆发现列表、搜索筛选排序与 marker 联动；见 2026-04-17 UX 变更记录 |
+| FM-VT-UX-03 | Codex | done | 已完成移动端酒馆体验收口：角色抽屉、贴底输入、上下文/记忆底部抽屉；验证前端 build 和回归测试通过 |
+| FM-VT-QA-01 | Codex | done | 已新增开店向导回归测试，覆盖入口权限、AI 配置测试和角色导入 / 手动创建链路；验证测试、compileall 和前端 build 通过 |
+| FM-VT-QA-02 | Codex | done | 已新增记忆权限回归测试，覆盖访客 private、店主 owner/public、跨访客拒绝和酒馆包导出隐私边界 |
+| FM-VT-QA-03 | Codex | done | 已新增世界书注入回归测试，并补齐按条目 depth 扫描最近历史；覆盖常驻、关键词、次级关键词、排序、禁用、概率和命中测试 API |

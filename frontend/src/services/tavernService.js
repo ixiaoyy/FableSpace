@@ -483,6 +483,58 @@ export function createTavernService(getBaseUrl) {
       return readJson(response)
     },
 
+    /**
+     * List memories for a visitor with visibility filtering and keyword search (new /memories endpoint).
+     * @param {string} tavernId
+     * @param {object} filters — { visitor_id, scope, dimension, horizon, pinned, keyword, limit, offset }
+     * @param {string} userId
+     * @returns {Promise<object>}
+     */
+    async listMemories(tavernId, filters = {}, userId = '') {
+      const params = new URLSearchParams()
+      for (const key of ['visitor_id', 'scope', 'dimension', 'horizon', 'keyword', 'limit', 'offset']) {
+        if (filters[key] != null && filters[key] !== '') params.set(key, filters[key])
+      }
+      if (filters.pinned === true || filters.pinned === false) {
+        params.set('pinned', filters.pinned)
+      }
+      const response = await fetch(
+        `${getBaseUrl()}/api/taverns/${encodeURIComponent(tavernId)}/memories?${params}`,
+        { cache: 'no-store', headers: buildHeaders(userId) }
+      )
+      return readJson(response)
+    },
+
+    /**
+     * Pin or unpin a memory atom.
+     * @param {string} tavernId
+     * @param {string} memoryId
+     * @param {boolean} pinned
+     * @param {string} userId
+     * @returns {Promise<object>}
+     */
+    async togglePinMemory(tavernId, memoryId, pinned, userId = '') {
+      return this.updateMemoryAtom(tavernId, memoryId, { pinned }, userId)
+    },
+
+    /**
+     * Mark an auto-created memory as wrong (or restore it).
+     * @param {string} tavernId
+     * @param {string} memoryId
+     * @param {object} metadata
+     * @param {boolean} flagged
+     * @param {string} userId
+     * @returns {Promise<object>}
+     */
+    async markMemoryWrong(tavernId, memoryId, metadata = {}, flagged = true, userId = '') {
+      return this.updateMemoryAtom(
+        tavernId,
+        memoryId,
+        { metadata: { ...(metadata || {}), flagged_wrong: flagged } },
+        userId
+      )
+    },
+
     // ─── Character Management ──────────────────────────────────────
 
     /**

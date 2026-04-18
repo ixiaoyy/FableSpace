@@ -29,6 +29,31 @@
 - `py -3 -m compileall fablemap`：通过
 - `npm --prefix .\frontend run build`：通过
 
-## 备注
+## 2026-04-18 补充：记忆包重构 + 店主记忆视图
+
+**问题**：`fablemap/memory.py`（单文件模块）与 `fablemap/memory/` 目录包同名，产生 Python 包遮蔽（package shadowing）问题，导致 `from fablemap.memory import MemoryAtom` 在某些 Python 版本和导入路径下无法解析。
+
+**解决方案**：将 `fablemap/memory.py` 的内容移入 `fablemap/memory/core.py`，由 `fablemap/memory/__init__.py` 透明重导出，所有现有 `from fablemap.memory import X` 继续工作。
+
+| 文件 | 说明 |
+|------|------|
+| `fablemap/memory/core.py` | 原 `memory.py` 内容迁移，增加 `# -*- coding: utf-8 -*-` 头部 |
+| `fablemap/memory/__init__.py` | 新增包级 `__init__.py`，re-export 全部公共 API；`__getattr__` 延迟加载 `GraphMemoryStore` / `VectorMemoryStore` |
+| `fablemap/memory.py` | 已删除（旧单文件模块） |
+| `fablemap/tavern.py` | import 更新为 `from fablemap.memory import ...` |
+| `fablemap/web/router.py` | import 更新 |
+| `fablemap/web/service.py` | import 更新 |
+| `frontend/src/TavernOwnerPanel.jsx` | 新增 `openVisitorMemoryModal` / `OwnerVisitorMemoryModal`，店主可在访客行点击"查看记忆"查看该访客的结构化记忆 |
+| `frontend/src/styles.css` | 新增 `.owner-memory-modal*` / `.visibility-badge*` 等样式 |
+
+## 验证（2026-04-18）
+
+- `py -3 -c "from fablemap.memory import MemoryAtom, ImportanceScorer, auto_create_memories_from_chat, MemoryStore, VectorMemoryStore, GraphMemoryStore"`：OK
+- `py -3 -m compileall -q fablemap`：通过
+- `npm --prefix .\frontend run build`：通过
+- `py -3 -m pytest tests/ --ignore=tests/test_api.py -q`：168 passed, 8 skipped
+  - `test_api.py` 报错为 pre-existing 环境问题（缺少 `httpx` 包），与本次修改无关
+
+## 备注（原始 2026-04-17）
 
 仓库根目录直接执行完整 `pytest` 会收集 `tools/ComfyUI` 的外部测试；当前本机环境缺少 `torch`、`aiohttp`、`sqlalchemy` 等依赖，因此不作为本次回归口径。
