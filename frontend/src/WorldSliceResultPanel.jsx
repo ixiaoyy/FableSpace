@@ -71,6 +71,9 @@ export default function WorldSliceResultPanel({
             <p className="mini-label">附近氛围</p>
             <h3 className="story-card-title">{formatTagLabel(result.region_theme, '未命名区域')}</h3>
             <p className="note story-card-copy">{sliceAtmosphere}</p>
+            {result.fallback_notice ? (
+              <p className="note muted">{result.fallback_notice}</p>
+            ) : null}
             <div className="story-chip-row world-result-panel__chips">
               <span>势力 · {formatTagLabel(result.dominant_faction, '-')}</span>
               <span>地点 · {result.poi_count ?? '-'}</span>

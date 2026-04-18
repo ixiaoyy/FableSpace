@@ -75,7 +75,7 @@ def create_api_router(service: WebService) -> APIRouter:
         lat: float = Form(...),
         lon: float = Form(...),
         radius: int = Form(300),
-        mode: str = Form("live"),
+        mode: str = Form("fixture"),
         seed: str = Form(""),
         refresh: bool = Form(False),
     ) -> dict:

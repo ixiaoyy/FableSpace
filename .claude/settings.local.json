@@ -12,7 +12,9 @@
       "Bash(powershell -Command \"python d:/work/ai-/print_wb.py\")",
       "Bash(python read_sections.py)",
       "Bash(python read_test_middle.py)",
-      "Bash(npm run *)"
+      "Bash(npm run *)",
+      "Bash(git -C /d/work/FableMap log --oneline -15)",
+      "Bash(python -c \"from fablemap.memory import MemoryAtom, auto_create_memories_from_chat, select_memory_atoms_for_prompt, ImportanceScorer; print\\('All imports OK'\\)\")"
     ]
   }
 }

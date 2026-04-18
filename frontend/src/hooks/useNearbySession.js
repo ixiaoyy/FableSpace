@@ -44,8 +44,12 @@ export function useNearbySession({
           restoredWritebackSession.sliceId === nextSliceId
       )
 
-      if (overrideForm) {
-        setForm((current) => ({ ...current, ...overrideForm }))
+      const responseFormPatch = {
+        ...(overrideForm || {}),
+        ...(payload.fallback_mode ? { mode: payload.fallback_mode } : {}),
+      }
+      if (overrideForm || payload.fallback_mode) {
+        setForm((current) => ({ ...current, ...responseFormPatch }))
       }
 
       setResult(payload)

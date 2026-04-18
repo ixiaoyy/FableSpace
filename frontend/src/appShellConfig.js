@@ -29,10 +29,10 @@ export const LOCATION_PRESETS = [
 ]
 
 export const INITIAL_FORM = {
-  lat: '31.2304',
-  lon: '121.4737',
+  lat: '35.6580',
+  lon: '139.7016',
   radius: '300',
-  mode: 'live',
+  mode: 'fixture',
   seed: '',
 }
 

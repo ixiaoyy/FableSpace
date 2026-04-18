@@ -2,12 +2,15 @@ import json
 from pathlib import Path
 from tempfile import TemporaryDirectory
 import unittest
+from unittest.mock import patch
 
 from fastapi.testclient import TestClient
 
 from fablemap.api import create_app
 from fablemap.api_service import build_health_payload, build_meta_payload, build_nearby_payload
 from fablemap.application.web_payloads import build_behavior_insights, build_orchestrate_payload, record_memory_graph_event
+from fablemap.nearby import generate_nearby_preview as real_generate_nearby_preview
+from fablemap.overpass import OverpassError
 from fablemap.web.config import ApiSettings
 from fablemap.web.service import WebService
 
@@ -43,9 +46,9 @@ class ApiTests(unittest.TestCase):
         self.assertEqual(meta["frontend_mode"], "separated-shell")
         self.assertEqual(meta["api_base"], "http://testserver")
         self.assertEqual(meta["default_preview_base"], "http://testserver/generated")
-        self.assertEqual(meta["default_coordinates"]["lat"], 31.2304)
-        self.assertEqual(meta["default_coordinates"]["lon"], 121.4737)
-        self.assertEqual(meta["default_mode"], "live")
+        self.assertEqual(meta["default_coordinates"]["lat"], 35.6580)
+        self.assertEqual(meta["default_coordinates"]["lon"], 139.7016)
+        self.assertEqual(meta["default_mode"], "fixture")
         self.assertEqual(meta["endpoints"]["meta"], "/api/meta")
         self.assertIn("fixture", meta["supported_modes"])
 
@@ -112,6 +115,65 @@ class ApiTests(unittest.TestCase):
                 self.assertEqual(result["primary_zone_id"], result["world"]["map2d"]["encounter_zones"][0]["id"])
                 self.assertEqual(generated_output_dir.parent, output_root.resolve())
                 self.assertTrue((generated_output_dir / "bundle" / "index.html").exists())
+
+    def test_api_server_defaults_nearby_generation_to_fixture_mode(self) -> None:
+        with TemporaryDirectory() as tmpdir:
+            output_root = Path(tmpdir) / ".fablemap-api"
+            app = create_app(
+                output_root=output_root,
+                fixture_file=FIXTURE_PATH,
+                frontend_root=FRONTEND_ROOT,
+            )
+            with TestClient(app) as client:
+                response = client.post(
+                    "/api/nearby",
+                    data={
+                        "lat": "35.6580",
+                        "lon": "139.7016",
+                        "radius": "300",
+                    },
+                )
+                result = response.json()
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(result["provider"], "fixture")
+        self.assertEqual(result["mode"], "fixture")
+
+    def test_api_server_falls_back_to_fixture_when_live_overpass_fails(self) -> None:
+        def fake_generate_nearby_preview(**kwargs):
+            if kwargs.get("source_file") is None:
+                raise OverpassError("network down")
+            return real_generate_nearby_preview(**kwargs)
+
+        with TemporaryDirectory() as tmpdir, patch(
+            "fablemap.web.service.generate_nearby_preview",
+            side_effect=fake_generate_nearby_preview,
+        ):
+            output_root = Path(tmpdir) / ".fablemap-api"
+            app = create_app(
+                output_root=output_root,
+                fixture_file=FIXTURE_PATH,
+                frontend_root=FRONTEND_ROOT,
+            )
+            with TestClient(app) as client:
+                response = client.post(
+                    "/api/nearby",
+                    data={
+                        "lat": "35.6580",
+                        "lon": "139.7016",
+                        "radius": "300",
+                        "mode": "live",
+                    },
+                )
+                result = response.json()
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(result["provider"], "fixture")
+        self.assertEqual(result["mode"], "fixture")
+        self.assertEqual(result["requested_mode"], "live")
+        self.assertEqual(result["fallback_mode"], "fixture")
+        self.assertIn("network down", result["fallback_reason"])
+        self.assertIn("离线演示样例", result["fallback_notice"])
 
     def test_api_server_persists_writeback_event(self) -> None:
         with TemporaryDirectory() as tmpdir:
@@ -361,6 +423,7 @@ class ApiServiceTests(unittest.TestCase):
         self.assertEqual(payload["api_base"], "http://127.0.0.1:8950")
         self.assertEqual(payload["default_preview_base"], "http://127.0.0.1:8950/generated")
         self.assertEqual(payload["default_coordinates"]["radius"], 300)
+        self.assertEqual(payload["default_mode"], "fixture")
         self.assertEqual(payload["endpoints"]["nearby"], "/api/nearby")
         self.assertEqual(payload["supported_modes"], ["live", "fixture"])
 

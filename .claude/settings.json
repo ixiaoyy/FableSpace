@@ -6,7 +6,22 @@
       "Bash(powershell -Command \"cd d:\\\\work\\\\ai-; python -m pytest tests/test_page.py tests/test_lens_engine.py tests/test_orchestrator.py -q --tb=short 2>&1 | Out-File -Encoding utf8 pytest_partial.txt; Get-Content pytest_partial.txt\")",
       "Bash(python -c \":*)",
       "mcp__zread__read_file",
-      "Bash(python3 -c \":*)"
+      "Bash(python3 -c \":*)",
+      "Bash(py -3 -c ' *)",
+      "Bash(pip show *)",
+      "Bash(pip install *)",
+      "Bash(py -3 -m pytest tests/test_tavern_character_editor.py tests/test_tavern_chat_history_permissions.py tests/test_tavern_chat_sessions_api.py tests/test_tavern_visitor_state_api.py -q --tb=short)",
+      "Bash(py -3 -m pytest tests/test_tavern_output_rules.py tests/test_tavern_prompt_blocks.py tests/test_tavern_router_compat.py tests/test_tavern_runtime_presets.py -q --tb=no)",
+      "Bash(py -3 -m pytest tests/test_tavern_create_wizard_regression.py tests/test_tavern_memory_permissions.py tests/test_tavern_world_info_injection.py -q --tb=short)",
+      "Bash(py -3 -m pytest tests/test_tavern_world_info_injection.py tests/test_tavern_router_compat.py -q --tb=short)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(py -3 -m pytest tests/test_tavern_qa04_prompt_output.py -q)",
+      "Bash(python3 -c ' *)",
+      "Bash(python -c \"print\\('hello'\\)\")",
+      "Bash(python -c ' *)",
+      "Bash(py -3 -m pytest tests/ --ignore=tests/test_api.py -q)",
+      "Bash(py -3 -m pytest tests/ -q --tb=short)"
     ],
     "additionalDirectories": [
       "d:\\work\\ai-\\fablemap\\web"

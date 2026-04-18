@@ -306,6 +306,7 @@ from fablemap.prompt_blocks import default_prompt_blocks, normalize_prompt_block
 from fablemap.prompt_builder import ChatMessage as PromptChatMessage, PromptBuildConfig, PromptBuilder
 from fablemap.application.web_payloads import build_behavior_insights, build_orchestrate_payload, record_memory_graph_event
 from fablemap.nearby import generate_nearby_preview
+from fablemap.overpass import OverpassError
 from fablemap.writeback import WritebackEngine, WritebackStore
 from fablemap.orchestrator.rule_engine import RuleBasedOrchestrator
 from fablemap.memory_graph import WorldMemoryGraph
@@ -360,7 +361,7 @@ class WebService:
                 raise HTTPException(status_code=400, detail="fixture mode is unavailable because the fixture file is missing")
             source_file = self.settings.fixture_file
 
-        try:
+        def _build_payload(effective_mode: str, source_path: Path | None, fallback_meta: dict[str, Any] | None = None) -> dict[str, Any]:
             run_id = f"run-{uuid.uuid4().hex[:12]}"
             result = generate_nearby_preview(
                 lat=lat,
@@ -368,19 +369,49 @@ class WebService:
                 radius=radius,
                 output_dir=self.settings.output_root / run_id,
                 seed=seed or None,
-                source_file=source_file,
+                source_file=source_path,
                 refresh=refresh,
             )
-            
-            # Inject managed taverns
             payload = build_nearby_payload(
                 result=result,
                 base_url=base_url,
-                mode=normalized_mode,
+                mode=effective_mode,
                 run_id=run_id,
             )
+            if fallback_meta:
+                payload.update(fallback_meta)
             self._inject_managed_taverns(payload, lat, lon, radius)
             return payload
+
+        try:
+            return _build_payload(normalized_mode, source_file)
+        except OverpassError as exc:
+            if normalized_mode != "live":
+                raise HTTPException(status_code=502, detail=str(exc)) from exc
+            if not self.settings.fixture_file or not self.settings.fixture_file.exists():
+                raise HTTPException(
+                    status_code=502,
+                    detail=f"{exc} Fixture fallback is unavailable because the fixture file is missing.",
+                ) from exc
+
+            logger.warning("Live Overpass request failed; falling back to fixture preview: %s", exc)
+            fallback_meta = {
+                "requested_mode": "live",
+                "fallback_mode": "fixture",
+                "fallback_reason": str(exc),
+                "fallback_notice": "实时 OSM 暂时不可用，已使用离线演示样例生成。",
+            }
+            try:
+                return _build_payload("fixture", self.settings.fixture_file, fallback_meta)
+            except ValueError as fallback_exc:
+                raise HTTPException(status_code=400, detail=str(fallback_exc)) from fallback_exc
+            except HTTPException:
+                raise
+            except Exception as fallback_exc:
+                raise HTTPException(
+                    status_code=500,
+                    detail=f"{exc} Fixture fallback also failed: {fallback_exc}",
+                ) from fallback_exc
         except ValueError as exc:
             raise HTTPException(status_code=400, detail=str(exc)) from exc
         except HTTPException:
