@@ -47,6 +47,32 @@ export async function readApiJson<T>(path: string, init: ApiInit = {}): Promise<
   return payload as T
 }
 
+export async function readApiBlob(path: string, init: ApiInit = {}): Promise<Blob> {
+  const headers = new Headers(init.headers)
+  const userId = String(init.userId || "").trim()
+  if (userId) {
+    headers.set("X-User-Id", userId)
+  }
+
+  const response = await fetch(apiUrl(path), {
+    cache: "no-store",
+    ...init,
+    headers,
+  })
+  if (!response.ok) {
+    let message = `HTTP ${response.status}`
+    try {
+      const payload = (await response.json()) as { error?: unknown; detail?: unknown }
+      message = String(payload.error || payload.detail || message)
+    } catch {
+      // Keep status fallback for non-JSON binary endpoints.
+    }
+    throw new Error(message)
+  }
+  return response.blob()
+}
+
+
 export function jsonInit(method: "POST" | "PUT" | "PATCH" | "DELETE", body?: unknown, userId = ""): ApiInit {
   return {
     method,

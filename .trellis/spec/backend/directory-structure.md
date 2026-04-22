@@ -434,6 +434,95 @@ Package-safe redaction helpers live in `backend/src/fablemap_api/domain/tavern_p
 - owner visitor summaries include names and message counts;
 - gameplay abandon enforces visitor/owner session access.
 
+
+## Scenario: native runtime diagnostics / group chat / voice endpoints
+
+### 1. Scope / Trigger
+
+Use this contract when migrating runtime tavern behavior from compatibility `/api/*` into native `/api/v1`: LLM config probing, multi-character group chat, per-character talkativeness, tavern voice config, TTS, and STT. These endpoints are runtime features around the existing owner-authored tavern/NPC content; they must not introduce platform-generated taverns or platform token billing.
+
+### 2. Signatures
+
+Routes live in `backend/src/fablemap_api/api/v1/taverns.py` and stay thin:
+
+```python
+POST /api/v1/llm/test-config
+POST /api/v1/taverns/{tavern_id}/test-llm
+GET  /api/v1/taverns/{tavern_id}/group-chat
+PUT  /api/v1/taverns/{tavern_id}/group-chat/config
+POST /api/v1/taverns/{tavern_id}/group-chat
+GET  /api/v1/taverns/{tavern_id}/group-chat/history
+PUT  /api/v1/taverns/{tavern_id}/characters/{character_id}/talkativeness
+GET  /api/v1/taverns/{tavern_id}/voice
+PUT  /api/v1/taverns/{tavern_id}/voice
+POST /api/v1/taverns/{tavern_id}/tts
+POST /api/v1/taverns/{tavern_id}/stt
+```
+
+Application methods live in `backend/src/fablemap_api/application/taverns.py`:
+
+```python
+test_llm_config(data) -> dict
+test_tavern_llm(tavern_id, data, user_id="") -> dict
+get_group_chat_config(tavern_id, user_id="") -> dict
+update_group_chat_config(tavern_id, data, user_id="") -> dict
+send_group_chat(tavern_id, message=..., visitor_id=..., visitor_name="", user_id="", display_message="") -> dict
+get_group_chat_history(tavern_id, visitor_id="", user_id="", limit=50) -> dict
+update_character_talkativeness(tavern_id, character_id, data, user_id="") -> dict
+get_voice_config(tavern_id, user_id="") -> dict
+save_voice_config(tavern_id, data, user_id="") -> dict
+synthesize_voice(tavern_id, data, user_id="") -> bytes
+transcribe_voice(tavern_id, audio_bytes, audio_format="webm", user_id="") -> dict
+```
+
+Group-chat normalization helpers live in `backend/src/fablemap_api/domain/group_chat_policy.py`; domain modules must not import FastAPI.
+
+### 3. Contracts
+
+- Request body models live in `backend/src/fablemap_api/contracts/taverns.py`: `LLMConfigTestRequest`, `GroupChatConfigRequest`, `GroupChatRequest`, `CharacterTalkativenessRequest`, `VoiceConfigRequest`, and `TTSRequest`.
+- `test_llm_config` must not persist supplied API keys or echo secrets. Rules/public-welfare backends may return deterministic success without external calls.
+- Group chat stores visitor messages under `_group` and assistant replies under character ids so history can be reconstructed from `TavernStore.list_chat_sessions`.
+- Group-chat visitor history follows single-chat privacy: visitor can access own history; owner can inspect a requested visitor; another visitor must receive 403.
+- Voice config is owner-writable and public-readable; TTS/STT use tavern voice config and owner LLM credentials but must never log or return API keys.
+- Frontend native clients belong in `frontend/app/lib/taverns.ts`; binary audio responses should use the shared `readApiBlob` helper in `frontend/app/lib/api-client.ts`.
+
+### 4. Validation & Error Matrix
+
+| Case | Expected |
+|------|----------|
+| Missing tavern | `404 {"error": "酒馆不存在"}` |
+| Tavern LLM probe by non-owner | `403 {"error": "你不是此酒馆的主人"}` |
+| External LLM probe without key/base_url | `200 {"ok": false, "message": "请提供 API Key 或 Base URL"}` |
+| Group chat disabled | `400 {"error": "群聊未启用"}` |
+| Group chat with no characters | `400 {"error": "酒馆没有角色"}` |
+| Other visitor reads requested visitor history | `403 {"error": "不能访问其他访客的群聊会话"}` |
+| Visitor updates group config/talkativeness | `403 {"error": "你不是此酒馆的主人"}` |
+| TTS while voice disabled | `400 {"error": "语音未启用"}` |
+| STT with browser provider | `400 {"error": "浏览器 STT 无需上传到后端"}` |
+
+### 5. Tests Required
+
+`backend/tests/test_v1_runtime_features.py` must assert:
+
+- `/api/v1/llm/test-config` and tavern `test-llm` support deterministic rules probes without leaking `api_key`;
+- voice config defaults, owner-only writes, disabled TTS, and browser STT guardrails;
+- group-chat config defaults, owner-only writes, send/history flow, owner history access, other-visitor rejection, and talkativeness updates.
+
+Run:
+
+```powershell
+py -3 -m compileall -q backend/src
+py -3 -m pytest -q backend/tests/test_v1_runtime_features.py --tb=short
+py -3 -m pytest -q backend/tests --tb=short
+```
+
+If frontend native client methods changed, also run:
+
+```powershell
+npm --prefix frontend run typecheck
+npm --prefix frontend run build
+```
+
 ## Common mistakes
 
 - Adding API logic directly inside route handlers when it belongs in `WebService` or `TavernService`.

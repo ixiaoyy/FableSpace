@@ -75,6 +75,52 @@ class ChatRequest(BaseModel):
     display_message: str = ""
 
 
+
+class LLMConfigTestRequest(FlexibleBody):
+    backend: str | None = None
+    model: str | None = None
+    api_key: str | None = None
+    base_url: str | None = None
+    temperature: float | None = None
+    max_tokens: int | None = None
+    top_p: float | None = None
+
+
+class GroupChatConfigRequest(FlexibleBody):
+    group_chat_enabled: bool | str | int | None = None
+    group_chat_config: dict[str, Any] | None = None
+    character_talkativeness: dict[str, Any] | None = None
+
+
+class GroupChatRequest(BaseModel):
+    message: str = Field(min_length=1)
+    visitor_id: str = ""
+    visitor_name: str = ""
+    display_message: str = ""
+
+
+class CharacterTalkativenessRequest(FlexibleBody):
+    talkativeness: float | str | None = None
+    value: float | str | None = None
+
+
+class VoiceConfigRequest(FlexibleBody):
+    enabled: bool | str | int | None = None
+    tts_provider: str | None = None
+    tts_voice: str | None = None
+    tts_model: str | None = None
+    tts_speed: float | None = None
+    tts_language: str | None = None
+    stt_provider: str | None = None
+    stt_model: str | None = None
+    auto_play: bool | str | int | None = None
+
+
+class TTSRequest(FlexibleBody):
+    text: str | None = None
+    character_id: str | None = None
+
+
 class GameplayWriteRequest(FlexibleBody):
     gameplays: list[dict[str, Any]] | None = None
 

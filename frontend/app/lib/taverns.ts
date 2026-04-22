@@ -1,4 +1,4 @@
-import { jsonInit, readApiJson } from "./api-client"
+import { jsonInit, readApiBlob, readApiJson } from "./api-client"
 
 export const DEFAULT_OWNER_ID = "owner-demo"
 export const DEFAULT_VISITOR_ID = "visitor-demo"
@@ -9,6 +9,7 @@ export type TavernCharacter = {
   description?: string
   first_mes?: string
   avatar?: string
+  talkativeness?: number
   tags?: string[]
 }
 
@@ -55,6 +56,66 @@ export type ChatResponse = {
     action?: string
   } | null
   tavern_status?: string
+}
+
+export type LLMConfigTestResponse = {
+  ok: boolean
+  message: string
+  model?: string
+  preview?: string
+}
+
+export type GroupChatConfig = {
+  strategy?: string
+  max_responses_per_turn?: number
+  response_cooldown_seconds?: number
+  require_name_prefix?: boolean
+}
+
+export type GroupChatCharacter = Pick<TavernCharacter, "id" | "name" | "avatar" | "talkativeness">
+
+export type GroupChatConfigResponse = {
+  tavern_id: string
+  group_chat_enabled: boolean
+  group_chat_config: GroupChatConfig
+  characters: GroupChatCharacter[]
+  character_count?: number
+  ok?: boolean
+}
+
+export type GroupChatMessage = {
+  id?: string
+  role?: string
+  content: string
+  character_id?: string
+  character_name?: string
+  visitor_name?: string
+  avatar?: string
+  timestamp?: string
+  degraded?: boolean
+  output_rules?: Record<string, unknown>
+}
+
+export type GroupChatResponse = {
+  messages: GroupChatMessage[]
+  speaker_count?: number
+  strategy?: string
+  degraded?: boolean
+  error?: string
+  visitor_state?: unknown
+  created_memories?: unknown[]
+}
+
+export type VoiceConfig = {
+  enabled: boolean
+  tts_provider: string
+  tts_voice?: string
+  tts_model?: string
+  tts_speed?: number
+  tts_language?: string
+  stt_provider: string
+  stt_model?: string
+  auto_play?: boolean
 }
 
 export type MemoryAtom = {
@@ -249,6 +310,86 @@ export function sendTavernChat(
   return readApiJson<ChatResponse>(
     `/api/v1/taverns/${encodeURIComponent(tavernId)}/chat`,
     jsonInit("POST", data, data.visitor_id),
+  )
+}
+
+export function testLlmConfig(data: Record<string, unknown>, userId = DEFAULT_OWNER_ID) {
+  return readApiJson<LLMConfigTestResponse>("/api/v1/llm/test-config", jsonInit("POST", data, userId))
+}
+
+export function testTavernLlm(tavernId: string, data: Record<string, unknown>, userId = DEFAULT_OWNER_ID) {
+  return readApiJson<LLMConfigTestResponse>(
+    `/api/v1/taverns/${encodeURIComponent(tavernId)}/test-llm`,
+    jsonInit("POST", data, userId),
+  )
+}
+
+export function getGroupChatConfig(tavernId: string, userId = DEFAULT_VISITOR_ID) {
+  return readApiJson<GroupChatConfigResponse>(`/api/v1/taverns/${encodeURIComponent(tavernId)}/group-chat`, { userId })
+}
+
+export function saveGroupChatConfig(
+  tavernId: string,
+  data: {
+    group_chat_enabled?: boolean
+    group_chat_config?: GroupChatConfig
+    character_talkativeness?: Record<string, number>
+  },
+  userId = DEFAULT_OWNER_ID,
+) {
+  return readApiJson<GroupChatConfigResponse & { ok: boolean }>(
+    `/api/v1/taverns/${encodeURIComponent(tavernId)}/group-chat/config`,
+    jsonInit("PUT", data, userId),
+  )
+}
+
+export function sendGroupChat(
+  tavernId: string,
+  data: { message: string; visitor_id: string; visitor_name?: string; display_message?: string },
+) {
+  return readApiJson<GroupChatResponse>(
+    `/api/v1/taverns/${encodeURIComponent(tavernId)}/group-chat`,
+    jsonInit("POST", data, data.visitor_id),
+  )
+}
+
+export function getGroupChatHistory(tavernId: string, visitorId = DEFAULT_VISITOR_ID, userId = visitorId, limit = 50) {
+  return readApiJson<{ messages: GroupChatMessage[]; message_count: number }>(
+    `/api/v1/taverns/${encodeURIComponent(tavernId)}/group-chat/history${queryString({
+      visitor_id: visitorId,
+      limit,
+    })}`,
+    { userId },
+  )
+}
+
+export function updateCharacterTalkativeness(
+  tavernId: string,
+  characterId: string,
+  talkativeness: number,
+  userId = DEFAULT_OWNER_ID,
+) {
+  return readApiJson<GroupChatConfigResponse & { ok: boolean }>(
+    `/api/v1/taverns/${encodeURIComponent(tavernId)}/characters/${encodeURIComponent(characterId)}/talkativeness`,
+    jsonInit("PUT", { talkativeness }, userId),
+  )
+}
+
+export function getVoiceConfig(tavernId: string, userId = DEFAULT_VISITOR_ID) {
+  return readApiJson<{ voice_config: VoiceConfig }>(`/api/v1/taverns/${encodeURIComponent(tavernId)}/voice`, { userId })
+}
+
+export function saveVoiceConfig(tavernId: string, data: Partial<VoiceConfig>, userId = DEFAULT_OWNER_ID) {
+  return readApiJson<{ ok: boolean; voice_config: VoiceConfig }>(
+    `/api/v1/taverns/${encodeURIComponent(tavernId)}/voice`,
+    jsonInit("PUT", data, userId),
+  )
+}
+
+export function synthesizeVoice(tavernId: string, data: { text: string; character_id?: string }, userId = DEFAULT_VISITOR_ID) {
+  return readApiBlob(
+    `/api/v1/taverns/${encodeURIComponent(tavernId)}/tts`,
+    jsonInit("POST", data, userId),
   )
 }
 

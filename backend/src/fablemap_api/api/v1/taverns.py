@@ -2,16 +2,20 @@ from __future__ import annotations
 
 from typing import Any
 
-from fastapi import APIRouter, Body, Request
+from fastapi import APIRouter, Body, Request, Response
 
 from ...application.taverns import TavernApplicationService
 from ...contracts.taverns import (
     CharacterImportRequest,
+    CharacterTalkativenessRequest,
     CharacterWriteRequest,
     ChatRequest,
     EnterTavernRequest,
     GameplaySessionRequest,
     GameplayWriteRequest,
+    GroupChatConfigRequest,
+    GroupChatRequest,
+    LLMConfigTestRequest,
     MemoryAtomWriteRequest,
     OutputRulesTestRequest,
     OutputRulesWriteRequest,
@@ -19,15 +23,18 @@ from ...contracts.taverns import (
     PromptBlocksWriteRequest,
     RuntimePresetApplyRequest,
     RuntimePresetsWriteRequest,
+    TTSRequest,
     TavernCreateRequest,
     TavernListResponse,
     TavernPackageImportRequest,
     TavernUpdateRequest,
+    VoiceConfigRequest,
     WorldInfoTestRequest,
 )
 
 router = APIRouter(prefix="/taverns", tags=["taverns"])
 packages_router = APIRouter(prefix="/tavern-packages", tags=["tavern-packages"])
+llm_router = APIRouter(prefix="/llm", tags=["llm"])
 
 
 def _taverns(request: Request) -> TavernApplicationService:
@@ -73,6 +80,11 @@ def create_tavern(request: Request, data: TavernCreateRequest) -> dict[str, Any]
 @packages_router.post("/import")
 def import_tavern_package(request: Request, data: TavernPackageImportRequest) -> dict[str, Any]:
     return _taverns(request).import_tavern_package(data.to_payload(), _get_user_id(request))
+
+
+@llm_router.post("/test-config")
+def test_llm_config(request: Request, data: LLMConfigTestRequest) -> dict[str, Any]:
+    return _taverns(request).test_llm_config(data.to_payload())
 
 
 @router.get("/{tavern_id}")
@@ -169,6 +181,59 @@ def send_chat(request: Request, tavern_id: str, data: ChatRequest) -> dict[str, 
         extra_context=data.extra_context,
         display_message=data.display_message,
     )
+
+
+@router.post("/{tavern_id}/test-llm")
+def test_tavern_llm(request: Request, tavern_id: str, data: LLMConfigTestRequest) -> dict[str, Any]:
+    return _taverns(request).test_tavern_llm(tavern_id, data.to_payload(), _get_user_id(request))
+
+
+@router.get("/{tavern_id}/group-chat")
+def get_group_chat_config(request: Request, tavern_id: str) -> dict[str, Any]:
+    return _taverns(request).get_group_chat_config(tavern_id, _get_user_id(request))
+
+
+@router.put("/{tavern_id}/group-chat/config")
+def update_group_chat_config(request: Request, tavern_id: str, data: GroupChatConfigRequest) -> dict[str, Any]:
+    return _taverns(request).update_group_chat_config(tavern_id, data.to_payload(), _get_user_id(request))
+
+
+@router.post("/{tavern_id}/group-chat")
+def send_group_chat(request: Request, tavern_id: str, data: GroupChatRequest) -> dict[str, Any]:
+    user_id = _get_user_id(request)
+    return _taverns(request).send_group_chat(
+        tavern_id,
+        message=data.message,
+        visitor_id=data.visitor_id or user_id,
+        visitor_name=data.visitor_name,
+        user_id=user_id,
+        display_message=data.display_message,
+    )
+
+
+@router.get("/{tavern_id}/group-chat/history")
+def get_group_chat_history(
+    request: Request,
+    tavern_id: str,
+    visitor_id: str = "",
+    limit: int = 50,
+) -> dict[str, Any]:
+    return _taverns(request).get_group_chat_history(
+        tavern_id,
+        visitor_id=visitor_id,
+        user_id=_get_user_id(request),
+        limit=limit,
+    )
+
+
+@router.put("/{tavern_id}/characters/{character_id}/talkativeness")
+def update_character_talkativeness(
+    request: Request,
+    tavern_id: str,
+    character_id: str,
+    data: CharacterTalkativenessRequest,
+) -> dict[str, Any]:
+    return _taverns(request).update_character_talkativeness(tavern_id, character_id, data.to_payload(), _get_user_id(request))
 
 
 @router.get("/{tavern_id}/memories")
@@ -298,6 +363,33 @@ def save_runtime_presets(request: Request, tavern_id: str, data: RuntimePresetsW
 @router.post("/{tavern_id}/runtime-presets/apply")
 def apply_runtime_preset(request: Request, tavern_id: str, data: RuntimePresetApplyRequest) -> dict[str, Any]:
     return _taverns(request).apply_runtime_preset(tavern_id, data.to_payload(), _get_user_id(request))
+
+
+@router.get("/{tavern_id}/voice")
+def get_voice_config(request: Request, tavern_id: str) -> dict[str, Any]:
+    return _taverns(request).get_voice_config(tavern_id, _get_user_id(request))
+
+
+@router.put("/{tavern_id}/voice")
+def save_voice_config(request: Request, tavern_id: str, data: VoiceConfigRequest) -> dict[str, Any]:
+    return _taverns(request).save_voice_config(tavern_id, data.to_payload(), _get_user_id(request))
+
+
+@router.post("/{tavern_id}/tts")
+def synthesize_voice(request: Request, tavern_id: str, data: TTSRequest) -> Response:
+    audio = _taverns(request).synthesize_voice(tavern_id, data.to_payload(), _get_user_id(request))
+    return Response(content=audio, media_type="audio/mpeg")
+
+
+@router.post("/{tavern_id}/stt")
+async def transcribe_voice(request: Request, tavern_id: str, format: str = "webm") -> dict[str, Any]:
+    body = await request.body()
+    return _taverns(request).transcribe_voice(
+        tavern_id,
+        bytes(body),
+        audio_format=format,
+        user_id=_get_user_id(request),
+    )
 
 
 @router.get("/{tavern_id}/gameplays")

@@ -644,3 +644,33 @@ Validation after this slice:
 * `npm --prefix frontend run build` — passed.
 * `npm --prefix frontend test` — passed.
 * `git diff --check` — passed; Git emitted LF→CRLF working-copy warnings for touched text files only.
+
+## Native v1 Runtime Features Migration Iteration (2026-04-22)
+
+Continued migration by moving runtime diagnostics, group chat, and voice config behavior into the native enterprise API surface:
+
+* Added `backend/src/fablemap_api/domain/group_chat_policy.py` for framework-independent group-chat config normalization, talkativeness clamping, boolean parsing, and history-limit clamping.
+* Added native v1 routes:
+  * `POST /api/v1/llm/test-config`
+  * `POST /api/v1/taverns/{id}/test-llm`
+  * `GET|PUT /api/v1/taverns/{id}/group-chat[/config]`
+  * `POST /api/v1/taverns/{id}/group-chat`
+  * `GET /api/v1/taverns/{id}/group-chat/history`
+  * `PUT /api/v1/taverns/{id}/characters/{character_id}/talkativeness`
+  * `GET|PUT /api/v1/taverns/{id}/voice`
+  * `POST /api/v1/taverns/{id}/tts`
+  * `POST /api/v1/taverns/{id}/stt`
+* Added native application methods in `TavernApplicationService` without delegating to `core/web/service.py`; reusable core modules (`core.group_chat`, `core.llm_clients`, `core.tts_clients`, `core.stt_service`) remain behavior providers during staged extraction.
+* Added request contracts in `backend/src/fablemap_api/contracts/taverns.py` and frontend client/types in `frontend/app/lib/taverns.ts` / `frontend/app/lib/api-client.ts`.
+* Added `backend/tests/test_v1_runtime_features.py` for LLM probe, owner voice config permissions, group-chat config/send/history, visitor isolation, and talkativeness updates.
+
+Validation after this slice:
+
+* `py -3 -m compileall -q backend/src` — passed.
+* `py -3 -m pytest -q backend/tests/test_v1_runtime_features.py --tb=short` — passed, 2 tests.
+* `py -3 -m pytest -q backend/tests --tb=short` — passed, 27 tests.
+* `py -3 -m pytest -q --tb=short` — passed, 256 tests.
+* `npm --prefix frontend run typecheck` — passed.
+* `npm --prefix frontend run build` — passed.
+* `npm --prefix frontend test` — passed.
+* `git diff --check` — passed; Git emitted the existing LF→CRLF working-copy warning for this PRD only.
