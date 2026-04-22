@@ -1,0 +1,6 @@
+{"file": ".trellis/workflow.md", "reason": "Project workflow and conventions"}
+{"file": ".trellis/spec/backend/index.md", "reason": "Backend development guide"}
+{"file": ".trellis/spec/frontend/index.md", "reason": "Frontend development guide"}
+{"file": "sillytavern_copy/", "type": "directory", "reason": "Source implementation to audit and migrate; deletion target after parity."}
+{"file": ".trellis/tasks/04-22-refactor-project/full-project-design.md", "reason": "Target product architecture and deletion gates."}
+{"file": ".trellis/tasks/04-22-refactor-project/framework-refactor-plan.md", "reason": "P1 framework refactor sequencing."}

@@ -106,6 +106,21 @@ frontend/app/features/
 └── packages/
 ```
 
+
+### P1.X SillyTavern copy full migration and deletion
+
+目标：将 `sillytavern_copy/` 内所有需要保留的实现重构进 FableMap native framework，并以删除 `sillytavern_copy/` 为最终 gate。
+
+子任务：`.trellis/tasks/04-22-sillytavern-copy-migration/`。
+
+删除前必须完成：
+
+- `sillytavern_copy/` inventory 全量分类。
+- 所有 `migrate/adapt` 能力已有 native backend/frontend 实现。
+- 不迁移条目有明确产品/技术原因。
+- `git grep sillytavern_copy` 不存在运行时依赖。
+- 删除目录后 backend/frontend 验证仍通过。
+
 ### P1.5 Compatibility inventory and deletion gates
 
 目标：给 `core/web/router.py`、`core/web/service.py`、`frontend/app/product/` 建立逐项清单。

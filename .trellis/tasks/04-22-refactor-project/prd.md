@@ -791,3 +791,11 @@ Framework refactor is now an explicit **P1** workstream for this Trellis task. T
 Detailed execution plan: `framework-refactor-plan.md`.
 
 Priority note: framework refactor should run before additional product-scope expansion because current migration risk is now architectural concentration, not missing isolated endpoints.
+
+## SillyTavern Copy Migration Subtask (2026-04-22)
+
+新增高优先级子任务：`.trellis/tasks/04-22-sillytavern-copy-migration/`。
+
+目标：把 `sillytavern_copy/` 中所有需要保留的实现用 FableMap 新框架重构一遍，并以删除 `sillytavern_copy/` 为最终验收条件。
+
+这项工作是框架重构主线的 blocker-level 子任务：只要 `sillytavern_copy/` 仍作为实现来源、运行依赖或长期 vendor copy 存在，native framework convergence 就不能视为完成。

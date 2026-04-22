@@ -1,0 +1,4 @@
+{"file": ".agents/skills/finish-work/SKILL.md", "reason": "Finish work checklist"}
+{"file": ".agents/skills/check/SKILL.md", "reason": "Code quality check spec"}
+{"file": "docs/WORLD_SCHEMA.md", "reason": "Core schema constraints for migrated SillyTavern-compatible data."}
+{"file": "docs/WHAT_NOT_TO_BUILD.md", "reason": "Product non-goals and forbidden directions."}

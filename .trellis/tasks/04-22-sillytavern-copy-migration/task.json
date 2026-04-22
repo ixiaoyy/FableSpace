@@ -1,0 +1,84 @@
+{
+  "id": "sillytavern-copy-migration",
+  "name": "sillytavern-copy-migration",
+  "title": "SillyTavern copy full framework migration",
+  "description": "Migrate every required implementation from sillytavern_copy into the new FableMap native framework, prove parity, and delete sillytavern_copy as the final goal.",
+  "status": "planning",
+  "dev_type": "fullstack",
+  "scope": "full SillyTavern copy migration to native framework and deletion readiness",
+  "package": null,
+  "priority": "P1",
+  "creator": "lijin",
+  "assignee": "lijin",
+  "createdAt": "2026-04-22",
+  "completedAt": null,
+  "branch": null,
+  "base_branch": "main",
+  "worktree_path": null,
+  "current_phase": 1,
+  "next_action": [
+    {
+      "phase": 1,
+      "action": "brainstorm"
+    },
+    {
+      "phase": 2,
+      "action": "research"
+    },
+    {
+      "phase": 3,
+      "action": "implement"
+    },
+    {
+      "phase": 4,
+      "action": "check"
+    },
+    {
+      "phase": 5,
+      "action": "update-spec"
+    },
+    {
+      "phase": 6,
+      "action": "record-session"
+    }
+  ],
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [],
+  "parent": "04-22-refactor-project",
+  "relatedFiles": [
+    "sillytavern_copy/",
+    "sillytavern_copy/src/",
+    "sillytavern_copy/public/",
+    "sillytavern_copy/default/",
+    "sillytavern_copy/tests/",
+    "sillytavern_copy/package.json",
+    "sillytavern_copy/config.yaml",
+    "backend/src/fablemap_api/api/v1/",
+    "backend/src/fablemap_api/contracts/",
+    "backend/src/fablemap_api/application/",
+    "backend/src/fablemap_api/domain/",
+    "backend/src/fablemap_api/repositories/",
+    "backend/src/fablemap_api/infrastructure/",
+    "frontend/app/features/",
+    "frontend/app/lib/",
+    "frontend/app/routes/",
+    "frontend/app/ui/",
+    "docs/WORLD_SCHEMA.md",
+    "docs/WHAT_NOT_TO_BUILD.md",
+    ".trellis/tasks/04-22-refactor-project/full-project-design.md",
+    ".trellis/tasks/04-22-refactor-project/framework-refactor-plan.md",
+    ".trellis/tasks/04-22-sillytavern-copy-migration/prd.md",
+    ".trellis/tasks/04-22-sillytavern-copy-migration/inventory.md"
+  ],
+  "notes": "High-priority child of 04-22-refactor-project. Goal: audit all implementations in sillytavern_copy, reimplement required SillyTavern-compatible capabilities in the FableMap native framework, record non-migrated reasons, and delete sillytavern_copy after parity and validation. Initial observed baseline: 964 git-tracked files; about 1210 files excluding node_modules/.git.",
+  "meta": {
+    "priority_focus": "sillytavern_copy_deletion",
+    "deletion_target": "sillytavern_copy/",
+    "parent_goal": "native framework convergence",
+    "tracked_file_count_observed": 964,
+    "file_count_excluding_node_modules_observed": 1210,
+    "must_not_keep_runtime_dependency": true
+  }
+}
