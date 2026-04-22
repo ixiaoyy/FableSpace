@@ -247,6 +247,16 @@ Create a Trellis architecture/design record for the target rewrite before coding
   * `/api/v1/taverns/{id}/runtime-presets`
   * `frontend/app/lib/taverns.ts` native owner-config client methods
   * `backend/tests/test_v1_owner_config.py`
+  * Commit: `dfd596b`.
+* Native v1 package / owner utility endpoints:
+  * `backend/src/fablemap_api/domain/tavern_package_policy.py`
+  * `/api/v1/taverns/{id}/package`
+  * `/api/v1/tavern-packages/import`
+  * `/api/v1/taverns/{id}/visitors`
+  * `/api/v1/taverns/{id}/characters/import`
+  * `/api/v1/taverns/{id}/gameplay-sessions/{session_id}/abandon`
+  * `frontend/app/lib/taverns.ts` native package/visitor/import/abandon client methods
+  * `backend/tests/test_v1_tavern_package.py`
 
 ### Current migration boundary
 

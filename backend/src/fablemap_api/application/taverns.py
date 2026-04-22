@@ -31,7 +31,7 @@ from fablemap_api.core.presets import (
 )
 from fablemap_api.core.prompt_blocks import default_prompt_blocks, normalize_prompt_blocks
 from fablemap_api.core.prompt_builder import PromptBuildConfig, PromptBuilder
-from fablemap_api.core.tavern import ChatMessage, Tavern, TavernService, TavernStore, VisitorState
+from fablemap_api.core.tavern import ChatMessage, Tavern, TavernService, TavernStore, VisitorState, VoiceConfig
 
 from ..domain.memory_atom_policy import (
     can_edit_memory_atom,
@@ -42,6 +42,14 @@ from ..domain.memory_atom_policy import (
     memory_atom_matches_filters,
     validate_memory_atom_create,
     validate_memory_atom_update,
+)
+from ..domain.tavern_package_policy import (
+    TAVERN_PACKAGE_TYPE,
+    TAVERN_PACKAGE_VERSION,
+    package_dict,
+    package_list,
+    safe_llm_preset,
+    safe_tavern_package_tavern,
 )
 from ..domain.tavern_policy import (
     can_view_memory,
@@ -109,8 +117,143 @@ class TavernApplicationService:
     def delete_tavern(self, tavern_id: str, user_id: str = "") -> dict[str, str]:
         return self.taverns.delete_tavern(tavern_id, user_id)
 
+    def export_tavern_package(self, tavern_id: str, user_id: str = "") -> dict[str, Any]:
+        tavern = self._get_tavern_or_404(tavern_id)
+        self._ensure_owner(tavern, user_id)
+
+        tavern_payload = tavern.to_dict()
+        safe_tavern = safe_tavern_package_tavern(tavern_payload)
+        safe_tavern.pop("password_hash", None)
+        llm_preset = safe_llm_preset(tavern_payload.get("llm_config"))
+        return {
+            "type": TAVERN_PACKAGE_TYPE,
+            "version": TAVERN_PACKAGE_VERSION,
+            "exported_at": _utc_now_iso(),
+            "source": {
+                "tavern_id": tavern.id,
+                "author_id": tavern.owner_id,
+            },
+            "tavern": safe_tavern,
+            "characters": tavern_payload.get("characters", []),
+            "world_info": tavern_payload.get("world_info", []),
+            "groups": tavern_payload.get("groups", []),
+            "bookmarks": tavern_payload.get("bookmarks", []),
+            "chat_templates": tavern_payload.get("chat_templates", []),
+            "gameplay_definitions": tavern_payload.get("gameplay_definitions", []),
+            "output_rules": tavern_payload.get("output_rules") or default_output_rules(),
+            "prompt_blocks": tavern_payload.get("prompt_blocks") or default_prompt_blocks(),
+            "runtime_presets": custom_runtime_presets(tavern_payload.get("runtime_presets")),
+            "default_runtime_presets": default_runtime_presets(),
+            "active_preset_id": tavern_payload.get("active_preset_id", ""),
+            "prompt_preset": {
+                "llm_config": llm_preset,
+            },
+            "memory_policy": safe_memory_policy(tavern_payload.get("memory_policy")),
+            "voice_config": tavern_payload.get("voice_config", {}),
+            "cover": tavern_payload.get("cover", ""),
+        }
+
+    def import_tavern_package(self, data: dict[str, Any], user_id: str = "") -> dict[str, Any]:
+        payload = data or {}
+        package = payload.get("package") if isinstance(payload.get("package"), dict) else payload
+        if not isinstance(package, dict):
+            raise HTTPException(status_code=400, detail="package is required")
+        if package.get("type") != TAVERN_PACKAGE_TYPE:
+            raise HTTPException(status_code=400, detail="不支持的酒馆包类型")
+
+        tavern_payload = package.get("tavern") if isinstance(package.get("tavern"), dict) else {}
+        if not tavern_payload:
+            raise HTTPException(status_code=400, detail="酒馆包缺少 tavern 数据")
+
+        try:
+            lat = float(payload.get("lat", tavern_payload.get("lat")))
+            lon = float(payload.get("lon", tavern_payload.get("lon")))
+        except (TypeError, ValueError) as exc:
+            raise HTTPException(status_code=400, detail="导入酒馆包时需要有效坐标") from exc
+
+        source_name = str(tavern_payload.get("name") or "导入酒馆").strip() or "导入酒馆"
+        tavern_id = str(payload.get("tavern_id") or f"tavern_{uuid.uuid4().hex[:12]}").strip()
+        raw_access = str(payload.get("access") or tavern_payload.get("access") or "private").strip()
+        access = raw_access if raw_access in {"public", "private", "password"} else "private"
+        if access == "password":
+            access = "private"
+
+        create_payload: dict[str, Any] = {
+            "id": tavern_id,
+            "name": str(payload.get("name") or source_name).strip() or source_name,
+            "description": tavern_payload.get("description", ""),
+            "lat": lat,
+            "lon": lon,
+            "address": payload.get("address", tavern_payload.get("address", "")),
+            "access": access,
+            "scene_prompt": tavern_payload.get("scene_prompt", ""),
+        }
+        llm_preset = safe_llm_preset(
+            package_dict(package, tavern_payload, "prompt_preset").get("llm_config") or tavern_payload.get("llm_config")
+        )
+        if llm_preset:
+            create_payload["llm_config"] = llm_preset
+
+        created = self.create_tavern(create_payload, owner_id=user_id)
+        update_payload: dict[str, Any] = {
+            "characters": package_list(package, tavern_payload, "characters"),
+            "world_info": package_list(package, tavern_payload, "world_info"),
+            "groups": package_list(package, tavern_payload, "groups"),
+            "bookmarks": package_list(package, tavern_payload, "bookmarks"),
+            "chat_templates": package_list(package, tavern_payload, "chat_templates"),
+            "gameplay_definitions": package_list(package, tavern_payload, "gameplay_definitions"),
+            "output_rules": package_list(package, tavern_payload, "output_rules"),
+            "prompt_blocks": package_list(package, tavern_payload, "prompt_blocks"),
+            "runtime_presets": package_list(package, tavern_payload, "runtime_presets"),
+            "active_preset_id": str(package.get("active_preset_id") or tavern_payload.get("active_preset_id") or ""),
+            "memory_policy": package_dict(package, tavern_payload, "memory_policy"),
+        }
+        if llm_preset:
+            update_payload["llm_config"] = llm_preset
+
+        imported = self.update_tavern(created["id"], update_payload, user_id)
+        voice_config = package_dict(package, tavern_payload, "voice_config")
+        if voice_config:
+            imported_tavern = self._get_tavern_or_404(imported["id"])
+            imported_tavern.voice_config = VoiceConfig.from_dict(voice_config)
+            self.store.save_voice_config(imported["id"], imported_tavern.voice_config)
+            self.store.update_tavern(imported_tavern)
+            imported = self.get_tavern(imported["id"], user_id)
+
+        return {
+            "ok": True,
+            "tavern_id": imported["id"],
+            "tavern": imported,
+            "characters": len(imported.get("characters", [])),
+            "world_info": len(imported.get("world_info", [])),
+        }
+
     def enter_tavern(self, tavern_id: str, password: str = "", user_id: str = "") -> dict[str, Any]:
         return self.taverns.enter_tavern(tavern_id, password, user_id)
+
+    def list_visitors(self, tavern_id: str, user_id: str = "") -> dict[str, Any]:
+        tavern = self._get_tavern_or_404(tavern_id)
+        self._ensure_owner(tavern, user_id)
+
+        visitor_names: dict[str, str] = {}
+        message_counts: dict[str, int] = {}
+        for session in self.store.list_chat_sessions(tavern_id, limit=None):
+            visitor_id = str(session.get("visitor_id") or "")
+            if not visitor_id:
+                continue
+            visitor_name = str(session.get("visitor_name") or "")
+            if visitor_name and not visitor_names.get(visitor_id):
+                visitor_names[visitor_id] = visitor_name
+            message_counts[visitor_id] = message_counts.get(visitor_id, 0) + int(session.get("message_count", 0) or 0)
+
+        visitors = []
+        for state in self.store.list_visitor_states(tavern_id):
+            payload = state.to_dict()
+            payload["visitor_name"] = visitor_names.get(state.visitor_id, "")
+            payload["message_count"] = message_counts.get(state.visitor_id, 0)
+            visitors.append(payload)
+
+        return {"visitors": visitors, "count": len(visitors)}
 
     def list_characters(self, tavern_id: str, user_id: str = "") -> dict[str, Any]:
         tavern = self.get_tavern(tavern_id, user_id)
@@ -118,6 +261,9 @@ class TavernApplicationService:
 
     def add_character(self, tavern_id: str, data: dict[str, Any], user_id: str = "") -> dict[str, Any]:
         return self.taverns.add_character(tavern_id, data, user_id)
+
+    def import_character_card(self, tavern_id: str, data: dict[str, Any], user_id: str = "") -> dict[str, Any]:
+        return self.taverns.import_character_card(tavern_id, data, user_id)
 
     def update_character(self, tavern_id: str, char_id: str, data: dict[str, Any], user_id: str = "") -> dict[str, Any]:
         return self.taverns.update_character(tavern_id, char_id, data, user_id)
@@ -711,6 +857,19 @@ class TavernApplicationService:
             "scene": scene_for_node(gameplay, session.current_node_id),
             "completed": session.state == "completed",
         }
+
+    def abandon_gameplay_session(self, tavern_id: str, session_id: str, user_id: str = "") -> dict[str, Any]:
+        tavern = self._get_tavern_or_404(tavern_id)
+        self._ensure_visible(tavern, user_id)
+        session = self.store.get_gameplay_session(tavern_id, session_id)
+        if not session:
+            raise HTTPException(status_code=404, detail="玩法会话不存在")
+        if not self._is_owner(tavern, user_id) and session.visitor_id != user_id:
+            raise HTTPException(status_code=403, detail="不能访问其他访客的玩法会话")
+        session.state = "abandoned"
+        session.add_event(new_event("abandoned", narration="访客放弃了这局玩法。", source="system"))
+        self.store.save_gameplay_session(tavern_id, session)
+        return {"ok": True, "session": self._session_payload(session)}
 
     def _chat_response_text(
         self,

@@ -6,6 +6,7 @@ from fastapi import APIRouter, Body, Request
 
 from ...application.taverns import TavernApplicationService
 from ...contracts.taverns import (
+    CharacterImportRequest,
     CharacterWriteRequest,
     ChatRequest,
     EnterTavernRequest,
@@ -20,11 +21,13 @@ from ...contracts.taverns import (
     RuntimePresetsWriteRequest,
     TavernCreateRequest,
     TavernListResponse,
+    TavernPackageImportRequest,
     TavernUpdateRequest,
     WorldInfoTestRequest,
 )
 
 router = APIRouter(prefix="/taverns", tags=["taverns"])
+packages_router = APIRouter(prefix="/tavern-packages", tags=["tavern-packages"])
 
 
 def _taverns(request: Request) -> TavernApplicationService:
@@ -67,6 +70,11 @@ def create_tavern(request: Request, data: TavernCreateRequest) -> dict[str, Any]
     return _taverns(request).create_tavern(data.to_payload(), _get_user_id(request))
 
 
+@packages_router.post("/import")
+def import_tavern_package(request: Request, data: TavernPackageImportRequest) -> dict[str, Any]:
+    return _taverns(request).import_tavern_package(data.to_payload(), _get_user_id(request))
+
+
 @router.get("/{tavern_id}")
 def get_tavern(request: Request, tavern_id: str) -> dict[str, Any]:
     return _taverns(request).get_tavern(tavern_id, _get_user_id(request))
@@ -82,6 +90,11 @@ def delete_tavern(request: Request, tavern_id: str) -> dict[str, str]:
     return _taverns(request).delete_tavern(tavern_id, _get_user_id(request))
 
 
+@router.get("/{tavern_id}/package")
+def export_tavern_package(request: Request, tavern_id: str) -> dict[str, Any]:
+    return _taverns(request).export_tavern_package(tavern_id, _get_user_id(request))
+
+
 @router.post("/{tavern_id}/enter")
 def enter_tavern(request: Request, tavern_id: str, data: EnterTavernRequest | None = None) -> dict[str, Any]:
     return _taverns(request).enter_tavern(
@@ -89,6 +102,11 @@ def enter_tavern(request: Request, tavern_id: str, data: EnterTavernRequest | No
         password=data.password if data else "",
         user_id=_get_user_id(request),
     )
+
+
+@router.get("/{tavern_id}/visitors")
+def list_visitors(request: Request, tavern_id: str) -> dict[str, Any]:
+    return _taverns(request).list_visitors(tavern_id, _get_user_id(request))
 
 
 @router.get("/{tavern_id}/characters")
@@ -99,6 +117,11 @@ def list_characters(request: Request, tavern_id: str) -> dict[str, Any]:
 @router.post("/{tavern_id}/characters")
 def add_character(request: Request, tavern_id: str, data: CharacterWriteRequest) -> dict[str, Any]:
     return _taverns(request).add_character(tavern_id, data.to_payload(), _get_user_id(request))
+
+
+@router.post("/{tavern_id}/characters/import")
+def import_character_card(request: Request, tavern_id: str, data: CharacterImportRequest) -> dict[str, Any]:
+    return _taverns(request).import_character_card(tavern_id, data.to_payload(), _get_user_id(request))
 
 
 @router.put("/{tavern_id}/characters/{character_id}")
@@ -315,3 +338,8 @@ def advance_gameplay_session(
     data: dict[str, Any] = Body(default_factory=dict),
 ) -> dict[str, Any]:
     return _taverns(request).advance_gameplay_session(tavern_id, session_id, data, _get_user_id(request))
+
+
+@router.post("/{tavern_id}/gameplay-sessions/{session_id}/abandon")
+def abandon_gameplay_session(request: Request, tavern_id: str, session_id: str) -> dict[str, Any]:
+    return _taverns(request).abandon_gameplay_session(tavern_id, session_id, _get_user_id(request))

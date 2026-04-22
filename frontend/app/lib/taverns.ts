@@ -135,6 +135,25 @@ export type RuntimePresetsResponse = {
   memory_policy: Record<string, unknown>
 }
 
+export type TavernVisitor = {
+  visitor_id: string
+  tavern_id: string
+  visit_count: number
+  first_visit?: string | null
+  last_visit?: string | null
+  relationship?: Record<string, unknown>
+  visitor_name?: string
+  message_count?: number
+}
+
+export type TavernPackage = Record<string, unknown> & {
+  type: "fablemap_tavern_package" | string
+  version: string
+  tavern: Record<string, unknown>
+  characters?: TavernCharacter[]
+  world_info?: Record<string, unknown>[]
+}
+
 function queryString(params: Record<string, string | number | undefined | null>) {
   const search = new URLSearchParams()
   Object.entries(params).forEach(([key, value]) => {
@@ -165,10 +184,46 @@ export function enterTavern(tavernId: string, password = "", userId = DEFAULT_VI
   )
 }
 
+export function exportTavernPackage(tavernId: string, userId = DEFAULT_OWNER_ID) {
+  return readApiJson<TavernPackage>(`/api/v1/taverns/${encodeURIComponent(tavernId)}/package`, { userId })
+}
+
+export function importTavernPackage(
+  data: {
+    package?: TavernPackage
+    lat?: number
+    lon?: number
+    name?: string
+    address?: string
+    access?: string
+    tavern_id?: string
+  } & Record<string, unknown>,
+  userId = DEFAULT_OWNER_ID,
+) {
+  return readApiJson<{ ok: boolean; tavern_id: string; tavern: Tavern; characters: number; world_info: number }>(
+    "/api/v1/tavern-packages/import",
+    jsonInit("POST", data, userId),
+  )
+}
+
+export function listTavernVisitors(tavernId: string, userId = DEFAULT_OWNER_ID) {
+  return readApiJson<{ visitors: TavernVisitor[]; count: number }>(
+    `/api/v1/taverns/${encodeURIComponent(tavernId)}/visitors`,
+    { userId },
+  )
+}
+
 export function addCharacter(tavernId: string, data: Partial<TavernCharacter>, userId = DEFAULT_OWNER_ID) {
   return readApiJson<TavernCharacter>(
     `/api/v1/taverns/${encodeURIComponent(tavernId)}/characters`,
     jsonInit("POST", data, userId),
+  )
+}
+
+export function importCharacterCard(tavernId: string, card: Record<string, unknown>, userId = DEFAULT_OWNER_ID) {
+  return readApiJson<TavernCharacter>(
+    `/api/v1/taverns/${encodeURIComponent(tavernId)}/characters/import`,
+    jsonInit("POST", card, userId),
   )
 }
 
@@ -343,6 +398,13 @@ export function applyRuntimePreset(
   return readApiJson<{ ok: boolean; tavern_id: string; active_preset_id: string; preset: RuntimePreset; tavern: Tavern }>(
     `/api/v1/taverns/${encodeURIComponent(tavernId)}/runtime-presets/apply`,
     jsonInit("POST", data, userId),
+  )
+}
+
+export function abandonGameplaySession(tavernId: string, sessionId: string, userId = DEFAULT_VISITOR_ID) {
+  return readApiJson<{ ok: boolean; session: Record<string, unknown> }>(
+    `/api/v1/taverns/${encodeURIComponent(tavernId)}/gameplay-sessions/${encodeURIComponent(sessionId)}/abandon`,
+    jsonInit("POST", {}, userId),
   )
 }
 

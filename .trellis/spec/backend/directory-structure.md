@@ -374,6 +374,66 @@ npm --prefix frontend run typecheck
 npm --prefix frontend run build
 ```
 
+## Scenario: native tavern package / visitor utility endpoints
+
+### 1. Scope / Trigger
+
+Use this contract when migrating compatibility utilities that still belong to the tavern mainline: shareable tavern packages, SillyTavern card import, owner visitor summaries, and gameplay-session abandon. These endpoints must preserve owner-authored content and never export owner credentials or private runtime buckets.
+
+### 2. Signatures
+
+Routes live in `backend/src/fablemap_api/api/v1/taverns.py`:
+
+```python
+GET  /api/v1/taverns/{tavern_id}/package
+POST /api/v1/tavern-packages/import
+GET  /api/v1/taverns/{tavern_id}/visitors
+POST /api/v1/taverns/{tavern_id}/characters/import
+POST /api/v1/taverns/{tavern_id}/gameplay-sessions/{session_id}/abandon
+```
+
+Application methods live in `backend/src/fablemap_api/application/taverns.py`:
+
+```python
+export_tavern_package(tavern_id, user_id="") -> dict
+import_tavern_package(data, user_id="") -> dict
+list_visitors(tavern_id, user_id="") -> dict
+import_character_card(tavern_id, data, user_id="") -> dict
+abandon_gameplay_session(tavern_id, session_id, user_id="") -> dict
+```
+
+Package-safe redaction helpers live in `backend/src/fablemap_api/domain/tavern_package_policy.py`; domain modules must not import FastAPI.
+
+### 3. Contracts
+
+- `TavernPackageImportRequest` and `CharacterImportRequest` live in `backend/src/fablemap_api/contracts/taverns.py`.
+- Package export includes tavern metadata, characters, world_info, gameplay_definitions, prompt/output/runtime presets, voice_config, and memory_policy.
+- Package export must omit `api_key`, `password_hash`, chat history, visitor state, `_memory_atoms`, and `_gameplay_sessions`.
+- Package import always creates a new tavern owned by the importing `X-User-Id`; imported password-protected packages default to private access until the owner reconfigures access.
+- Frontend native clients belong in `frontend/app/lib/taverns.ts`.
+
+### 4. Validation & Error Matrix
+
+| Case | Expected |
+|------|----------|
+| Export missing tavern | `404 {"error": "酒馆不存在"}` |
+| Export/list visitors/import card by non-owner | `403 {"error": "你不是此酒馆的主人"}` |
+| Import wrong package type | `400 {"error": "不支持的酒馆包类型"}` |
+| Import missing tavern payload | `400 {"error": "酒馆包缺少 tavern 数据"}` |
+| Import invalid coordinates | `400 {"error": "导入酒馆包时需要有效坐标"}` |
+| Abandon other visitor session | `403 {"error": "不能访问其他访客的玩法会话"}` |
+| Abandon missing session | `404 {"error": "玩法会话不存在"}` |
+
+### 5. Tests Required
+
+`backend/tests/test_v1_tavern_package.py` must assert:
+
+- package export redacts credentials and excludes runtime session buckets;
+- package import recreates characters/world_info under the importing owner;
+- SillyTavern card import creates a character and character-book world_info;
+- owner visitor summaries include names and message counts;
+- gameplay abandon enforces visitor/owner session access.
+
 ## Common mistakes
 
 - Adding API logic directly inside route handlers when it belongs in `WebService` or `TavernService`.

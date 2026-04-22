@@ -60,6 +60,12 @@ class CharacterWriteRequest(FlexibleBody):
     tags: list[str] | None = None
 
 
+class CharacterImportRequest(FlexibleBody):
+    data: dict[str, Any] | None = None
+    spec: str | None = None
+    spec_version: str | None = None
+
+
 class ChatRequest(BaseModel):
     character_id: str = Field(min_length=1)
     message: str = Field(min_length=1)
@@ -140,3 +146,13 @@ class RuntimePresetApplyRequest(FlexibleBody):
     preset_id: str | None = None
     id: str | None = None
     preset: dict[str, Any] | None = None
+
+
+class TavernPackageImportRequest(FlexibleBody):
+    package: dict[str, Any] | None = None
+    lat: float | None = None
+    lon: float | None = None
+    name: str | None = None
+    address: str | None = None
+    access: str | None = None
+    tavern_id: str | None = None
