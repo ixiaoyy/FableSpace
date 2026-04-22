@@ -45,6 +45,7 @@ from fablemap_api.core.tavern import (
     TavernStore,
     VisitorState,
     VoiceConfig,
+    WorldInfoEntry,
 )
 
 from ..domain.expression_policy import infer_expression_keyword, normalize_sprite_map
@@ -79,7 +80,13 @@ from ..domain.tavern_policy import (
     is_tavern_owner,
     relationship_stage_for,
 )
-from ..domain.world_info_policy import test_world_info_entries
+from ..domain.world_info_policy import (
+    test_world_info_entries,
+    world_info_depth,
+    world_info_keywords,
+    world_info_order,
+    world_info_probability,
+)
 from ..infrastructure.settings import ApiSettings
 
 
@@ -419,6 +426,78 @@ class TavernApplicationService:
             return export_character_card(parsed, format_type)
         except Exception as exc:
             raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+    def list_world_info(self, user_id: str = "", tavern_id: str = "") -> dict[str, Any]:
+        entries: list[dict[str, Any]] = []
+        if tavern_id:
+            tavern = self._get_tavern_or_404(tavern_id)
+            self._ensure_visible(tavern, user_id)
+            source_taverns = [tavern]
+        else:
+            source_taverns = self.store.list_taverns(include_private=bool(user_id), owner_id=user_id)
+
+        for tavern in source_taverns:
+            if not can_view_tavern(tavern, user_id):
+                continue
+            for entry in tavern.world_info:
+                item = entry.to_dict()
+                item["tavern_id"] = tavern.id
+                item["tavern_name"] = tavern.name
+                entries.append(item)
+        return {"world_info": entries, "count": len(entries)}
+
+    def create_world_info(self, data: dict[str, Any], user_id: str = "") -> dict[str, Any]:
+        payload = data or {}
+        tavern_id = str(payload.get("tavern_id") or "").strip()
+        if not tavern_id:
+            raise HTTPException(status_code=400, detail="tavern_id is required")
+        tavern = self._get_tavern_or_404(tavern_id)
+        self._ensure_owner(tavern, user_id)
+        entry = self._world_info_entry_from_payload(tavern_id, payload)
+        tavern.world_info.append(entry)
+        self.store.update_tavern(tavern)
+        return {"ok": True, "entry": entry.to_dict()}
+
+    def update_world_info(self, entry_id: str, data: dict[str, Any], user_id: str = "") -> dict[str, Any]:
+        payload = data or {}
+        tavern_id = str(payload.get("tavern_id") or "").strip()
+        if not tavern_id:
+            raise HTTPException(status_code=400, detail="tavern_id is required")
+        tavern = self._get_tavern_or_404(tavern_id)
+        self._ensure_owner(tavern, user_id)
+        for index, entry in enumerate(tavern.world_info):
+            if entry.id != entry_id:
+                continue
+            merged = {**entry.to_dict(), **payload, "id": entry_id, "tavern_id": tavern_id}
+            tavern.world_info[index] = self._world_info_entry_from_payload(tavern_id, merged, entry_id=entry_id)
+            self.store.update_tavern(tavern)
+            return {"ok": True, "entry": tavern.world_info[index].to_dict()}
+        raise HTTPException(status_code=404, detail="WorldInfo entry not found")
+
+    def delete_world_info(self, entry_id: str, data: dict[str, Any], user_id: str = "") -> dict[str, Any]:
+        payload = data or {}
+        tavern_id = str(payload.get("tavern_id") or "").strip()
+        if not tavern_id:
+            raise HTTPException(status_code=400, detail="tavern_id is required")
+        tavern = self._get_tavern_or_404(tavern_id)
+        self._ensure_owner(tavern, user_id)
+        original_count = len(tavern.world_info)
+        tavern.world_info = [entry for entry in tavern.world_info if entry.id != entry_id]
+        if len(tavern.world_info) == original_count:
+            raise HTTPException(status_code=404, detail="WorldInfo entry not found")
+        self.store.update_tavern(tavern)
+        return {"ok": True, "entry_id": entry_id, "tavern_id": tavern_id}
+
+    def test_world_info_global(self, data: dict[str, Any], user_id: str = "") -> dict[str, Any]:
+        payload = dict(data or {})
+        tavern_id = str(payload.get("tavern_id") or "").strip()
+        if not tavern_id:
+            raise HTTPException(status_code=400, detail="tavern_id is required")
+        if "message" not in payload and "text" in payload:
+            payload["message"] = payload.get("text")
+        if not str(payload.get("message") or "").strip():
+            raise HTTPException(status_code=400, detail="text is required")
+        return self.test_world_info(tavern_id, payload, user_id)
 
     def chat_history(
         self,
@@ -1525,6 +1604,29 @@ class TavernApplicationService:
             name = message.character_id or "群聊"
         content = f"{name}: {message.content}" if name else message.content
         return {"role": message.role, "content": clean_text(content, max_length=800)}
+
+    def _world_info_entry_from_payload(
+        self,
+        tavern_id: str,
+        data: dict[str, Any],
+        *,
+        entry_id: str = "",
+    ) -> WorldInfoEntry:
+        payload = data or {}
+        resolved_id = str(entry_id or payload.get("id") or f"wi_{uuid.uuid4().hex[:12]}").strip()
+        return WorldInfoEntry(
+            id=resolved_id,
+            tavern_id=tavern_id,
+            keys=world_info_keywords(payload.get("keys")),
+            content=str(payload.get("content") or ""),
+            keys_secondary=world_info_keywords(payload.get("keys_secondary")),
+            selective=normalize_bool(payload.get("selective", True)),
+            constant=normalize_bool(payload.get("constant", False)),
+            depth=world_info_depth(payload),
+            order=world_info_order(payload),
+            probability=world_info_probability(payload),
+            disable=normalize_bool(payload.get("disable", False)),
+        )
 
     def _parsed_character_payload(self, character: Any) -> dict[str, Any]:
         return {

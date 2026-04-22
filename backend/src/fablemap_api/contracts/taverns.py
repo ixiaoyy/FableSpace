@@ -175,6 +175,30 @@ class WorldInfoTestRequest(FlexibleBody):
     world_info: list[dict[str, Any]] | None = None
 
 
+class WorldInfoWriteRequest(FlexibleBody):
+    tavern_id: str | None = None
+    id: str | None = None
+    keys: list[str] | str | None = None
+    keys_secondary: list[str] | str | None = None
+    content: str | None = None
+    constant: bool | str | int | None = None
+    selective: bool | str | int | None = None
+    insertion_order: int | str | None = None
+    order: int | str | None = None
+    depth: int | str | None = None
+    probability: int | str | None = None
+    disable: bool | str | int | None = None
+
+
+class WorldInfoGlobalTestRequest(FlexibleBody):
+    tavern_id: str | None = None
+    text: str | None = None
+    message: str | None = None
+    recent_messages: list[Any] | None = None
+    include_tavern_context: bool | None = None
+    world_info: list[dict[str, Any]] | None = None
+
+
 class OutputRulesWriteRequest(FlexibleBody):
     rules: list[dict[str, Any]] | None = None
     output_rules: list[dict[str, Any]] | None = None

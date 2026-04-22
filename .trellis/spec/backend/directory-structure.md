@@ -598,6 +598,80 @@ If frontend native client methods changed, also run:
 npm --prefix frontend run typecheck
 npm --prefix frontend run build
 ```
+## Scenario: native global WorldInfo utility endpoints
+
+### 1. Scope / Trigger
+
+Use this contract when migrating compatibility WorldInfo CRUD/test routes into native `/api/v1`. WorldInfo entries remain owner-authored tavern knowledge used for NPC prompt context; these endpoints must not create platform-authored lore, unanchored world spaces, or visitor-to-visitor social data.
+
+### 2. Signatures
+
+Routes live in `backend/src/fablemap_api/api/v1/taverns.py` under `utilities_router`:
+
+```python
+GET    /api/v1/worldinfo?tavern_id=...
+POST   /api/v1/worldinfo
+PUT    /api/v1/worldinfo/{entry_id}
+DELETE /api/v1/worldinfo/{entry_id}
+POST   /api/v1/worldinfo/test
+```
+
+Application methods live in `backend/src/fablemap_api/application/taverns.py`:
+
+```python
+list_world_info(user_id="", tavern_id="") -> dict
+create_world_info(data, user_id="") -> dict
+update_world_info(entry_id, data, user_id="") -> dict
+delete_world_info(entry_id, data, user_id="") -> dict
+test_world_info_global(data, user_id="") -> dict
+```
+
+Normalization and diagnostics reuse `backend/src/fablemap_api/domain/world_info_policy.py`; domain modules must not import FastAPI.
+
+### 3. Contracts
+
+- Request body models live in `backend/src/fablemap_api/contracts/taverns.py`: `WorldInfoWriteRequest` and `WorldInfoGlobalTestRequest`.
+- `list_world_info` returns only WorldInfo entries on taverns visible to the caller; private tavern entries are visible only to the owner.
+- Create/update/delete require tavern ownership and persist entries on `Tavern.world_info` using `WorldInfoEntry` shape.
+- `keys` and `keys_secondary` accept lists or comma/Chinese-comma separated strings and normalize through `world_info_keywords`.
+- Global test accepts compatibility `text` or native `message`, requires `tavern_id`, and returns the same deterministic diagnostic shape as per-tavern `/world-info/test`.
+- Frontend native clients belong in `frontend/app/lib/taverns.ts` and must call `/api/v1/worldinfo...`, not compatibility `/api/worldinfo...`.
+
+### 4. Validation & Error Matrix
+
+| Case | Expected |
+|------|----------|
+| Missing `tavern_id` on write/test | `400 {"error": "tavern_id is required"}` |
+| Missing tavern | `404 {"error": "酒馆不存在"}` |
+| Non-owner create/update/delete | `403 {"error": "你不是此酒馆的主人"}` |
+| Visitor lists private tavern entries | omitted from global list; scoped private list returns `403 {"error": "此酒馆是私人的"}` |
+| Missing entry on update/delete | `404 {"error": "WorldInfo entry not found"}` |
+| Empty global test text/message | `400 {"error": "text is required"}` |
+
+### 5. Tests Required
+
+`backend/tests/test_v1_world_info_global.py` must assert:
+
+- owner-only create/update/delete and missing `tavern_id` validation;
+- normalized keyword strings/lists, order/depth/probability persistence;
+- global list includes visible tavern entries with `tavern_id`/`tavern_name`;
+- global diagnostic accepts `text` and reports deterministic matches;
+- private tavern WorldInfo is hidden from non-owner global and scoped reads.
+
+Run:
+
+```powershell
+py -3 -m compileall -q backend/src
+py -3 -m pytest -q backend/tests/test_v1_world_info_global.py --tb=short
+py -3 -m pytest -q backend/tests --tb=short
+```
+
+If frontend native client methods changed, also run:
+
+```powershell
+npm --prefix frontend run typecheck
+npm --prefix frontend run build
+```
 ## Common mistakes
 
 - Adding API logic directly inside route handlers when it belongs in `WebService` or `TavernService`.

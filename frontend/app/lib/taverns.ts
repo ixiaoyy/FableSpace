@@ -252,6 +252,22 @@ export type ParsedCharacterCard = {
   source_format?: string
 }
 
+export type WorldInfoEntry = Record<string, unknown> & {
+  id: string
+  tavern_id?: string
+  tavern_name?: string
+  keys: string[]
+  keys_secondary?: string[]
+  content: string
+  constant?: boolean
+  selective?: boolean
+  depth?: number
+  order?: number
+  insertion_order?: number
+  probability?: number
+  disable?: boolean
+}
+
 function queryString(params: Record<string, string | number | undefined | null>) {
   const search = new URLSearchParams()
   Object.entries(params).forEach(([key, value]) => {
@@ -514,6 +530,52 @@ export function deleteMemoryAtom(tavernId: string, memoryId: string, userId = DE
     `/api/v1/taverns/${encodeURIComponent(tavernId)}/memory-atoms/${encodeURIComponent(memoryId)}`,
     jsonInit("DELETE", undefined, userId),
   )
+}
+
+export function listWorldInfo(tavernId = "", userId = DEFAULT_VISITOR_ID) {
+  return readApiJson<{ world_info: WorldInfoEntry[]; count: number }>(
+    `/api/v1/worldinfo${queryString({ tavern_id: tavernId })}`,
+    { userId },
+  )
+}
+
+export function createWorldInfo(data: Partial<WorldInfoEntry> & { tavern_id: string }, userId = DEFAULT_OWNER_ID) {
+  return readApiJson<{ ok: boolean; entry: WorldInfoEntry }>(
+    "/api/v1/worldinfo",
+    jsonInit("POST", data, userId),
+  )
+}
+
+export function updateWorldInfo(
+  entryId: string,
+  data: Partial<WorldInfoEntry> & { tavern_id: string },
+  userId = DEFAULT_OWNER_ID,
+) {
+  return readApiJson<{ ok: boolean; entry: WorldInfoEntry }>(
+    `/api/v1/worldinfo/${encodeURIComponent(entryId)}`,
+    jsonInit("PUT", data, userId),
+  )
+}
+
+export function deleteWorldInfo(entryId: string, tavernId: string, userId = DEFAULT_OWNER_ID) {
+  return readApiJson<{ ok: boolean; entry_id: string; tavern_id: string }>(
+    `/api/v1/worldinfo/${encodeURIComponent(entryId)}`,
+    jsonInit("DELETE", { tavern_id: tavernId }, userId),
+  )
+}
+
+export function testWorldInfoGlobal(
+  data: {
+    tavern_id: string
+    text?: string
+    message?: string
+    recent_messages?: unknown[]
+    include_tavern_context?: boolean
+    world_info?: Record<string, unknown>[]
+  },
+  userId = DEFAULT_OWNER_ID,
+) {
+  return readApiJson<WorldInfoTestResponse>("/api/v1/worldinfo/test", jsonInit("POST", data, userId))
 }
 
 export function testWorldInfo(

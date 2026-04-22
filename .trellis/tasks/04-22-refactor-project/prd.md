@@ -703,3 +703,31 @@ Validation after this slice:
 * `git diff --cached --check` — passed.
 
 Current main working tree still contains unrelated MySQL WIP and deleted reference PNGs; those files were intentionally not staged with this slice.
+
+## Native v1 Global WorldInfo Migration Iteration (2026-04-22)
+
+Continued migration by moving compatibility WorldInfo CRUD/test utilities into the native enterprise API surface:
+
+* Added native v1 routes:
+  * `GET /api/v1/worldinfo`
+  * `POST /api/v1/worldinfo`
+  * `PUT /api/v1/worldinfo/{entry_id}`
+  * `DELETE /api/v1/worldinfo/{entry_id}`
+  * `POST /api/v1/worldinfo/test`
+* Added native application methods in `TavernApplicationService` without delegating to `core/web/service.py` or `core/web/router.py`; persistence continues to use `Tavern.world_info` / `WorldInfoEntry` and deterministic diagnostics reuse `domain/world_info_policy.py`.
+* Added request contracts in `backend/src/fablemap_api/contracts/taverns.py` and frontend typed clients/types in `frontend/app/lib/taverns.ts`.
+* Added `backend/tests/test_v1_world_info_global.py` for CRUD permissions, keyword normalization, global diagnostics, and private tavern visibility.
+
+Validation after this slice:
+
+* `py -3 -m py_compile backend/src/fablemap_api/application/taverns.py backend/src/fablemap_api/contracts/taverns.py backend/src/fablemap_api/api/v1/taverns.py backend/tests/test_v1_world_info_global.py` — passed.
+* Isolated clean worktree from `HEAD` + staged patch: `py -3 -m compileall -q backend/src` — passed.
+* Isolated clean worktree: `py -3 -m pytest -q backend/tests/test_v1_world_info_global.py --tb=short` — passed, 2 tests.
+* Isolated clean worktree: `py -3 -m pytest -q backend/tests --tb=short` — passed, 31 tests.
+* Isolated clean worktree with existing built `frontend/dist` copied for legacy static-shell test: `py -3 -m pytest -q --tb=short` — passed, 260 tests.
+* `npm --prefix frontend run typecheck` — passed.
+* `npm --prefix frontend run build` — passed.
+* `npm --prefix frontend test` — passed.
+* `git diff --cached --check` — passed after trimming doc EOF whitespace.
+
+Current main working tree still contains unrelated MySQL WIP and deleted reference PNGs; those files were intentionally not staged with this slice.

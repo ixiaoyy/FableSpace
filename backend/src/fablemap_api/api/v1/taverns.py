@@ -33,7 +33,9 @@ from ...contracts.taverns import (
     TavernPackageImportRequest,
     TavernUpdateRequest,
     VoiceConfigRequest,
+    WorldInfoGlobalTestRequest,
     WorldInfoTestRequest,
+    WorldInfoWriteRequest,
 )
 
 router = APIRouter(prefix="/taverns", tags=["taverns"])
@@ -110,6 +112,31 @@ def parse_character_card(request: Request, data: CharacterCardParseRequest) -> d
 @utilities_router.post("/characters/export")
 def export_character_card(request: Request, data: CharacterCardExportRequest) -> dict[str, Any]:
     return _taverns(request).export_character_card_payload(data.to_payload())
+
+
+@utilities_router.get("/worldinfo")
+def list_world_info(request: Request, tavern_id: str = "") -> dict[str, Any]:
+    return _taverns(request).list_world_info(_get_user_id(request), tavern_id=tavern_id)
+
+
+@utilities_router.post("/worldinfo")
+def create_world_info(request: Request, data: WorldInfoWriteRequest) -> dict[str, Any]:
+    return _taverns(request).create_world_info(data.to_payload(), _get_user_id(request))
+
+
+@utilities_router.put("/worldinfo/{entry_id}")
+def update_world_info(request: Request, entry_id: str, data: WorldInfoWriteRequest) -> dict[str, Any]:
+    return _taverns(request).update_world_info(entry_id, data.to_payload(), _get_user_id(request))
+
+
+@utilities_router.delete("/worldinfo/{entry_id}")
+def delete_world_info(request: Request, entry_id: str, data: WorldInfoWriteRequest) -> dict[str, Any]:
+    return _taverns(request).delete_world_info(entry_id, data.to_payload(), _get_user_id(request))
+
+
+@utilities_router.post("/worldinfo/test")
+def test_world_info_global(request: Request, data: WorldInfoGlobalTestRequest) -> dict[str, Any]:
+    return _taverns(request).test_world_info_global(data.to_payload(), _get_user_id(request))
 
 
 @router.get("/{tavern_id}")
