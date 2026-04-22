@@ -1,17 +1,17 @@
 {
   "id": "refactor-project",
   "name": "refactor-project",
-  "title": "brainstorm: project refactor",
-  "description": "",
-  "status": "review",
+  "title": "P1 framework refactor: native architecture convergence",
+  "description": "High-priority framework refactor workstream: split native v1 backend by bounded context, stabilize infra/repository contracts, extract frontend features from product compatibility code, and make current core deletable after parity.",
+  "status": "in_progress",
   "dev_type": "fullstack",
-  "scope": "destructive parity migration and current-core deletion",
+  "scope": "P1 framework architecture refactor plus destructive parity migration and current-core deletion readiness",
   "package": null,
-  "priority": "P2",
+  "priority": "P1",
   "creator": "lijin",
   "assignee": "lijin",
   "createdAt": "2026-04-22",
-  "completedAt": "2026-04-22",
+  "completedAt": null,
   "branch": null,
   "base_branch": "main",
   "worktree_path": null,
@@ -42,7 +42,7 @@
       "action": "record-session"
     }
   ],
-  "commit": "4c8c2c4",
+  "commit": "8b7d2b5",
   "pr_url": null,
   "subtasks": [],
   "children": [],
@@ -95,8 +95,33 @@
     "backend/tests/test_v1_character_assets.py",
     "backend/tests/test_v1_world_info_global.py",
     "backend/tests/test_v1_memory_tokenizer_utilities.py",
-    ".trellis/tasks/04-22-refactor-project/full-project-design.md"
+    ".trellis/tasks/04-22-refactor-project/full-project-design.md",
+    "backend/src/fablemap_api/api/v1/",
+    "backend/src/fablemap_api/contracts/",
+    "backend/src/fablemap_api/application/",
+    "backend/src/fablemap_api/domain/",
+    "backend/src/fablemap_api/repositories/",
+    "backend/src/fablemap_api/infrastructure/",
+    "backend/src/fablemap_api/core/web/router.py",
+    "backend/src/fablemap_api/core/web/service.py",
+    "frontend/app/features/",
+    "frontend/app/lib/",
+    ".trellis/tasks/04-22-refactor-project/framework-refactor-plan.md"
   ],
-  "notes": "Baseline committed as aba33f3. Native v1 memory-atoms committed as 52c215b; owner-config endpoints committed as dfd596b; package/import/visitor/gameplay utility endpoints committed as 968ee65; checkpoint docs committed as 4c70ba5. Current runtime migration slice adds native v1 LLM probe, group-chat config/send/history/talkativeness, voice config, TTS/STT endpoints; adds domain/group_chat_policy.py, contracts/application/routes, frontend typed clients including readApiBlob, backend/tests/test_v1_runtime_features.py, and backend spec/task notes. This slice keeps using reusable product-core domain modules but does not delegate to core/web/service.py or core/web/router.py. Validation passed for current slice: focused runtime test 2 passed, backend/tests 27 passed, full pytest 256 passed, frontend typecheck/build/test passed, git diff --check passed with PRD LF→CRLF warning only. Native v1 character-assets slice adds expression catalog/inference, character sprite map read/write, standalone SillyTavern character-card parse/export, domain/expression_policy.py, frontend typed clients, backend/tests/test_v1_character_assets.py, and backend spec/task notes. Validation passed: py_compile for changed Python files; isolated clean-worktree compileall, focused character-assets test (2 passed), backend/tests (29 passed), full pytest (258 passed, with existing frontend/dist copied for the legacy static-shell test); frontend typecheck/build/test; git diff --cached --check. Unrelated MySQL WIP and deleted reference PNGs remain unstaged. Native v1 global WorldInfo slice adds /api/v1/worldinfo CRUD/test routes, WorldInfoWriteRequest/WorldInfoGlobalTestRequest, TavernApplicationService methods backed by Tavern.world_info/WorldInfoEntry, frontend typed clients, backend/tests/test_v1_world_info_global.py, and spec/task notes. Validation passed: py_compile for changed Python files; isolated clean-worktree compileall, focused WorldInfo global test (2 passed), backend/tests (31 passed), full pytest (260 passed, with existing frontend/dist copied for the legacy static-shell test); frontend typecheck/build/test; git diff --cached --check. Unrelated MySQL WIP and deleted reference PNGs remain unstaged. Native v1 tokenizer/memory utility slice adds /api/v1/tokenizers list/count/count_messages and /api/v1/memory summarize/truncate/importance routes, Token*/Memory* request contracts, TavernApplicationService methods backed by core.token_counter/core.memory without delegating to core/web, frontend typed clients, backend/tests/test_v1_memory_tokenizer_utilities.py, and backend spec/task notes. Validation passed: py_compile for changed Python files; isolated clean-worktree compileall, focused tokenizer/memory utility test (2 passed), backend/tests (33 passed), full pytest (262 passed, with existing frontend/dist copied for the legacy static-shell test); frontend typecheck/build/test. Unrelated MySQL WIP and deleted reference PNGs remain unstaged. Full project design baseline added in full-project-design.md: records target front-back separated architecture, bounded contexts, /api/v1 canonical strategy, repository/MySQL direction, compatibility core deletion checklists, phased roadmap, and validation matrix. Design-only change; no runtime code changed.",
-  "meta": {}
+  "notes": "Baseline committed as aba33f3. Native v1 memory-atoms committed as 52c215b; owner-config endpoints committed as dfd596b; package/import/visitor/gameplay utility endpoints committed as 968ee65; checkpoint docs committed as 4c70ba5. Current runtime migration slice adds native v1 LLM probe, group-chat config/send/history/talkativeness, voice config, TTS/STT endpoints; adds domain/group_chat_policy.py, contracts/application/routes, frontend typed clients including readApiBlob, backend/tests/test_v1_runtime_features.py, and backend spec/task notes. This slice keeps using reusable product-core domain modules but does not delegate to core/web/service.py or core/web/router.py. Validation passed for current slice: focused runtime test 2 passed, backend/tests 27 passed, full pytest 256 passed, frontend typecheck/build/test passed, git diff --check passed with PRD LF→CRLF warning only. Native v1 character-assets slice adds expression catalog/inference, character sprite map read/write, standalone SillyTavern character-card parse/export, domain/expression_policy.py, frontend typed clients, backend/tests/test_v1_character_assets.py, and backend spec/task notes. Validation passed: py_compile for changed Python files; isolated clean-worktree compileall, focused character-assets test (2 passed), backend/tests (29 passed), full pytest (258 passed, with existing frontend/dist copied for the legacy static-shell test); frontend typecheck/build/test; git diff --cached --check. Unrelated MySQL WIP and deleted reference PNGs remain unstaged. Native v1 global WorldInfo slice adds /api/v1/worldinfo CRUD/test routes, WorldInfoWriteRequest/WorldInfoGlobalTestRequest, TavernApplicationService methods backed by Tavern.world_info/WorldInfoEntry, frontend typed clients, backend/tests/test_v1_world_info_global.py, and spec/task notes. Validation passed: py_compile for changed Python files; isolated clean-worktree compileall, focused WorldInfo global test (2 passed), backend/tests (31 passed), full pytest (260 passed, with existing frontend/dist copied for the legacy static-shell test); frontend typecheck/build/test; git diff --cached --check. Unrelated MySQL WIP and deleted reference PNGs remain unstaged. Native v1 tokenizer/memory utility slice adds /api/v1/tokenizers list/count/count_messages and /api/v1/memory summarize/truncate/importance routes, Token*/Memory* request contracts, TavernApplicationService methods backed by core.token_counter/core.memory without delegating to core/web, frontend typed clients, backend/tests/test_v1_memory_tokenizer_utilities.py, and backend spec/task notes. Validation passed: py_compile for changed Python files; isolated clean-worktree compileall, focused tokenizer/memory utility test (2 passed), backend/tests (33 passed), full pytest (262 passed, with existing frontend/dist copied for the legacy static-shell test); frontend typecheck/build/test. Unrelated MySQL WIP and deleted reference PNGs remain unstaged. Full project design baseline added in full-project-design.md: records target front-back separated architecture, bounded contexts, /api/v1 canonical strategy, repository/MySQL direction, compatibility core deletion checklists, phased roadmap, and validation matrix. Design-only change; no runtime code changed. Framework refactor priority raised to P1 on 2026-04-22: treat native architecture convergence, backend route/application splitting, frontend feature extraction, infra/repository stability, and current-core deletion readiness as the next highest-priority workstream before new product scope.",
+  "meta": {
+    "priority_focus": "framework_refactor",
+    "framework_refactor": {
+      "priority": "P1",
+      "decision_date": "2026-04-22",
+      "primary_goal": "Make the target native architecture the main implementation path before adding more product scope.",
+      "first_slices": [
+        "dependency/startup stability",
+        "backend native v1 route split by bounded context",
+        "application service split by use case",
+        "frontend feature extraction from app/product",
+        "compatibility route inventory and deletion gates"
+      ]
+    }
+  }
 }

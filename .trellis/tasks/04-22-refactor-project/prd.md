@@ -776,3 +776,18 @@ Added `.trellis/tasks/04-22-refactor-project/full-project-design.md` as the next
 * phased roadmap and validation matrix.
 
 This is a design/documentation-only baseline; no runtime code was changed in this design commit.
+
+## Framework Refactor Priority Update (2026-04-22)
+
+Framework refactor is now an explicit **P1** workstream for this Trellis task. The next highest-priority work is not new product scope, but target-architecture convergence:
+
+- stabilize backend native app dependencies, startup behavior, and repository/infrastructure contracts;
+- split `backend/src/fablemap_api/api/v1/taverns.py` into bounded-context route modules;
+- split `TavernApplicationService` into focused use-case services;
+- split contracts by API domain instead of continuing to grow `contracts/taverns.py`;
+- extract frontend feature modules from `frontend/app/product/` into `frontend/app/features/*`;
+- build a compatibility inventory for `core/web/router.py`, `core/web/service.py`, and `frontend/app/product/` before deletion.
+
+Detailed execution plan: `framework-refactor-plan.md`.
+
+Priority note: framework refactor should run before additional product-scope expansion because current migration risk is now architectural concentration, not missing isolated endpoints.
