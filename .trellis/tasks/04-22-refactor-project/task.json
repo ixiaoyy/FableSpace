@@ -42,7 +42,7 @@
       "action": "record-session"
     }
   ],
-  "commit": "dfd596b",
+  "commit": "968ee65",
   "pr_url": null,
   "subtasks": [],
   "children": [],
@@ -90,6 +90,6 @@
     "backend/tests/test_v1_tavern_package.py",
     "backend/src/fablemap_api/api/v1/router.py"
   ],
-  "notes": "Baseline committed as aba33f3. Native v1 memory-atoms committed as 52c215b; owner-config endpoints committed as dfd596b. Current uncommitted slice migrates package/import/visitor/gameplay utility endpoints: export package, import tavern package, visitor summaries, SillyTavern character import, gameplay abandon; adds domain/tavern_package_policy.py, v1 package router inclusion, application/contracts/frontend client methods, backend/tests/test_v1_tavern_package.py, and backend spec/task notes. Validation passed in this slice: compileall backend/src backend/tests, focused package+owner+memory tests 18 passed, backend/tests 25 passed, full pytest 254 passed, frontend typecheck/build/test, git diff --check.",
+  "notes": "Baseline committed as aba33f3. Native v1 memory-atoms committed as 52c215b; owner-config endpoints committed as dfd596b; package/import/visitor/gameplay utility endpoints committed as 968ee65. Latest migrated slice includes export package, import tavern package, visitor summaries, SillyTavern character import, gameplay abandon; adds domain/tavern_package_policy.py, v1 package router inclusion, application/contracts/frontend client methods, backend/tests/test_v1_tavern_package.py, and backend spec/task notes. Validation passed for latest slice: compileall backend/src backend/tests, focused package+owner+memory tests 18 passed, backend/tests 25 passed, full pytest 254 passed, frontend typecheck/build/test, git diff --check.",
   "meta": {}
 }
