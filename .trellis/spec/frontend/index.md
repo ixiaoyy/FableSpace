@@ -34,6 +34,7 @@ Frontend work must preserve:
 | [State Management](./state-management.md) | Local/server/URL/persisted state rules | Current |
 | [Quality Guidelines](./quality-guidelines.md) | Build/test requirements and forbidden patterns | Current |
 | [Type Safety](./type-safety.md) | JS/JSDoc/runtime normalization conventions | Current |
+| [NPC Art Guidelines](./npc-art-guidelines.md) | Tavern-themed NPC portrait assets and fallback contracts | Current |
 
 ---
 
@@ -43,7 +44,8 @@ Frontend work must preserve:
 2. Inspect the relevant existing component/service/hook before adding a new one.
 3. Keep API calls in `frontend/app/lib/` for new routes or `frontend/app/product/services/` for product parity source unless there is a strong existing pattern otherwise.
 4. For UI work, check narrow-screen behavior and avoid desktop-only layouts.
-5. Run the right verification:
+5. For NPC portrait or tavern interior visual work, read `npc-art-guidelines.md`; real tavern-themed character art is required, not placeholder geometry.
+6. Run the right verification:
    - UI/build change: `npm --prefix .\frontend run build`
    - Service/rule script change: `npm --prefix .\frontend test`
 

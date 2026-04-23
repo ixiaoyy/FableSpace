@@ -7,9 +7,13 @@ export type TavernCharacter = {
   id: string
   name: string
   description?: string
+  personality?: string
+  scenario?: string
   first_mes?: string
   avatar?: string
+  image_url?: string
   sprites?: Record<string, string>
+  appearance?: Record<string, unknown>
   talkativeness?: number
   tags?: string[]
 }
@@ -746,6 +750,121 @@ export function abandonGameplaySession(tavernId: string, sessionId: string, user
   return readApiJson<{ ok: boolean; session: Record<string, unknown> }>(
     `/api/v1/taverns/${encodeURIComponent(tavernId)}/gameplay-sessions/${encodeURIComponent(sessionId)}/abandon`,
     jsonInit("POST", {}, userId),
+  )
+}
+
+export function updateTavern(tavernId: string, data: Partial<Tavern> & Record<string, unknown>, userId = DEFAULT_OWNER_ID) {
+  return readApiJson<Tavern>(`/api/v1/taverns/${encodeURIComponent(tavernId)}`, jsonInit("PUT", data, userId))
+}
+
+export function deleteTavern(tavernId: string, userId = DEFAULT_OWNER_ID) {
+  return readApiJson<{ ok: boolean; tavern_id: string }>(
+    `/api/v1/taverns/${encodeURIComponent(tavernId)}`,
+    jsonInit("DELETE", undefined, userId),
+  )
+}
+
+export function listCharacters(tavernId: string, userId = DEFAULT_VISITOR_ID) {
+  return readApiJson<{ characters: TavernCharacter[]; count: number }>(
+    `/api/v1/taverns/${encodeURIComponent(tavernId)}/characters`,
+    { userId },
+  )
+}
+
+export function updateCharacter(
+  tavernId: string,
+  characterId: string,
+  data: Partial<TavernCharacter> & Record<string, unknown>,
+  userId = DEFAULT_OWNER_ID,
+) {
+  return readApiJson<TavernCharacter>(
+    `/api/v1/taverns/${encodeURIComponent(tavernId)}/characters/${encodeURIComponent(characterId)}`,
+    jsonInit("PUT", data, userId),
+  )
+}
+
+export function deleteCharacter(tavernId: string, characterId: string, userId = DEFAULT_OWNER_ID) {
+  return readApiJson<{ ok: boolean; tavern_id: string; character_id: string }>(
+    `/api/v1/taverns/${encodeURIComponent(tavernId)}/characters/${encodeURIComponent(characterId)}`,
+    jsonInit("DELETE", undefined, userId),
+  )
+}
+
+export function getGameplays(tavernId: string, userId = DEFAULT_VISITOR_ID) {
+  return readApiJson<{ gameplay_definitions: Record<string, unknown>[] }>(
+    `/api/v1/taverns/${encodeURIComponent(tavernId)}/gameplays`,
+    { userId },
+  )
+}
+
+export function saveGameplays(tavernId: string, gameplays: Record<string, unknown>[], userId = DEFAULT_OWNER_ID) {
+  return readApiJson<{ ok: boolean; tavern_id: string; gameplay_definitions: Record<string, unknown>[] }>(
+    `/api/v1/taverns/${encodeURIComponent(tavernId)}/gameplays`,
+    jsonInit("PUT", { gameplays }, userId),
+  )
+}
+
+export function startGameplaySession(
+  tavernId: string,
+  data: {
+    definition_id?: string
+    name?: string
+    visitor_id?: string
+    visitor_name?: string
+  },
+  userId = DEFAULT_VISITOR_ID,
+) {
+  return readApiJson<{
+    session_id: string
+    state: string
+    definition_id: string
+    definition_name: string
+  }>(
+    `/api/v1/taverns/${encodeURIComponent(tavernId)}/gameplay-sessions`,
+    jsonInit("POST", data, userId),
+  )
+}
+
+export function advanceGameplaySession(
+  tavernId: string,
+  sessionId: string,
+  data: { choice_id?: string; message?: string } = {},
+  userId = DEFAULT_VISITOR_ID,
+) {
+  return readApiJson<{
+    ok: boolean
+    session_id: string
+    state: string
+    events: Record<string, unknown>[]
+    updated_tavern: Tavern
+  }>(
+    `/api/v1/taverns/${encodeURIComponent(tavernId)}/gameplay-sessions/${encodeURIComponent(sessionId)}/advance`,
+    jsonInit("POST", data, userId),
+  )
+}
+
+export function listGameplaySessions(
+  tavernId: string,
+  options: { state?: string; visitor_id?: string } = {},
+  userId = DEFAULT_VISITOR_ID,
+) {
+  return readApiJson<{ sessions: Record<string, unknown>[]; count: number }>(
+    `/api/v1/taverns/${encodeURIComponent(tavernId)}/gameplay-sessions${queryString({
+      state: options.state,
+      visitor_id: options.visitor_id,
+    })}`,
+    { userId },
+  )
+}
+
+export function transcribeVoice(tavernId: string, audioBlob: Blob, userId = DEFAULT_VISITOR_ID) {
+  return readApiJson<{ text: string }>(
+    `/api/v1/taverns/${encodeURIComponent(tavernId)}/stt`,
+    {
+      method: "POST",
+      body: audioBlob,
+      headers: { "Content-Type": "audio/webm" },
+    },
   )
 }
 

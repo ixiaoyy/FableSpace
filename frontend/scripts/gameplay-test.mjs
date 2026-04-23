@@ -26,7 +26,7 @@ await service.listGameplaySessions('tavern one', { state: 'active' }, 'visitor_a
 await service.abandonGameplaySession('tavern one', 'gps_one', 'visitor_a')
 
 assert.equal(captured.length, 6)
-assert.ok(captured[0].url.includes('/api/taverns/tavern%20one/gameplays'))
+assert.ok(captured[0].url.includes('/api/v1/taverns/tavern%20one/gameplays'))
 assert.equal(captured[1].options.method, 'PUT')
 assert.ok(captured[2].url.includes('/gameplay-sessions'))
 assert.equal(captured[3].options.method, 'POST')

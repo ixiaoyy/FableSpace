@@ -1,8 +1,13 @@
 /**
- * FableMap Tavern Service — 赛博酒馆平台前端服务
+ * FableMap Tavern Service — 兼容层 (Legacy)
  *
- * 提供酒馆 CRUD、角色管理、聊天等 API 调用的封装。
- * 兼容 SillyTavern Character Card V2 格式导入。
+ * 本文件已废弃，仅用于向后兼容。请使用 app/lib/taverns.ts (原生 /api/v1/*)
+ * 或 app/features/tavern-chat/ (功能组件)。
+ *
+ * 迁移指南:
+ * - getDefaultTavernService() → 改用 lib/taverns.ts 函数
+ * - TavernChatRoom.jsx → app/features/tavern-chat/index.tsx
+ * - tavernService.listTaverns() → listTaverns() from lib/taverns.ts
  */
 
 /**
@@ -78,7 +83,7 @@ export function createTavernService(getBaseUrl) {
       if (options.query) params.set('q', options.query)
       if (options.owner_id) params.set('owner_id', options.owner_id)
 
-      const response = await fetch(`${getBaseUrl()}/api/taverns?${params}`, {
+      const response = await fetch(`${getBaseUrl()}/api/v1/taverns?${params}`, {
         cache: 'no-store',
       })
       return readJson(response)
@@ -98,7 +103,7 @@ export function createTavernService(getBaseUrl) {
      * @returns {Promise<object>}
      */
     async createTavern(data, userId = '') {
-      const response = await fetch(`${getBaseUrl()}/api/taverns`, {
+      const response = await fetch(`${getBaseUrl()}/api/v1/taverns`, {
         method: 'POST',
         headers: buildJsonHeaders(userId),
         body: JSON.stringify(data),
@@ -113,7 +118,7 @@ export function createTavernService(getBaseUrl) {
      * @returns {Promise<object>}
      */
     async getTavern(tavernId, userId = '') {
-      const response = await fetch(`${getBaseUrl()}/api/taverns/${encodeURIComponent(tavernId)}`, {
+      const response = await fetch(`${getBaseUrl()}/api/v1/taverns/${encodeURIComponent(tavernId)}`, {
         cache: 'no-store',
         headers: buildHeaders(userId),
       })
@@ -128,7 +133,7 @@ export function createTavernService(getBaseUrl) {
      * @returns {Promise<object>}
      */
     async updateTavern(tavernId, data, userId = '') {
-      const response = await fetch(`${getBaseUrl()}/api/taverns/${encodeURIComponent(tavernId)}`, {
+      const response = await fetch(`${getBaseUrl()}/api/v1/taverns/${encodeURIComponent(tavernId)}`, {
         method: 'PUT',
         headers: buildJsonHeaders(userId),
         body: JSON.stringify(data),
@@ -144,7 +149,7 @@ export function createTavernService(getBaseUrl) {
      * @returns {Promise<object>} 更新后的酒馆
      */
     async saveWorldInfo(tavernId, worldInfo, userId = '') {
-      const response = await fetch(`${getBaseUrl()}/api/taverns/${encodeURIComponent(tavernId)}`, {
+      const response = await fetch(`${getBaseUrl()}/api/v1/taverns/${encodeURIComponent(tavernId)}`, {
         method: 'PUT',
         headers: buildJsonHeaders(userId),
         body: JSON.stringify({ world_info: worldInfo }),
@@ -160,7 +165,7 @@ export function createTavernService(getBaseUrl) {
      * @returns {Promise<object>}
      */
     async testWorldInfo(tavernId, data, userId = '') {
-      const response = await fetch(`${getBaseUrl()}/api/taverns/${encodeURIComponent(tavernId)}/world-info/test`, {
+      const response = await fetch(`${getBaseUrl()}/api/v1/taverns/${encodeURIComponent(tavernId)}/world-info/test`, {
         method: 'POST',
         headers: buildJsonHeaders(userId),
         body: JSON.stringify(data),
@@ -175,7 +180,7 @@ export function createTavernService(getBaseUrl) {
      * @returns {Promise<object>} { rules, default_rules }
      */
     async getOutputRules(tavernId, userId = '') {
-      const response = await fetch(`${getBaseUrl()}/api/taverns/${encodeURIComponent(tavernId)}/output-rules`, {
+      const response = await fetch(`${getBaseUrl()}/api/v1/taverns/${encodeURIComponent(tavernId)}/output-rules`, {
         cache: 'no-store',
         headers: buildHeaders(userId),
       })
@@ -190,7 +195,7 @@ export function createTavernService(getBaseUrl) {
      * @returns {Promise<object>} 更新后的规则和酒馆
      */
     async saveOutputRules(tavernId, rules, userId = '') {
-      const response = await fetch(`${getBaseUrl()}/api/taverns/${encodeURIComponent(tavernId)}/output-rules`, {
+      const response = await fetch(`${getBaseUrl()}/api/v1/taverns/${encodeURIComponent(tavernId)}/output-rules`, {
         method: 'PUT',
         headers: buildJsonHeaders(userId),
         body: JSON.stringify({ rules }),
@@ -206,7 +211,7 @@ export function createTavernService(getBaseUrl) {
      * @returns {Promise<object>} { text, original_text, applied, errors }
      */
     async testOutputRules(tavernId, data, userId = '') {
-      const response = await fetch(`${getBaseUrl()}/api/taverns/${encodeURIComponent(tavernId)}/output-rules/test`, {
+      const response = await fetch(`${getBaseUrl()}/api/v1/taverns/${encodeURIComponent(tavernId)}/output-rules/test`, {
         method: 'POST',
         headers: buildJsonHeaders(userId),
         body: JSON.stringify(data),
@@ -221,7 +226,7 @@ export function createTavernService(getBaseUrl) {
      * @returns {Promise<object>} { blocks, default_blocks }
      */
     async getPromptBlocks(tavernId, userId = '') {
-      const response = await fetch(`${getBaseUrl()}/api/taverns/${encodeURIComponent(tavernId)}/prompt-blocks`, {
+      const response = await fetch(`${getBaseUrl()}/api/v1/taverns/${encodeURIComponent(tavernId)}/prompt-blocks`, {
         cache: 'no-store',
         headers: buildHeaders(userId),
       })
@@ -236,7 +241,7 @@ export function createTavernService(getBaseUrl) {
      * @returns {Promise<object>}
      */
     async savePromptBlocks(tavernId, blocks, userId = '') {
-      const response = await fetch(`${getBaseUrl()}/api/taverns/${encodeURIComponent(tavernId)}/prompt-blocks`, {
+      const response = await fetch(`${getBaseUrl()}/api/v1/taverns/${encodeURIComponent(tavernId)}/prompt-blocks`, {
         method: 'PUT',
         headers: buildJsonHeaders(userId),
         body: JSON.stringify({ blocks }),
@@ -252,7 +257,7 @@ export function createTavernService(getBaseUrl) {
      * @returns {Promise<object>}
      */
     async previewPromptBlocks(tavernId, data, userId = '') {
-      const response = await fetch(`${getBaseUrl()}/api/taverns/${encodeURIComponent(tavernId)}/prompt-blocks/preview`, {
+      const response = await fetch(`${getBaseUrl()}/api/v1/taverns/${encodeURIComponent(tavernId)}/prompt-blocks/preview`, {
         method: 'POST',
         headers: buildJsonHeaders(userId),
         body: JSON.stringify(data),
@@ -267,7 +272,7 @@ export function createTavernService(getBaseUrl) {
      * @returns {Promise<object>} { tavern_id, gameplays }
      */
     async getGameplays(tavernId, userId = '') {
-      const response = await fetch(`${getBaseUrl()}/api/taverns/${encodeURIComponent(tavernId)}/gameplays`, {
+      const response = await fetch(`${getBaseUrl()}/api/v1/taverns/${encodeURIComponent(tavernId)}/gameplays`, {
         cache: 'no-store',
         headers: buildHeaders(userId),
       })
@@ -282,7 +287,7 @@ export function createTavernService(getBaseUrl) {
      * @returns {Promise<object>} { ok, tavern_id, gameplays }
      */
     async saveGameplays(tavernId, gameplays, userId = '') {
-      const response = await fetch(`${getBaseUrl()}/api/taverns/${encodeURIComponent(tavernId)}/gameplays`, {
+      const response = await fetch(`${getBaseUrl()}/api/v1/taverns/${encodeURIComponent(tavernId)}/gameplays`, {
         method: 'PUT',
         headers: buildJsonHeaders(userId),
         body: JSON.stringify({ gameplays: Array.isArray(gameplays) ? gameplays : [] }),
@@ -298,7 +303,7 @@ export function createTavernService(getBaseUrl) {
      * @returns {Promise<object>} { ok, resumed, session, scene }
      */
     async startGameplaySession(tavernId, data = {}, userId = '') {
-      const response = await fetch(`${getBaseUrl()}/api/taverns/${encodeURIComponent(tavernId)}/gameplay-sessions`, {
+      const response = await fetch(`${getBaseUrl()}/api/v1/taverns/${encodeURIComponent(tavernId)}/gameplay-sessions`, {
         method: 'POST',
         headers: buildJsonHeaders(userId),
         body: JSON.stringify({
@@ -318,7 +323,7 @@ export function createTavernService(getBaseUrl) {
      * @returns {Promise<object>} { ok, source, event, session, scene }
      */
     async advanceGameplaySession(tavernId, sessionId, data = {}, userId = '') {
-      const response = await fetch(`${getBaseUrl()}/api/taverns/${encodeURIComponent(tavernId)}/gameplay-sessions/${encodeURIComponent(sessionId)}/advance`, {
+      const response = await fetch(`${getBaseUrl()}/api/v1/taverns/${encodeURIComponent(tavernId)}/gameplay-sessions/${encodeURIComponent(sessionId)}/advance`, {
         method: 'POST',
         headers: buildJsonHeaders(userId),
         body: JSON.stringify({
@@ -344,7 +349,7 @@ export function createTavernService(getBaseUrl) {
       }
       const query = params.toString()
       const response = await fetch(
-        `${getBaseUrl()}/api/taverns/${encodeURIComponent(tavernId)}/gameplay-sessions${query ? `?${query}` : ''}`,
+        `${getBaseUrl()}/api/v1/taverns/${encodeURIComponent(tavernId)}/gameplay-sessions${query ? `?${query}` : ''}`,
         { cache: 'no-store', headers: buildHeaders(userId) },
       )
       return readJson(response)
@@ -358,7 +363,7 @@ export function createTavernService(getBaseUrl) {
      * @returns {Promise<object>} { ok, session }
      */
     async abandonGameplaySession(tavernId, sessionId, userId = '') {
-      const response = await fetch(`${getBaseUrl()}/api/taverns/${encodeURIComponent(tavernId)}/gameplay-sessions/${encodeURIComponent(sessionId)}/abandon`, {
+      const response = await fetch(`${getBaseUrl()}/api/v1/taverns/${encodeURIComponent(tavernId)}/gameplay-sessions/${encodeURIComponent(sessionId)}/abandon`, {
         method: 'POST',
         headers: buildJsonHeaders(userId),
         body: JSON.stringify({}),
@@ -373,7 +378,7 @@ export function createTavernService(getBaseUrl) {
      * @returns {Promise<object>} { presets, custom_presets, default_presets, active_preset_id }
      */
     async getRuntimePresets(tavernId, userId = '') {
-      const response = await fetch(`${getBaseUrl()}/api/taverns/${encodeURIComponent(tavernId)}/runtime-presets`, {
+      const response = await fetch(`${getBaseUrl()}/api/v1/taverns/${encodeURIComponent(tavernId)}/runtime-presets`, {
         cache: 'no-store',
         headers: buildHeaders(userId),
       })
@@ -388,7 +393,7 @@ export function createTavernService(getBaseUrl) {
      * @returns {Promise<object>}
      */
     async saveRuntimePresets(tavernId, presets, userId = '') {
-      const response = await fetch(`${getBaseUrl()}/api/taverns/${encodeURIComponent(tavernId)}/runtime-presets`, {
+      const response = await fetch(`${getBaseUrl()}/api/v1/taverns/${encodeURIComponent(tavernId)}/runtime-presets`, {
         method: 'PUT',
         headers: buildJsonHeaders(userId),
         body: JSON.stringify({ presets }),
@@ -404,7 +409,7 @@ export function createTavernService(getBaseUrl) {
      * @returns {Promise<object>}
      */
     async applyRuntimePreset(tavernId, data, userId = '') {
-      const response = await fetch(`${getBaseUrl()}/api/taverns/${encodeURIComponent(tavernId)}/runtime-presets/apply`, {
+      const response = await fetch(`${getBaseUrl()}/api/v1/taverns/${encodeURIComponent(tavernId)}/runtime-presets/apply`, {
         method: 'POST',
         headers: buildJsonHeaders(userId),
         body: JSON.stringify(data),
@@ -419,7 +424,7 @@ export function createTavernService(getBaseUrl) {
      * @returns {Promise<object>}
      */
     async exportTavernPackage(tavernId, userId = '') {
-      const response = await fetch(`${getBaseUrl()}/api/taverns/${encodeURIComponent(tavernId)}/package`, {
+      const response = await fetch(`${getBaseUrl()}/api/v1/taverns/${encodeURIComponent(tavernId)}/package`, {
         cache: 'no-store',
         headers: buildHeaders(userId),
       })
@@ -434,7 +439,7 @@ export function createTavernService(getBaseUrl) {
      * @returns {Promise<object>}
      */
     async importTavernPackage(packageData, options = {}, userId = '') {
-      const response = await fetch(`${getBaseUrl()}/api/tavern-packages/import`, {
+      const response = await fetch(`${getBaseUrl()}/api/v1/tavern-packages/import`, {
         method: 'POST',
         headers: buildJsonHeaders(userId),
         body: JSON.stringify({
@@ -456,7 +461,7 @@ export function createTavernService(getBaseUrl) {
      * @returns {Promise<object>}
      */
     async testLlmConfig(tavernId, config) {
-      const response = await fetch(`${getBaseUrl()}/api/taverns/${encodeURIComponent(tavernId)}/test-llm`, {
+      const response = await fetch(`${getBaseUrl()}/api/v1/taverns/${encodeURIComponent(tavernId)}/test-llm`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(config),
@@ -470,7 +475,7 @@ export function createTavernService(getBaseUrl) {
      * @returns {Promise<object>}
      */
     async testLlmConfigDirect(config) {
-      const response = await fetch(`${getBaseUrl()}/api/llm/test-config`, {
+      const response = await fetch(`${getBaseUrl()}/api/v1/llm/test-config`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(config),
@@ -485,7 +490,7 @@ export function createTavernService(getBaseUrl) {
      * @returns {Promise<object>}
      */
     async deleteTavern(tavernId, userId = '') {
-      const response = await fetch(`${getBaseUrl()}/api/taverns/${encodeURIComponent(tavernId)}`, {
+      const response = await fetch(`${getBaseUrl()}/api/v1/taverns/${encodeURIComponent(tavernId)}`, {
         method: 'DELETE',
         headers: buildHeaders(userId),
       })
@@ -502,7 +507,7 @@ export function createTavernService(getBaseUrl) {
     async enterTavern(tavernId, password = '', userId = '') {
       const params = password ? `?password=${encodeURIComponent(password)}` : ''
       const response = await fetch(
-        `${getBaseUrl()}/api/taverns/${encodeURIComponent(tavernId)}/enter${params}`,
+        `${getBaseUrl()}/api/v1/taverns/${encodeURIComponent(tavernId)}/enter${params}`,
         { method: 'POST', headers: buildHeaders(userId) }
       )
       return readJson(response)
@@ -516,7 +521,7 @@ export function createTavernService(getBaseUrl) {
      */
     async getTavernVisitors(tavernId, userId = '') {
       const response = await fetch(
-        `${getBaseUrl()}/api/taverns/${encodeURIComponent(tavernId)}/visitors`,
+        `${getBaseUrl()}/api/v1/taverns/${encodeURIComponent(tavernId)}/visitors`,
         { cache: 'no-store', headers: buildHeaders(userId) }
       )
       return readJson(response)
@@ -535,7 +540,7 @@ export function createTavernService(getBaseUrl) {
         if (filters[key] != null && filters[key] !== '') params.set(key, filters[key])
       }
       const response = await fetch(
-        `${getBaseUrl()}/api/taverns/${encodeURIComponent(tavernId)}/memory-atoms?${params}`,
+        `${getBaseUrl()}/api/v1/taverns/${encodeURIComponent(tavernId)}/memory-atoms?${params}`,
         { cache: 'no-store', headers: buildHeaders(userId) }
       )
       return readJson(response)
@@ -549,7 +554,7 @@ export function createTavernService(getBaseUrl) {
      * @returns {Promise<object>}
      */
     async createMemoryAtom(tavernId, data, userId = '') {
-      const response = await fetch(`${getBaseUrl()}/api/taverns/${encodeURIComponent(tavernId)}/memory-atoms`, {
+      const response = await fetch(`${getBaseUrl()}/api/v1/taverns/${encodeURIComponent(tavernId)}/memory-atoms`, {
         method: 'POST',
         headers: buildJsonHeaders(userId),
         body: JSON.stringify(data),
@@ -566,7 +571,7 @@ export function createTavernService(getBaseUrl) {
      * @returns {Promise<object>}
      */
     async updateMemoryAtom(tavernId, memoryId, data, userId = '') {
-      const response = await fetch(`${getBaseUrl()}/api/taverns/${encodeURIComponent(tavernId)}/memory-atoms/${encodeURIComponent(memoryId)}`, {
+      const response = await fetch(`${getBaseUrl()}/api/v1/taverns/${encodeURIComponent(tavernId)}/memory-atoms/${encodeURIComponent(memoryId)}`, {
         method: 'PUT',
         headers: buildJsonHeaders(userId),
         body: JSON.stringify(data),
@@ -582,7 +587,7 @@ export function createTavernService(getBaseUrl) {
      * @returns {Promise<object>}
      */
     async deleteMemoryAtom(tavernId, memoryId, userId = '') {
-      const response = await fetch(`${getBaseUrl()}/api/taverns/${encodeURIComponent(tavernId)}/memory-atoms/${encodeURIComponent(memoryId)}`, {
+      const response = await fetch(`${getBaseUrl()}/api/v1/taverns/${encodeURIComponent(tavernId)}/memory-atoms/${encodeURIComponent(memoryId)}`, {
         method: 'DELETE',
         headers: buildHeaders(userId),
       })
@@ -605,7 +610,7 @@ export function createTavernService(getBaseUrl) {
         params.set('pinned', filters.pinned)
       }
       const response = await fetch(
-        `${getBaseUrl()}/api/taverns/${encodeURIComponent(tavernId)}/memories?${params}`,
+        `${getBaseUrl()}/api/v1/taverns/${encodeURIComponent(tavernId)}/memories?${params}`,
         { cache: 'no-store', headers: buildHeaders(userId) }
       )
       return readJson(response)
@@ -651,7 +656,7 @@ export function createTavernService(getBaseUrl) {
      */
     async getCharacters(tavernId, userId = '') {
       const response = await fetch(
-        `${getBaseUrl()}/api/taverns/${encodeURIComponent(tavernId)}/characters`,
+        `${getBaseUrl()}/api/v1/taverns/${encodeURIComponent(tavernId)}/characters`,
         { cache: 'no-store', headers: buildHeaders(userId) }
       )
       return readJson(response)
@@ -666,7 +671,7 @@ export function createTavernService(getBaseUrl) {
      */
     async addCharacter(tavernId, data, userId = '') {
       const response = await fetch(
-        `${getBaseUrl()}/api/taverns/${encodeURIComponent(tavernId)}/characters`,
+        `${getBaseUrl()}/api/v1/taverns/${encodeURIComponent(tavernId)}/characters`,
         {
           method: 'POST',
           headers: buildJsonHeaders(userId),
@@ -685,7 +690,7 @@ export function createTavernService(getBaseUrl) {
      */
     async importCharacterCard(tavernId, cardData, userId = '') {
       const response = await fetch(
-        `${getBaseUrl()}/api/taverns/${encodeURIComponent(tavernId)}/characters/import`,
+        `${getBaseUrl()}/api/v1/taverns/${encodeURIComponent(tavernId)}/characters/import`,
         {
           method: 'POST',
           headers: buildJsonHeaders(userId),
@@ -705,7 +710,7 @@ export function createTavernService(getBaseUrl) {
      */
     async updateCharacter(tavernId, charId, data, userId = '') {
       const response = await fetch(
-        `${getBaseUrl()}/api/taverns/${encodeURIComponent(tavernId)}/characters/${encodeURIComponent(charId)}`,
+        `${getBaseUrl()}/api/v1/taverns/${encodeURIComponent(tavernId)}/characters/${encodeURIComponent(charId)}`,
         {
           method: 'PUT',
           headers: buildJsonHeaders(userId),
@@ -724,7 +729,7 @@ export function createTavernService(getBaseUrl) {
      */
     async deleteCharacter(tavernId, charId, userId = '') {
       const response = await fetch(
-        `${getBaseUrl()}/api/taverns/${encodeURIComponent(tavernId)}/characters/${encodeURIComponent(charId)}`,
+        `${getBaseUrl()}/api/v1/taverns/${encodeURIComponent(tavernId)}/characters/${encodeURIComponent(charId)}`,
         { method: 'DELETE', headers: buildHeaders(userId) }
       )
       return readJson(response)
@@ -898,7 +903,7 @@ export function createTavernService(getBaseUrl) {
      * @returns {Promise<object>}
      */
     async getGroupChatConfig(tavernId, userId = '') {
-      const response = await fetch(`${getBaseUrl()}/api/taverns/${encodeURIComponent(tavernId)}/group-chat`, {
+      const response = await fetch(`${getBaseUrl()}/api/v1/taverns/${encodeURIComponent(tavernId)}/group-chat`, {
         cache: 'no-store',
         headers: buildHeaders(userId),
       })
@@ -913,7 +918,7 @@ export function createTavernService(getBaseUrl) {
      * @returns {Promise<object>}
      */
     async updateGroupChatConfig(tavernId, data, userId = '') {
-      const response = await fetch(`${getBaseUrl()}/api/taverns/${encodeURIComponent(tavernId)}/group-chat/config`, {
+      const response = await fetch(`${getBaseUrl()}/api/v1/taverns/${encodeURIComponent(tavernId)}/group-chat/config`, {
         method: 'PUT',
         headers: buildJsonHeaders(userId),
         body: JSON.stringify(data),
@@ -942,7 +947,7 @@ export function createTavernService(getBaseUrl) {
       if (displayMessage) {
         body.display_message = displayMessage
       }
-      const response = await fetch(`${getBaseUrl()}/api/taverns/${encodeURIComponent(tavernId)}/group-chat`, {
+      const response = await fetch(`${getBaseUrl()}/api/v1/taverns/${encodeURIComponent(tavernId)}/group-chat`, {
         method: 'POST',
         headers: buildJsonHeaders(userId || cleanVisitorId),
         body: JSON.stringify(body),
@@ -964,7 +969,7 @@ export function createTavernService(getBaseUrl) {
       if (cleanVisitorId) params.set('visitor_id', cleanVisitorId)
       if (limit != null) params.set('limit', limit)
       const response = await fetch(
-        `${getBaseUrl()}/api/taverns/${encodeURIComponent(tavernId)}/group-chat/history?${params}`,
+        `${getBaseUrl()}/api/v1/taverns/${encodeURIComponent(tavernId)}/group-chat/history?${params}`,
         { cache: 'no-store', headers: buildHeaders(userId || cleanVisitorId) },
       )
       return readJson(response)
@@ -980,7 +985,7 @@ export function createTavernService(getBaseUrl) {
      */
     async updateTalkativeness(tavernId, characterId, talkativeness, userId = '') {
       const response = await fetch(
-        `${getBaseUrl()}/api/taverns/${encodeURIComponent(tavernId)}/characters/${encodeURIComponent(characterId)}/talkativeness`,
+        `${getBaseUrl()}/api/v1/taverns/${encodeURIComponent(tavernId)}/characters/${encodeURIComponent(characterId)}/talkativeness`,
         {
           method: 'PUT',
           headers: buildJsonHeaders(userId),
@@ -999,7 +1004,7 @@ export function createTavernService(getBaseUrl) {
      * @returns {Promise<object>}
      */
     async getVoiceConfig(tavernId, userId = '') {
-      const response = await fetch(`${getBaseUrl()}/api/taverns/${encodeURIComponent(tavernId)}/voice`, {
+      const response = await fetch(`${getBaseUrl()}/api/v1/taverns/${encodeURIComponent(tavernId)}/voice`, {
         cache: 'no-store',
         headers: buildHeaders(userId),
       })
@@ -1014,7 +1019,7 @@ export function createTavernService(getBaseUrl) {
      * @returns {Promise<object>}
      */
     async saveVoiceConfig(tavernId, config, userId = '') {
-      const response = await fetch(`${getBaseUrl()}/api/taverns/${encodeURIComponent(tavernId)}/voice`, {
+      const response = await fetch(`${getBaseUrl()}/api/v1/taverns/${encodeURIComponent(tavernId)}/voice`, {
         method: 'PUT',
         headers: buildJsonHeaders(userId),
         body: JSON.stringify(config),
@@ -1031,7 +1036,7 @@ export function createTavernService(getBaseUrl) {
      * @returns {Promise<string>}
      */
     async synthesizeVoice(tavernId, text, characterId = '', userId = '') {
-      const response = await fetch(`${getBaseUrl()}/api/taverns/${encodeURIComponent(tavernId)}/tts`, {
+      const response = await fetch(`${getBaseUrl()}/api/v1/taverns/${encodeURIComponent(tavernId)}/tts`, {
         method: 'POST',
         headers: buildJsonHeaders(userId),
         body: JSON.stringify({ text, character_id: characterId }),
@@ -1058,7 +1063,7 @@ export function createTavernService(getBaseUrl) {
      * @returns {Promise<object>}
      */
     async transcribeVoice(tavernId, audioFile, userId = '') {
-      const response = await fetch(`${getBaseUrl()}/api/taverns/${encodeURIComponent(tavernId)}/stt`, {
+      const response = await fetch(`${getBaseUrl()}/api/v1/taverns/${encodeURIComponent(tavernId)}/stt`, {
         method: 'POST',
         headers: buildHeaders(userId),
         body: audioFile,
@@ -1131,7 +1136,7 @@ export function createTavernService(getBaseUrl) {
       if (limit) params.set('limit', String(limit))
 
       const response = await fetch(
-        `${getBaseUrl()}/api/taverns/${encodeURIComponent(tavernId)}/chat?${params}`,
+        `${getBaseUrl()}/api/v1/taverns/${encodeURIComponent(tavernId)}/chat?${params}`,
         { cache: 'no-store', headers: buildHeaders(userId) }
       )
       return readJson(response)
@@ -1213,7 +1218,7 @@ export function createTavernService(getBaseUrl) {
         body.display_message = displayMessage
       }
       const response = await fetch(
-        `${getBaseUrl()}/api/taverns/${encodeURIComponent(tavernId)}/chat`,
+        `${getBaseUrl()}/api/v1/taverns/${encodeURIComponent(tavernId)}/chat`,
         {
           method: 'POST',
           headers: buildJsonHeaders(visitorId),
@@ -1230,7 +1235,7 @@ export function createTavernService(getBaseUrl) {
      * @returns {Promise<object>}
      */
     async getExpressions() {
-      const response = await fetch(`${getBaseUrl()}/api/expressions`)
+      const response = await fetch(`${getBaseUrl()}/api/v1/expressions`)
       return readJson(response)
     },
 
@@ -1243,7 +1248,7 @@ export function createTavernService(getBaseUrl) {
      */
     async getCharacterSprites(tavernId, characterId, userId = '') {
       const response = await fetch(
-        `${getBaseUrl()}/api/taverns/${encodeURIComponent(tavernId)}/characters/${encodeURIComponent(characterId)}/sprites`,
+        `${getBaseUrl()}/api/v1/taverns/${encodeURIComponent(tavernId)}/characters/${encodeURIComponent(characterId)}/sprites`,
         { headers: buildHeaders(userId) }
       )
       return readJson(response)
@@ -1259,7 +1264,7 @@ export function createTavernService(getBaseUrl) {
      */
     async updateCharacterSprites(tavernId, characterId, sprites, userId = '') {
       const response = await fetch(
-        `${getBaseUrl()}/api/taverns/${encodeURIComponent(tavernId)}/characters/${encodeURIComponent(characterId)}/sprites`,
+        `${getBaseUrl()}/api/v1/taverns/${encodeURIComponent(tavernId)}/characters/${encodeURIComponent(characterId)}/sprites`,
         {
           method: 'PUT',
           headers: buildJsonHeaders(userId),
@@ -1278,7 +1283,7 @@ export function createTavernService(getBaseUrl) {
      * @returns {Promise<object>}
      */
     async inferExpression(text, characterName = '', tavernId = '', characterId = '') {
-      const response = await fetch(`${getBaseUrl()}/api/expression/infer`, {
+      const response = await fetch(`${getBaseUrl()}/api/v1/expression/infer`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ text, character_name: characterName, tavern_id: tavernId, character_id: characterId }),
@@ -1630,9 +1635,8 @@ export function formatTavernDistance(meters) {
   return `${(meters / 1000).toFixed(1)}km`
 }
 
-// ─────────────────────────────────────────
-// 默认导出工厂
-// ─────────────────────────────────────────
+// NOTE: Routes updated to /api/v1/* for native v1 parity.
+// These are kept as compatibility layer. Prefer lib/taverns.ts for new code.
 
 let _defaultService = null
 

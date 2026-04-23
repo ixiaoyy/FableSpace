@@ -704,6 +704,148 @@ Validation after this slice:
 
 Current main working tree still contains unrelated MySQL WIP and deleted reference PNGs; those files were intentionally not staged with this slice.
 
+## Native v1 Route Split Iteration (2026-04-23)
+
+Continued P1 framework convergence by splitting the native `/api/v1` route layer into bounded-context modules without changing URL or payload contracts:
+
+* Deleted local untracked `sillytavern_copy/` runtime/install residue after confirming the repository-tracked copy had already passed the deletion gate.
+* Kept `backend/src/fablemap_api/api/v1/taverns.py` as the core tavern CRUD/entry router.
+* Added focused route modules under `backend/src/fablemap_api/api/v1/`:
+  * `common.py` for shared `TavernApplicationService` and user-id extraction helpers.
+  * `characters.py` for character CRUD, character import, sprites, expression, and card parse/export utilities.
+  * `chat.py` for chat, group chat, and talkativeness endpoints.
+  * `runtime.py` for LLM probe, voice, TTS, and STT endpoints.
+  * `memories.py` for memory list, memory atoms, and deterministic memory utility endpoints.
+  * `owner_config.py` for per-tavern WorldInfo diagnostics, output rules, prompt blocks, and runtime presets.
+  * `worldinfo.py` for global WorldInfo CRUD/test endpoints.
+  * `packages.py` for tavern package import/export and visitor summaries.
+  * `utilities.py` for tokenizer utility endpoints.
+  * `gameplay.py` for gameplay definitions and gameplay sessions.
+* Updated `backend/src/fablemap_api/api/v1/router.py` to include the new routers explicitly.
+
+Contract/behavior guard:
+
+* Route parity script against `HEAD:backend/src/fablemap_api/api/v1/taverns.py`: `old=66 current=66 missing=0 extra=0`.
+* No schema or frontend contract changes were made.
+* This slice completes P1.1 route-layer split only; P1.2 application service split and P1.3 contracts split remain open.
+
+Validation after this slice:
+
+* `C:\Users\phpxi\miniconda3\python.exe -m compileall -q backend/src` — passed.
+* `C:\Users\phpxi\miniconda3\python.exe -m pytest -q backend/tests --tb=short -p no:cacheprovider` — passed, 54 tests, 6 existing datetime deprecation warnings.
+* `C:\Users\phpxi\miniconda3\python.exe -m pytest -q --tb=short -p no:cacheprovider` — passed, 283 tests, 6 existing datetime deprecation warnings.
+
+## Multi-Style Visual Direction Boards (P1.4 Design Input, 2026-04-23)
+
+补充说明：P1.4 前端视觉不应只有一种酒馆风格。新增 `.trellis/tasks/04-22-refactor-project/prototypes/style-directions/`，把视觉从单一“暖木质赛博酒馆”扩展为 theme skin 体系。
+
+方向板包括：
+
+* `style-directions/01-warm-cyber-tavern.svg` — 默认暖木质赛博酒馆。
+* `style-directions/02-neon-megacity-cyberpunk.svg` — 霓虹夜城赛博朋克；可参考硬核赛博都市情绪，但不复刻 Cyberpunk 2077 的具体 UI/IP。
+* `style-directions/03-fresh-japanese-romance.svg` — 小清新日式恋爱漫画；不复刻具体日漫角色、分镜或 IP。
+* `style-directions/04-handpainted-fantasy-town.svg` — 手绘幻想小镇动画感；吸收温柔手绘动画的宽泛情绪，但不模仿在世艺术家个人笔触。
+
+设计决策：
+
+* 多风格只改变表现层 design tokens：颜色、材质、卡片、地图标记、对话气泡、氛围动效。
+* 多风格不改变产品主链路、API、Schema、权限、owner secrets 边界或 Tavern / Character / Memory 数据语义。
+* P1.4 实现时先做稳定 feature 信息架构，再决定是否把 theme tokens 抽成独立层。
+
+## Product Prototype Pack (P1.4 Design Input, 2026-04-23)
+
+补齐产品/界面设计产出：`.trellis/tasks/04-22-refactor-project/prototypes/` 现在包含 P1.4 frontend feature extraction 前必须对照的 SVG 原型图。
+
+原型图清单：
+
+* `prototypes/01-discover-map.svg` — 发现酒馆：真实地图锚点、附近酒馆列表、开店入口。
+* `prototypes/02-tavern-entry.svg` — 酒馆入口：店主设定、访问规则、NPC 选择、入场承诺。
+* `prototypes/03-chat-runtime.svg` — 访客对话：NPC 对话、上下文/记忆/Token 状态、降级反馈。
+* `prototypes/04-owner-console.svg` — 店主管理台：角色、WorldInfo、Prompt/Output/Runtime、导入导出。
+* `prototypes/05-create-tavern.svg` — 开店向导：坐标、门面、首个 NPC、运行时、发布检查。
+* `prototypes/06-mobile-visitor-flow.svg` — 移动端主链路：发现、入口、聊天、回访的一屏一任务。
+
+设计边界：
+
+* 这些 SVG 是信息架构/低保真视觉输入，不是最终视觉稿。
+* P1.4 拆 `frontend/app/features/*` 时必须从对应原型反推 route composition、feature boundary 和移动端验收点。
+* 实现可以调整具体 copy 和视觉细节，但不能丢失真实坐标、店主主权、AI NPC、记忆反馈、owner secrets 不外泄等硬约束。
+
+Validation after this design slice:
+
+* SVG XML parse check for `prototypes/*.svg` — passed, 6 files.
+* `git diff --check` — passed.
+
+## Contracts Split Completion (P1.3, 2026-04-23)
+
+Completed P1.3 by splitting the formerly centralized native v1 Pydantic contracts into domain modules aligned with the already split route and application-service boundaries.
+
+New focused contract modules under `backend/src/fablemap_api/contracts/`:
+
+* `common.py` — shared `FlexibleBody` and `to_payload()` behavior for owner-authored dynamic payloads.
+* `taverns.py` — core tavern create/update/list/enter contracts plus backward-compatible re-exports for older internal imports.
+* `characters.py` — character CRUD/import, sprite maps, expression inference, and character-card parse/export contracts.
+* `chat.py` — single chat, group chat, and per-character talkativeness contracts.
+* `runtime.py` — LLM probe, voice config, and TTS contracts.
+* `owner_config.py` — per-tavern WorldInfo diagnostics, output rules, prompt blocks, and runtime preset contracts.
+* `memories.py` — memory-atom write plus deterministic memory summarize/truncate/importance contracts.
+* `worldinfo.py` — global WorldInfo CRUD/test contracts.
+* `packages.py` — tavern package import contract.
+* `gameplay.py` — gameplay definitions/session request contracts.
+* `utilities.py` — tokenizer count/count_messages contracts.
+
+Route wiring after the split:
+
+* `api/v1/taverns.py` imports only core tavern contracts from `contracts.taverns`.
+* Focused route modules import matching focused contract modules: `characters`, `chat`, `runtime`, `owner_config`, `memories`, `worldinfo`, `packages`, `gameplay`, and `utilities`.
+* `contracts/taverns.py` intentionally re-exports the moved classes to avoid breaking any stale internal import while new code must import from the nearest domain module.
+
+Contract/behavior guard:
+
+* Pydantic schema parity against `HEAD:backend/src/fablemap_api/contracts/taverns.py`: `classes=36 schema_mismatches=[]`.
+* Route parity after the previous route split remains `old=66 current=66 missing=0 extra=0`.
+* No URL, payload, Schema, frontend, or application behavior changes were made.
+
+Validation after this slice:
+
+* `C:\Users\phpxi\miniconda3\python.exe -m compileall -q backend/src` — passed.
+* `C:\Users\phpxi\miniconda3\python.exe -m pytest -q backend/tests --tb=short -p no:cacheprovider` — passed, 54 tests, 6 existing datetime deprecation warnings.
+* `C:\Users\phpxi\miniconda3\python.exe -m pytest -q --tb=short -p no:cacheprovider` — passed, 283 tests, 6 existing datetime deprecation warnings.
+
+## Application Service Split Completion (P1.2, 2026-04-23)
+
+Completed P1.2 by extracting all route-facing native application use cases out of the formerly giant `TavernApplicationService` implementation while preserving that class as the compatibility facade used by existing `/api/v1` route wiring.
+
+New focused application modules under `backend/src/fablemap_api/application/services/`:
+
+* `management.py` — tavern discovery, CRUD, ownership checks at the use-case boundary, and enter-tavern visitor state updates.
+* `characters.py` — character CRUD delegation, SillyTavern card parse/import/export utilities, expression catalog/inference, and sprite payload handling.
+* `runtime.py` — chat history/send, group chat config/send/history/talkativeness, LLM probe, voice config, TTS/STT, and runtime prompt/degraded-response helpers.
+* `owner_config.py` — per-tavern WorldInfo diagnostics, output rules, prompt blocks, runtime presets, and preview/apply utilities.
+* `memories.py` — legacy memory list plus memory-atom CRUD/filter/visibility orchestration.
+* `worldinfo.py` — global WorldInfo CRUD and deterministic test diagnostics.
+* `packages.py` — tavern package export/import and visitor summary use cases.
+* `gameplay.py` — gameplay definition CRUD-ish save/list plus gameplay session start/advance/abandon helpers.
+* `utilities.py` — tokenizer list/count/count_messages plus deterministic memory summarize/truncate/importance utilities.
+
+Facade boundary after the split:
+
+* `backend/src/fablemap_api/application/taverns.py` now owns only construction, settings-based factory, runtime LLM config lookup, shared tavern lookup, owner/visibility guards, and safe numeric coercion helpers.
+* Public route wiring continues to resolve `TavernApplicationService`, so no URL, payload, schema, frontend, or test contract changed.
+* The extracted service modules still call reusable product-core domain/provider modules where previously allowed, but they do not delegate to `core/web/router.py` or `core/web/service.py`.
+
+Contract/behavior guard:
+
+* Application method parity script against `HEAD:backend/src/fablemap_api/application/taverns.py`: `old=94 new=94 missing=0 extra=0`.
+* No schema or frontend contract changes were made.
+* This slice completes P1.2. Remaining framework work starts at P1.4 frontend feature extraction and P1.5 compatibility inventory/deletion gates.
+
+Validation after this slice:
+
+* `C:\Users\phpxi\miniconda3\python.exe -m compileall -q backend/src` — passed.
+* `C:\Users\phpxi\miniconda3\python.exe -m pytest -q backend/tests --tb=short -p no:cacheprovider` — passed, 54 tests, 6 existing datetime deprecation warnings.
+* `C:\Users\phpxi\miniconda3\python.exe -m pytest -q --tb=short -p no:cacheprovider` — passed, 283 tests, 6 existing datetime deprecation warnings.
+
 ## Native v1 Global WorldInfo Migration Iteration (2026-04-22)
 
 Continued migration by moving compatibility WorldInfo CRUD/test utilities into the native enterprise API surface:
@@ -799,3 +941,48 @@ Priority note: framework refactor should run before additional product-scope exp
 目标：把 `sillytavern_copy/` 中所有需要保留的实现用 FableMap 新框架重构一遍，并以删除 `sillytavern_copy/` 为最终验收条件。
 
 这项工作是框架重构主线的 blocker-level 子任务：只要 `sillytavern_copy/` 仍作为实现来源、运行依赖或长期 vendor copy 存在，native framework convergence 就不能视为完成。
+
+## NPC Style Cast Slice (2026-04-23)
+
+用户提出：针对不同风格，设计不同的 NPC 形象放入酒馆内。
+
+本次按 P1.4 frontend feature extraction 的表现层范围处理：
+
+* 新增原型 `.trellis/tasks/04-22-refactor-project/prototypes/07-npc-style-cast.svg`，记录暖木质赛博酒馆、霓虹夜城、小清新日式漫画、手绘幻想小镇四类 NPC 形象占位与酒馆室内投放方式。
+* 新增 `frontend/app/features/tavern-npc-stage/`，在 `/tavern/:id` 中渲染酒馆内 NPC 形象舞台。
+* NPC 形象优先使用店主上传的 `sprites.neutral` / `avatar` / `image_url`；缺省时按角色标签、文本或已有 `appearance` preset 选择表现层占位。
+* 点击 NPC 会切换右侧对话对象；不改变 API、Schema、权限、角色卡内容或 owner-authored 边界。
+
+Validation after this slice:
+
+* `npm --prefix .\frontend run typecheck` — passed.
+* `npm --prefix .\frontend run build` — passed.
+* `npm --prefix .\frontend test` — passed.
+* `git diff --check -- frontend/app/features/tavern-npc-stage/index.tsx frontend/app/assets/npc-style-cast/README.md .trellis/spec/frontend/npc-art-guidelines.md .trellis/spec/frontend/index.md .trellis/tasks/04-22-refactor-project/full-project-design.md .trellis/tasks/04-22-refactor-project/prd.md frontend/app/assets/npc-style-cast/tavern-npc-style-cast.png` — passed, with existing LF→CRLF warnings only.
+* SVG XML parse check for `prototypes/07-npc-style-cast.svg` — passed.
+* `git diff --check -- frontend/app/features/tavern-npc-stage/index.tsx frontend/app/lib/taverns.ts frontend/app/routes/tavern.tsx .trellis/tasks/04-22-refactor-project/prototypes/07-npc-style-cast.svg .trellis/tasks/04-22-refactor-project/prototypes/README.md .trellis/tasks/04-22-refactor-project/full-project-design.md .trellis/tasks/04-22-refactor-project/prd.md` — passed, with existing LF→CRLF warnings only.
+
+## NPC Real Portrait Asset Integration (2026-04-23)
+
+用户确认：后续 NPC 作图必须符合酒馆主题，并且必须是实际二次元/游戏动漫人物形象，不接受圆圈方块占位。
+
+本次把该要求落成项目规范与真实前端资产：
+
+* 新增 `.trellis/spec/frontend/npc-art-guidelines.md`，明确 NPC 作图与 fallback 合同：
+  * 必须是真实卡通/二次元/游戏动漫风人像。
+  * 必须可见酒馆主题：吧台、木架、酒杯、灯牌、菜单、烛光、地图桌、酒馆室内氛围等。
+  * 不允许几何占位、抽象头像、空背景泛二次元头像、具体 IP 或在世艺术家风格模仿。
+  * owner 上传/导入的 `sprites.neutral`、`avatar`、`image_url` 优先；项目 fallback 只用于展示，不写回角色卡。
+* 新增项目资产 `frontend/app/assets/npc-style-cast/tavern-npc-style-cast.png`，作为四类酒馆风格 NPC 真实人像 fallback sheet。
+* 新增 `frontend/app/assets/npc-style-cast/README.md`，记录 2x2 sheet 象限合同与使用边界。
+* 更新 `frontend/app/features/tavern-npc-stage/index.tsx`：
+  * 移除几何占位小人。
+  * 无 owner 头像时，按风格从真实 NPC 人像 sheet 中取对应象限。
+  * 有 owner 头像/精灵图时仍优先展示 owner 内容。
+* 更新 `.trellis/spec/frontend/index.md`，把 NPC Art Guidelines 加入 frontend spec 索引与 pre-development checklist。
+
+Validation after this slice:
+
+* `npm --prefix .\frontend run typecheck` — passed.
+* `npm --prefix .\frontend run build` — passed.
+* `npm --prefix .\frontend test` — passed.

@@ -67,6 +67,8 @@
 - `api/v1/packages.py`
 - `api/v1/utilities.py`
 
+Status 2026-04-23: complete for route-layer split. `api/v1/taverns.py` now only owns core tavern CRUD/entry, while characters, runtime/chat/voice, memories, owner config, worldinfo, packages, utilities, and gameplay endpoints live in separate route modules. Route parity check reported `old=66 current=66 missing=0 extra=0`; backend validation passed after the split.
+
 ### P1.2 Application service split
 
 目标：把 `TavernApplicationService` 从单一巨型 facade 收束成 use-case 层。
@@ -83,13 +85,19 @@
 - `PackageService`
 - `UtilityService`
 
+Status 2026-04-23: complete for the P1.2 application-layer split. `TavernApplicationService` is now a thin compatibility facade containing constructor/shared owner/visibility helpers only; bounded use cases live under `backend/src/fablemap_api/application/services/` as management, characters, runtime/chat/voice, owner-config, memories, worldinfo, packages, gameplay, and utilities mixins. Method parity against `HEAD:application/taverns.py` reported `old=94 new=94 missing=0 extra=0`; backend validation passed after the split.
+
 ### P1.3 Contracts split
 
 目标：把 `contracts/taverns.py` 拆成和 route/use-case 一致的 contracts，降低后续 API 漂移风险。
 
+Status 2026-04-23: complete. Contract definitions are now grouped by native v1 domain under `backend/src/fablemap_api/contracts/`: common, taverns, characters, chat, runtime, owner_config, memories, worldinfo, packages, gameplay, and utilities. Route modules import their closest domain contract module, while `contracts/taverns.py` keeps a backward-compatible re-export surface for legacy internal imports. Schema parity against `HEAD:contracts/taverns.py` reported `classes=36 schema_mismatches=[]`.
+
 ### P1.4 Frontend feature extraction
 
 目标：从 `frontend/app/product/` 提取稳定 feature modules，native routes 只组装 features，不直接依赖旧大组件。
+
+Status 2026-04-23: product prototype pack added under `.trellis/tasks/04-22-refactor-project/prototypes/`, with additional multi-style direction boards under `prototypes/style-directions/`. P1.4 implementation should use these SVGs as the information-architecture and theme-skin input before moving product UI into native features.
 
 建议目录：
 
@@ -134,10 +142,10 @@ frontend/app/features/
 
 ## Acceptance criteria
 
-- [ ] Framework refactor priority is visible in `task.json` as P1.
-- [ ] Backend native route modules are split without URL/payload behavior drift.
-- [ ] Application services no longer require one giant `TavernApplicationService` for all bounded contexts.
-- [ ] Contracts are grouped by API domain.
+- [x] Framework refactor priority is visible in `task.json` as P1.
+- [x] Backend native route modules are split without URL/payload behavior drift.
+- [x] Application services no longer require one giant `TavernApplicationService` for all bounded contexts.
+- [x] Contracts are grouped by API domain.
 - [ ] Frontend has `app/features/*` modules for migrated product slices.
 - [ ] Compatibility route inventory exists and maps old `/api/*` endpoints to native status.
 - [ ] Deletion gates are explicit before removing current core.

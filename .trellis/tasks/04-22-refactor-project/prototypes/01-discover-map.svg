@@ -1,0 +1,150 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="960" viewBox="0 0 1440 960">
+  <defs>
+    <radialGradient id="fire" cx="0.23" cy="0.15" r="0.85">
+      <stop offset="0" stop-color="#8A3F18"/>
+      <stop offset="0.52" stop-color="#28140A"/>
+      <stop offset="1" stop-color="#120805"/>
+    </radialGradient>
+    <linearGradient id="wood" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#5A2F16"/>
+      <stop offset="0.55" stop-color="#3A2114"/>
+      <stop offset="1" stop-color="#1E0F08"/>
+    </linearGradient>
+    <linearGradient id="parch" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#F4DFAE"/>
+      <stop offset="1" stop-color="#C8944E"/>
+    </linearGradient>
+    <filter id="softGlow" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="7" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="shadow" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="10" stdDeviation="10" flood-color="#000000" flood-opacity="0.42"/>
+    </filter>
+    <pattern id="grain" width="120" height="80" patternUnits="userSpaceOnUse">
+      <path d="M0 24 C30 4, 72 44, 120 18" fill="none" stroke="#8A5127" stroke-opacity="0.18"/>
+      <path d="M0 60 C44 38, 74 82, 120 58" fill="none" stroke="#FFD36E" stroke-opacity="0.08"/>
+      <circle cx="28" cy="42" r="7" fill="none" stroke="#FFD36E" stroke-opacity="0.08"/>
+    </pattern>
+    <style>
+      .title { font: 900 34px 'Segoe UI', 'Noto Sans SC', Arial, sans-serif; fill: #FFF2D4; letter-spacing: .5px; }
+      .sub { font: 600 16px 'Segoe UI', 'Noto Sans SC', Arial, sans-serif; fill: #C9A875; }
+      .h1 { font: 900 24px 'Segoe UI', 'Noto Sans SC', Arial, sans-serif; fill: #FFF2D4; }
+      .h2 { font: 800 18px 'Segoe UI', 'Noto Sans SC', Arial, sans-serif; fill: #FFF2D4; }
+      .body { font: 600 14px 'Segoe UI', 'Noto Sans SC', Arial, sans-serif; fill: #E8C98B; }
+      .tiny { font: 800 12px 'Segoe UI', 'Noto Sans SC', Arial, sans-serif; fill: #C9A875; letter-spacing: .3px; }
+      .label { font: 900 11px 'Segoe UI', 'Noto Sans SC', Arial, sans-serif; fill: #34E6D2; letter-spacing: 1.8px; }
+      .note { font: 700 13px 'Segoe UI', 'Noto Sans SC', Arial, sans-serif; fill: #FFD36E; }
+      .dark { fill: #2A160B; }
+</style>
+  </defs>
+  <rect width="1440" height="960" fill="url(#fire)"/>
+  <rect width="1440" height="960" fill="url(#grain)" opacity="0.95"/>
+  <circle cx="168" cy="132" r="220" fill="#FF7A24" opacity="0.16" filter="url(#softGlow)"/>
+  <circle cx="1184" cy="128" r="240" fill="#34E6D2" opacity="0.08" filter="url(#softGlow)"/>
+  <text x="64" y="62" class="title">发现酒馆 / Discovery</text>
+  <text x="64" y="90" class="sub">暖木质酒馆氛围 + 真实地图锚点；不是卡牌对战界面</text>
+  <text x="1140" y="60" class="label">FABLEMAP COZY CYBER TAVERN</text>
+<rect x="64" y="118" width="1312" height="64" rx="30" fill="#24130B" stroke="#D69A35" stroke-width="1.4" opacity="0.94" filter="url(#shadow)"/>
+<rect x="84" y="132" width="44" height="36" rx="14" fill="url(#parch)" stroke="#FFD36E" stroke-width="1.4" opacity="1" />
+<text x="95" y="157" class="h2" fill="#2A160B">FM</text>
+<text x="146" y="157" class="h2">FableMap</text>
+<rect x="310" y="133" width="88" height="34" rx="17" fill="url(#parch)" stroke="#34E6D2" stroke-width="1.4" opacity="1" />
+<text x="326" y="155" class="tiny" fill="#2A160B">发现</text>
+<rect x="418" y="133" width="88" height="34" rx="17" fill="#D69A35" stroke="#D69A35" stroke-width="1.4" opacity="0.18" />
+<text x="434" y="155" class="tiny" fill="#D69A35">开店</text>
+<rect x="526" y="133" width="88" height="34" rx="17" fill="#D69A35" stroke="#D69A35" stroke-width="1.4" opacity="0.18" />
+<text x="542" y="155" class="tiny" fill="#D69A35">我的酒馆</text>
+<rect x="634" y="133" width="88" height="34" rx="17" fill="#D69A35" stroke="#D69A35" stroke-width="1.4" opacity="0.18" />
+<text x="650" y="155" class="tiny" fill="#D69A35">设置</text>
+<text x="1138" y="157" class="tiny">demo-owner · API Key 仅店主本地私有</text>
+<rect x="64" y="214" width="840" height="640" rx="32" fill="#20130D" stroke="#D69A35" stroke-width="1.4" opacity="1" filter="url(#shadow)"/>
+<text x="96" y="258" class="h1">真实地图桌面</text>
+<text x="96" y="286" class="sub">地图像铺在酒馆木桌上的铜边羊皮纸，霓虹点只表达坐标锚定</text>
+<rect x="104" y="318" width="760" height="496" rx="28" fill="url(#parch)" stroke="#FFD36E" stroke-width="1.4" opacity="1" filter="url(#shadow)"/>
+<line x1="126" y1="340" x2="16" y2="794" stroke="#7A421F" stroke-opacity="0.25" stroke-width="1.4"/>
+<line x1="214" y1="340" x2="104" y2="794" stroke="#7A421F" stroke-opacity="0.25" stroke-width="1.4"/>
+<line x1="302" y1="340" x2="192" y2="794" stroke="#7A421F" stroke-opacity="0.25" stroke-width="1.4"/>
+<line x1="390" y1="340" x2="280" y2="794" stroke="#7A421F" stroke-opacity="0.25" stroke-width="1.4"/>
+<line x1="478" y1="340" x2="368" y2="794" stroke="#7A421F" stroke-opacity="0.25" stroke-width="1.4"/>
+<line x1="566" y1="340" x2="456" y2="794" stroke="#7A421F" stroke-opacity="0.25" stroke-width="1.4"/>
+<line x1="654" y1="340" x2="544" y2="794" stroke="#7A421F" stroke-opacity="0.25" stroke-width="1.4"/>
+<line x1="742" y1="340" x2="632" y2="794" stroke="#7A421F" stroke-opacity="0.25" stroke-width="1.4"/>
+<line x1="830" y1="340" x2="720" y2="794" stroke="#7A421F" stroke-opacity="0.25" stroke-width="1.4"/>
+<path d="M126 360 C248 320, 398 408, 526 360 S746 326, 842 374" fill="none" stroke="#7A421F" stroke-opacity="0.28"/>
+<path d="M126 430 C248 390, 398 478, 526 430 S746 396, 842 444" fill="none" stroke="#7A421F" stroke-opacity="0.28"/>
+<path d="M126 500 C248 460, 398 548, 526 500 S746 466, 842 514" fill="none" stroke="#7A421F" stroke-opacity="0.28"/>
+<path d="M126 570 C248 530, 398 618, 526 570 S746 536, 842 584" fill="none" stroke="#7A421F" stroke-opacity="0.28"/>
+<path d="M126 640 C248 600, 398 688, 526 640 S746 606, 842 654" fill="none" stroke="#7A421F" stroke-opacity="0.28"/>
+<path d="M126 710 C248 670, 398 758, 526 710 S746 676, 842 724" fill="none" stroke="#7A421F" stroke-opacity="0.28"/>
+<path d="M126 780 C248 740, 398 828, 526 780 S746 746, 842 794" fill="none" stroke="#7A421F" stroke-opacity="0.28"/>
+<rect x="136" y="346" width="470" height="56" rx="28" fill="#FFF2D4" stroke="#D69A35" stroke-width="1.4" opacity="0.92" />
+<text x="164" y="381" class="body" fill="#2A160B">输入地址 / 使用当前位置 / 粘贴坐标</text>
+<rect x="624" y="352" width="126" height="44" rx="22" fill="url(#parch)" stroke="#FFD36E" stroke-width="1.4" opacity="1" filter="url(#shadow)"/>
+<text x="646" y="380" class="body" fill="#2A160B">定位</text>
+<circle cx="300" cy="486" r="20" fill="#34E6D2" opacity="0.32" filter="url(#softGlow)"/>
+<path d="M300 462 C328 442, 348 478, 316 500 L300 520 L284 500 C252 478, 272 442, 300 462" fill="#5A2F16" stroke="#FFD36E"/>
+<circle cx="300" cy="486" r="7" fill="#34E6D2"/>
+<rect x="324" y="454" width="136" height="48" rx="26" fill="url(#wood)" stroke="#FFD36E" stroke-width="1.4" opacity="1" filter="url(#shadow)"/>
+<line x1="342" y1="472" x2="442" y2="472" stroke="#FFD36E" stroke-opacity="0.38" stroke-width="1.4"/>
+<line x1="342" y1="484" x2="442" y2="484" stroke="#FFD36E" stroke-opacity="0.25" stroke-width="1.4"/>
+<text x="352" y="496" class="h2">雨巷电台</text>
+<text x="352" y="522" class="body">2.4km · open</text>
+<circle cx="594" cy="612" r="20" fill="#34E6D2" opacity="0.32" filter="url(#softGlow)"/>
+<path d="M594 588 C622 568, 642 604, 610 626 L594 646 L578 626 C546 604, 566 568, 594 588" fill="#5A2F16" stroke="#FFD36E"/>
+<circle cx="594" cy="612" r="7" fill="#34E6D2"/>
+<rect x="618" y="580" width="136" height="48" rx="26" fill="url(#wood)" stroke="#FFD36E" stroke-width="1.4" opacity="1" filter="url(#shadow)"/>
+<line x1="636" y1="598" x2="736" y2="598" stroke="#FFD36E" stroke-opacity="0.38" stroke-width="1.4"/>
+<line x1="636" y1="610" x2="736" y2="610" stroke="#FFD36E" stroke-opacity="0.25" stroke-width="1.4"/>
+<text x="646" y="622" class="h2">霓虹桥边</text>
+<text x="646" y="648" class="body">800m · open</text>
+<circle cx="434" cy="722" r="20" fill="#34E6D2" opacity="0.32" filter="url(#softGlow)"/>
+<path d="M434 698 C462 678, 482 714, 450 736 L434 756 L418 736 C386 714, 406 678, 434 698" fill="#5A2F16" stroke="#FFD36E"/>
+<circle cx="434" cy="722" r="7" fill="#34E6D2"/>
+<rect x="458" y="690" width="136" height="48" rx="26" fill="url(#wood)" stroke="#FFD36E" stroke-width="1.4" opacity="1" filter="url(#shadow)"/>
+<line x1="476" y1="708" x2="576" y2="708" stroke="#FFD36E" stroke-opacity="0.38" stroke-width="1.4"/>
+<line x1="476" y1="720" x2="576" y2="720" stroke="#FFD36E" stroke-opacity="0.25" stroke-width="1.4"/>
+<text x="486" y="732" class="h2">后巷茶馆</text>
+<text x="486" y="758" class="body">1.1km · open</text>
+<rect x="936" y="214" width="440" height="640" rx="32" fill="#2A170E" stroke="#D69A35" stroke-width="1.4" opacity="1" filter="url(#shadow)"/>
+<text x="970" y="258" class="h1">附近酒馆招牌</text>
+<rect x="1195" y="224" width="142" height="44" rx="22" fill="url(#parch)" stroke="#FFD36E" stroke-width="1.4" opacity="1" filter="url(#shadow)"/>
+<text x="1217" y="252" class="body" fill="#2A160B">开一间酒馆</text>
+<rect x="970" y="302" width="366" height="102" rx="24" fill="#3A2114" stroke="#FFD36E" stroke-width="1.4" opacity="1" filter="url(#shadow)"/>
+<text x="996" y="336" class="h2">雨巷电台</text>
+<text x="996" y="362" class="body">雨夜、电台、低声聊天</text>
+<rect x="996" y="372" width="92" height="34" rx="17" fill="#34E6D2" stroke="#34E6D2" stroke-width="1.4" opacity="0.18" />
+<text x="1012" y="394" class="tiny" fill="#34E6D2">public</text>
+<rect x="1101" y="372" width="92" height="34" rx="17" fill="#B78CFF" stroke="#B78CFF" stroke-width="1.4" opacity="0.18" />
+<text x="1117" y="394" class="tiny" fill="#B78CFF">2 NPC</text>
+<rect x="1206" y="372" width="92" height="34" rx="17" fill="#FFD36E" stroke="#FFD36E" stroke-width="1.4" opacity="0.18" />
+<text x="1222" y="394" class="tiny" fill="#FFD36E">记忆开启</text>
+<rect x="970" y="428" width="366" height="102" rx="24" fill="#3A2114" stroke="#FFD36E" stroke-width="1.4" opacity="1" filter="url(#shadow)"/>
+<text x="996" y="462" class="h2">霓虹桥边</text>
+<text x="996" y="488" class="body">桥下小酒吧，适合第一次试玩</text>
+<rect x="996" y="498" width="92" height="34" rx="17" fill="#34E6D2" stroke="#34E6D2" stroke-width="1.4" opacity="0.18" />
+<text x="1012" y="520" class="tiny" fill="#34E6D2">public</text>
+<rect x="1101" y="498" width="92" height="34" rx="17" fill="#B78CFF" stroke="#B78CFF" stroke-width="1.4" opacity="0.18" />
+<text x="1117" y="520" class="tiny" fill="#B78CFF">新手友好</text>
+<rect x="1206" y="498" width="92" height="34" rx="17" fill="#FFD36E" stroke="#FFD36E" stroke-width="1.4" opacity="0.18" />
+<text x="1222" y="520" class="tiny" fill="#FFD36E">规则后端</text>
+<rect x="970" y="554" width="366" height="102" rx="24" fill="#3A2114" stroke="#FFD36E" stroke-width="1.4" opacity="1" filter="url(#shadow)"/>
+<text x="996" y="588" class="h2">后巷茶馆</text>
+<text x="996" y="614" class="body">店主自定义世界书与输出规则</text>
+<rect x="996" y="624" width="92" height="34" rx="17" fill="#34E6D2" stroke="#34E6D2" stroke-width="1.4" opacity="0.18" />
+<text x="1012" y="646" class="tiny" fill="#34E6D2">private</text>
+<rect x="1101" y="624" width="92" height="34" rx="17" fill="#B78CFF" stroke="#B78CFF" stroke-width="1.4" opacity="0.18" />
+<text x="1117" y="646" class="tiny" fill="#B78CFF">owner</text>
+<rect x="1206" y="624" width="92" height="34" rx="17" fill="#FFD36E" stroke="#FFD36E" stroke-width="1.4" opacity="0.18" />
+<text x="1222" y="646" class="tiny" fill="#FFD36E">WorldInfo</text>
+<rect x="970" y="680" width="366" height="102" rx="24" fill="#3A2114" stroke="#FFD36E" stroke-width="1.4" opacity="1" filter="url(#shadow)"/>
+<text x="996" y="714" class="h2">天台小摊</text>
+<text x="996" y="740" class="body">轻量玩法与回访反馈测试点</text>
+<rect x="996" y="750" width="92" height="34" rx="17" fill="#34E6D2" stroke="#34E6D2" stroke-width="1.4" opacity="0.18" />
+<text x="1012" y="772" class="tiny" fill="#34E6D2">password</text>
+<rect x="1101" y="750" width="92" height="34" rx="17" fill="#B78CFF" stroke="#B78CFF" stroke-width="1.4" opacity="0.18" />
+<text x="1117" y="772" class="tiny" fill="#B78CFF">gameplay</text>
+<rect x="1206" y="750" width="92" height="34" rx="17" fill="#FFD36E" stroke="#FFD36E" stroke-width="1.4" opacity="0.18" />
+<text x="1222" y="772" class="tiny" fill="#FFD36E">memory</text>
+<text x="72" y="902" class="note">视觉约束：借鉴“温暖手工酒馆”的情绪，不复制任何具体卡牌、英雄、法力或对战语义。</text>
+</svg>

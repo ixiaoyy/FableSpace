@@ -25,15 +25,15 @@ backend/
 ├── src/fablemap_api/
 │   ├── main.py                  # FastAPI app factory
 │   ├── api/v1/                  # APIRouter modules only
-│   ├── contracts/               # Pydantic request/response models
-│   ├── application/             # use cases / orchestration
+│   ├── contracts/               # Pydantic request/response models grouped by API domain
+│   ├── application/             # use-case facade plus focused services/ modules
 │   ├── domain/                  # framework-independent product rules
 │   ├── repositories/            # repository interfaces
 │   └── infrastructure/          # settings, storage, LLM/external adapters
 └── tests/                       # tests for the new backend package
 ```
 
-Contract: `api/v1/*` can import `contracts` and `application`; `application` can use `domain` and repository interfaces; `domain` must not import FastAPI.
+Contract: `api/v1/*` can import the nearest focused `contracts.<domain>` module and the application facade; `application/taverns.py` keeps shared facade construction/helpers, focused route-facing behavior belongs in `application/services/*`, and application code can use `domain` plus repository interfaces. `domain` must not import FastAPI.
 
 ```text
 backend/src/fablemap_api/core/
@@ -106,7 +106,9 @@ If a new persistent concept is needed, first confirm it belongs in the schema an
 
 ### Cross-layer payload code belongs in application services
 
-For new enterprise code, `backend/src/fablemap_api/application/*.py` is the boundary between versioned routes, stores, prompt/LLM logic, and response payloads. It may call migrated product core domain modules such as `backend/src/fablemap_api/core/tavern.py`, `backend/src/fablemap_api/core/gameplay.py`, `backend/src/fablemap_api/core/memory`, and `backend/src/fablemap_api/core/llm_clients.py`, but it must not delegate to the migrated product web router/service layer.
+For new enterprise code, `backend/src/fablemap_api/application/taverns.py` is the route-facing compatibility facade and `backend/src/fablemap_api/application/services/*.py` holds focused use-case implementations. Application services are the boundary between versioned routes, stores, prompt/LLM logic, and response payloads. They may call migrated product core domain modules such as `backend/src/fablemap_api/core/tavern.py`, `backend/src/fablemap_api/core/gameplay.py`, `backend/src/fablemap_api/core/memory`, and `backend/src/fablemap_api/core/llm_clients.py`, but they must not delegate to the migrated product web router/service layer.
+
+Current native service modules are `management.py`, `characters.py`, `runtime.py`, `owner_config.py`, `memories.py`, `worldinfo.py`, `packages.py`, `gameplay.py`, and `utilities.py`. Add new route-facing use cases to the closest existing service module; only add a new service module when a bounded context does not already exist.
 
 Migrated-product-core `backend/src/fablemap_api/core/web/service.py` remains the boundary for current `/api/*` routes. Existing methods use the `_payload` suffix for route-facing responses, for example:
 
@@ -116,6 +118,8 @@ Migrated-product-core `backend/src/fablemap_api/core/web/service.py` remains the
 - `advance_gameplay_session_payload(...)`
 
 Use the existing suffix convention for migrated-product-core route responses. For new `/api/v1` route responses, prefer explicit application method names such as `send_chat(...)`, `list_gameplays(...)`, and `start_gameplay_session(...)` with request/response contracts in `backend/src/fablemap_api/contracts/`.
+
+Focused contract modules currently mirror route/use-case modules: `taverns.py`, `characters.py`, `chat.py`, `runtime.py`, `owner_config.py`, `memories.py`, `worldinfo.py`, `packages.py`, `gameplay.py`, and `utilities.py`; shared flexible payload behavior belongs in `common.py`. New route modules should import their closest contract module instead of adding unrelated models to `contracts/taverns.py`.
 
 ### Keep helpers local until reused
 
@@ -161,10 +165,10 @@ Application services may translate these boolean/domain results into `HTTPExcept
 | Change type | Preferred location |
 |-------------|--------------------|
 | New tavern field or store behavior | `backend/src/fablemap_api/core/tavern.py` + tests + `docs/WORLD_SCHEMA.md` if schema-level |
-| New `/api/v1/taverns/...` endpoint | `backend/src/fablemap_api/api/v1/taverns.py` route + `backend/src/fablemap_api/application/taverns.py` use case + `backend/src/fablemap_api/contracts/taverns.py` contract |
+| New `/api/v1/...` endpoint | closest focused `backend/src/fablemap_api/api/v1/<context>.py` route + `backend/src/fablemap_api/application/services/<context>.py` use case exposed through `TavernApplicationService` + relevant `backend/src/fablemap_api/contracts/*.py` contract |
 | Migrated-product-core `/api/taverns/...` endpoint | `backend/src/fablemap_api/core/web/router.py` route + `backend/src/fablemap_api/core/web/service.py` payload method |
 | Tavern access/text/relationship policy | `backend/src/fablemap_api/domain/tavern_policy.py` + `backend/tests/test_tavern_policy.py`; application layer converts failures to HTTP errors |
-| Native v1 memory atom endpoints | `backend/src/fablemap_api/api/v1/taverns.py` routes + `backend/src/fablemap_api/application/taverns.py` use cases + `backend/src/fablemap_api/domain/memory_atom_policy.py` policy helpers + `backend/tests/test_v1_memory_atoms.py` |
+| Native v1 memory atom endpoints | `backend/src/fablemap_api/api/v1/memories.py` routes + `backend/src/fablemap_api/application/services/memories.py` use cases + `backend/src/fablemap_api/domain/memory_atom_policy.py` policy helpers + `backend/tests/test_v1_memory_atoms.py` |
 | Gameplay normalization/session behavior | `backend/src/fablemap_api/core/gameplay.py` and relevant enterprise/migrated-product-core application boundary methods |
 | LLM backend adapter | `backend/src/fablemap_api/core/llm_clients.py`, without logging secrets |
 | SillyTavern import/export behavior | `backend/src/fablemap_api/core/char_card_parser.py` and tavern character tests |
@@ -191,7 +195,7 @@ Use this contract when migrating structured memory behavior from compatibility `
 
 ### 2. Signatures
 
-Routes live in `backend/src/fablemap_api/api/v1/taverns.py` and must stay thin:
+Routes live in `backend/src/fablemap_api/api/v1/memories.py` and must stay thin:
 
 ```python
 GET    /api/v1/taverns/{tavern_id}/memory-atoms
@@ -201,7 +205,7 @@ PUT    /api/v1/taverns/{tavern_id}/memory-atoms/{memory_id}
 DELETE /api/v1/taverns/{tavern_id}/memory-atoms/{memory_id}
 ```
 
-Application methods live in `backend/src/fablemap_api/application/taverns.py`:
+Application methods are implemented in `backend/src/fablemap_api/application/services/memories.py` and exposed through `TavernApplicationService`:
 
 ```python
 list_memory_atoms(tavern_id, user_id="", scope="", dimension="", horizon="", visibility="", visitor_id="", character_id="", place_id="", limit=100) -> dict
@@ -215,7 +219,7 @@ Policy helpers live in `backend/src/fablemap_api/domain/memory_atom_policy.py`; 
 
 ### 3. Contracts
 
-Request body uses `MemoryAtomWriteRequest` in `backend/src/fablemap_api/contracts/taverns.py`. Supported fields mirror `MemoryAtom.to_dict()`:
+Request body uses `MemoryAtomWriteRequest` in `backend/src/fablemap_api/contracts/memories.py`. Supported fields mirror `MemoryAtom.to_dict()`:
 
 ```text
 scope, dimension, horizon, subject, content, importance, confidence,
@@ -300,7 +304,7 @@ Use this contract when migrating店主配置能力 from compatibility `/api/tave
 
 ### 2. Signatures
 
-Routes live in `backend/src/fablemap_api/api/v1/taverns.py` and stay thin:
+Routes live in `backend/src/fablemap_api/api/v1/owner_config.py` and stay thin:
 
 ```python
 POST /api/v1/taverns/{tavern_id}/world-info/test
@@ -315,7 +319,7 @@ PUT  /api/v1/taverns/{tavern_id}/runtime-presets
 POST /api/v1/taverns/{tavern_id}/runtime-presets/apply
 ```
 
-Application methods live in `backend/src/fablemap_api/application/taverns.py`:
+Application methods are implemented in `backend/src/fablemap_api/application/services/owner_config.py` and exposed through `TavernApplicationService`:
 
 ```python
 test_world_info(tavern_id, data, user_id="") -> dict
@@ -334,7 +338,7 @@ WorldInfo diagnostic matching lives in `backend/src/fablemap_api/domain/world_in
 
 ### 3. Contracts
 
-- Request body models live in `backend/src/fablemap_api/contracts/taverns.py`: `WorldInfoTestRequest`, `OutputRulesWriteRequest`, `OutputRulesTestRequest`, `PromptBlocksWriteRequest`, `PromptBlocksPreviewRequest`, `RuntimePresetsWriteRequest`, and `RuntimePresetApplyRequest`.
+- Request body models live in `backend/src/fablemap_api/contracts/owner_config.py`: `WorldInfoTestRequest`, `OutputRulesWriteRequest`, `OutputRulesTestRequest`, `PromptBlocksWriteRequest`, `PromptBlocksPreviewRequest`, `RuntimePresetsWriteRequest`, and `RuntimePresetApplyRequest`.
 - Output/prompt/runtime normalization reuses migrated product-core modules: `core.output_rules`, `core.prompt_blocks`, `core.prompt_builder`, and `core.presets`.
 - Frontend native clients live in `frontend/app/lib/taverns.ts` and must call `/api/v1/taverns/...`, not compatibility `/api/taverns/...`.
 
@@ -382,7 +386,7 @@ Use this contract when migrating compatibility utilities that still belong to th
 
 ### 2. Signatures
 
-Routes live in `backend/src/fablemap_api/api/v1/taverns.py`:
+Routes live in `backend/src/fablemap_api/api/v1/packages.py` for package/visitor endpoints, `backend/src/fablemap_api/api/v1/characters.py` for character import, and `backend/src/fablemap_api/api/v1/gameplay.py` for gameplay-session abandon:
 
 ```python
 GET  /api/v1/taverns/{tavern_id}/package
@@ -392,7 +396,7 @@ POST /api/v1/taverns/{tavern_id}/characters/import
 POST /api/v1/taverns/{tavern_id}/gameplay-sessions/{session_id}/abandon
 ```
 
-Application methods live in `backend/src/fablemap_api/application/taverns.py`:
+Application methods are implemented in `backend/src/fablemap_api/application/services/packages.py` and exposed through `TavernApplicationService`:
 
 ```python
 export_tavern_package(tavern_id, user_id="") -> dict
@@ -406,7 +410,7 @@ Package-safe redaction helpers live in `backend/src/fablemap_api/domain/tavern_p
 
 ### 3. Contracts
 
-- `TavernPackageImportRequest` and `CharacterImportRequest` live in `backend/src/fablemap_api/contracts/taverns.py`.
+- `TavernPackageImportRequest` lives in `backend/src/fablemap_api/contracts/packages.py`; `CharacterImportRequest` lives in `backend/src/fablemap_api/contracts/characters.py`.
 - Package export includes tavern metadata, characters, world_info, gameplay_definitions, prompt/output/runtime presets, voice_config, and memory_policy.
 - Package export must omit `api_key`, `password_hash`, chat history, visitor state, `_memory_atoms`, and `_gameplay_sessions`.
 - Package import always creates a new tavern owned by the importing `X-User-Id`; imported password-protected packages default to private access until the owner reconfigures access.
@@ -443,7 +447,7 @@ Use this contract when migrating runtime tavern behavior from compatibility `/ap
 
 ### 2. Signatures
 
-Routes live in `backend/src/fablemap_api/api/v1/taverns.py` and stay thin:
+Routes live in `backend/src/fablemap_api/api/v1/runtime.py` for LLM/voice/TTS/STT endpoints and `backend/src/fablemap_api/api/v1/chat.py` for chat/group-chat/talkativeness endpoints. They stay thin:
 
 ```python
 POST /api/v1/llm/test-config
@@ -459,7 +463,7 @@ POST /api/v1/taverns/{tavern_id}/tts
 POST /api/v1/taverns/{tavern_id}/stt
 ```
 
-Application methods live in `backend/src/fablemap_api/application/taverns.py`:
+Application methods are implemented in `backend/src/fablemap_api/application/services/runtime.py` and exposed through `TavernApplicationService`:
 
 ```python
 test_llm_config(data) -> dict
@@ -479,7 +483,7 @@ Group-chat normalization helpers live in `backend/src/fablemap_api/domain/group_
 
 ### 3. Contracts
 
-- Request body models live in `backend/src/fablemap_api/contracts/taverns.py`: `LLMConfigTestRequest`, `GroupChatConfigRequest`, `GroupChatRequest`, `CharacterTalkativenessRequest`, `VoiceConfigRequest`, and `TTSRequest`.
+- Request body models live in focused modules: `LLMConfigTestRequest`, `VoiceConfigRequest`, and `TTSRequest` in `backend/src/fablemap_api/contracts/runtime.py`; `GroupChatConfigRequest`, `GroupChatRequest`, and `CharacterTalkativenessRequest` in `backend/src/fablemap_api/contracts/chat.py`.
 - `test_llm_config` must not persist supplied API keys or echo secrets. Rules/public-welfare backends may return deterministic success without external calls.
 - Group chat stores visitor messages under `_group` and assistant replies under character ids so history can be reconstructed from `TavernStore.list_chat_sessions`.
 - Group-chat visitor history follows single-chat privacy: visitor can access own history; owner can inspect a requested visitor; another visitor must receive 403.
@@ -531,7 +535,7 @@ Use this contract when migrating compatibility utilities for SillyTavern-compati
 
 ### 2. Signatures
 
-Routes live in `backend/src/fablemap_api/api/v1/taverns.py` and stay thin:
+Routes live in `backend/src/fablemap_api/api/v1/characters.py` and stay thin:
 
 ```python
 GET  /api/v1/expressions
@@ -542,7 +546,7 @@ POST /api/v1/characters/parse
 POST /api/v1/characters/export
 ```
 
-Application methods live in `backend/src/fablemap_api/application/taverns.py`:
+Application methods are implemented in `backend/src/fablemap_api/application/services/characters.py` and exposed through `TavernApplicationService`:
 
 ```python
 list_expressions() -> dict
@@ -557,7 +561,7 @@ Expression keyword fallback and sprite-map normalization live in `backend/src/fa
 
 ### 3. Contracts
 
-- Request body models live in `backend/src/fablemap_api/contracts/taverns.py`: `ExpressionInferRequest`, `SpriteMapWriteRequest`, `CharacterCardParseRequest`, and `CharacterCardExportRequest`.
+- Request body models live in `backend/src/fablemap_api/contracts/characters.py`: `ExpressionInferRequest`, `SpriteMapWriteRequest`, `CharacterCardParseRequest`, and `CharacterCardExportRequest`.
 - Expression catalog returns the canonical `STANDARD_EXPRESSIONS`, `EXPRESSION_CATEGORIES`, and `count` from migrated product core.
 - Expression inference may use owner-configured tavern LLM when available, but rules/public-welfare backends fall back to deterministic keyword inference; API keys must not be logged or returned.
 - Sprite reads are tavern-visible; sprite writes are owner-only and keep only non-empty expression-to-URL mappings.
@@ -606,7 +610,7 @@ Use this contract when migrating compatibility WorldInfo CRUD/test routes into n
 
 ### 2. Signatures
 
-Routes live in `backend/src/fablemap_api/api/v1/taverns.py` under `utilities_router`:
+Routes live in `backend/src/fablemap_api/api/v1/worldinfo.py`:
 
 ```python
 GET    /api/v1/worldinfo?tavern_id=...
@@ -616,7 +620,7 @@ DELETE /api/v1/worldinfo/{entry_id}
 POST   /api/v1/worldinfo/test
 ```
 
-Application methods live in `backend/src/fablemap_api/application/taverns.py`:
+Application methods are implemented in `backend/src/fablemap_api/application/services/worldinfo.py` and exposed through `TavernApplicationService`:
 
 ```python
 list_world_info(user_id="", tavern_id="") -> dict
@@ -630,7 +634,7 @@ Normalization and diagnostics reuse `backend/src/fablemap_api/domain/world_info_
 
 ### 3. Contracts
 
-- Request body models live in `backend/src/fablemap_api/contracts/taverns.py`: `WorldInfoWriteRequest` and `WorldInfoGlobalTestRequest`.
+- Request body models live in `backend/src/fablemap_api/contracts/worldinfo.py`: `WorldInfoWriteRequest` and `WorldInfoGlobalTestRequest`.
 - `list_world_info` returns only WorldInfo entries on taverns visible to the caller; private tavern entries are visible only to the owner.
 - Create/update/delete require tavern ownership and persist entries on `Tavern.world_info` using `WorldInfoEntry` shape.
 - `keys` and `keys_secondary` accept lists or comma/Chinese-comma separated strings and normalize through `world_info_keywords`.
@@ -681,7 +685,7 @@ Use this contract when migrating compatibility utility routes that support promp
 
 ### 2. Signatures
 
-Routes live in `backend/src/fablemap_api/api/v1/taverns.py` under `utilities_router`:
+Routes live in `backend/src/fablemap_api/api/v1/utilities.py` for tokenizer endpoints and `backend/src/fablemap_api/api/v1/memories.py` for deterministic memory utility endpoints:
 
 ```python
 GET  /api/v1/tokenizers
@@ -692,7 +696,7 @@ POST /api/v1/memory/truncate
 POST /api/v1/memory/importance
 ```
 
-Application methods live in `backend/src/fablemap_api/application/taverns.py`:
+Application methods are implemented in `backend/src/fablemap_api/application/services/utilities.py` and exposed through `TavernApplicationService`:
 
 ```python
 list_tokenizers() -> dict
@@ -705,7 +709,7 @@ score_memory_importance(data) -> dict
 
 ### 3. Contracts
 
-- Request body models live in `backend/src/fablemap_api/contracts/taverns.py`: `TokenCountRequest`, `TokenMessagesCountRequest`, `MemorySummarizeRequest`, `MemoryTruncateRequest`, and `MemoryImportanceRequest`.
+- Request body models live in focused modules: `TokenCountRequest` and `TokenMessagesCountRequest` in `backend/src/fablemap_api/contracts/utilities.py`; `MemorySummarizeRequest`, `MemoryTruncateRequest`, and `MemoryImportanceRequest` in `backend/src/fablemap_api/contracts/memories.py`.
 - Tokenizer routes reuse `core.token_counter.TokenCounter` and retain the compatibility response shape `{"count": int, "backend": str}`.
 - Memory routes reuse `core.memory.ChatSummarizer`, `HistoryTruncator`, and `ImportanceScorer`; summarization stays guarded with `501` until an explicit LLM client is injected.
 - Frontend native clients belong in `frontend/app/lib/taverns.ts` and must call `/api/v1/tokenizers...` and `/api/v1/memory...`, not compatibility `/api/...`.

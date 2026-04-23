@@ -2,18 +2,33 @@ from __future__ import annotations
 
 from typing import Any
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel
 
-
-class FlexibleBody(BaseModel):
-    """Base model for owner-authored dynamic tavern payloads."""
-
-    model_config = ConfigDict(extra="allow")
-
-    def to_payload(self) -> dict[str, Any]:
-        payload = self.model_dump(exclude_none=True, by_alias=True)
-        payload.update(self.model_extra or {})
-        return payload
+from .chat import CharacterTalkativenessRequest, ChatRequest, GroupChatConfigRequest, GroupChatRequest
+from .characters import (
+    CharacterCardExportRequest,
+    CharacterCardParseRequest,
+    CharacterImportRequest,
+    CharacterWriteRequest,
+    ExpressionInferRequest,
+    SpriteMapWriteRequest,
+)
+from .common import FlexibleBody
+from .gameplay import GameplaySessionRequest, GameplayWriteRequest
+from .memories import MemoryAtomWriteRequest, MemoryImportanceRequest, MemorySummarizeRequest, MemoryTruncateRequest
+from .owner_config import (
+    OutputRulesTestRequest,
+    OutputRulesWriteRequest,
+    PromptBlocksPreviewRequest,
+    PromptBlocksWriteRequest,
+    RuntimePresetApplyRequest,
+    RuntimePresetsWriteRequest,
+    WorldInfoTestRequest,
+)
+from .packages import TavernPackageImportRequest
+from .runtime import LLMConfigTestRequest, TTSRequest, VoiceConfigRequest
+from .utilities import TokenCountRequest, TokenMessagesCountRequest
+from .worldinfo import WorldInfoGlobalTestRequest, WorldInfoWriteRequest
 
 
 class TavernCreateRequest(FlexibleBody):
@@ -50,229 +65,41 @@ class EnterTavernRequest(BaseModel):
     password: str = ""
 
 
-class CharacterWriteRequest(FlexibleBody):
-    name: str | None = None
-    description: str | None = None
-    personality: str | None = None
-    scenario: str | None = None
-    system_prompt: str | None = None
-    first_mes: str | None = None
-    tags: list[str] | None = None
-
-
-class CharacterImportRequest(FlexibleBody):
-    data: dict[str, Any] | None = None
-    spec: str | None = None
-    spec_version: str | None = None
-
-
-class SpriteMapWriteRequest(FlexibleBody):
-    sprites: dict[str, Any] | None = None
-
-
-class ExpressionInferRequest(FlexibleBody):
-    text: str | None = None
-    character_name: str | None = None
-    tavern_id: str | None = None
-    character_id: str | None = None
-
-
-class CharacterCardParseRequest(FlexibleBody):
-    json_payload: dict[str, Any] | None = Field(default=None, alias="json")
-    base64: str | None = None
-
-
-class CharacterCardExportRequest(FlexibleBody):
-    character: dict[str, Any] | None = None
-    format: str | None = None
-
-
-class ChatRequest(BaseModel):
-    character_id: str = Field(min_length=1)
-    message: str = Field(min_length=1)
-    visitor_id: str = ""
-    visitor_name: str = ""
-    extra_context: list[dict[str, Any]] | None = None
-    display_message: str = ""
-
-
-
-class LLMConfigTestRequest(FlexibleBody):
-    backend: str | None = None
-    model: str | None = None
-    api_key: str | None = None
-    base_url: str | None = None
-    temperature: float | None = None
-    max_tokens: int | None = None
-    top_p: float | None = None
-
-
-class GroupChatConfigRequest(FlexibleBody):
-    group_chat_enabled: bool | str | int | None = None
-    group_chat_config: dict[str, Any] | None = None
-    character_talkativeness: dict[str, Any] | None = None
-
-
-class GroupChatRequest(BaseModel):
-    message: str = Field(min_length=1)
-    visitor_id: str = ""
-    visitor_name: str = ""
-    display_message: str = ""
-
-
-class CharacterTalkativenessRequest(FlexibleBody):
-    talkativeness: float | str | None = None
-    value: float | str | None = None
-
-
-class VoiceConfigRequest(FlexibleBody):
-    enabled: bool | str | int | None = None
-    tts_provider: str | None = None
-    tts_voice: str | None = None
-    tts_model: str | None = None
-    tts_speed: float | None = None
-    tts_language: str | None = None
-    stt_provider: str | None = None
-    stt_model: str | None = None
-    auto_play: bool | str | int | None = None
-
-
-class TTSRequest(FlexibleBody):
-    text: str | None = None
-    character_id: str | None = None
-
-
-class GameplayWriteRequest(FlexibleBody):
-    gameplays: list[dict[str, Any]] | None = None
-
-
-class GameplaySessionRequest(FlexibleBody):
-    gameplay_id: str | None = None
-    character_id: str | None = None
-
-
-class MemoryAtomWriteRequest(FlexibleBody):
-    scope: str | None = None
-    dimension: str | None = None
-    horizon: str | None = None
-    subject: str | None = None
-    content: str | None = None
-    importance: float | None = None
-    confidence: float | None = None
-    source_message_ids: list[str] | None = None
-    pinned: bool | None = None
-    visibility: str | None = None
-    visitor_id: str | None = None
-    character_id: str | None = None
-    place_id: str | None = None
-    metadata: dict[str, Any] | None = None
-
-
-class WorldInfoTestRequest(FlexibleBody):
-    message: str | None = None
-    recent_messages: list[Any] | None = None
-    include_tavern_context: bool | None = None
-    world_info: list[dict[str, Any]] | dict[str, Any] | None = None
-
-
-class WorldInfoWriteRequest(FlexibleBody):
-    tavern_id: str | None = None
-    id: str | None = None
-    uid: str | int | None = None
-    keys: list[str] | str | None = None
-    key: list[str] | str | None = None
-    keys_secondary: list[str] | str | None = None
-    secondary_keys: list[str] | str | None = None
-    keysecondary: list[str] | str | None = None
-    content: str | None = None
-    constant: bool | str | int | None = None
-    selective: bool | str | int | None = None
-    insertion_order: int | str | None = None
-    order: int | str | None = None
-    depth: int | str | None = None
-    probability: int | str | None = None
-    disable: bool | str | int | None = None
-
-
-class WorldInfoGlobalTestRequest(FlexibleBody):
-    tavern_id: str | None = None
-    text: str | None = None
-    message: str | None = None
-    recent_messages: list[Any] | None = None
-    include_tavern_context: bool | None = None
-    world_info: list[dict[str, Any]] | dict[str, Any] | None = None
-
-
-class TokenCountRequest(FlexibleBody):
-    text: str | None = None
-    backend: str | None = None
-
-
-class TokenMessagesCountRequest(FlexibleBody):
-    messages: list[dict[str, Any]] | None = None
-    backend: str | None = None
-
-
-class MemorySummarizeRequest(FlexibleBody):
-    messages: list[dict[str, Any]] | None = None
-    strategy: str | None = None
-    previous_summary: str | None = None
-
-
-class MemoryTruncateRequest(FlexibleBody):
-    messages: list[dict[str, Any]] | None = None
-    max_tokens: int | str | None = None
-
-
-class MemoryImportanceRequest(FlexibleBody):
-    messages: list[dict[str, Any]] | None = None
-
-
-class OutputRulesWriteRequest(FlexibleBody):
-    rules: list[dict[str, Any]] | None = None
-    output_rules: list[dict[str, Any]] | None = None
-
-
-class OutputRulesTestRequest(FlexibleBody):
-    text: str | None = None
-    rules: list[dict[str, Any]] | None = None
-    output_rules: list[dict[str, Any]] | None = None
-
-
-class PromptBlocksWriteRequest(FlexibleBody):
-    blocks: list[dict[str, Any]] | None = None
-    prompt_blocks: list[dict[str, Any]] | None = None
-
-
-class PromptBlocksPreviewRequest(FlexibleBody):
-    blocks: list[dict[str, Any]] | None = None
-    prompt_blocks: list[dict[str, Any]] | None = None
-    character_id: str | None = None
-    message: str | None = None
-    visitor_name: str | None = None
-    visitor_visit_count: int | None = None
-    visitor_relationship_stage: str | None = None
-    visitor_relationship_strength: float | None = None
-    visitor_message_count: int | None = None
-
-
-class RuntimePresetsWriteRequest(FlexibleBody):
-    presets: list[dict[str, Any]] | None = None
-    runtime_presets: list[dict[str, Any]] | None = None
-    active_preset_id: str | None = None
-
-
-class RuntimePresetApplyRequest(FlexibleBody):
-    preset_id: str | None = None
-    id: str | None = None
-    preset: dict[str, Any] | None = None
-
-
-class TavernPackageImportRequest(FlexibleBody):
-    package: dict[str, Any] | None = None
-    lat: float | None = None
-    lon: float | None = None
-    name: str | None = None
-    address: str | None = None
-    access: str | None = None
-    tavern_id: str | None = None
+__all__ = [
+    "CharacterCardExportRequest",
+    "CharacterCardParseRequest",
+    "CharacterImportRequest",
+    "CharacterTalkativenessRequest",
+    "CharacterWriteRequest",
+    "ChatRequest",
+    "EnterTavernRequest",
+    "ExpressionInferRequest",
+    "FlexibleBody",
+    "GameplaySessionRequest",
+    "GameplayWriteRequest",
+    "GroupChatConfigRequest",
+    "GroupChatRequest",
+    "LLMConfigTestRequest",
+    "MemoryAtomWriteRequest",
+    "MemoryImportanceRequest",
+    "MemorySummarizeRequest",
+    "MemoryTruncateRequest",
+    "OutputRulesTestRequest",
+    "OutputRulesWriteRequest",
+    "PromptBlocksPreviewRequest",
+    "PromptBlocksWriteRequest",
+    "RuntimePresetApplyRequest",
+    "RuntimePresetsWriteRequest",
+    "SpriteMapWriteRequest",
+    "TTSRequest",
+    "TavernCreateRequest",
+    "TavernListResponse",
+    "TavernPackageImportRequest",
+    "TavernUpdateRequest",
+    "TokenCountRequest",
+    "TokenMessagesCountRequest",
+    "VoiceConfigRequest",
+    "WorldInfoGlobalTestRequest",
+    "WorldInfoTestRequest",
+    "WorldInfoWriteRequest",
+]
