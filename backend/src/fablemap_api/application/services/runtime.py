@@ -788,3 +788,192 @@ class RuntimeApplicationMixin:
         state.relationship_stage = relationship_stage_for(state.relationship_strength, state.visit_count)
         self.store.update_visitor_state(tavern_id, state)
         return state
+
+    def list_chat_sessions(
+        self,
+        tavern_id: str,
+        user_id: str = "",
+        *,
+        character_id: str = "",
+        visitor_id: str = "",
+    ) -> dict[str, Any]:
+        """List chat sessions scoped to one tavern."""
+        tavern = self._get_tavern_or_404(tavern_id)
+        self._ensure_visible(tavern, user_id)
+        resolved_visitor_id = self._chat_scope_visitor_id(tavern, user_id, visitor_id)
+        sessions = self.store.list_chat_sessions(tavern_id, character_id=character_id, visitor_id=resolved_visitor_id)
+        chats = [self._chat_session_row(tavern, session) for session in sessions]
+        return {"chats": chats, "count": len(chats)}
+
+    def list_global_chat_sessions(
+        self,
+        user_id: str = "",
+        *,
+        character_id: str = "",
+        visitor_id: str = "",
+    ) -> dict[str, Any]:
+        """List chat sessions across taverns owned by the current user."""
+        user_id = str(user_id or "").strip()
+        if not user_id:
+            return {"chats": [], "count": 0}
+
+        chats: list[dict[str, Any]] = []
+        taverns = self.taverns.list_taverns(owner_id=user_id)
+        for tavern_payload in taverns:
+            tavern_id = str(tavern_payload.get("id") or "")
+            if not tavern_id:
+                continue
+            tavern = self.store.get_tavern(tavern_id)
+            if not tavern or not self._is_owner(tavern, user_id):
+                continue
+            resolved_visitor_id = self._chat_scope_visitor_id(tavern, user_id, visitor_id)
+            sessions = self.store.list_chat_sessions(
+                tavern_id,
+                character_id=character_id,
+                visitor_id=resolved_visitor_id,
+            )
+            chats.extend(self._chat_session_row(tavern, session) for session in sessions)
+
+        chats.sort(key=lambda session: str(session.get("updated_at", "")), reverse=True)
+        return {"chats": chats, "count": len(chats)}
+
+    def export_chat(
+        self,
+        tavern_id: str,
+        user_id: str = "",
+        *,
+        character_id: str = "",
+        visitor_id: str = "",
+        format: str = "json",
+    ) -> dict[str, Any]:
+        """Export chat history in JSON or text format."""
+        tavern = self._get_tavern_or_404(tavern_id)
+        format_type = str(format or "json").strip().lower() or "json"
+        if format_type not in {"json", "text"}:
+            raise HTTPException(status_code=400, detail="Unknown format")
+        history, resolved_visitor_id = self._chat_history_for_scope(
+            tavern,
+            user_id,
+            character_id=character_id,
+            visitor_id=visitor_id,
+        )
+
+        if format_type == "text":
+            character = next((char for char in tavern.characters if char.id == character_id), None)
+            visitor_label = ""
+            for m in reversed(history):
+                d = m.to_dict() if hasattr(m, "to_dict") else m
+                visitor_label = d.get("visitor_name", "") or visitor_label
+                if visitor_label:
+                    break
+            visitor_label = visitor_label or (resolved_visitor_id[:16] if resolved_visitor_id else "访客")
+            lines = []
+            for m in history:
+                d = m.to_dict() if hasattr(m, "to_dict") else m
+                role = d.get("role", "?")
+                content = d.get("content", "")
+                if role == "assistant":
+                    speaker = character.name if character else "NPC"
+                elif role == "system":
+                    speaker = "系统"
+                else:
+                    speaker = d.get("visitor_name") or visitor_label
+                timestamp = d.get("timestamp", "")
+                prefix = f"[{timestamp}] " if timestamp else ""
+                lines.append(f"{prefix}{speaker}: {content}")
+            return {"text": "\n".join(lines)}
+        return {"messages": [m.to_dict() if hasattr(m, "to_dict") else m for m in history]}
+
+    def search_chat_history(
+        self,
+        tavern_id: str,
+        user_id: str = "",
+        *,
+        character_id: str = "",
+        visitor_id: str = "",
+        query: str = "",
+        limit: int | str = 50,
+    ) -> dict[str, Any]:
+        """Search chat history for one tavern while preserving visitor boundaries."""
+        tavern = self._get_tavern_or_404(tavern_id)
+        max_results = max(1, min(self._safe_int(limit, 50), 200))
+        normalized_query = str(query or "").strip().lower()
+        if not normalized_query:
+            return {"results": [], "count": 0, "limit": max_results, "truncated": False}
+
+        history, _ = self._chat_history_for_scope(
+            tavern,
+            user_id,
+            character_id=character_id,
+            visitor_id=visitor_id,
+        )
+        results: list[dict[str, Any]] = []
+        match_count = 0
+        for index, message in enumerate(history):
+            payload = message.to_dict() if hasattr(message, "to_dict") else message
+            content = str(payload.get("content", "")).lower()
+            if normalized_query not in content:
+                continue
+            match_count += 1
+            if len(results) < max_results:
+                results.append({"index": index, "message": payload})
+
+        return {
+            "results": results,
+            "count": match_count,
+            "limit": max_results,
+            "truncated": match_count > len(results),
+        }
+
+    def _chat_scope_visitor_id(self, tavern: Tavern, user_id: str, visitor_id: str = "") -> str:
+        user_id = str(user_id or "").strip()
+        requested_visitor_id = str(visitor_id or "").strip()
+        tavern_owner = self._is_owner(tavern, user_id)
+
+        if requested_visitor_id:
+            if not tavern_owner and requested_visitor_id != user_id:
+                raise HTTPException(status_code=403, detail="不能访问其他访客的聊天记录")
+            return requested_visitor_id
+        if tavern_owner:
+            return ""
+        return user_id or "__anonymous_without_visitor_id__"
+
+    def _chat_history_for_scope(
+        self,
+        tavern: Tavern,
+        user_id: str,
+        *,
+        character_id: str = "",
+        visitor_id: str = "",
+    ) -> tuple[list[Any], str]:
+        self._ensure_visible(tavern, user_id)
+        resolved_visitor_id = self._chat_scope_visitor_id(tavern, user_id, visitor_id)
+        if resolved_visitor_id:
+            return self.store.get_chat_history(tavern.id, resolved_visitor_id, character_id), resolved_visitor_id
+
+        history: list[Any] = []
+        sessions = self.store.list_chat_sessions(tavern.id, character_id=character_id, limit=None)
+        for session in sessions:
+            history.extend(session.get("messages", []))
+        return history, resolved_visitor_id
+
+    def _chat_session_row(self, tavern: Tavern, session: dict[str, Any]) -> dict[str, Any]:
+        character = next(
+            (char for char in tavern.characters if char.id == session.get("character_id")),
+            None,
+        )
+        last_message = session.get("last_message")
+        last_payload = last_message.to_dict() if hasattr(last_message, "to_dict") else (last_message or {})
+        visitor_name = session.get("visitor_name") or last_payload.get("visitor_name", "")
+        return {
+            "tavern_id": session.get("tavern_id", tavern.id),
+            "tavern_name": tavern.name,
+            "visitor_id": session.get("visitor_id", ""),
+            "visitor_name": visitor_name,
+            "character_id": session.get("character_id", ""),
+            "character_name": character.name if character else "",
+            "message_count": session.get("message_count", 0),
+            "last_message": str(last_payload.get("content", ""))[:100],
+            "last_role": last_payload.get("role", ""),
+            "updated_at": last_payload.get("timestamp", "") or session.get("updated_at", ""),
+        }

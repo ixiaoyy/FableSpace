@@ -66,7 +66,7 @@ from ...domain.tavern_package_policy import (
     safe_llm_preset,
     safe_tavern_package_tavern,
 )
-from ...domain.tavern_policy import can_view_memory, clean_text
+from ...domain.tavern_policy import clean_text
 from ...domain.world_info_policy import (
     test_world_info_entries,
     world_info_depth,
@@ -238,4 +238,4 @@ class MemoryApplicationMixin:
         return {"ok": True, "tavern_id": tavern_id, "memory_id": memory_id}
 
     def _memory_visible(self, atom: Any, tavern: Tavern, user_id: str) -> bool:
-        return can_view_memory(atom, tavern, user_id)
+        return can_view_memory_atom(atom, tavern, user_id)

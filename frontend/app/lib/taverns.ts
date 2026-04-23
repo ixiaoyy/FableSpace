@@ -296,7 +296,7 @@ export type MemoryImportanceResponse = {
   scores: { index: number; importance: number }[]
 }
 
-function queryString(params: Record<string, string | number | undefined | null>) {
+function queryString(params: Record<string, string | number | boolean | undefined | null>) {
   const search = new URLSearchParams()
   Object.entries(params).forEach(([key, value]) => {
     if (value !== undefined && value !== null && value !== "") {
@@ -418,13 +418,20 @@ export function exportCharacterCard(
   return readApiJson<Record<string, unknown>>("/api/v1/characters/export", jsonInit("POST", data, userId))
 }
 
-export function getTavernChatHistory(tavernId: string, visitorId = DEFAULT_VISITOR_ID, characterId = "") {
+export function getTavernChatHistory(
+  tavernId: string,
+  visitorId = DEFAULT_VISITOR_ID,
+  characterId = "",
+  userId = visitorId,
+  limit = 50,
+) {
   return readApiJson<{ messages: ChatMessage[] }>(
     `/api/v1/taverns/${encodeURIComponent(tavernId)}/chat${queryString({
       visitor_id: visitorId,
       character_id: characterId,
+      limit,
     })}`,
-    { userId: visitorId },
+    { userId },
   )
 }
 
@@ -505,6 +512,84 @@ export function updateCharacterTalkativeness(
   )
 }
 
+export type ChatSession = {
+  tavern_id: string
+  tavern_name: string
+  visitor_id: string
+  visitor_name: string
+  character_id: string
+  character_name: string
+  message_count: number
+  last_message: string
+  last_role: string
+  updated_at: string
+}
+
+export type ChatSessionListResponse = {
+  chats: ChatSession[]
+  count: number
+}
+
+export type ChatExportResponse = {
+  messages?: ChatMessage[]
+  text?: string
+}
+
+export function listChatSessions(
+  options: { tavernId?: string; characterId?: string; visitorId?: string } = {},
+  userId = DEFAULT_OWNER_ID,
+) {
+  return readApiJson<ChatSessionListResponse>(
+    `/api/v1/taverns/${encodeURIComponent(options.tavernId || "")}/chat/sessions${queryString({
+      character_id: options.characterId,
+      visitor_id: options.visitorId,
+    })}`,
+    { userId },
+  )
+}
+
+export function listGlobalChatSessions(
+  options: { characterId?: string; visitorId?: string } = {},
+  userId = DEFAULT_OWNER_ID,
+) {
+  return readApiJson<ChatSessionListResponse>(
+    `/api/v1/sessions${queryString({
+      character_id: options.characterId,
+      visitor_id: options.visitorId,
+    })}`,
+    { userId },
+  )
+}
+
+export function exportChatHistory(
+  options: { tavernId?: string; characterId?: string; visitorId?: string; format?: string } = {},
+  userId = DEFAULT_OWNER_ID,
+) {
+  return readApiJson<ChatExportResponse>(
+    `/api/v1/taverns/${encodeURIComponent(options.tavernId || "")}/chat/export`,
+    jsonInit("POST", {
+      character_id: options.characterId || "",
+      visitor_id: options.visitorId || "",
+      format: options.format || "json",
+    }, userId),
+  )
+}
+
+export function searchChatHistory(
+  options: { tavernId: string; characterId?: string; visitorId?: string; query?: string; limit?: number },
+  userId = DEFAULT_OWNER_ID,
+) {
+  return readApiJson<{ results: { index: number; message: ChatMessage }[]; count: number; limit: number; truncated: boolean }>(
+    `/api/v1/taverns/${encodeURIComponent(options.tavernId)}/chat/search`,
+    jsonInit("POST", {
+      character_id: options.characterId || "",
+      visitor_id: options.visitorId || "",
+      query: options.query || "",
+      limit: options.limit || 20,
+    }, userId),
+  )
+}
+
 export function getVoiceConfig(tavernId: string, userId = DEFAULT_VISITOR_ID) {
   return readApiJson<{ voice_config: VoiceConfig }>(`/api/v1/taverns/${encodeURIComponent(tavernId)}/voice`, { userId })
 }
@@ -558,6 +643,29 @@ export function deleteMemoryAtom(tavernId: string, memoryId: string, userId = DE
     `/api/v1/taverns/${encodeURIComponent(tavernId)}/memory-atoms/${encodeURIComponent(memoryId)}`,
     jsonInit("DELETE", undefined, userId),
   )
+}
+
+export function togglePinMemory(
+  tavernId: string,
+  memoryId: string,
+  pinned: boolean,
+  userId = DEFAULT_VISITOR_ID,
+) {
+  return updateMemoryAtom(tavernId, memoryId, { pinned }, userId)
+}
+
+export function listMemories(
+  tavernId: string,
+  filters: Record<string, string | number | boolean | undefined | null> = {},
+  userId = "",
+) {
+  return readApiJson<{
+    memories: MemoryAtom[]
+    count: number
+    total: number
+    offset: number
+    limit: number
+  }>(`/api/v1/taverns/${encodeURIComponent(tavernId)}/memories${queryString(filters)}`, { userId })
 }
 
 export function listWorldInfo(tavernId = "", userId = DEFAULT_VISITOR_ID) {

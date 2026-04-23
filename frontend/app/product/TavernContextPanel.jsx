@@ -1,5 +1,10 @@
 import { useEffect, useState } from 'react'
-import { getDefaultTavernService } from './services/tavernService'
+import {
+  deleteMemoryAtom,
+  listMemoryAtoms,
+  togglePinMemory,
+  updateMemoryAtom,
+} from '../lib/taverns'
 
 function TabButton({ id, label, active, onClick }) {
   return (
@@ -215,7 +220,6 @@ function MemoryTab({ entryState, messages, visitorNickname, roomName, selectedCh
   const userMessages = messages.filter(m => m.role === 'user')
   const recentUser = [...userMessages].reverse().find(m => m.content)
   const recentAssistant = [...messages].reverse().find(m => m.role === 'assistant')
-  const tavernService = getDefaultTavernService()
 
   const dimensionLabels = {
     fact: '事实',
@@ -238,7 +242,7 @@ function MemoryTab({ entryState, messages, visitorNickname, roomName, selectedCh
     if (!silent) setMemoryLoading(true)
     setMemoryError('')
     try {
-      const result = await tavernService.listMemoryAtoms(
+      const result = await listMemoryAtoms(
         tavernId,
         {
           visitor_id: visitorId,
@@ -264,7 +268,7 @@ function MemoryTab({ entryState, messages, visitorNickname, roomName, selectedCh
       setMemoryLoading(true)
       setMemoryError('')
       try {
-        const result = await tavernService.listMemoryAtoms(
+        const result = await listMemoryAtoms(
           tavernId,
           {
             visitor_id: visitorId,
@@ -303,12 +307,12 @@ function MemoryTab({ entryState, messages, visitorNickname, roomName, selectedCh
   }
 
   function handleTogglePin(atom) {
-    updateMemoryAtom(atom, () => tavernService.togglePinMemory(tavernId, atom.id, !atom.pinned, visitorId))
+    updateMemoryAtom(atom, () => togglePinMemory(tavernId, atom.id, !atom.pinned, visitorId))
   }
 
   function handleToggleWrong(atom) {
     const flagged = Boolean(atom.metadata?.flagged_wrong)
-    updateMemoryAtom(atom, () => tavernService.markMemoryWrong(tavernId, atom.id, atom.metadata || {}, !flagged, visitorId))
+    updateMemoryAtom(atom, () => updateMemoryAtom(tavernId, atom.id, { metadata: { ...(atom.metadata || {}), flagged_wrong: !flagged } }, visitorId))
   }
 
   async function handleDelete(atom) {
@@ -317,7 +321,7 @@ function MemoryTab({ entryState, messages, visitorNickname, roomName, selectedCh
     setBusyMemoryId(atom.id)
     setMemoryError('')
     try {
-      await tavernService.deleteMemoryAtom(tavernId, atom.id, visitorId)
+      await deleteMemoryAtom(tavernId, atom.id, visitorId)
       setMemoryAtoms((prev) => prev.filter((item) => item.id !== atom.id))
     } catch (err) {
       setMemoryError(err.message || '记忆删除失败')

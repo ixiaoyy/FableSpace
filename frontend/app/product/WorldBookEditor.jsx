@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { getDefaultTavernService } from './services/tavernService'
+import { createWorldInfo, deleteWorldInfo, listWorldInfo, testWorldInfo, updateTavern, updateWorldInfo } from '../lib/taverns'
 
 function makeWorldInfoId() {
   if (typeof crypto !== 'undefined' && crypto.randomUUID) {
@@ -129,7 +129,6 @@ function getTestStatusLabel(entry) {
  * 将 Tavern.world_info 从 JSON 数据变成店主可直接编辑的 UI。
  */
 export default function WorldBookEditor({ tavern, ownerId, onClose, onWorldInfoChanged }) {
-  const tavernService = getDefaultTavernService()
   const initialEntries = useMemo(
     () => (tavern?.world_info || []).map((entry) => normalizeEntry(entry, tavern?.id)),
     [tavern?.id],
@@ -280,7 +279,7 @@ export default function WorldBookEditor({ tavern, ownerId, onClose, onWorldInfoC
     setTestResult(null)
     try {
       const worldInfo = getEntriesWithCurrentDraft().map((entry) => sanitizeEntryForSave(entry, tavern?.id))
-      const result = await tavernService.testWorldInfo(
+      const result = await testWorldInfo(
         tavern.id,
         { message, world_info: worldInfo, include_tavern_context: false },
         ownerId,
@@ -314,7 +313,7 @@ export default function WorldBookEditor({ tavern, ownerId, onClose, onWorldInfoC
     setStatus('')
     try {
       const payload = nextEntries.map((entry) => sanitizeEntryForSave(entry, tavern?.id))
-      const savedTavern = await tavernService.saveWorldInfo(tavern.id, payload, ownerId)
+      const savedTavern = await updateTavern(tavern.id, { world_info: payload }, ownerId)
       const savedEntries = (savedTavern?.world_info || payload).map((entry) => normalizeEntry(entry, tavern?.id))
       setEntries(savedEntries)
       const nextSelected = savedEntries.find((entry) => entry.id === selectedId) || savedEntries[0] || null

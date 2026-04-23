@@ -227,3 +227,94 @@ private_getter = getattr(store, "get_llm_config_private", None)
 llm_config = private_getter(tavern_id) if callable(private_getter) else store.get_llm_config(tavern_id)
 client = create_client(ClientLLMConfig(api_key=llm_config.api_key, ...))
 ```
+
+## Scenario: Optional MySQL Infrastructure Startup
+
+### 1. Scope / Trigger
+
+Use this contract when maintaining native startup code (`backend/src/fablemap_api/main.py`) or optional SQLAlchemy/MySQL infrastructure modules. JSON file storage remains the default development/test path, so importing or starting the native app with no `FABLEMAP_MYSQL_URL` must not require SQLAlchemy or a MySQL driver.
+
+### 2. Signatures
+
+```python
+ApiSettings.mysql_url: str
+create_store(settings: ApiSettings) -> TavernStore
+create_database_from_settings(settings: ApiSettings) -> Database | None
+MySQLTavernStore(database: Database)
+create_mysql_tables(database: Database) -> None
+```
+
+Package-level infrastructure exports are lazy:
+
+```python
+from fablemap_api.infrastructure.settings import ApiSettings  # must be SQLAlchemy-free
+from fablemap_api.infrastructure import Database              # may import optional SQLAlchemy modules
+```
+
+### 3. Contracts
+
+- `fablemap_api.main` and `fablemap_api.infrastructure.settings` must import successfully without SQLAlchemy installed when `FABLEMAP_MYSQL_URL` is unset.
+- `create_store()` must use `TavernStore(output_root / "taverns")` as the default JSON-backed store.
+- SQLAlchemy-backed modules (`database.py`, `models.py`, `mysql_store.py`) are optional infrastructure and should be imported only after a non-empty `mysql_url` is selected or a caller explicitly imports MySQL infrastructure.
+- If SQLAlchemy is unavailable and MySQL infrastructure is imported, the raised `ImportError` should explain that SQLAlchemy/MySQL dependencies are optional and that unsetting `FABLEMAP_MYSQL_URL` uses JSON storage.
+- MySQL infrastructure tests should use `pytest.importorskip("sqlalchemy", ...)` so the default backend test suite can run in JSON-only environments.
+- Logs must not print full database credentials; redact URLs before logging or log only the host/path part after `@`.
+
+### 4. Validation & Error Matrix
+
+| Case | Expected |
+|------|----------|
+| No `FABLEMAP_MYSQL_URL`, SQLAlchemy absent | native app imports and `/api/v1/health` returns 200 using JSON store |
+| No `FABLEMAP_MYSQL_URL`, SQLAlchemy present | native app still uses JSON store by default |
+| `FABLEMAP_MYSQL_URL` set, SQLAlchemy present and connection works | create tables and use `MySQLTavernStore` |
+| `FABLEMAP_MYSQL_URL` set, SQLAlchemy missing | log a warning and fall back to JSON store unless a future explicit fail-fast setting is added |
+| Explicit import of `fablemap_api.infrastructure.database` without SQLAlchemy | clear `ImportError` explaining optional dependency requirements |
+| MySQL tests in JSON-only environment | skipped, not failed |
+
+### 5. Good/Base/Bad Cases
+
+- Good: `from fablemap_api.main import create_app` works in a fresh JSON-only install because SQLAlchemy imports are lazy.
+- Base: `backend/tests/test_mysql_infrastructure.py` runs full SQLite-backed MySQL-store behavior when SQLAlchemy is installed.
+- Bad: `backend/src/fablemap_api/infrastructure/__init__.py` eagerly imports `database`, `models`, or `mysql_store`, causing default app startup to fail before JSON fallback can run.
+
+### 6. Tests Required
+
+When changing this startup path, assert:
+
+- a subprocess can block `sqlalchemy` imports, import `create_app`, create an app with `mysql_url=""`, and call `/api/v1/health`;
+- MySQL infrastructure tests are skipped with `pytest.importorskip` if SQLAlchemy is absent;
+- normal backend smoke tests still create/list/enter/chat through the JSON store.
+
+Run:
+
+```powershell
+py -3 -m compileall -q backend/src
+py -3 -m pytest -q backend/tests/test_startup_optional_mysql.py backend/tests/test_api_smoke.py --tb=short
+py -3 -m pytest -q backend/tests --tb=short
+```
+
+### 7. Wrong vs Correct
+
+#### Wrong
+
+```python
+from fablemap_api.infrastructure.database import create_database_from_settings
+from fablemap_api.infrastructure.mysql_store import MySQLTavernStore
+
+def create_store(settings):
+    if settings.mysql_url:
+        ...
+```
+
+This imports SQLAlchemy-backed modules even when the app will use JSON storage.
+
+#### Correct
+
+```python
+def create_store(settings):
+    if settings.mysql_url:
+        from fablemap_api.infrastructure.database import create_database_from_settings
+        from fablemap_api.infrastructure.mysql_store import MySQLTavernStore
+        ...
+    return TavernStore(settings.output_root / "taverns")
+```

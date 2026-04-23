@@ -25,7 +25,8 @@ import { useWorldSession } from './hooks/useWorldSession'
 import { buildAppPanelProps } from './services/appPanelProps'
 import { buildEntryStatusText, buildHeroMetrics } from './services/appShellViewModel'
 import { buildGuestNickname, resolveNewcomerTavern } from './services/newcomerTavern'
-import { getDefaultTavernService, getTavernAccessLabel, getTavernStatusLabel } from './services/tavernService'
+import { getTavernAccessLabel, getTavernStatusLabel } from './services/tavernService'
+import { enterTavern, getTavern, listTaverns } from '../lib/taverns'
 
 const MAX_TAVERN_MAP_MARKERS = 80
 const FIRST_RUN_MODE_STORAGE_KEY = 'fablemap_first_run_mode'
@@ -268,8 +269,7 @@ export default function App() {
 
     async function fetchTaverns() {
       try {
-        const service = getDefaultTavernService()
-        const result = await service.listTaverns({
+        const result = await listTaverns({
           lat: form.lat,
           lon: form.lon,
           radius: form.radius || 5000,
@@ -310,10 +310,9 @@ export default function App() {
       setRouteTavernLoading(true)
       setRouteTavernError('')
       try {
-        const service = getDefaultTavernService()
         const tavern = taverns.find((item) => item.id === routeTavernId)
-          || await service.getTavern(routeTavernId, visitorId)
-        const entryState = await service.enterTavern(routeTavernId, '', visitorId)
+          || await getTavern(routeTavernId, visitorId)
+        const entryState = await enterTavern(routeTavernId, '', visitorId)
         if (cancelled) return
         const entered = { ...tavern, entry_state: entryState }
         setEnteredTavern(entered)
@@ -396,9 +395,8 @@ export default function App() {
     setQuickStartLoading(true)
     setQuickStartError('')
     try {
-      const service = getDefaultTavernService()
-      const tavern = await resolveNewcomerTavern(service, visitorId)
-      const entryState = await service.enterTavern(tavern.id, '', visitorId)
+      const tavern = await resolveNewcomerTavern(visitorId)
+      const entryState = await enterTavern(tavern.id, '', visitorId)
 
       persistFirstRunChoice(nickname, 'play')
       setEnteredTavern({ ...tavern, entry_state: entryState })

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { getDefaultTavernService } from './services/tavernService'
+import { getPromptBlocks, previewPromptBlocks, savePromptBlocks } from '../lib/taverns'
 
 const PROMPT_BLOCK_TYPES = [
   { id: 'scene', label: '酒馆场景' },
@@ -57,7 +57,6 @@ function getBlockPreview(block) {
 }
 
 export default function PromptBlockEditor({ tavern, ownerId, onClose, onBlocksChanged }) {
-  const tavernService = getDefaultTavernService()
   const fallbackBlocks = useMemo(() => normalizeBlocks(tavern?.prompt_blocks || []), [tavern?.id])
 
   const [blocks, setBlocks] = useState(fallbackBlocks)
@@ -81,7 +80,7 @@ export default function PromptBlockEditor({ tavern, ownerId, onClose, onBlocksCh
       setError('')
       setStatus('')
       try {
-        const payload = await tavernService.getPromptBlocks(tavern.id, ownerId)
+        const payload = await getPromptBlocks(tavern.id, ownerId)
         if (!alive) return
         const nextBlocks = normalizeBlocks(payload.blocks || [])
         const nextDefaults = normalizeBlocks(payload.default_blocks || [])
@@ -199,7 +198,7 @@ export default function PromptBlockEditor({ tavern, ownerId, onClose, onBlocksCh
     setError('')
     setStatus('')
     try {
-      const payload = await tavernService.savePromptBlocks(tavern.id, nextBlocks.map(normalizeBlock), ownerId)
+      const payload = await savePromptBlocks(tavern.id, nextBlocks.map(normalizeBlock), ownerId)
       const savedBlocks = normalizeBlocks(payload.blocks || payload.tavern?.prompt_blocks || nextBlocks)
       setBlocks(savedBlocks)
       setDraft(savedBlocks.find((block) => block.id === selectedId) || savedBlocks[0] || null)
@@ -220,7 +219,7 @@ export default function PromptBlockEditor({ tavern, ownerId, onClose, onBlocksCh
     setError('')
     setPreview(null)
     try {
-      const payload = await tavernService.previewPromptBlocks(tavern.id, {
+      const payload = await previewPromptBlocks(tavern.id, {
         message: previewMessage,
         blocks: nextBlocks,
       }, ownerId)

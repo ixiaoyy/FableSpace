@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
-import { getDefaultTavernService, getTavernAccessIcon, getTavernAccessLabel } from './services/tavernService'
+import { getTavernAccessIcon, getTavernAccessLabel } from './services/tavernService'
+import { enterTavern, getTavern } from '../lib/taverns'
 import { inferTavernPlayMode, getTavernPlayBadges } from './tavernPlayModes'
 
 /**
@@ -18,8 +19,6 @@ export default function TavernEntryPanel({
   const [password, setPassword] = useState('')
   const [entering, setEntering] = useState(false)
 
-  const tavernService = getDefaultTavernService()
-
   useEffect(() => {
     if (!tavernId) return
     fetchTavern()
@@ -29,7 +28,7 @@ export default function TavernEntryPanel({
     setLoading(true)
     setError(null)
     try {
-      const data = await tavernService.getTavern(tavernId, visitorId)
+      const data = await getTavern(tavernId, visitorId)
       setTavern(data)
     } catch (err) {
       setError(err.message)
@@ -42,7 +41,7 @@ export default function TavernEntryPanel({
     setEntering(true)
     setError(null)
     try {
-      const entryState = await tavernService.enterTavern(tavernId, tavern.access === 'password' ? password : '', visitorId)
+      const entryState = await enterTavern(tavernId, tavern.access === 'password' ? password : '', visitorId)
       if (onEnter) onEnter({ ...tavern, entry_state: entryState })
     } catch (err) {
       setError(`入场失败: ${err.message}`)

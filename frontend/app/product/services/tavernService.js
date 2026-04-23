@@ -1153,11 +1153,10 @@ export function createTavernService(getBaseUrl) {
      * @returns {Promise<object>}
      */
     async exportChatHistory(options = {}, userId = '') {
-      const response = await fetch(`${getBaseUrl()}/api/chats/export`, {
+      const response = await fetch(`${getBaseUrl()}/api/v1/taverns/${encodeURIComponent(options.tavernId || '')}/chat/export`, {
         method: 'POST',
         headers: buildJsonHeaders(userId),
         body: JSON.stringify({
-          tavern_id: options.tavernId || '',
           character_id: options.characterId || '',
           visitor_id: options.visitorId || '',
           format: options.format || 'json',
@@ -1178,11 +1177,10 @@ export function createTavernService(getBaseUrl) {
      * @returns {Promise<object>}
      */
     async searchChatHistory(options = {}, userId = '') {
-      const response = await fetch(`${getBaseUrl()}/api/chats/search`, {
+      const response = await fetch(`${getBaseUrl()}/api/v1/taverns/${encodeURIComponent(options.tavernId || '')}/chat/search`, {
         method: 'POST',
         headers: buildJsonHeaders(userId),
         body: JSON.stringify({
-          tavern_id: options.tavernId || '',
           character_id: options.characterId || '',
           visitor_id: options.visitorId || '',
           query: options.query || '',

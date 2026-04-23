@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { getDefaultTavernService } from './services/tavernService'
+import { getOutputRules, saveOutputRules, testOutputRules } from '../lib/taverns'
 
 function makeRuleId() {
   if (typeof crypto !== 'undefined' && crypto.randomUUID) {
@@ -48,7 +48,6 @@ function getRuleStatusLabel(rule) {
 }
 
 export default function OutputRulesEditor({ tavern, ownerId, onClose, onRulesChanged }) {
-  const tavernService = getDefaultTavernService()
   const fallbackRules = useMemo(() => normalizeRules(tavern?.output_rules || []), [tavern?.id])
 
   const [rules, setRules] = useState(fallbackRules)
@@ -72,7 +71,7 @@ export default function OutputRulesEditor({ tavern, ownerId, onClose, onRulesCha
       setError('')
       setStatus('')
       try {
-        const payload = await tavernService.getOutputRules(tavern.id, ownerId)
+        const payload = await getOutputRules(tavern.id, ownerId)
         if (!alive) return
         const nextRules = normalizeRules(payload.rules || [])
         const nextDefaults = normalizeRules(payload.default_rules || [])
@@ -192,7 +191,7 @@ export default function OutputRulesEditor({ tavern, ownerId, onClose, onRulesCha
     setError('')
     setStatus('')
     try {
-      const payload = await tavernService.saveOutputRules(tavern.id, nextRules.map(normalizeRule), ownerId)
+      const payload = await saveOutputRules(tavern.id, nextRules.map(normalizeRule), ownerId)
       const savedRules = normalizeRules(payload.rules || payload.tavern?.output_rules || nextRules)
       setRules(savedRules)
       setSelectedId(savedRules[0]?.id || '')
@@ -214,7 +213,7 @@ export default function OutputRulesEditor({ tavern, ownerId, onClose, onRulesCha
     setError('')
     setTestResult(null)
     try {
-      const payload = await tavernService.testOutputRules(tavern.id, { text: testText, rules: nextRules }, ownerId)
+      const payload = await testOutputRules(tavern.id, { text: testText, rules: nextRules }, ownerId)
       setTestResult(payload)
     } catch (err) {
       setError(`预览失败：${err.message}`)

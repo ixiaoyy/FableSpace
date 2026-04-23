@@ -1581,79 +1581,6 @@ class WebService:
             "filters": filters,
         }
 
-    def list_visitor_memories_payload(
-        self,
-        tavern_id: str,
-        user_id: str = "",
-        *,
-        visitor_id: str = "",
-        scope: str = "",
-        dimension: str = "",
-        horizon: str = "",
-        pinned: bool | None = None,
-        keyword: str = "",
-        limit: int = 50,
-        offset: int = 0,
-    ) -> dict[str, Any]:
-        """List memories for a visitor with visibility rules and keyword filter.
-
-        Visibility rules:
-        - Tavern owner: sees 'owner' and 'public' atoms
-        - Visitor (visitor_id matches): additionally sees 'private' atoms
-        - Others: sees only 'public' atoms
-        """
-        tavern = self.tavern_store.get_tavern(tavern_id)
-        if not tavern:
-            raise HTTPException(status_code=404, detail="酒馆不存在")
-        if tavern.access == "private" and not _is_tavern_owner_obj(tavern, user_id):
-            raise HTTPException(status_code=403, detail="此酒馆是私人的")
-
-        filters = {
-            "scope": _memory_filter(scope, MEMORY_SCOPES),
-            "dimension": _memory_filter(dimension, MEMORY_DIMENSIONS),
-            "horizon": _memory_filter(horizon, MEMORY_HORIZONS),
-        }
-
-        keyword_lower = keyword.lower().strip() if keyword else ""
-        max_items = _clamp_memory_limit(limit, default=50, maximum=200)
-        start = max(0, int(offset or 0))
-
-        all_atoms = self.tavern_store.list_memory_atoms(tavern_id)
-        visible_atoms: list[MemoryAtom] = []
-
-        for atom in all_atoms:
-            if not _memory_atom_is_visible(atom, tavern, user_id):
-                continue
-            if visitor_id and atom.visitor_id and atom.visitor_id != visitor_id:
-                continue
-            if filters["scope"] and atom.scope != filters["scope"]:
-                continue
-            if filters["dimension"] and atom.dimension != filters["dimension"]:
-                continue
-            if filters["horizon"] and atom.horizon != filters["horizon"]:
-                continue
-            if pinned is not None and atom.pinned != pinned:
-                continue
-            if keyword_lower and keyword_lower not in f"{atom.content} {atom.subject}".lower():
-                continue
-            visible_atoms.append(atom)
-
-        page = visible_atoms[start:start + max_items]
-        return {
-            "tavern_id": tavern_id,
-            "memories": [atom.to_dict() for atom in page],
-            "total": len(visible_atoms),
-            "count": len(page),
-            "filters": {
-                "scope": filters["scope"],
-                "dimension": filters["dimension"],
-                "horizon": filters["horizon"],
-                "pinned": pinned,
-                "keyword": keyword,
-                "visitor_id": visitor_id,
-            },
-        }
-
     def get_memory_atom_payload(self, tavern_id: str, memory_id: str, user_id: str = "") -> dict[str, Any]:
         """Return a single structured memory atom if visible to the current user."""
         tavern = self.tavern_store.get_tavern(tavern_id)
@@ -2844,20 +2771,6 @@ class WebService:
             from fablemap_api.core.extensions import get_extension_manager
             self._extension_manager = get_extension_manager()
         return self._extension_manager
-
-    # ─── Group Chat Sessions ─────────────────────────────────────────────
-
-    def create_group_chat_session(self, group_manager) -> str:
-        """Create a new group chat session and return its ID."""
-        if not hasattr(self, "_group_chat_sessions"):
-            self._group_chat_sessions = {}
-        session_id = str(uuid.uuid4())
-        self._group_chat_sessions[session_id] = group_manager
-        return session_id
-
-    def get_group_chat_session(self, session_id: str):
-        """Get a group chat session by ID."""
-        return getattr(self, "_group_chat_sessions", {}).get(session_id)
 
     # ─── Group Chat API ──────────────────────────────────────────────────
 

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { getDefaultTavernService } from './services/tavernService'
+import { getGameplays, saveGameplays } from '../lib/taverns'
 import GameplayDefinitionEditor, { createBlankGameplay } from './GameplayDefinitionEditor'
 import './tavernGameplay.css'
 
@@ -14,7 +14,6 @@ function normalizeGameplays(value) {
 }
 
 export default function GameplayManager({ tavern, ownerId = '', onUpdated, onClose }) {
-  const tavernService = getDefaultTavernService()
   const [gameplays, setGameplays] = useState(() => normalizeGameplays(tavern?.gameplay_definitions))
   const [selectedId, setSelectedId] = useState(gameplays[0]?.id || '')
   const [loading, setLoading] = useState(false)
@@ -33,7 +32,7 @@ export default function GameplayManager({ tavern, ownerId = '', onUpdated, onClo
       setLoading(true)
       setError('')
       try {
-        const result = await tavernService.getGameplays(tavern.id, ownerId)
+        const result = await getGameplays(tavern.id, ownerId)
         if (ignore) return
         const next = normalizeGameplays(result.gameplays)
         setGameplays(next)
@@ -75,7 +74,7 @@ export default function GameplayManager({ tavern, ownerId = '', onUpdated, onClo
     setError('')
     setStatus('')
     try {
-      const result = await tavernService.saveGameplays(tavern.id, gameplays, ownerId)
+      const result = await saveGameplays(tavern.id, gameplays, ownerId)
       const next = normalizeGameplays(result.gameplays)
       setGameplays(next)
       setSelectedId((current) => current && next.some((item) => item.id === current) ? current : (next[0]?.id || ''))

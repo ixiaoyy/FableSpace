@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
-import { getDefaultTavernService, getTavernStatusColor, getTavernStatusLabel, getTavernAccessIcon } from './services/tavernService'
+import { getTavernStatusColor, getTavernStatusLabel, getTavernAccessIcon } from './services/tavernService'
+import { enterTavern, getTavernChatHistory, sendTavernChat } from '../lib/taverns'
 
 /**
  * TavernInterior — 酒馆内部视图
@@ -20,7 +21,6 @@ export default function TavernInterior({
   const [entering, setEntering] = useState(false)
   const [entered, setEntered] = useState(false)
   const messagesEndRef = useRef(null)
-  const tavernService = getDefaultTavernService()
 
   const characters = tavern?.characters || []
 
@@ -52,7 +52,7 @@ export default function TavernInterior({
   async function handleEnter(pwd = '') {
     setEntering(true)
     try {
-      const result = await tavernService.enterTavern(tavern.id, pwd, visitorId)
+      const result = await enterTavern(tavern.id, pwd, visitorId)
       setEntered(true)
       setPasswordRequired(false)
       // Add first message from character
@@ -77,7 +77,7 @@ export default function TavernInterior({
 
   async function loadHistory() {
     try {
-      const result = await tavernService.getChatHistory(tavern.id, visitorId, selectedChar?.id)
+      const result = await getTavernChatHistory(tavern.id, visitorId, selectedChar?.id)
       if (result.messages && result.messages.length > 0) {
         setMessages(result.messages.map((m) => ({
           id: m.id,
@@ -104,7 +104,11 @@ export default function TavernInterior({
     setSending(true)
 
     try {
-      const result = await tavernService.sendChat(tavern.id, selectedChar.id, content.trim(), visitorId)
+      const result = await sendTavernChat(tavern.id, {
+        character_id: selectedChar.id,
+        message: content.trim(),
+        visitor_id: visitorId,
+      })
       const charMsg = {
         id: `msg-${Date.now() + 1}`,
         role: 'assistant',

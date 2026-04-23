@@ -1,4 +1,11 @@
 import { useEffect, useState } from 'react'
+import {
+  createMemoryAtom,
+  deleteMemoryAtom,
+  listMemories,
+  togglePinMemory,
+  updateMemoryAtom,
+} from '../lib/taverns'
 
 const DIMENSION_LABELS = {
   fact: '事实',
@@ -204,7 +211,6 @@ function MemoryToast({ count, onDismiss }) {
  *   visitorNickname — display name
  *   roomName        — tavern name
  *   tavernId        — tavern ID
- *   tavernService   — tavern service instance (optional)
  *   visitorId       — current visitor / user ID for private memory access
  *   createdMemories — array of newly created MemoryAtom dicts from last chat response
  *   onClose         — called to close the panel
@@ -216,7 +222,6 @@ export default function TavernMemoryPanel({
   visitorNickname,
   roomName,
   tavernId,
-  tavernService,
   visitorId = '',
   createdMemories = [],
   onClose,
@@ -240,10 +245,10 @@ export default function TavernMemoryPanel({
 
   // Fetch memories on mount and whenever tavernId changes
   useEffect(() => {
-    if (!tavernId || !tavernService) return
+    if (!tavernId) return
     setLoading(true)
     setError('')
-    tavernService.listMemories(tavernId, { visitor_id: visitorId, limit: 100 }, visitorId)
+    listMemories(tavernId, { visitor_id: visitorId, limit: 100 }, visitorId)
       .then((data) => {
         setAtoms(Array.isArray(data.memories) ? data.memories : [])
         setLoading(false)
@@ -255,9 +260,9 @@ export default function TavernMemoryPanel({
   }, [tavernId, visitorId])
 
   function refetch() {
-    if (!tavernId || !tavernService) return
+    if (!tavernId) return
     setLoading(true)
-    tavernService.listMemories(tavernId, { visitor_id: visitorId, limit: 100 }, visitorId)
+    listMemories(tavernId, { visitor_id: visitorId, limit: 100 }, visitorId)
       .then((data) => {
         setAtoms(Array.isArray(data.memories) ? data.memories : [])
         setLoading(false)
@@ -266,8 +271,8 @@ export default function TavernMemoryPanel({
   }
 
   function handlePin(memoryId, pinned) {
-    if (!tavernId || !tavernService) return
-    tavernService.togglePinMemory(tavernId, memoryId, pinned, visitorId)
+    if (!tavernId) return
+    togglePinMemory(tavernId, memoryId, pinned, visitorId)
       .then(() => {
         setAtoms((prev) =>
           prev.map((m) => (m.id === memoryId ? { ...m, pinned } : m))
@@ -279,8 +284,8 @@ export default function TavernMemoryPanel({
   }
 
   function handleDelete(memoryId) {
-    if (!tavernId || !tavernService) return
-    tavernService.deleteMemoryAtom(tavernId, memoryId, visitorId)
+    if (!tavernId) return
+    deleteMemoryAtom(tavernId, memoryId, visitorId)
       .then(() => {
         setAtoms((prev) => prev.filter((m) => m.id !== memoryId))
       })
@@ -290,8 +295,8 @@ export default function TavernMemoryPanel({
   }
 
   function handleMarkWrong(memoryId, flagged, metadata) {
-    if (!tavernId || !tavernService) return
-    tavernService.markMemoryWrong(tavernId, memoryId, metadata, flagged, visitorId)
+    if (!tavernId) return
+    updateMemoryAtom(tavernId, memoryId, { metadata: { ...(metadata || {}), flagged_wrong: flagged } }, visitorId)
       .then((result) => {
         const updated = result.memory_atom
         setAtoms((prev) =>
@@ -304,8 +309,8 @@ export default function TavernMemoryPanel({
   }
 
   function handleSave(newAtom) {
-    if (!tavernId || !tavernService) return
-    tavernService.createMemoryAtom(tavernId, {
+    if (!tavernId) return
+    createMemoryAtom(tavernId, {
       ...newAtom,
       scope: 'visitor_character',
       visibility: 'private',

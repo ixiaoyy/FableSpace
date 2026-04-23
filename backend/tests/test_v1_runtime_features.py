@@ -1,4 +1,5 @@
 from pathlib import Path
+from typing import Any
 
 from fastapi.testclient import TestClient
 
@@ -15,7 +16,11 @@ def _client(tmp_path: Path) -> TestClient:
     return TestClient(create_app(ApiSettings(output_root=tmp_path / "api", fixture_file=None, frontend_root=None)))
 
 
-def _create_tavern(client: TestClient) -> tuple[str, list[str]]:
+def _create_tavern(
+    client: TestClient,
+    *,
+    llm_config: dict[str, Any] | None = None,
+) -> tuple[str, list[str]]:
     response = client.post(
         "/api/v1/taverns",
         headers={"X-User-Id": OWNER_ID},
@@ -26,7 +31,7 @@ def _create_tavern(client: TestClient) -> tuple[str, list[str]]:
             "lon": 121.4737,
             "access": "public",
             "scene_prompt": "吧台悬着蓝色灯牌。",
-            "llm_config": {"backend": "rules", "model": "rules", "api_key": "owner-secret"},
+            "llm_config": llm_config or {"backend": "rules", "model": "rules", "api_key": "owner-secret"},
         },
     )
     assert response.status_code == 200
@@ -189,3 +194,275 @@ def test_v1_group_chat_config_send_history_and_permissions(tmp_path: Path) -> No
     assert talk.status_code == 200
     updated = next(item for item in talk.json()["characters"] if item["id"] == character_ids[0])
     assert updated["talkativeness"] == 0.2
+
+
+def test_v1_group_chat_respects_response_cap_and_round_robin_across_turns(tmp_path: Path) -> None:
+    client = _client(tmp_path)
+    tavern_id, character_ids = _create_tavern(client)
+
+    saved = client.put(
+        f"/api/v1/taverns/{tavern_id}/group-chat/config",
+        headers={"X-User-Id": OWNER_ID},
+        json={
+            "group_chat_enabled": True,
+            "group_chat_config": {
+                "strategy": "round_robin",
+                "max_responses_per_turn": 1,
+                "response_cooldown_seconds": 0,
+                "require_name_prefix": True,
+            },
+            "character_talkativeness": {character_ids[0]: "2", character_ids[1]: 1},
+        },
+    )
+    assert saved.status_code == 200
+    assert saved.json()["group_chat_config"]["max_responses_per_turn"] == 1
+    assert next(item for item in saved.json()["characters"] if item["id"] == character_ids[0])["talkativeness"] == 1.0
+
+    first = client.post(
+        f"/api/v1/taverns/{tavern_id}/group-chat",
+        headers={"X-User-Id": VISITOR_ID},
+        json={"visitor_id": VISITOR_ID, "visitor_name": "运行时旅人", "message": "第一轮。"},
+    )
+    second = client.post(
+        f"/api/v1/taverns/{tavern_id}/group-chat",
+        headers={"X-User-Id": VISITOR_ID},
+        json={"visitor_id": VISITOR_ID, "visitor_name": "运行时旅人", "message": "第二轮。"},
+    )
+
+    assert first.status_code == 200
+    assert second.status_code == 200
+    assert first.json()["speaker_count"] == 1
+    assert second.json()["speaker_count"] == 1
+    assert first.json()["messages"][0]["character_id"] != second.json()["messages"][0]["character_id"]
+
+    history = client.get(
+        f"/api/v1/taverns/{tavern_id}/group-chat/history",
+        headers={"X-User-Id": VISITOR_ID},
+        params={"visitor_id": VISITOR_ID},
+    )
+    assert history.status_code == 200
+    assert history.json()["message_count"] == 4
+    assert [message["role"] for message in history.json()["messages"]].count("assistant") == 2
+
+
+def test_v1_group_chat_rules_backend_creates_memory_and_respects_silent_character(tmp_path: Path) -> None:
+    client = _client(tmp_path)
+    tavern_id, character_ids = _create_tavern(client)
+
+    saved = client.put(
+        f"/api/v1/taverns/{tavern_id}/group-chat/config",
+        headers={"X-User-Id": OWNER_ID},
+        json={
+            "group_chat_enabled": True,
+            "group_chat_config": {
+                "strategy": "round_robin",
+                "max_responses_per_turn": 2,
+                "response_cooldown_seconds": 0,
+                "require_name_prefix": False,
+            },
+            "character_talkativeness": {character_ids[1]: 0},
+        },
+    )
+    assert saved.status_code == 200
+    assert next(item for item in saved.json()["characters"] if item["id"] == character_ids[1])["talkativeness"] == 0.0
+
+    chatted = client.post(
+        f"/api/v1/taverns/{tavern_id}/group-chat",
+        headers={"X-User-Id": VISITOR_ID},
+        json={
+            "visitor_id": VISITOR_ID,
+            "visitor_name": "测试旅人",
+            "message": "你好，我喜欢蓝莓派，这是我的重要偏好。",
+        },
+    )
+    assert chatted.status_code == 200
+    payload = chatted.json()
+    assert payload["degraded"] is False
+    assert payload["speaker_count"] == 1
+    assert payload["messages"][0]["character_id"] == character_ids[0]
+    assert payload["messages"][0]["content"]
+    assert payload["visitor_state"]["visitor_id"] == VISITOR_ID
+    assert payload["visitor_state"]["relationship"]["strength"] > 0
+    assert payload["created_memories"]
+    assert any("蓝莓派" in memory["content"] for memory in payload["created_memories"])
+
+    history = client.get(
+        f"/api/v1/taverns/{tavern_id}/group-chat/history",
+        headers={"X-User-Id": VISITOR_ID},
+        params={"visitor_id": VISITOR_ID, "limit": 10},
+    )
+    assert history.status_code == 200
+    history_payload = history.json()
+    assert history_payload["message_count"] == 2
+    assert set(message["role"] for message in history_payload["messages"]) == {"user", "assistant"}
+    assert [message["role"] for message in history_payload["messages"]].count("assistant") == 1
+
+    memories = client.get(
+        f"/api/v1/taverns/{tavern_id}/memories",
+        headers={"X-User-Id": VISITOR_ID},
+        params={"visitor_id": VISITOR_ID},
+    )
+    assert memories.status_code == 200
+    assert any(
+        memory["scope"] == "visitor_tavern" and "蓝莓派" in memory["content"]
+        for memory in memories.json()["memories"]
+    )
+
+
+def test_v1_group_chat_rejects_cross_visitor_impersonation(tmp_path: Path) -> None:
+    client = _client(tmp_path)
+    tavern_id, _ = _create_tavern(client)
+    victim_id = "victim-group-runtime"
+    attacker_id = "attacker-group-runtime"
+
+    saved = client.put(
+        f"/api/v1/taverns/{tavern_id}/group-chat/config",
+        headers={"X-User-Id": OWNER_ID},
+        json={
+            "group_chat_enabled": True,
+            "group_chat_config": {"strategy": "round_robin", "max_responses_per_turn": 1},
+        },
+    )
+    assert saved.status_code == 200
+
+    attacker_send = client.post(
+        f"/api/v1/taverns/{tavern_id}/group-chat",
+        headers={"X-User-Id": attacker_id},
+        json={
+            "visitor_id": victim_id,
+            "visitor_name": "受害者",
+            "message": "我想冒充别人。",
+        },
+    )
+    assert attacker_send.status_code == 403
+
+    victim_send = client.post(
+        f"/api/v1/taverns/{tavern_id}/group-chat",
+        headers={"X-User-Id": victim_id},
+        json={
+            "visitor_id": victim_id,
+            "visitor_name": "受害者",
+            "message": "你好，我是本人。",
+        },
+    )
+    assert victim_send.status_code == 200
+    assert victim_send.json()["speaker_count"] == 1
+
+    attacker_history = client.get(
+        f"/api/v1/taverns/{tavern_id}/group-chat/history",
+        headers={"X-User-Id": attacker_id},
+        params={"visitor_id": victim_id},
+    )
+    assert attacker_history.status_code == 403
+
+    owner_history = client.get(
+        f"/api/v1/taverns/{tavern_id}/group-chat/history",
+        headers={"X-User-Id": OWNER_ID},
+        params={"visitor_id": victim_id},
+    )
+    assert owner_history.status_code == 200
+    assert owner_history.json()["message_count"] == 2
+
+
+def test_v1_group_chat_response_cooldown_suppresses_recent_speakers(tmp_path: Path) -> None:
+    client = _client(tmp_path)
+    tavern_id, _ = _create_tavern(client)
+
+    saved = client.put(
+        f"/api/v1/taverns/{tavern_id}/group-chat/config",
+        headers={"X-User-Id": OWNER_ID},
+        json={
+            "group_chat_enabled": True,
+            "group_chat_config": {
+                "strategy": "round_robin",
+                "max_responses_per_turn": 1,
+                "response_cooldown_seconds": 30,
+            },
+        },
+    )
+    assert saved.status_code == 200
+
+    first = client.post(
+        f"/api/v1/taverns/{tavern_id}/group-chat",
+        headers={"X-User-Id": VISITOR_ID},
+        json={"visitor_id": VISITOR_ID, "visitor_name": "旅人", "message": "第一轮。"},
+    )
+    second = client.post(
+        f"/api/v1/taverns/{tavern_id}/group-chat",
+        headers={"X-User-Id": VISITOR_ID},
+        json={"visitor_id": VISITOR_ID, "visitor_name": "旅人", "message": "第二轮。"},
+    )
+    third = client.post(
+        f"/api/v1/taverns/{tavern_id}/group-chat",
+        headers={"X-User-Id": VISITOR_ID},
+        json={"visitor_id": VISITOR_ID, "visitor_name": "旅人", "message": "第三轮。"},
+    )
+
+    assert first.status_code == 200
+    assert second.status_code == 200
+    assert third.status_code == 200
+    assert first.json()["messages"][0]["character_id"] != second.json()["messages"][0]["character_id"]
+    assert third.json()["speaker_count"] == 0
+    assert third.json()["degraded"] is True
+
+
+def test_v1_group_chat_second_turn_prompt_keeps_previous_assistant_reply(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    client = _client(tmp_path)
+    tavern_id, _ = _create_tavern(
+        client,
+        llm_config={"backend": "openai", "model": "gpt-test", "api_key": "sk-test-group-runtime"},
+    )
+
+    saved = client.put(
+        f"/api/v1/taverns/{tavern_id}/group-chat/config",
+        headers={"X-User-Id": OWNER_ID},
+        json={
+            "group_chat_enabled": True,
+            "group_chat_config": {
+                "strategy": "round_robin",
+                "max_responses_per_turn": 1,
+                "response_cooldown_seconds": 0,
+                "require_name_prefix": True,
+            },
+        },
+    )
+    assert saved.status_code == 200
+
+    captured_calls: list[list[dict[str, Any]]] = []
+
+    class DummyClient:
+        def complete(self, messages: list[dict[str, Any]]):
+            captured_calls.append(messages)
+
+            class DummyResponse:
+                content = f"记住第 {len(captured_calls)} 轮群聊回应。"
+
+            return DummyResponse()
+
+    monkeypatch.setattr("fablemap_api.application.services.runtime.create_client", lambda cfg: DummyClient())
+
+    first = client.post(
+        f"/api/v1/taverns/{tavern_id}/group-chat",
+        headers={"X-User-Id": VISITOR_ID},
+        json={"visitor_id": VISITOR_ID, "visitor_name": "运行时旅人", "message": "先聊第一轮。"},
+    )
+    assert first.status_code == 200
+    first_reply = first.json()["messages"][0]["content"]
+
+    second = client.post(
+        f"/api/v1/taverns/{tavern_id}/group-chat",
+        headers={"X-User-Id": VISITOR_ID},
+        json={"visitor_id": VISITOR_ID, "visitor_name": "运行时旅人", "message": "再聊第二轮。"},
+    )
+    assert second.status_code == 200
+
+    assert len(captured_calls) >= 2
+    second_prompt = "\n\n".join(
+        str(message.get("content") or "")
+        for message in captured_calls[-1]
+        if isinstance(message, dict) and message.get("content")
+    )
+    assert first_reply in second_prompt

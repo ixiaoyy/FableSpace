@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react'
-import { getDefaultTavernService } from './services/tavernService'
+import { listWorldInfo, saveWorldInfo, testWorldInfo } from '../lib/taverns'
 
 const STATUS_LABELS = {
   matched: '命中',
@@ -108,7 +108,6 @@ export default function WorldBookTester({
   ownerId,
   entries,
 }) {
-  const tavernService = getDefaultTavernService()
   const [testText, setTestText] = useState('')
   const [includeContext, setIncludeContext] = useState(true)
   const [recentMessages, setRecentMessages] = useState('')
@@ -139,7 +138,7 @@ export default function WorldBookTester({
         // Pass current editor entries to test unsaved changes
         world_info: entries,
       }
-      const result = await tavernService.testWorldInfo(tavern.id, data, ownerId)
+      const result = await testWorldInfo(tavern.id, data, ownerId)
       setResults(result)
     } catch (err) {
       setError('测试失败：' + (err.message || '未知错误'))

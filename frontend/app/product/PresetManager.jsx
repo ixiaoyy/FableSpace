@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { getDefaultTavernService } from './services/tavernService'
+import { applyRuntimePreset, getRuntimePresets, saveRuntimePresets } from '../lib/taverns'
 
 const MEMORY_MODES = [
   { id: 'visitor_state', label: '轻量回访关系' },
@@ -81,7 +81,6 @@ function summarizePreset(preset) {
 }
 
 export default function PresetManager({ tavern, ownerId, onClose, onPresetApplied }) {
-  const tavernService = getDefaultTavernService()
   const fallbackPresets = useMemo(() => normalizePresets(tavern?.runtime_presets || []), [tavern?.id])
 
   const [presets, setPresets] = useState(fallbackPresets)
@@ -103,7 +102,7 @@ export default function PresetManager({ tavern, ownerId, onClose, onPresetApplie
       setError('')
       setStatus('')
       try {
-        const payload = await tavernService.getRuntimePresets(tavern.id, ownerId)
+        const payload = await getRuntimePresets(tavern.id, ownerId)
         if (!alive) return
         const loaded = normalizePresets(payload.presets || [])
         const defaults = normalizePresets(payload.default_presets || [])
@@ -207,9 +206,9 @@ export default function PresetManager({ tavern, ownerId, onClose, onPresetApplie
     setError('')
     setStatus('')
     try {
-      const payload = await tavernService.saveRuntimePresets(
+      const payload = await saveRuntimePresets(
         tavern.id,
-        next.filter((preset) => !preset.built_in).map(normalizePreset),
+        { presets: next.filter((preset) => !preset.built_in).map(normalizePreset) },
         ownerId,
       )
       const loaded = normalizePresets(payload.presets || [])
@@ -232,7 +231,7 @@ export default function PresetManager({ tavern, ownerId, onClose, onPresetApplie
     setError('')
     setStatus('')
     try {
-      const payload = await tavernService.applyRuntimePreset(
+      const payload = await applyRuntimePreset(
         tavern.id,
         presetToApply.built_in ? { preset_id: presetToApply.id } : { preset: presetToApply },
         ownerId,

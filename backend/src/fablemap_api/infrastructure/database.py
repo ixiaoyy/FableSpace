@@ -9,9 +9,15 @@ from __future__ import annotations
 from contextlib import contextmanager
 from typing import Generator
 
-from sqlalchemy import create_engine, Engine
-from sqlalchemy.orm import Session, sessionmaker, declarative_base
-from sqlalchemy.pool import QueuePool
+try:
+    from sqlalchemy import Engine, create_engine
+    from sqlalchemy.orm import Session, declarative_base, sessionmaker
+    from sqlalchemy.pool import QueuePool
+except ImportError as exc:  # pragma: no cover - exercised by startup smoke subprocess
+    raise ImportError(
+        "MySQL infrastructure requires optional SQLAlchemy dependencies. "
+        "Install sqlalchemy plus a MySQL driver, or unset FABLEMAP_MYSQL_URL to use JSON storage."
+    ) from exc
 
 from .settings import ApiSettings
 

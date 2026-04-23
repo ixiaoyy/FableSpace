@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
-import { getDefaultTavernService, parseCharacterCard, extractCharacterCardFromPng, getTavernAccessLabel, getTavernAccessIcon } from './services/tavernService'
+import { parseCharacterCard, extractCharacterCardFromPng, getTavernAccessLabel, getTavernAccessIcon } from './services/tavernService'
+import { addCharacter, createTavern, testLlmConfig } from '../lib/taverns'
 import LLMConfigForm, { DEFAULT_MODELS, DEFAULT_BASE_URLS, LLM_BACKENDS } from './LLMConfigForm'
 import CharacterEditor, { createEmptyCharacterDraft } from './CharacterEditor'
 import CharacterAvatar from './CharacterAvatar'
@@ -85,7 +86,6 @@ export default function TavernCreatePanel({
   const [step, setStep] = useState(1)
   const [editingCharacterIndex, setEditingCharacterIndex] = useState(null)
 
-  const tavernService = getDefaultTavernService()
   const currentStep = CREATE_STEPS.find((item) => item.id === step) || CREATE_STEPS[0]
   const hasLlmConfig = hasUsableLlmConfig(llmFormData)
   const readiness = useMemo(
@@ -191,11 +191,11 @@ export default function TavernCreatePanel({
         }
       }
 
-      const tavern = await tavernService.createTavern(payload, ownerId)
+      const tavern = await createTavern(payload, ownerId)
 
       const addedCharacters = []
       for (const char of form.characters) {
-        const addedCharacter = await tavernService.addCharacter(tavern.id, char, ownerId)
+        const addedCharacter = await addCharacter(tavern.id, char, ownerId)
         addedCharacters.push(addedCharacter)
       }
 
@@ -284,7 +284,7 @@ export default function TavernCreatePanel({
   }
 
   async function handleTestDirect(config) {
-    return tavernService.testLlmConfigDirect(config)
+    return testLlmConfig(config)
   }
 
   const accessLabel = `${getTavernAccessIcon(form.access)} ${getTavernAccessLabel(form.access)}`

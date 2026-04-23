@@ -12,6 +12,9 @@ from datetime import datetime
 from pathlib import Path
 
 import pytest
+
+pytest.importorskip("sqlalchemy", reason="optional MySQL infrastructure dependency")
+
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 

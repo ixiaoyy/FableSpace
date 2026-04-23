@@ -1,5 +1,24 @@
 import { useState, useEffect, useMemo, useRef } from 'react'
-import { getDefaultTavernService, getTavernAccessIcon, getTavernAccessLabel, getTavernStatusColor, getTavernStatusLabel } from './services/tavernService'
+import { getTavernAccessIcon, getTavernAccessLabel, getTavernStatusColor, getTavernStatusLabel } from './services/tavernService'
+import {
+  deleteMemoryAtom,
+  deleteTavern,
+  exportChatHistory,
+  exportTavernPackage,
+  getTavernChatHistory,
+  getVoiceConfig,
+  importTavernPackage,
+  listChatSessions,
+  listGlobalChatSessions,
+  listMemories,
+  listTavernVisitors,
+  listTaverns,
+  saveVoiceConfig,
+  searchChatHistory,
+  synthesizeVoice,
+  togglePinMemory,
+  updateTavern,
+} from '../lib/taverns'
 import LLMConfigForm from './LLMConfigForm'
 import TavernCreatePanel from './TavernCreatePanel'
 import CharacterManagementModal from './CharacterManagementModal'
@@ -186,7 +205,6 @@ export default function TavernOwnerPanel({
   const [memoryModalAtoms, setMemoryModalAtoms] = useState([])
   const [memoryModalLoading, setMemoryModalLoading] = useState(false)
   const [memoryModalError, setMemoryModalError] = useState('')
-  const tavernService = getDefaultTavernService()
   const ownerLabel = ownerId || '未识别店主'
   const packageInputRef = useRef(null)
   const [packageBusy, setPackageBusy] = useState('')
@@ -361,7 +379,7 @@ export default function TavernOwnerPanel({
       return
     }
     try {
-      const result = await tavernService.listTaverns({ owner_id: ownerId })
+      const result = await listTaverns({ owner_id: ownerId })
       const list = Array.isArray(result) ? result : (result?.taverns || [])
       // Filter to only show taverns owned by this user
       setMyTaverns(list.filter(t => t.owner_id === ownerId))
@@ -380,7 +398,7 @@ export default function TavernOwnerPanel({
     }
     setChatLoading(true)
     try {
-      const result = await tavernService.listChatSessions({}, ownerId)
+      const result = await listGlobalChatSessions({}, ownerId)
       const chats = Array.isArray(result?.chats) ? result.chats : []
       setChatSessions(chats)
     } catch (err) {
@@ -399,7 +417,7 @@ export default function TavernOwnerPanel({
     setChatExportStatus('')
     setChatDetailLoading(true)
     try {
-      const result = await tavernService.getChatHistory(
+      const result = await getTavernChatHistory(
         session.tavern_id,
         session.visitor_id,
         session.character_id,
@@ -430,7 +448,7 @@ export default function TavernOwnerPanel({
 
     setChatLoading(true)
     try {
-      const result = await tavernService.listChatSessions(
+      const result = await listChatSessions(
         { tavernId: visitor.tavern_id, visitorId: visitor.visitor_id },
         ownerId,
       )
@@ -461,7 +479,7 @@ export default function TavernOwnerPanel({
     setMemoryModalError('')
     setMemoryModalLoading(true)
     try {
-      const result = await tavernService.listMemories(
+      const result = await listMemories(
         visitor.tavern_id,
         { visitor_id: visitor.visitor_id, limit: 100 },
         ownerId,
@@ -526,7 +544,7 @@ export default function TavernOwnerPanel({
 
     setChatSearchLoading(true)
     try {
-      const result = await tavernService.searchChatHistory(
+      const result = await searchChatHistory(
         {
           tavernId: chatSearchTavernId,
           query: keyword,
@@ -565,7 +583,7 @@ export default function TavernOwnerPanel({
     setChatExportLoading(true)
     setChatExportStatus('')
     try {
-      const result = await tavernService.exportChatHistory(
+      const result = await exportChatHistory(
         {
           tavernId: chatDetailSession.tavern_id,
           characterId: chatDetailSession.character_id,
@@ -615,7 +633,7 @@ export default function TavernOwnerPanel({
     try {
       const visitorPayloads = await Promise.all(
         tavernList.map(async (tavern) => {
-          const result = await tavernService.getTavernVisitors(tavern.id, ownerId)
+          const result = await listTavernVisitors(tavern.id, ownerId)
           const visitors = Array.isArray(result?.visitors) ? result.visitors : []
           return visitors.map((visitor) => ({
             ...visitor,
@@ -645,7 +663,7 @@ export default function TavernOwnerPanel({
   async function handleToggleStatus(tavern) {
     const newStatus = tavern.status === 'open' ? 'closed' : 'open'
     try {
-      await tavernService.updateTavern(tavern.id, { status: newStatus }, ownerId)
+      await updateTavern(tavern.id, { status: newStatus }, ownerId)
       setMyTaverns(prev => prev.map(t => t.id === tavern.id ? { ...t, status: newStatus } : t))
     } catch (err) {
       alert(`更新失败: ${err.message}`)
@@ -654,7 +672,7 @@ export default function TavernOwnerPanel({
 
   async function handleSaveEdit(updatedData) {
     try {
-      const result = await tavernService.updateTavern(editingTavern.id, updatedData, ownerId)
+      const result = await updateTavern(editingTavern.id, updatedData, ownerId)
       setMyTaverns(prev => prev.map(t => t.id === editingTavern.id ? { ...t, ...result } : t))
       setEditingTavern(null)
       if (onTavernCreated) onTavernCreated(result)
@@ -665,7 +683,7 @@ export default function TavernOwnerPanel({
 
   async function handleDelete(tavernId) {
     try {
-      await tavernService.deleteTavern(tavernId, ownerId)
+      await deleteTavern(tavernId, ownerId)
       setMyTaverns(prev => prev.filter(t => t.id !== tavernId))
       setDeleteTarget(null)
     } catch (err) {
@@ -678,7 +696,7 @@ export default function TavernOwnerPanel({
     setSavingLlm(true)
     setLlmSaveResult(null)
     try {
-      const result = await tavernService.updateTavern(editingLlmTavern.id, { llm_config: llmFormData }, ownerId)
+      const result = await updateTavern(editingLlmTavern.id, { llm_config: llmFormData }, ownerId)
       setMyTaverns(prev => prev.map(t => t.id === editingLlmTavern.id ? { ...t, ...result } : t))
       setEditingLlmTavern(prev => prev ? { ...prev, ...result } : prev)
       setLlmSaveResult({ ok: true, message: 'AI 配置已保存' })
@@ -749,7 +767,7 @@ export default function TavernOwnerPanel({
     setPackageBusy(`export:${tavern.id}`)
     setPackageStatus('')
     try {
-      const payload = await tavernService.exportTavernPackage(tavern.id, ownerId)
+      const payload = await exportTavernPackage(tavern.id, ownerId)
       const filename = `${slugifyFilename(payload?.tavern?.name || tavern.name)}-fablemap-package.json`
       downloadJsonFile(filename, payload)
       setPackageStatus(`已导出《${tavern.name}》酒馆包，不包含 API Key 和访客聊天。`)
@@ -782,7 +800,7 @@ export default function TavernOwnerPanel({
       if (lonInput == null) return
       const nameInput = window.prompt('导入后的酒馆名称', `${tavernPayload.name || '导入酒馆'} 副本`)
       if (nameInput == null) return
-      const imported = await tavernService.importTavernPackage(
+      const imported = await importTavernPackage(
         packageData,
         {
           lat: Number(latInput),
@@ -1122,12 +1140,12 @@ export default function TavernOwnerPanel({
           error={memoryModalError}
           onClose={closeMemoryModal}
           onPin={(id, pinned) => {
-            tavernService.togglePinMemory(memoryModalVisitor.tavern_id, id, pinned, ownerId)
+            togglePinMemory(memoryModalVisitor.tavern_id, id, pinned, ownerId)
               .then(() => setMemoryModalAtoms(prev => prev.map(m => m.id === id ? { ...m, pinned } : m)))
               .catch(err => alert('固定失败：' + err.message))
           }}
           onDelete={(id) => {
-            tavernService.deleteMemoryAtom(memoryModalVisitor.tavern_id, id, ownerId)
+            deleteMemoryAtom(memoryModalVisitor.tavern_id, id, ownerId)
               .then(() => setMemoryModalAtoms(prev => prev.filter(m => m.id !== id)))
               .catch(err => alert('删除失败：' + err.message))
           }}
@@ -1929,7 +1947,7 @@ function VoiceConfigSection({ tavernId, ownerId = '', onSave }) {
   useEffect(() => {
     if (!tavernId) return
     setLoading(true)
-    tavernService.getVoiceConfig(tavernId, ownerId).then((data) => {
+    getVoiceConfig(tavernId, ownerId).then((data) => {
       setConfig(data.voice_config || {
         enabled: false,
         tts_provider: 'elevenlabs',
@@ -1947,7 +1965,7 @@ function VoiceConfigSection({ tavernId, ownerId = '', onSave }) {
     setSaving(true)
     setResult(null)
     try {
-      await tavernService.saveVoiceConfig(tavernId, config, ownerId)
+      await saveVoiceConfig(tavernId, config, ownerId)
       setResult({ ok: true, message: '语音配置已保存' })
       if (onSave) onSave(config)
     } catch (err) {
@@ -1962,9 +1980,11 @@ function VoiceConfigSection({ tavernId, ownerId = '', onSave }) {
     setTesting(true)
     setResult(null)
     try {
-      const audioUrl = await tavernService.synthesizeVoice(tavernId, '你好，这是语音测试', '', ownerId)
+      const audioBlob = await synthesizeVoice(tavernId, { text: '你好，这是语音测试' }, ownerId)
+      const audioUrl = URL.createObjectURL(audioBlob)
       const audio = new Audio(audioUrl)
-      audio.play()
+      void audio.play()
+      audio.addEventListener('ended', () => URL.revokeObjectURL(audioUrl), { once: true })
       setResult({ ok: true, message: '正在播放测试语音...' })
     } catch (err) {
       setResult({ ok: false, message: err.message })

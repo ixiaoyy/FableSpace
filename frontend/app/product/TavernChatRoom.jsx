@@ -1,5 +1,4 @@
 import { useMemo, useState, useEffect, useRef } from 'react'
-import { getDefaultTavernService } from './services/tavernService'
 import TavernContextPanel from './TavernContextPanel'
 import TavernMemoryPanel from './TavernMemoryPanel'
 import CharacterAvatar from './CharacterAvatar'
@@ -18,6 +17,23 @@ import {
   updateGuildProgress,
 } from './tavernPlayModes'
 import { buildMiniGameStartPrompt, getMiniGameTemplates } from './tavernMiniGames'
+import {
+  abandonGameplaySession,
+  advanceGameplaySession,
+  getCharacterSprites,
+  getExpressions,
+  getGameplays,
+  getGroupChatHistory,
+  getTavernChatHistory,
+  getVoiceConfig,
+  inferExpression,
+  listGameplaySessions,
+  sendGroupChat,
+  sendTavernChat,
+  startGameplaySession,
+  synthesizeVoice,
+  transcribeVoice,
+} from '../lib/taverns'
 
 /**
  * TavernChatRoom — 酒馆三栏布局聊天房间
@@ -318,7 +334,7 @@ function ChatInputArea({ onSend, sending, character, placeholder, voiceConfig, t
           setRecording(false)
 
           try {
-            const result = await getDefaultTavernService().transcribeVoice(tavernId || voiceConfig?.tavernId || '', blob)
+            const result = await transcribeVoice(tavernId || voiceConfig?.tavernId || '', blob)
             setText((prev) => prev + (result.text || ''))
             // Auto-resize after adding text
             setTimeout(() => {
@@ -697,7 +713,6 @@ export default function TavernChatRoom({
   const [gameplayBusy, setGameplayBusy] = useState(false)
   const [gameplayError, setGameplayError] = useState('')
   const messagesEndRef = useRef(null)
-  const tavernService = getDefaultTavernService()
   const groupChatEnabled = Boolean(tavern?.group_chat_enabled && characters.length > 1)
   const groupChatConfig = tavern?.group_chat_config || {}
   const playMode = useMemo(
@@ -790,7 +805,7 @@ export default function TavernChatRoom({
   // Load voice config when roomId changes
   useEffect(() => {
     if (!roomId) return
-    tavernService.getVoiceConfig(roomId).then((result) => {
+    getVoiceConfig(roomId).then((result) => {
       setVoiceConfig(result.voice_config)
     }).catch(() => {
       // Voice config not available, silently ignore
@@ -803,11 +818,11 @@ export default function TavernChatRoom({
     const fallbackSprites = normalizeSprites(selectedChar.sprites)
     try {
       // Load available expressions
-      const exprResult = await tavernService.getExpressions()
+      const exprResult = await getExpressions()
       setAvailableExpressions(exprResult.expressions || [])
 
       // Load character sprites
-      const spriteResult = await tavernService.getCharacterSprites(roomId, selectedChar.id)
+      const spriteResult = await getCharacterSprites(roomId, selectedChar.id)
       const loadedSprites = normalizeSprites(spriteResult.sprites || fallbackSprites)
       setSprites(loadedSprites)
       setCurrentExpression(spriteResult.default_expression || (loadedSprites.neutral ? DEFAULT_EXPRESSION : currentExpression))
@@ -824,7 +839,7 @@ export default function TavernChatRoom({
     if (!text || !roomId || !selectedChar) return null
     setExpressionBusy(true)
     try {
-      const result = await tavernService.inferExpression(text, selectedChar.name, roomId, selectedChar.id)
+      const result = await inferExpression(text, selectedChar.name, roomId, selectedChar.id)
       const expression = result.expression || DEFAULT_EXPRESSION
       setCurrentExpression(expression)
       setExpressionSource(result.source || 'keyword')
@@ -935,7 +950,7 @@ export default function TavernChatRoom({
     if (!roomId) return
     setLoading(true)
     try {
-      const result = await tavernService.getGroupChatHistory(roomId, visitorId, visitorId, 80)
+      const result = await getGroupChatHistory(roomId, visitorId, visitorId, 80)
       const historyMessages = Array.isArray(result.messages) ? result.messages : []
       setMessages(historyMessages.map(mapGroupHistoryMessage))
       setGroupSessionError('')
@@ -952,7 +967,7 @@ export default function TavernChatRoom({
     if (!roomId || !selectedChar) return
     setLoading(true)
     try {
-      const result = await tavernService.getChatHistory(roomId, visitorId, selectedChar.id, visitorId)
+      const result = await getTavernChatHistory(roomId, visitorId, selectedChar.id)
       if (result.messages && result.messages.length > 0) {
         setMessages(result.messages.map((m) => ({
           id: m.id || `hist-${Date.now()}-${Math.random()}`,
@@ -995,8 +1010,8 @@ export default function TavernChatRoom({
     setGameplayError('')
     try {
       const [gameplayResult, sessionResult] = await Promise.all([
-        tavernService.getGameplays(roomId, visitorId),
-        tavernService.listGameplaySessions(roomId, { state: 'active' }, visitorId),
+        getGameplays(roomId, visitorId),
+        listGameplaySessions(roomId, { state: 'active' }, visitorId),
       ])
       const nextGameplays = Array.isArray(gameplayResult?.gameplays) ? gameplayResult.gameplays : []
       const nextSessions = Array.isArray(sessionResult?.sessions) ? sessionResult.sessions : []
@@ -1030,9 +1045,9 @@ export default function TavernChatRoom({
     setGameplayError('')
     try {
       const characterId = selectedChar?.id || characters[0]?.id || ''
-      const result = await tavernService.startGameplaySession(
+      const result = await startGameplaySession(
         roomId,
-        { gameplayId: gameplay.id, characterId },
+        { definition_id: gameplay.id },
         visitorId,
       )
       applyGameplayResult(result)
@@ -1048,9 +1063,9 @@ export default function TavernChatRoom({
     setGameplayBusy(true)
     setGameplayError('')
     try {
-      const result = await tavernService.startGameplaySession(
+      const result = await startGameplaySession(
         roomId,
-        { gameplayId: session.gameplay_id, characterId: session.character_id || selectedChar?.id || '' },
+        { definition_id: session.gameplay_id },
         visitorId,
       )
       applyGameplayResult(result)
@@ -1067,7 +1082,7 @@ export default function TavernChatRoom({
     setGameplayBusy(true)
     setGameplayError('')
     try {
-      const result = await tavernService.advanceGameplaySession(roomId, activeGameplaySession.id, data, visitorId)
+      const result = await advanceGameplaySession(roomId, activeGameplaySession.id, data, visitorId)
       applyGameplayResult(result)
     } catch (err) {
       setGameplayError(`玩法推进失败：${err.message}`)
@@ -1081,7 +1096,7 @@ export default function TavernChatRoom({
     setGameplayBusy(true)
     setGameplayError('')
     try {
-      const result = await tavernService.abandonGameplaySession(roomId, activeGameplaySession.id, visitorId)
+      const result = await abandonGameplaySession(roomId, activeGameplaySession.id, visitorId)
       applyGameplayResult(result)
       setGameplayScene(null)
       await loadGameplayState()
@@ -1113,13 +1128,14 @@ export default function TavernChatRoom({
     setSending(true)
 
     try {
-      const result = await tavernService.sendChat(
+      const result = await sendTavernChat(
         roomId,
-        selectedChar.id,
-        promptText,
-        visitorId,
-        visitorNickname,
-        displayText !== promptText ? { displayMessage: displayText } : {},
+        {
+          character_id: selectedChar.id,
+          message: promptText,
+          visitor_id: visitorId,
+          visitor_name: visitorNickname,
+        },
       )
       const responseText = result.response || '...'
       const replyId = `msg-${Date.now()}-r`
@@ -1207,14 +1223,12 @@ export default function TavernChatRoom({
     setSending(true)
 
     try {
-      const result = await tavernService.sendGroupChat(
-        roomId,
-        cleanText,
-        visitorId,
-        visitorNickname,
-        visitorId,
-        displayText !== cleanText ? { displayMessage: displayText } : {},
-      )
+      const result = await sendGroupChat(roomId, {
+        message: cleanText,
+        visitor_id: visitorId,
+        visitor_name: visitorNickname,
+        display_message: displayText !== cleanText ? displayText : undefined,
+      })
       const replyMessages = Array.isArray(result.messages)
         ? result.messages.map(mapGroupResponseMessage)
         : []
@@ -1315,7 +1329,7 @@ export default function TavernChatRoom({
   async function handlePlayTTS(tavernId, text) {
     if (!text || !tavernId) return
     try {
-      const audioUrl = await tavernService.synthesizeVoice(tavernId, text)
+      const audioUrl = await synthesizeVoice(tavernId, { text })
       // Play the audio
       const audio = new Audio(audioUrl)
       audio.play()
@@ -1594,7 +1608,6 @@ export default function TavernChatRoom({
             visitorNickname={visitorNickname}
             roomName={roomName}
             tavernId={roomId}
-            tavernService={tavernService}
             visitorId={visitorId}
             createdMemories={createdMemories}
             onClose={() => setMemoryPanelOpen(false)}

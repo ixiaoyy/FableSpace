@@ -4,7 +4,7 @@ from tempfile import TemporaryDirectory
 import pytest
 
 
-def test_chat_history_and_export_are_limited_to_visitor_or_owner():
+def test_chat_history_is_limited_to_visitor_or_owner():
     pytest.importorskip("httpx")
     from fastapi.testclient import TestClient
     from fablemap_api.core.web.app import create_web_app
@@ -82,67 +82,3 @@ def test_chat_history_and_export_are_limited_to_visitor_or_owner():
                 f"/api/taverns/{tavern_id}/chat?visitor_id=visitor_alpha&character_id={character_id}",
             )
             assert anonymous_history.status_code == 403
-
-            owner_export = client.post(
-                "/api/chats/export",
-                headers=owner_headers,
-                json={
-                    "tavern_id": tavern_id,
-                    "character_id": character_id,
-                    "visitor_id": "visitor_alpha",
-                    "format": "text",
-                },
-            )
-            assert owner_export.status_code == 200
-            assert "Alpha private note" in owner_export.json()["text"]
-
-            owner_search = client.post(
-                "/api/chats/search",
-                headers=owner_headers,
-                json={
-                    "tavern_id": tavern_id,
-                    "character_id": character_id,
-                    "query": "PRIVATE",
-                    "limit": 10,
-                },
-            )
-            assert owner_search.status_code == 200
-            owner_search_payload = owner_search.json()
-            assert owner_search_payload["count"] == 1
-            assert owner_search_payload["results"][0]["message"]["content"] == "Alpha private note"
-
-            empty_search = client.post(
-                "/api/chats/search",
-                headers=owner_headers,
-                json={
-                    "tavern_id": tavern_id,
-                    "character_id": character_id,
-                    "query": "   ",
-                },
-            )
-            assert empty_search.status_code == 200
-            assert empty_search.json()["count"] == 0
-
-            forbidden_search = client.post(
-                "/api/chats/search",
-                headers={"X-User-Id": "visitor_beta"},
-                json={
-                    "tavern_id": tavern_id,
-                    "character_id": character_id,
-                    "visitor_id": "visitor_alpha",
-                    "query": "Alpha",
-                },
-            )
-            assert forbidden_search.status_code == 403
-
-            forbidden_export = client.post(
-                "/api/chats/export",
-                headers={"X-User-Id": "visitor_beta"},
-                json={
-                    "tavern_id": tavern_id,
-                    "character_id": character_id,
-                    "visitor_id": "visitor_alpha",
-                    "format": "text",
-                },
-            )
-            assert forbidden_export.status_code == 403

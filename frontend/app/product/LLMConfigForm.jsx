@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { getDefaultTavernService } from './services/tavernService'
+import { testTavernLlm } from '../lib/taverns'
 
 /**
  * All supported LLM backends with metadata.
@@ -235,8 +235,7 @@ export default function LLMConfigForm({ value = {}, onChange, compact = false, t
       if (testDirect) {
         result = await testDirect(config)
       } else if (tavernId) {
-        const service = getDefaultTavernService()
-        result = await service.testLlmConfig(tavernId, config)
+        result = await testTavernLlm(tavernId, config)
       } else {
         setTestResult({ ok: false, message: '无法测试连接：缺少酒馆 ID' })
         setTesting(false)

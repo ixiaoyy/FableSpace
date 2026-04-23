@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { getDefaultTavernService } from './services/tavernService'
+import { importTavernPackage } from '../lib/taverns'
 import { getTemplateTags, TAVERN_TEMPLATES } from './tavernTemplates'
 
 function toNumber(value, fallback = 0) {
@@ -22,7 +22,6 @@ export default function TavernTemplateGallery({
   onInstalled,
   onOpenOwner,
 }) {
-  const tavernService = getDefaultTavernService()
   const [query, setQuery] = useState('')
   const [activeTag, setActiveTag] = useState('all')
   const [selectedTemplateId, setSelectedTemplateId] = useState(TAVERN_TEMPLATES[0]?.id || '')
@@ -80,9 +79,9 @@ export default function TavernTemplateGallery({
     setInstalling(true)
     setStatus('')
     try {
-      const result = await tavernService.importTavernPackage(
-        selectedTemplate.package,
+      const result = await importTavernPackage(
         {
+          package: selectedTemplate.package,
           lat,
           lon,
           name: installForm.name || `${selectedTemplate.title} 副本`,

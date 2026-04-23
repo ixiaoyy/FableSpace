@@ -15,12 +15,28 @@ function isPublicOpenTavern(tavern) {
   return tavern?.access === 'public' && tavern?.status === 'open'
 }
 
-export async function resolveNewcomerTavern(tavernService, userId = '') {
+function isTavernClient(value) {
+  return Boolean(value)
+    && typeof value.getTavern === 'function'
+    && typeof value.listTaverns === 'function'
+}
+
+async function getDefaultTavernClient() {
+  const { getTavern, listTaverns } = await import('../../lib/taverns')
+  return { getTavern, listTaverns }
+}
+
+export async function resolveNewcomerTavern(serviceOrUserId = '', maybeUserId = '') {
+  const tavernClient = isTavernClient(serviceOrUserId)
+    ? serviceOrUserId
+    : await getDefaultTavernClient()
+  const userId = isTavernClient(serviceOrUserId) ? maybeUserId : serviceOrUserId
+
   let primaryError = null
   let primaryTavern = null
 
   try {
-    primaryTavern = await tavernService.getTavern(NEWCOMER_TAVERN_ID, userId)
+    primaryTavern = await tavernClient.getTavern(NEWCOMER_TAVERN_ID, userId)
     if (isPublicOpenTavern(primaryTavern)) {
       return primaryTavern
     }
@@ -29,11 +45,11 @@ export async function resolveNewcomerTavern(tavernService, userId = '') {
     primaryError = err
   }
 
-  const payload = await tavernService.listTaverns({
+  const payload = await tavernClient.listTaverns({
     query: NEWCOMER_TAVERN_QUERY,
     access: 'public',
     status: 'open',
-  })
+  }, userId)
   const candidates = normalizeTavernList(payload)
   const exactFallback = candidates.find((item) => item?.id === NEWCOMER_TAVERN_ID && isPublicOpenTavern(item))
   const publicFallback = candidates.find(isPublicOpenTavern)

@@ -6,13 +6,16 @@ from fastapi import APIRouter, Request
 
 from ...contracts.chat import (
     CharacterTalkativenessRequest,
+    ChatExportRequest,
     ChatRequest,
+    ChatSearchRequest,
     GroupChatConfigRequest,
     GroupChatRequest,
 )
 from .common import get_user_id, taverns_service
 
 router = APIRouter(prefix="/taverns", tags=["chat"])
+chat_router = APIRouter(prefix="/chat", tags=["chat"])
 
 
 @router.get("/{tavern_id}/chat")
@@ -98,4 +101,57 @@ def update_character_talkativeness(
         character_id,
         data.to_payload(),
         get_user_id(request),
+    )
+
+
+@router.get("/{tavern_id}/chat/sessions")
+def list_chat_sessions(
+    request: Request,
+    tavern_id: str,
+    character_id: str = "",
+    visitor_id: str = "",
+) -> dict[str, Any]:
+    user_id = get_user_id(request)
+    return taverns_service(request).list_chat_sessions(
+        tavern_id,
+        user_id,
+        character_id=character_id,
+        visitor_id=visitor_id,
+    )
+
+
+@router.post("/{tavern_id}/chat/export")
+def export_chat(request: Request, tavern_id: str, data: ChatExportRequest) -> dict[str, Any]:
+    user_id = get_user_id(request)
+    return taverns_service(request).export_chat(
+        tavern_id,
+        user_id,
+        character_id=data.character_id,
+        visitor_id=data.visitor_id,
+        format=data.format,
+    )
+
+
+@router.post("/{tavern_id}/chat/search")
+def search_chat(request: Request, tavern_id: str, data: ChatSearchRequest) -> dict[str, Any]:
+    return taverns_service(request).search_chat_history(
+        tavern_id,
+        get_user_id(request),
+        character_id=data.character_id,
+        visitor_id=data.visitor_id,
+        query=data.query,
+        limit=data.limit,
+    )
+
+
+@chat_router.get("/sessions")
+def list_global_chat_sessions(
+    request: Request,
+    character_id: str = "",
+    visitor_id: str = "",
+) -> dict[str, Any]:
+    return taverns_service(request).list_global_chat_sessions(
+        get_user_id(request),
+        character_id=character_id,
+        visitor_id=visitor_id,
     )

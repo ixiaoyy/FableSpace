@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { getDefaultTavernService, getTavernStatusColor, getTavernStatusLabel, getTavernAccessLabel, getTavernAccessIcon } from './services/tavernService'
+import { getTavernStatusColor, getTavernStatusLabel, getTavernAccessLabel, getTavernAccessIcon } from './services/tavernService'
+import { enterTavern } from '../lib/taverns'
 import { inferTavernPlayMode, getTavernPlayBadges } from './tavernPlayModes'
 
 /**
@@ -18,7 +19,6 @@ export default function TavernDetailPanel({
   const [passwordError, setPasswordError] = useState('')
   const [entering, setEntering] = useState(false)
   const [showPasswordModal, setShowPasswordModal] = useState(false)
-  const tavernService = getDefaultTavernService()
 
   const isOwner = tavern?.owner_id === visitorId
   const characters = tavern?.characters || []
@@ -29,7 +29,7 @@ export default function TavernDetailPanel({
     setEntering(true)
     setPasswordError('')
     try {
-      await tavernService.enterTavern(tavern.id, passwordToUse, visitorId)
+      await enterTavern(tavern.id, passwordToUse, visitorId)
       if (onEnter) onEnter()
     } catch (err) {
       if (err.message?.includes('密码')) {

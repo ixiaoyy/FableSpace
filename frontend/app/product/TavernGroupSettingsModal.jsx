@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { getDefaultTavernService } from './services/tavernService'
+import { getGroupChatConfig, saveGroupChatConfig } from '../lib/taverns'
 import CharacterAvatar from './CharacterAvatar'
 import CharacterLookSummary from './CharacterLookSummary'
 
@@ -96,7 +96,6 @@ export default function TavernGroupSettingsModal({
   onClose,
   onSaved,
 }) {
-  const tavernService = getDefaultTavernService()
   const [enabled, setEnabled] = useState(normalizeBool(tavern?.group_chat_enabled))
   const [config, setConfig] = useState(() => normalizeGroupConfig(tavern?.group_chat_config || {}))
   const [characters, setCharacters] = useState(() => (tavern?.characters || []).map(normalizeCharacter))
@@ -123,7 +122,7 @@ export default function TavernGroupSettingsModal({
       setLoadingConfig(true)
       setError('')
       try {
-        const payload = await tavernService.getGroupChatConfig(tavern.id, ownerId)
+        const payload = await getGroupChatConfig(tavern.id, ownerId)
         if (cancelled) return
         setEnabled(normalizeBool(payload?.group_chat_enabled))
         setConfig(normalizeGroupConfig(payload?.group_chat_config || {}))
@@ -177,7 +176,7 @@ export default function TavernGroupSettingsModal({
         group_chat_config: normalizedConfig,
         character_talkativeness: characterTalkativeness,
       }
-      const result = await tavernService.updateGroupChatConfig(tavern.id, payload, ownerId)
+      const result = await saveGroupChatConfig(tavern.id, payload, ownerId)
       const resultCharacters = Array.isArray(result?.characters) ? result.characters : characters
       const mergedCharacters = mergeConfigCharacters(tavern?.characters || characters, resultCharacters)
       const updated = {

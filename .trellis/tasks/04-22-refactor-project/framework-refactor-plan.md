@@ -52,6 +52,8 @@
 - 明确 env keys、默认值、失败模式。
 - 验证 backend native app 可以在默认开发环境稳定启动。
 
+Status 2026-04-23: complete for the default-startup dependency gate. MySQL/SQLAlchemy remains optional infrastructure instead of a required dependency addition; the native app must import/start with `mysql_url=""` even when SQLAlchemy is unavailable. MySQL-specific tests now skip when SQLAlchemy is absent, and a subprocess smoke test blocks `sqlalchemy` imports while verifying `/api/v1/health` through the JSON store. Validation passed: compileall, focused startup/API smoke tests, backend tests, and full pytest.
+
 ### P1.1 Backend v1 route split
 
 目标：把 `api/v1/taverns.py` 拆成领域路由模块，保持 URL 与 payload 等价。

@@ -34,9 +34,24 @@ class CharacterTalkativenessRequest(FlexibleBody):
     value: float | str | None = None
 
 
+class ChatExportRequest(FlexibleBody):
+    character_id: str = ""
+    visitor_id: str = ""
+    format: str = "json"
+
+
+class ChatSearchRequest(FlexibleBody):
+    character_id: str = ""
+    visitor_id: str = ""
+    query: str = ""
+    limit: int | str = 50
+
+
 __all__ = [
     "CharacterTalkativenessRequest",
+    "ChatExportRequest",
     "ChatRequest",
+    "ChatSearchRequest",
     "GroupChatConfigRequest",
     "GroupChatRequest",
 ]

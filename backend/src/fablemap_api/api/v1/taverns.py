@@ -48,7 +48,7 @@ def update_tavern(request: Request, tavern_id: str, data: TavernUpdateRequest) -
 
 
 @router.delete("/{tavern_id}")
-def delete_tavern(request: Request, tavern_id: str) -> dict[str, str]:
+def delete_tavern(request: Request, tavern_id: str) -> dict[str, Any]:
     return taverns_service(request).delete_tavern(tavern_id, get_user_id(request))
 
 

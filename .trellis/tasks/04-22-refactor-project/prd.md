@@ -986,3 +986,158 @@ Validation after this slice:
 * `npm --prefix .\frontend run typecheck` — passed.
 * `npm --prefix .\frontend run build` — passed.
 * `npm --prefix .\frontend test` — passed.
+
+## P1.0 Startup / Optional MySQL Dependency Stability (2026-04-23)
+
+本轮继续当前 P1 framework refactor，完成默认启动依赖稳定性切片：
+
+* 不新增 `requirements.txt` 依赖，按 AGENTS 约束把 SQLAlchemy/MySQL 保持为 optional infrastructure。
+* `database.py` 在显式导入 MySQL infrastructure 但缺少 SQLAlchemy 时给出清晰 ImportError，提示安装 SQLAlchemy/MySQL driver 或取消 `FABLEMAP_MYSQL_URL` 使用 JSON store。
+* `backend/tests/test_mysql_infrastructure.py` 使用 `pytest.importorskip("sqlalchemy")`，让 JSON-only 环境不会因 MySQL 行为测试失败。
+* 新增 `backend/tests/test_startup_optional_mysql.py`：在 subprocess 中阻断 `sqlalchemy` import，验证默认 `mysql_url=""` 时 native app 可创建并通过 `/api/v1/health`。
+* 更新 `.trellis/spec/backend/database-guidelines.md`，沉淀 “Optional MySQL Infrastructure Startup” 可执行合同。
+
+Validation after this slice:
+
+* `py -3 -m compileall -q backend/src` — passed.
+* `py -3 -m pytest -q backend/tests/test_startup_optional_mysql.py backend/tests/test_api_smoke.py --tb=short` — passed, 4 tests.
+* `py -3 -m pytest -q backend/tests --tb=short` — passed, 55 tests, 6 existing datetime deprecation warnings.
+* `py -3 -m pytest -q --tb=short` — passed, 284 tests, 6 existing datetime deprecation warnings.
+* `git diff --check -- backend/src/fablemap_api/infrastructure/database.py backend/tests/test_mysql_infrastructure.py` — passed, with existing LF→CRLF working-copy warnings only.
+
+## P1.5.6 Owner Panel Native Client Extraction (2026-04-23)
+
+继续当前 P1 compatibility inventory / frontend extraction，完成 `TavernOwnerPanel.jsx` 对 legacy `tavernService` API 调用的清理：
+
+* `frontend/app/product/TavernOwnerPanel.jsx` 不再创建 `getDefaultTavernService()`，owner panel 的 API 读写统一走 `frontend/app/lib/taverns.ts`。
+* 聊天详情读取改为 native `getTavernChatHistory()`；访客列表改为 `listTavernVisitors()`；访客记忆读取改为 `listMemories()`。
+* 记忆固定/删除改为 native `togglePinMemory()` / `deleteMemoryAtom()`。
+* 店主 tavern CRUD、酒馆包导入导出、语音配置与 TTS 测试也全部切到 native `app/lib/taverns.ts` 客户端。
+* `frontend/app/lib/taverns.ts` 新增/补强：
+  * owner-capable `getTavernChatHistory(..., userId, limit)`；
+  * native `/memories` client `listMemories()`；
+  * `togglePinMemory()` helper；
+  * `queryString()` 支持 boolean 参数，避免 pinned filter 类型漂移。
+* 为当前 owner-console 聊天切片补齐稳定性修正：
+  * `backend/tests/test_v1_chat_sessions.py` 的 tavern fixture 改为显式配置 rules backend，确保 session/export 测试覆盖真实可聊天状态；
+  * `fetchOwnerChatSessions()` 修正为正确传递 ownerId 给 native `listGlobalChatSessions()`。
+
+Validation after this slice:
+
+* `py -3 -m pytest -q backend/tests/test_startup_optional_mysql.py backend/tests/test_v1_chat_sessions.py backend/tests/test_v1_compatibility_inventory_parity.py --tb=short` — passed, 12 tests.
+* `npm --prefix .\frontend run typecheck` — passed.
+* `npm --prefix .\frontend run build` — passed.
+* `npm --prefix .\frontend test` — passed.
+* `git diff --check -- frontend/app/lib/taverns.ts frontend/app/product/TavernOwnerPanel.jsx` — passed, with existing LF→CRLF working-copy warnings only.
+
+## P1.5.5 Safe Compatibility Route Deletion (2026-04-23)
+
+继续当前 compatibility inventory 收尾，先做不阻塞主链路的安全删除切片：
+
+* 从 `backend/src/fablemap_api/core/web/router.py` 删除了 **无 active caller 的 Category M ST legacy routes**：
+  * bookmarks / templates / backups
+  * autocomplete / speech-transcribe / caption / generic generate / bulkedit
+  * quick replies / slash commands / extensions / presets
+  * image generate/models / translate / embed / vectors
+* 新增 `backend/tests/test_v1_compatibility_inventory_parity.py` 回归断言：上述已删除 compatibility routes 现在统一返回 `404`。
+* 本轮**刻意不动**：
+  * `/api/group/*`（旧 group chat tests 仍依赖）
+  * `/api/groups/*`（仍在 quarantine）
+  * `/api/chats/{tavern_id}/{character_id}` DELETE（native delete-history 决策未定）
+  * health/meta、ST proxy、world-stage
+
+Validation after this slice:
+
+* `py -3 -m compileall -q backend/src` — passed.
+* `py -3 -m pytest -q backend/tests/test_v1_compatibility_inventory_parity.py tests/test_group_chat.py --tb=short` — passed, 51 tests.
+* `git diff --check -- backend/src/fablemap_api/core/web/router.py backend/tests/test_v1_compatibility_inventory_parity.py .trellis/tasks/04-22-refactor-project/compatibility-inventory.md .trellis/tasks/04-22-refactor-project/prd.md` — passed, with existing LF→CRLF working-copy warnings only.
+
+## P1.5.5 Group Session Route Deletion (2026-04-23)
+
+继续 P1.5.5，完成旧 SillyTavern-style transient group session 路由的真正删除：
+
+* `tests/test_group_chat.py` 中原先依赖 `/api/group/*` 的两段旧 session API 测试已移除。
+* `backend/tests/test_v1_runtime_features.py` 补了 native `/api/v1/taverns/{id}/group-chat*` 覆盖：
+  * response cap + round-robin 跨轮持久化；
+  * 第二轮 prompt 会继承上一轮 assistant reply。
+* `backend/tests/test_v1_compatibility_inventory_parity.py` 新增断言：`/api/group/*` 已删除后统一返回 `404`。
+* 从 `backend/src/fablemap_api/core/web/router.py` 删除：
+  * `/api/group/create`
+  * `/api/group/{session_id}`
+  * `/api/group/{session_id}/add_member`
+  * `/api/group/{session_id}/talkativeness`
+  * `/api/group/{session_id}/send`
+  * `/api/group/{session_id}/record`
+* 同步删除 `backend/src/fablemap_api/core/web/service.py` 中仅供这些 legacy routes 使用的 transient session helper。
+
+Validation after this slice:
+
+* `py -3 -m compileall -q backend/src` — passed.
+* `py -3 -m pytest -q backend/tests/test_v1_runtime_features.py backend/tests/test_v1_compatibility_inventory_parity.py tests/test_group_chat.py --tb=short` — passed, 59 tests.
+* `git diff --check -- backend/src/fablemap_api/core/web/router.py backend/src/fablemap_api/core/web/service.py backend/tests/test_v1_runtime_features.py backend/tests/test_v1_compatibility_inventory_parity.py tests/test_group_chat.py .trellis/tasks/04-22-refactor-project/compatibility-inventory.md .trellis/tasks/04-22-refactor-project/prd.md` — passed, with existing LF→CRLF working-copy warnings only.
+
+## P1.5.5 Tavern Group-Chat Compatibility Route Deletion (2026-04-23)
+
+继续 P1.5.5，把 tavern mainline 上最后一组 group-chat compatibility routes 也删掉：
+
+* `tests/test_group_chat.py` 中依赖 compatibility `/api/taverns/{id}/group-chat*` 的四段 route 测试已移除，保留 direct service / policy 测试。
+* `backend/tests/test_v1_runtime_features.py` 继续补 native `/api/v1/taverns/{id}/group-chat*` 覆盖：
+  * rules backend 下单角色静音、自动记忆创建、group-chat history 与 `/memories` 可见性；
+  * cross-visitor 冒充发送拦截；
+  * response cooldown 抑制最近说过话的角色。
+* `backend/tests/test_v1_compatibility_inventory_parity.py` 新增断言：compatibility tavern group-chat routes 以及兼容 talkativeness route 现在统一返回 `404`。
+* 从 `backend/src/fablemap_api/core/web/router.py` 删除：
+  * `GET /api/taverns/{id}/group-chat`
+  * `PUT /api/taverns/{id}/group-chat/config`
+  * `POST /api/taverns/{id}/group-chat`
+  * `GET /api/taverns/{id}/group-chat/history`
+  * `PUT /api/taverns/{id}/characters/{id}/talkativeness`
+
+Validation after this slice:
+
+* `py -3 -m compileall -q backend/src` — passed.
+* `py -3 -m pytest -q backend/tests/test_v1_runtime_features.py backend/tests/test_v1_compatibility_inventory_parity.py tests/test_group_chat.py --tb=short` — passed, 63 tests.
+* `git diff --check -- backend/src/fablemap_api/core/web/router.py backend/tests/test_v1_runtime_features.py backend/tests/test_v1_compatibility_inventory_parity.py tests/test_group_chat.py .trellis/tasks/04-22-refactor-project/compatibility-inventory.md .trellis/tasks/04-22-refactor-project/prd.md` — passed, with existing LF→CRLF working-copy warnings only.
+
+## P1.5.5 Group Metadata Route Deletion (2026-04-23)
+
+继续同一类 compatibility cleanup，把 legacy `/api/groups/*` 也下掉：
+
+* `backend/tests/test_v1_compatibility_inventory_parity.py` 新增断言：`/api/groups` 与 `/api/groups/{id}` 现在统一返回 `404`。
+* 从 `backend/src/fablemap_api/core/web/router.py` 删除：
+  * `GET /api/groups`
+  * `POST /api/groups`
+  * `GET /api/groups/{id}`
+  * `PUT /api/groups/{id}`
+  * `DELETE /api/groups/{id}`
+* 保留 native parity 证明：`/api/v1/taverns/{id}` 的 flexible metadata update/read 仍可承载 `groups` 字段，`test_v1_update_preserves_flexible_group_metadata_for_compat_group_crud` 继续覆盖这点。
+
+Validation after this slice:
+
+* `py -3 -m compileall -q backend/src` — passed.
+* `py -3 -m pytest -q backend/tests/test_v1_compatibility_inventory_parity.py --tb=short` — passed, 55 tests.
+* `git diff --check -- backend/src/fablemap_api/core/web/router.py backend/tests/test_v1_compatibility_inventory_parity.py .trellis/tasks/04-22-refactor-project/compatibility-inventory.md .trellis/tasks/04-22-refactor-project/prd.md` — passed, with existing LF→CRLF working-copy warnings only.
+
+## P1.5.5 Memory Alias + Chat Import/Export/Search Route Deletion (2026-04-23)
+
+继续 P1.5.5，收掉当前最安全的一批 chat/memory compatibility 路由：
+
+* 从 `backend/src/fablemap_api/core/web/router.py` 删除：
+  * `GET /api/taverns/{id}/memories`
+  * `POST /api/chats/import`
+  * `POST /api/chats/export`
+  * `POST /api/chats/search`
+* 同步删除 `backend/src/fablemap_api/core/web/service.py` 中只服务 `/api/taverns/{id}/memories` 的 `list_visitor_memories_payload()`。
+* `tests/test_tavern_chat_history_permissions.py` 不再依赖 compatibility export/search 路由，只保留 compatibility tavern chat history 权限覆盖。
+* `backend/tests/test_v1_chat_sessions.py` 补 native `/api/v1/taverns/{id}/chat/search` 与 export/search 权限覆盖：
+  * owner / matching visitor 可搜索自己的会话；
+  * 空 query 返回 0；
+  * cross-visitor export/search 统一 `403`。
+* `backend/tests/test_v1_compatibility_inventory_parity.py` 新增断言：`/api/taverns/{id}/memories`、`/api/chats/import`、`/api/chats/export`、`/api/chats/search` 已删除后统一返回 `404`。
+* `frontend/app/product/services/tavernService.js` 中遗留的 `exportChatHistory()` / `searchChatHistory()` 也切到 native `/api/v1/taverns/{id}/chat/*`，避免隐藏的 compatibility 依赖继续指向已删除路由。
+
+Validation after this slice:
+
+* `py -3 -m compileall -q backend/src`
+* `py -3 -m pytest -q backend/tests/test_v1_chat_sessions.py backend/tests/test_v1_compatibility_inventory_parity.py tests/test_tavern_chat_history_permissions.py --tb=short`
+* `git diff --check -- backend/src/fablemap_api/core/web/router.py backend/src/fablemap_api/core/web/service.py backend/tests/test_v1_chat_sessions.py backend/tests/test_v1_compatibility_inventory_parity.py tests/test_tavern_chat_history_permissions.py frontend/app/product/services/tavernService.js .trellis/tasks/04-22-refactor-project/compatibility-inventory.md .trellis/tasks/04-22-refactor-project/prd.md`
