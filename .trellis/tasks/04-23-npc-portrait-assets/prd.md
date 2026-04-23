@@ -135,8 +135,21 @@
 * `frontend/app/assets/npc-style-cast/README.md` 与 `docs/IMAGE_ASSETS_SPEC.md` 已同步到新的 canonical 路径和加载契约。
 * fallback 仍是 display-only：没有写回 `TavernCharacter`，没有改 schema / backend / persistence。
 
-## Validation (2026-04-23)
+## Pause Checkpoint (2026-04-23)
+
+* 用户要求先中断当前任务，把当前进度写回 Trellis 后再提交推送。
+* 当前已落地：
+  * `frontend/app/assets/npc-style-cast/portraits/` 下 12 张 runtime fallback portrait
+  * `frontend/app/features/tavern-npc-stage/portraitCatalog.ts` 统一映射与稳定选图
+  * `frontend/app/features/tavern-npc-stage/index.tsx` 改为优先 owner-authored 图，缺省时走真实 tavern-themed portrait fallback
+  * `frontend/app/assets/npc-style-cast/README.md` 与 `docs/IMAGE_ASSETS_SPEC.md` 已同步到 canonical 路径契约
+* 暂停前仍未做的收尾：
+  * 浏览器人工视觉检查
+  * 评估 portrait PNG 体积是否需要再压缩
+  * 任务最终关闭前再做一次完整收口说明
+
+## Validation (pause checkpoint, 2026-04-23)
 
 * `npm --prefix .\frontend run typecheck` — passed
 * `npm --prefix .\frontend run build` — passed
-* `npm --prefix .\frontend test` — passed
+* `npm --prefix .\frontend test` — not rerun（本任务未改 service/rule scripts）
