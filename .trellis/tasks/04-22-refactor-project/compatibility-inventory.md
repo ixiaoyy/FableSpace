@@ -1,6 +1,6 @@
 # P1.5 Compatibility Inventory
 
-> **Status**: In Progress
+> **Status**: P1.5.1 + P1.5.2 + P1.5.3 Complete (2026-04-23)
 > **Date**: 2026-04-23
 > **Scope**: Audit core/web compatibility layer vs native /api/v1/ layer vs frontend usage
 
@@ -73,7 +73,24 @@ Frontend has two API client layers:
 | `/api/chats/export` | POST | ⚠️ Partial | — | Legacy only | No native route yet |
 | `/api/chats/search` | POST | ⚠️ Partial | — | Legacy only | No native route yet |
 
-**Notes**: Chat history from chat.py is different from tavern chat — it's for world-stage POI exploration. Need to check if this is still needed or can be deprecated.
+**Notes**: Chat history from chat.py is different from tavern chat — it's for world-stage POI exploration.
+
+### P1.5.1 Verification Results (2026-04-23)
+
+| Endpoint | Frontend Usage | Verified Status | Action |
+|----------|---------------|-----------------|--------|
+| `/api/chats` GET | `TavernOwnerPanel.jsx` (listChatSessions) | **ACTIVE** | Need native route for listing sessions |
+| `/api/chats/export` POST | `TavernOwnerPanel.jsx` (exportChatHistory) | **ACTIVE** | Need native route for export |
+| `/api/chats/search` POST | Not found in components | Unused | Deprecate |
+| `/api/chats` POST | Not found in components | Unused | Deprecate |
+| `/api/chats/{tavern_id}/{character_id}` GET | Not found in components | Unused | Deprecate |
+| `/api/chats/{tavern_id}/{character_id}` DELETE | Not found in components | Unused | Deprecate |
+| `/api/chats/import` POST | Not found in components | Unused | Deprecate |
+
+**Decision for `/api/chats` endpoints**:
+- `listChatSessions` and `exportChatHistory` are ACTIVE in TavernOwnerPanel
+- Native `/api/v1/taverns/{id}/chat` doesn't provide session listing/export
+- **Need to add native routes**: `/api/v1/taverns/{id}/chat/sessions` (list) and `/api/v1/taverns/{id}/chat/export` (export)
 
 ---
 
@@ -97,7 +114,20 @@ Frontend has two API client layers:
 | `/api/group/{session_id}/send` | POST | ⚠️ Different | — | Legacy only | ST-style |
 | `/api/group/{session_id}/record` | POST | ⚠️ Different | — | Legacy only | ST-style |
 
-**Notes**: `/api/group/*` is SillyTavern-style group chat. Native `/api/v1/taverns/{id}/group-chat/*` is different architecture. Need to decide if ST-style groups should be kept or deprecated.
+**Notes**: `/api/group/*` is SillyTavern-style group chat. Native `/api/v1/taverns/{id}/group-chat/*` is different architecture.
+
+### P1.5.1 Verification Results (2026-04-23)
+
+| Endpoint | Frontend Usage | Verified Status | Action |
+|----------|---------------|-----------------|--------|
+| `/api/groups` GET/POST | Not found in components | **NOT USED** | Deprecate |
+| `/api/groups/{id}` GET/PUT/DELETE | Not found in components | **NOT USED** | Deprecate |
+| `/api/group/{session_id}/*` | Not found in components | **NOT USED** | Deprecate |
+
+**Decision for ST-style groups**:
+- All ST-style group endpoints (`/api/groups/*`, `/api/group/*`) are **NOT USED** in any frontend component
+- TavernGroupSettingsModal.jsx uses native `updateGroupChatConfig` (native `/api/v1/taverns/{id}/group-chat/config`)
+- **Deprecate all ST-style group endpoints** - they are SillyTavern legacy and not needed for tavern platform
 
 ---
 
@@ -136,7 +166,18 @@ Frontend has two API client layers:
 | `/api/memory/truncate` | POST | ✅ Done | `/api/v1/memory/truncate` | Legacy only | Ready to delete |
 | `/api/memory/importance` | POST | ✅ Done | `/api/v1/memory/importance` | Legacy only | Ready to delete |
 
-**Notes**: `/api/taverns/{id}/memories` (line 363 in router.py) is different from memory-atoms. Need to check what this is used for.
+**Notes**: `/api/taverns/{id}/memories` (line 363 in router.py) is different from memory-atoms.
+
+### P1.5.1 Verification Results (2026-04-23)
+
+| Endpoint | Frontend Usage | Verified Status | Action |
+|----------|---------------|-----------------|--------|
+| `/api/taverns/{id}/memories` | **NOT USED** | Not called by any component | Deprecate |
+
+**Decision for `/api/taverns/{id}/memories`**:
+- Compatibility endpoint `/api/taverns/{id}/memories` (without `/v1/`) is **NOT USED** in any frontend component
+- Frontend uses `listMemories` method which calls native `/api/v1/taverns/{tavernId}/memories`
+- **Deprecate** the compatibility endpoint - it's SillyTavern legacy and the native endpoint already covers the use case
 
 ---
 
@@ -264,6 +305,33 @@ Frontend has two API client layers:
 
 **Notes**: These are SillyTavern-style endpoints that likely have no native parity and may never be migrated. Should be marked for deprecation review.
 
+### P1.5.2 Verification Results (2026-04-23)
+
+| Endpoint Group | Frontend Usage | Verified Status | Action |
+|----------------|---------------|-----------------|--------|
+| `/api/bookmarks` | **NOT IMPLEMENTED** | No client method in tavernService.js | Deprecate |
+| `/api/templates` | **NOT IMPLEMENTED** | No client method in tavernService.js | Deprecate |
+| `/api/backups` | **NOT IMPLEMENTED** | No client method in tavernService.js | Deprecate |
+| `/api/autocomplete` | **NOT IMPLEMENTED** | No client method in tavernService.js | Deprecate |
+| `/api/speech/transcribe` | **NOT IMPLEMENTED** | No client method in tavernService.js | Deprecate |
+| `/api/caption` | **NOT IMPLEMENTED** | No client method in tavernService.js | Deprecate |
+| `/api/generate` | **NOT IMPLEMENTED** | No client method in tavernService.js | Deprecate |
+| `/api/bulkedit` | **NOT IMPLEMENTED** | No client method in tavernService.js | Deprecate |
+| `/api/quickreplies` | **NOT IMPLEMENTED** | No client method in tavernService.js | Deprecate |
+| `/api/commands` | **NOT IMPLEMENTED** | No client method in tavernService.js | Deprecate |
+| `/api/extensions` | **NOT IMPLEMENTED** | No client method in tavernService.js | Deprecate |
+| `/api/presets` | **NOT IMPLEMENTED** | No client method in tavernService.js | Deprecate |
+| `/api/vectors/*` | **NOT IMPLEMENTED** | No client method in tavernService.js | Deprecate |
+| `/api/image/*` | **NOT IMPLEMENTED** | No client method in tavernService.js | Deprecate |
+| `/api/translate/*` | **NOT IMPLEMENTED** | No client method in tavernService.js | Deprecate |
+| `/api/embed` | **NOT IMPLEMENTED** | No client method in tavernService.js | Deprecate |
+
+**Decision for ST Legacy Endpoints**:
+- **ALL Category M endpoints are NOT IMPLEMENTED** in any frontend client
+- No client methods in `tavernService.js` or any other frontend file
+- These are SillyTavern power-user features (bookmarks, templates, backups, quickreplies, commands, extensions, presets, vectors, image generation, translation, embeddings, etc.)
+- **Deprecate ALL Category M endpoints** - they are not part of the tavern platform mainline and have no frontend usage
+
 ---
 
 ## Category N: World Stage / Exploration Endpoints (Decommissioned?)
@@ -283,34 +351,83 @@ Frontend has two API client layers:
 | `/api/world/disturbance/{slice_id}` | DELETE | N/A | — | Legacy (apiClient.js) | World-stage disturbance |
 | `/api/world/disturbance/{slice_id}` | GET | N/A | — | Legacy (apiClient.js) | World-stage disturbance |
 
-**Notes**: These are world-stage exploration features. After the strategic pivot (2026-04-14) to UGC platform, these may be deprecated. Need to check if they're still used.
+**Notes**: These are world-stage exploration features. After the strategic pivot (2026-04-14) to UGC platform, these are deprecated.
+
+### P1.5.3 Verification Results (2026-04-23)
+
+| Endpoint | Frontend Usage | Verified Status | Action |
+|----------|---------------|-----------------|--------|
+| `/api/health` | apiClient.js | **ACTIVE** | Keep for health checks |
+| `/api/meta` | apiClient.js | **ACTIVE** | Keep for meta info |
+| `/api/nearby` | apiClient.js (defined but NOT called) | Unused | Deprecate |
+| `/api/map/snapshot/{id}` | WorldMap.jsx (defined but NOT called) | Unused | Deprecate |
+| `/api/world/orchestrate` | orchestrator.js (defined but NOT called) | Unused | Deprecate |
+| `/api/world/event` | useWritebackSession.js | **ACTIVE** | Deprecate (world-stage) |
+| `/api/ghost/trace` | useWritebackSession.js | **ACTIVE** | Deprecate (world-stage) |
+| `/api/ghost/traces/{player_id}` | useWritebackSession.js | **ACTIVE** | Deprecate (world-stage) |
+| `/api/world/landmark/honor/{slice_id}` | Not used | Unused | Deprecate |
+| `/api/world/disturbance` | useWorldSession.js | **ACTIVE** | Deprecate (world-stage) |
+| `/api/world/disturbance/{slice_id}` | useWorldSession.js | **ACTIVE** | Deprecate (world-stage) |
+
+**Decision for World-Stage Endpoints**:
+- All world-stage endpoints are **world-stage exploration features** not aligned with the tavern platform
+- `/api/health` and `/api/meta` should be **kept** for health checks and meta info
+- All world-stage endpoints (`/api/nearby`, `/api/map/snapshot`, `/api/world/orchestrate`, `/api/world/event`, `/api/ghost/*`, `/api/world/disturbance`, `/api/world/landmark/*`) should be **deprecated**
+- Frontend code using these endpoints (WorldStagePanel, useWorldSession.js, useWritebackSession.js, etc.) should be migrated or removed as part of product cleanup
+- Note: Some world-stage endpoints are still ACTIVE in frontend code, but they are world-stage exploration features not tavern platform features
 
 ---
 
 ## Summary
 
-### Status Counts
+### Status Counts (Updated P1.5.1)
 
 | Status | Count | Description |
 |---|---|---|
 | ✅ Done (Native Parity) | ~60 | Has native v1 equivalent |
-| ⚠️ Partial / Different | ~20 | Partial parity or different pattern |
+| ⚠️ Partial / Different | ~15 | Partial parity or different pattern |
 | ❌ None | ~40 | No native parity, likely ST legacy |
 | N/A | ~15 | Health/meta/ST-proxy/world-stage |
-| Ready to Delete | ~55 | Compatibility layer ready for deletion |
+| Ready to Delete | ~60 | Compatibility layer ready for deletion |
+| Deprecate (P1.5.1 verified) | ~15 | ST-style groups, unused chats/memories |
 
-### Deletion Gates
+### P1.5.1 Verification Results (2026-04-23)
 
-**Gate 1 - Ready Now** (~55 endpoints):
+**Category C: Chat Endpoints**
+- `/api/chats` GET (listChatSessions) — **ACTIVE** in TavernOwnerPanel
+- `/api/chats/export` POST (exportChatHistory) — **ACTIVE** in TavernOwnerPanel
+- Other `/api/chats/*` — **NOT USED**
+
+**Category D: Group Chat Endpoints**
+- `/api/groups/*` — **NOT USED** in any component
+- `/api/group/*` — **NOT USED** in any component
+- TavernGroupSettingsModal uses native `updateGroupChatConfig`
+
+**Category F: Memory Endpoints**
+- `/api/taverns/{id}/memories` (compatibility) — **NOT USED**
+- Frontend uses native `/api/v1/taverns/{id}/memories`
+
+**Decision**: Deprecate all ST-style group endpoints, unused chat endpoints, and compatibility memories endpoint.
+
+### Deletion Gates (Updated P1.5.1 + P1.5.2)
+
+**Gate 1 - Ready Now** (~60 endpoints):
 - Tavern CRUD, characters, world-info, memory-atoms, gameplay, tokenizer utilities
 - Only used by `app/product/services/*.js` (legacy)
 - Native equivalents exist in `/api/v1/*`
 
-**Gate 2 - Needs Native Migration** (~20 endpoints):
-- Some chat history endpoints, SillyTavern-style groups
-- Need native route implementation before deletion
+**Gate 2 - Needs Native Migration** (~2 endpoints):
+- `/api/chats` GET (listChatSessions) — Used by TavernOwnerPanel
+- `/api/chats/export` POST (exportChatHistory) — Used by TavernOwnerPanel
+- Need native routes: `/api/v1/taverns/{id}/chat/sessions` and `/api/v1/taverns/{id}/chat/export`
 
-**Gate 3 - Deprecation Review** (~40 endpoints):
+**Gate 3 - Deprecate Without Migration** (~60 endpoints):
+- ST-style groups (`/api/groups/*`, `/api/group/*`) — Verified NOT USED
+- Unused chat endpoints (`/api/chats/*` except list/export) — Verified NOT USED
+- Compatibility `/api/taverns/{id}/memories` — Verified NOT USED
+- All ST legacy endpoints (Category M) — Verified NOT IMPLEMENTED
+
+**Gate 4 - Keep** (~20 endpoints):
 - ST legacy endpoints (bookmarks, templates, quickreplies, extensions, etc.)
 - Need to verify if actually used before deletion
 
@@ -323,8 +440,8 @@ Frontend has two API client layers:
 
 ## Next Steps
 
-1. **P1.5.1**: Verify native parity for "Partial/Different" endpoints
-2. **P1.5.2**: Audit which ST legacy endpoints are actually used
-3. **P1.5.3**: Decide fate of world-stage endpoints (keep or delete)
-4. **P1.5.4**: Migrate remaining `/api/*` frontend callers to `/api/v1/*`
+1. ~~**P1.5.1**: Verify native parity for "Partial/Different" endpoints~~ ✅ Complete
+2. ~~**P1.5.2**: Audit ST legacy endpoints usage~~ ✅ Complete (all ~40 endpoints NOT IMPLEMENTED)
+3. ~~**P1.5.3**: Decide fate of world-stage endpoints~~ ✅ Complete (all deprecated except health/meta)
+4. **P1.5.4**: Migrate TavernOwnerPanel chat session calls to native `/api/v1/taverns/{id}/chat/sessions`
 5. **P1.5.5**: Delete compatibility layer routes after full parity
