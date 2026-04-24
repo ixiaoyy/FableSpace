@@ -1,0 +1,99 @@
+{
+  "id": "player-npc-roleplay",
+  "name": "player-npc-roleplay",
+  "title": "玩家扮演 NPC 角色扮演模式",
+  "description": "探索玩家自己扮演 NPC 的可能性，打破纯 AI 对话模式，支持角色抢占、常驻身份、真人互动",
+  "status": "brainstorm",
+  "dev_type": "product",
+  "scope": null,
+  "package": null,
+  "priority": "P2",
+  "creator": "lijin",
+  "assignee": "lijin",
+  "createdAt": "2026-04-24",
+  "completedAt": null,
+  "branch": null,
+  "base_branch": "main",
+  "worktree_path": null,
+  "current_phase": 1,
+  "next_action": [
+    {
+      "phase": 1,
+      "action": "brainstorm"
+    },
+    {
+      "phase": 2,
+      "action": "research"
+    },
+    {
+      "phase": 3,
+      "action": "implement"
+    },
+    {
+      "phase": 4,
+      "action": "check"
+    },
+    {
+      "phase": 5,
+      "action": "update-spec"
+    },
+    {
+      "phase": 6,
+      "action": "record-session"
+    }
+  ],
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [
+    {
+      "id": "roleplay-mode-concept",
+      "title": "角色扮演模式概念设计",
+      "status": "pending",
+      "notes": "定义酒馆模式：体验模式 vs 扮演模式"
+    },
+    {
+      "id": "player-character-system",
+      "title": "玩家角色系统",
+      "status": "pending",
+      "notes": "角色卡/身份/剧情/任务的玩家版本设计"
+    },
+    {
+      "id": "character-slot抢占机制",
+      "title": "角色槽位抢占机制",
+      "status": "pending",
+      "notes": "玩家如何顶替 AI NPC 或新增角色槽位"
+    },
+    {
+      "id": "persistent-identity",
+      "title": "常驻身份系统",
+      "status": "pending",
+      "notes": "玩家长期扮演某个角色的持久化"
+    },
+    {
+      "id": "multiplayer-interaction",
+      "title": "多人互动设计",
+      "status": "pending",
+      "notes": "真人与真人、真人与 AI 的交互模式"
+    },
+    {
+      "id": "tech-impact-analysis",
+      "title": "技术影响分析",
+      "status": "pending",
+      "notes": "评估现有架构的影响和改动范围"
+    }
+  ],
+  "children": [],
+  "parent": null,
+  "relatedFiles": [],
+  "notes": "2026-04-24 头脑风暴 → 未来开发认领方向。用户提出玩家扮演 NPC 的想法，打破纯 AI 对话模式。核心要素：角色扮演、抢占机制、常驻身份、真人互动。此想法已记录为 lijin 的未来开发认领方向，暂不进入开发队列。",
+  "meta": {
+    "idea_source": "lijin",
+    "idea_date": "2026-04-24",
+    "type": "brainstorm",
+    "not_immediate": true,
+    "future_direction": true,
+    "direction_claim": "reserved_by_lijin",
+    "claimed_at": "2026-04-24",
+    "execution_timeline": "TBD - after current phase completes"
+  }
+}

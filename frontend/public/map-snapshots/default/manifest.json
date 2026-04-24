@@ -1,0 +1,27 @@
+{
+  "snapshot_id": "default",
+  "provider": "amap-static-snapshot",
+  "captured_from": "amap-dom",
+  "world_id": "default",
+  "origin_label": "我的当前位置",
+  "center": {
+    "lng": 121.239827,
+    "lat": 31.180546
+  },
+  "zoom": 16,
+  "captured_at": "2026-04-23T14:40:35.455Z",
+  "viewport": {
+    "width": 2280,
+    "height": 720
+  },
+  "tiles": [
+    {
+      "left": 4,
+      "top": 699,
+      "width": 73,
+      "height": 20,
+      "file": "/map-snapshots/default/tile-000-0b0c722994b0.png",
+      "source": "https://webapi.amap.com/theme/v2.0/logo@2x.png"
+    }
+  ]
+}

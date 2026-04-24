@@ -1,0 +1,90 @@
+{
+  "id": "npc-negative-archetype-templates",
+  "name": "npc-negative-archetype-templates",
+  "title": "NPC 反面人设与话术模板",
+  "description": "记录 NPC 不应只局限于正面/温柔模板，也应支持毒舌、油腻、渣男/海后、薄情寡性等反面人设模板，用于角色扮演、反讽和‘魔法打败魔法’玩法。",
+  "status": "brainstorm",
+  "dev_type": "product",
+  "scope": null,
+  "package": null,
+  "priority": "P2",
+  "creator": "lijin",
+  "assignee": "lijin",
+  "createdAt": "2026-04-24",
+  "completedAt": null,
+  "branch": null,
+  "base_branch": "main",
+  "worktree_path": null,
+  "current_phase": 1,
+  "next_action": [
+    {
+      "phase": 1,
+      "action": "brainstorm"
+    },
+    {
+      "phase": 2,
+      "action": "research"
+    },
+    {
+      "phase": 3,
+      "action": "implement"
+    },
+    {
+      "phase": 4,
+      "action": "check"
+    },
+    {
+      "phase": 5,
+      "action": "update-spec"
+    },
+    {
+      "phase": 6,
+      "action": "record-session"
+    }
+  ],
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [
+    {
+      "id": "archetype-taxonomy",
+      "title": "反面 NPC 原型分类",
+      "status": "pending",
+      "notes": "毒舌、油腻相亲对象、渣男/海后反讽、薄情冷淡等模板边界。"
+    },
+    {
+      "id": "template-boundaries",
+      "title": "模板安全边界与不可说内容",
+      "status": "pending",
+      "notes": "明确反讽/识别用途，不做现实操纵教程，不攻击受保护身份或真实个人。"
+    },
+    {
+      "id": "frontend-template-mvp",
+      "title": "前端 NPC 性格模板库 MVP",
+      "status": "pending",
+      "notes": "如确认 Approach A，则扩充 personalityTemplates.js 并更新脚本测试。"
+    },
+    {
+      "id": "magic-vs-magic-demo",
+      "title": "魔法打败魔法示例玩法评估",
+      "status": "pending",
+      "notes": "评估是否需要官方示例酒馆/玩法，避免平台自动创作边界风险。"
+    }
+  ],
+  "children": [],
+  "parent": null,
+  "relatedFiles": [
+    "frontend/app/product/personalityTemplates.js",
+    "frontend/app/product/CharacterEditor.jsx",
+    "frontend/scripts/personality-templates-test.mjs",
+    "docs/WORLD_SCHEMA.md",
+    "docs/WHAT_NOT_TO_BUILD.md"
+  ],
+  "notes": "2026-04-24 头脑风暴：记录用户提出的 NPC 反面人设方向。关键点：NPC 不能只有正面/温柔，也可以毒舌、油腻、渣男/海后、薄情寡性；可通过模板降低店主创作门槛，并用‘魔法打败魔法’制造可传播玩法。",
+  "meta": {
+    "idea_source": "lijin",
+    "idea_date": "2026-04-24",
+    "type": "brainstorm",
+    "not_immediate": true,
+    "recommended_first_step": "extend_existing_personality_templates"
+  }
+}

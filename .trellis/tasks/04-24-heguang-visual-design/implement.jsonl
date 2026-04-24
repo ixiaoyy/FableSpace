@@ -1,0 +1,5 @@
+{"file": ".trellis/workflow.md", "reason": "Project workflow and conventions"}
+{"file": ".trellis/tasks/04-24-official-welfare-heguang-npc/prd.md", "reason": "source character requirements and placement decision"}
+{"file": "backend/src/fablemap_api/core/default_taverns.py", "reason": "canonical current Heguang text fields and scene"}
+{"file": "docs/IMAGE_ASSETS_SPEC.md", "reason": "image prompt and asset contract"}
+{"file": ".trellis/spec/frontend/npc-art-guidelines.md", "reason": "NPC portrait visual constraints"}

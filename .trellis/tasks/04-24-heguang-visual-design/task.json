@@ -1,0 +1,62 @@
+{
+  "id": "heguang-visual-design",
+  "name": "heguang-visual-design",
+  "title": "和光 NPC 视觉形象设计记录",
+  "description": "记录官方公益 NPC「和光」的视觉形象设计，用于后续专属头像/立绘资产生成或委托。",
+  "status": "completed",
+  "dev_type": "docs",
+  "scope": null,
+  "package": null,
+  "priority": "P2",
+  "creator": "lijin",
+  "assignee": "lijin",
+  "createdAt": "2026-04-24",
+  "completedAt": "2026-04-24",
+  "branch": null,
+  "base_branch": "main",
+  "worktree_path": null,
+  "current_phase": 4,
+  "next_action": [
+    {
+      "phase": 1,
+      "action": "brainstorm"
+    },
+    {
+      "phase": 2,
+      "action": "research"
+    },
+    {
+      "phase": 3,
+      "action": "implement"
+    },
+    {
+      "phase": 4,
+      "action": "check"
+    },
+    {
+      "phase": 5,
+      "action": "update-spec"
+    },
+    {
+      "phase": 6,
+      "action": "record-session"
+    }
+  ],
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [],
+  "parent": "04-24-official-welfare-heguang-npc",
+  "relatedFiles": [
+    ".trellis/tasks/04-24-heguang-visual-design/prd.md",
+    ".trellis/tasks/04-24-heguang-visual-design/research.md",
+    ".trellis/tasks/04-24-heguang-visual-design/visual-design.md",
+    ".trellis/tasks/04-24-heguang-visual-design/implementation.md",
+    ".trellis/tasks/04-24-official-welfare-heguang-npc/prd.md",
+    "backend/src/fablemap_api/core/default_taverns.py",
+    "docs/IMAGE_ASSETS_SPEC.md",
+    ".trellis/spec/frontend/npc-art-guidelines.md"
+  ],
+  "notes": "Designed and recorded Heguang visual identity as a Trellis docs-only child task: calm community repair tavern communication mediator, round table, two warm waters, blank sticky notes, slim pen, soft amber light, no doctor/judge/customer-service semantics. No code/assets/schema/runtime changes.",
+  "meta": {}
+}

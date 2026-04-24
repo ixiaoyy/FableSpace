@@ -1,3 +1,4 @@
+import json
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
@@ -35,6 +36,57 @@ def test_default_public_welfare_taverns_are_seeded_and_discoverable():
             assert tavern["llm_config"].get("api_key", "") == ""
             assert tavern["characters"]
             assert tavern["world_info"]
+
+
+def test_community_repair_includes_heguang_communication_npc():
+    with TemporaryDirectory() as tmpdir:
+        service = _service(tmpdir)
+        tavern = service.get_tavern_payload("pw_community_repair", user_id="visitor_public_welfare")
+
+        heguang = next(
+            (character for character in tavern["characters"] if character["name"] == "和光"),
+            None,
+        )
+
+        assert heguang is not None
+        assert tavern["access"] == "public"
+        assert tavern["llm_config"]["backend"] == "rules"
+        assert heguang["id"] == "char_pw_heguang"
+        assert heguang["tavern_id"] == "pw_community_repair"
+        for field in ("description", "personality", "scenario", "system_prompt", "first_mes", "mes_example"):
+            assert heguang[field]
+        assert {"公益", "关键对话", "调停"}.issubset(set(heguang["tags"]))
+
+        combined_prompt = " ".join(
+            [
+                heguang["description"],
+                heguang["personality"],
+                heguang["system_prompt"],
+                heguang["first_mes"],
+                heguang["mes_example"],
+            ]
+        )
+        for keyword in ("共同目标", "安全感", "真诚", "行动"):
+            assert keyword in combined_prompt
+
+
+def test_default_public_welfare_seed_adds_missing_platform_characters_to_existing_store():
+    with TemporaryDirectory() as tmpdir:
+        service = _service(tmpdir)
+        taverns_file = Path(tmpdir) / "taverns" / "taverns.json"
+        data = json.loads(taverns_file.read_text(encoding="utf-8"))
+        community = data["pw_community_repair"]
+        community["characters"] = [
+            character
+            for character in community["characters"]
+            if character.get("id") != "char_pw_heguang"
+        ]
+        taverns_file.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
+
+        service = _service(tmpdir)
+        repaired = service.get_tavern_payload("pw_community_repair", user_id="visitor_public_welfare")
+
+        assert any(character["id"] == "char_pw_heguang" for character in repaired["characters"])
 
 
 def test_default_public_welfare_seed_can_be_disabled(monkeypatch):

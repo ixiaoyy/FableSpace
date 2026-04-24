@@ -18,7 +18,10 @@ from pathlib import Path
 from typing import Any
 
 from fastapi import HTTPException
-from fablemap_api.core.default_taverns import default_public_welfare_taverns
+from fablemap_api.core.default_taverns import (
+    DEFAULT_PUBLIC_WELFARE_OWNER_ID,
+    default_public_welfare_taverns,
+)
 from fablemap_api.core.memory import MemoryAtom
 
 # ─────────────────────────────────────────
@@ -625,12 +628,51 @@ class TavernStore:
         changed = False
         for tavern in default_public_welfare_taverns():
             tavern_id = str(tavern.get("id") or "").strip()
-            if not tavern_id or tavern_id in data:
+            if not tavern_id:
                 continue
-            data[tavern_id] = tavern
-            changed = True
+            if tavern_id not in data:
+                data[tavern_id] = tavern
+                changed = True
+                continue
+            existing = data.get(tavern_id)
+            if self._merge_public_welfare_seed_defaults(existing, tavern):
+                changed = True
         if changed:
             self._save_taverns(data)
+
+    @staticmethod
+    def _merge_public_welfare_seed_defaults(existing: Any, default: dict[str, Any]) -> bool:
+        """Append missing built-in child records without overwriting store edits."""
+        if not isinstance(existing, dict):
+            return False
+        if str(existing.get("owner_id") or "") != DEFAULT_PUBLIC_WELFARE_OWNER_ID:
+            return False
+
+        changed = False
+        for key in ("characters", "world_info", "bookmarks", "gameplay_definitions"):
+            default_items = default.get(key)
+            if not isinstance(default_items, list) or not default_items:
+                continue
+            existing_items = existing.get(key)
+            if not isinstance(existing_items, list):
+                existing_items = []
+                existing[key] = existing_items
+                changed = True
+            existing_ids = {
+                str(item.get("id") or "").strip()
+                for item in existing_items
+                if isinstance(item, dict)
+            }
+            for item in default_items:
+                if not isinstance(item, dict):
+                    continue
+                item_id = str(item.get("id") or "").strip()
+                if not item_id or item_id in existing_ids:
+                    continue
+                existing_items.append(deepcopy(item))
+                existing_ids.add(item_id)
+                changed = True
+        return changed
 
     def _load_taverns(self) -> dict[str, Any]:
         try:

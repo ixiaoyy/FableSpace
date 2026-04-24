@@ -1,0 +1,6 @@
+{"file": ".trellis/workflow.md", "reason": "Project workflow and conventions"}
+{"file": ".trellis/spec/frontend/index.md", "reason": "Frontend development guide"}
+{"file": ".trellis/spec/frontend/directory-structure.md", "reason": "route module and asset placement guidance"}
+{"file": ".trellis/spec/frontend/quality-guidelines.md", "reason": "frontend build/mobile quality requirements"}
+{"file": ".trellis/spec/frontend/component-guidelines.md", "reason": "home route layout/component styling patterns"}
+{"file": "docs/WHAT_NOT_TO_BUILD.md", "reason": "homepage messaging must stay within product boundaries"}
