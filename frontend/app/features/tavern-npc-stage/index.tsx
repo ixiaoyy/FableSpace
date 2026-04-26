@@ -1,6 +1,6 @@
 import type { CSSProperties } from "react"
 
-import type { Tavern, TavernCharacter } from "../../lib/taverns"
+import type { RoleplayClaim, Tavern, TavernCharacter } from "../../lib/taverns"
 import { cn } from "../../lib/utils"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../ui/card"
 import {
@@ -105,6 +105,8 @@ interface TavernNpcStageProps {
   tavern: Tavern
   characters: TavernCharacter[]
   selectedCharacterId?: string
+  roleplayMode?: string
+  claims?: RoleplayClaim[]
   onSelectCharacter?: (character: TavernCharacter) => void
 }
 
@@ -138,6 +140,10 @@ function resolveNpcStyle(character: TavernCharacter, tavern: Tavern, index: numb
     || NPC_VISUAL_STYLES[index % NPC_VISUAL_STYLES.length]
     || DEFAULT_STYLE
   )
+}
+
+function approvedClaimFor(characterId: string, claims: RoleplayClaim[] = []) {
+  return claims.find((claim) => claim.character_id === characterId && claim.status === "approved")
 }
 
 function NpcPortrait({
@@ -198,6 +204,8 @@ export function TavernNpcStage({
   tavern,
   characters,
   selectedCharacterId = "",
+  roleplayMode = "ai_only",
+  claims = [],
   onSelectCharacter,
 }: TavernNpcStageProps) {
   const activeStyle = characters.length
@@ -209,7 +217,7 @@ export function TavernNpcStage({
     : DEFAULT_STYLE
 
   return (
-    <Card className="overflow-hidden">
+    <Card className="min-w-0 overflow-hidden">
       <CardHeader>
         <CardTitle>酒馆内 NPC 形象</CardTitle>
         <CardDescription>
@@ -218,7 +226,7 @@ export function TavernNpcStage({
       </CardHeader>
       <CardContent className="space-y-4">
         <div
-          className="relative overflow-hidden rounded-[2rem] border border-white/10 p-4"
+          className="relative min-w-0 overflow-hidden rounded-[2rem] border border-white/10 p-4"
           style={{ background: activeStyle.backdrop }}
         >
           <div className="absolute inset-x-6 bottom-4 h-px bg-gradient-to-r from-transparent via-white/35 to-transparent" aria-hidden="true" />
@@ -238,10 +246,11 @@ export function TavernNpcStage({
         </div>
 
         {characters.length ? (
-          <div className="grid gap-3 sm:grid-cols-2">
+          <div className="grid min-w-0 gap-3 sm:grid-cols-2">
             {characters.map((character, index) => {
               const style = resolveNpcStyle(character, tavern, index)
               const active = character.id === selectedCharacterId || (!selectedCharacterId && index === 0)
+              const approvedClaim = approvedClaimFor(character.id, claims)
               return (
                 <button
                   key={character.id || `${character.name}-${index}`}
@@ -249,7 +258,7 @@ export function TavernNpcStage({
                   aria-pressed={active}
                   onClick={() => onSelectCharacter?.(character)}
                   className={cn(
-                    "group rounded-[2rem] border p-4 text-left transition hover:-translate-y-0.5 hover:border-cyan-200/45 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300",
+                    "group min-w-0 rounded-[2rem] border p-4 text-left transition hover:-translate-y-0.5 hover:border-cyan-200/45 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300",
                     active ? "border-cyan-200/60 bg-cyan-300/10" : "border-white/10 bg-white/6",
                   )}
                   style={{ backgroundImage: style.surface }}
@@ -262,9 +271,14 @@ export function TavernNpcStage({
                         className="rounded-full border px-2 py-0.5 text-[0.62rem] font-black"
                         style={{ borderColor: style.accent, color: style.accent, background: style.accentSoft }}
                       >
-                        {style.badge}
+                        {approvedClaim ? "Player" : roleplayMode === "hybrid" ? "Open" : "AI"}
                       </span>
                     </div>
+                    {approvedClaim ? (
+                      <p className="rounded-2xl border border-cyan-300/20 bg-cyan-300/10 px-3 py-2 text-xs font-bold text-cyan-50">
+                        Claimed by {approvedClaim.player_name || approvedClaim.player_id}
+                      </p>
+                    ) : null}
                     <p className="text-xs font-bold text-cyan-100/78">{style.portraitCue}</p>
                     <p className="line-clamp-2 text-sm leading-6 text-violet-50/70">
                       {character.description || character.first_mes || "店主还没有写下这位 NPC 的形象说明。"}

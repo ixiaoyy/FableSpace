@@ -37,6 +37,7 @@ def safe_tavern_package_tavern(value: dict[str, Any]) -> dict[str, Any]:
         "address",
         "access",
         "status",
+        "roleplay_mode",
         "scene_prompt",
     )
     tavern = {key: value.get(key) for key in allowed if key in value}

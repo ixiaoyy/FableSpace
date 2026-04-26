@@ -755,6 +755,135 @@ npm --prefix frontend run typecheck
 npm --prefix frontend run build
 ```
 
+## Scenario: native player-as-NPC roleplay endpoints
+
+### 1. Scope / Trigger
+
+Use this contract when maintaining tavern-scoped player-as-NPC roleplay. This feature is allowed only as owner-governed NPC performance inside one tavern; it must not become a friend graph, global online presence, cross-tavern direct messages, or unmoderated visitor-to-visitor chat.
+
+### 2. Signatures
+
+Persistent `Tavern` fields live in `backend/src/fablemap_api/core/tavern.py`:
+
+```python
+roleplay_mode: str = "ai_only"  # "ai_only" | "hybrid"
+character_claims: list[dict[str, Any]] = field(default_factory=list)
+```
+
+Routes live in `backend/src/fablemap_api/api/v1/roleplay.py` and stay thin:
+
+```python
+GET  /api/v1/taverns/{tavern_id}/roleplay
+PUT  /api/v1/taverns/{tavern_id}/roleplay
+POST /api/v1/taverns/{tavern_id}/roleplay/claims
+PUT  /api/v1/taverns/{tavern_id}/roleplay/claims/{claim_id}
+```
+
+Application methods are implemented in `backend/src/fablemap_api/application/services/roleplay.py` and exposed through `TavernApplicationService`:
+
+```python
+get_roleplay(tavern_id, user_id="") -> dict
+save_roleplay_config(tavern_id, data, user_id="") -> dict
+request_character_claim(tavern_id, data, user_id="") -> dict
+decide_character_claim(tavern_id, claim_id, data, user_id="") -> dict
+```
+
+Frontend native clients belong in `frontend/app/lib/taverns.ts`:
+
+```typescript
+getRoleplayState(tavernId, userId)
+saveRoleplayConfig(tavernId, { roleplay_mode }, userId)
+requestRoleplayClaim(tavernId, { character_id, player_name }, userId)
+decideRoleplayClaim(tavernId, claimId, { status, note }, userId)
+```
+
+### 3. Contracts
+
+`roleplay_mode` supports:
+
+```text
+ai_only | hybrid
+```
+
+`character_claims` entries support:
+
+```text
+id, character_id, player_id, player_name, status, requested_at, decided_at, note
+```
+
+`status` supports:
+
+```text
+pending | approved | rejected | revoked
+```
+
+Public tavern payloads should expose only public-safe claim state; the dedicated roleplay endpoint returns all claims to owners, approved claims to other visitors, and a visitor's own pending/rejected/revoked claims to that visitor.
+
+### 4. Validation & Error Matrix
+
+| Case | Expected |
+|------|----------|
+| Missing tavern | `404 {"error": "酒馆不存在"}` |
+| Private tavern viewed by non-owner | `403 {"error": "此酒馆是私人的"}` |
+| Non-owner updates mode | `403` owner error |
+| Unsupported `roleplay_mode` | `400 {"error": "Unsupported roleplay_mode"}` |
+| Claim while mode is `ai_only` | `400 {"error": "This tavern has not enabled player NPC roleplay"}` |
+| Claim missing/unknown character | `404 {"error": "Character not found"}` |
+| Claim without user identity or `player_id` fallback | `401 {"error": "Player identity is required to request a claim"}` |
+| Visitor claims for another `player_id` while authenticated as self | `403 {"error": "Cannot request a claim for another player"}` |
+| Owner approves while mode is `ai_only` | `400 {"error": "Enable hybrid roleplay before approving claims"}` |
+| Missing claim decision target | `404 {"error": "Roleplay claim not found"}` |
+
+### 5. Good/Base/Bad Cases
+
+- Good: owner sets `hybrid`, visitor requests a claim for an existing character, owner approves it, and the NPC stage displays the approved player name.
+- Base: existing taverns with no roleplay fields load as `ai_only` with an empty `character_claims` list.
+- Bad: adding a websocket or cross-tavern private message endpoint under this feature. That must be a separate product/security design task.
+
+### 6. Tests Required
+
+`backend/tests/test_v1_roleplay.py` must assert:
+
+- default mode and empty claims for old/new taverns;
+- owner-only mode updates;
+- claim rejection while `ai_only` and unknown-character validation;
+- pending claim visibility: owner + requester can see it, unrelated visitor cannot;
+- approved claims become visible to other visitors;
+- approving a second claim for the same character revokes the previous approved claim.
+
+Run:
+
+```powershell
+py -3 -m compileall -q backend/src
+py -3 -m pytest -q backend/tests/test_v1_roleplay.py --tb=short
+py -3 -m pytest -q backend/tests --tb=short
+```
+
+If frontend roleplay clients or route UI changed, also run:
+
+```powershell
+npm --prefix .\frontend run typecheck
+npm --prefix .\frontend run build
+npm --prefix .\frontend test
+```
+
+### 7. Wrong vs Correct
+
+#### Wrong
+
+```python
+# Route mutates tavern state directly and exposes every pending claim to all visitors.
+tavern.character_claims.append(data)
+return tavern.to_dict()
+```
+
+#### Correct
+
+```python
+# Route delegates to the application service, which applies visibility and owner checks.
+return taverns_service(request).request_character_claim(tavern_id, data.to_payload(), get_user_id(request))
+```
+
 ## Common mistakes
 
 - Adding API logic directly inside route handlers when it belongs in `WebService` or `TavernService`.

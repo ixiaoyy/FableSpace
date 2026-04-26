@@ -1,0 +1,6 @@
+{"file": ".claude/commands/trellis/finish-work.md", "reason": "Finish work checklist"}
+{"file": ".claude/commands/trellis/check.md", "reason": "Code quality check spec"}
+{"file": "tests/test_default_public_welfare_taverns.py", "reason": "Existing default tavern seeding and chat coverage"}
+{"file": "tests/test_default_public_welfare_gameplays.py", "reason": "Existing default tavern gameplay coverage"}
+{"file": ".trellis/spec/backend/quality-guidelines.md", "reason": "Backend verification and forbidden pattern checklist"}
+{"file": ".trellis/spec/guides/code-reuse-thinking-guide.md", "reason": "Reuse existing default tavern helpers instead of new abstractions"}

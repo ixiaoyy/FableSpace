@@ -2418,6 +2418,85 @@ class WebService:
                 return first_mes
             return f"欢迎来到{tavern_name}。我是{char_name}，你可以先说说现在最想解决的一件小事。"
 
+        tavern_id = getattr(tavern, "id", "") or ""
+        if tavern_id == "pw_third_shelf_observatory" and any(
+            keyword in text
+            for keyword in (
+                "外星",
+                "便利店",
+                "随便",
+                "马上到",
+                "第二件半价",
+                "关东煮",
+                "已读不回",
+                "人类",
+                "谜题",
+            )
+        ):
+            if "随便" in text:
+                return (
+                    f"{char_name}郑重翻开记录板：已确认，“随便”不是随机授权，而是一种需要结合语气、关系、"
+                    "饥饿程度和未说出口期待的高危词。请问本次“随便”更接近真随便，还是请你猜中？"
+                )
+            if "马上到" in text:
+                return (
+                    f"{char_name}把时间轴画成一团毛线：我们正在研究“马上到”。它可能表示已经在门口，"
+                    "也可能表示鞋还没有穿。感谢您参与校准这个不稳定时间单位。"
+                )
+            if "第二件半价" in text:
+                return (
+                    f"{char_name}点亮促销警报：第二件半价会让人类购买本不需要的第一件和第二件。"
+                    "我们暂定它是经济幻觉型小型胜利仪式。您是否同意这个分类？"
+                )
+            if "关东煮" in text:
+                return (
+                    f"{char_name}看向保温格：温柔盐水漂浮物在深夜具有异常安抚效果。"
+                    "我们的假设是，人类并不只是饿了，也是在给灵魂加一点热汤。"
+                )
+            if "已读不回" in text:
+                return (
+                    f"{char_name}压低声音：已读不回暂不视为宣战。Pi-Pi 仍将其标注为低烈度通讯事故，"
+                    "但我们愿意接受您的文化解释。"
+                )
+            return (
+                f"{char_name}认真记录：便利店是人类文明的浓缩器官。人类会在这里补充糖分、购买焦虑、"
+                "进行排队仪式，并在凌晨凝视饭团。请继续，我们需要一位临时地球顾问。"
+            )
+
+        if tavern_id == "pw_midnight_commission_board" and any(
+            keyword in text
+            for keyword in (
+                "文游",
+                "委托",
+                "线索",
+                "调查",
+                "异常",
+                "值班",
+                "社区",
+                "纸条",
+                "公告",
+            )
+        ):
+            if any(keyword in text for keyword in ("线索", "调查", "纸条")):
+                return (
+                    f"{char_name}把委托卡翻到线索栏：先分三格，位置、时间、可确认细节。"
+                    "我们不急着下结论，也不做现实跟踪。你想先查哪一格？"
+                )
+            if any(keyword in text for keyword in ("异常", "值班")):
+                return (
+                    f"{char_name}盖下蓝色印章：异常值班先看安全边界。只记录、可后退、能随时结束。"
+                    "现在请选择一个观察点：频率、声音，还是距离？"
+                )
+            if any(keyword in text for keyword in ("社区", "公告", "小委托")):
+                return (
+                    f"{char_name}把公告栏便签理成三叠：失物、求助、提醒。今晚只做一件小事，"
+                    "先改标题、补公开地点，还是放进失物盒？"
+                )
+            return (
+                f"{char_name}点亮午夜委托板：这里的文游不是打怪升级，而是接一张委托、做几次选择、"
+                "最后得到一段文字结算。今晚可选：线索调查、社区小委托、异常值班。"
+            )
+
         if any(keyword in text for keyword in ("新手", "怎么开始", "怎么玩", "开店", "帮助", "规则", "隐私")):
             return (
                 f"{char_name}指了指桌上的说明卡：先选地点，再选公开/密码/私人，最后放入一个角色开始测试。"

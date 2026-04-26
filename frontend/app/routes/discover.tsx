@@ -1,5 +1,6 @@
-import { ArrowRight, Compass, MapPinned, RadioTower, Search, Store, Waves } from "lucide-react"
+import { ArrowRight, Compass, MapPinned, RadioTower, Search, Store, Waves, X } from "lucide-react"
 import { Link, useLoaderData } from "react-router"
+import { useMemo, useState } from "react"
 
 import tavernNeonImage from "../assets/homepage-reference/modules/tavern-neon.png"
 import tavernNightImage from "../assets/homepage-reference/modules/tavern-night.png"
@@ -11,6 +12,56 @@ const previewCards = [
   { image: tavernNightImage, title: "夜间开放", text: "从真实坐标进入店主创作的赛博酒馆。" },
   { image: tavernNeonImage, title: "NPC 在场", text: "角色、氛围和访问规则都由店主决定。" },
 ]
+
+type Category = {
+  label: string
+  tags: string[]
+  color: string
+}
+
+// Category definitions — tags from TavernCharacter.tags are matched by substring
+const CATEGORIES: Category[] = [
+  { label: "外星便利店", tags: ["外星人", "便利店"], color: "text-green-300 border-green-300/30 bg-green-300/10" },
+  { label: "文游委托板", tags: ["文游", "委托板"], color: "text-amber-300 border-amber-300/30 bg-amber-300/10" },
+  { label: "公益酒馆", tags: ["公益"], color: "text-cyan-300 border-cyan-300/30 bg-cyan-300/10" },
+  { label: "社区陪伴", tags: ["陪伴", "树洞"], color: "text-rose-300 border-rose-300/30 bg-rose-300/10" },
+]
+
+function tavernMatchesCategory(
+  tavern: TavernListResponse["taverns"][number],
+  category: Category,
+): boolean {
+  const allTags = tavern.characters?.flatMap((c) => c.tags ?? []) ?? []
+  return category.tags.some((tag) => allTags.some((t) => t.includes(tag)))
+}
+
+function tavernMatchesFilter(
+  tavern: TavernListResponse["taverns"][number],
+  filters: {
+    search: string
+    activeCategories: Set<string>
+    publicOnly: boolean
+    openOnly: boolean
+  },
+): boolean {
+  // Name search — case-insensitive includes
+  if (filters.search && !tavern.name.toLowerCase().includes(filters.search.toLowerCase())) {
+    return false
+  }
+  // Category filter — match any active category
+  if (filters.activeCategories.size > 0) {
+    const matches = Array.from(filters.activeCategories).some((label) => {
+      const cat = CATEGORIES.find((c) => c.label === label)
+      return cat && tavernMatchesCategory(tavern, cat)
+    })
+    if (!matches) return false
+  }
+  // Public filter
+  if (filters.publicOnly && tavern.access !== "public") return false
+  // Open filter
+  if (filters.openOnly && tavern.status !== "open") return false
+  return true
+}
 
 type DiscoverLoaderData = {
   result: TavernListResponse
@@ -28,6 +79,34 @@ export async function clientLoader(): Promise<DiscoverLoaderData> {
 export default function DiscoverRoute() {
   const { result, error } = useLoaderData<typeof clientLoader>()
 
+  const [search, setSearch] = useState("")
+  const [activeCategories, setActiveCategories] = useState<Set<string>>(new Set())
+  const [publicOnly, setPublicOnly] = useState(false)
+  const [openOnly, setOpenOnly] = useState(false)
+
+  const filteredTaverns = useMemo(() => {
+    return result.taverns.filter((tavern) =>
+      tavernMatchesFilter(tavern, { search, activeCategories, publicOnly, openOnly }),
+    )
+  }, [result.taverns, search, activeCategories, publicOnly, openOnly])
+
+  function toggleCategory(label: string) {
+    setActiveCategories((prev) => {
+      const next = new Set(prev)
+      next.has(label) ? next.delete(label) : next.add(label)
+      return next
+    })
+  }
+
+  function clearFilters() {
+    setSearch("")
+    setActiveCategories(new Set())
+    setPublicOnly(false)
+    setOpenOnly(false)
+  }
+
+  const hasFilters = search || activeCategories.size > 0 || publicOnly || openOnly
+
   return (
     <ProductShell eyebrow="Discover">
       <section className="grid gap-6 lg:grid-cols-[0.72fr_1.28fr] lg:items-stretch">
@@ -44,7 +123,7 @@ export default function DiscoverRoute() {
             <div className="mt-6 grid gap-3 text-sm text-violet-100/70">
               <div className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.04] p-3">
                 <MapPinned className="h-5 w-5 text-cyan-200" />
-                <span>{result.count} 间酒馆已接入发现流</span>
+                <span>{hasFilters ? filteredTaverns.length : result.count} 间酒馆{hasFilters ? "符合筛选" : "已接入发现流"}</span>
               </div>
               <div className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.04] p-3">
                 <Search className="h-5 w-5 text-fuchsia-100" />
@@ -64,6 +143,76 @@ export default function DiscoverRoute() {
                 API 暂不可用：{error}
               </p>
             ) : null}
+          </div>
+
+          {/* Filter section */}
+          <div className="space-y-4 rounded-[2rem] border border-white/10 bg-white/[0.035] p-5">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-black uppercase tracking-widest text-cyan-100/60">筛选</span>
+              {hasFilters ? (
+                <button
+                  onClick={clearFilters}
+                  className="flex items-center gap-1 rounded-full border border-white/10 px-2.5 py-1 text-xs text-violet-100/70 transition hover:border-rose-300/40 hover:text-rose-300"
+                >
+                  <X className="h-3 w-3" />
+                  清空
+                </button>
+              ) : null}
+            </div>
+
+            {/* Category chips */}
+            <div className="flex flex-wrap gap-2">
+              {CATEGORIES.map((cat) => {
+                const active = activeCategories.has(cat.label)
+                return (
+                  <button
+                    key={cat.label}
+                    onClick={() => toggleCategory(cat.label)}
+                    className={`rounded-full border px-3 py-1.5 text-xs font-bold transition ${
+                      active
+                        ? cat.color
+                        : "border-white/10 text-violet-100/60 hover:border-white/25 hover:text-white/80"
+                    }`}
+                  >
+                    {cat.label}
+                  </button>
+                )
+              })}
+            </div>
+
+            {/* Search input */}
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-violet-100/40" />
+              <input
+                type="text"
+                placeholder="搜索酒馆名称…"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="flex h-10 w-full rounded-xl border border-white/10 bg-white/5 px-9 py-2 text-sm text-white placeholder:text-violet-100/40 focus:outline-none focus:ring-2 focus:ring-cyan-300/40"
+              />
+            </div>
+
+            {/* Toggle switches */}
+            <div className="flex flex-wrap gap-3">
+              <label className="flex cursor-pointer items-center gap-2 text-xs text-violet-100/70">
+                <input
+                  type="checkbox"
+                  checked={publicOnly}
+                  onChange={(e) => setPublicOnly(e.target.checked)}
+                  className="accent-cyan-400"
+                />
+                仅公益
+              </label>
+              <label className="flex cursor-pointer items-center gap-2 text-xs text-violet-100/70">
+                <input
+                  type="checkbox"
+                  checked={openOnly}
+                  onChange={(e) => setOpenOnly(e.target.checked)}
+                  className="accent-cyan-400"
+                />
+                仅开放
+              </label>
+            </div>
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1">
@@ -95,8 +244,8 @@ export default function DiscoverRoute() {
             </div>
 
             <div className="grid gap-3">
-              {result.taverns.length ? (
-                result.taverns.map((tavern, index) => (
+              {filteredTaverns.length ? (
+                filteredTaverns.map((tavern, index) => (
                   <Link
                     key={tavern.id}
                     to={`/tavern/${encodeURIComponent(tavern.id)}`}

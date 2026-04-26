@@ -156,6 +156,7 @@ class PackageApplicationMixin:
             "lon": lon,
             "address": payload.get("address", tavern_payload.get("address", "")),
             "access": access,
+            "roleplay_mode": tavern_payload.get("roleplay_mode", "ai_only"),
             "scene_prompt": tavern_payload.get("scene_prompt", ""),
         }
         llm_preset = safe_llm_preset(

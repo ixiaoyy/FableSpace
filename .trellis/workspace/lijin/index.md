@@ -8,8 +8,8 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-1.md`
-- **Total Sessions**: 2
-- **Last Active**: 2026-04-24
+- **Total Sessions**: 3
+- **Last Active**: 2026-04-27
 <!-- @@@/auto:current-status -->
 
 ---
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-1.md` | ~104 | Active |
+| `journal-1.md` | ~135 | Active |
 <!-- @@@/auto:active-documents -->
 
 ---
@@ -29,6 +29,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 3 | 2026-04-27 | 酒馆发现增强 — 分类浏览与搜索 | - | `main` |
 | 2 | 2026-04-24 | Polish tavern UI and add Heguang NPC | `ee49284`, `b9330d7`, `250b654`, `ea37bc2`, `793ddbf` | `main` |
 | 1 | 2026-04-24 | Homepage reference checkpoint and portrait optimization | `0cd4d32`, `be2fced` | `main` |
 <!-- @@@/auto:session-history -->

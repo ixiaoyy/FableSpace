@@ -102,3 +102,34 @@ Verification:
 ### Next Steps
 
 - None - task complete
+
+
+## Session 3: 酒馆发现增强 — 分类浏览与搜索
+
+**Date**: 2026-04-27
+**Task**: 酒馆发现增强 — 分类浏览与搜索
+**Branch**: `main`
+
+### Summary
+
+为 /discover 页面增加了分类标签浏览、酒馆名称模糊搜索、公益/开放切换开关。清空筛选按钮基于 hasFilters 状态自动显示。修复了 Input 组件缺失问题（改为原生 input）。typecheck 和 build 均通过。
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+(No commits - planning session)
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete

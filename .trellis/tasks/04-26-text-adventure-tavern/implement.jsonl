@@ -1,0 +1,6 @@
+{"file": ".trellis/workflow.md", "reason": "Project workflow and conventions"}
+{"file": ".trellis/spec/backend/index.md", "reason": "Backend development guide"}
+{"file": "backend/src/fablemap_api/core/default_taverns.py", "reason": "Default public-welfare tavern and gameplay seed pattern"}
+{"file": "backend/src/fablemap_api/core/web/service.py", "reason": "Rules backend local response pattern"}
+{"file": ".trellis/spec/backend/directory-structure.md", "reason": "Default tavern seed file and tests layout"}
+{"file": ".trellis/spec/backend/database-guidelines.md", "reason": "Idempotent JSON seed and no schema change"}

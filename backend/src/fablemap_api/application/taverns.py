@@ -17,6 +17,7 @@ from .services.gameplay import GameplayApplicationMixin
 from .services.runtime import RuntimeApplicationMixin
 from .services.characters import CharacterApplicationMixin
 from .services.utilities import UtilityApplicationMixin
+from .services.roleplay import RoleplayApplicationMixin
 
 
 class TavernApplicationService(
@@ -29,6 +30,7 @@ class TavernApplicationService(
     RuntimeApplicationMixin,
     CharacterApplicationMixin,
     UtilityApplicationMixin,
+    RoleplayApplicationMixin,
 ):
     """Application facade for native `/api/v1/taverns` use cases.
 

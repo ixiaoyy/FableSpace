@@ -40,6 +40,7 @@ export default function CreateRoute() {
           lon: Number(form.get("lon") || 0),
           address: String(form.get("address") || "").trim(),
           access: String(form.get("access") || "public"),
+          roleplay_mode: String(form.get("roleplay_mode") || "ai_only"),
           scene_prompt: String(form.get("scene_prompt") || "").trim(),
           llm_config: { backend: "rules", model: "rules" },
         },
@@ -83,7 +84,7 @@ export default function CreateRoute() {
           </div>
 
           <form className="space-y-5" onSubmit={handleSubmit}>
-            <div className="grid gap-3 sm:grid-cols-2">
+            <div className="grid gap-3 sm:grid-cols-3">
               <label className="space-y-1.5 text-sm">
                 <span className="text-violet-100/65">店主 ID</span>
                 <input name="owner_id" defaultValue={DEFAULT_OWNER_ID} className="w-full rounded-2xl border border-white/12 bg-white/[0.06] px-4 py-3 text-white outline-none focus:border-cyan-300/60" />
@@ -94,6 +95,13 @@ export default function CreateRoute() {
                   <option value="public">public</option>
                   <option value="private">private</option>
                   <option value="password">password</option>
+                </select>
+              </label>
+              <label className="space-y-1.5 text-sm">
+                <span className="text-violet-100/65">Roleplay</span>
+                <select name="roleplay_mode" defaultValue="ai_only" className="w-full rounded-2xl border border-white/12 bg-slate-950 px-4 py-3 text-white outline-none focus:border-cyan-300/60">
+                  <option value="ai_only">ai_only</option>
+                  <option value="hybrid">hybrid</option>
                 </select>
               </label>
             </div>

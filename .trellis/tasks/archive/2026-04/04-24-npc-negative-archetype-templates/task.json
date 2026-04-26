@@ -3,7 +3,7 @@
   "name": "npc-negative-archetype-templates",
   "title": "NPC 反面人设与话术模板",
   "description": "记录 NPC 不应只局限于正面/温柔模板，也应支持毒舌、油腻、渣男/海后、薄情寡性等反面人设模板，用于角色扮演、反讽和‘魔法打败魔法’玩法。",
-  "status": "brainstorm",
+  "status": "completed",
   "dev_type": "product",
   "scope": null,
   "package": null,
@@ -11,28 +11,12 @@
   "creator": "lijin",
   "assignee": "lijin",
   "createdAt": "2026-04-24",
-  "completedAt": null,
+  "completedAt": "2026-04-24",
   "branch": null,
   "base_branch": "main",
   "worktree_path": null,
-  "current_phase": 1,
+  "current_phase": 5,
   "next_action": [
-    {
-      "phase": 1,
-      "action": "brainstorm"
-    },
-    {
-      "phase": 2,
-      "action": "research"
-    },
-    {
-      "phase": 3,
-      "action": "implement"
-    },
-    {
-      "phase": 4,
-      "action": "check"
-    },
     {
       "phase": 5,
       "action": "update-spec"
@@ -79,7 +63,7 @@
     "docs/WORLD_SCHEMA.md",
     "docs/WHAT_NOT_TO_BUILD.md"
   ],
-  "notes": "2026-04-24 头脑风暴：记录用户提出的 NPC 反面人设方向。关键点：NPC 不能只有正面/温柔，也可以毒舌、油腻、渣男/海后、薄情寡性；可通过模板降低店主创作门槛，并用‘魔法打败魔法’制造可传播玩法。",
+  "notes": "2026-04-24 头脑风暴：记录用户提出的 NPC 反面人设方向。关键点：NPC 不能只有正面/温柔，也可以毒舌、油腻、渣男/海后、薄情寡性；可通过模板降低店主创作门槛，并用’魔法打败魔法’制造可传播玩法。\n\n2026-04-24 实现决定：采用 Approach A，在 personalityTemplates.js 新增’反面人设’分类，首批 3 个模板：snarky-bartender（毒舌酒保）、smarmy-dating-sim（油腻相亲对象）、cold-dealer（薄情冷淡调酒师）。安全边界：仅用于反讽/识别/角色扮演，不做现实操纵教程；system_prompt 明确禁止身份攻击、冒充专业人士、现实骚扰。测试已通过（personality-templates-test.mjs），Typecheck 和 Build 均通过。",
   "meta": {
     "idea_source": "lijin",
     "idea_date": "2026-04-24",

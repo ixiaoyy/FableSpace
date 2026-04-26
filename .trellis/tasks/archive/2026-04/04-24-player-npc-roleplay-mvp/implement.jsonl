@@ -1,0 +1,14 @@
+{"file": ".trellis/workflow.md", "reason": "Project workflow and conventions"}
+{"file": ".trellis/spec/backend/index.md", "reason": "Backend development guide"}
+{"file": ".trellis/spec/frontend/index.md", "reason": "Frontend development guide"}
+{"file": ".trellis/spec/backend/directory-structure.md", "reason": "native v1 route/service placement for roleplay endpoints"}
+{"file": ".trellis/spec/backend/database-guidelines.md", "reason": "new Tavern persistent fields and JSON compatibility"}
+{"file": ".trellis/spec/backend/error-handling.md", "reason": "stable HTTP errors and permission failures"}
+{"file": ".trellis/spec/backend/quality-guidelines.md", "reason": "backend tests and product boundary checks"}
+{"file": ".trellis/spec/backend/logging-guidelines.md", "reason": "avoid logging visitor/owner sensitive data"}
+{"file": ".trellis/spec/frontend/directory-structure.md", "reason": "route-module service placement"}
+{"file": ".trellis/spec/frontend/component-guidelines.md", "reason": "tavern route UI patterns"}
+{"file": ".trellis/spec/frontend/state-management.md", "reason": "local/server state for roleplay panel"}
+{"file": ".trellis/spec/frontend/type-safety.md", "reason": "frontend schema alignment"}
+{"file": ".trellis/spec/frontend/quality-guidelines.md", "reason": "frontend verification expectations"}
+{"file": ".trellis/spec/guides/cross-layer-thinking-guide.md", "reason": "cross-layer roleplay contract"}

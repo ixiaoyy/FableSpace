@@ -11,8 +11,10 @@ Usage contract:
   - `scholar-a.png`, `scholar-b.png`
   - `wanderer-a.png`, `wanderer-b.png`
   - `spirit-a.png`, `spirit-b.png`
+  - `alien-9-delta.png`, `alien-mu-mu.png`, `alien-v17.png`, `alien-pi-pi.png`
+  - `commission-mozhan.png`, `commission-zhideng.png`
 - The runtime copies in `portraits/` are optimized `256×256` PNGs sized for `TavernNpcStage`, so the tavern route does not ship the original 1254px source images.
-- `features/tavern-npc-stage/portraitCatalog.ts` resolves fallback portraits by archetype + deterministic variant.
+- `features/tavern-npc-stage/portraitCatalog.ts` resolves fallback portraits by character ID for specific default NPCs, then by archetype + deterministic variant.
 - `TavernNpcStage` uses these portrait assets only when a character does not provide owner-authored `sprites.neutral`, `avatar`, or `image_url`.
 - `tavern-npc-style-cast.png` is retained as an earlier style reference sheet, not the canonical runtime fallback.
 - The asset must remain tavern-themed: visible bar/counter, mugs, shelves, lanterns, menu boards, map-table, bottles, or equivalent tavern interior cues.

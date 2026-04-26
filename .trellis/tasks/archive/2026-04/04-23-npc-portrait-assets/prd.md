@@ -191,3 +191,25 @@
 * 说明：
   * 命令行 HTTP 检查需显式 `--noproxy '*'`，否则会被本机代理链路拦到 `502`
   * 这轮仍不等价于浏览器人工视觉验收；剩余收尾仍是实际 UI 视觉检查
+
+## Final Visual QA Checkpoint (2026-04-24)
+
+* 已将 Trellis current task 修正回 `.trellis/tasks/04-23-npc-portrait-assets`。
+* 视觉 QA 使用 native `/api/v1` backend + Vite dev server：
+  * `$env:PYTHONPATH='backend/src'; py -3 -m uvicorn fablemap_api.main:app --host 127.0.0.1 --port 8950 --log-level warning`
+  * `npm run dev` in `frontend/`（本机实际占用端口 `5174`）
+  * 验证 `http://127.0.0.1:8950/api/v1/taverns/pw_community_repair` 返回 JSON。
+* 桌面截图确认 `社区修补铺` 的无 owner 头像角色 `阿槐 / 和光` 均显示真实 tavern-themed portrait fallback。
+* 窄屏截图与 CDP 测量确认：
+  * `document.documentElement.scrollWidth` 等于 viewport width，无横向溢出。
+  * NPC portrait、角色卡、聊天输入区在窄屏下保持可读可操作。
+* 顺手修复了 tavern route / NPC Stage 的窄屏 grid 溢出风险：
+  * `frontend/app/routes/tavern.tsx` 使用 `minmax(0, ...)` grid track，并为卡片/统计项增加 `min-w-0` 与必要换行。
+  * `frontend/app/features/tavern-npc-stage/index.tsx` 为 Stage 卡片、内部 grid、NPC 卡片增加 `min-w-0`。
+
+## Validation (final QA, 2026-04-24)
+
+* `npm --prefix .\frontend run typecheck` — passed
+* `npm --prefix .\frontend run build` — passed
+* `npm --prefix .\frontend test` — passed
+* Browser visual QA — passed on desktop and narrow viewport using native `/api/v1` backend + Vite proxy.

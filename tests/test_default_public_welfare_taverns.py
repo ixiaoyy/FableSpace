@@ -27,7 +27,7 @@ def test_default_public_welfare_taverns_are_seeded_and_discoverable():
         }
 
         assert set(DEFAULT_PUBLIC_WELFARE_TAVERN_IDS).issubset(seeded)
-        assert len(DEFAULT_PUBLIC_WELFARE_TAVERN_IDS) >= 4
+        assert len(DEFAULT_PUBLIC_WELFARE_TAVERN_IDS) >= 6
         for tavern in seeded.values():
             assert tavern["access"] == "public"
             assert tavern["status"] == "open"
@@ -36,6 +36,73 @@ def test_default_public_welfare_taverns_are_seeded_and_discoverable():
             assert tavern["llm_config"].get("api_key", "") == ""
             assert tavern["characters"]
             assert tavern["world_info"]
+
+
+def test_third_shelf_observatory_contains_complete_alien_convenience_tavern():
+    with TemporaryDirectory() as tmpdir:
+        service = _service(tmpdir)
+        payload = service.list_taverns_payload(query="外星")
+        tavern = service.get_tavern_payload("pw_third_shelf_observatory", user_id="visitor_public_welfare")
+
+        assert any(item["id"] == "pw_third_shelf_observatory" for item in payload["taverns"])
+        assert tavern["name"] == "第三货架后面"
+        assert tavern["access"] == "public"
+        assert tavern["status"] == "open"
+        assert tavern["llm_config"]["backend"] == "rules"
+        assert tavern["llm_config"].get("api_key", "") == ""
+        assert len(tavern["characters"]) == 4
+        assert len(tavern["world_info"]) >= 8
+
+        character_ids = {character["id"] for character in tavern["characters"]}
+        assert {
+            "char_pw_9_delta",
+            "char_pw_mu_mu",
+            "char_pw_v17",
+            "char_pw_pi_pi",
+        }.issubset(character_ids)
+
+        nine_delta = next(character for character in tavern["characters"] if character["id"] == "char_pw_9_delta")
+        combined_prompt = " ".join(
+            [
+                tavern["description"],
+                tavern["scene_prompt"],
+                nine_delta["description"],
+                nine_delta["personality"],
+                nine_delta["system_prompt"],
+                nine_delta["first_mes"],
+            ]
+        )
+        for keyword in ("外星", "便利店", "随便", "第二件半价", "关东煮"):
+            assert keyword in combined_prompt
+
+
+def test_midnight_commission_board_contains_text_adventure_tavern():
+    with TemporaryDirectory() as tmpdir:
+        service = _service(tmpdir)
+        payload = service.list_taverns_payload(query="文游")
+        tavern = service.get_tavern_payload("pw_midnight_commission_board", user_id="visitor_public_welfare")
+
+        assert any(item["id"] == "pw_midnight_commission_board" for item in payload["taverns"])
+        assert tavern["name"] == "午夜委托板"
+        assert tavern["access"] == "public"
+        assert tavern["status"] == "open"
+        assert tavern["llm_config"]["backend"] == "rules"
+        assert tavern["llm_config"].get("api_key", "") == ""
+        assert len(tavern["characters"]) == 2
+        assert len(tavern["world_info"]) >= 6
+
+        character_ids = {character["id"] for character in tavern["characters"]}
+        assert {"char_pw_mozhan", "char_pw_zhideng"}.issubset(character_ids)
+
+        gameplays = tavern["gameplay_definitions"]
+        assert len(gameplays) >= 3
+        assert all(gameplay["status"] == "published" for gameplay in gameplays)
+        combined_gameplays = " ".join(
+            f"{gameplay.get('title', '')} {gameplay.get('summary', '')} {gameplay.get('entry_label', '')}"
+            for gameplay in gameplays
+        )
+        for keyword in ("线索调查", "社区小委托", "异常值班"):
+            assert keyword in combined_gameplays
 
 
 def test_community_repair_includes_heguang_communication_npc():
@@ -145,3 +212,60 @@ def test_default_public_welfare_tavern_chat_uses_local_rules_backend():
         )
         assert len(sessions) == 1
         assert sessions[0]["message_count"] == 2
+
+
+def test_third_shelf_observatory_chat_uses_alien_convenience_rules_response():
+    with TemporaryDirectory() as tmpdir:
+        service = _service(tmpdir)
+        tavern = service.get_tavern_payload("pw_third_shelf_observatory", user_id="")
+        character_id = "char_pw_9_delta"
+
+        entered = service.enter_tavern_payload(
+            tavern["id"],
+            user_id="visitor_public_welfare",
+        )
+        assert entered["ok"] is True
+        assert entered["status"] == "open"
+
+        response = service.tavern_chat_payload(
+            tavern_id=tavern["id"],
+            character_id=character_id,
+            message="随便到底是什么意思？",
+            visitor_id="visitor_public_welfare",
+            visitor_name="测试旅人",
+            user_id="visitor_public_welfare",
+        )
+
+        assert response["degraded"] is False
+        assert response["tavern_status"] == "open"
+        assert "随便" in response["response"]
+        assert "高危词" in response["response"] or "随机授权" in response["response"]
+        assert service.tavern_store.get_token_usage(tavern["id"]) == 0
+
+
+def test_midnight_commission_board_chat_uses_text_adventure_rules_response():
+    with TemporaryDirectory() as tmpdir:
+        service = _service(tmpdir)
+        tavern = service.get_tavern_payload("pw_midnight_commission_board", user_id="")
+
+        entered = service.enter_tavern_payload(
+            tavern["id"],
+            user_id="visitor_public_welfare",
+        )
+        assert entered["ok"] is True
+        assert entered["status"] == "open"
+
+        response = service.tavern_chat_payload(
+            tavern_id=tavern["id"],
+            character_id="char_pw_mozhan",
+            message="我想接一个线索调查委托。",
+            visitor_id="visitor_public_welfare",
+            visitor_name="测试旅人",
+            user_id="visitor_public_welfare",
+        )
+
+        assert response["degraded"] is False
+        assert response["tavern_status"] == "open"
+        assert "线索" in response["response"]
+        assert "位置" in response["response"] or "可确认细节" in response["response"]
+        assert service.tavern_store.get_token_usage(tavern["id"]) == 0

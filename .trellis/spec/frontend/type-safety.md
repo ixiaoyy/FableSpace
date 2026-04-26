@@ -112,6 +112,40 @@ Do not introduce frontend-only schema fields into persistent payloads unless bac
 
 ---
 
+## Scenario: roleplay state in native tavern routes
+
+When a route renders player-as-NPC roleplay state, shared types and API clients belong in `frontend/app/lib/taverns.ts`:
+
+```typescript
+type RoleplayMode = "ai_only" | "hybrid"
+type RoleplayClaimStatus = "pending" | "approved" | "rejected" | "revoked"
+type RoleplayState = {
+  tavern_id: string
+  roleplay_mode: RoleplayMode | string
+  claims: RoleplayClaim[]
+  characters: Pick<TavernCharacter, "id" | "name" | "avatar">[]
+}
+```
+
+Use these service methods from route modules instead of calling `fetch` in components:
+
+```typescript
+getRoleplayState(tavernId, userId)
+saveRoleplayConfig(tavernId, { roleplay_mode }, userId)
+requestRoleplayClaim(tavernId, { character_id, player_name }, userId)
+decideRoleplayClaim(tavernId, claimId, { status, note }, userId)
+```
+
+Roleplay UI must tolerate `roleplay` being unavailable from a loader and fall back to `tavern.roleplay_mode || "ai_only"` plus `tavern.character_claims || []`. Do not treat local visitor/owner IDs as secure authorization; backend owner and visibility checks remain authoritative.
+
+Required verification after changing these clients or route components:
+
+```powershell
+npm --prefix .\frontend run typecheck
+npm --prefix .\frontend run build
+npm --prefix .\frontend test
+```
+
 ## Common mistakes
 
 - Trusting localStorage data without defaults.

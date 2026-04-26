@@ -92,7 +92,9 @@ class MySQLTavernStore:
             access=model.access or "public",
             password_hash=model.password_hash or "",
             status=model.status or "closed",
+            roleplay_mode=model.roleplay_mode or "ai_only",
             characters=characters,
+            character_claims=deepcopy(model.character_claims) if model.character_claims else [],
             world_info=world_info,
             groups=deepcopy(model.groups) if model.groups else [],
             bookmarks=deepcopy(model.bookmarks) if model.bookmarks else [],
@@ -295,6 +297,7 @@ class MySQLTavernStore:
                 access=tavern.access,
                 password_hash=tavern.password_hash,
                 status=tavern.status,
+                roleplay_mode=tavern.roleplay_mode,
                 scene_prompt=tavern.scene_prompt,
                 visit_count=tavern.visit_count,
                 group_chat_enabled=tavern.group_chat_enabled,
@@ -302,6 +305,7 @@ class MySQLTavernStore:
                 groups=tavern.groups,
                 bookmarks=tavern.bookmarks,
                 chat_templates=tavern.chat_templates,
+                character_claims=tavern.character_claims,
                 gameplay_definitions=tavern.gameplay_definitions,
                 output_rules=tavern.output_rules,
                 prompt_blocks=tavern.prompt_blocks,
@@ -371,6 +375,7 @@ class MySQLTavernStore:
             model.access = tavern.access
             model.password_hash = tavern.password_hash
             model.status = tavern.status
+            model.roleplay_mode = tavern.roleplay_mode
             model.scene_prompt = tavern.scene_prompt
             model.visit_count = tavern.visit_count
             model.group_chat_enabled = tavern.group_chat_enabled
@@ -378,6 +383,7 @@ class MySQLTavernStore:
             model.groups = tavern.groups
             model.bookmarks = tavern.bookmarks
             model.chat_templates = tavern.chat_templates
+            model.character_claims = tavern.character_claims
             model.gameplay_definitions = tavern.gameplay_definitions
             model.output_rules = tavern.output_rules
             model.prompt_blocks = tavern.prompt_blocks

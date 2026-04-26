@@ -315,6 +315,10 @@ fablemap_data/
 | POST | `/api/taverns/{id}/chat` | 发送消息并获取 AI 回复 |
 | GET | `/api/taverns/{id}/chat` | 获取对话历史 |
 | POST | `/api/taverns/{id}/enter` | 进入酒馆（验证密码） |
+| GET | `/api/v1/taverns/{id}/roleplay` | 获取玩家扮演 NPC 模式与当前用户可见认领 |
+| PUT | `/api/v1/taverns/{id}/roleplay` | 店主开启 / 关闭混合扮演模式 |
+| POST | `/api/v1/taverns/{id}/roleplay/claims` | 访客申请认领已有 NPC |
+| PUT | `/api/v1/taverns/{id}/roleplay/claims/{claim_id}` | 店主批准、拒绝或撤销认领 |
 | GET | `/api/taverns/{id}/gameplays` | 获取当前用户可见玩法定义 |
 | PUT | `/api/taverns/{id}/gameplays` | 店主保存玩法定义 |
 | GET | `/api/taverns/{id}/gameplay-sessions` | 列出玩法会话（访客本人或店主视图） |
@@ -428,7 +432,7 @@ POST /api/taverns/:id/gameplay-sessions/:sid/advance
 3. 复杂的地图视觉资源包体系
 4. "地图是否看起来像 RPG 城镇图"这一类审美目标
 5. 平台级别的 Token 付费/充值系统
-6. 酒馆之间的访客社交（访客之间不直接对话，只和 AI NPC 互动）
+6. 无边界访客社交（好友、动态墙、跨酒馆私信、全局在线状态）；店主审批的单酒馆玩家扮演 NPC 属于允许的酒馆治理能力
 
 ---
 

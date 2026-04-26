@@ -18,6 +18,21 @@ export type TavernCharacter = {
   tags?: string[]
 }
 
+export type RoleplayMode = "ai_only" | "hybrid"
+
+export type RoleplayClaimStatus = "pending" | "approved" | "rejected" | "revoked"
+
+export type RoleplayClaim = {
+  id: string
+  character_id: string
+  player_id: string
+  player_name?: string
+  status: RoleplayClaimStatus | string
+  requested_at?: string
+  decided_at?: string
+  note?: string
+}
+
 export type Tavern = {
   id: string
   name: string
@@ -29,6 +44,8 @@ export type Tavern = {
   status?: string
   owner_id?: string
   scene_prompt?: string
+  roleplay_mode?: RoleplayMode | string
+  character_claims?: RoleplayClaim[]
   visit_count?: number
   characters?: TavernCharacter[]
   world_info?: unknown[]
@@ -38,6 +55,15 @@ export type Tavern = {
 export type TavernListResponse = {
   taverns: Tavern[]
   count: number
+}
+
+export type RoleplayState = {
+  tavern_id: string
+  roleplay_mode: RoleplayMode | string
+  claims: RoleplayClaim[]
+  characters: Pick<TavernCharacter, "id" | "name" | "avatar">[]
+  ok?: boolean
+  claim?: RoleplayClaim
 }
 
 export type ChatMessage = {
@@ -323,6 +349,44 @@ export function enterTavern(tavernId: string, password = "", userId = DEFAULT_VI
   return readApiJson<{ ok: boolean; first_mes?: string; visitor_state?: unknown }>(
     `/api/v1/taverns/${encodeURIComponent(tavernId)}/enter`,
     jsonInit("POST", { password }, userId),
+  )
+}
+
+export function getRoleplayState(tavernId: string, userId = DEFAULT_VISITOR_ID) {
+  return readApiJson<RoleplayState>(`/api/v1/taverns/${encodeURIComponent(tavernId)}/roleplay`, { userId })
+}
+
+export function saveRoleplayConfig(
+  tavernId: string,
+  data: { roleplay_mode: RoleplayMode | string },
+  userId = DEFAULT_OWNER_ID,
+) {
+  return readApiJson<RoleplayState>(
+    `/api/v1/taverns/${encodeURIComponent(tavernId)}/roleplay`,
+    jsonInit("PUT", data, userId),
+  )
+}
+
+export function requestRoleplayClaim(
+  tavernId: string,
+  data: { character_id: string; player_id?: string; player_name?: string },
+  userId = DEFAULT_VISITOR_ID,
+) {
+  return readApiJson<RoleplayState>(
+    `/api/v1/taverns/${encodeURIComponent(tavernId)}/roleplay/claims`,
+    jsonInit("POST", data, userId),
+  )
+}
+
+export function decideRoleplayClaim(
+  tavernId: string,
+  claimId: string,
+  data: { status: RoleplayClaimStatus | string; note?: string },
+  userId = DEFAULT_OWNER_ID,
+) {
+  return readApiJson<RoleplayState>(
+    `/api/v1/taverns/${encodeURIComponent(tavernId)}/roleplay/claims/${encodeURIComponent(claimId)}`,
+    jsonInit("PUT", data, userId),
   )
 }
 

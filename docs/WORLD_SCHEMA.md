@@ -47,9 +47,11 @@ interface Tavern {
 
   // ── 运营状态 ──────────────────────
   status: 'open' | 'closed';    // open = LLM 可用，closed = LLM 不可用
+  roleplay_mode: 'ai_only' | 'hybrid'; // NPC 驱动模式：纯 AI 或店主审批的玩家混合扮演
 
   // ── 酒馆内容 ──────────────────────
   characters: TavernCharacter[];  // 酒馆内的 NPC 列表
+  character_claims: CharacterClaim[]; // 玩家扮演 NPC 的认领记录
   world_info: WorldInfoEntry[];   // 世界知识（关键词注入）
   gameplay_definitions: GameplayDefinition[]; // 店主配置的结构化玩法定义
   scene_prompt?: string;          // 场景氛围提示词（附加上下文）
@@ -58,7 +60,33 @@ interface Tavern {
 
 ---
 
-## 三、TavernCharacter（酒馆角色）
+## 三、CharacterClaim（玩家扮演 NPC 认领）
+
+`CharacterClaim` 记录某个玩家申请 / 获准扮演某个既有 NPC 的状态。它是酒馆内的治理记录，不是跨酒馆私信、好友关系或全局在线状态。
+
+```typescript
+interface CharacterClaim {
+  id: string;                 // claim_<hex>
+  character_id: string;       // 被认领的 TavernCharacter.id
+  player_id: string;          // 申请扮演者 user_id
+  player_name?: string;       // 展示名
+  status: 'pending' | 'approved' | 'rejected' | 'revoked';
+  requested_at: string;       // ISO 时间戳
+  decided_at?: string;        // 店主审批 / 撤销时间
+  note?: string;              // 店主备注
+}
+```
+
+约束：
+
+- 只有 `roleplay_mode = 'hybrid'` 时访客可以申请认领。
+- 店主可以批准、拒绝或撤销认领。
+- 同一角色同一时间最多只有一个 `approved` 认领。
+- 认领只绑定当前酒馆和当前 NPC，不创建访客好友、私信、动态墙或跨酒馆社交关系。
+
+---
+
+## 四、TavernCharacter（酒馆角色）
 
 酒馆角色是酒馆内的 AI NPC。格式兼容 SillyTavern Character Card V2。
 
@@ -106,7 +134,7 @@ interface TavernSpriteSet {
 
 ---
 
-## 四、WorldInfoEntry（世界知识条目）
+## 五、WorldInfoEntry（世界知识条目）
 
 世界知识条目用于在对话中注入背景信息。当用户消息包含特定关键词时，对应的条目内容会被追加到 system prompt 中。
 
@@ -136,7 +164,7 @@ interface WorldInfoEntry {
 
 ---
 
-## 五、LLMConfig（LLM 配置）
+## 六、LLMConfig（LLM 配置）
 
 LLM 配置由酒馆主人提供，用于驱动酒馆内的 AI 对话。API Key 和敏感信息仅主人可见。
 
@@ -165,7 +193,7 @@ interface LLMConfig {
 
 ---
 
-## 六、VisitorState（访客状态）
+## 七、VisitorState（访客状态）
 
 记录访客与特定酒馆的关系状态。
 
@@ -190,7 +218,7 @@ interface VisitorState {
 
 ---
 
-## 七、ChatMessage（对话消息）
+## 八、ChatMessage（对话消息）
 
 对话历史记录。
 
@@ -216,7 +244,7 @@ interface ChatMessage {
 
 ---
 
-## 八、Gameplay（酒馆玩法）
+## 九、Gameplay（酒馆玩法）
 
 Gameplay 是酒馆内容的一部分：`GameplayDefinition` 随 Tavern 导出 / 导入；访客运行时进度进入 `GameplaySession`，不混入 `ChatMessage`，也不进入公开 Tavern payload。
 
@@ -314,7 +342,7 @@ interface GameplayEvent {
 
 ---
 
-## 九、SillyTavern 角色卡字段映射
+## 十、SillyTavern 角色卡字段映射
 
 SillyTavern 角色卡 V2 JSON 导入时的字段映射：
 
@@ -333,7 +361,7 @@ SillyTavern 角色卡 V2 JSON 导入时的字段映射：
 
 ---
 
-## 十、旧世界 Schema（历史参考）
+## 十一、旧世界 Schema（历史参考）
 
 以下为旧的 world Schema，保留为历史参考。新的赛博酒馆平台不再使用这套概念体系。
 

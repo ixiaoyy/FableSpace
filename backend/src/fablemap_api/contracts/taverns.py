@@ -26,6 +26,7 @@ from .owner_config import (
     WorldInfoTestRequest,
 )
 from .packages import TavernPackageImportRequest
+from .roleplay import RoleplayClaimDecisionRequest, RoleplayClaimRequest, RoleplayConfigRequest
 from .runtime import LLMConfigTestRequest, TTSRequest, VoiceConfigRequest
 from .utilities import TokenCountRequest, TokenMessagesCountRequest
 from .worldinfo import WorldInfoGlobalTestRequest, WorldInfoWriteRequest
@@ -40,6 +41,7 @@ class TavernCreateRequest(FlexibleBody):
     access: str | None = None
     password: str | None = None
     scene_prompt: str | None = None
+    roleplay_mode: str | None = None
     llm_config: dict[str, Any] | None = None
 
 
@@ -53,6 +55,7 @@ class TavernUpdateRequest(FlexibleBody):
     password: str | None = None
     status: str | None = None
     scene_prompt: str | None = None
+    roleplay_mode: str | None = None
     llm_config: dict[str, Any] | None = None
 
 
@@ -90,6 +93,9 @@ __all__ = [
     "PromptBlocksWriteRequest",
     "RuntimePresetApplyRequest",
     "RuntimePresetsWriteRequest",
+    "RoleplayClaimDecisionRequest",
+    "RoleplayClaimRequest",
+    "RoleplayConfigRequest",
     "SpriteMapWriteRequest",
     "TTSRequest",
     "TavernCreateRequest",

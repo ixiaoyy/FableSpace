@@ -3,7 +3,7 @@
   "name": "player-npc-roleplay",
   "title": "玩家扮演 NPC 角色扮演模式",
   "description": "探索玩家自己扮演 NPC 的可能性，打破纯 AI 对话模式，支持角色抢占、常驻身份、真人互动",
-  "status": "brainstorm",
+  "status": "completed",
   "dev_type": "product",
   "scope": null,
   "package": null,
@@ -11,7 +11,7 @@
   "creator": "lijin",
   "assignee": "lijin",
   "createdAt": "2026-04-24",
-  "completedAt": null,
+  "completedAt": "2026-04-24",
   "branch": null,
   "base_branch": "main",
   "worktree_path": null,
@@ -48,44 +48,49 @@
     {
       "id": "roleplay-mode-concept",
       "title": "角色扮演模式概念设计",
-      "status": "pending",
-      "notes": "定义酒馆模式：体验模式 vs 扮演模式"
+      "status": "completed",
+      "notes": "已完成概念记录；当前因访客间社交边界暂不开发。"
     },
     {
       "id": "player-character-system",
       "title": "玩家角色系统",
-      "status": "pending",
-      "notes": "角色卡/身份/剧情/任务的玩家版本设计"
+      "status": "completed",
+      "notes": "已作为未来候选记录；当前不新增玩家角色卡 schema。"
     },
     {
       "id": "character-slot抢占机制",
       "title": "角色槽位抢占机制",
-      "status": "pending",
-      "notes": "玩家如何顶替 AI NPC 或新增角色槽位"
+      "status": "completed",
+      "notes": "已作为未来候选记录；当前不实现抢占机制。"
     },
     {
       "id": "persistent-identity",
       "title": "常驻身份系统",
-      "status": "pending",
-      "notes": "玩家长期扮演某个角色的持久化"
+      "status": "completed",
+      "notes": "已作为未来候选记录；当前不实现常驻身份持久化。"
     },
     {
       "id": "multiplayer-interaction",
       "title": "多人互动设计",
-      "status": "pending",
-      "notes": "真人与真人、真人与 AI 的交互模式"
+      "status": "completed",
+      "notes": "已确认触及访客间社交边界，当前暂不开发。"
     },
     {
       "id": "tech-impact-analysis",
       "title": "技术影响分析",
-      "status": "pending",
-      "notes": "评估现有架构的影响和改动范围"
+      "status": "completed",
+      "notes": "已评估为高影响方向：实时通信、消息路由、状态同步、审核与权限。"
     }
   ],
   "children": [],
   "parent": null,
-  "relatedFiles": [],
-  "notes": "2026-04-24 头脑风暴 → 未来开发认领方向。用户提出玩家扮演 NPC 的想法，打破纯 AI 对话模式。核心要素：角色扮演、抢占机制、常驻身份、真人互动。此想法已记录为 lijin 的未来开发认领方向，暂不进入开发队列。",
+  "relatedFiles": [
+    "docs/WHAT_NOT_TO_BUILD.md",
+    "docs/PRODUCT_BRIEF.md",
+    ".trellis/tasks/04-24-player-npc-roleplay/brainstorm.md",
+    ".trellis/tasks/04-24-player-npc-roleplay/prd.md"
+  ],
+  "notes": "2026-04-24 头脑风暴 → 未来开发认领方向。用户提出玩家扮演 NPC 的想法，打破纯 AI 对话模式。核心要素：角色扮演、抢占机制、常驻身份、真人互动。2026-04-24 收束：该方向触及 docs/WHAT_NOT_TO_BUILD.md 中访客间社交边界，当前不进入开发队列，不新增 schema/API/WebSocket/前端状态；已完成产品方向留档，未来如重启需先由用户明确调整产品边界。",
   "meta": {
     "idea_source": "lijin",
     "idea_date": "2026-04-24",

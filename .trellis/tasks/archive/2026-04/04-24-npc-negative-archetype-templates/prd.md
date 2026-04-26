@@ -35,12 +35,12 @@
 
 ## Acceptance Criteria (if implemented later)
 
-- [ ] 角色编辑器能看到“反面人设 / 关系反讽”类模板。
-- [ ] 店主可用填空或覆盖模式应用模板，应用结果仍是普通 TavernCharacter 字段。
-- [ ] 首批至少 3 个反面模板有完整 `description / personality / scenario / system_prompt / first_mes / mes_example / tags / keywords`。
-- [ ] 模板说明中明确其为反讽 / 角色扮演用途，不鼓励现实操纵。
-- [ ] `frontend/scripts/personality-templates-test.mjs` 覆盖新增分类的过滤、推荐或数量变化。
-- [ ] 不新增平台自动生成 NPC、访客社交、付费、排行等出界能力。
+- [x] 角色编辑器能看到”反面人设 / 关系反讽”类模板。（复用现有 UI，无需改动）
+- [x] 店主可用填空或覆盖模式应用模板，应用结果仍是普通 TavernCharacter 字段。（复用现有逻辑）
+- [x] 首批至少 3 个反面模板有完整 `description / personality / scenario / system_prompt / first_mes / mes_example / tags / keywords`。（snarky-bartender, smarmy-dating-sim, cold-dealer）
+- [x] 模板说明中明确其为反讽 / 角色扮演用途，不鼓励现实操纵。（system_prompt 已内置边界）
+- [x] `frontend/scripts/personality-templates-test.mjs` 覆盖新增分类的过滤、推荐或数量变化。（已更新并通过）
+- [x] 不新增平台自动生成 NPC、访客社交、付费、排行等出界能力。
 
 ## Technical Approach Options
 
@@ -71,7 +71,20 @@
 
 ## Decision (ADR-lite)
 
-暂未决策。当前建议优先 Approach A：扩充现有 NPC 性格模板库，并把“油腻 / 渣男 / 海后”等内容明确标记为反讽和识别用途。
+✅ **已决策（2026-04-24）：采用 Approach A：扩充现有 NPC 性格模板库。**
+
+理由：
+- 成本最低，不改 Schema，不破坏 SillyTavern 兼容。
+- 店主选择 → 确认 → 写入角色卡的流程已存在。
+
+已实现（2026-04-24）：
+- `personalityTemplates.js` 新增”反面人设”分类，包含 3 个模板。
+- `personality-templates-test.mjs` 新增反面模板验证（类别过滤、apply、推荐）。
+- Typecheck 和 Build 均通过。
+
+可选后续方向：
+- Approach B：做”魔法打败魔法”示例酒馆包（更有传播力，但需谨慎处理平台创作边界）。
+- 公开反面模板市场（需内容审核机制）。
 
 ## Out of Scope
 
@@ -84,9 +97,10 @@
 ## Definition of Done (for this brainstorm)
 
 - [x] Trellis task 已创建。
-- [x] 用户关于反面 NPC、毒舌、渣男语录、海后、薄情寡性、“魔法打败魔法”的脑暴已落档。
+- [x] 用户关于反面 NPC、毒舌、渣男语录、海后、薄情寡性、”魔法打败魔法”的脑暴已落档。
 - [x] 已记录与项目边界、现有代码落点、后续可选方向的关系。
-- [ ] 用户确认下一步采用哪个 MVP 形态。
+- [x] 已确认采用 Approach A 并实现代码。
+- [x] 测试通过，Typecheck 和 Build 均通过。
 
 ## Technical Notes
 

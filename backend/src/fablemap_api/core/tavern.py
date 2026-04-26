@@ -33,6 +33,9 @@ CharacterId = str
 VisitorId = str
 UserId = str
 
+ROLEPLAY_MODES = {"ai_only", "hybrid"}
+ROLEPLAY_CLAIM_STATUSES = {"pending", "approved", "rejected", "revoked"}
+
 
 # ─────────────────────────────────────────
 # 数据模型
@@ -437,7 +440,9 @@ class Tavern:
     access: str = "public"  # 'public' | 'password' | 'private'
     password_hash: str = ""
     status: str = "closed"  # 'open' | 'closed'
+    roleplay_mode: str = "ai_only"  # 'ai_only' | 'hybrid'
     characters: list[TavernCharacter] = field(default_factory=list)
+    character_claims: list[dict[str, Any]] = field(default_factory=list)
     world_info: list[WorldInfoEntry] = field(default_factory=list)
     groups: list[dict[str, Any]] = field(default_factory=list)
     bookmarks: list[dict[str, Any]] = field(default_factory=list)
@@ -468,7 +473,9 @@ class Tavern:
             "access": self.access,
             "password_hash": self.password_hash,
             "status": self.status,
+            "roleplay_mode": self.roleplay_mode,
             "characters": [c.to_dict() for c in self.characters],
+            "character_claims": deepcopy(self.character_claims),
             "world_info": [w.to_dict() for w in self.world_info],
             "groups": deepcopy(self.groups),
             "bookmarks": deepcopy(self.bookmarks),
@@ -501,6 +508,11 @@ class Tavern:
         result.pop("password_hash", None)
         result["llm_config"] = self.llm_config.to_dict()
         result.pop("voice_config", None)
+        result["character_claims"] = [
+            deepcopy(claim)
+            for claim in self.character_claims
+            if str(claim.get("status") or "") == "approved"
+        ]
         return result
 
     @classmethod
@@ -521,7 +533,9 @@ class Tavern:
             access=d.get("access", "public"),
             password_hash=d.get("password_hash", ""),
             status=d.get("status", "closed"),
+            roleplay_mode=_normalize_roleplay_mode(d.get("roleplay_mode", "ai_only")),
             characters=characters,
+            character_claims=_normalize_character_claims(d.get("character_claims", [])),
             world_info=world_info,
             groups=_normalize_metadata_list(d.get("groups", [])),
             bookmarks=_normalize_metadata_list(d.get("bookmarks", [])),
@@ -1199,7 +1213,9 @@ class TavernService:
         if tavern.access == "private" and tavern.owner_id != user_id:
             raise HTTPException(status_code=403, detail="此酒馆是私人的")
 
-        return tavern.to_dict_private(user_id)
+        if tavern.owner_id and tavern.owner_id == user_id:
+            return tavern.to_dict_private(user_id)
+        return tavern.to_dict_public()
 
     def create_tavern(self, data: dict[str, Any], owner_id: str = "") -> dict[str, Any]:
         """创建酒馆"""
@@ -1218,6 +1234,8 @@ class TavernService:
             access=data.get("access", "public"),
             password_hash="",
             status="closed",
+            roleplay_mode=_normalize_roleplay_mode(data.get("roleplay_mode", "ai_only")),
+            character_claims=_normalize_character_claims(data.get("character_claims", [])),
             gameplay_definitions=_normalize_metadata_list(data.get("gameplay_definitions", [])),
             output_rules=_normalize_metadata_list(data.get("output_rules", [])),
             prompt_blocks=_normalize_metadata_list(data.get("prompt_blocks", [])),
@@ -1277,6 +1295,10 @@ class TavernService:
             tavern.scene_prompt = data["scene_prompt"]
         if "status" in data:
             tavern.status = data["status"]
+        if "roleplay_mode" in data:
+            tavern.roleplay_mode = _normalize_roleplay_mode(data.get("roleplay_mode"))
+        if "character_claims" in data:
+            tavern.character_claims = _normalize_character_claims(data.get("character_claims"))
         if "characters" in data and isinstance(data["characters"], list):
             tavern.characters = [
                 _character_from_payload(character_data, tavern_id)
@@ -1626,6 +1648,49 @@ def _normalize_group_chat_config(value: Any) -> dict[str, Any]:
         "response_cooldown_seconds": _normalize_int(value.get("response_cooldown_seconds", 0), 0, 0, 30),
         "require_name_prefix": _normalize_bool(value.get("require_name_prefix", True)),
     }
+
+
+def _normalize_roleplay_mode(value: Any) -> str:
+    mode = str(value or "ai_only").strip().lower()
+    return mode if mode in ROLEPLAY_MODES else "ai_only"
+
+
+def _normalize_character_claim_status(value: Any) -> str:
+    status = str(value or "pending").strip().lower()
+    return status if status in ROLEPLAY_CLAIM_STATUSES else "pending"
+
+
+def _normalize_character_claims(value: Any) -> list[dict[str, Any]]:
+    if not isinstance(value, list):
+        return []
+
+    claims: list[dict[str, Any]] = []
+    seen_ids: set[str] = set()
+    for item in value:
+        if not isinstance(item, dict):
+            continue
+        claim_id = str(item.get("id") or "").strip()
+        character_id = str(item.get("character_id") or "").strip()
+        player_id = str(item.get("player_id") or "").strip()
+        if not claim_id or not character_id or not player_id or claim_id in seen_ids:
+            continue
+        seen_ids.add(claim_id)
+        claim: dict[str, Any] = {
+            "id": claim_id,
+            "character_id": character_id,
+            "player_id": player_id,
+            "player_name": str(item.get("player_name") or "").strip()[:80],
+            "status": _normalize_character_claim_status(item.get("status")),
+            "requested_at": str(item.get("requested_at") or "").strip(),
+        }
+        decided_at = str(item.get("decided_at") or "").strip()
+        note = str(item.get("note") or "").strip()
+        if decided_at:
+            claim["decided_at"] = decided_at
+        if note:
+            claim["note"] = note[:240]
+        claims.append(claim)
+    return claims
 
 
 def _normalize_character_appearance(value: Any) -> dict[str, Any]:
