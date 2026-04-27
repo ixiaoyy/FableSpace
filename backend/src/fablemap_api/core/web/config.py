@@ -9,7 +9,7 @@ DEFAULT_PORT = 8950
 DEFAULT_OUTPUT_ROOT = REPO_ROOT / ".fablemap-api"
 DEFAULT_FIXTURE_FILE = REPO_ROOT / "tests" / "fixtures" / "overpass_sample.json"
 DEFAULT_FRONTEND_ROOT = REPO_ROOT / "frontend"
-DEFAULT_FRONTEND_DIST_DIRNAME = "dist"
+DEFAULT_FRONTEND_BUILD_CLIENT_DIR = Path("build") / "client"
 DEFAULT_FRONTEND_PUBLIC_DIRNAME = "public"
 
 
@@ -27,7 +27,7 @@ class ApiSettings:
         resolved_frontend_dist = self.frontend_dist.resolve() if self.frontend_dist else None
         resolved_frontend_public = self.frontend_public.resolve() if self.frontend_public else None
         if resolved_frontend_dist is None and resolved_frontend_root is not None:
-            resolved_frontend_dist = resolved_frontend_root / DEFAULT_FRONTEND_DIST_DIRNAME
+            resolved_frontend_dist = resolved_frontend_root / DEFAULT_FRONTEND_BUILD_CLIENT_DIR
         if resolved_frontend_public is None and resolved_frontend_root is not None:
             resolved_frontend_public = resolved_frontend_root / DEFAULT_FRONTEND_PUBLIC_DIRNAME
         return ApiSettings(

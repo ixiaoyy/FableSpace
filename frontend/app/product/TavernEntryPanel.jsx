@@ -1,7 +1,21 @@
 import { useState, useEffect } from 'react'
 import { getTavernAccessIcon, getTavernAccessLabel } from './services/tavernService'
+import fallbackNpcPortrait from '../assets/npc-style-cast/portraits/merchant-a.png'
 import { enterTavern, getTavern } from '../lib/taverns'
 import { inferTavernPlayMode, getTavernPlayBadges } from './tavernPlayModes'
+
+function characterAvatarUrl(character = {}) {
+  const sprites = character.sprites || {}
+
+  return (
+    sprites.neutral ||
+    character.avatar ||
+    character.image_url ||
+    character.imageUrl ||
+    Object.values(sprites).find(Boolean) ||
+    fallbackNpcPortrait
+  )
+}
 
 /**
  * TavernEntryPanel — 酒馆入场面板
@@ -115,11 +129,15 @@ export default function TavernEntryPanel({
         <div className="tavern-chars-preview">
           <label className="mini-label">驻店角色 ({tavern.characters?.length || 0})</label>
           <div className="char-avatars">
-            {tavern.characters?.map(char => (
-              <div key={char.id} className="char-avatar-ring" title={char.name}>
-                <img src={char.avatar || '/assets/default-avatar.png'} alt={char.name} />
-              </div>
-            ))}
+            {tavern.characters?.map(char => {
+              const avatarUrl = characterAvatarUrl(char)
+
+              return (
+                <div key={char.id} className="char-avatar-ring" title={char.name}>
+                  <img src={avatarUrl} alt={char.name} />
+                </div>
+              )
+            })}
             {(!tavern.characters || tavern.characters.length === 0) && <p className="note muted">暂无角色</p>}
           </div>
         </div>

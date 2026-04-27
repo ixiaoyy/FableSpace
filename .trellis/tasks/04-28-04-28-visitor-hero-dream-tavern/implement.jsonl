@@ -1,0 +1,14 @@
+{"file": ".trellis/tasks/04-28-04-28-visitor-hero-dream-tavern/prd.md", "reason": "Approved brainstorm, MVP decision, tavern concept, and implementation plan"}
+{"file": ".trellis/spec/backend/index.md", "reason": "Backend development checklist for seed/gameplay/rules changes"}
+{"file": ".trellis/spec/backend/directory-structure.md", "reason": "Default tavern seed location and test placement"}
+{"file": ".trellis/spec/backend/database-guidelines.md", "reason": "Idempotent JSON seed and no schema change"}
+{"file": ".trellis/spec/backend/quality-guidelines.md", "reason": "Focused tests and verification requirements"}
+{"file": ".trellis/spec/frontend/npc-art-guidelines.md", "reason": "Formal NPC portrait asset contract"}
+{"file": ".trellis/spec/frontend/image-asset-guidelines.md", "reason": "Project-local generated image placement and audit"}
+{"file": "backend/src/fablemap_api/core/default_taverns.py", "reason": "Seeded 放学后英雄补给站, NPCs, WorldInfo, bookmarks, and three published gameplays"}
+{"file": "backend/src/fablemap_api/core/web/service.py", "reason": "Compatibility rules backend response for hero-dream tavern chat"}
+{"file": "backend/src/fablemap_api/application/services/runtime.py", "reason": "Native runtime rules response parity for hero-dream tavern chat"}
+{"file": "backend/tests/test_v1_runtime_features.py", "reason": "Native /api/v1 rules response regression coverage"}
+{"file": "frontend/public/assets/npcs/char_pw_aheng-neutral.png", "reason": "Project-local portrait asset for 阿衡"}
+{"file": "frontend/public/assets/npcs/char_pw_zhijian-neutral.png", "reason": "Project-local portrait asset for 纸剑"}
+{"ts": "2026-04-28T01:09:47+08:00", "phase": "implement", "note": "Implemented Approach A from the brainstorm: one complete default public-welfare tavern rather than a global hero profile or reusable gameplay pack. Scope stayed within existing Tavern, TavernCharacter, WorldInfo, layout_style, gameplay_definitions, and rules backend behavior."}

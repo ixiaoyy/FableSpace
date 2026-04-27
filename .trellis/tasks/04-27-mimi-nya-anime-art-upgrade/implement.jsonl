@@ -1,0 +1,6 @@
+{"file": ".trellis/workflow.md", "reason": "Project workflow and conventions"}
+{"file": ".trellis/spec/frontend/index.md", "reason": "Frontend development guide"}
+{"file": ".\\.trellis\\spec\\frontend\\image-asset-guidelines.md", "reason": "project-local generated image placement and verification contract"}
+{"file": ".\\.trellis\\spec\\frontend\\npc-art-guidelines.md", "reason": "formal NPC art expression asset contract"}
+{"file": ".\\backend\\src\\fablemap_api\\core\\default_taverns.py", "reason": "Mimi Nya seed references the public NPC asset paths"}
+{"file": ".\\frontend\\public\\assets\\npcs/", "type": "directory", "reason": "target Mimi Nya public PNG assets"}

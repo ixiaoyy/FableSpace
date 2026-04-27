@@ -12,10 +12,9 @@ Features:
 
 from __future__ import annotations
 
-import re
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Optional
+from typing import Any
 
 
 class AffinityStage(str, Enum):
@@ -78,6 +77,19 @@ class AffinityStage(str, Enum):
         return styles.get(self, "formal")
 
     @property
+    def tone(self) -> str:
+        """UI tone/color class"""
+        tones = {
+            self.STRANGER: "neutral",
+            self.ACQUAINTANCE: "cyan",
+            self.FAMILIAR: "blue",
+            self.FRIEND: "green",
+            self.CLOSE_FRIEND: "violet",
+            self.BEST_FRIEND: "gold",
+        }
+        return tones.get(self, "neutral")
+
+    @property
     def strength_min(self) -> float:
         """该阶段的最低强度值"""
         thresholds = {
@@ -102,6 +114,32 @@ class AffinityStage(str, Enum):
             self.BEST_FRIEND: 1.0,
         }
         return thresholds.get(self, 1.0)
+
+    @property
+    def description(self) -> str:
+        """NPC-facing relationship description."""
+        descriptions = {
+            self.STRANGER: "初次接触，礼貌但保持距离",
+            self.ACQUAINTANCE: "知道对方存在，偶有交流",
+            self.FAMILIAR: "经常见面，开始闲聊",
+            self.FRIEND: "可以分享日常，有一定信任",
+            self.CLOSE_FRIEND: "无话不谈，互相关心",
+            self.BEST_FRIEND: "最高羁绊，特殊待遇",
+        }
+        return descriptions.get(self, "")
+
+    def to_definition(self) -> dict[str, Any]:
+        """Return a public-safe API definition for this affinity stage."""
+        return {
+            "stage": self.value,
+            "name_zh": self.label_zh,
+            "name_en": self.label_en,
+            "strength_min": self.strength_min,
+            "strength_max": self.strength_max,
+            "tone": self.tone,
+            "greeting_style": self.greeting_style,
+            "description": self.description,
+        }
 
 
 # ─── 情感分析关键词 ───────────────────────────────────────────────────────────────
@@ -435,6 +473,10 @@ class AffinityCalculator:
         }
         return topic_map.get(stage, [])
 
+    def stage_definitions(self) -> list[dict[str, Any]]:
+        """Return public stage metadata in ascending relationship order."""
+        return affinity_stage_definitions()
+
 
 # ─── Prompt 上下文生成器 ────────────────────────────────────────────────────────
 
@@ -565,6 +607,21 @@ def relationship_stage_for_affinity(strength: float, visit_count: int = 0) -> st
     calculator = AffinityCalculator()
     stage = calculator._stage_for_strength(strength)
     return stage.value
+
+
+def affinity_stage_definitions() -> list[dict[str, Any]]:
+    """Public API stage definitions for UI display."""
+    return [
+        stage.to_definition()
+        for stage in (
+            AffinityStage.STRANGER,
+            AffinityStage.ACQUAINTANCE,
+            AffinityStage.FAMILIAR,
+            AffinityStage.FRIEND,
+            AffinityStage.CLOSE_FRIEND,
+            AffinityStage.BEST_FRIEND,
+        )
+    ]
 
 
 def strength_to_percent(strength: float) -> int:

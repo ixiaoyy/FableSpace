@@ -214,6 +214,35 @@ export type VisitorRelationshipPayload = {
   [key: string]: unknown
 }
 
+export type AffinityStage =
+  | "stranger"
+  | "acquaintance"
+  | "familiar"
+  | "friend"
+  | "close_friend"
+  | "best_friend"
+
+export type AffinityStageDefinition = {
+  stage: AffinityStage | string
+  name_zh: string
+  name_en: string
+  strength_min: number
+  strength_max: number
+  greeting_style: string
+  description?: string
+}
+
+export type AffinityResult = {
+  strength: number
+  previous_stage: AffinityStage | string
+  new_stage: AffinityStage | string
+  stage_label_zh?: string
+  stage_changed?: boolean
+  greeting_style?: string
+  unlocked_topics?: string[]
+  milestone_triggered?: string | null
+}
+
 export type VisitorStatePayload = {
   visitor_id?: string
   tavern_id?: string
@@ -237,6 +266,7 @@ export type ChatResponse = {
   } | null
   tavern_status?: string
   visitor_state?: VisitorStatePayload | null
+  affinity?: AffinityResult | null
   created_memories?: unknown[]
 }
 
@@ -285,6 +315,7 @@ export type GroupChatResponse = {
   degraded?: boolean
   error?: string
   visitor_state?: VisitorStatePayload | null
+  affinity?: AffinityResult | null
   created_memories?: unknown[]
 }
 
@@ -507,6 +538,10 @@ function queryString(params: Record<string, string | number | boolean | undefine
 
 export function listTaverns(filters: Record<string, string | number | undefined | null> = {}) {
   return readApiJson<TavernListResponse>(`/api/v1/taverns${queryString(filters)}`)
+}
+
+export function getAffinityStages() {
+  return readApiJson<{ stages: AffinityStageDefinition[]; count: number }>("/api/v1/affinity/stages")
 }
 
 export function createTavern(data: Partial<Tavern> & Record<string, unknown>, userId = DEFAULT_OWNER_ID) {

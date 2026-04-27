@@ -18,6 +18,7 @@ from .services.runtime import RuntimeApplicationMixin
 from .services.characters import CharacterApplicationMixin
 from .services.utilities import UtilityApplicationMixin
 from .services.roleplay import RoleplayApplicationMixin
+from .services.public_bond import NpcPublicBondApplicationMixin
 
 
 class TavernApplicationService(
@@ -31,6 +32,7 @@ class TavernApplicationService(
     CharacterApplicationMixin,
     UtilityApplicationMixin,
     RoleplayApplicationMixin,
+    NpcPublicBondApplicationMixin,
 ):
     """Application facade for native `/api/v1/taverns` use cases.
 
@@ -82,3 +84,11 @@ class TavernApplicationService(
             return float(value)
         except (TypeError, ValueError):
             return fallback
+
+    def _get_public_bond_store(self) -> "PublicBondStore":
+        """返回 PublicBondStore 实例（仅在 MySQL 后端时可用）。"""
+        from .services.public_bond import MySQLPublicBondStore
+        if hasattr(self.store, "_session"):
+            db = self.store._session()
+            return MySQLPublicBondStore(db)
+        raise HTTPException(500, "Public bond store requires MySQL backend")

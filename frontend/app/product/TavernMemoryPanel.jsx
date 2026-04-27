@@ -1,4 +1,6 @@
 import { useEffect, useState } from 'react'
+import { AffinityBadge } from '../components/AffinityBadge'
+import { AffinityProgress } from '../components/AffinityProgress'
 import {
   createMemoryAtom,
   deleteMemoryAtom,
@@ -26,16 +28,6 @@ const DIMENSION_COLORS = {
 const HORIZON_LABELS = { short: '短期', mid: '中期', long: '长期' }
 
 const DEFAULT_EXPRESSION = 'neutral'
-
-function getRelationshipStageLabel(stage) {
-  const labels = {
-    stranger: '初访者',
-    acquaintance: '熟面孔',
-    regular: '常客',
-    confidant: '熟客盟友',
-  }
-  return labels[stage] || stage || '未建立'
-}
 
 function formatMemoryTime(value) {
   if (!value) return '暂无'
@@ -227,7 +219,6 @@ export default function TavernMemoryPanel({
   onClose,
 }) {
   const memory = getVisitorMemoryPayload(entryState)
-  const strengthPercent = Math.max(0, Math.min(100, Math.round(memory.strength * 100)))
 
   const [atoms, setAtoms] = useState([])
   const [loading, setLoading] = useState(false)
@@ -351,10 +342,8 @@ export default function TavernMemoryPanel({
       {/* Relationship / visitor state section */}
       <div className="memory-panel-section">
         <span className="mini-label">当前关系</span>
-        <strong>{getRelationshipStageLabel(memory.stage)}</strong>
-        <div className="memory-strength-bar" aria-label={`关系强度 ${strengthPercent}%`}>
-          <span style={{ width: `${strengthPercent}%` }} />
-        </div>
+        <AffinityBadge stage={memory.stage} strength={memory.strength} showEnglish />
+        <AffinityProgress stage={memory.stage} strength={memory.strength} />
         <p className="muted">
           {visitorNickname || '这位访客'} 已到访 {memory.visitCount || 0} 次。
         </p>

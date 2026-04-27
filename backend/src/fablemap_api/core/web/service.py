@@ -333,7 +333,7 @@ from fablemap_api.core.tavern import (
     _normalize_talkativeness,
 )
 
-from .config import ApiSettings
+from .config import ApiSettings, DEFAULT_FRONTEND_BUILD_CLIENT_DIR
 
 
 def _compact_prompt_context_text(value: Any, *, max_chars: int = 1200) -> str:
@@ -618,12 +618,20 @@ class WebService:
         return candidate
 
     def frontend_static_dir(self) -> Path | None:
-        preferred = self.settings.frontend_dist
-        if preferred and preferred.exists():
-            return preferred
-        fallback = self.settings.frontend_root
-        if fallback and fallback.exists():
-            return fallback
+        candidates = []
+        if self.settings.frontend_dist:
+            candidates.append(self.settings.frontend_dist)
+        if self.settings.frontend_root:
+            candidates.append(self.settings.frontend_root / DEFAULT_FRONTEND_BUILD_CLIENT_DIR)
+
+        seen: set[Path] = set()
+        for candidate in candidates:
+            resolved = candidate.resolve()
+            if resolved in seen:
+                continue
+            seen.add(resolved)
+            if (resolved / "index.html").is_file():
+                return resolved
         return None
 
     def record_ghost_trace_payload(self, player_id: str, waypoints: list, mood_arc: list, visibility: str = "local_public") -> dict[str, Any]:
@@ -2433,6 +2441,42 @@ class WebService:
             return f"欢迎来到{tavern_name}。我是{char_name}，你可以先说说现在最想解决的一件小事。"
 
         tavern_id = getattr(tavern, "id", "") or ""
+        if tavern_id == "pw_after_school_hero_supply" and any(
+            keyword in text
+            for keyword in (
+                "英雄",
+                "英雄名",
+                "童年",
+                "长大",
+                "尴尬",
+                "模型",
+                "玩具",
+                "塑料剑",
+                "贴纸",
+                "委托",
+                "小勇气",
+            )
+        ):
+            if any(keyword in text for keyword in ("英雄名", "名字", "卡片", "英雄卡")):
+                return (
+                    f"{char_name}把空白旧英雄卡推到灯下：名字不用厉害，也不用解释给所有人听。"
+                    "你可以写原来的英雄名、改一个新名字，或者先选一枚贴纸当临时标志。"
+                )
+            if any(keyword in text for keyword in ("塑料剑", "披风", "道具", "模型", "修补", "玩具")):
+                return (
+                    f"{char_name}打开维修台的小灯：旧道具不是装备，没有数值，也不需要证明你能赢。"
+                    "我们只看它像哪一种小勇气：开口、拒绝、坚持，还是重新开始？"
+                )
+            if any(keyword in text for keyword in ("委托", "小勇气", "任务", "普通人")):
+                return (
+                    f"{char_name}翻开小委托板：今晚只接很小的英雄委托。"
+                    "你可以选真心话、保护一个小边界，或者给过去的自己回一句话。"
+                )
+            return (
+                f"{char_name}看向旧模型柜：长大以后觉得英雄梦尴尬，不代表它是假的。"
+                "先从一张旧英雄卡开始吧：你想找回名字、修补旧道具，还是接第一件小委托？"
+            )
+
         if tavern_id == "pw_third_shelf_observatory" and any(
             keyword in text
             for keyword in (

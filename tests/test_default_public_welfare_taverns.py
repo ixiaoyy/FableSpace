@@ -1,3 +1,4 @@
+import hashlib
 import json
 from pathlib import Path
 from tempfile import TemporaryDirectory
@@ -13,6 +14,18 @@ from fablemap_api.core.web.service import WebService
 
 def _service(tmpdir: str) -> WebService:
     return WebService(ApiSettings(output_root=Path(tmpdir), fixture_file=None, frontend_root=None))
+
+
+def _assert_project_png_asset(sprite_url: str) -> None:
+    assert sprite_url.startswith("/assets/npcs/")
+    sprite_path = Path("frontend/public") / sprite_url.removeprefix("/")
+    assert sprite_path.exists(), f"missing project NPC asset: {sprite_path}"
+    assert sprite_path.read_bytes().startswith(b"\x89PNG\r\n\x1a\n")
+
+
+def _project_png_hash(sprite_url: str) -> str:
+    sprite_path = Path("frontend/public") / sprite_url.removeprefix("/")
+    return hashlib.sha256(sprite_path.read_bytes()).hexdigest()
 
 
 def test_default_public_welfare_taverns_are_seeded_and_discoverable():
@@ -36,6 +49,31 @@ def test_default_public_welfare_taverns_are_seeded_and_discoverable():
             assert tavern["llm_config"].get("api_key", "") == ""
             assert tavern["characters"]
             assert tavern["world_info"]
+
+
+def test_default_public_welfare_characters_have_direct_neutral_assets():
+    with TemporaryDirectory() as tmpdir:
+        service = _service(tmpdir)
+
+        characters = []
+        for tavern_id in DEFAULT_PUBLIC_WELFARE_TAVERN_IDS:
+            tavern = service.get_tavern_payload(tavern_id, user_id="visitor_public_welfare")
+            characters.extend(tavern["characters"])
+
+        assert len(characters) >= 12
+        neutral_urls = []
+        neutral_hashes = []
+        for character in characters:
+            neutral = character["sprites"].get("neutral")
+            assert character["avatar"], f"missing avatar for {character['id']}"
+            assert neutral, f"missing neutral sprite for {character['id']}"
+            _assert_project_png_asset(character["avatar"])
+            _assert_project_png_asset(neutral)
+            neutral_urls.append(neutral)
+            neutral_hashes.append(_project_png_hash(neutral))
+
+        assert len(neutral_urls) == len(set(neutral_urls))
+        assert len(neutral_hashes) == len(set(neutral_hashes))
 
 
 def test_third_shelf_observatory_contains_complete_alien_convenience_tavern():
@@ -105,6 +143,71 @@ def test_midnight_commission_board_contains_text_adventure_tavern():
             assert keyword in combined_gameplays
 
 
+def test_after_school_hero_supply_contains_emotional_hero_tavern():
+    with TemporaryDirectory() as tmpdir:
+        service = _service(tmpdir)
+        payload = service.list_taverns_payload(query="英雄")
+        tavern = service.get_tavern_payload("pw_after_school_hero_supply", user_id="visitor_public_welfare")
+
+        assert any(item["id"] == "pw_after_school_hero_supply" for item in payload["taverns"])
+        assert tavern["name"] == "放学后英雄补给站"
+        assert tavern["access"] == "public"
+        assert tavern["status"] == "open"
+        assert tavern["layout_style"] == "quest-play"
+        assert tavern["llm_config"]["backend"] == "rules"
+        assert tavern["llm_config"].get("api_key", "") == ""
+        assert "秋叶原" in tavern["address"]
+        assert 35.68 < tavern["lat"] < 35.71
+        assert 139.75 < tavern["lon"] < 139.79
+        assert len(tavern["characters"]) == 2
+        assert len(tavern["world_info"]) >= 5
+
+        characters = {character["id"]: character for character in tavern["characters"]}
+        assert {"char_pw_aheng", "char_pw_zhijian"}.issubset(characters)
+        for character_id in ("char_pw_aheng", "char_pw_zhijian"):
+            character = characters[character_id]
+            assert character["avatar"]
+            assert character["sprites"]["neutral"]
+            _assert_project_png_asset(character["avatar"])
+            _assert_project_png_asset(character["sprites"]["neutral"])
+
+        assert _project_png_hash(characters["char_pw_aheng"]["sprites"]["neutral"]) != _project_png_hash(
+            characters["char_pw_zhijian"]["sprites"]["neutral"]
+        )
+
+        gameplays = tavern["gameplay_definitions"]
+        assert len(gameplays) >= 3
+        assert all(gameplay["status"] == "published" for gameplay in gameplays)
+        assert {gameplay["id"] for gameplay in gameplays}.issuperset(
+            {
+                "gp_pw_hero_recover_name",
+                "gp_pw_hero_repair_prop",
+                "gp_pw_hero_first_commission",
+            }
+        )
+
+        combined_prompt = " ".join(
+            [
+                tavern["description"],
+                tavern["scene_prompt"],
+                " ".join(entry["content"] for entry in tavern["world_info"]),
+                " ".join(
+                    f"{character['name']} {character['description']} {character['personality']} "
+                    f"{character['scenario']} {character['system_prompt']} {character['first_mes']}"
+                    for character in tavern["characters"]
+                ),
+                " ".join(
+                    f"{gameplay.get('title', '')} {gameplay.get('summary', '')} {gameplay.get('entry_label', '')}"
+                    for gameplay in gameplays
+                ),
+            ]
+        )
+        for keyword in ("旧玩具店", "模型店", "英雄名", "旧英雄卡", "纸剑", "普通人小英雄", "小勇气"):
+            assert keyword in combined_prompt
+        for boundary in ("打怪升级", "排行榜", "数值加成", "现实危险行动"):
+            assert boundary in combined_prompt
+
+
 def test_jingan_catbell_refuge_contains_safe_original_catgirl_npc():
     with TemporaryDirectory() as tmpdir:
         service = _service(tmpdir)
@@ -138,9 +241,7 @@ def test_jingan_catbell_refuge_contains_safe_original_catgirl_npc():
         assert mimi["sprites"]["curious"] == "/assets/npcs/mimi-nya-curiosity.png"
         assert mimi["sprites"]["curiosity"] == "/assets/npcs/mimi-nya-curiosity.png"
         for sprite_url in {mimi["avatar"], *mimi["sprites"].values()}:
-            sprite_path = Path("frontend/public") / sprite_url.removeprefix("/")
-            assert sprite_path.exists(), f"missing project NPC asset: {sprite_path}"
-            assert sprite_path.read_bytes().startswith(b"\x89PNG\r\n\x1a\n")
+            _assert_project_png_asset(sprite_url)
         for field in ("description", "personality", "scenario", "system_prompt", "first_mes", "mes_example"):
             assert mimi[field]
         assert {"公益", "猫娘", "傲娇", "上海", "静安寺", "复国"}.issubset(set(mimi["tags"]))
@@ -213,6 +314,39 @@ def test_default_public_welfare_seed_adds_missing_platform_characters_to_existin
         repaired = service.get_tavern_payload("pw_community_repair", user_id="visitor_public_welfare")
 
         assert any(character["id"] == "char_pw_heguang" for character in repaired["characters"])
+
+
+def test_default_public_welfare_seed_backfills_missing_character_assets_without_overwriting_custom_art():
+    with TemporaryDirectory() as tmpdir:
+        service = _service(tmpdir)
+        taverns_file = Path(tmpdir) / "taverns" / "taverns.json"
+        data = json.loads(taverns_file.read_text(encoding="utf-8"))
+
+        helpdesk = data["pw_lantern_helpdesk"]
+        xiaozhou = helpdesk["characters"][0]
+        xiaozhou["avatar"] = ""
+        xiaozhou["sprites"] = {}
+
+        community = data["pw_community_repair"]
+        heguang = next(character for character in community["characters"] if character["id"] == "char_pw_heguang")
+        heguang["avatar"] = "https://example.test/custom-heguang.png"
+        heguang["sprites"] = {"neutral": "https://example.test/custom-heguang-neutral.png"}
+
+        taverns_file.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
+
+        service = _service(tmpdir)
+        repaired_helpdesk = service.get_tavern_payload("pw_lantern_helpdesk", user_id="visitor_public_welfare")
+        repaired_xiaozhou = repaired_helpdesk["characters"][0]
+        assert repaired_xiaozhou["avatar"] == "/assets/npcs/char_pw_xiaozhou-neutral.png"
+        assert repaired_xiaozhou["sprites"]["neutral"] == "/assets/npcs/char_pw_xiaozhou-neutral.png"
+        _assert_project_png_asset(repaired_xiaozhou["avatar"])
+
+        repaired_community = service.get_tavern_payload("pw_community_repair", user_id="visitor_public_welfare")
+        repaired_heguang = next(
+            character for character in repaired_community["characters"] if character["id"] == "char_pw_heguang"
+        )
+        assert repaired_heguang["avatar"] == "https://example.test/custom-heguang.png"
+        assert repaired_heguang["sprites"]["neutral"] == "https://example.test/custom-heguang-neutral.png"
 
 
 def test_default_public_welfare_seed_can_be_disabled(monkeypatch):
@@ -327,4 +461,32 @@ def test_midnight_commission_board_chat_uses_text_adventure_rules_response():
         assert response["tavern_status"] == "open"
         assert "线索" in response["response"]
         assert "位置" in response["response"] or "可确认细节" in response["response"]
+        assert service.tavern_store.get_token_usage(tavern["id"]) == 0
+
+
+def test_after_school_hero_supply_chat_uses_hero_dream_rules_response():
+    with TemporaryDirectory() as tmpdir:
+        service = _service(tmpdir)
+        tavern = service.get_tavern_payload("pw_after_school_hero_supply", user_id="")
+
+        entered = service.enter_tavern_payload(
+            tavern["id"],
+            user_id="visitor_public_welfare",
+        )
+        assert entered["ok"] is True
+        assert entered["status"] == "open"
+
+        response = service.tavern_chat_payload(
+            tavern_id=tavern["id"],
+            character_id="char_pw_aheng",
+            message="我想找回小时候的英雄名，但现在说出来有点尴尬。",
+            visitor_id="visitor_public_welfare",
+            visitor_name="测试旅人",
+            user_id="visitor_public_welfare",
+        )
+
+        assert response["degraded"] is False
+        assert response["tavern_status"] == "open"
+        assert "英雄名" in response["response"]
+        assert "旧英雄卡" in response["response"] or "贴纸" in response["response"]
         assert service.tavern_store.get_token_usage(tavern["id"]) == 0

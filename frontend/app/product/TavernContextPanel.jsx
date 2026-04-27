@@ -1,4 +1,7 @@
 import { useEffect, useState } from 'react'
+import { AffinityBadge } from '../components/AffinityBadge'
+import { AffinityProgress } from '../components/AffinityProgress'
+import { getAffinityStageMeta } from '../lib/affinity.js'
 import {
   deleteMemoryAtom,
   listMemoryAtoms,
@@ -207,15 +210,7 @@ function MemoryTab({ entryState, messages, visitorNickname, roomName, selectedCh
   const strength = Number(relationship.strength ?? visitorState.relationship_strength ?? 0)
   const firstVisit = visitorState.first_visit || ''
   const lastVisit = visitorState.last_visit || ''
-
-  const stageLabels = {
-    stranger: '初访者',
-    acquaintance: '熟面孔',
-    regular: '常客',
-    confidant: '熟客盟友',
-  }
-
-  const strengthPercent = Math.max(0, Math.min(100, Math.round(strength * 100)))
+  const stageMeta = getAffinityStageMeta(stage, strength)
 
   const userMessages = messages.filter(m => m.role === 'user')
   const recentUser = [...userMessages].reverse().find(m => m.content)
@@ -334,10 +329,8 @@ function MemoryTab({ entryState, messages, visitorNickname, roomName, selectedCh
     <div className="ctx-section">
       <div className="ctx-memory-relation">
         <span className="mini-label">当前关系</span>
-        <strong>{stageLabels[stage] || stage || '未建立'}</strong>
-        <div className="ctx-strength-bar" aria-label={`关系强度 ${strengthPercent}%`}>
-          <span style={{ width: `${strengthPercent}%` }} />
-        </div>
+        <AffinityBadge stage={stage} strength={strength} showEnglish />
+        <AffinityProgress stage={stage} strength={strength} />
         <p className="muted">{visitorNickname || '这位访客'} 已到访 {visitCount} 次。</p>
       </div>
 
@@ -377,7 +370,7 @@ function MemoryTab({ entryState, messages, visitorNickname, roomName, selectedCh
         <ul className="ctx-memory-facts">
           <li>酒馆：{roomName}</li>
           <li>访客称呼：{visitorNickname || '旅人'}</li>
-          <li>关系阶段：{stageLabels[stage] || stage || '未建立'}</li>
+          <li>关系阶段：{stageMeta.name_zh || stage || '未建立'}</li>
           <li>到访次数：{visitCount}</li>
         </ul>
       </div>

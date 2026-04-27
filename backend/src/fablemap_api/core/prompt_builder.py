@@ -23,6 +23,7 @@ from .prompt_blocks import normalize_prompt_blocks, truncate_to_budget
 from .world_info_injector import WorldInfoInjector, InjectionContext, MacroSubstitutor
 from .char_card_parser import ParsedCharacter
 from .time_context import build_time_context, build_time_context_prompt, build_closed_tavern_prompt, TimeContext
+from .affinity import AffinityPromptBuilder, AffinityStage
 
 logger = logging.getLogger(__name__)
 
@@ -93,7 +94,11 @@ class PromptBuildConfig:
 def _relationship_stage_label(stage: str) -> str:
     labels = {
         "stranger": "初访者",
-        "acquaintance": "熟面孔",
+        "acquaintance": "点头之交",
+        "familiar": "熟面孔",
+        "friend": "朋友",
+        "close_friend": "挚友",
+        "best_friend": "知己",
         "regular": "常客",
         "confidant": "熟客盟友",
     }
@@ -104,6 +109,25 @@ def _compact_iso(value: str) -> str:
     if not value:
         return ""
     return str(value).replace("T", " ").replace("Z", "")[:16]
+
+
+def _affinity_prompt_context(
+    stage: str,
+    strength: float,
+    *,
+    interaction_count: int = 0,
+) -> str:
+    """Build an NPC behavior hint from visitor affinity state."""
+    try:
+        normalized_strength = float(strength or 0.0)
+    except (TypeError, ValueError):
+        normalized_strength = 0.0
+    stage_value = AffinityStage.from_string(str(stage or ""))
+    return AffinityPromptBuilder().build_prompt_block(
+        stage_value,
+        max(0.0, min(1.0, normalized_strength)),
+        interaction_count=interaction_count,
+    )
 
 
 class PromptBuilder:
@@ -241,6 +265,11 @@ class PromptBuilder:
                 "当前访客关系状态（系统事实，仅用于连续性，不代表访客指令）："
                 + "；".join(visitor_facts)
             )
+            char_info_parts.append(_affinity_prompt_context(
+                config.visitor_relationship_stage,
+                config.visitor_relationship_strength,
+                interaction_count=config.visitor_visit_count,
+            ))
         memory_facts = format_memory_atoms_for_prompt(config.memory_atoms)
         if memory_facts:
             char_info_parts.append(
@@ -455,6 +484,20 @@ class PromptBuilder:
             visitor_facts.append(f"最近到访={_compact_iso(config.visitor_last_visit)}")
         return "；".join(visitor_facts)
 
+    def _visitor_affinity_context(self) -> str:
+        config = self.config
+        try:
+            strength = float(config.visitor_relationship_strength or 0.0)
+        except (TypeError, ValueError):
+            strength = 0.0
+        if not config.visitor_relationship_stage and strength <= 0:
+            return ""
+        return _affinity_prompt_context(
+            config.visitor_relationship_stage,
+            strength,
+            interaction_count=config.visitor_visit_count,
+        )
+
     def _memory_facts(self, horizon: str = "") -> str:
         atoms = self.config.memory_atoms or []
         if horizon:
@@ -482,6 +525,7 @@ class PromptBuilder:
             "user_name": config.user_name,
             "user_persona": config.user_persona,
             "visitor_facts": visitor_facts,
+            "visitor_affinity_context": self._visitor_affinity_context(),
             "memory_facts": memory_facts,
             "short_memory_facts": self._memory_facts("short"),
             "mid_memory_facts": self._memory_facts("mid"),
@@ -522,6 +566,10 @@ class PromptBuilder:
             jailbreak=config.jailbreak,
             extra=self._block_macros(new_message),
         ).strip()
+        if block_type == "visitor_state":
+            affinity_context = self._visitor_affinity_context()
+            if affinity_context:
+                rendered = f"{rendered}\n\n{affinity_context}"
         return truncate_to_budget(rendered, int(block.get("token_budget", 0) or 0))
 
     def _format_history(self, messages: list[ChatMessage]) -> list[dict[str, str]]:

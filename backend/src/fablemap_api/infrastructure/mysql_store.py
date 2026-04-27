@@ -70,8 +70,9 @@ class MySQLTavernStore:
 
     # ── 辅助方法 ────────────────────────────────
 
-    def _session(self) -> Session:
-        return self.db.get_session()
+    def _session(self) -> Database:
+        """返回 Database 实例，供 NpcPublicBondApplicationMixin 获取 session_scope。"""
+        return self.db
 
     def _to_tavern(self, model: TavernModel) -> Tavern:
         """将 TavernModel 转换为领域对象 Tavern"""

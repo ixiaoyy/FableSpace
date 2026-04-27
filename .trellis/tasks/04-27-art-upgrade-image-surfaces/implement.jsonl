@@ -1,0 +1,9 @@
+{"file": ".trellis/workflow.md", "reason": "Project workflow and conventions"}
+{"file": ".trellis/spec/backend/index.md", "reason": "Backend development guide"}
+{"file": ".trellis/spec/frontend/index.md", "reason": "Frontend development guide"}
+{"file": "docs\\IMAGE_ASSETS_SPEC.md", "reason": "canonical image asset destinations, naming, dimensions, and generated-image placement rules"}
+{"file": ".trellis\\spec\\frontend\\image-asset-guidelines.md", "reason": "project-local generated image placement and verification contract"}
+{"file": ".trellis\\spec\\frontend\\npc-art-guidelines.md", "reason": "formal NPC portrait/sprite completion contract and fallback rules"}
+{"file": "frontend\\app\\features\\tavern-npc-stage\\portraitCatalog.ts", "reason": "existing fallback portrait catalog and default NPC mapping"}
+{"file": "frontend\\app\\product\\TavernEntryPanel.jsx", "reason": "legacy entry panel uses /assets/default-avatar.png fallback that currently lacks a file"}
+{"file": "backend\\src\\fablemap_api\\core\\default_taverns.py", "reason": "default public-welfare NPC seed payloads and direct avatar/sprites gaps"}

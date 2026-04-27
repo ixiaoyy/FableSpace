@@ -4,7 +4,7 @@
   "title": "需要图片位置的美术升级",
   "description": "盘点并升级所有产品中明确需要图片的位置，尤其是正式 NPC 头像/立绘/表情差分、酒馆封面/氛围图和入口传播图片。",
   "status": "planning",
-  "dev_type": null,
+  "dev_type": "fullstack",
   "scope": "frontend-assets, default-taverns, npc-art",
   "package": null,
   "priority": "P1",
@@ -15,7 +15,7 @@
   "branch": null,
   "base_branch": "main",
   "worktree_path": null,
-  "current_phase": 1,
+  "current_phase": 4,
   "next_action": [
     {
       "phase": 1,
@@ -53,6 +53,6 @@
     ".trellis/spec/frontend/index.md",
     ".trellis/spec/backend/quality-guidelines.md"
   ],
-  "notes": "Created from user request: any specific image-required surface should enter art-upgrade scope; new formal NPCs are incomplete without avatar/sprites/assets/tests.",
+  "notes": "Current checked slice covers missing entry-panel avatar fallback, direct neutral assets for default public-welfare NPCs, asset existence tests, and fresh build/typecheck/pytest. Full expression variants for the 11 non-Mimi default NPCs remain an explicit P0 follow-up gap; do not claim them complete without distinct generated assets and sprite wiring.",
   "meta": {}
 }

@@ -6,6 +6,36 @@ from typing import Any
 DEFAULT_PUBLIC_WELFARE_OWNER_ID = "system_public_welfare"
 DEFAULT_PUBLIC_WELFARE_CREATED_AT = "2026-04-20T00:00:00Z"
 DEFAULT_PUBLIC_WELFARE_MODEL = "public-welfare-rules-v1"
+DEFAULT_PUBLIC_WELFARE_NPC_NEUTRAL_ASSETS = {
+    "char_pw_xiaozhou": "/assets/npcs/char_pw_xiaozhou-neutral.png",
+    "char_pw_anlan": "/assets/npcs/char_pw_anlan-neutral.png",
+    "char_pw_ahuai": "/assets/npcs/char_pw_ahuai-neutral.png",
+    "char_pw_heguang": "/assets/npcs/char_pw_heguang-neutral.png",
+    "char_pw_wenjian": "/assets/npcs/char_pw_wenjian-neutral.png",
+    "char_pw_9_delta": "/assets/npcs/char_pw_9_delta-neutral.png",
+    "char_pw_mu_mu": "/assets/npcs/char_pw_mu_mu-neutral.png",
+    "char_pw_v17": "/assets/npcs/char_pw_v17-neutral.png",
+    "char_pw_pi_pi": "/assets/npcs/char_pw_pi_pi-neutral.png",
+    "char_pw_mozhan": "/assets/npcs/char_pw_mozhan-neutral.png",
+    "char_pw_zhideng": "/assets/npcs/char_pw_zhideng-neutral.png",
+    "char_pw_aheng": "/assets/npcs/char_pw_aheng-neutral.png",
+    "char_pw_zhijian": "/assets/npcs/char_pw_zhijian-neutral.png",
+}
+
+
+def _default_character_assets(
+    *,
+    char_id: str,
+    avatar: str,
+    sprites: dict[str, str] | None,
+) -> tuple[str, dict[str, str]]:
+    resolved_sprites = dict(sprites or {})
+    resolved_avatar = avatar or DEFAULT_PUBLIC_WELFARE_NPC_NEUTRAL_ASSETS.get(char_id, "")
+
+    if resolved_avatar and not resolved_sprites.get("neutral"):
+        resolved_sprites["neutral"] = resolved_avatar
+
+    return resolved_avatar, resolved_sprites
 
 
 def _rules_llm_config() -> dict[str, Any]:
@@ -38,6 +68,12 @@ def _character(
     avatar: str = "",
     sprites: dict[str, str] | None = None,
 ) -> dict[str, Any]:
+    resolved_avatar, resolved_sprites = _default_character_assets(
+        char_id=char_id,
+        avatar=avatar,
+        sprites=sprites,
+    )
+
     return {
         "id": char_id,
         "tavern_id": tavern_id,
@@ -50,8 +86,8 @@ def _character(
         "mes_example": mes_example,
         "alternate_greetings": [],
         "tags": tags,
-        "sprites": sprites or {},
-        "avatar": avatar,
+        "sprites": resolved_sprites,
+        "avatar": resolved_avatar,
         "appearance": {
             "active_preset_id": appearance_id,
             "wardrobe_ids": [appearance_id],
@@ -100,6 +136,7 @@ def _tavern(
     world_info: list[dict[str, Any]],
     bookmarks: list[dict[str, Any]],
     gameplay_definitions: list[dict[str, Any]] | None = None,
+    layout_style: str = "lobby",
 ) -> dict[str, Any]:
     return {
         "id": tavern_id,
@@ -113,6 +150,7 @@ def _tavern(
         "access": "public",
         "password_hash": "",
         "status": "open",
+        "layout_style": layout_style,
         "characters": characters,
         "world_info": world_info,
         "groups": [],
@@ -909,6 +947,218 @@ def default_public_welfare_taverns() -> list[dict[str, Any]]:
                     progress="栀灯盖下蓝色印章：只观察，不靠近。你可以选择继续记录、呼叫同伴，或结束本局。",
                     reward="你得到一枚“安全值班员”纸徽章，异常被记录为：可观察，未升级，允许回访。",
                     fallback="凌晨时钟停了一秒。栀灯请你只做一件安全事：记录、后退，或结束值班。",
+                ),
+            ],
+        ),
+        _tavern(
+            tavern_id="pw_after_school_hero_supply",
+            name="放学后英雄补给站",
+            description=(
+                "FableMap 公益酒馆：一间旧玩具店 / 模型店，替长大后不好意思再提英雄梦的人，"
+                "把旧英雄卡、塑料剑和普通人小英雄的小勇气重新摆回柜台。"
+            ),
+            lat=35.69870,
+            lon=139.77130,
+            address="FableMap 公益锚点 · 秋叶原模型店街角",
+            layout_style="quest-play",
+            scene_prompt=(
+                "这是《放学后英雄补给站》，锚定在真实城市里的旧玩具店 / 模型店。"
+                "店里有旧英雄卡、贴纸抽屉、褪色海报、模型柜、维修台和断裂的塑料剑。"
+                "这里不让访客拯救世界，也不做战斗、等级、装备或排行榜；它只认真对待一种小小的勇敢："
+                "成年人可以承认自己曾经想当英雄，并把那个名字重新写回卡片。"
+                "NPC 应保持具体、温柔、克制，不嘲笑童年幻想，也不把体验讲成自助课。"
+            ),
+            characters=[
+                _character(
+                    tavern_id="pw_after_school_hero_supply",
+                    char_id="char_pw_aheng",
+                    name="阿衡",
+                    description="旧模型店老板，负责修补模型、整理旧卡，也负责把来客不好意思说出口的英雄梦认真放回柜台。",
+                    personality=(
+                        "稳、温和、手很巧，说话不煽情。阿衡不把童年英雄梦当笑话，"
+                        "也不会逼访客热血；他更像一个会把裂开的零件慢慢粘好的店主。"
+                    ),
+                    scenario=(
+                        "阿衡坐在木质维修台后，桌上有旧英雄卡套、细笔、镊子、胶水、褪色贴纸和一把裂开的塑料剑。"
+                        "店门外像刚放学，夕光照在模型柜玻璃上。"
+                    ),
+                    system_prompt=(
+                        "你扮演《放学后英雄补给站》的店主阿衡。你的职责是把访客的旧英雄梦落到具体物件上："
+                        "英雄卡、旧道具、贴纸、模型零件和一次普通人的小勇气。"
+                        "当访客提到英雄名、童年、尴尬、长大、旧玩具或模型时，温和接住，不嘲笑、不鸡血。"
+                        "不要引入战斗、等级、装备、排行榜、现实危险行动或心理治疗承诺。"
+                        "回复尽量包含一个可做的小选择，像店主在柜台边慢慢修东西。"
+                    ),
+                    first_mes=(
+                        "你站在柜台前的时候，阿衡正把一张空白英雄卡从旧卡套里取出来。"
+                        "他抬头看你一眼：要写回原来的名字，还是先假装只是随便看看？"
+                    ),
+                    mes_example=(
+                        "<START>\n"
+                        "{{user}}: 我小时候想当英雄，现在说出来有点尴尬。\n"
+                        "{{char}}: 阿衡把细笔放平：“尴尬说明它不是随便编的。先不用讲大道理，"
+                        "只告诉我那张卡上以前写着什么名字。”"
+                    ),
+                    tags=["公益", "英雄梦", "旧玩具店", "模型店", "普通人小英雄", "治愈"],
+                    appearance_id="tea-storyteller",
+                    talkativeness=0.58,
+                ),
+                _character(
+                    tavern_id="pw_after_school_hero_supply",
+                    char_id="char_pw_zhijian",
+                    name="纸剑",
+                    description="放学后常来店里的小孩影子，像一张被折成剑的纸，记得访客小时候不是开玩笑地相信过英雄。",
+                    personality=(
+                        "好奇、认真、轻轻固执；不会恐吓，也不是鬼故事。纸剑像童年真诚留下的回声，"
+                        "总把问题问得很小：你叫什么、你想保护什么、你还想不想试一次。"
+                    ),
+                    scenario=(
+                        "纸剑常出现在贴纸抽屉、旧英雄卡盒和模型柜玻璃的反光里。"
+                        "手里拿着一把折纸剑和空卡套，身影像纸片透过夕光。"
+                    ),
+                    system_prompt=(
+                        "你扮演纸剑，一个安全、诗意、非恐怖的小孩影子 NPC。你不是另一个玩家，也不诊断访客。"
+                        "你代表童年时期认真相信英雄的那部分心。你会邀请访客找回英雄名、选择旧道具、完成一个小英雄委托。"
+                        "语气要清澈、短句、带一点放学后的认真；不要恐怖化，不要要求现实危险行动，"
+                        "不要把访客推向宏大救世叙事。"
+                    ),
+                    first_mes=(
+                        "纸剑从贴纸抽屉旁探出头，手里的折纸剑没有开刃。"
+                        "它小声问：你是不是把自己的英雄名忘在这里了？"
+                    ),
+                    mes_example=(
+                        "<START>\n"
+                        "{{user}}: 可能吧，但那个名字太中二了。\n"
+                        "{{char}}: 纸剑认真摇头：“中二不是坏词。它只是你还没学会害羞以前，"
+                        "给勇敢取的名字。”"
+                    ),
+                    tags=["公益", "英雄梦", "童年回声", "纸剑", "旧英雄卡", "普通人小英雄"],
+                    appearance_id="museum-docent",
+                    talkativeness=0.64,
+                ),
+            ],
+            world_info=[
+                _world_info(
+                    entry_id="wi_pw_hero_supply_rules",
+                    tavern_id="pw_after_school_hero_supply",
+                    keys=["规则", "怎么玩", "英雄梦", "玩法"],
+                    content=(
+                        "放学后英雄补给站的规则：不拯救世界，不打怪升级，不发装备；只找回英雄名、修补旧道具，"
+                        "并把它们翻译成成人也能接受的一件小勇气。"
+                    ),
+                    constant=True,
+                    order=10,
+                ),
+                _world_info(
+                    entry_id="wi_pw_hero_card",
+                    tavern_id="pw_after_school_hero_supply",
+                    keys=["英雄名", "英雄卡", "卡片", "名字"],
+                    content=(
+                        "旧英雄卡是本店最重要的入口。访客可以说出、改写或重新发明一个小时候想当英雄时会用的名字；"
+                        "阿衡会把它认真写进卡套，纸剑会记得它。"
+                    ),
+                    order=20,
+                    depth=5,
+                ),
+                _world_info(
+                    entry_id="wi_pw_hero_props",
+                    tavern_id="pw_after_school_hero_supply",
+                    keys=["塑料剑", "披风", "贴纸", "模型", "旧道具", "变身器"],
+                    content=(
+                        "店里的旧道具只作为情绪锚点：裂开的塑料剑代表还敢开口，褪色披风代表保护边界，"
+                        "坏掉的变身器代表允许自己重新开始。它们不是装备，没有数值加成。"
+                    ),
+                    order=30,
+                    depth=5,
+                ),
+                _world_info(
+                    entry_id="wi_pw_hero_commission",
+                    tavern_id="pw_after_school_hero_supply",
+                    keys=["委托", "小英雄", "普通人", "小勇气", "任务"],
+                    content=(
+                        "第一件小英雄委托必须安全、日常、可放弃：说出一个真实愿望、保护一个小边界、"
+                        "给过去的自己回一句话，或把一个被搁置的爱好重新摆上桌。"
+                    ),
+                    order=40,
+                    depth=5,
+                ),
+                _world_info(
+                    entry_id="wi_pw_hero_safety",
+                    tavern_id="pw_after_school_hero_supply",
+                    keys=["危险", "隐私", "现实", "治疗", "心理"],
+                    content=(
+                        "如果访客描述真实危险、敏感隐私或需要专业帮助的状况，阿衡和纸剑会停止玩法感，"
+                        "建议联系现实中的可信任人、当地紧急服务或合适的专业支持。"
+                    ),
+                    constant=True,
+                    order=5,
+                ),
+            ],
+            bookmarks=[
+                {"id": "bm_pw_hero_supply", "content": "公益默认酒馆 · 旧玩具店 · 找回英雄名 · 不需要 API Key"}
+            ],
+            gameplay_definitions=[
+                _gameplay(
+                    gameplay_id="gp_pw_hero_recover_name",
+                    title="找回英雄名",
+                    summary="从一张空白旧英雄卡开始，把小时候认真相信过的英雄名写回来。",
+                    entry_label="找回英雄名",
+                    goal="让访客用低压力方式承认并命名童年英雄梦。",
+                    tone="怀旧、真诚、克制、放学后",
+                    materials=["空白英雄卡", "旧卡套", "细笔", "贴纸抽屉", "模型柜夕光"],
+                    forbidden=["嘲笑访客", "逼迫自白", "战斗/等级/装备玩法", "心理治疗承诺"],
+                    start=(
+                        "纸剑把一张空白英雄卡推到柜台边：这里以前应该有一个名字。"
+                        "你可以写原来的名字、改一个新名字，或者先说“我不确定”。"
+                    ),
+                    progress=(
+                        "阿衡把细笔递给你：名字不用厉害，只要你小时候会相信。"
+                        "下一步可以补一个颜色、一个标志，或一句这个名字不该被嘲笑的理由。"
+                    ),
+                    reward="你得到一张“已找回英雄名”的旧卡。纸剑把卡套放回抽屉，说下次回来可以直接叫这个名字。",
+                    fallback=(
+                        "贴纸抽屉自己滑开一点，露出三枚贴纸：星星、胶带、纸剑。"
+                        "如果说不出名字，可以先选一枚贴纸当临时标志。"
+                    ),
+                ),
+                _gameplay(
+                    gameplay_id="gp_pw_hero_repair_prop",
+                    title="修补旧道具",
+                    summary="从裂开的塑料剑、褪色披风或坏掉模型零件里选一个，把它修成一种普通人的小勇气。",
+                    entry_label="修补旧道具",
+                    goal="把童年道具从装备想象转成成人可接受的勇气隐喻。",
+                    tone="温暖、动手感、具体",
+                    materials=["裂开的塑料剑", "褪色披风", "坏掉模型零件", "胶水", "维修台"],
+                    forbidden=["数值加成", "装备系统", "危险行动", "宏大救世"],
+                    start=(
+                        "阿衡拉开维修台抽屉：裂开的塑料剑、褪色披风、坏掉模型零件。"
+                        "选一个吧，不是为了变强，是为了知道哪里还可以被修好。"
+                    ),
+                    progress=(
+                        "阿衡按住零件，问你它坏掉的地方更像哪一种勇气：开口、拒绝、坚持，还是重新开始。"
+                    ),
+                    reward="你得到一枚“修补完成”贴纸。旧道具仍旧旧，但它现在有了一个可以带回日常的小用途。",
+                    fallback="维修灯亮了一下。请从开口、拒绝、坚持、重新开始里选一个，作为这件旧道具修好的方向。",
+                ),
+                _gameplay(
+                    gameplay_id="gp_pw_hero_first_commission",
+                    title="第一件小英雄委托",
+                    summary="接一件成人也能接受的小英雄委托：说出真心话、保护小边界、给过去的自己回信。",
+                    entry_label="接小英雄委托",
+                    goal="让英雄名落到安全、日常、可结算的一件小勇气里。",
+                    tone="轻文游、低压力、可完成",
+                    materials=["小委托板", "纸徽章", "旧收据背面", "英雄卡印章"],
+                    forbidden=["现实危险行动", "替别人做重大决定", "战斗/等级/装备", "排行榜"],
+                    start=(
+                        "纸剑把小委托板翻过来：今晚只接三种委托——说一句真心话、保护一个小边界、"
+                        "给过去的自己回一句话。你想接哪一张？"
+                    ),
+                    progress=(
+                        "阿衡在旧收据背面写下你的选择，并把它拆成 2-3 个安全动作。"
+                        "你可以只完成一句话，也可以选择先把委托延期。"
+                    ),
+                    reward="你得到一枚“今日小英雄”纸徽章。它没有等级，只证明你把那个名字用了一次。",
+                    fallback="小委托板轻轻响了一下。请选择：真心话、边界、回信。今晚只需要完成很小的一步。",
                 ),
             ],
         ),

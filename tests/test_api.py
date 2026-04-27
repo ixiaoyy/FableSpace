@@ -22,22 +22,32 @@ FRONTEND_ROOT = Path(__file__).resolve().parent.parent / "frontend"
 class ApiTests(unittest.TestCase):
     def test_api_server_serves_built_frontend_health_and_meta(self) -> None:
         with TemporaryDirectory() as tmpdir:
-            output_root = Path(tmpdir) / ".fablemap-api"
+            root = Path(tmpdir)
+            output_root = root / ".fablemap-api"
+            frontend_root = root / "frontend"
+            build_client = frontend_root / "build" / "client"
+            build_client.mkdir(parents=True)
+            (build_client / "index.html").write_text(
+                '<!doctype html><html><head><title>FableMap</title>'
+                '<link rel="stylesheet" href="/assets/root.css"></head>'
+                '<body><script>window.__reactRouterContext = {}</script>'
+                '<script type="module" src="/assets/entry.client.js"></script></body></html>',
+                encoding="utf-8",
+            )
             app = create_app(
                 output_root=output_root,
                 fixture_file=FIXTURE_PATH,
-                frontend_root=FRONTEND_ROOT,
+                frontend_root=frontend_root,
             )
             with TestClient(app) as client:
                 html = client.get("/").text
                 health = client.get("/api/health").json()
                 meta = client.get("/api/meta").json()
 
-        self.assertIn("FableMap · FastAPI + React", html)
-        self.assertIn('id="root"', html)
+        self.assertIn("FableMap", html)
         self.assertIn('/assets/', html)
-        self.assertIn('type="module" crossorigin', html)
-        self.assertIn('rel="stylesheet" crossorigin', html)
+        self.assertIn("__reactRouterContext", html)
+        self.assertIn("entry.client", html)
         self.assertEqual(health["status"], "ok")
         self.assertTrue(health["fixture_available"])
         self.assertTrue(health["frontend_available"])
@@ -52,19 +62,13 @@ class ApiTests(unittest.TestCase):
         self.assertEqual(meta["endpoints"]["meta"], "/api/meta")
         self.assertIn("fixture", meta["supported_modes"])
 
-    def test_api_server_serves_vite_source_shell_when_dist_is_unavailable(self) -> None:
+    def test_api_server_does_not_mount_frontend_root_when_build_is_unavailable(self) -> None:
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
             output_root = root / ".fablemap-api"
             frontend_root = root / "frontend"
             frontend_root.mkdir()
-            (frontend_root / "index.html").write_text(FRONTEND_ROOT.joinpath("index.html").read_text(encoding="utf-8"), encoding="utf-8")
-            app_root = frontend_root / "app"
-            product_root = app_root / "product"
-            product_root.mkdir(parents=True)
-            (app_root / "root.tsx").write_text(FRONTEND_ROOT.joinpath("app", "root.tsx").read_text(encoding="utf-8"), encoding="utf-8")
-            (product_root / "App.jsx").write_text(FRONTEND_ROOT.joinpath("app", "product", "App.jsx").read_text(encoding="utf-8"), encoding="utf-8")
-            (app_root / "styles.css").write_text(FRONTEND_ROOT.joinpath("app", "styles.css").read_text(encoding="utf-8"), encoding="utf-8")
+            (frontend_root / "index.html").write_text("source shell should not be served", encoding="utf-8")
 
             app = create_app(
                 output_root=output_root,
@@ -72,15 +76,64 @@ class ApiTests(unittest.TestCase):
                 frontend_root=frontend_root,
             )
             with TestClient(app) as client:
-                html = client.get("/").text
-                root_tsx = client.get("/app/root.tsx").text
-                app_js = client.get("/app/product/App.jsx").text
+                response = client.get("/")
 
-        self.assertNotIn("/src/", html)
-        self.assertIn("React Router Framework entry", html)
-        self.assertIn("HydrateFallback", root_tsx)
-        self.assertIn("useWorldSession", app_js)
-        self.assertIn("WorldStagePanel", app_js)
+        self.assertEqual(response.status_code, 404)
+        self.assertNotIn("source shell should not be served", response.text)
+
+    def test_api_server_exposes_v1_routes_when_serving_built_frontend(self) -> None:
+        with TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            output_root = root / ".fablemap-api"
+            frontend_root = root / "frontend"
+            build_client = frontend_root / "build" / "client"
+            build_client.mkdir(parents=True)
+            (build_client / "index.html").write_text("<!doctype html><html></html>", encoding="utf-8")
+
+            app = create_app(
+                output_root=output_root,
+                fixture_file=None,
+                frontend_root=frontend_root,
+            )
+            with TestClient(app) as client:
+                tavern = client.get("/api/v1/taverns/pw_lantern_helpdesk")
+                entered = client.post(
+                    "/api/v1/taverns/pw_lantern_helpdesk/enter",
+                    headers={"X-User-Id": "visitor-test"},
+                    json={},
+                )
+
+        self.assertEqual(tavern.status_code, 200)
+        self.assertIn("application/json", tavern.headers["content-type"])
+        self.assertEqual(tavern.json()["id"], "pw_lantern_helpdesk")
+        self.assertEqual(entered.status_code, 200)
+        self.assertIn("application/json", entered.headers["content-type"])
+        self.assertTrue(entered.json()["ok"])
+
+    def test_api_server_does_not_fall_back_to_frontend_for_missing_api_paths(self) -> None:
+        with TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            output_root = root / ".fablemap-api"
+            frontend_root = root / "frontend"
+            build_client = frontend_root / "build" / "client"
+            build_client.mkdir(parents=True)
+            (build_client / "index.html").write_text("<!doctype html><html></html>", encoding="utf-8")
+
+            app = create_app(
+                output_root=output_root,
+                fixture_file=None,
+                frontend_root=frontend_root,
+            )
+            with TestClient(app) as client:
+                api_response = client.get("/api/v1/not-a-real-route")
+                app_route_response = client.get("/tavern/pw_lantern_helpdesk")
+
+        self.assertEqual(api_response.status_code, 404)
+        self.assertIn("application/json", api_response.headers["content-type"])
+        self.assertEqual(api_response.json()["error"], "API endpoint not found")
+        self.assertNotIn("<!doctype html>", api_response.text.lower())
+        self.assertEqual(app_route_response.status_code, 200)
+        self.assertIn("<!doctype html>", app_route_response.text.lower())
 
     def test_api_server_generates_fixture_preview(self) -> None:
         with TemporaryDirectory() as tmpdir:
@@ -371,24 +424,48 @@ class ApiTests(unittest.TestCase):
 
 
 
-    def test_frontend_static_dir_prefers_dist_when_available(self) -> None:
+    def test_frontend_static_dir_prefers_react_router_build_when_available(self) -> None:
+        with TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            frontend_root = root / "frontend"
+            build_client = frontend_root / "build" / "client"
+            dist_root = frontend_root / "dist"
+            build_client.mkdir(parents=True)
+            dist_root.mkdir(parents=True)
+            (build_client / "index.html").write_text("react-router build", encoding="utf-8")
+            (dist_root / "index.html").write_text("legacy dist", encoding="utf-8")
+            service = WebService(ApiSettings(frontend_root=frontend_root, output_root=root / "output"))
+
+            self.assertEqual(service.frontend_static_dir(), build_client.resolve())
+
+    def test_frontend_static_dir_uses_explicit_frontend_dist(self) -> None:
+        with TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            frontend_root = root / "frontend"
+            custom_dist = root / "custom-build"
+            custom_dist.mkdir(parents=True)
+            (custom_dist / "index.html").write_text("custom build", encoding="utf-8")
+            service = WebService(
+                ApiSettings(
+                    frontend_root=frontend_root,
+                    frontend_dist=custom_dist,
+                    output_root=root / "output",
+                )
+            )
+
+            self.assertEqual(service.frontend_static_dir(), custom_dist.resolve())
+
+    def test_frontend_static_dir_ignores_legacy_dist_and_frontend_root(self) -> None:
         with TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
             frontend_root = root / "frontend"
             dist_root = frontend_root / "dist"
             dist_root.mkdir(parents=True)
+            (dist_root / "index.html").write_text("legacy dist", encoding="utf-8")
+            (frontend_root / "index.html").write_text("source shell", encoding="utf-8")
             service = WebService(ApiSettings(frontend_root=frontend_root, output_root=root / "output"))
 
-            self.assertEqual(service.frontend_static_dir(), dist_root.resolve())
-
-    def test_frontend_static_dir_falls_back_to_frontend_root(self) -> None:
-        with TemporaryDirectory() as tmpdir:
-            root = Path(tmpdir)
-            frontend_root = root / "frontend"
-            frontend_root.mkdir(parents=True)
-            service = WebService(ApiSettings(frontend_root=frontend_root, output_root=root / "output"))
-
-            self.assertEqual(service.frontend_static_dir(), frontend_root.resolve())
+            self.assertIsNone(service.frontend_static_dir())
 
 
 class ApiServiceTests(unittest.TestCase):

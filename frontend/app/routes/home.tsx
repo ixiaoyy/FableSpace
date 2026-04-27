@@ -107,14 +107,14 @@ function HomeNav() {
             className="flex min-w-0 items-center gap-2 rounded-full border border-white/10 bg-white/[0.045] px-4 py-2.5 text-sm text-violet-100/55 transition hover:border-cyan-300/35 hover:text-cyan-100 md:w-72"
           >
             <Search className="h-4 w-4 shrink-0" />
-            <span className="truncate">搜索附近酒馆、NPC、记忆线索</span>
+            <span className="truncate">搜索附近门牌、NPC、记忆线索</span>
           </Link>
           <div className="flex gap-2">
             <Button asChild variant="ghost" size="sm">
               <Link to="/owner">店主入口</Link>
             </Button>
             <Button asChild size="sm">
-              <Link to="/discover">进入酒馆</Link>
+              <Link to="/discover">开始探索</Link>
             </Button>
           </div>
         </div>
@@ -223,34 +223,34 @@ export default function HomeRoute() {
         <div className="space-y-7">
           <div className="inline-flex items-center gap-2 rounded-full border border-cyan-300/28 bg-cyan-300/8 px-4 py-2 text-xs font-black uppercase tracking-[0.18em] text-cyan-100">
             <Sparkles className="h-3.5 w-3.5" />
-            Real places. Living taverns.
+            Real places. Hidden wonder.
           </div>
           <div className="space-y-5">
             <h1 className="max-w-xl text-5xl font-black leading-[1.02] tracking-tight text-white sm:text-6xl lg:text-[4.6rem]">
-              在真实地图上开一间赛博酒馆
+              在真实地图上发现新的世界
             </h1>
             <p className="max-w-xl text-base leading-8 text-violet-100/68 sm:text-lg">
-              FableMap 是一个地图锚定的 AI NPC 酒馆平台。店主配置角色与规则，探索者从地图进入、对话、留下记忆，并在下次回访时延续关系。
+              FableMap 把真实地点变成可以探索的新世界入口。你可以从地图发现附近门牌，遇见由主人配置的 AI NPC，留下记忆，并在一次次回访里重新看见城市里的小美好。
             </p>
           </div>
           <div className="flex flex-col gap-3 sm:flex-row">
             <Button asChild size="lg">
               <Link to="/discover">
-                进入酒馆
+                开始探索
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>
             <Button asChild variant="secondary" size="lg">
               <Link to="/create">
-                创建酒馆
+                创建门牌
                 <KeyRound className="h-4 w-4" />
               </Link>
             </Button>
           </div>
           <div className="flex flex-wrap gap-2 text-xs font-bold text-violet-100/54">
-            <span className="rounded-full border border-white/8 bg-white/[0.03] px-3 py-1.5">真实坐标锚定</span>
-            <span className="rounded-full border border-white/8 bg-white/[0.03] px-3 py-1.5">SillyTavern 兼容</span>
-            <span className="rounded-full border border-white/8 bg-white/[0.03] px-3 py-1.5">店主自带 LLM</span>
+            <span className="rounded-full border border-white/8 bg-white/[0.03] px-3 py-1.5">真实地点入口</span>
+            <span className="rounded-full border border-white/8 bg-white/[0.03] px-3 py-1.5">AI NPC 相遇</span>
+            <span className="rounded-full border border-white/8 bg-white/[0.03] px-3 py-1.5">回访记忆延续</span>
           </div>
         </div>
 

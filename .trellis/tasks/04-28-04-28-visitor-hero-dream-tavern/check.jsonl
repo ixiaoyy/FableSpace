@@ -1,0 +1,13 @@
+{"file": ".agents/skills/finish-work/SKILL.md", "reason": "Final quality checklist"}
+{"file": ".agents/skills/improve-ut/SKILL.md", "reason": "Unit/regression test coverage for changed seed/gameplay behavior"}
+{"file": "tests/test_default_public_welfare_taverns.py", "reason": "Focused content, discovery, asset, and rules response coverage"}
+{"file": "tests/test_default_public_welfare_gameplays.py", "reason": "Focused gameplay publishing and fallback progression coverage"}
+{"file": "backend/tests/test_v1_runtime_features.py", "reason": "Focused native v1 rules response coverage"}
+{"ts": "2026-04-28T01:09:47+08:00", "phase": "check", "command": "py -3 -m compileall -q backend/src", "result": "pass"}
+{"ts": "2026-04-28T01:09:47+08:00", "phase": "check", "command": "py -3 -m pytest -q tests/test_default_public_welfare_taverns.py tests/test_default_public_welfare_gameplays.py --tb=short", "result": "pass: 18 passed"}
+{"ts": "2026-04-28T01:09:47+08:00", "phase": "check", "command": "py -3 -m pytest -q backend/tests/test_v1_runtime_features.py::test_v1_after_school_hero_supply_chat_uses_hero_dream_rules_response tests/test_default_public_welfare_taverns.py::test_after_school_hero_supply_chat_uses_hero_dream_rules_response --tb=short", "result": "pass: 2 passed"}
+{"ts": "2026-04-28T01:09:47+08:00", "phase": "check", "command": "npm --prefix .\\frontend run build", "result": "pass"}
+{"ts": "2026-04-28T01:09:47+08:00", "phase": "check", "command": "py -3 -m pytest -q --tb=short", "result": "pass: 464 passed, 103 warnings"}
+{"ts": "2026-04-28T01:09:47+08:00", "phase": "check", "command": "npm --prefix .\\frontend test", "result": "pass"}
+{"ts": "2026-04-28T01:09:47+08:00", "phase": "check", "command": "git diff --check", "result": "pass: line-ending warnings only"}
+{"ts": "2026-04-28T01:09:47+08:00", "phase": "check", "note": "Audited generated image outputs. The two latest generated sources match the project-local hero NPC assets by SHA256; older generated variants remain reference-only/drafts and are not referenced by runtime code."}

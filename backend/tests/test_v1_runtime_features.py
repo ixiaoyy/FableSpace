@@ -116,6 +116,29 @@ def test_v1_llm_probe_and_voice_config_endpoints(tmp_path: Path) -> None:
     assert browser_stt.json()["error"] == "浏览器 STT 无需上传到后端"
 
 
+def test_v1_after_school_hero_supply_chat_uses_hero_dream_rules_response(tmp_path: Path) -> None:
+    client = _client(tmp_path)
+
+    response = client.post(
+        "/api/v1/taverns/pw_after_school_hero_supply/chat",
+        headers={"X-User-Id": "visitor-v1-hero"},
+        json={
+            "character_id": "char_pw_aheng",
+            "message": "我想找回小时候的英雄名，但现在说出来有点尴尬。",
+            "visitor_id": "visitor-v1-hero",
+            "visitor_name": "测试旅人",
+        },
+    )
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["degraded"] is False
+    assert payload["tavern_status"] == "open"
+    assert "空白旧英雄卡推到灯下" in payload["response"]
+    assert "英雄名" in payload["response"]
+    assert "贴纸" in payload["response"]
+
+
 def test_v1_group_chat_config_send_history_and_permissions(tmp_path: Path) -> None:
     client = _client(tmp_path)
     tavern_id, character_ids = _create_tavern(client)

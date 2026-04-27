@@ -1,0 +1,4 @@
+{"file": ".agents/skills/finish-work/SKILL.md", "reason": "Finish work checklist"}
+{"file": ".agents/skills/check/SKILL.md", "reason": "Code quality check spec"}
+{"file": ".trellis\\spec\\frontend\\image-asset-guidelines.md", "reason": "check deliverable images live in repository paths and references are updated"}
+{"file": ".trellis\\spec\\frontend\\npc-art-guidelines.md", "reason": "check formal NPC direct avatar/sprite paths and file existence"}

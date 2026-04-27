@@ -87,6 +87,19 @@ logger = logging.getLogger(__name__)
 def _utc_now_iso() -> str:
     return datetime.now(UTC).replace(microsecond=0).isoformat().replace("+00:00", "Z")
 
+
+def _days_since(iso_timestamp: str | None) -> int:
+    if not iso_timestamp:
+        return 0
+    try:
+        ts = iso_timestamp.replace("Z", "+00:00")
+        past = datetime.fromisoformat(ts).astimezone(UTC)
+        now = datetime.now(UTC)
+        return max(0, (now - past).days)
+    except (ValueError, TypeError):
+        return 0
+
+
 class RuntimeApplicationMixin:
     """Focused runtime use cases."""
 
@@ -147,6 +160,7 @@ class RuntimeApplicationMixin:
         if not llm_config or not llm_config.is_configured():
             return self._degraded_chat(character_id, character.name, "closed", "AI 后端还没配置", "这间酒馆还没有可用的模型配置。")
 
+        prompt_visitor_state = self.store.get_visitor_state(tavern_id, visitor_id)
         degradation: dict[str, Any] | None = None
         try:
             response_text = self._chat_response_text(
@@ -156,6 +170,7 @@ class RuntimeApplicationMixin:
                 message=clean_message,
                 llm_config=llm_config,
                 extra_context=extra_context or [],
+                visitor_state=prompt_visitor_state,
             )
         except LLMError as exc:
             response_text = self._rules_response(character.name, clean_message, tavern)
@@ -230,6 +245,7 @@ class RuntimeApplicationMixin:
             "degradation": degradation,
             "tavern_status": "closed" if degradation else tavern.status,
             "visitor_state": visitor_state.to_dict(),
+            "affinity": affinity_result.get("affinity"),
             "created_memories": created_memories,
             "timestamp": now,
         }
@@ -397,6 +413,7 @@ class RuntimeApplicationMixin:
 
         active_character_ids = [member.character_id for member in manager.members if not member.is_user and not member.is_narrator and member.talkativeness > 0]
         self._seed_group_round_robin_selector(manager, active_character_ids, history)
+        prompt_visitor_state = self.store.get_visitor_state(tavern_id, visitor_id)
         responses: list[dict[str, Any]] = []
         total_token_count = 0
         turn_degraded = False
@@ -418,6 +435,7 @@ class RuntimeApplicationMixin:
                     message=prompt_message,
                     llm_config=llm_config,
                     extra_context=[self._group_history_prompt_item(item, tavern, visitor_display_name) for item in history],
+                    visitor_state=prompt_visitor_state,
                 )
             except LLMError as exc:
                 response_text = self._rules_response(character.name, clean_message, tavern)
@@ -481,7 +499,24 @@ class RuntimeApplicationMixin:
 
         if total_token_count:
             self.store.add_token_usage(tavern_id, total_token_count)
-        visitor_state = self._touch_visitor_state(tavern_id, visitor_id, now, visitor_gender=visitor_gender)
+        assistant_text = "\n".join(
+            f"{response.get('character_name') or '群聊角色'}: {response.get('content') or ''}".strip()
+            for response in responses
+            if response.get("content")
+        )
+        if responses:
+            affinity_result = self._update_affinity_from_chat(
+                tavern_id=tavern_id,
+                visitor_id=visitor_id,
+                visitor_message=clean_message,
+                character_response=assistant_text,
+                visitor_gender=visitor_gender,
+                now=now,
+            )
+            visitor_state = affinity_result["visitor_state"]
+        else:
+            affinity_result = {"affinity": None}
+            visitor_state = self._touch_visitor_state(tavern_id, visitor_id, now, visitor_gender=visitor_gender)
         if not responses:
             return {
                 "messages": [],
@@ -490,16 +525,12 @@ class RuntimeApplicationMixin:
                 "error": "群聊角色暂时没有回应",
                 "degraded": True,
                 "visitor_state": visitor_state.to_dict(),
+                "affinity": affinity_result.get("affinity"),
                 "created_memories": [],
             }
 
         created_memories: list[dict[str, Any]] = []
         try:
-            assistant_text = "\n".join(
-                f"{response.get('character_name') or '群聊角色'}: {response.get('content') or ''}".strip()
-                for response in responses
-                if response.get("content")
-            )
             atoms = auto_create_memories_from_chat(
                 self.store,
                 tavern_id,
@@ -522,6 +553,7 @@ class RuntimeApplicationMixin:
             "strategy": manager.strategy,
             "degraded": turn_degraded,
             "visitor_state": visitor_state.to_dict(),
+            "affinity": affinity_result.get("affinity"),
             "created_memories": created_memories,
         }
 
@@ -748,6 +780,7 @@ class RuntimeApplicationMixin:
         message: str,
         llm_config: Any,
         extra_context: list[dict[str, Any]],
+        visitor_state: VisitorState | None = None,
     ) -> str:
         backend = str(llm_config.backend or "").lower()
         if backend in {"rules", "rule_based", "public_welfare"}:
@@ -763,8 +796,12 @@ class RuntimeApplicationMixin:
                 top_p=llm_config.top_p,
             )
         )
+        system_content = f"你是 FableMap 赛博酒馆「{tavern.name}」里的 NPC {character_name}。{character_prompt}"
+        affinity_prompt = self._affinity_prompt_block_for_state(visitor_state)
+        if affinity_prompt:
+            system_content = f"{system_content}\n\n{affinity_prompt}"
         messages = [
-            {"role": "system", "content": f"你是 FableMap 赛博酒馆「{tavern.name}」里的 NPC {character_name}。{character_prompt}"},
+            {"role": "system", "content": system_content},
             *[
                 {"role": str(item.get("role") or "user"), "content": clean_text(item.get("content"), max_length=800)}
                 for item in extra_context[-12:]
@@ -774,7 +811,39 @@ class RuntimeApplicationMixin:
         ]
         return clean_text(client.complete(messages).content, max_length=2400) or self._rules_response(character_name, message, tavern)
 
+    def _affinity_prompt_block_for_state(self, state: VisitorState | None) -> str:
+        if not state:
+            return ""
+        return AffinityPromptBuilder().build_prompt_block(
+            AffinityStage.from_string(state.relationship_stage or "stranger"),
+            float(state.relationship_strength or 0.0),
+            interaction_count=state.visit_count or 0,
+        )
+
     def _rules_response(self, character_name: str, message: str, tavern: Tavern) -> str:
+        if tavern.id == "pw_after_school_hero_supply":
+            text = message or ""
+            if any(keyword in text for keyword in ("英雄名", "名字", "英雄卡")):
+                return (
+                    f"{character_name}把空白旧英雄卡推到灯下：“名字不用厉害，也不用解释给所有人听。"
+                    "你可以写原来的英雄名、改一个新名字，或者先选一枚贴纸当临时标志。”"
+                )
+            if any(keyword in text for keyword in ("塑料剑", "披风", "道具", "模型", "修补", "玩具")):
+                return (
+                    f"{character_name}打开维修台的小灯：“旧道具不是装备，没有数值，也不需要证明你能赢。"
+                    "我们只看它像哪一种小勇气：开口、拒绝、坚持，还是重新开始？”"
+                )
+            if any(keyword in text for keyword in ("委托", "小勇气", "任务", "普通人")):
+                return (
+                    f"{character_name}翻开小委托板：“今晚只接很小的英雄委托。"
+                    "你可以选真心话、保护一个小边界，或者给过去的自己回一句话。”"
+                )
+            if any(keyword in text for keyword in ("英雄", "童年", "长大", "尴尬")):
+                return (
+                    f"{character_name}看向旧模型柜：“长大以后觉得英雄梦尴尬，不代表它是假的。"
+                    "先从一张旧英雄卡开始吧。”"
+                )
+
         topic = clean_text(message, max_length=80)
         scene = clean_text(tavern.scene_prompt or tavern.description, max_length=80)
         suffix = f"这里的气味和灯光让我想到：{scene}" if scene else "我会把这句话记在今晚的吧台边。"
@@ -811,14 +880,30 @@ class RuntimeApplicationMixin:
         )
         if not state.first_visit:
             state.first_visit = now
+        prev_last_visit = state.last_visit
         state.last_visit = now
         if visitor_gender:
             state.gender = _normalize_gender(visitor_gender)
 
         calculator = AffinityCalculator()
+        current_strength = float(state.relationship_strength or 0.0)
+        current_stage = AffinityStage.from_string(state.relationship_stage or "stranger")
+
+        # Apply decay if visitor has been away
+        days_away = _days_since(prev_last_visit)
+        if days_away > 0:
+            decay_result = calculator.calculate_decay(
+                current_strength=current_strength,
+                current_stage=current_stage,
+                days_since_last_visit=days_away,
+            )
+            if decay_result.changes:
+                current_strength = decay_result.current_strength
+                current_stage = decay_result.new_stage
+
         result = calculator.calculate_chat_affinity(
-            current_strength=float(state.relationship_strength or 0.0),
-            current_stage=AffinityStage.from_string(state.relationship_stage or "stranger"),
+            current_strength=current_strength,
+            current_stage=current_stage,
             visitor_message=visitor_message,
             character_response=character_response,
             interaction_count=state.visit_count or 0,
@@ -840,6 +925,7 @@ class RuntimeApplicationMixin:
         state = self.store.get_visitor_state(tavern_id, visitor_id) or VisitorState(visitor_id=visitor_id, tavern_id=tavern_id, first_visit=now)
         if not state.first_visit:
             state.first_visit = now
+        prev_last_visit = state.last_visit
         state.last_visit = now
         if visitor_gender:
             state.gender = _normalize_gender(visitor_gender)
@@ -848,15 +934,26 @@ class RuntimeApplicationMixin:
         calculator = AffinityCalculator()
         current_stage = AffinityStage.from_string(state.relationship_stage or "stranger")
         current_strength = float(state.relationship_strength or 0.0)
-        interaction_count = state.visit_count or 0
 
-        # Calculate affinity change based on visit
+        # Apply decay if returning after being away
+        days_away = _days_since(prev_last_visit)
+        if days_away > 0:
+            decay_result = calculator.calculate_decay(
+                current_strength=current_strength,
+                current_stage=current_stage,
+                days_since_last_visit=days_away,
+            )
+            if decay_result.changes:
+                current_strength = decay_result.current_strength
+                current_stage = decay_result.new_stage
+
+        # Visit-only affinity nudge (no message content)
         result = calculator.calculate_chat_affinity(
             current_strength=current_strength,
             current_stage=current_stage,
-            visitor_message="",  # No message content for visit-only touch
+            visitor_message="",
             character_response="",
-            interaction_count=interaction_count,
+            interaction_count=state.visit_count or 0,
         )
 
         state.relationship_strength = result.current_strength

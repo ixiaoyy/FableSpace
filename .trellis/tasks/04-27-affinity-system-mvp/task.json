@@ -3,7 +3,7 @@
   "name": "affinity-system-mvp",
   "title": "好感度系统 MVP",
   "description": "实现完整访客-NPC好感度系统：好感度等级制度、计算规则、NPC行为影响、前端UI展示",
-  "status": "paused",
+  "status": "completed",
   "dev_type": "fullstack",
   "scope": "affinity-stages, affinity-calculator, affinity-prompt-injection, affinity-ui",
   "package": null,
@@ -11,17 +11,12 @@
   "creator": "lijin",
   "assignee": "lijin",
   "createdAt": "2026-04-27",
-  "completedAt": null,
+  "completedAt": "2026-04-27",
   "branch": null,
   "base_branch": "main",
   "worktree_path": null,
-  "current_phase": 3,
-  "next_action": [
-    {
-      "phase": 3,
-      "action": "implement - step 3: add _update_affinity_from_chat method"
-    }
-  ],
+  "current_phase": 4,
+  "next_action": [],
   "commit": null,
   "pr_url": null,
   "subtasks": [],
@@ -46,7 +41,7 @@
     ".trellis/spec/backend/index.md",
     ".trellis/spec/frontend/index.md"
   ],
-  "notes": "2026-04-27: Started affinity system MVP. Created prd.md with full requirements and research.md documenting existing implementation. Created affinity.py module with AffinityStage enum, AffinityCalculator, and AffinityPromptBuilder. Partially integrated affinity calculator into runtime.py _touch_visitor_state method. Implementation paused for task list review.",
+  "notes": "2026-04-27: Completed affinity system MVP. All core components implemented: AffinityStage enum (6 stages), AffinityCalculator with chat/decay/gameplay logic, AffinityPromptBuilder for NPC behavior injection, tone property per stage, decay wiring in runtime.py (both _update_affinity_from_chat and _touch_visitor_state), /api/v1/affinity/stages endpoint, AffinityProgress.tsx/AffinityBadge.tsx frontend components wired into TavernContextPanel and TavernMemoryPanel, affinity.js frontend library, backend tests (23 tests passing), WORLD_SCHEMA.md updated. The MVP is fully done.",
   "meta": {
     "affinity_stages": [
       "stranger",
@@ -60,22 +55,18 @@
       "done": [
         "prd.md: Created full requirements document",
         "research.md: Documented existing implementation",
-        "affinity.py: Created with AffinityStage enum, AffinityCalculator, AffinityPromptBuilder",
-        "runtime.py: Partially integrated affinity calculator into _touch_visitor_state"
+        "affinity.py: AffinityStage enum (6 stages), AffinityCalculator, AffinityPromptBuilder, tone property, to_definition()",
+        "affinity.js: Frontend library with normalize/percent/stage functions",
+        "runtime.py: _update_affinity_from_chat, decay wiring in chat and visit paths",
+        "api/v1/affinity.py: /api/v1/affinity/stages endpoint",
+        "AffinityBadge.tsx + AffinityProgress.tsx: Frontend UI components",
+        "TavernContextPanel.jsx: AffinityBadge + AffinityProgress wired in MemoryTab",
+        "TavernMemoryPanel.jsx: AffinityBadge + AffinityProgress wired",
+        "prompt_builder.py: _affinity_prompt_context uses AffinityPromptBuilder, wired into build() and _render_prompt_block()",
+        "WORLD_SCHEMA.md: Updated VisitorState interface and AffinityStageDefinition",
+        "test_affinity.py: 23 tests covering all core paths (all passing)"
       ],
-      "in_progress": [
-        "runtime.py: _update_affinity_from_chat method needs to be added",
-        "prompt_builder.py: Needs affinity prompt injection integration",
-        "frontend: Needs affinity UI components"
-      ],
-      "not_built": [
-        "API endpoint for affinity stages (/api/v1/affinity/stages)",
-        "Frontend AffinityBadge and AffinityProgress components",
-        "Frontend TavernContextPanel/TavernMemoryPanel integration",
-        "Backend tests for affinity calculation",
-        "WORLD_SCHEMA.md updates",
-        "Decay mechanism implementation"
-      ]
+      "follow_on": []
     }
   }
 }

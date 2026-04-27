@@ -267,3 +267,53 @@ class LLMConfigModel(Base):
 
     # 关系
     tavern = relationship("TavernModel", back_populates="llm_config")
+
+
+class NpcPublicBondModel(Base):
+    """NPC 公开关系模型"""
+
+    __tablename__ = "npc_public_bonds"
+
+    id = Column(String(64), primary_key=True)
+    tavern_id = Column(String(64), ForeignKey("taverns.id", ondelete="CASCADE"), nullable=False)
+    character_id = Column(String(64), nullable=False)
+    visitor_id = Column(String(64), nullable=False)
+    bond_type = Column(String(32), nullable=False)
+    status = Column(String(16), nullable=False, default="pending")
+    created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
+    approved_at = Column(DateTime, nullable=True)
+    revoked_at = Column(DateTime, nullable=True)
+    expires_at = Column(DateTime, nullable=True)
+    approved_by = Column(String(64), nullable=True)
+    revoked_by = Column(String(64), nullable=True)
+    visitor_note = Column(Text, nullable=True)
+    owner_note = Column(Text, nullable=True)
+    revoke_reason = Column(Text, nullable=True)
+    metadata_ = Column("metadata", JSON, default=dict)
+
+    __table_args__ = (
+        Index("idx_npb_tavern_character", "tavern_id", "character_id", "status"),
+        Index("idx_npb_visitor", "visitor_id"),
+        Index("idx_npb_character_status", "character_id", "status"),
+    )
+
+
+class NpcPublicBondQueueModel(Base):
+    """NPC 公开关系等待队列模型"""
+
+    __tablename__ = "npc_public_bond_queues"
+
+    id = Column(String(64), primary_key=True)
+    tavern_id = Column(String(64), ForeignKey("taverns.id", ondelete="CASCADE"), nullable=False)
+    character_id = Column(String(64), nullable=False)
+    visitor_id = Column(String(64), nullable=False)
+    bond_type = Column(String(32), nullable=False)
+    position = Column(Integer, nullable=False, default=1)
+    status = Column(String(16), nullable=False, default="waiting")
+    created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
+    promoted_at = Column(DateTime, nullable=True)
+
+    __table_args__ = (
+        Index("idx_npbq_character_status_pos", "character_id", "status", "position"),
+        Index("idx_npbq_visitor", "visitor_id"),
+    )

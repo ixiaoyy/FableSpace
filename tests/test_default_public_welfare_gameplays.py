@@ -18,6 +18,7 @@ def test_default_public_welfare_taverns_have_theme_gameplays_and_rules_fallback_
         "pw_lost_found_archive": ["失物", "线索", "档案"],
         "pw_third_shelf_observatory": ["人类", "谜题", "便利店"],
         "pw_midnight_commission_board": ["线索", "委托", "异常"],
+        "pw_after_school_hero_supply": ["英雄名", "旧道具", "小英雄"],
         "pw_jingan_catbell_refuge": ["猫铃", "复国", "静安"],
     }
 
@@ -69,6 +70,49 @@ def test_midnight_commission_board_runs_all_published_text_adventure_gameplays()
                 "gp_pw_commission_anomaly_watch",
             }
         )
+
+        for gameplay in gameplays:
+            started = service.start_gameplay_session_payload(
+                tavern_id,
+                {"gameplay_id": gameplay["id"], "character_id": character_id},
+                f"visitor_{gameplay['id']}",
+            )
+            assert started["session"]["state"] == "in_progress"
+            advanced = service.advance_gameplay_session_payload(
+                tavern_id,
+                started["session"]["id"],
+                {"message": "继续"},
+                f"visitor_{gameplay['id']}",
+            )
+            assert advanced["source"] in {"fallback", "choice"}
+            assert advanced["event"]["narration"]
+
+
+def test_after_school_hero_supply_runs_all_published_hero_gameplays():
+    with TemporaryDirectory() as tmpdir:
+        service = _service(tmpdir)
+        tavern_id = "pw_after_school_hero_supply"
+        tavern = service.get_tavern_payload(tavern_id, "visitor_public")
+        character_id = "char_pw_aheng"
+
+        payload = service.get_gameplays_payload(tavern_id, "visitor_public")
+        gameplays = payload["gameplays"]
+
+        assert len(gameplays) >= 3
+        assert {gameplay["id"] for gameplay in gameplays}.issuperset(
+            {
+                "gp_pw_hero_recover_name",
+                "gp_pw_hero_repair_prop",
+                "gp_pw_hero_first_commission",
+            }
+        )
+        combined = " ".join(
+            f"{gameplay.get('title', '')} {gameplay.get('summary', '')} {gameplay.get('entry_label', '')}"
+            for gameplay in gameplays
+        )
+        for keyword in ("找回英雄名", "修补旧道具", "第一件小英雄委托"):
+            assert keyword in combined
+        assert any(character["id"] == character_id for character in tavern["characters"])
 
         for gameplay in gameplays:
             started = service.start_gameplay_session_payload(

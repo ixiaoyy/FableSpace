@@ -375,8 +375,36 @@ interface VisitorState {
 
   relationship: {
     strength: number;          // 关系强度 0.0–1.0
-    stage: 'stranger' | 'acquaintance' | 'known' | 'trusted' | 'allied';
+    stage: AffinityStage;     // 好感度阶段
   };
+}
+
+/**
+ * 好感度阶段 (AffinityStage)
+ *
+ * 从陌生人到知己，共 6 个阶段。
+ * 新访客默认 stranger，每次访问后计算变化。
+ * 超过 7 天未访问触发小幅衰减（-0.02），超过 30 天触发大幅衰减（-0.05）。
+ * 衰减后阶段可能降级。
+ */
+type AffinityStage =
+  | 'stranger'        // 陌生人  [0, 0.15)
+  | 'acquaintance'    // 点头之交  [0.15, 0.30)
+  | 'familiar'        // 熟面孔  [0.30, 0.50)
+  | 'friend'          // 朋友    [0.50, 0.70)
+  | 'close_friend'    // 挚友    [0.70, 0.90)
+  | 'best_friend';    // 知己    [0.90, 1.00]
+
+/**
+ * 好感度阶段元数据（GET /api/v1/affinity/stages 返回）
+ */
+interface AffinityStageDefinition {
+  stage: AffinityStage;
+  name_zh: string;
+  name_en: string;
+  strength_min: number;
+  strength_max: number;
+  tone: string;   // CSS tone class: neutral | cyan | blue | green | violet | gold
 }
 ```
 
@@ -559,8 +587,150 @@ SillyTavern 角色卡 V2 JSON 导入时的字段映射：
 
 ---
 
+## 十四、NpcPublicBond（NPC 公开关系 / 结缘系统）
+
+访客与 NPC 建立公开的长期/永久关系（结缘），经店主审批后生效，关系对其他用户可见。
+
+### 14.1 关系类型枚举（PublicBondType）
+
+系统内置枚举，MVP 不开放店主自定义，分两类：
+
+**严格 1:1 排他（capacity: 1）**
+
+| 枚举值 | 中文名 | 英文名 | 说明 |
+|--------|--------|--------|------|
+| `sweetheart` | 情侣 | Sweetheart | 浪漫亲密关系 |
+| `brother` | 兄弟 | Brother | 男性友谊 |
+| `sister` | 姐妹 | Sister | 女性友谊 |
+| `best_friend` | 闺蜜 / 知己 | Best Friend | 亲密同性友谊 |
+| `confidant` | 红颜知己 | Confidante | 女性对男性知己 |
+| `male_confidant` | 蓝颜知己 | Male Confidant | 男性对女性知己 |
+| `sibling_younger` | 兄妹 | Older Brother | 兄 + 妹妹 |
+| `sibling_older` | 姐弟 | Older Sister | 姐 + 弟弟 |
+| `sworn_sibling` | 结拜兄妹 | Sworn Sibling | 结义兄弟/姐妹 |
+
+**非排他（可多人，capacity: N）**
+
+| 枚举值 | 中文名 | 英文名 | 说明 |
+|--------|--------|--------|------|
+| `master` | 师徒 | Master-Disciple | 师父/徒弟 |
+| `junior_sister` | 师姐 | Junior Sister | 师姐（女）|
+| `junior_brother` | 师兄 | Junior Brother | 师兄（男）|
+| `disciple_sister` | 师妹 | Disciple Sister | 师妹（女）|
+| `disciple_brother` | 师弟 | Disciple Brother | 师弟（男）|
+| `guardian` | 守护 | Guardian | 守护者 |
+| `contract_beast` | 契约兽 | Contract Beast | 契约灵宠 |
+
+> `best_friend`（公开关系类型）与 `AffinityStage.best_friend`（好感度阶段）是不同概念，内部明确区分。
+
+### 14.2 触发条件
+
+访客与 NPC 的 `VisitorState.relationship.strength >= 0.70`（AffinityStage.close_friend 或以上）时，展示申请入口。
+
+### 14.3 NpcPublicBond 数据模型
+
+```typescript
+/**
+ * NPC 公开关系记录
+ */
+interface NpcPublicBond {
+  id: string;
+  tavern_id: string;
+  character_id: string;
+  visitor_id: string;
+  bond_type: PublicBondType;       // 关系类型枚举值
+  status: PublicBondStatus;        // pending | active | revoked | expired
+  created_at: string;             // ISO 时间戳
+  approved_at?: string;           // 审批通过时间
+  revoked_at?: string;             // 撤销时间
+  expires_at?: string;            // 过期时间（MVP 不启用）
+  approved_by?: string;            // 审批人 ID（店主或 platform_admin）
+  revoked_by?: string;            // 撤销人 ID
+  visitor_note?: string;          // 访客申请留言
+  owner_note?: string;            // 店主审批/拒绝备注
+  revoke_reason?: string;         // 撤销原因
+  metadata?: Record<string, unknown>;  // 扩展字段，含 queue_position
+}
+
+/**
+ * 关系状态枚举
+ */
+type PublicBondStatus = "pending" | "active" | "revoked" | "expired";
+```
+
+### 14.4 NpcPublicBondQueue 数据模型
+
+当 1:1 NPC 已有活跃关系时，新申请进入等待队列：
+
+```typescript
+/**
+ * 公开关系等待队列
+ */
+interface NpcPublicBondQueue {
+  id: string;
+  tavern_id: string;
+  character_id: string;
+  visitor_id: string;
+  bond_type: PublicBondType;
+  position: number;               // 等待位置，1 为队列首位
+  status: QueueStatus;            // waiting | promoted | expired
+  created_at: string;             // ISO 时间戳
+  promoted_at?: string;          // 晋升为 active 的时间
+}
+
+/**
+ * 队列状态枚举
+ */
+type QueueStatus = "waiting" | "promoted" | "expired";
+```
+
+### 14.5 权限与审批规则
+
+| 场景 | 审批方 |
+|------|--------|
+| 私人店 NPC | 店主（`Tavern.owner_id`） |
+| 系统店纯 NPC | 平台管理员（`platform_admin`） |
+
+**所有变更 NPC 公开身份的申请，都必须经审批生效，不得自动绑定。**
+
+### 14.6 公开展示规则
+
+- NPC 卡片显示"已结缘"徽标，悬停显示关系类型
+- **不暴露访客身份**：公开端点 `GET /taverns/{tavern_id}/characters/{character_id}/public-bonds` 只返回 `bond_type` 与 `status`，不含 `visitor_id`
+
+### 14.7 冲突处理
+
+- **1:1 排他关系**：NPC 已有活跃 1:1 关系时，新申请自动进入等待队列（position 按申请顺序排列）；当前关系撤销/过期后，队列首位自动晋升为 `active`
+- **非排他关系（capacity: N）**：可允许多个访客同时与同一 NPC 保持活跃关系
+
+### 14.8 撤销规则
+
+店主可随时撤销，撤销后该访客申请记录清除，NPC 可接受新申请。
+
+### 14.9 API 端点摘要
+
+| 方法 | 路径 | 说明 | 可见性 |
+|------|------|------|--------|
+| GET | `/api/v1/taverns/{tavern_id}/characters/{character_id}/public-bond` | 当前访客关系状态 | 访客认证 |
+| GET | `/api/v1/taverns/{tavern_id}/characters/{character_id}/public-bonds` | NPC 所有公开关系 | 公开 |
+| POST | `/api/v1/taverns/{tavern_id}/characters/{character_id}/public-bond/apply` | 访客申请结缘 | 访客认证 |
+| POST | `.../public-bonds/{bond_id}/approve` | 店主审批通过 | 店主认证 |
+| POST | `.../public-bonds/{bond_id}/reject` | 店主拒绝 | 店主认证 |
+| POST | `.../public-bonds/{bond_id}/revoke` | 店主撤销 | 店主认证 |
+| GET | `/api/v1/taverns/{tavern_id}/public-bond-queue` | 等待队列 | 店主可见 |
+| DELETE | `/api/v1/taverns/{tavern_id}/public-bond-queue/{queue_id}` | 取消等待 | 访客认证 |
+| GET | `/api/v1/public-bond/types` | 所有关系类型定义 | 公开 |
+
+### 14.10 数据库表
+
+对应 MySQL 表：`npc_public_bonds`、`npc_public_bond_queues`，详见 `backend/src/fablemap_api/infrastructure/models.py`。
+
+---
+
 ## 版本历史
 
+- v1.0 (2026-04-28): 增加 NpcPublicBond（NPC 公开关系 / 结缘系统）：16 种系统内置关系类型（9 种 1:1 排他 + 7 种多人），close_friend（strength ≥ 0.70）触发申请，经店主审批生效，1:1 冲突进入等待队列，店主可随时撤销。数据库表 `npc_public_bonds`、`npc_public_bond_queues`；完整 API 路由 + 服务层；前端 BondBadge / BondApplyModal 组件；`docs/WORLD_SCHEMA.md` 更新。
+- v0.9 (2026-04-27): 增加好感度系统（Affinity System）：6 阶段好感度（stranger → acquaintance → familiar → friend → close_friend → best_friend），情感分析自动计算，衰减机制（7 天未访问 -0.02，30 天 -0.05）；更新 VisitorState.relationship.stage 枚举；新增 `GET /api/v1/affinity/stages` 接口；前端 AffinityBadge / AffinityProgress 组件。
 - v0.8 (2026-04-27): 增加 `Gender` 枚举、`TavernCharacter.gender` 与 `VisitorState.gender`；游客性别为 tavern-scoped 自声明字段，NPC 性别为店主填写字段，旧数据默认 `unspecified`，不得自动推断或用于公开社交筛选。
 - v0.7 (2026-04-27): 增加 Place/Home MVP Schema：`place_type`、`HomeMember`、可扩展 `PlaceRelationshipType`/`PlaceRelationship`、学校成员摘要与 Home 默认私密 / 跨主人审批边界；`school_enrollment` 是关系类型之一而非唯一关系。
 - v0.6 (2026-04-27): 增加时间系统：`timezone`、`operating_hours`、`OperatingHours` 类型、`TavernTimeStatus` 接口。支持基于地理位置的时区推断和精确到分钟的营业时间管理。

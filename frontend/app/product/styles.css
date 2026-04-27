@@ -8109,6 +8109,97 @@ iframe {
   background: linear-gradient(90deg, #60a5fa, #8b5cf6);
 }
 
+.affinity-badge {
+  display: inline-flex;
+  width: fit-content;
+  max-width: 100%;
+  align-items: center;
+  gap: 7px;
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  border-radius: 999px;
+  padding: 5px 10px;
+  background: rgba(15, 23, 42, 0.58);
+  color: var(--shell-title);
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.affinity-badge small {
+  color: var(--shell-text-soft);
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.affinity-badge-dot {
+  width: 7px;
+  height: 7px;
+  flex: 0 0 auto;
+  border-radius: 999px;
+  background: #94a3b8;
+  box-shadow: 0 0 10px rgba(148, 163, 184, 0.42);
+}
+
+.affinity-tone-cyan .affinity-badge-dot { background: #22d3ee; box-shadow: 0 0 10px rgba(34, 211, 238, 0.42); }
+.affinity-tone-blue .affinity-badge-dot { background: #60a5fa; box-shadow: 0 0 10px rgba(96, 165, 250, 0.42); }
+.affinity-tone-green .affinity-badge-dot { background: #34d399; box-shadow: 0 0 10px rgba(52, 211, 153, 0.42); }
+.affinity-tone-violet .affinity-badge-dot { background: #a78bfa; box-shadow: 0 0 10px rgba(167, 139, 250, 0.42); }
+.affinity-tone-gold .affinity-badge-dot { background: #fbbf24; box-shadow: 0 0 10px rgba(251, 191, 36, 0.48); }
+
+.affinity-progress {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.affinity-progress-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  color: var(--shell-title);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.affinity-progress-heading small {
+  min-width: 0;
+  color: var(--shell-text-soft);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.affinity-progress-bar,
+.affinity-progress-stage {
+  width: 100%;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(51, 65, 85, 0.68);
+}
+
+.affinity-progress-bar {
+  height: 8px;
+}
+
+.affinity-progress-stage {
+  height: 4px;
+  background: rgba(148, 163, 184, 0.18);
+}
+
+.affinity-progress-bar span,
+.affinity-progress-stage span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #22d3ee, #34d399, #fbbf24);
+  transition: width 180ms ease;
+}
+
+.affinity-progress-stage span {
+  background: linear-gradient(90deg, #94a3b8, #c4b5fd);
+}
+
 .memory-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));

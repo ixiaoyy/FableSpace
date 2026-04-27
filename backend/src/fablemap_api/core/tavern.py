@@ -737,15 +737,58 @@ class TavernStore:
                 for item in existing_items
                 if isinstance(item, dict)
             }
+            existing_by_id = {
+                str(item.get("id") or "").strip(): item
+                for item in existing_items
+                if isinstance(item, dict)
+            }
             for item in default_items:
                 if not isinstance(item, dict):
                     continue
                 item_id = str(item.get("id") or "").strip()
-                if not item_id or item_id in existing_ids:
+                if not item_id:
+                    continue
+                if item_id in existing_ids:
+                    if key == "characters" and TavernStore._merge_public_welfare_character_assets(
+                        existing_by_id.get(item_id),
+                        item,
+                    ):
+                        changed = True
                     continue
                 existing_items.append(deepcopy(item))
                 existing_ids.add(item_id)
+                existing_by_id[item_id] = existing_items[-1]
                 changed = True
+        return changed
+
+    @staticmethod
+    def _merge_public_welfare_character_assets(existing: Any, default: dict[str, Any]) -> bool:
+        """Fill missing built-in character art without replacing local edits."""
+        if not isinstance(existing, dict):
+            return False
+
+        changed = False
+        default_avatar = str(default.get("avatar") or "").strip()
+        if default_avatar and not str(existing.get("avatar") or "").strip():
+            existing["avatar"] = default_avatar
+            changed = True
+
+        default_sprites = default.get("sprites")
+        if not isinstance(default_sprites, dict) or not default_sprites:
+            return changed
+
+        existing_sprites = existing.get("sprites")
+        if not isinstance(existing_sprites, dict):
+            existing_sprites = {}
+            existing["sprites"] = existing_sprites
+            changed = True
+
+        for expression, sprite_url in default_sprites.items():
+            sprite_url = str(sprite_url or "").strip()
+            if sprite_url and not str(existing_sprites.get(expression) or "").strip():
+                existing_sprites[expression] = sprite_url
+                changed = True
+
         return changed
 
     def _load_taverns(self) -> dict[str, Any]:

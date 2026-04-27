@@ -46,7 +46,19 @@
       "Bash(\"C:\\\\Users\\\\phpxi\\\\AppData\\\\Local\\\\Programs\\\\Python\\\\Python312\\\\python.exe\" .trellis/scripts/task.py init-context \"04-24-tv-drama-tavern\" product)",
       "Bash(node scripts/personality-templates-test.mjs)",
       "Bash(dir \"d:\\\\work\\\\FableMap\\\\.trellis\" /b)",
-      "Bash(py -3 D:/work/FableMap/.trellis/scripts/add_session.py --title \"酒馆发现增强 — 分类浏览与搜索\" --commit - --branch main --no-commit --summary \"为 /discover 页面增加了分类标签浏览、酒馆名称模糊搜索、公益/开放切换开关。清空筛选按钮基于 hasFilters 状态自动显示。修复了 Input 组件缺失问题（改为原生 input）。typecheck 和 build 均通过。\")"
+      "Bash(py -3 D:/work/FableMap/.trellis/scripts/add_session.py --title \"酒馆发现增强 — 分类浏览与搜索\" --commit - --branch main --no-commit --summary \"为 /discover 页面增加了分类标签浏览、酒馆名称模糊搜索、公益/开放切换开关。清空筛选按钮基于 hasFilters 状态自动显示。修复了 Input 组件缺失问题（改为原生 input）。typecheck 和 build 均通过。\")",
+      "Bash(git remote *)",
+      "Bash(where trellis *)",
+      "Bash(trellis --help)",
+      "Bash(python .trellis/scripts/task.py --help)",
+      "Bash(python3 .trellis/scripts/task.py --help)",
+      "Bash(python3.12 --version)",
+      "Bash(python3.11 --version)",
+      "Bash(python3.10 --version)",
+      "Bash(py -3 .trellis/scripts/task.py list)",
+      "Bash(py -3 .trellis/scripts/task.py --help)",
+      "Bash(py -3 .trellis/scripts/task.py start 04-27-affinity-system-mvp)",
+      "Bash(py -3 -m pytest tests/test_affinity.py -v)"
     ],
     "additionalDirectories": [
       "d:\\work\\ai-\\fablemap\\web"

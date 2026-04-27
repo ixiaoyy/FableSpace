@@ -1,0 +1,5 @@
+{"file": ".agents/skills/finish-work/SKILL.md", "reason": "Finish work checklist"}
+{"file": ".agents/skills/check/SKILL.md", "reason": "Code quality check spec"}
+{"file": ".\\tests\\test_default_public_welfare_taverns.py", "reason": "asset existence tests cover Mimi Nya PNGs"}
+{"file": ".\\.trellis\\spec\\frontend\\image-asset-guidelines.md", "reason": "verify generated images are adopted into project paths"}
+{"file": ".\\.trellis\\spec\\frontend\\npc-art-guidelines.md", "reason": "check expression sprites satisfy formal NPC art semantics"}
