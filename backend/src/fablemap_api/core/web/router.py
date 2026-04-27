@@ -171,6 +171,13 @@ def create_api_router(service: WebService) -> APIRouter:
         user_id = _get_user_id(request)
         return service.get_tavern_payload(tavern_id, user_id)
 
+    @router.get("/api/taverns/{tavern_id}/share")
+    def get_tavern_share(request: Request, tavern_id: str) -> dict:
+        """Get shareable info for a tavern (public data only)."""
+        base_url = _request_base_url(request)
+        user_id = _get_user_id(request)
+        return service.get_share_payload(tavern_id, base_url, user_id)
+
     @router.put("/api/taverns/{tavern_id}")
     def update_tavern(request: Request, tavern_id: str, data: dict = Body(...)) -> dict:
         """Update a tavern"""

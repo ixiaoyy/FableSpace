@@ -11,6 +11,8 @@ from urllib.request import Request, urlopen
 
 from fastapi import HTTPException
 
+from fablemap_api.domain.tavern_share_policy import build_tavern_share_payload
+
 logger = logging.getLogger(__name__)
 
 
@@ -729,6 +731,15 @@ class WebService:
     def update_tavern(self, tavern_id: str, data: dict[str, Any], user_id: str = "") -> dict[str, Any]:
         """Compatibility wrapper for compatibility router endpoints."""
         return self.update_tavern_payload(tavern_id, data, user_id)
+
+    def get_share_payload(self, tavern_id: str, base_url: str = "", user_id: str = "") -> dict[str, Any]:
+        """Get shareable info for a tavern (public data only)."""
+        tavern = self.tavern_store.get_tavern(tavern_id)
+        if not tavern:
+            raise HTTPException(status_code=404, detail="酒馆不存在")
+        if tavern.access == "private" and not _is_tavern_owner_obj(tavern, user_id):
+            raise HTTPException(status_code=403, detail="此酒馆是私人的")
+        return build_tavern_share_payload(tavern, base_url=base_url)
 
     # ─── Gameplay System ────────────────────────────────────────────────
 

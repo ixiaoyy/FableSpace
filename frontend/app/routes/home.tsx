@@ -111,7 +111,7 @@ function HomeNav() {
           </Link>
           <div className="flex gap-2">
             <Button asChild variant="ghost" size="sm">
-              <Link to="/create">店主入口</Link>
+              <Link to="/owner">店主入口</Link>
             </Button>
             <Button asChild size="sm">
               <Link to="/discover">进入酒馆</Link>

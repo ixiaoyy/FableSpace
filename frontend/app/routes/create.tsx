@@ -1,9 +1,10 @@
 import { ArrowRight, CheckCircle2, KeyRound, MapPinned, ShieldCheck, UserRoundPlus } from "lucide-react"
 import { useState, type FormEvent } from "react"
-import { useNavigate } from "react-router"
+import { useNavigate, useSearchParams } from "react-router"
 
 import tavernStreetImage from "../assets/homepage-reference/modules/tavern-street.png"
 import merchantPortrait from "../assets/npc-style-cast/portraits/merchant-a.png"
+import { readCreatePrefill } from "../lib/creator-conversion.js"
 import { addCharacter, createTavern, DEFAULT_OWNER_ID, errorMessage } from "../lib/taverns"
 import { ProductShell } from "../shell/product-shell"
 import { Button } from "../ui/button"
@@ -19,6 +20,8 @@ const checklist = ["真实坐标", "店主确认的酒馆内容", "角色卡可�
 
 export default function CreateRoute() {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const createPrefill = readCreatePrefill(searchParams)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState("")
   const [createdId, setCreatedId] = useState("")
@@ -77,6 +80,11 @@ export default function CreateRoute() {
               <p className="mt-3 max-w-2xl text-sm leading-7 text-violet-100/62">
                 表单只保存店主确认的内容：名称、场景、坐标、访问方式和首个 NPC。平台提供结构，不替店主创作故事。
               </p>
+              {createPrefill.hasSource ? (
+                <p className="mt-3 max-w-2xl rounded-2xl border border-cyan-300/20 bg-cyan-300/10 p-3 text-sm leading-6 text-cyan-50">
+                  已从酒馆 {createPrefill.sourceTavernId} 带入真实坐标/地址；不会复制原酒馆名称、简介、角色或场景内容。
+                </p>
+              ) : null}
             </div>
             <span className="grid h-14 w-14 place-items-center rounded-full border border-cyan-300/28 bg-cyan-300/10 text-cyan-100">
               <MapPinned className="h-7 w-7" />
@@ -117,15 +125,15 @@ export default function CreateRoute() {
             <div className="grid gap-3 sm:grid-cols-3">
               <label className="space-y-1.5 text-sm">
                 <span className="text-violet-100/65">纬度</span>
-                <input name="lat" required type="number" step="0.000001" defaultValue="31.2304" className="w-full rounded-2xl border border-white/12 bg-white/[0.06] px-4 py-3 text-white outline-none focus:border-cyan-300/60" />
+                <input name="lat" required type="number" step="0.000001" defaultValue={createPrefill.lat} className="w-full rounded-2xl border border-white/12 bg-white/[0.06] px-4 py-3 text-white outline-none focus:border-cyan-300/60" />
               </label>
               <label className="space-y-1.5 text-sm">
                 <span className="text-violet-100/65">经度</span>
-                <input name="lon" required type="number" step="0.000001" defaultValue="121.4737" className="w-full rounded-2xl border border-white/12 bg-white/[0.06] px-4 py-3 text-white outline-none focus:border-cyan-300/60" />
+                <input name="lon" required type="number" step="0.000001" defaultValue={createPrefill.lon} className="w-full rounded-2xl border border-white/12 bg-white/[0.06] px-4 py-3 text-white outline-none focus:border-cyan-300/60" />
               </label>
               <label className="space-y-1.5 text-sm">
                 <span className="text-violet-100/65">地址标签</span>
-                <input name="address" placeholder="上海 · 外滩" className="w-full rounded-2xl border border-white/12 bg-white/[0.06] px-4 py-3 text-white outline-none focus:border-cyan-300/60" />
+                <input name="address" defaultValue={createPrefill.address} placeholder="上海 · 外滩" className="w-full rounded-2xl border border-white/12 bg-white/[0.06] px-4 py-3 text-white outline-none focus:border-cyan-300/60" />
               </label>
             </div>
             <label className="space-y-1.5 text-sm">

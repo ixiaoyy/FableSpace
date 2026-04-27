@@ -57,6 +57,31 @@ export type TavernListResponse = {
   count: number
 }
 
+export type TavernSharePayload = {
+  tavern_id: string
+  title: string
+  description: string
+  short_description: string
+  cover: string
+  location: {
+    lat: number
+    lon: number
+    address: string
+  }
+  status: string
+  access: string
+  tags: string[]
+  characters: Array<{
+    id: string
+    name: string
+    avatar: string | null
+  }>
+  character_count: number
+  share_url: string
+  share_title: string
+  share_text: string
+}
+
 export type RoleplayState = {
   tavern_id: string
   roleplay_mode: RoleplayMode | string
@@ -76,6 +101,22 @@ export type ChatMessage = {
   timestamp?: string
 }
 
+export type VisitorRelationshipPayload = {
+  strength?: number
+  stage?: string
+  [key: string]: unknown
+}
+
+export type VisitorStatePayload = {
+  visitor_id?: string
+  tavern_id?: string
+  visit_count?: number
+  first_visit?: string | null
+  last_visit?: string | null
+  relationship?: VisitorRelationshipPayload | null
+  [key: string]: unknown
+}
+
 export type ChatResponse = {
   character_id: string
   character_name: string
@@ -87,6 +128,8 @@ export type ChatResponse = {
     action?: string
   } | null
   tavern_status?: string
+  visitor_state?: VisitorStatePayload | null
+  created_memories?: unknown[]
 }
 
 export type LLMConfigTestResponse = {
@@ -133,7 +176,7 @@ export type GroupChatResponse = {
   strategy?: string
   degraded?: boolean
   error?: string
-  visitor_state?: unknown
+  visitor_state?: VisitorStatePayload | null
   created_memories?: unknown[]
 }
 
@@ -233,7 +276,7 @@ export type TavernVisitor = {
   visit_count: number
   first_visit?: string | null
   last_visit?: string | null
-  relationship?: Record<string, unknown>
+  relationship?: VisitorRelationshipPayload | null
   visitor_name?: string
   message_count?: number
 }
@@ -345,8 +388,12 @@ export function getTavern(tavernId: string, userId = "") {
   return readApiJson<Tavern>(`/api/v1/taverns/${encodeURIComponent(tavernId)}`, { userId })
 }
 
+export function getTavernShare(tavernId: string, userId = "") {
+  return readApiJson<TavernSharePayload>(`/api/v1/taverns/${encodeURIComponent(tavernId)}/share`, { userId })
+}
+
 export function enterTavern(tavernId: string, password = "", userId = DEFAULT_VISITOR_ID) {
-  return readApiJson<{ ok: boolean; first_mes?: string; visitor_state?: unknown }>(
+  return readApiJson<{ ok: boolean; first_mes?: string; visitor_state?: VisitorStatePayload | null }>(
     `/api/v1/taverns/${encodeURIComponent(tavernId)}/enter`,
     jsonInit("POST", { password }, userId),
   )

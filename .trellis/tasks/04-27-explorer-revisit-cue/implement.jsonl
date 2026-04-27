@@ -1,0 +1,8 @@
+{"file": ".trellis/workflow.md", "reason": "Project workflow and conventions"}
+{"file": ".trellis/spec/frontend/index.md", "reason": "Frontend development guide"}
+{"file": ".trellis/spec/frontend/component-guidelines.md", "reason": "回访提示组件渲染与移动端布局"}
+{"file": ".trellis/spec/frontend/directory-structure.md", "reason": "新增 app/lib helper 与 frontend/scripts 测试位置"}
+{"file": ".trellis/spec/frontend/type-safety.md", "reason": "VisitorState API payload 归一化与类型对齐"}
+{"file": ".trellis/spec/guides/code-reuse-thinking-guide.md", "reason": "新增 helper 前确认既有回访/关系展示逻辑"}
+{"file": ".trellis/spec/frontend/state-management.md", "reason": "回访状态由后端响应驱动并在组件局部派生"}
+{"file": ".trellis/spec/guides/cross-layer-thinking-guide.md", "reason": "后端 VisitorState 到前端显示的数据流"}

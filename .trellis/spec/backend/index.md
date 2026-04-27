@@ -32,6 +32,7 @@ Backend work must preserve these principles:
 | [Error Handling](./error-handling.md) | FastAPI errors, degradation, client-facing shape | Current |
 | [Quality Guidelines](./quality-guidelines.md) | Tests, validation, forbidden patterns | Current |
 | [Logging Guidelines](./logging-guidelines.md) | Logging style and sensitive-data rules | Current |
+| [Tavern Share API Contract](./tavern-share-api-contract.md) | Public-safe share endpoint contract, errors, and tests | Current |
 
 ---
 
@@ -44,6 +45,7 @@ Backend work must preserve these principles:
    - `backend/src/fablemap_api/core/gameplay.py`
    - `backend/src/fablemap_api/core/web/service.py`
    - `backend/src/fablemap_api/core/web/router.py`
+   - `backend/src/fablemap_api/domain/tavern_share_policy.py` for public share payload changes
 4. Choose verification before coding:
    - Python syntax: `py -3 -m compileall -q backend/src`
    - Behavior/API: relevant `py -3 -m pytest -q tests/test_*.py --tb=short` or full `py -3 -m pytest -q --tb=short`

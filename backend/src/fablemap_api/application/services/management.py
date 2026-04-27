@@ -67,6 +67,7 @@ from ...domain.tavern_package_policy import (
     safe_tavern_package_tavern,
 )
 from ...domain.tavern_policy import can_view_memory, clean_text
+from ...domain.tavern_share_policy import build_tavern_share_payload
 from ...domain.world_info_policy import (
     test_world_info_entries,
     world_info_depth,
@@ -114,6 +115,11 @@ class TavernManagementApplicationMixin:
 
     def get_tavern(self, tavern_id: str, user_id: str = "") -> dict[str, Any]:
         return self.taverns.get_tavern(tavern_id, user_id)
+
+    def get_tavern_share(self, tavern_id: str, user_id: str = "", base_url: str = "") -> dict[str, Any]:
+        tavern = self._get_tavern_or_404(tavern_id)
+        self._ensure_visible(tavern, user_id)
+        return build_tavern_share_payload(tavern, base_url=base_url)
 
     def update_tavern(self, tavern_id: str, data: dict[str, Any], user_id: str = "") -> dict[str, Any]:
         return self.taverns.update_tavern(tavern_id, data, user_id)

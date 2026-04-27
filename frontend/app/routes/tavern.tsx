@@ -1,12 +1,14 @@
 import type { ClientLoaderFunctionArgs } from "react-router"
-import { CheckCircle2, DoorOpen, MapPinned, MessageSquareText, ScrollText, Send, ShieldCheck, UserCheck, UsersRound, XCircle } from "lucide-react"
-import { useState } from "react"
-import { useLoaderData } from "react-router"
+import { ArrowRight, CheckCircle2, Copy, DoorOpen, MapPinned, MessageSquareText, ScrollText, Send, Share2, ShieldCheck, UserCheck, UsersRound, XCircle } from "lucide-react"
+import { useEffect, useMemo, useState } from "react"
+import { Link, useLoaderData } from "react-router"
 
 import memoryModuleImage from "../assets/homepage-reference/modules/memory-module.png"
 import npcDialogueImage from "../assets/homepage-reference/modules/npc-dialogue.png"
 import { TavernChat } from "../features/tavern-chat"
 import { TavernNpcStage } from "../features/tavern-npc-stage"
+import { buildCreatorConversionLink } from "../lib/creator-conversion.js"
+import { buildTavernShareDisplay, buildTavernSharePayload } from "../lib/tavern-share.js"
 import {
   DEFAULT_OWNER_ID,
   DEFAULT_VISITOR_ID,
@@ -14,12 +16,14 @@ import {
   errorMessage,
   getRoleplayState,
   getTavern,
+  getTavernShare,
   requestRoleplayClaim,
   saveRoleplayConfig,
   type RoleplayClaim,
   type RoleplayState,
   type Tavern,
   type TavernCharacter,
+  type TavernSharePayload,
 } from "../lib/taverns"
 import { ProductShell } from "../shell/product-shell"
 import { Button } from "../ui/button"
@@ -214,6 +218,123 @@ function RoleplayPanel({
   )
 }
 
+function TavernShareCard({ tavern }: { tavern: Tavern }) {
+  const [copyStatus, setCopyStatus] = useState("")
+  const [shareStatus, setShareStatus] = useState("正在同步公开分享信息…")
+  const [serverSharePayload, setServerSharePayload] = useState<TavernSharePayload | null>(null)
+  const fallbackSharePayload = useMemo(
+    () => buildTavernSharePayload(tavern, {
+      origin: typeof window !== "undefined" ? window.location.origin : "",
+    }),
+    [tavern],
+  )
+  const sharePayload = useMemo(
+    () => (serverSharePayload ? buildTavernShareDisplay(serverSharePayload) : fallbackSharePayload),
+    [fallbackSharePayload, serverSharePayload],
+  )
+
+  useEffect(() => {
+    let cancelled = false
+    setShareStatus("正在同步公开分享信息…")
+    setServerSharePayload(null)
+
+    getTavernShare(tavern.id, DEFAULT_VISITOR_ID)
+      .then((payload) => {
+        if (cancelled) return
+        setServerSharePayload(payload)
+        setShareStatus("")
+      })
+      .catch(() => {
+        if (cancelled) return
+        setShareStatus("当前使用本地邀请文案；公开分享接口暂不可用。")
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [tavern.id])
+
+  async function handleCopyShareText() {
+    setCopyStatus("")
+    try {
+      if (typeof navigator === "undefined" || !navigator.clipboard?.writeText) {
+        setCopyStatus("当前浏览器不支持自动复制，请手动选中文案复制。")
+        return
+      }
+      await navigator.clipboard.writeText(sharePayload.copyText)
+      setCopyStatus("已复制邀请文案。")
+    } catch {
+      setCopyStatus("当前浏览器不允许自动复制，请手动选中文案复制。")
+    }
+  }
+
+  return (
+    <Card className="min-w-0 overflow-hidden">
+      <CardHeader>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <CardTitle className="flex items-center gap-2">
+              <Share2 className="h-5 w-5 text-cyan-200" />
+              邀请链接
+            </CardTitle>
+            <CardDescription className="mt-2">
+              复制当前酒馆入口给朋友或社群。文案只使用店主公开填写的信息，不生成或改写酒馆内容。
+            </CardDescription>
+          </div>
+          <Button type="button" variant="secondary" onClick={handleCopyShareText}>
+            <Copy className="h-4 w-4" />
+            复制邀请
+          </Button>
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        <div className="rounded-3xl border border-white/10 bg-white/[0.04] p-4">
+          <p className="text-sm font-bold text-white">{sharePayload.title}</p>
+          <p className="mt-2 text-sm leading-6 text-violet-50/70">{sharePayload.summary}</p>
+          <p className="mt-3 break-all rounded-2xl bg-slate-950/45 px-3 py-2 text-xs text-cyan-100">
+            {sharePayload.url}
+          </p>
+        </div>
+        <textarea
+          readOnly
+          value={sharePayload.copyText}
+          rows={4}
+          className="w-full resize-none rounded-2xl border border-white/12 bg-slate-950/70 px-4 py-3 text-sm leading-6 text-violet-50 outline-none focus:border-cyan-300/60"
+          aria-label="酒馆邀请文案"
+        />
+        {shareStatus ? <p className="rounded-2xl border border-white/10 bg-white/[0.04] p-3 text-sm text-violet-50/64">{shareStatus}</p> : null}
+        {copyStatus ? <p className="rounded-2xl border border-cyan-300/20 bg-cyan-300/10 p-3 text-sm text-cyan-50">{copyStatus}</p> : null}
+      </CardContent>
+    </Card>
+  )
+}
+
+function CreatorConversionCard({ tavern }: { tavern: Tavern }) {
+  const createLink = useMemo(() => buildCreatorConversionLink(tavern), [tavern])
+
+  return (
+    <Card className="min-w-0 overflow-hidden border-cyan-300/18 bg-cyan-300/8">
+      <CardHeader>
+        <CardTitle>也在附近开一间自己的酒馆</CardTitle>
+        <CardDescription className="mt-2">
+          只带入这处真实空间锚点的坐标/地址，不复制原酒馆名称、简介、角色或场景内容。
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <p className="rounded-2xl border border-white/10 bg-slate-950/45 p-3 text-sm leading-6 text-violet-50/72">
+          如果这间酒馆让你有了灵感，可以用同一片现实区域开一间属于自己的赛博酒馆；内容仍由你自己确认。
+        </p>
+        <Button asChild>
+          <Link to={createLink}>
+            开自己的酒馆
+            <ArrowRight className="h-4 w-4" />
+          </Link>
+        </Button>
+      </CardContent>
+    </Card>
+  )
+}
+
 export default function TavernRoute() {
   const { tavernId, tavern, roleplay, error } = useLoaderData<typeof clientLoader>()
   const characters = tavern?.characters || []
@@ -313,6 +434,8 @@ export default function TavernRoute() {
                 onRoleplayChange={setRoleplayState}
               />
             ) : null}
+            <TavernShareCard tavern={tavern} />
+            <CreatorConversionCard tavern={tavern} />
           </div>
 
           <TavernChat key={selectedCharacter?.id || "no-character"} tavern={tavern} character={selectedCharacter} />

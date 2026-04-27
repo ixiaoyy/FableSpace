@@ -126,6 +126,18 @@ export function createTavernService(getBaseUrl) {
     },
 
     /**
+     * 获取酒馆分享信息
+     * @param {string} tavernId
+     * @returns {Promise<object>} 分享信息，包含 title, description, share_url 等
+     */
+    async getTavernShare(tavernId) {
+      const response = await fetch(`${getBaseUrl()}/api/v1/taverns/${encodeURIComponent(tavernId)}/share`, {
+        cache: 'no-store',
+      })
+      return readJson(response)
+    },
+
+    /**
      * 更新酒馆
      * @param {string} tavernId
      * @param {object} data

@@ -7,6 +7,7 @@ const navItems = [
   { to: "/", label: "首页" },
   { to: "/discover", label: "发现" },
   { to: "/create", label: "开店" },
+  { to: "/owner", label: "店主" },
 ]
 
 export function ProductShell({

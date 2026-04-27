@@ -1,7 +1,8 @@
-import { Send } from "lucide-react"
-import { useState, type FormEvent } from "react"
+import { History, Send } from "lucide-react"
+import { useMemo, useState, type FormEvent } from "react"
 
-import { DEFAULT_VISITOR_ID, enterTavern, errorMessage, sendTavernChat, type ChatMessage, type Tavern, type TavernCharacter } from "../../lib/taverns"
+import { buildRevisitCue } from "../../lib/revisit-summary.js"
+import { DEFAULT_VISITOR_ID, enterTavern, errorMessage, sendTavernChat, type ChatMessage, type Tavern, type TavernCharacter, type VisitorStatePayload } from "../../lib/taverns"
 import { Button } from "../../ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../ui/card"
 
@@ -10,14 +11,51 @@ interface TavernChatProps {
   character?: TavernCharacter
 }
 
+function RevisitCuePanel({ cue }: { cue: ReturnType<typeof buildRevisitCue> }) {
+  return (
+    <div
+      aria-live="polite"
+      className={
+        cue.available
+          ? "rounded-3xl border border-cyan-300/25 bg-cyan-300/10 p-4 text-sm text-cyan-50"
+          : "rounded-3xl border border-white/10 bg-white/[0.04] p-4 text-sm text-violet-100/70"
+      }
+    >
+      <div className="flex items-start gap-3">
+        <span className="mt-0.5 inline-flex h-9 w-9 items-center justify-center rounded-2xl bg-slate-950/50 text-cyan-100">
+          <History className="h-4 w-4" />
+        </span>
+        <div className="min-w-0 space-y-1">
+          <p className="text-xs uppercase tracking-[0.2em] text-cyan-100/60">回访提示</p>
+          <h3 className="text-base font-semibold text-white">{cue.title}</h3>
+          <p className="leading-6 text-violet-50/75">{cue.detail}</p>
+        </div>
+      </div>
+      <div className="mt-3 flex flex-wrap gap-2">
+        {cue.chips.map((chip) => (
+          <span key={chip} className="rounded-full border border-white/10 bg-slate-950/35 px-3 py-1 text-xs text-violet-50/75">
+            {chip}
+          </span>
+        ))}
+      </div>
+      <p className="mt-3 rounded-2xl bg-slate-950/35 px-3 py-2 text-xs text-violet-50/70">{cue.promptHint}</p>
+    </div>
+  )
+}
+
 export function TavernChat({ tavern, character }: TavernChatProps) {
   const [visitorId, setVisitorId] = useState(DEFAULT_VISITOR_ID)
   const [visitorName, setVisitorName] = useState("测试旅人")
   const [message, setMessage] = useState("")
   const [lines, setLines] = useState<ChatMessage[]>([])
+  const [visitorState, setVisitorState] = useState<VisitorStatePayload | null>(null)
   const [busy, setBusy] = useState(false)
   const [notice, setNotice] = useState("")
   const [error, setError] = useState("")
+  const revisitCue = useMemo(
+    () => buildRevisitCue(visitorState, { tavernName: tavern.name, characterName: character?.name }),
+    [character?.name, tavern.name, visitorState],
+  )
 
   async function handleEnter() {
     setBusy(true)
@@ -25,6 +63,7 @@ export function TavernChat({ tavern, character }: TavernChatProps) {
     setNotice("")
     try {
       const result = await enterTavern(tavern.id, "", visitorId)
+      setVisitorState(result.visitor_state ?? null)
       setNotice(result.first_mes || "已进入酒馆。")
     } catch (err) {
       setError(errorMessage(err))
@@ -51,6 +90,9 @@ export function TavernChat({ tavern, character }: TavernChatProps) {
         message: userLine.content,
       })
       setLines((current) => [...current, { role: "assistant", content: result.response, character_id: character.id }])
+      if (result.visitor_state !== undefined) {
+        setVisitorState(result.visitor_state ?? null)
+      }
       if (result.degradation?.message) {
         setNotice(result.degradation.message)
       }
@@ -75,7 +117,10 @@ export function TavernChat({ tavern, character }: TavernChatProps) {
             <span className="text-violet-100/65">访客 ID</span>
             <input
               value={visitorId}
-              onChange={(event) => setVisitorId(event.target.value)}
+              onChange={(event) => {
+                setVisitorId(event.target.value)
+                setVisitorState(null)
+              }}
               className="w-full rounded-2xl border border-white/12 bg-white/8 px-4 py-3 text-white outline-none focus:border-cyan-300/60"
             />
           </label>
@@ -91,6 +136,7 @@ export function TavernChat({ tavern, character }: TavernChatProps) {
         <Button type="button" variant="secondary" disabled={busy} onClick={handleEnter}>
           进入酒馆
         </Button>
+        <RevisitCuePanel cue={revisitCue} />
         <div className="min-h-52 space-y-3 rounded-3xl border border-white/10 bg-slate-950/70 p-4">
           {lines.length ? (
             lines.map((line, index) => (

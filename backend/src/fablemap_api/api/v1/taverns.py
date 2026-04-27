@@ -42,6 +42,15 @@ def get_tavern(request: Request, tavern_id: str) -> dict[str, Any]:
     return taverns_service(request).get_tavern(tavern_id, get_user_id(request))
 
 
+@router.get("/{tavern_id}/share")
+def get_tavern_share(request: Request, tavern_id: str) -> dict[str, Any]:
+    return taverns_service(request).get_tavern_share(
+        tavern_id,
+        get_user_id(request),
+        str(request.base_url).rstrip("/"),
+    )
+
+
 @router.put("/{tavern_id}")
 def update_tavern(request: Request, tavern_id: str, data: TavernUpdateRequest) -> dict[str, Any]:
     return taverns_service(request).update_tavern(tavern_id, data.to_payload(), get_user_id(request))
