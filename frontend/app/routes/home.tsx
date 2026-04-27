@@ -67,9 +67,9 @@ const metrics: Metric[] = [
 ]
 
 const taverns: TavernPreview[] = [
-  { image: tavernNightImage, name: "新手旅人服务站", location: "FableMap 公益锚点 · Shibuya Crossing", distance: "320m", tags: ["公益", "新手向导"], id: "pw_lantern_helpdesk" },
-  { image: tavernNeonImage, name: "第三货架后面", location: "FableMap 公益锚点 · 24h Convenience Corner", distance: "1.2km", tags: ["公益", "外星便利店"], id: "pw_third_shelf_observatory" },
-  { image: tavernStreetImage, name: "社区修补铺", location: "FableMap 公益锚点 · Community Repair Corner", distance: "2.1km", tags: ["公益", "社区互助"], id: "pw_community_repair" },
+  { image: tavernNightImage, name: "夜莺酒馆", location: "成都 · 宽窄巷子", distance: "320m", tags: ["免费开放", "剧情丰富"], id: "pw_lantern_helpdesk" },
+  { image: tavernNeonImage, name: "雾红驿站", location: "重庆 · 九街", distance: "1.2km", tags: ["赛博风格", "夜生活"], id: "pw_third_shelf_observatory" },
+  { image: tavernStreetImage, name: "黑猫公社", location: "广州 · 永庆坊", distance: "2.1km", tags: ["社区温度", "NPC 多"], id: "pw_community_repair" },
 ]
 
 const features: Feature[] = [

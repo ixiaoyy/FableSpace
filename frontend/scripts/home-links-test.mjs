@@ -19,6 +19,8 @@ const featuredIds = [...homeSource.matchAll(/id:\s*"([^"]+)"/g)].map((match) => 
 
 assert.ok(featuredIds.length > 0, "home page should define featured tavern links")
 assert.ok(!featuredIds.some((id) => /^tavern-\d+$/.test(id)), "home page must not link to placeholder tavern IDs")
+assert.ok(!homeSource.includes("公益锚点"), "home page featured copy should not expose internal public-welfare anchor wording")
+assert.ok(!homeSource.includes('tags: ["公益"'), "home page featured tags should describe free/open flavor, not brand the tavern as 公益")
 assert.deepEqual(
   featuredIds.filter((id) => !knownSeededTavernIds.has(id)),
   [],
