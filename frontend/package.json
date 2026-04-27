@@ -8,7 +8,7 @@
     "build": "react-router build",
     "start": "react-router-serve ./build/server/index.js",
     "typecheck": "react-router typegen && tsc --noEmit",
-    "test": "node ./scripts/service-contract-test.mjs && node ./scripts/play-modes-test.mjs && node ./scripts/mini-games-test.mjs && node ./scripts/gameplay-test.mjs && node ./scripts/personality-templates-test.mjs && node ./scripts/tavern-create-readiness-test.mjs && node ./scripts/owner-summary-test.mjs && node ./scripts/revisit-summary-test.mjs && node ./scripts/tavern-share-test.mjs && node ./scripts/creator-conversion-test.mjs"
+    "test": "node ./scripts/service-contract-test.mjs && node ./scripts/play-modes-test.mjs && node ./scripts/mini-games-test.mjs && node ./scripts/gameplay-test.mjs && node ./scripts/personality-templates-test.mjs && node ./scripts/tavern-create-readiness-test.mjs && node ./scripts/home-links-test.mjs && node ./scripts/owner-summary-test.mjs && node ./scripts/revisit-summary-test.mjs && node ./scripts/tavern-share-test.mjs && node ./scripts/creator-conversion-test.mjs"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.15",
