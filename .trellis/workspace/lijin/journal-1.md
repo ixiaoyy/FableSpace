@@ -133,3 +133,63 @@ Verification:
 ### Next Steps
 
 - None - task complete
+
+
+## Session 4: PC Discover polish and Catbell NPC
+
+**Date**: 2026-04-29
+**Task**: PC Discover polish and Catbell NPC
+**Branch**: `main`
+
+### Summary
+
+(Add summary)
+
+### Main Changes
+
+| Area | Summary |
+| --- | --- |
+| Homepage task | Archived completed homepage PC visual polish task. |
+| Discover PC | Polished desktop default radar view: wider radar board, sticky controls, telemetry strip, two-column signal list, preserved radar/card A+B switching. |
+| Feature backlog | Added Trellis brainstorm backlog tasks for neighborhood rumors, AI-assisted tavern drafts, and guestbook/time capsule. |
+| Catbell NPC | Added 银票 as second 静安猫铃避难所 default NPC with direct project-local expression PNGs, world-info context, and seed tests. |
+
+**Verification**
+- `node .\\frontend\\scripts\\home-visual-density-test.mjs`
+- `node .\\frontend\\scripts\\discover-view-mode-test.mjs`
+- `node .\\frontend\\scripts\\discover-pc-polish-test.mjs`
+- `npm --prefix .\\frontend run typecheck`
+- `npm --prefix .\\frontend test`
+- `npm --prefix .\\frontend run build`
+- `py -3 -m compileall -q backend/src`
+- `py -3 -m pytest -q tests/test_default_public_welfare_taverns.py -k jingan --tb=short`
+- `py -3 -m pytest -q tests/test_default_public_welfare_taverns.py --tb=short`
+
+**Artifacts**
+- `artifacts/dev-server/discover-radar-desktop.png`
+- `artifacts/dev-server/discover-cards-desktop.png`
+- `frontend/public/assets/npcs/char_pw_yinpiao-*.png`
+
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `0a38f66` | (see git log) |
+| `95785d8` | (see git log) |
+| `bc59194` | (see git log) |
+| `8c9ffba` | (see git log) |
+| `c00708e` | (see git log) |
+| `097ea75` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
