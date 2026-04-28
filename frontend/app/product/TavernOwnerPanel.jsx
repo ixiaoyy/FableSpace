@@ -6,6 +6,7 @@ import {
   exportChatHistory,
   exportTavernPackage,
   getTavernChatHistory,
+  getTavernMetrics,
   getVoiceConfig,
   importTavernPackage,
   listChatSessions,
@@ -209,6 +210,8 @@ export default function TavernOwnerPanel({
   const packageInputRef = useRef(null)
   const [packageBusy, setPackageBusy] = useState('')
   const [packageStatus, setPackageStatus] = useState('')
+  const [tavernMetrics, setTavernMetrics] = useState({}) // { [tavernId]: metrics }
+  const [metricsLoading, setMetricsLoading] = useState(false)
 
   const ownerStats = useMemo(() => {
     return myTaverns.reduce(
@@ -343,6 +346,13 @@ export default function TavernOwnerPanel({
   }, [ownerId, showCreate, editingTavern, myTaverns])
 
   useEffect(() => {
+    if (!ownerId || showCreate || editingTavern) {
+      return
+    }
+    fetchTavernMetrics()
+  }, [ownerId, showCreate, editingTavern, myTaverns])
+
+  useEffect(() => {
     if (!myTaverns.length) {
       if (chatSearchTavernId) setChatSearchTavernId('')
       return
@@ -387,6 +397,31 @@ export default function TavernOwnerPanel({
       setError(err.message)
     } finally {
       setLoading(false)
+    }
+  }
+
+  async function fetchTavernMetrics() {
+    if (!myTaverns.length) return
+    setMetricsLoading(true)
+    try {
+      const metricsPromises = myTaverns.map(async (tavern) => {
+        try {
+          const metrics = await getTavernMetrics(tavern.id)
+          return { tavernId: tavern.id, metrics }
+        } catch (err) {
+          return { tavernId: tavern.id, metrics: null }
+        }
+      })
+      const results = await Promise.all(metricsPromises)
+      const metricsMap = {}
+      results.forEach(({ tavernId, metrics }) => {
+        metricsMap[tavernId] = metrics
+      })
+      setTavernMetrics(metricsMap)
+    } catch (err) {
+      console.error('Failed to fetch tavern metrics:', err)
+    } finally {
+      setMetricsLoading(false)
     }
   }
 
@@ -1320,6 +1355,7 @@ function OwnerTavernManagementSection({
             <TavernCard
               key={tavern.id}
               tavern={tavern}
+              metrics={tavernMetrics[tavern.id]}
               onEdit={() => onEdit(tavern)}
               onToggleStatus={() => onToggleStatus(tavern)}
               onManageLlm={() => onManageLlm(tavern)}
@@ -1755,6 +1791,7 @@ function OwnerVisitorStatePanel({ visitors, stats, loading, error, onRefresh, on
 
 function TavernCard({
   tavern,
+  metrics,
   onEdit,
   onToggleStatus,
   onManageLlm,
@@ -1770,7 +1807,10 @@ function TavernCard({
   onDelete,
 }) {
   const isOpen = tavern.status === 'open'
-  const tokenUsed = getTavernTokenUsage(tavern)
+  const tokenUsed = metrics?.total_tokens || getTavernTokenUsage(tavern)
+  const totalVisits = metrics?.total_visits || 0
+  const totalMessages = metrics?.total_messages || 0
+  const npcRankings = metrics?.top_characters || []
   const statusColor = getTavernStatusColor(tavern?.status)
   const charCount = tavern?.characters?.length || 0
   const worldInfoCount = tavern?.world_info?.length || 0
@@ -1808,6 +1848,14 @@ function TavernCard({
           <strong>{tokenUsed > 0 ? formatTokens(tokenUsed) : '—'}</strong>
         </div>
         <div className="owner-metric">
+          <span className="mini-label">访问</span>
+          <strong>{totalVisits > 0 ? `${totalVisits} 次` : '—'}</strong>
+        </div>
+        <div className="owner-metric">
+          <span className="mini-label">消息</span>
+          <strong>{totalMessages > 0 ? `${totalMessages} 条` : '—'}</strong>
+        </div>
+        <div className="owner-metric">
           <span className="mini-label">访问权限</span>
           <strong>{getTavernAccessIcon(tavern.access)} {getTavernAccessLabel(tavern.access)}</strong>
         </div>
@@ -1820,6 +1868,21 @@ function TavernCard({
           <strong>{formatCoordinate(tavern.lat)}, {formatCoordinate(tavern.lon)}</strong>
         </div>
       </div>
+
+      {npcRankings.length > 0 && (
+        <div className="tavern-card__npc-rankings">
+          <span className="mini-label">NPC 互动排行</span>
+          <div className="npc-ranking-list">
+            {npcRankings.slice(0, 5).map((npc, idx) => (
+              <div key={npc.character_id} className="npc-ranking-item">
+                <span className="ranking-number">{idx + 1}</span>
+                <span className="npc-name">{npc.character_name}</span>
+                <span className="npc-messages">{npc.message_count} 条消息</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div className="tavern-card__actions">
         <button className="secondary" onClick={onManageLlm}>AI 配置</button>

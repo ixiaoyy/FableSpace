@@ -11,11 +11,11 @@
   "creator": "lijin",
   "assignee": "lijin",
   "createdAt": "2026-04-24",
-  "completedAt": "2026-04-24",
+  "completedAt": "2026-04-28",
   "branch": null,
   "base_branch": "main",
   "worktree_path": null,
-  "current_phase": 4,
+  "current_phase": 5,
   "next_action": [
     {
       "phase": 1,
@@ -48,20 +48,17 @@
   "children": [],
   "parent": null,
   "relatedFiles": [
-    "docs/WHAT_NOT_TO_BUILD.md",
-    "docs/PRODUCT_BRIEF.md",
-    "docs/FABLEMAP_TAVERN_PLATFORM.md",
-    "docs/WORLD_SCHEMA.md",
-    ".trellis/tasks/04-24-tv-drama-tavern/brainstorm.md",
-    ".trellis/tasks/04-24-tv-drama-tavern/prd.md"
+    "frontend/app/product/personalityTemplates.js",
+    "frontend/scripts/personality-templates-test.mjs",
+    "docs/WHAT_NOT_TO_BUILD.md"
   ],
-  "notes": "2026-04-24 完成产品边界评审。热门电视剧人物酒馆有传播力，但如果由平台预置或生成具体剧中人物，会触碰平台不生成 NPC/酒馆内容的边界，并带来影视 IP 风险。本轮不进入实现，不新增 schema/API/前端模板；仅保留为未来方向。未来如重启，应改为店主自带授权内容导入，或原创泛风格模板，而不是平台提供具体热门剧角色。",
+  "notes": "2026-04-24 头脑风暴：用户提出将甄嬛传等热门电视剧人物放入酒馆吸引用户。核心洞察：IP 流量、角色互动感、低创作门槛、二次创作空间。关键约束：版权问题，禁止直接使用版权角色名称/设定。推荐方案：方向 A（通用宫廷 NPC 风格模板）+ 长期方向 B（版权授权合作）。2026-04-25：用户要求使用 Trellis 认领任务开发，按方向 A 推进；已补齐任务 context，并通过 context validate、frontend test、build、typecheck。",
   "meta": {
-    "type": "product_boundary_review",
+    "idea_source": "lijin",
+    "idea_date": "2026-04-24",
+    "type": "brainstorm",
     "not_immediate": true,
-    "future_direction": true,
-    "decision": "do_not_implement_platform_tv_ip_characters",
-    "completed_by": "codex",
-    "completed_at": "2026-04-24"
+    "key_constraint": "copyright",
+    "recommended_first_step": "add_ancient_court_templates"
   }
 }

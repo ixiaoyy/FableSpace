@@ -1,0 +1,3 @@
+{"file": ".trellis/spec/frontend/image-asset-guidelines.md", "reason": "Cleanup must not remove deliverable image assets still referenced by frontend/backend seeds."}
+{"file": ".trellis/spec/frontend/quality-guidelines.md", "reason": "Check cleanup against frontend quality expectations."}
+{"file": ".trellis/spec/backend/quality-guidelines.md", "reason": "Check cleanup against backend quality expectations."}

@@ -1,0 +1,5 @@
+{"phase": 3, "action": "implement", "step": 1, "description": "Enhance backend get_tavern_metrics with time-series token usage and peak hours", "file": "backend/src/fablemap_api/core/tavern.py", "status": "pending"}
+{"phase": 3, "action": "implement", "step": 2, "description": "Update frontend TypeScript types for enhanced metrics", "file": "frontend/app/lib/taverns.ts", "status": "pending"}
+{"phase": 3, "action": "implement", "step": 3, "description": "Create TokenUsageChart component", "file": "frontend/app/components/TokenUsageChart.tsx", "status": "pending"}
+{"phase": 3, "action": "implement", "step": 4, "description": "Create PeakHoursChart component", "file": "frontend/app/components/PeakHoursChart.tsx", "status": "pending"}
+{"phase": 3, "action": "implement", "step": 5, "description": "Integrate metrics API into owner.tsx dashboard", "file": "frontend/app/routes/owner.tsx", "status": "pending"}

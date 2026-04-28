@@ -78,6 +78,7 @@ class TavernModel(Base):
     memory_atoms = relationship("MemoryAtomModel", back_populates="tavern", cascade="all, delete-orphan")
     gameplay_sessions = relationship("GameplaySessionModel", back_populates="tavern", cascade="all, delete-orphan")
     llm_config = relationship("LLMConfigModel", back_populates="tavern", uselist=False, cascade="all, delete-orphan")
+    messages = relationship("TavernMessageModel", back_populates="tavern", cascade="all, delete-orphan")
 
     __table_args__ = (
         Index("idx_owner_id", "owner_id"),
@@ -316,4 +317,27 @@ class NpcPublicBondQueueModel(Base):
     __table_args__ = (
         Index("idx_npbq_character_status_pos", "character_id", "status", "position"),
         Index("idx_npbq_visitor", "visitor_id"),
+    )
+
+
+class TavernMessageModel(Base):
+    """酒馆留言模型"""
+
+    __tablename__ = "tavern_messages"
+
+    id = Column(String(64), primary_key=True)
+    tavern_id = Column(String(64), ForeignKey("taverns.id", ondelete="CASCADE"), nullable=False)
+    visitor_id = Column(String(64), nullable=False)
+    visitor_nickname = Column(String(64), default="匿名")
+    content = Column(Text, nullable=False)
+    created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
+    is_pinned = Column(Boolean, default=False)
+    parent_id = Column(String(64), nullable=True)
+
+    # 关系
+    tavern = relationship("TavernModel")
+
+    __table_args__ = (
+        Index("idx_tm_tavern_created", "tavern_id", "created_at"),
+        Index("idx_tm_parent", "parent_id"),
     )

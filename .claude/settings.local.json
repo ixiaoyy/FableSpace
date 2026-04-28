@@ -25,7 +25,24 @@
       "Bash(taskkill /F /PID 38812)",
       "Bash(\"C:\\\\Users\\\\phpxi\\\\AppData\\\\Local\\\\Programs\\\\Python\\\\Python312\\\\python.exe\" -m fablemap_api api --host 0.0.0.0 --port 8000)",
       "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:8000/health)",
-      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:5173)"
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:5173)",
+      "Bash(python -c \"import sys,json; data=[json.loads\\(l\\) for l in sys.stdin if l.strip\\(\\)]; [print\\(f\\\\\"{d['id']}: {d['title']} [{d['status']}]\\\\\"\\) for d in data]\")",
+      "Bash(mkdir -p \".trellis/tasks/04-28-llm-client-extension\")",
+      "Bash(mkdir -p \".trellis/tasks/04-28-tavern-interior-ui\")",
+      "Bash(mkdir -p \".trellis/tasks/04-28-character-card-import\")",
+      "Bash(mkdir -p \".trellis/tasks/04-28-npc-expression-ui\")",
+      "Bash(mkdir -p \".trellis/tasks/04-28-test-coverage\")",
+      "Bash(python3 ./.trellis/scripts/get_context.py)",
+      "Bash(py -3 -m pytest -q backend/tests/test_v1_runtime_features.py -k metrics --tb=short)",
+      "Bash(py -3 -m pytest -q tests/test_page.py -k tavern --tb=short)",
+      "Bash(py -3 -m pytest -q --tb=short)",
+      "Bash(python -m py_compile src/fablemap_api/core/notifications.py src/fablemap_api/api/v1/notifications.py src/fablemap_api/application/services/notifications.py)",
+      "Bash(python -m py_compile src/fablemap_api/core/notifications.py src/fablemap_api/api/v1/notifications.py src/fablemap_api/application/services/__init__.py)"
+    ],
+    "additionalDirectories": [
+      "d:\\work\\ai-\\.trellis\\tasks\\04-28-owner-dashboard",
+      "d:\\work\\ai-\\.trellis\\tasks\\04-28-guest-message-board",
+      "d:\\work\\ai-"
     ]
   }
 }

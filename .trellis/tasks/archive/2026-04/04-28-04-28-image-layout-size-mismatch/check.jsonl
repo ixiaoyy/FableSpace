@@ -1,0 +1,5 @@
+{"file": ".claude/commands/trellis/finish-work.md", "reason": "Finish work checklist"}
+{"file": ".claude/commands/trellis/check.md", "reason": "Code quality check spec"}
+{"file": "docs/IMAGE_ASSETS_SPEC.md", "reason": "Check dimensions/path rules"}
+{"file": ".trellis/spec/frontend/image-asset-guidelines.md", "reason": "Check image deliverables and build verification"}
+{"file": ".trellis/spec/frontend/quality-guidelines.md", "reason": "Check frontend build requirement"}

@@ -1,0 +1,77 @@
+{
+  "id": "tavern-share-viral",
+  "name": "tavern-share-viral",
+  "title": "酒馆分享与病毒传播",
+  "description": "实现酒馆分享功能：分享卡片、公开页面、SEO 优化，让酒馆可以通过社交链接传播。",
+  "status": "completed",
+  "dev_type": "fullstack",
+  "scope": "tavern-share-viral",
+  "package": null,
+  "priority": "P0",
+  "creator": "lijin",
+  "assignee": "lijin",
+  "createdAt": "2026-04-27",
+  "completedAt": "2026-04-28",
+  "branch": null,
+  "base_branch": "main",
+  "worktree_path": null,
+  "current_phase": 5,
+  "next_action": [
+    {
+      "phase": 1,
+      "action": "brainstorm"
+    },
+    {
+      "phase": 2,
+      "action": "research"
+    },
+    {
+      "phase": 3,
+      "action": "implement"
+    },
+    {
+      "phase": 4,
+      "action": "check"
+    },
+    {
+      "phase": 5,
+      "action": "update-spec"
+    },
+    {
+      "phase": 6,
+      "action": "record-session"
+    }
+  ],
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [],
+  "parent": null,
+  "relatedFiles": [
+    ".trellis/tasks/04-27-tavern-share-viral/prd.md",
+    ".trellis/spec/backend/tavern-share-api-contract.md",
+    "docs/ARCHITECTURE.md",
+    "backend/src/fablemap_api/domain/tavern_share_policy.py",
+    "backend/src/fablemap_api/application/services/management.py",
+    "backend/src/fablemap_api/api/v1/taverns.py",
+    "backend/src/fablemap_api/core/web/service.py",
+    "backend/src/fablemap_api/core/web/router.py",
+    "backend/tests/test_v1_tavern_share.py",
+    "frontend/app/lib/taverns.ts",
+    "frontend/app/lib/tavern-share.js",
+    "frontend/app/routes/tavern.tsx",
+    "frontend/scripts/tavern-share-test.mjs"
+  ],
+  "notes": "完整路线已实现：native v1 share API、legacy share 权限复用、public-safe payload、前端详情页优先读取后端 payload/fallback、本轮验证通过；未提交 commit。",
+  "meta": {
+    "verification": [
+      "py -3 -m pytest -q backend/tests/test_v1_tavern_share.py --tb=short => 5 passed",
+      "py -3 -m compileall -q backend/src => pass",
+      "NO_PROXY=127.0.0.1,localhost py -3 -m pytest -q --tb=short => 367 passed, 6 warnings",
+      "npm --prefix .\\\\frontend test => pass",
+      "npm --prefix .\\\\frontend run typecheck => pass",
+      "npm --prefix .\\\\frontend run build => pass"
+    ],
+    "initial_full_pytest_note": "Without NO_PROXY, tests/test_page.py hit local 127.0.0.1 through HTTP_PROXY=127.0.0.1:7890 and returned 502; rerun with NO_PROXY passed."
+  }
+}

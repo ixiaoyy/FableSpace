@@ -128,6 +128,20 @@ export function createTavernService(getBaseUrl) {
     },
 
     /**
+     * 获取酒馆统计数据
+     * @param {string} tavernId
+     * @param {string} userId
+     * @returns {Promise<object>} 统计数据，包含 total_visits, total_messages, total_tokens
+     */
+    async getTavernMetrics(tavernId, userId = '') {
+      const response = await fetch(`${getBaseUrl()}/api/v1/taverns/${encodeURIComponent(tavernId)}/metrics`, {
+        cache: 'no-store',
+        headers: buildHeaders(userId),
+      })
+      return readJson(response)
+    },
+
+    /**
      * 获取酒馆分享信息
      * @param {string} tavernId
      * @returns {Promise<object>} 分享信息，包含 title, description, share_url 等

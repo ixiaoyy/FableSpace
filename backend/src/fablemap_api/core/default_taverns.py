@@ -22,6 +22,20 @@ DEFAULT_PUBLIC_WELFARE_NPC_NEUTRAL_ASSETS = {
     "char_pw_zhijian": "/assets/npcs/char_pw_zhijian-neutral.png",
 }
 
+DEFAULT_PUBLIC_WELFARE_NPC_EXPRESSION_ASSET_SUFFIXES = (
+    ("happy", "joy", "joy"),
+    ("angry", "anger", "anger"),
+    ("shy", "embarrassment", "embarrassment"),
+    ("curious", "curiosity", "curiosity"),
+)
+
+
+def _expression_asset_url(neutral_asset: str, expression_suffix: str) -> str:
+    neutral_suffix = "-neutral.png"
+    if not neutral_asset.endswith(neutral_suffix):
+        return ""
+    return f"{neutral_asset[: -len(neutral_suffix)]}-{expression_suffix}.png"
+
 
 def _default_character_assets(
     *,
@@ -34,6 +48,19 @@ def _default_character_assets(
 
     if resolved_avatar and not resolved_sprites.get("neutral"):
         resolved_sprites["neutral"] = resolved_avatar
+
+    neutral_asset = DEFAULT_PUBLIC_WELFARE_NPC_NEUTRAL_ASSETS.get(char_id, "")
+    if neutral_asset:
+        for semantic_key, engine_key, suffix in DEFAULT_PUBLIC_WELFARE_NPC_EXPRESSION_ASSET_SUFFIXES:
+            expression_asset = _expression_asset_url(neutral_asset, suffix)
+            expression_value = (
+                resolved_sprites.get(engine_key)
+                or resolved_sprites.get(semantic_key)
+                or expression_asset
+            )
+            if expression_value:
+                resolved_sprites.setdefault(engine_key, expression_value)
+                resolved_sprites.setdefault(semantic_key, expression_value)
 
     return resolved_avatar, resolved_sprites
 

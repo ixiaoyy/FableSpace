@@ -1,0 +1,31 @@
+{
+  "id": "04-28-character-card-import",
+  "name": "04-28-character-card-import",
+  "title": "SillyTavern Character Card Import",
+  "description": "Implement SillyTavern character card import supporting JSON and PNG formats.",
+  "status": "completed",
+  "dev_type": "fullstack",
+  "scope": "character-import",
+  "package": null,
+  "priority": "P2",
+  "creator": "lijin",
+  "assignee": "lijin",
+  "createdAt": "2026-04-28",
+  "completedAt": "2026-04-28",
+  "branch": null,
+  "base_branch": "main",
+  "worktree_path": null,
+  "current_phase": 6,
+  "next_action": [],
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [],
+  "parent": null,
+  "relatedFiles": [
+    "frontend/app/product/CharacterEditor.jsx",
+    "backend/src/fablemap_api/core/char_card_parser.py"
+  ],
+  "notes": "Implemented: SillyTavern V2/V3 JSON, PNG tEXt chunk, CharX, Risu, TavernAI older format. PNG embedding for metadata. 22784 bytes comprehensive parser.",
+  "meta": {}
+}

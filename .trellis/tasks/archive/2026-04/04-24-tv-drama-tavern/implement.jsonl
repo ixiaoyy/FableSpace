@@ -1,1 +1,8 @@
-{"file": ".trellis/workflow.md", "reason": "Project workflow and conventions"}
+{"file": ".trellis/workflow.md", "reason": "Trellis task workflow and session rules"}
+{"file": ".trellis/spec/frontend/directory-structure.md", "reason": "Frontend file placement and product module boundaries"}
+{"file": ".trellis/spec/frontend/type-safety.md", "reason": "Frontend JavaScript template data and runtime contract conventions"}
+{"file": ".trellis/spec/frontend/quality-guidelines.md", "reason": "Required frontend verification for template/script-test changes"}
+{"file": ".trellis/spec/guides/code-reuse-thinking-guide.md", "reason": "Template constants should reuse existing filter/apply patterns"}
+{"file": "docs/WHAT_NOT_TO_BUILD.md", "reason": "Preserve owner-authored content and avoid platform-generated copyrighted IP content"}
+{"file": "frontend/app/product/personalityTemplates.js", "reason": "NPC personality template source to extend"}
+{"file": "frontend/scripts/personality-templates-test.mjs", "reason": "Script regression tests for template categories and filtering"}

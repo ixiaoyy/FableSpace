@@ -1,0 +1,62 @@
+{
+  "id": "tavern-invite-link",
+  "name": "tavern-invite-link",
+  "title": "酒馆邀请链接",
+  "description": "B-phase tavern invite link MVP: frontend-only share payload and copy card using public Tavern data.",
+  "status": "completed",
+  "dev_type": "frontend",
+  "scope": "tavern-invite-link",
+  "package": null,
+  "priority": "P1",
+  "creator": "lijin",
+  "assignee": "lijin",
+  "createdAt": "2026-04-27",
+  "completedAt": "2026-04-28",
+  "branch": null,
+  "base_branch": "main",
+  "worktree_path": null,
+  "current_phase": 4,
+  "next_action": [
+    {
+      "phase": 1,
+      "action": "brainstorm"
+    },
+    {
+      "phase": 2,
+      "action": "research"
+    },
+    {
+      "phase": 3,
+      "action": "implement"
+    },
+    {
+      "phase": 4,
+      "action": "check"
+    },
+    {
+      "phase": 5,
+      "action": "update-spec"
+    },
+    {
+      "phase": 6,
+      "action": "record-session"
+    }
+  ],
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [],
+  "parent": null,
+  "relatedFiles": [
+    "frontend/app/lib/tavern-share.js",
+    "frontend/scripts/tavern-share-test.mjs",
+    "frontend/app/routes/tavern.tsx",
+    "frontend/package.json",
+    ".trellis/tasks/04-27-tavern-invite-link/prd.md",
+    ".trellis/tasks/04-27-tavern-invite-link/implement.jsonl",
+    ".trellis/tasks/04-27-tavern-invite-link/check.jsonl",
+    ".trellis/tasks/04-27-tavern-invite-link/debug.jsonl"
+  ],
+  "notes": "2026-04-27: Implemented B-phase frontend-only tavern invite link. Added deterministic share payload helper and script test; added tavern detail invite/copy card. Did not use or modify 04-27-tavern-share-viral task or backend share API. Verified red test first, node tavern-share-test, npm frontend test, typecheck, build, git diff --check, and Trellis context validation.",
+  "meta": {}
+}

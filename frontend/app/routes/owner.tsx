@@ -10,9 +10,12 @@ import {
   Store,
   UserRoundCheck,
   UsersRound,
+  Zap,
 } from "lucide-react"
 import { Link, useLoaderData } from "react-router"
 
+import { PeakHoursChart } from "../components/PeakHoursChart"
+import { TokenUsageChart } from "../components/TokenUsageChart"
 import {
   buildOwnerOperatingSummary,
   formatOwnerSummaryTime,
@@ -20,22 +23,30 @@ import {
 import {
   DEFAULT_OWNER_ID,
   errorMessage,
+  getTavernMetrics,
   listGlobalChatSessions,
   listTavernVisitors,
   listTaverns,
   type ChatSession,
   type Tavern,
+  type TavernMetricsResponse,
   type TavernVisitor,
 } from "../lib/taverns"
 import { ProductShell } from "../shell/product-shell"
 import { Button } from "../ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card"
 
+type TavernMetrics = TavernMetricsResponse & {
+  tavern_id: string
+  tavern_name?: string
+}
+
 type OwnerLoaderData = {
   ownerId: string
   taverns: Tavern[]
   visitors: TavernVisitor[]
   sessions: ChatSession[]
+  tavernMetrics: Record<string, TavernMetrics>
   errors: string[]
 }
 
@@ -87,11 +98,29 @@ export async function clientLoader({ request }: ClientLoaderFunctionArgs): Promi
     }),
   )
 
+  // Fetch metrics for each tavern
+  const tavernMetricsMap: Record<string, TavernMetrics> = {}
+  await Promise.all(
+    taverns.map(async (tavern) => {
+      try {
+        const metrics = await getTavernMetrics(tavern.id, ownerId)
+        tavernMetricsMap[tavern.id] = {
+          ...metrics,
+          tavern_name: tavern.name,
+        }
+      } catch (error) {
+        // Metrics are optional, don't add to errors
+        console.warn(`读取 ${tavern.name || tavern.id} 指标失败：${errorMessage(error)}`)
+      }
+    }),
+  )
+
   return {
     ownerId,
     taverns,
     visitors: visitorRows.flat(),
     sessions,
+    tavernMetrics: tavernMetricsMap,
     errors,
   }
 }
@@ -114,11 +143,31 @@ function MetricCard({ label, value, helper, icon: Icon }: MetricCardProps) {
 }
 
 export default function OwnerRoute() {
-  const { ownerId, taverns, visitors, sessions, errors } = useLoaderData<typeof clientLoader>()
+  const { ownerId, taverns, visitors, sessions, tavernMetrics, errors } = useLoaderData<typeof clientLoader>()
   const summary = buildOwnerOperatingSummary({ taverns, visitors, sessions })
   const metrics = summary.metrics
   const openRatio = metrics.taverns ? Math.round((metrics.openTaverns / metrics.taverns) * 100) : 0
   const returnRatio = metrics.visitors ? Math.round((metrics.returningVisitors / metrics.visitors) * 100) : 0
+
+  // Calculate aggregate metrics from all taverns
+  const totalTokens = Object.values(tavernMetrics).reduce((sum, m) => {
+    const usage = m.token_usage
+    return sum + (typeof usage === "number" ? usage : usage?.total || 0)
+  }, 0)
+  const allPeakHours = Object.values(tavernMetrics).flatMap((m) => m.peak_hours || [])
+  const peakHourCounts: Record<number, number> = {}
+  allPeakHours.forEach((h) => { peakHourCounts[h] = (peakHourCounts[h] || 0) + 1 })
+  const topPeakHours = Object.entries(peakHourCounts)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 3)
+    .map(([h]) => Number(h))
+
+  const allSessions = Object.values(tavernMetrics).flatMap((m) =>
+    m.npc_rankings?.map((npc) => ({
+      updated_at: npc.last_interaction,
+      message_count: npc.message_count,
+    })) || [],
+  )
 
   return (
     <ProductShell eyebrow="Owner">
@@ -229,7 +278,44 @@ export default function OwnerRoute() {
               helper="已产生对话的访客"
               icon={UserRoundCheck}
             />
+            <MetricCard
+              label="Token"
+              value={totalTokens > 0 ? `${(totalTokens / 1000).toFixed(1)}k` : "0"}
+              helper={`${Object.keys(tavernMetrics).length} 个酒馆统计`}
+              icon={Zap}
+            />
           </div>
+
+          {/* Token Usage and Peak Hours Charts */}
+          {(Object.keys(tavernMetrics).length > 0) && (
+            <section className="grid gap-6 xl:grid-cols-2">
+              <Card>
+                <CardHeader>
+                  <CardTitle>消息量趋势</CardTitle>
+                  <CardDescription>各酒馆消息量随时间变化</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <TokenUsageChart
+                    peakDays={Object.values(tavernMetrics).flatMap((m) => m.peak_days || [])}
+                    totalTokens={metrics.messages}
+                  />
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>热门时段</CardTitle>
+                  <CardDescription>访客活跃时段分布</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <PeakHoursChart
+                    peakHours={topPeakHours.length > 0 ? topPeakHours : []}
+                    sessions={allSessions}
+                  />
+                </CardContent>
+              </Card>
+            </section>
+          )}
 
           <section className="grid gap-6 xl:grid-cols-[1.04fr_0.96fr]">
             <Card>

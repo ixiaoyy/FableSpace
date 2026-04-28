@@ -1,0 +1,65 @@
+{
+  "id": "home-featured-copy-polish",
+  "name": "home-featured-copy-polish",
+  "title": "首页热门酒馆文案去公益化",
+  "description": "",
+  "status": "completed",
+  "dev_type": "frontend",
+  "scope": null,
+  "package": null,
+  "priority": "P0",
+  "creator": "lijin",
+  "assignee": "lijin",
+  "createdAt": "2026-04-27",
+  "completedAt": "2026-04-28",
+  "branch": null,
+  "base_branch": "main",
+  "worktree_path": null,
+  "current_phase": 4,
+  "next_action": [
+    {
+      "phase": 1,
+      "action": "brainstorm"
+    },
+    {
+      "phase": 2,
+      "action": "research"
+    },
+    {
+      "phase": 3,
+      "action": "implement"
+    },
+    {
+      "phase": 4,
+      "action": "check"
+    },
+    {
+      "phase": 5,
+      "action": "update-spec"
+    },
+    {
+      "phase": 6,
+      "action": "record-session"
+    }
+  ],
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [],
+  "parent": null,
+  "relatedFiles": [
+    ".trellis/tasks/04-27-home-featured-copy-polish/prd.md",
+    "frontend/app/routes/home.tsx",
+    "frontend/scripts/home-links-test.mjs"
+  ],
+  "notes": "Homepage featured cards keep valid seeded tavern IDs but visible copy returns to tavern-brand names/real city flavor; removed internal 公益锚点 wording and 公益-as-brand tags.",
+  "meta": {
+    "verification": [
+      "node .\\\\frontend\\\\scripts\\\\home-links-test.mjs => red before copy fix, pass after fix",
+      "npm --prefix .\\\\frontend test => pass",
+      "npm --prefix .\\\\frontend run build => pass",
+      "python .\\\\.trellis\\\\scripts\\\\task.py validate .trellis\\\\tasks\\\\04-27-home-featured-copy-polish => pass",
+      "git diff --check => pass"
+    ]
+  }
+}

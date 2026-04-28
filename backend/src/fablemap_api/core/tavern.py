@@ -1903,6 +1903,106 @@ class TavernService:
         parsed = _parse_sillytavern_card(card_data)
         return self.add_character(tavern_id, parsed, user_id)
 
+    # ── 运营指标 ────────────────────────
+
+    def get_tavern_metrics(self, tavern_id: str, user_id: str = "") -> dict[str, Any]:
+        """获取酒馆运营指标"""
+        tavern = self.store.get_tavern(tavern_id)
+        if not tavern:
+            raise HTTPException(status_code=404, detail="酒馆不存在")
+
+        # 验证访问权限（只有酒馆主人可以看到完整指标）
+        if tavern.owner_id and tavern.owner_id != user_id:
+            raise HTTPException(status_code=403, detail="你不是此酒馆的主人")
+
+        # Token 用量
+        token_usage = self.store.get_token_usage(tavern_id)
+
+        # 从访客状态获取访问统计
+        visitor_states = self.store.list_visitor_states(tavern_id)
+        total_visits = sum(vs.visit_count for vs in visitor_states)
+        unique_visitors = len(visitor_states)
+
+        # 从聊天历史获取消息统计和 NPC 排行
+        sessions = self.store.list_chat_sessions(tavern_id, limit=None)
+        total_messages = sum(s.get("message_count", 0) for s in sessions)
+
+        # NPC 互动排行：按 character_id 聚合消息数
+        npc_stats: dict[str, dict[str, Any]] = {}
+        for session in sessions:
+            char_id = session.get("character_id", "")
+            if not char_id:
+                continue
+            if char_id not in npc_stats:
+                # 查找角色名称
+                char_name = next(
+                    (c.name for c in tavern.characters if c.id == char_id),
+                    char_id,
+                )
+                npc_stats[char_id] = {
+                    "character_id": char_id,
+                    "character_name": char_name,
+                    "message_count": 0,
+                    "last_interaction": "",
+                }
+            npc_stats[char_id]["message_count"] += session.get("message_count", 0)
+            last_msg_time = session.get("updated_at", "")
+            if last_msg_time and npc_stats[char_id]["last_interaction"] < last_msg_time:
+                npc_stats[char_id]["last_interaction"] = last_msg_time
+
+        # 按消息数排序
+        npc_rankings = sorted(
+            npc_stats.values(),
+            key=lambda x: x["message_count"],
+            reverse=True,
+        )
+
+        # 热门时段分析：从所有消息时间戳提取小时分布
+        hourly_counts = [0] * 24
+        daily_counts: dict[str, int] = {}
+        for session in sessions:
+            last_time = session.get("updated_at", "")
+            if not last_time:
+                continue
+            try:
+                # 解析 ISO 时间格式
+                from datetime import datetime
+                dt = datetime.fromisoformat(last_time.replace("Z", "+00:00"))
+                hour = dt.hour
+                hourly_counts[hour] += session.get("message_count", 0)
+                date_key = dt.strftime("%Y-%m-%d")
+                daily_counts[date_key] = daily_counts.get(date_key, 0) + session.get("message_count", 0)
+            except (ValueError, TypeError):
+                continue
+
+        # 峰值时段：找出消息最多的 3 个小时
+        peak_hours = sorted(
+            range(24),
+            key=lambda h: hourly_counts[h],
+            reverse=True,
+        )[:3]
+
+        # 最近 7 天的日期统计
+        peak_days = [
+            {"date": date, "visit_count": count}
+            for date, count in sorted(
+                daily_counts.items(),
+                key=lambda x: x[0],
+                reverse=True,
+            )
+        ][:7]
+
+        return {
+            "tavern_id": tavern_id,
+            "token_usage": token_usage,
+            "total_visits": total_visits,
+            "unique_visitors": unique_visitors,
+            "total_messages": total_messages,
+            "npc_rankings": npc_rankings,
+            "peak_hours": peak_hours,
+            "peak_days": peak_days,
+        }
+
 
 # ─────────────────────────────────────────
 # SillyTavern 角色卡解析

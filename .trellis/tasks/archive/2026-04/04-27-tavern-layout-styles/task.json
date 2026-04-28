@@ -1,0 +1,68 @@
+{
+  "id": "tavern-layout-styles",
+  "name": "tavern-layout-styles",
+  "title": "酒馆页面多布局样式",
+  "description": "",
+  "status": "completed",
+  "dev_type": "fullstack",
+  "scope": null,
+  "package": null,
+  "priority": "P2",
+  "creator": "lijin",
+  "assignee": "lijin",
+  "createdAt": "2026-04-27",
+  "completedAt": "2026-04-28",
+  "branch": null,
+  "base_branch": "main",
+  "worktree_path": null,
+  "current_phase": 4,
+  "next_action": [
+    {
+      "phase": 1,
+      "action": "brainstorm"
+    },
+    {
+      "phase": 2,
+      "action": "research"
+    },
+    {
+      "phase": 3,
+      "action": "implement"
+    },
+    {
+      "phase": 4,
+      "action": "check"
+    },
+    {
+      "phase": 5,
+      "action": "update-spec"
+    },
+    {
+      "phase": 6,
+      "action": "record-session"
+    }
+  ],
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [],
+  "parent": null,
+  "relatedFiles": [
+    "frontend/app/routes/tavern.tsx",
+    "frontend/app/features/tavern-layout-showcase/index.tsx",
+    "frontend/app/lib/tavern-layouts.js",
+    "frontend/app/lib/taverns.ts",
+    "frontend/scripts/tavern-layouts-test.mjs",
+    "backend/src/fablemap_api/core/tavern.py",
+    "backend/src/fablemap_api/contracts/taverns.py",
+    "backend/src/fablemap_api/infrastructure/models.py",
+    "backend/src/fablemap_api/infrastructure/mysql_store.py",
+    "backend/tests/test_v1_tavern_layout_style.py",
+    "backend/tests/test_mysql_infrastructure.py",
+    "docs/WORLD_SCHEMA.md",
+    "docs/FABLEMAP_TAVERN_PLATFORM.md",
+    ".trellis/spec/backend/database-guidelines.md"
+  ],
+  "notes": "Implemented persisted Tavern.layout_style plus four tavern page layout styles; verified backend and frontend.",
+  "meta": {}
+}

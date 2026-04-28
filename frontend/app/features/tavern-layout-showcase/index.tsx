@@ -26,7 +26,6 @@ import {
 import { useEffect, useMemo, useState, type ReactNode } from "react"
 import { Link } from "react-router"
 
-import heroBannerImage from "../../assets/homepage-reference/modules/hero-banner.png"
 import npcDialogueImage from "../../assets/homepage-reference/modules/npc-dialogue.png"
 import tavernNeonImage from "../../assets/homepage-reference/modules/tavern-neon.png"
 import tavernNightImage from "../../assets/homepage-reference/modules/tavern-night.png"
@@ -128,7 +127,7 @@ const layoutBackgroundImages: Record<string, string> = {
   lobby: tavernNeonImage,
   "npc-chat": npcDialogueImage,
   "quest-play": tavernNightImage,
-  "hybrid-room": heroBannerImage,
+  "hybrid-room": tavernStreetImage,
 }
 
 const accentClasses: Record<string, { active: string; chip: string; icon: string; glow: string }> = {
@@ -274,7 +273,7 @@ function LayoutHeader({
   onLayoutChange: (layoutId: string) => void
 }) {
   const accent = accentFor(activeLayout)
-  const backgroundImage = layoutBackgroundImages[activeLayout.id] || heroBannerImage
+  const backgroundImage = layoutBackgroundImages[activeLayout.id] || tavernNeonImage
   const timeStatus = stats.timeStatus
 
   return (
@@ -717,7 +716,7 @@ function HybridRoomLayout(props: LayoutProps) {
     <div className="space-y-6">
       <section className="grid min-w-0 gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(320px,0.46fr)]">
         <Card className="relative min-h-[40rem] min-w-0 overflow-hidden p-0">
-          <img src={heroBannerImage} alt="混合房间" className="absolute inset-0 h-full w-full object-cover opacity-72" loading="lazy" decoding="async" />
+          <img src={tavernStreetImage} alt="混合房间" className="absolute inset-0 h-full w-full object-cover opacity-72" loading="lazy" decoding="async" />
           <div className="absolute inset-0 bg-gradient-to-br from-slate-950/82 via-slate-950/18 to-slate-950/86" />
           <div className="relative min-h-[40rem] p-5 sm:p-6">
             <div className="flex flex-wrap items-center gap-2">

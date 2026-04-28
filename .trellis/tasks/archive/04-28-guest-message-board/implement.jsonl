@@ -1,0 +1,7 @@
+{"phase": 3, "action": "implement", "step": 1, "description": "Add TavernMessageModel to infrastructure/models.py", "file": "backend/src/fablemap_api/infrastructure/models.py", "status": "completed"}
+{"phase": 3, "action": "implement", "step": 2, "description": "Add message contracts to contracts/taverns.py", "file": "backend/src/fablemap_api/contracts/taverns.py", "status": "completed"}
+{"phase": 3, "action": "implement", "step": 3, "description": "Add message API endpoints", "file": "backend/src/fablemap_api/api/v1/taverns.py", "status": "completed"}
+{"phase": 3, "action": "implement", "step": 4, "description": "Add message service methods to application/taverns.py", "file": "backend/src/fablemap_api/application/taverns.py", "status": "completed"}
+{"phase": 3, "action": "implement", "step": 5, "description": "Add message methods to MySQL store", "file": "backend/src/fablemap_api/infrastructure/mysql_store.py", "status": "completed"}
+{"phase": 3, "action": "implement", "step": 6, "description": "Add TypeScript types and API functions", "file": "frontend/app/lib/taverns.ts", "status": "completed"}
+{"phase": 3, "action": "implement", "step": 7, "description": "Create TavernMessageBoard component", "file": "frontend/app/components/TavernMessageBoard.tsx", "status": "completed"}

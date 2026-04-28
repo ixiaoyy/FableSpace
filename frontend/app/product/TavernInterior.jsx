@@ -8,6 +8,76 @@ import { enterTavern, getTavernChatHistory, sendTavernChat } from '../lib/tavern
  * 显示酒馆内的角色列表和聊天界面。
  * 访客可以选择一个角色开始聊天。
  */
+
+// ─── Layout style background presets ────────────────────────────────────────
+
+const LAYOUT_BACKGROUNDS = {
+  lobby: {
+    gradient: 'linear-gradient(135deg, rgba(30, 41, 59, 0.95), rgba(51, 65, 85, 0.9))',
+    accent: '#f59e0b',
+    icon: '🍺',
+  },
+  'quest-play': {
+    gradient: 'linear-gradient(135deg, rgba(15, 23, 42, 0.95), rgba(30, 41, 59, 0.9))',
+    accent: '#22c55e',
+    icon: '📜',
+  },
+  'npc-chat': {
+    gradient: 'linear-gradient(135deg, rgba(30, 20, 40, 0.95), rgba(50, 30, 60, 0.9))',
+    accent: '#a855f7',
+    icon: '💬',
+  },
+  'hybrid-room': {
+    gradient: 'linear-gradient(135deg, rgba(20, 30, 40, 0.95), rgba(40, 60, 80, 0.9))',
+    accent: '#06b6d4',
+    icon: '🏠',
+  },
+}
+
+function getLayoutStyle(tavern) {
+  const style = tavern?.layout_style || 'lobby'
+  return LAYOUT_BACKGROUNDS[style] || LAYOUT_BACKGROUNDS.lobby
+}
+
+// ─── Simple Character Avatar ─────────────────────────────────────────────────
+
+function CharAvatar({ character, size = 40, className = '' }) {
+  const avatar = character?.avatar || character?.sprites?.neutral || null
+  const name = character?.name || '?'
+
+  if (avatar) {
+    return (
+      <img
+        src={avatar}
+        alt={name}
+        style={{ width: size, height: size, borderRadius: '50%', objectFit: 'cover' }}
+        className={className}
+      />
+    )
+  }
+
+  // Fallback to name initial
+  return (
+    <div
+      style={{
+        width: size,
+        height: size,
+        borderRadius: '50%',
+        background: 'linear-gradient(135deg, #475569, #64748b)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        color: '#f8fafc',
+        fontWeight: 600,
+        fontSize: size * 0.4,
+      }}
+      className={className}
+      title={name}
+    >
+      {name[0] || '?'}
+    </div>
+  )
+}
 export default function TavernInterior({
   tavern,
   visitorId,
@@ -23,6 +93,7 @@ export default function TavernInterior({
   const messagesEndRef = useRef(null)
 
   const characters = tavern?.characters || []
+  const layoutStyle = getLayoutStyle(tavern)
 
   // Auto-select first character
   useEffect(() => {
@@ -152,9 +223,21 @@ export default function TavernInterior({
   }
 
   return (
-    <div className="tavern-interior">
+    <div
+      className="tavern-interior"
+      style={{ background: layoutStyle.gradient }}
+      data-layout-style={tavern?.layout_style || 'lobby'}
+    >
+      {/* Scene atmosphere banner */}
+      {tavern?.scene_prompt && (
+        <div className="tavern-scene-atmosphere">
+          <span className="atmosphere-icon">{layoutStyle.icon}</span>
+          <span className="atmosphere-text">{tavern.scene_prompt.slice(0, 80)}</span>
+        </div>
+      )}
+
       {/* Header */}
-      <div className="tavern-interior-header">
+      <div className="tavern-interior-header" style={{ borderBottomColor: layoutStyle.accent }}>
         <div className="tavern-info">
           <h3>{tavern?.name}</h3>
           <div className="tavern-meta">
@@ -185,7 +268,7 @@ export default function TavernInterior({
                 className={`char-item ${selectedChar?.id === char.id ? 'active' : ''}`}
                 onClick={() => setSelectedChar(char)}
               >
-                <span className="char-avatar">🧑</span>
+                <CharAvatar character={char} size={36} />
                 <span className="char-name">{char.name}</span>
               </button>
             ))}
@@ -197,7 +280,10 @@ export default function TavernInterior({
           {selectedChar ? (
             <>
               <div className="chat-header">
-                <span className="chat-char-name">🗣 {selectedChar.name}</span>
+                <div className="chat-char-info">
+                  <CharAvatar character={selectedChar} size={32} />
+                  <span className="chat-char-name">{selectedChar.name}</span>
+                </div>
                 {selectedChar.description && (
                   <span className="chat-char-desc muted">{selectedChar.description}</span>
                 )}
@@ -220,7 +306,11 @@ export default function TavernInterior({
                     className={`chat-message ${msg.role === 'assistant' ? 'char-msg' : 'user-msg'}`}
                   >
                     <div className="message-avatar">
-                      {msg.role === 'assistant' ? '🧑' : '👤'}
+                      {msg.role === 'assistant' ? (
+                        <CharAvatar character={selectedChar} size={32} />
+                      ) : (
+                        <div className="user-avatar-icon">👤</div>
+                      )}
                     </div>
                     <div className="message-content">
                       <div className="message-text">{msg.content}</div>

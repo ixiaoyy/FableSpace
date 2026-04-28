@@ -39,6 +39,7 @@ from .models import (
     MemoryAtomModel,
     GameplaySessionModel,
     LLMConfigModel,
+    TavernMessageModel,
 )
 
 
@@ -952,6 +953,116 @@ class MySQLTavernStore:
             config_usage = int(model.token_used or 0) if model else 0
             tavern_model = session.query(TavernModel).filter(TavernModel.id == tavern_id).first()
             return max(config_usage, self._token_usage_from_voice_config(tavern_model))
+
+    # ── Tavern Messages ──────────────────────────
+
+    def list_tavern_messages(self, tavern_id: str, limit: int = 50, offset: int = 0) -> tuple[list[dict], int, int]:
+        """列出留言"""
+        with self.db.session_scope() as session:
+            query = session.query(TavernMessageModel).filter(
+                TavernMessageModel.tavern_id == tavern_id
+            )
+            total = query.count()
+            pinned_count = query.filter(TavernMessageModel.is_pinned == True).count()
+
+            models = query.order_by(
+                TavernMessageModel.is_pinned.desc(),
+                TavernMessageModel.created_at.desc()
+            ).offset(offset).limit(limit).all()
+
+            messages = []
+            for m in models:
+                messages.append({
+                    "id": m.id,
+                    "tavern_id": m.tavern_id,
+                    "visitor_id": m.visitor_id,
+                    "visitor_nickname": m.visitor_nickname or "匿名",
+                    "content": m.content,
+                    "created_at": m.created_at.strftime("%Y-%m-%dT%H:%M:%SZ") if m.created_at else "",
+                    "is_pinned": m.is_pinned,
+                    "parent_id": m.parent_id,
+                })
+            return messages, total, pinned_count
+
+    def get_tavern_message(self, tavern_id: str, message_id: str) -> dict | None:
+        """获取单条留言"""
+        with self.db.session_scope() as session:
+            model = session.query(TavernMessageModel).filter(
+                TavernMessageModel.tavern_id == tavern_id,
+                TavernMessageModel.id == message_id,
+            ).first()
+            if model:
+                return {
+                    "id": model.id,
+                    "tavern_id": model.tavern_id,
+                    "visitor_id": model.visitor_id,
+                    "visitor_nickname": model.visitor_nickname or "匿名",
+                    "content": model.content,
+                    "created_at": model.created_at.strftime("%Y-%m-%dT%H:%M:%SZ") if model.created_at else "",
+                    "is_pinned": model.is_pinned,
+                    "parent_id": model.parent_id,
+                }
+            return None
+
+    def create_tavern_message(self, tavern_id: str, message_data: dict) -> dict:
+        """创建留言"""
+        import secrets
+        msg_id = f"msg_{secrets.token_hex(8)}"
+        now = datetime.utcnow()
+
+        with self.db.session_scope() as session:
+            model = TavernMessageModel(
+                id=msg_id,
+                tavern_id=tavern_id,
+                visitor_id=message_data.get("visitor_id", ""),
+                visitor_nickname=message_data.get("visitor_nickname", "匿名"),
+                content=message_data.get("content", ""),
+                created_at=now,
+                is_pinned=False,
+                parent_id=message_data.get("parent_id"),
+            )
+            session.add(model)
+
+        return {
+            "id": msg_id,
+            "tavern_id": tavern_id,
+            "visitor_id": message_data.get("visitor_id", ""),
+            "visitor_nickname": message_data.get("visitor_nickname", "匿名"),
+            "content": message_data.get("content", ""),
+            "created_at": now.strftime("%Y-%m-%dT%H:%M:%SZ"),
+            "is_pinned": False,
+            "parent_id": message_data.get("parent_id"),
+        }
+
+    def delete_tavern_message(self, tavern_id: str, message_id: str) -> bool:
+        """删除留言"""
+        with self.db.session_scope() as session:
+            result = session.query(TavernMessageModel).filter(
+                TavernMessageModel.tavern_id == tavern_id,
+                TavernMessageModel.id == message_id,
+            ).delete()
+            return result > 0
+
+    def toggle_tavern_message_pin(self, tavern_id: str, message_id: str) -> dict | None:
+        """切换留言置顶状态"""
+        with self.db.session_scope() as session:
+            model = session.query(TavernMessageModel).filter(
+                TavernMessageModel.tavern_id == tavern_id,
+                TavernMessageModel.id == message_id,
+            ).first()
+            if model:
+                model.is_pinned = not model.is_pinned
+                return {
+                    "id": model.id,
+                    "tavern_id": model.tavern_id,
+                    "visitor_id": model.visitor_id,
+                    "visitor_nickname": model.visitor_nickname or "匿名",
+                    "content": model.content,
+                    "created_at": model.created_at.strftime("%Y-%m-%dT%H:%M:%SZ") if model.created_at else "",
+                    "is_pinned": model.is_pinned,
+                    "parent_id": model.parent_id,
+                }
+            return None
 
 
 def create_mysql_tables(database: Database) -> None:

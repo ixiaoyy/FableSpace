@@ -100,6 +100,8 @@ const NPC_VISUAL_STYLES: NpcVisualStyle[] = [
 ]
 
 const DEFAULT_STYLE = NPC_VISUAL_STYLES[0]
+const NPC_PORTRAIT_FRAME_CLASS =
+  "relative mx-auto aspect-square w-full max-w-[16rem] overflow-hidden rounded-[1.75rem] border border-white/18 shadow-[0_0_34px_rgba(34,211,238,0.16)]"
 
 interface TavernNpcStageProps {
   tavern: Tavern
@@ -167,7 +169,7 @@ function NpcPortrait({
 
   if (avatar) {
     return (
-      <div className="relative mx-auto h-44 w-full overflow-hidden rounded-[1.75rem] border border-white/18 bg-[var(--npc-body)] shadow-[0_0_34px_rgba(34,211,238,0.16)]" style={frameStyle}>
+      <div className={cn(NPC_PORTRAIT_FRAME_CLASS, "bg-[var(--npc-body)]")} style={frameStyle}>
         <img
           src={avatar}
           alt={character.name || "NPC 头像"}
@@ -182,7 +184,7 @@ function NpcPortrait({
 
   return (
     <div
-      className="relative mx-auto h-44 w-full overflow-hidden rounded-[1.75rem] border border-white/18 shadow-[0_0_34px_rgba(34,211,238,0.16)]"
+      className={NPC_PORTRAIT_FRAME_CLASS}
       role="img"
       aria-label={`${character.name || "NPC"} 的${style.title}酒馆主题人像`}
       style={frameStyle}

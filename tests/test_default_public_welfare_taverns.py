@@ -76,6 +76,40 @@ def test_default_public_welfare_characters_have_direct_neutral_assets():
         assert len(neutral_hashes) == len(set(neutral_hashes))
 
 
+def test_default_public_welfare_characters_have_direct_expression_assets():
+    with TemporaryDirectory() as tmpdir:
+        service = _service(tmpdir)
+
+        characters = []
+        for tavern_id in DEFAULT_PUBLIC_WELFARE_TAVERN_IDS:
+            tavern = service.get_tavern_payload(tavern_id, user_id="visitor_public_welfare")
+            characters.extend(tavern["characters"])
+
+        required_expression_pairs = (
+            ("happy", "joy"),
+            ("angry", "anger"),
+            ("shy", "embarrassment"),
+            ("curious", "curiosity"),
+        )
+        for character in characters:
+            sprites = character["sprites"]
+            expression_hashes = {
+                "neutral": _project_png_hash(sprites["neutral"]),
+            }
+            for semantic_key, engine_key in required_expression_pairs:
+                semantic_url = sprites.get(semantic_key)
+                engine_url = sprites.get(engine_key)
+                assert semantic_url, f"missing {semantic_key} sprite for {character['id']}"
+                assert engine_url, f"missing {engine_key} sprite for {character['id']}"
+                assert semantic_url == engine_url
+                _assert_project_png_asset(engine_url)
+                expression_hashes[engine_key] = _project_png_hash(engine_url)
+
+            assert len(expression_hashes) == len(set(expression_hashes.values())), (
+                f"{character['id']} must use distinct direct assets for neutral and expression sprites"
+            )
+
+
 def test_third_shelf_observatory_contains_complete_alien_convenience_tavern():
     with TemporaryDirectory() as tmpdir:
         service = _service(tmpdir)

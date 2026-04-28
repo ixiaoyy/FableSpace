@@ -1,0 +1,8 @@
+{"file": ".trellis/workflow.md", "reason": "Project workflow and conventions"}
+{"file": ".trellis/spec/frontend/index.md", "reason": "Frontend development guide"}
+{"file": "docs/IMAGE_ASSETS_SPEC.md", "reason": "Asset dimensions and project-local image rules"}
+{"file": ".trellis/spec/frontend/image-asset-guidelines.md", "reason": "Image placement and verification contract"}
+{"file": ".trellis/spec/frontend/component-guidelines.md", "reason": "Component styling and mobile UI guidance"}
+{"file": ".trellis/spec/frontend/quality-guidelines.md", "reason": "Frontend verification requirements"}
+{"file": "frontend/app/routes/home.tsx", "reason": "Homepage image surfaces using mismatched portrait hero asset"}
+{"file": "frontend/app/features/tavern-layout-showcase/index.tsx", "reason": "Tavern layout background surfaces using hero image"}

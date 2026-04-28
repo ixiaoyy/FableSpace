@@ -1,0 +1,95 @@
+{
+  "id": "visitor-npc-gender-fields",
+  "name": "visitor-npc-gender-fields",
+  "title": "游客与 NPC 性别字段",
+  "description": "Add controlled gender fields for TavernCharacter and tavern-scoped VisitorState across backend, frontend, persistence, tests, and docs.",
+  "status": "completed",
+  "dev_type": "fullstack",
+  "scope": null,
+  "package": null,
+  "priority": "P1",
+  "creator": "lijin",
+  "assignee": "lijin",
+  "createdAt": "2026-04-27",
+  "completedAt": "2026-04-28",
+  "branch": null,
+  "base_branch": "main",
+  "worktree_path": null,
+  "current_phase": 6,
+  "next_action": [
+    {
+      "phase": 1,
+      "action": "brainstorm"
+    },
+    {
+      "phase": 2,
+      "action": "research"
+    },
+    {
+      "phase": 3,
+      "action": "implement"
+    },
+    {
+      "phase": 4,
+      "action": "check"
+    },
+    {
+      "phase": 5,
+      "action": "update-spec"
+    },
+    {
+      "phase": 6,
+      "action": "record-session"
+    }
+  ],
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [],
+  "parent": null,
+  "relatedFiles": [
+    "backend/src/fablemap_api/core/tavern.py",
+    "backend/src/fablemap_api/contracts/characters.py",
+    "backend/src/fablemap_api/contracts/chat.py",
+    "backend/src/fablemap_api/contracts/taverns.py",
+    "backend/src/fablemap_api/api/v1/chat.py",
+    "backend/src/fablemap_api/api/v1/taverns.py",
+    "backend/src/fablemap_api/application/services/management.py",
+    "backend/src/fablemap_api/application/services/runtime.py",
+    "backend/src/fablemap_api/infrastructure/models.py",
+    "backend/src/fablemap_api/infrastructure/mysql_store.py",
+    "backend/tests/test_v1_gender_fields.py",
+    "backend/tests/test_mysql_infrastructure.py",
+    "frontend/app/lib/gender.js",
+    "frontend/app/lib/taverns.ts",
+    "frontend/app/features/tavern-chat/index.tsx",
+    "frontend/app/product/CharacterEditor.jsx",
+    "frontend/scripts/gender-fields-test.mjs",
+    "docs/WORLD_SCHEMA.md",
+    ".trellis/spec/backend/database-guidelines.md",
+    ".trellis/spec/frontend/type-safety.md"
+  ],
+  "notes": "Implemented Gender enum: unspecified/female/male/nonbinary/other. NPC gender uses gender; visitor input uses visitor_gender and persists as VisitorState.gender scoped to tavern+visitor. No global profile, discovery filter, or AI inference added.",
+  "meta": {
+    "done": [
+      "Backend dataclasses/API contracts normalize and round-trip NPC and visitor gender.",
+      "JSON and MySQL persistence round-trip TavernCharacter.gender and VisitorState.gender.",
+      "Frontend helper, tavern client types, chat UI, and NPC editor expose controlled gender options.",
+      "WORLD_SCHEMA and Trellis backend/frontend specs updated."
+    ],
+    "not_done": [],
+    "verification": [
+      "RED: py -3 -m pytest -q backend/tests/test_v1_gender_fields.py --tb=short -> failed on missing gender fields",
+      "RED: node .\\frontend\\scripts\\gender-fields-test.mjs -> failed ERR_MODULE_NOT_FOUND for gender.js",
+      "RED: py -3 -m pytest -q backend/tests/test_mysql_infrastructure.py::TestCharacterCRUD::test_character_gender_round_trip backend/tests/test_mysql_infrastructure.py::TestVisitorState::test_update_and_get_visitor_state --tb=short -> failed dataclass unexpected gender",
+      "py -3 -m compileall -q backend/src -> passed",
+      "py -3 -m pytest -q backend/tests/test_v1_gender_fields.py backend/tests/test_mysql_infrastructure.py::TestCharacterCRUD::test_character_gender_round_trip backend/tests/test_mysql_infrastructure.py::TestVisitorState::test_update_and_get_visitor_state --tb=short -> 4 passed",
+      "npm --prefix .\\frontend test -> passed",
+      "npm --prefix .\\frontend run typecheck -> passed",
+      "npm --prefix .\\frontend run build -> passed",
+      "py -3 -m pytest -q --tb=short with proxy env cleared -> 384 passed, 6 warnings",
+      "git diff --check -> no whitespace errors (line-ending warnings only)",
+      "py -3 .\\trellis\\scripts\\task.py validate .\\trellis\\tasks\\04-27-visitor-npc-gender-fields -> passed"
+    ]
+  }
+}

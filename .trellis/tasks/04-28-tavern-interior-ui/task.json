@@ -1,0 +1,35 @@
+{
+  "id": "04-28-tavern-interior-ui",
+  "name": "04-28-tavern-interior-ui",
+  "title": "Tavern Interior UI Enhancement",
+  "description": "Enhance tavern interior UI with real character avatars, scene backgrounds, and atmosphere display.",
+  "status": "completed",
+  "dev_type": "frontend",
+  "scope": "tavern-interior",
+  "package": null,
+  "priority": "P1",
+  "creator": "lijin",
+  "assignee": "lijin",
+  "createdAt": "2026-04-28",
+  "completedAt": "2026-04-28",
+  "branch": null,
+  "base_branch": "main",
+  "worktree_path": null,
+  "current_phase": 6,
+  "next_action": [],
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [],
+  "parent": null,
+  "relatedFiles": [
+    "frontend/app/product/TavernInterior.jsx",
+    "frontend/app/product/styles.css"
+  ],
+  "notes": "Enhanced TavernInterior.jsx with: 1) CharAvatar component for real character sprites/avatars, 2) Layout style based backgrounds (lobby/quest-play/npc-chat/hybrid-room), 3) Scene atmosphere banner displaying scene_prompt, 4) Layout-specific accent colors. Added ~150 lines of CSS styles for tavern-interior component.",
+  "meta": {
+    "verification": [
+      "npm run build => pass"
+    ]
+  }
+}

@@ -120,9 +120,41 @@ class RelationshipDecisionRequest(FlexibleBody):
     note: str | None = None
 
 
+class MetricsResponse(BaseModel):
+    """酒馆运营数据指标"""
+    tavern_id: str
+    token_usage: int
+    total_visits: int
+    unique_visitors: int
+    total_messages: int
+    npc_rankings: list[dict[str, Any]]  # [{character_id, character_name, message_count, last_interaction}]
+    peak_hours: list[int]  # 0-23 小时统计
+    peak_days: list[dict[str, Any]]  # [{date, visit_count}]
+
+
 class EnterTavernRequest(BaseModel):
     password: str = ""
     visitor_gender: str = ""
+
+
+class TavernMessageCreateRequest(FlexibleBody):
+    """创建留言请求"""
+    content: str
+    visitor_nickname: str = "匿名"
+    parent_id: str | None = None  # 用于回复
+
+
+class TavernMessageReplyRequest(FlexibleBody):
+    """回复留言请求"""
+    content: str
+    visitor_nickname: str = "酒馆主人"
+
+
+class TavernMessageListResponse(BaseModel):
+    """留言列表响应"""
+    messages: list[dict[str, Any]]
+    count: int
+    pinned_count: int
 
 
 __all__ = [
@@ -145,6 +177,7 @@ __all__ = [
     "MemoryImportanceRequest",
     "MemorySummarizeRequest",
     "MemoryTruncateRequest",
+    "MetricsResponse",
     "OutputRulesWriteRequest",
     "PlaceRelationshipRequest",
     "PromptBlocksPreviewRequest",
@@ -157,6 +190,9 @@ __all__ = [
     "RoleplayConfigRequest",
     "SpriteMapWriteRequest",
     "SchoolEnrollmentRequest",
+    "TavernMessageCreateRequest",
+    "TavernMessageListResponse",
+    "TavernMessageReplyRequest",
     "TavernStatusInfo",
     "TTSRequest",
     "TavernCreateRequest",

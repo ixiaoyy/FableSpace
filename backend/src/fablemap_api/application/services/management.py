@@ -156,3 +156,6 @@ class TavernManagementApplicationMixin:
         visitor_gender: str = "",
     ) -> dict[str, Any]:
         return self.taverns.enter_tavern(tavern_id, password, user_id, visitor_gender)
+
+    def get_tavern_metrics(self, tavern_id: str, user_id: str = "") -> dict[str, Any]:
+        return self.taverns.get_tavern_metrics(tavern_id, user_id)

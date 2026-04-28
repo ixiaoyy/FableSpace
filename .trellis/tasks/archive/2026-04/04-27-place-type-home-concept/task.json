@@ -1,0 +1,104 @@
+{
+  "id": "place-type-home-concept",
+  "name": "place-type-home-concept",
+  "title": "新方向产品收敛：多地点类型与 Home 概念",
+  "description": "将既有头脑风暴中的酒馆→多地点类型、Home 概念、用户角色扩展和任务/玩法系统收敛成可评审的产品边界与后续实施路线。",
+  "status": "completed",
+  "dev_type": "docs",
+  "scope": "product-direction, place-types, home-concept",
+  "package": null,
+  "priority": "P1",
+  "creator": "lijin",
+  "assignee": "lijin",
+  "createdAt": "2026-04-27",
+  "completedAt": "2026-04-28",
+  "branch": null,
+  "base_branch": "main",
+  "worktree_path": null,
+  "current_phase": 4,
+  "next_action": [
+    {
+      "phase": 1,
+      "action": "brainstorm"
+    },
+    {
+      "phase": 2,
+      "action": "research"
+    },
+    {
+      "phase": 3,
+      "action": "implement"
+    },
+    {
+      "phase": 4,
+      "action": "check"
+    },
+    {
+      "phase": 5,
+      "action": "update-spec"
+    },
+    {
+      "phase": 6,
+      "action": "record-session"
+    }
+  ],
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [],
+  "parent": null,
+  "relatedFiles": [
+    ".trellis/tasks/04-27-place-type-home-concept/brainstorm.md",
+    "docs/PRODUCT_BRIEF.md",
+    "docs/FABLEMAP_TAVERN_PLATFORM.md",
+    "docs/WHAT_NOT_TO_BUILD.md",
+    "docs/WORLD_SCHEMA.md",
+    ".trellis/tasks/04-27-place-type-home-concept/prd.md",
+    ".trellis/tasks/04-27-place-type-home-concept/research.md",
+    ".trellis/tasks/04-27-place-type-home-concept/product-direction-decision.md",
+    ".trellis/tasks/04-27-place-type-home-concept/implement.jsonl",
+    ".trellis/tasks/04-27-place-type-home-concept/check.jsonl",
+    ".trellis/tasks/04-27-place-type-home-concept/debug.jsonl",
+    "README.md",
+    "docs/ARCHITECTURE.md",
+    "docs/AI参与开发协议.md",
+    ".trellis/spec/guides/cross-layer-thinking-guide.md"
+  ],
+  "notes": "2026-04-27: Produced product-direction convergence draft for Place-first, Tavern-compatible roadmap. No code or global schema/docs changed. Decision doc keeps Tavern as current stable implementation model, requires real-coordinate Home anchoring with privacy controls, limits Home visits to controlled access, defers member relationship graph/school sync, and keeps gameplay as place-local non-RPG interaction. Human approval required before global docs or schema implementation.\n\n2026-04-27 correction: Child 04-27-place-type-discovery-mvp only completed the frontend derived discovery filter slice. The Place/Home roadmap remains deferred for backend schema, WORLD_SCHEMA updates, Home MVP, family members, school sync, and relationship graph; these must not be reported as completed without separate Trellis tasks and verification.\n\n2026-04-27 follow-up: Child 04-27-place-home-full-mvp completed the previously deferred backend/schema/Home/member/school relationship MVP with tests/docs/spec verification. Earlier completion-integrity rule still applies: future deferred items must have their own concrete task and verification before being called done.",
+  "meta": {
+    "converted_from_draft": true,
+    "verification": [
+      "Read AGENTS.md, README.md, docs/INDEX.md, docs/PRODUCT_BRIEF.md, docs/FABLEMAP_TAVERN_PLATFORM.md, docs/ARCHITECTURE.md, docs/WORLD_SCHEMA.md, docs/WHAT_NOT_TO_BUILD.md, docs/AI参与开发协议.md",
+      "python ./.trellis/scripts/task.py list-context ./.trellis/tasks/04-27-place-type-home-concept => context files include product/schema/boundary docs",
+      "Select-String heading checks for research.md and product-direction-decision.md => expected sections present",
+      "py -3 ./.trellis/scripts/task.py validate ./.trellis/tasks/04-27-place-type-home-concept => pass (after replacing missing auto-injected .claude context paths with .agents skill paths)",
+      "Required task files exist: prd.md, research.md, product-direction-decision.md, task.json, implement/check/debug.jsonl",
+      "Select-String decision checks => Place-first conclusion, Home coordinate boundary, non-biological silence rule, follow-up tasks, and acceptance trace present",
+      "git diff --check -- .trellis/tasks/04-27-place-type-home-concept => pass",
+      "Custom trailing-whitespace scan over .trellis/tasks/04-27-place-type-home-concept files => pass"
+    ],
+    "remaining_work_after_discovery_mvp": [
+      "Decide and design whether place_type enters backend contracts and docs/WORLD_SCHEMA.md",
+      "Implement any approved persistent place_type / Place schema changes",
+      "Design Home MVP: coordinate privacy, access policy, Home appearance, member display",
+      "Design and implement family member rules only after privacy/safety approval",
+      "Design school synchronization and relationship graph with approval/visibility rules before implementation"
+    ],
+    "completion_integrity_rule": "Completed parent/product-decision or child/MVP status must not be used to claim deferred roadmap items are implemented. Completion claims must cite the exact Trellis task, done scope, and fresh verification evidence.",
+    "place_home_full_mvp_child": {
+      "task": "04-27-place-home-full-mvp",
+      "status": "completed",
+      "completedAt": "2026-04-27",
+      "implemented_previous_deferred_items": [
+        "backend API/service/contract changes",
+        "docs/WORLD_SCHEMA.md updates",
+        "persistent place_type, HomeMember, PlaceRelationship fields",
+        "Tavern create/update payload writes for place type",
+        "Home MVP implementation",
+        "family member implementation",
+        "school synchronization via approval relationship",
+        "cross-place relationship graph MVP"
+      ]
+    }
+  }
+}

@@ -1327,3 +1327,109 @@ export function transcribeVoice(tavernId: string, audioBlob: Blob, userId = DEFA
 export function errorMessage(error: unknown) {
   return error instanceof Error ? error.message : String(error || "未知错误")
 }
+
+export type TokenUsage = {
+  total: number
+  history?: { date: string; tokens: number }[]
+}
+
+export type NpcRanking = {
+  character_id: string
+  character_name: string
+  message_count: number
+  last_interaction?: string
+}
+
+export type PeakDay = {
+  date: string
+  visit_count: number
+}
+
+export type TavernMetricsResponse = {
+  tavern_id: string
+  token_usage: TokenUsage | number
+  total_visits: number
+  unique_visitors: number
+  total_messages: number
+  npc_rankings: NpcRanking[]
+  peak_hours: number[]
+  peak_days: PeakDay[]
+}
+
+export function getTavernMetrics(tavernId: string, userId = DEFAULT_OWNER_ID) {
+  return readApiJson<TavernMetricsResponse>(`/api/v1/taverns/${encodeURIComponent(tavernId)}/metrics`, { userId })
+}
+
+// ─────────────────────────────────────────
+// Guest Message Board
+// ─────────────────────────────────────────
+
+export type TavernMessage = {
+  id: string
+  tavern_id: string
+  visitor_id: string
+  visitor_nickname: string
+  content: string
+  created_at: string
+  is_pinned: boolean
+  parent_id: string | null
+}
+
+export type TavernMessageListResponse = {
+  messages: TavernMessage[]
+  count: number
+  pinned_count: number
+}
+
+export function listTavernMessages(
+  tavernId: string,
+  options: { limit?: number; offset?: number } = {},
+  userId = DEFAULT_VISITOR_ID,
+) {
+  const params = new URLSearchParams()
+  if (options.limit) params.set("limit", String(options.limit))
+  if (options.offset) params.set("offset", String(options.offset))
+  const query = params.toString() ? `?${params.toString()}` : ""
+
+  return readApiJson<TavernMessageListResponse>(
+    `/api/v1/taverns/${encodeURIComponent(tavernId)}/messages${query}`,
+    { userId },
+  )
+}
+
+export function createTavernMessage(
+  tavernId: string,
+  data: { content: string; visitor_nickname?: string; parent_id?: string },
+  userId = DEFAULT_VISITOR_ID,
+) {
+  return readApiJson<TavernMessage>(
+    `/api/v1/taverns/${encodeURIComponent(tavernId)}/messages`,
+    jsonInit("POST", data, userId),
+  )
+}
+
+export function deleteTavernMessage(tavernId: string, messageId: string, userId = DEFAULT_VISITOR_ID) {
+  return readApiJson<{ ok: boolean; message_id: string }>(
+    `/api/v1/taverns/${encodeURIComponent(tavernId)}/messages/${encodeURIComponent(messageId)}`,
+    { method: "DELETE", ...(userId ? { userId } : {}) },
+  )
+}
+
+export function togglePinTavernMessage(tavernId: string, messageId: string, userId = DEFAULT_OWNER_ID) {
+  return readApiJson<TavernMessage>(
+    `/api/v1/taverns/${encodeURIComponent(tavernId)}/messages/${encodeURIComponent(messageId)}/pin`,
+    { method: "PUT", userId },
+  )
+}
+
+export function replyTavernMessage(
+  tavernId: string,
+  messageId: string,
+  data: { content: string; visitor_nickname?: string },
+  userId = DEFAULT_VISITOR_ID,
+) {
+  return readApiJson<TavernMessage>(
+    `/api/v1/taverns/${encodeURIComponent(tavernId)}/messages/${encodeURIComponent(messageId)}/reply`,
+    jsonInit("POST", data, userId),
+  )
+}

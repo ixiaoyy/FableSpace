@@ -1,0 +1,57 @@
+{
+  "id": "04-28-test-coverage",
+  "name": "04-28-test-coverage",
+  "title": "Frontend & Backend Test Coverage Improvement",
+  "description": "Improve test coverage for frontend components and backend core logic.",
+  "status": "in_progress",
+  "dev_type": "fullstack",
+  "scope": "testing",
+  "package": null,
+  "priority": "P3",
+  "creator": "lijin",
+  "assignee": "lijin",
+  "createdAt": "2026-04-28",
+  "completedAt": null,
+  "branch": null,
+  "base_branch": "main",
+  "worktree_path": null,
+  "current_phase": 0,
+  "next_action": [
+    {
+      "phase": 1,
+      "action": "brainstorm"
+    },
+    {
+      "phase": 2,
+      "action": "research"
+    },
+    {
+      "phase": 3,
+      "action": "implement"
+    },
+    {
+      "phase": 4,
+      "action": "check"
+    },
+    {
+      "phase": 5,
+      "action": "update-spec"
+    },
+    {
+      "phase": 6,
+      "action": "record-session"
+    }
+  ],
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [],
+  "parent": null,
+  "relatedFiles": [
+    "frontend/scripts/",
+    "tests/",
+    "backend/tests/"
+  ],
+  "notes": "",
+  "meta": {}
+}

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from fastapi import APIRouter
 
-from . import affinity, characters, chat, gameplay, memories, owner_config, public_bond, roleplay, runtime, utilities, worldinfo
+from . import affinity, characters, chat, gameplay, memories, notifications, owner_config, public_bond, roleplay, runtime, utilities, worldinfo
 from .packages import packages_router, taverns_router as package_taverns_router
 from .system import router as system_router
 from .taverns import router as taverns_router
@@ -28,3 +28,4 @@ api_router.include_router(public_bond.router)
 api_router.include_router(public_bond.types_router)
 api_router.include_router(worldinfo.router)
 api_router.include_router(utilities.router)
+api_router.include_router(notifications.router)
