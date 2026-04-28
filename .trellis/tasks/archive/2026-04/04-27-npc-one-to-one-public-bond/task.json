@@ -38,8 +38,26 @@
   "meta": {
     "decisions_confirmed": 6,
     "relationship_types": {
-      "exclusive_1to1": ["sweetheart", "brother", "sister", "best_friend", "confidant", "male_confidant", "sibling_younger", "sibling_older", "sworn_sibling"],
-      "multi_person": ["master", "junior_sister", "junior_brother", "disciple_sister", "disciple_brother", "guardian", "contract_beast"]
+      "exclusive_1to1": [
+        "sweetheart",
+        "brother",
+        "sister",
+        "best_friend",
+        "confidant",
+        "male_confidant",
+        "sibling_younger",
+        "sibling_older",
+        "sworn_sibling"
+      ],
+      "multi_person": [
+        "master",
+        "junior_sister",
+        "junior_brother",
+        "disciple_sister",
+        "disciple_brother",
+        "guardian",
+        "contract_beast"
+      ]
     },
     "trigger": "AffinityStage.close_friend (strength >= 0.70)",
     "visibility": "show bond badge only, no visitor identity",
