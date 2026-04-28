@@ -80,7 +80,7 @@ function HomeNav() {
   return (
     <header className="sticky top-0 z-40 border-b border-white/8 bg-[#050615]/90 backdrop-blur-xl">
       <div className="mx-auto flex max-w-[1320px] flex-col gap-4 px-6 py-4 lg:flex-row lg:items-center lg:justify-between">
-        <Link to="/" className="flex items-center gap-3">
+        <Link to="/" className="flex min-h-11 touch-manipulation items-center gap-3">
           <span className="grid h-10 w-10 place-items-center rounded-full border border-cyan-300/40 bg-cyan-300/8 text-sm font-black text-cyan-100">
             FM
           </span>
@@ -93,14 +93,14 @@ function HomeNav() {
         <div className="flex flex-1 flex-col gap-3 md:flex-row md:items-center md:justify-end">
           <nav className="flex flex-wrap items-center gap-1.5 text-sm text-violet-100/72" aria-label="首页导航">
             {navItems.map((item) => (
-              <Link key={item.label} to={item.to} className="rounded-full px-3 py-2 transition hover:bg-white/8 hover:text-white">
+              <Link key={item.label} to={item.to} className="inline-flex min-h-11 touch-manipulation items-center rounded-full px-3 py-2 transition hover:bg-white/8 hover:text-white">
                 {item.label}
               </Link>
             ))}
           </nav>
           <Link
             to="/discover"
-            className="flex min-w-0 items-center gap-2 rounded-full border border-white/10 bg-white/[0.045] px-4 py-2.5 text-sm text-violet-100/55 transition hover:border-cyan-300/35 hover:text-cyan-100 md:w-72"
+            className="flex min-h-11 min-w-0 touch-manipulation items-center gap-2 rounded-full border border-white/10 bg-white/[0.045] px-4 py-2.5 text-sm text-violet-100/55 transition hover:border-cyan-300/35 hover:text-cyan-100 md:w-72"
           >
             <Search className="h-4 w-4 shrink-0" />
             <span className="truncate">搜索附近坐标、角色、记忆线索</span>
@@ -133,7 +133,7 @@ function CitySlicePreviewCard({ image, name, location, distance, tags, id }: Cit
   return (
     <Link
       to={`/tavern/${id}`}
-      className="group overflow-hidden rounded-2xl border border-white/10 bg-[#090a1d]/92 transition hover:-translate-y-0.5 hover:border-cyan-300/50"
+      className="group touch-manipulation overflow-hidden rounded-2xl border border-white/10 bg-[#090a1d]/92 transition hover:-translate-y-0.5 hover:border-cyan-300/50"
     >
       <div className="relative h-64 overflow-hidden lg:h-72">
         <img

@@ -90,3 +90,30 @@
 - [ ] 页面加载时间 < 3s
 - [ ] 可以添加到主屏幕
 - [ ] 离线时显示缓存内容
+
+## Implementation Notes: Touch Target Slice (2026-04-28)
+
+Scope: focused mobile usability pass for homepage + discover controls.
+
+Changes:
+
+* Updated shared `frontend/app/ui/button.tsx` so all Button sizes, including `size="sm"`, keep at least `h-11` / 44px touch height and use `touch-manipulation`.
+* Added explicit `min-h-11` and `touch-manipulation` to homepage mobile navigation/search links and large card links in `frontend/app/routes/home.tsx`.
+* Added explicit `min-h-11` and `touch-manipulation` to discover view toggles, filter chips, clear button, checkbox labels, preview title buttons, card image buttons, and enter links in `frontend/app/routes/discover.tsx`.
+* Added `frontend/scripts/mobile-touch-targets-test.mjs` and wired it into `npm --prefix .\frontend test`.
+
+Verification:
+
+* RED: `node .\frontend\scripts\mobile-touch-targets-test.mjs` failed before implementation because `Button` small variant used `h-9`.
+* GREEN: `node .\frontend\scripts\mobile-touch-targets-test.mjs`: exit 0, `mobile-touch-targets-test: ok`.
+* `npm --prefix .\frontend run typecheck`: exit 0.
+* `npm --prefix .\frontend test`: exit 0; all script tests ok including `mobile-touch-targets-test`.
+* `npm --prefix .\frontend run build`: exit 0; React Router/Vite production build completed.
+* Browser screenshot check from local dev server:
+  * `artifacts/dev-server/home-compact-mobile.png` (390x844) confirms homepage top nav/search/buttons remain usable and visually stable.
+  * `artifacts/dev-server/discover-mobile.png` (390x844) confirms discover header/toggle/create CTA remain readable; backend was not running, so the screen showed the existing API unavailable fallback while still validating mobile layout.
+
+Deferred:
+
+* Full 320px audit across tavern detail, chat, and owner pages remains for later slices in this task.
+* PWA/offline support remains out of scope for this slice.

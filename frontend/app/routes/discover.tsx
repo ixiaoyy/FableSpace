@@ -193,7 +193,7 @@ function ViewModeToggle({ activeViewMode, onChange }: { activeViewMode: Discover
             type="button"
             aria-pressed={active}
             onClick={() => onChange(item.mode)}
-            className={`inline-flex items-center justify-center gap-2 rounded-xl px-3 py-2 text-xs font-black transition ${
+            className={`inline-flex min-h-11 touch-manipulation items-center justify-center gap-2 rounded-xl px-3 py-2 text-xs font-black transition ${
               active
                 ? "bg-cyan-300/16 text-cyan-100 shadow-[0_0_22px_rgba(0,214,201,0.16)]"
                 : "text-violet-100/54 hover:bg-white/8 hover:text-white"
@@ -241,7 +241,7 @@ function FilterPanel({
           <button
             type="button"
             onClick={onClear}
-            className="flex items-center gap-1 rounded-full border border-white/10 px-2.5 py-1 text-xs text-violet-100/70 transition hover:border-rose-300/40 hover:text-rose-300"
+            className="flex min-h-11 touch-manipulation items-center gap-1 rounded-full border border-white/10 px-3 py-2 text-xs text-violet-100/70 transition hover:border-rose-300/40 hover:text-rose-300"
           >
             <X className="h-3 w-3" />
             清空
@@ -271,7 +271,7 @@ function FilterPanel({
                 key={type.id}
                 type="button"
                 onClick={() => onTogglePlaceType(type.id)}
-                className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-bold transition ${
+                className={`inline-flex min-h-11 touch-manipulation items-center gap-1.5 rounded-full border px-3 py-2 text-xs font-bold transition ${
                   active
                     ? "border-cyan-300/40 bg-cyan-300/12 text-cyan-100"
                     : "border-white/10 text-violet-100/60 hover:border-cyan-300/30 hover:text-cyan-100"
@@ -296,7 +296,7 @@ function FilterPanel({
                 key={category.label}
                 type="button"
                 onClick={() => onToggleCategory(category.label)}
-                className={`rounded-full border px-3 py-1.5 text-xs font-bold transition ${
+                className={`inline-flex min-h-11 touch-manipulation items-center rounded-full border px-3 py-2 text-xs font-bold transition ${
                   active
                     ? category.color
                     : "border-white/10 text-violet-100/60 hover:border-white/25 hover:text-white/80"
@@ -310,7 +310,7 @@ function FilterPanel({
       </div>
 
       <div className="flex flex-wrap gap-3">
-        <label className="flex cursor-pointer items-center gap-2 text-xs text-violet-100/70">
+        <label className="flex min-h-11 cursor-pointer touch-manipulation items-center gap-2 text-xs text-violet-100/70">
           <input
             type="checkbox"
             checked={publicOnly}
@@ -319,7 +319,7 @@ function FilterPanel({
           />
           仅公开
         </label>
-        <label className="flex cursor-pointer items-center gap-2 text-xs text-violet-100/70">
+        <label className="flex min-h-11 cursor-pointer touch-manipulation items-center gap-2 text-xs text-violet-100/70">
           <input
             type="checkbox"
             checked={openOnly}
@@ -370,7 +370,7 @@ function RadarSignalCard({ tavern, index, onPreview }: { tavern: Tavern; index: 
             <button
               type="button"
               onClick={() => onPreview(tavern)}
-              className={`min-w-0 text-left font-black transition group-hover:text-cyan-100 ${isClosed ? "text-white/50" : "text-white"}`}
+              className={`min-h-11 min-w-0 touch-manipulation text-left font-black transition group-hover:text-cyan-100 ${isClosed ? "text-white/50" : "text-white"}`}
             >
               {tavern.name}
             </button>
@@ -402,7 +402,7 @@ function RadarSignalCard({ tavern, index, onPreview }: { tavern: Tavern; index: 
             {tavernWithTimeStatus.local_time_display ? (
               <span>{isClosed ? "已熄灯" : "亮起中"} · {tavernWithTimeStatus.local_time_display}</span>
             ) : null}
-            <Link to={`/tavern/${tavern.id}`} className="ml-auto inline-flex items-center gap-1 rounded-full border border-cyan-300/22 px-3 py-1 font-bold text-cyan-100 transition hover:bg-cyan-300/12">
+            <Link to={`/tavern/${tavern.id}`} className="ml-auto inline-flex min-h-11 touch-manipulation items-center gap-1 rounded-full border border-cyan-300/22 px-4 py-2 font-bold text-cyan-100 transition hover:bg-cyan-300/12">
               进入
               <ArrowRight className="h-3 w-3" />
             </Link>
@@ -420,7 +420,7 @@ function ResultCard({ tavern, index, onPreview }: { tavern: Tavern; index: numbe
 
   return (
     <article className="group overflow-hidden rounded-[1.75rem] border border-white/10 bg-slate-950/78 transition hover:-translate-y-0.5 hover:border-cyan-300/45">
-      <button type="button" onClick={() => onPreview(tavern)} className="relative block h-52 w-full overflow-hidden text-left sm:h-60">
+      <button type="button" onClick={() => onPreview(tavern)} className="relative block h-52 w-full touch-manipulation overflow-hidden text-left sm:h-60">
         <img
           src={coverForIndex(index)}
           alt=""
