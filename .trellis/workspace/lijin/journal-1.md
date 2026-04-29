@@ -193,3 +193,48 @@ Verification:
 ### Next Steps
 
 - None - task complete
+
+
+## Session 5: Archive public welfare NPC polish
+
+**Date**: 2026-04-29
+**Task**: Archive public welfare NPC polish
+**Branch**: `main`
+
+### Summary
+
+(Add summary)
+
+### Main Changes
+
+| Item | Summary |
+|------|---------|
+| Trellis task | Archived `04-29-04-29-public-welfare-polish` after user confirmation. |
+| NPC assets | Re-verified 10 public-welfare NPCs × 5 expressions exist under `frontend/public/assets/npcs/` and are valid PNG files. |
+| Tests | Focused public-welfare tavern/gameplay tests passed: 20 passed. |
+| Build | Backend compile check and frontend production build passed. |
+
+**Verification commands**:
+- `C:\Users\phpxi\miniconda3\python.exe -m pytest -q --tb=short tests/test_default_public_welfare_taverns.py tests/test_default_public_welfare_gameplays.py` → 20 passed
+- `C:\Users\phpxi\miniconda3\python.exe -m compileall -q backend/src` → passed
+- `npm --prefix .\frontend run build` → passed
+- Asset audit: 50/50 target PNGs present, 0 missing, 0 bad PNG headers
+
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `fef2439` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
