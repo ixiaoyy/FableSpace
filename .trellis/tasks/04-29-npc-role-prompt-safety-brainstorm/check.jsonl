@@ -1,0 +1,5 @@
+{"file": ".trellis/workflow.md", "reason": "Project workflow and completion rules"}
+{"file": "docs/WORLD_SCHEMA.md", "reason": "Verify no schema drift if implementation follows"}
+{"file": "docs/WHAT_NOT_TO_BUILD.md", "reason": "Verify product boundaries and out-of-scope constraints"}
+{"file": "docs/FABLEMAP_TAVERN_PLATFORM.md", "reason": "Verify cyber tavern product line and owner sovereignty"}
+{"file": ".trellis/tasks/04-29-npc-role-prompt-safety-brainstorm/context-memory.md", "reason": "Condensed brainstorm handoff memory"}

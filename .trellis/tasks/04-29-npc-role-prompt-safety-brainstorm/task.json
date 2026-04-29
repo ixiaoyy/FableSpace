@@ -1,0 +1,82 @@
+{
+  "id": "npc-role-prompt-safety-brainstorm",
+  "name": "npc-role-prompt-safety-brainstorm",
+  "title": "brainstorm: NPC role prompt safety and tavern persona templates",
+  "description": "Brainstorm safer TavernCharacter persona guidance from a user-provided catgirl prompt sample while preserving owner sovereignty, SillyTavern-compatible fields, and FableMap product boundaries.",
+  "status": "planning",
+  "dev_type": "docs",
+  "scope": null,
+  "package": null,
+  "priority": "P2",
+  "creator": "lijin",
+  "assignee": "lijin",
+  "createdAt": "2026-04-29",
+  "completedAt": null,
+  "branch": null,
+  "base_branch": "main",
+  "worktree_path": null,
+  "current_phase": 0,
+  "next_action": [
+    {
+      "phase": 1,
+      "action": "brainstorm"
+    },
+    {
+      "phase": 2,
+      "action": "research"
+    },
+    {
+      "phase": 3,
+      "action": "implement"
+    },
+    {
+      "phase": 4,
+      "action": "check"
+    },
+    {
+      "phase": 5,
+      "action": "update-spec"
+    },
+    {
+      "phase": 6,
+      "action": "record-session"
+    }
+  ],
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [
+    "04-29-state-cards-for-tavern-continuity",
+    "04-29-tavern-skill-packs-mvp",
+    "04-30-preset-import-preview-safe-converter"
+  ],
+  "parent": null,
+  "relatedFiles": [
+    "prd.md",
+    "context-memory.md",
+    "implement.jsonl",
+    "check.jsonl",
+    "debug.jsonl"
+  ],
+  "notes": "Brainstorm expanded with NanoMate market reference: character card=soul, preset=voice, skills=actions; adds Tavern Skill Packs as second-track after State Cards.",
+  "meta": {
+    "options": [
+      "state-cards-for-tavern-continuity",
+      "preset-import-preview-safe-converter",
+      "tavern-skill-packs-mvp",
+      "visual-souvenir-shared-moment-generator",
+      "voice-greeting-tts-pack",
+      "tavern-gm-layer-structured-conflict-candidates",
+      "serial-novel-export-episode-builder",
+      "multi-npc-group-tavern-future"
+    ],
+    "recommended": "state-cards-canon-ledger first; tavern-skill-packs second",
+    "references": [
+      "https://linux.do/t/topic/1628850",
+      "https://github.com/shenmintao/NanoMate",
+      "https://cdn3.ldstatic.com/original/4X/c/d/c/cdc3174b822f1380140fd1fdd3aa225648423f6a.txt",
+      "user-provided AI tavern gameplay reflection and screenshots"
+    ],
+    "principle": "State Cards make the tavern remember; Skill Packs let the tavern act."
+  }
+}

@@ -1,0 +1,105 @@
+{
+  "id": "tavern-skill-packs-mvp",
+  "name": "tavern-skill-packs-mvp",
+  "title": "Tavern Skill Packs MVP",
+  "description": "Design and implement an owner-visible opt-in Tavern Skill Packs MVP so NPCs can expose small explicit tavern capabilities, starting with a local-rumor pack, without silently changing character identity, durable canon, provider settings, or visitor privacy.",
+  "status": "review",
+  "dev_type": "fullstack",
+  "scope": "fullstack",
+  "package": null,
+  "priority": "P2",
+  "creator": "lijin",
+  "assignee": "lijin",
+  "createdAt": "2026-04-29",
+  "completedAt": null,
+  "branch": null,
+  "base_branch": "main",
+  "worktree_path": null,
+  "current_phase": 5,
+  "next_action": [
+    {
+      "phase": 1,
+      "action": "brainstorm"
+    },
+    {
+      "phase": 2,
+      "action": "research"
+    },
+    {
+      "phase": 3,
+      "action": "implement"
+    },
+    {
+      "phase": 4,
+      "action": "check"
+    },
+    {
+      "phase": 5,
+      "action": "update-spec"
+    },
+    {
+      "phase": 6,
+      "action": "record-session"
+    }
+  ],
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [],
+  "parent": "04-29-npc-role-prompt-safety-brainstorm",
+  "relatedFiles": [
+    ".trellis/spec/backend/index.md",
+    ".trellis/spec/backend/skill-pack-api-contract.md",
+    ".trellis/spec/frontend/index.md",
+    ".trellis/spec/frontend/skill-pack-ui-boundary.md",
+    ".trellis/tasks/04-29-tavern-skill-packs-mvp/implementation-note-2026-04-29.md",
+    ".trellis/tasks/04-29-tavern-skill-packs-mvp/implementation-plan.md",
+    ".trellis/tasks/04-29-tavern-skill-packs-mvp/prd.md",
+    "README.md",
+    "backend/src/fablemap_api/api/v1/router.py",
+    "backend/src/fablemap_api/api/v1/skill_packs.py",
+    "backend/src/fablemap_api/application/services/packages.py",
+    "backend/src/fablemap_api/application/services/rumor.py",
+    "backend/src/fablemap_api/application/services/runtime.py",
+    "backend/src/fablemap_api/application/services/skill_packs.py",
+    "backend/src/fablemap_api/core/skill_packs.py",
+    "backend/src/fablemap_api/core/tavern.py",
+    "backend/src/fablemap_api/infrastructure/migrate.py",
+    "backend/src/fablemap_api/infrastructure/models.py",
+    "backend/src/fablemap_api/infrastructure/mysql_store.py",
+    "backend/tests/test_v1_skill_packs.py",
+    "docs/ARCHITECTURE.md",
+    "docs/WORLD_SCHEMA.md",
+    "frontend/app/lib/taverns.ts",
+    "frontend/app/product/OwnerConsoleSections.jsx",
+    "frontend/app/product/SkillPackManager.jsx",
+    "frontend/app/product/TavernOwnerPanel.jsx",
+    "frontend/app/product/services/tavernService.js",
+    "frontend/app/product/styles.css",
+    "frontend/package.json",
+    "frontend/scripts/skill-packs-test.mjs",
+    "tests/test_tavern_skill_packs.py"
+  ],
+  "notes": "MVP implemented and verified. Awaiting review/human testing.",
+  "meta": {
+    "implemented_mvp": [
+      "skill-pack-settings",
+      "local-rumor",
+      "owner-ui"
+    ],
+    "deferred_not_done": [
+      "revisit-care",
+      "visual-souvenir",
+      "proactive-notifications",
+      "image-audio-generation"
+    ],
+    "verification": {
+      "backend_compile": "py -3 -m compileall -q backend/src",
+      "backend_targeted": "12 passed",
+      "backend_full": "507 passed, 103 warnings",
+      "frontend_test": "passed",
+      "frontend_typecheck": "passed",
+      "frontend_build": "passed"
+    }
+  }
+}

@@ -1,1 +1,2 @@
-{"file": ".claude/commands/trellis/check.md", "reason": "Code quality check spec"}
+{"file": ".trellis/spec/frontend/quality-guidelines.md", "reason": "Debug frontend build/typecheck failures"}
+{"file": ".trellis/spec/frontend/type-safety.md", "reason": "Debug frontend type contract failures"}

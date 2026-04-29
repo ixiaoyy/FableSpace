@@ -1,0 +1,4 @@
+{"file": ".trellis/spec/frontend/quality-guidelines.md", "reason": "Frontend build/test requirements"}
+{"file": ".trellis/spec/frontend/component-guidelines.md", "reason": "Quest guide route visual, CTA, mobile, and empty-state contract"}
+{"file": ".trellis/spec/frontend/type-safety.md", "reason": "Quest helper normalizes dynamic tavern payloads"}
+{"file": "docs/WHAT_NOT_TO_BUILD.md", "reason": "Verify quest MVP avoids traditional RPG, ranking, billing, and social scope"}

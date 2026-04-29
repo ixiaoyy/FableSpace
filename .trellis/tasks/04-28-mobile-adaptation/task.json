@@ -3,7 +3,7 @@
   "name": "04-28-mobile-adaptation",
   "title": "Mobile Adaptation - 移动端适配",
   "description": "优化移动端用户体验，包括响应式布局、触摸优化、PWA支持。",
-  "status": "review",
+  "status": "completed",
   "dev_type": "frontend",
   "scope": "mobile",
   "package": null,

@@ -8,8 +8,8 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-1.md`
-- **Total Sessions**: 5
-- **Last Active**: 2026-04-29
+- **Total Sessions**: 6
+- **Last Active**: 2026-04-30
 <!-- @@@/auto:current-status -->
 
 ---
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-1.md` | ~240 | Active |
+| `journal-1.md` | ~490 | Active |
 <!-- @@@/auto:active-documents -->
 
 ---
@@ -29,6 +29,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 6 | 2026-04-30 | StateCard MVP review — already implemented, all tests pass | - | `main` |
 | 5 | 2026-04-29 | Archive public welfare NPC polish | `fef2439` | `main` |
 | 4 | 2026-04-29 | PC Discover polish and Catbell NPC | `0a38f66`, `95785d8`, `bc59194`, `8c9ffba`, `c00708e`, `097ea75` | `main` |
 | 3 | 2026-04-27 | 酒馆发现增强 — 分类浏览与搜索 | - | `main` |

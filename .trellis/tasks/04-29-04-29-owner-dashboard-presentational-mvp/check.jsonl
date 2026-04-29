@@ -1,2 +1,4 @@
-{"file": ".claude/commands/trellis/finish-work.md", "reason": "Finish work checklist"}
-{"file": ".claude/commands/trellis/check.md", "reason": "Code quality check spec"}
+{"file": ".trellis/spec/frontend/quality-guidelines.md", "reason": "Frontend quality and verification requirements"}
+{"file": ".trellis/spec/frontend/component-guidelines.md", "reason": "Owner dashboard visual hierarchy, CTA, mobile, and accessibility contract"}
+{"file": ".trellis/spec/frontend/type-safety.md", "reason": "Owner route service/helper payload and typecheck contract"}
+{"file": ".trellis/spec/frontend/state-management.md", "reason": "Dashboard aggregates loader state without new global state"}

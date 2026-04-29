@@ -3,7 +3,7 @@
   "name": "04-28-notification-system",
   "title": "Notification System - 通知系统",
   "description": "实时通知系统，通过WebSocket向用户推送重要事件通知。",
-  "status": "review",
+  "status": "completed",
   "dev_type": "backend",
   "scope": "notification",
   "package": null,

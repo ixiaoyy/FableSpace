@@ -1,0 +1,6 @@
+{"file": ".trellis/workflow.md", "reason": "Project workflow and conventions"}
+{"file": ".trellis/spec/backend/index.md", "reason": "Backend development guide"}
+{"file": ".trellis/spec/frontend/index.md", "reason": "Frontend development guide"}
+{"file": ".trellis/spec/frontend/component-guidelines.md", "reason": "Quest guide route visual and mobile-safe UI contract"}
+{"file": ".trellis/spec/frontend/type-safety.md", "reason": "Quest guide helper normalizes dynamic tavern payloads"}
+{"file": "docs/WHAT_NOT_TO_BUILD.md", "reason": "Quest MVP must avoid traditional RPG, ranking, billing, and social scope"}

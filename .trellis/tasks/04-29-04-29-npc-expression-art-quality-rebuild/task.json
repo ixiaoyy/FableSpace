@@ -3,7 +3,7 @@
   "name": "04-29-npc-expression-art-quality-rebuild",
   "title": "NPC Expression Art Quality Rebuild",
   "description": "Mark low-quality public-welfare NPC expression assets, regenerate real tavern-themed expression sprites, and complete visual asset rework for place atmosphere images, faction emblems, and TavernInterior integration.",
-  "status": "in_progress",
+  "status": "review",
   "dev_type": "frontend",
   "scope": "npc-art-assets",
   "package": null,
@@ -15,7 +15,7 @@
   "branch": null,
   "base_branch": "main",
   "worktree_path": null,
-  "current_phase": 3,
+  "current_phase": 4,
   "next_action": [
     {
       "phase": 1,
@@ -56,7 +56,7 @@
     "frontend/app/product/TavernInterior.jsx",
     "docs/IMAGE_ASSETS_SPEC.md"
   ],
-  "notes": "Visual acceptance report added mandatory rework: generate 10 place atmosphere images, add 5 faction emblems, wire TavernInterior to project-local atmosphere assets, and continue unfinished NPC expression asset cleanup/regeneration.",
+  "notes": "Visual acceptance report added mandatory rework: generate 10 place atmosphere images, add 5 faction emblems, wire TavernInterior to project-local atmosphere assets, and continue unfinished NPC expression asset cleanup/regeneration. Trellis check/finish pass completed; validation commands pass; awaiting human visual review of contact sheets.",
   "meta": {
     "visual_acceptance_rework_added_at": "2026-04-29",
     "visual_acceptance_required_assets": {
@@ -79,6 +79,15 @@
         "emblem-memory.svg",
         "emblem-night.svg"
       ]
+    },
+    "ready_for_review_at": "2026-04-29",
+    "latest_verification": {
+      "task_context_validate": "passed",
+      "frontend_typecheck": "passed",
+      "frontend_build": "passed",
+      "frontend_test": "passed",
+      "default_public_welfare_pytest": "19 passed",
+      "backend_compileall": "passed"
     }
   }
 }

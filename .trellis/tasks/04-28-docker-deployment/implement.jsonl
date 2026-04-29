@@ -1,0 +1,8 @@
+{"file": ".trellis/workflow.md", "reason": "Project workflow and conventions"}
+{"file": ".trellis/spec/backend/index.md", "reason": "Backend development guide"}
+{"file": ".trellis/spec/frontend/index.md", "reason": "Frontend development guide"}
+{"file": ".trellis/spec/backend/quality-guidelines.md", "reason": "Docker backend command and validation must follow no-new-dependency/project checks"}
+{"file": ".trellis/spec/frontend/quality-guidelines.md", "reason": "Frontend build artifact and npm verification for Docker image"}
+{"file": "README.md", "reason": "Existing local startup and deployment docs to extend"}
+{"file": "docker-compose.yml", "reason": "Compose service contract"}
+{"file": "backend/src/fablemap_api/infrastructure/settings.py", "reason": "Native backend Docker env configuration"}

@@ -3,7 +3,7 @@
   "name": "04-28-test-coverage",
   "title": "Frontend & Backend Test Coverage Improvement",
   "description": "Improve test coverage for frontend components and backend core logic.",
-  "status": "in_progress",
+  "status": "review",
   "dev_type": "fullstack",
   "scope": "testing",
   "package": null,
@@ -15,7 +15,7 @@
   "branch": null,
   "base_branch": "main",
   "worktree_path": null,
-  "current_phase": 0,
+  "current_phase": 4,
   "next_action": [
     {
       "phase": 1,
@@ -48,10 +48,29 @@
   "children": [],
   "parent": null,
   "relatedFiles": [
+    ".trellis/tasks/04-28-test-coverage/acceptance-checklist-2026-04-29.md",
+    ".trellis/tasks/04-28-test-coverage/implementation-note-2026-04-29.md",
+    "backend/tests/",
     "frontend/scripts/",
     "tests/",
-    "backend/tests/"
+    "tests/test_char_card_parser.py",
+    "tests/test_llm_clients.py"
   ],
-  "notes": "",
-  "meta": {}
+  "notes": "Added dependency-free backend core tests for char_card_parser and llm_clients; full pytest and frontend node script suite pass. Coverage tooling/component/E2E dependencies deferred pending explicit approval.",
+  "meta": {
+    "implemented_slice": "dependency-free backend core coverage plus existing frontend service-script validation",
+    "deferred_not_done": [
+      "pytest-cov coverage percentage gates require dependency approval",
+      "hypothesis property-based tests require dependency approval",
+      "Vitest/React Testing Library component tests require dependency approval",
+      "Playwright E2E tests require dependency approval and explicit browser-test scope"
+    ],
+    "verification": [
+      "py -3 -m pytest -q tests/test_char_card_parser.py tests/test_llm_clients.py --tb=short -> 13 passed",
+      "py -3 -m compileall -q backend/src -> passed",
+      "npm --prefix .\\frontend test -> passed",
+      "py -3 -m pytest -q --tb=short -> 498 passed, 103 warnings",
+      "py -3 .\\.trellis\\scripts\\task.py validate .trellis/tasks/04-28-test-coverage -> passed"
+    ]
+  }
 }

@@ -3,7 +3,7 @@
   "name": "04-28-place-type-expansion",
   "title": "Place Type Expansion - 地点类型扩展",
   "description": "扩展地点类型，从单一酒馆扩展到咖啡店、奶茶店、书店等多种现实地点。",
-  "status": "review",
+  "status": "completed",
   "dev_type": "fullstack",
   "scope": "place-type",
   "package": null,

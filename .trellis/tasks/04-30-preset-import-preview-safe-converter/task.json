@@ -1,0 +1,87 @@
+{
+  "id": "preset-import-preview-safe-converter",
+  "name": "preset-import-preview-safe-converter",
+  "title": "Preset Import Preview Safe Converter",
+  "description": "Implement a draft-only preset import preview and risk report for SillyTavern-style/community prompt preset JSON: classify supported style/runtime modules, blocked unsafe modules, and warnings without applying anything to live tavern state.",
+  "status": "review",
+  "dev_type": "fullstack",
+  "scope": null,
+  "package": null,
+  "priority": "P2",
+  "creator": "lijin",
+  "assignee": "lijin",
+  "createdAt": "2026-04-30",
+  "completedAt": null,
+  "branch": null,
+  "base_branch": "main",
+  "worktree_path": null,
+  "current_phase": 4,
+  "next_action": [
+    {
+      "phase": 1,
+      "action": "brainstorm"
+    },
+    {
+      "phase": 2,
+      "action": "research"
+    },
+    {
+      "phase": 3,
+      "action": "implement"
+    },
+    {
+      "phase": 4,
+      "action": "check"
+    },
+    {
+      "phase": 5,
+      "action": "update-spec"
+    },
+    {
+      "phase": 6,
+      "action": "record-session"
+    }
+  ],
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [],
+  "parent": "04-29-npc-role-prompt-safety-brainstorm",
+  "relatedFiles": [
+    ".trellis/spec/backend/preset-import-preview-contract.md",
+    ".trellis/spec/frontend/preset-import-preview-ui-boundary.md",
+    "README.md",
+    "backend/src/fablemap_api/api/v1/owner_config.py",
+    "backend/src/fablemap_api/application/services/owner_config.py",
+    "backend/src/fablemap_api/contracts/owner_config.py",
+    "backend/src/fablemap_api/core/preset_import.py",
+    "backend/tests/test_v1_preset_import_preview.py",
+    "docs/ARCHITECTURE.md",
+    "docs/changes/2026-04-30-preset-import-preview.md",
+    "frontend/app/lib/taverns.ts",
+    "frontend/app/product/OwnerConsoleSections.jsx",
+    "frontend/app/product/PresetImportPreviewModal.jsx",
+    "frontend/app/product/TavernOwnerPanel.jsx",
+    "frontend/app/product/services/tavernService.js",
+    "frontend/app/product/styles.css",
+    "frontend/package.json",
+    "frontend/scripts/preset-import-preview-test.mjs",
+    "tests/test_preset_import_preview.py"
+  ],
+  "notes": "Implemented draft-only preset import preview/risk report; verification passed (focused backend, full pytest, frontend test/typecheck/build).",
+  "meta": {
+    "verification": {
+      "focused_backend": "py -3 -m pytest -q tests/test_preset_import_preview.py backend/tests/test_v1_preset_import_preview.py --tb=short -> 5 passed",
+      "backend_compile": "py -3 -m compileall -q backend/src -> passed",
+      "backend_full": "py -3 -m pytest -q --tb=short -> 512 passed, 103 warnings",
+      "frontend_script": "node .\\frontend\\scripts\\preset-import-preview-test.mjs -> ok",
+      "frontend_test": "npm --prefix .\\frontend test -> passed",
+      "frontend_typecheck": "npm --prefix .\\frontend run typecheck -> passed",
+      "frontend_build": "npm --prefix .\\frontend run build -> passed"
+    },
+    "deferred_not_done": [
+      "Applying imported presets to live tavern fields remains out of scope.",
+      "Persistent preset library and file upload UI remain out of scope."
+    ]
+  }
+}
