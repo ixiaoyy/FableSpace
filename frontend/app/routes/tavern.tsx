@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react"
 import { Link, useLoaderData } from "react-router"
 
 import { TavernLayoutShowcase } from "../features/tavern-layout-showcase"
+import { NeighborhoodRumorBubble } from "../components/NeighborhoodRumorBubble"
 import { buildCreatorConversionLink, buildCreatorProfileLink } from "../lib/creator-conversion.js"
 import { buildTavernShareDisplay, buildTavernSharePayload } from "../lib/tavern-share.js"
 import {
@@ -598,6 +599,13 @@ export default function TavernRoute() {
       ) : null}
 
       {tavern ? <PlaceHomePanel tavern={tavern} /> : null}
+
+      {/* Neighborhood Rumors */}
+      {tavern ? (
+        <div className="mt-6">
+          <NeighborhoodRumorBubble tavernId={tavern.id} limit={3} />
+        </div>
+      ) : null}
     </ProductShell>
   )
 }

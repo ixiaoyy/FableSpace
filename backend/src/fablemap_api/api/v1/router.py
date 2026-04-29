@@ -6,6 +6,7 @@ from . import affinity, characters, chat, gameplay, memories, notifications, own
 from .packages import packages_router, taverns_router as package_taverns_router
 from .system import router as system_router
 from .taverns import router as taverns_router
+from . import rumors
 
 api_router = APIRouter(prefix="/api/v1")
 api_router.include_router(system_router, tags=["system"])
@@ -29,3 +30,4 @@ api_router.include_router(public_bond.types_router)
 api_router.include_router(worldinfo.router)
 api_router.include_router(utilities.router)
 api_router.include_router(notifications.router)
+api_router.include_router(rumors.router)

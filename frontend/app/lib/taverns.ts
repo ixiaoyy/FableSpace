@@ -1433,3 +1433,72 @@ export function replyTavernMessage(
     jsonInit("POST", data, userId),
   )
 }
+
+// ─────────────────────────────────────────
+// Neighborhood Rumors
+// ─────────────────────────────────────────
+
+export type NeighborhoodRumor = {
+  id: string
+  source_tavern_id: string
+  target_tavern_id: string
+  target_tavern_name: string
+  character_id: string
+  character_name: string
+  rumor_text: string
+  trigger_type: string
+  trigger_keywords: string[]
+  weight: number
+  created_at: string
+  expires_at: string | null
+  view_count: number
+  click_count: number
+}
+
+export type RumorListResponse = {
+  rumors: NeighborhoodRumor[]
+  count: number
+}
+
+export function listRumors(options: {
+  source_tavern_id?: string
+  limit?: number
+  include_expired?: boolean
+}) {
+  const params = new URLSearchParams()
+  if (options.source_tavern_id) params.set("source_tavern_id", options.source_tavern_id)
+  if (options.limit) params.set("limit", String(options.limit))
+  if (options.include_expired) params.set("include_expired", "true")
+  const query = params.toString() ? `?${params.toString()}` : ""
+
+  return readApiJson<RumorListResponse>(`/api/v1/rumors${query}`)
+}
+
+export function generateRumor(data: {
+  source_tavern_id: string
+  target_tavern_id: string
+  target_tavern_name: string
+  character_id: string
+  character_name: string
+  trigger_type?: string
+  trigger_keywords?: string[]
+}) {
+  return readApiJson<{ ok: boolean; rumor: NeighborhoodRumor }>(
+    "/api/v1/rumors/generate",
+    jsonInit("POST", data, DEFAULT_OWNER_ID),
+  )
+}
+
+export function recordRumorView(rumorId: string) {
+  return readApiJson<{ ok: boolean; view_count: number }>(
+    `/api/v1/rumors/${encodeURIComponent(rumorId)}/view`,
+    { method: "POST" },
+  )
+}
+
+export function recordRumorClick(rumorId: string) {
+  return readApiJson<{ ok: boolean; click_count: number }>(
+    `/api/v1/rumors/${encodeURIComponent(rumorId)}/click`,
+    { method: "POST" },
+  )
+}
