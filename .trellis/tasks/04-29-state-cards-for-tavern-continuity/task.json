@@ -45,7 +45,9 @@
   "commit": null,
   "pr_url": null,
   "subtasks": [],
-  "children": [],
+  "children": [
+    "04-30-state-card-prompt-injection-sc-03"
+  ],
   "parent": "04-29-npc-role-prompt-safety-brainstorm",
   "relatedFiles": [
     "prd.md",

@@ -46,7 +46,19 @@
   "pr_url": null,
   "subtasks": [],
   "children": [
-    "04-29-04-29-owner-dashboard-presentational-mvp"
+    "04-29-04-29-owner-dashboard-presentational-mvp",
+    "04-30-create-tavern-step-wizard-mvp",
+    "04-30-tavern-discovery-experience-polish-mvp",
+    "04-30-worldinfo-visual-editor-modern-mvp",
+    "04-30-npc-batch-import-background-cast-mvp",
+    "04-30-owner-ai-dialogue-preview-simulator",
+    "04-30-gameplay-template-library-for-owners",
+    "04-30-owner-token-usage-reference-status",
+    "04-30-notification-center-presentational-followup",
+    "04-30-mobile-critical-flow-first-screen-polish",
+    "04-30-tavern-activity-signals-without-social-network",
+    "04-30-home-real-coordinate-governance-review",
+    "04-30-quest-exploration-checklist-reframe"
   ],
   "parent": null,
   "relatedFiles": [],

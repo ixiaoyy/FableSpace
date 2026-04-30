@@ -358,3 +358,31 @@ interface TavernMetrics {
 2. 设计数据模型
 3. 实现 MVP
 4. 用户反馈迭代
+
+## 2026-04-30 Trellis 拆解更新
+
+已从“下一轮最适合认领的实现候选”继续拆出：
+
+| 子任务 | 优先级 | 状态 | 说明 |
+|---|---:|---|---|
+| `04-30-create-tavern-step-wizard-mvp` | P1 | planning → claimed by lijin | 认领本轮开发；把 `/create` 升级为分步开店向导，不改 Schema/API。 |
+| `04-30-tavern-discovery-experience-polish-mvp` | P2 | planning | 暂缓；后续改善 `/discover` 浏览卡片和筛选体验。 |
+
+选择顺序：Owner Dashboard 表现化 MVP 已在 review，因此本轮优先开发 Create Tavern 分步向导；Discovery Polish 作为下一候选保留。
+
+## 2026-04-30 Backlog hardening: remaining planning split into child tasks
+
+为防止原始 brainstorm 里的规划遗失，以下未落盘/后续方向已拆成 Trellis 子任务（均为 planning，不代表已实现）：
+
+- `04-30-worldinfo-visual-editor-modern-mvp`
+- `04-30-npc-batch-import-background-cast-mvp`
+- `04-30-owner-ai-dialogue-preview-simulator`
+- `04-30-gameplay-template-library-for-owners`
+- `04-30-owner-token-usage-reference-status`
+- `04-30-notification-center-presentational-followup`
+- `04-30-mobile-critical-flow-first-screen-polish`
+- `04-30-tavern-activity-signals-without-social-network`
+- `04-30-home-real-coordinate-governance-review`
+- `04-30-quest-exploration-checklist-reframe`
+
+本轮之前已存在的子任务继续保留：Owner Dashboard、Create Wizard、Discovery Polish。

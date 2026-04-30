@@ -217,3 +217,9 @@ py -3 -m pytest -q backend/tests/test_v1_state_cards.py  # 1 passed
 - Cross-check for contradiction candidates in UI (already in `metadata.contradiction_candidate`)
 
 ## Out of Scope
+
+## 2026-04-30 Backlog hardening: SC-03 follow-up task
+
+`docs/AI_SHARED_TASKLIST.md` 中预留的 SC-03 状态卡 Prompt 注入已拆成 Trellis 子任务：
+
+- `04-30-state-card-prompt-injection-sc-03`

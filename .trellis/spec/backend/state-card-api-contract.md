@@ -72,3 +72,95 @@ Chat responses may include:
 py -3 -m pytest -q tests/test_tavern_state_cards.py backend/tests/test_v1_state_cards.py --tb=short
 py -3 -m compileall -q backend/src
 ```
+
+## Scenario: SC-03 Prompt Injection
+
+### 1. Scope / Trigger
+
+Use this contract when changing State Card prompt injection in:
+
+- `backend/src/fablemap_api/core/prompt_builder.py`
+- `backend/src/fablemap_api/core/prompt_blocks.py`
+- `backend/src/fablemap_api/core/state_cards.py`
+- `backend/src/fablemap_api/core/web/service.py` prompt preview / chat prompt construction
+- `backend/src/fablemap_api/application/services/owner_config.py` prompt preview construction
+
+### 2. Signatures
+
+```python
+PromptBuildConfig.state_cards: list[dict]
+format_state_cards_for_prompt(cards: list[StateCard]) -> str
+WebService._state_cards_for_prompt(tavern_id: str) -> list[dict[str, Any]]
+OwnerConfigApplicationMixin._state_cards_for_prompt(tavern_id: str) -> list[dict[str, Any]]
+```
+
+Prompt Block:
+
+```json
+{
+  "id": "state_cards",
+  "type": "state_cards",
+  "token_budget": 1000
+}
+```
+
+### 3. Contracts
+
+- Runtime chat prompt construction must load current tavern `_state_cards` from `TavernStore.list_state_cards(...)` and pass them into `PromptBuildConfig.state_cards`.
+- Owner prompt preview must use the same source so preview output reflects current confirmed fixed canon.
+- `PromptBuilder` is responsible for final filtering: only cards with `status == "confirmed"` and `fixed_canon == true` are rendered into the prompt.
+- Ordinary `confirmed` cards with `fixed_canon == false`, `pending`, `rejected`, and `superseded` cards must not appear in prompt text.
+- Prompt injection must not modify `Tavern`, `TavernCharacter`, `WorldInfoEntry`, access rules, LLM config, memories, or `_state_cards`.
+- The prompt text may include card title and observable summary only; do not include hidden prompts, chain-of-thought, API keys, or private keyvault contents.
+
+### 4. Validation & Error Matrix
+
+| Case | Expected |
+|------|----------|
+| confirmed + fixed_canon tavern card exists | Prompt contains card title and summary |
+| confirmed but fixed_canon=false card exists | Prompt does not contain that card |
+| pending + fixed_canon card exists | Prompt does not contain that card |
+| state-card store is empty/unavailable | Prompt builds without a state-card section |
+| card summary exceeds block budget | State-card block is truncated by `token_budget` |
+
+### 5. Good/Base/Bad Cases
+
+- Good: `WebService._build_tavern_character_prompt(...)` loads store state cards once, passes plain dicts to `PromptBuildConfig`, and lets `PromptBuilder` apply confirmed/fixed filters.
+- Base: `preview_prompt_blocks_payload(...)` uses the same state-card loading path, so owner preview and real chat are aligned.
+- Bad: adding state cards directly to public tavern payloads, exporting `_state_cards`, or rendering ordinary visitor confirmed cards as fixed tavern canon.
+
+### 6. Tests Required
+
+```powershell
+py -3 -m pytest -q tests/test_tavern_prompt_blocks.py tests/test_tavern_state_cards.py --tb=short
+py -3 -m compileall -q backend/src
+```
+
+Focused tests must assert:
+
+- Builder/block layer filters confirmed+fixed_canon.
+- Runtime chat prompt construction reads `_state_cards` from the store.
+- Ordinary confirmed non-fixed cards are absent from prompt text.
+
+### 7. Wrong vs Correct
+
+#### Wrong
+
+```python
+config = PromptBuildConfig(
+    world_info_entries=[...],
+    prompt_blocks=normalize_prompt_blocks(tavern.prompt_blocks),
+)
+```
+
+This leaves runtime chat unaware of `_state_cards`; unit tests that manually set `config.state_cards` will pass while real chat does not inject canon.
+
+#### Correct
+
+```python
+config = PromptBuildConfig(
+    world_info_entries=[...],
+    state_cards=self._state_cards_for_prompt(tavern_id),
+    prompt_blocks=normalize_prompt_blocks(tavern.prompt_blocks),
+)
+```

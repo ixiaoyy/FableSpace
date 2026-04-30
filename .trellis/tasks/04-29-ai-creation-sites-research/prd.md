@@ -19,3 +19,15 @@
 
 - 截图证据：`artifacts/research/ai-creation-sites/<site>/...png`
 - 调研笔记：`research.md`
+
+## 2026-04-30 Backlog hardening: research-derived tasks
+
+为避免参考调研中的产品想法遗失，以下规划已拆成 Trellis 子任务（均为 planning，不代表已实现）：
+
+- `04-30-public-site-reference-matrix-research`
+- `04-30-map-anchor-emotional-copy-polish`
+- `04-30-tavern-entry-surface-polish`
+- `04-30-ai-draft-lifecycle-status-ui`
+- `04-30-revisit-memory-feedback-surface`
+- `04-30-mobile-single-mainline-experience`
+- `04-30-discovery-liveliness-signals-rumor-guestbook`

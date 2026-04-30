@@ -1,5 +1,5 @@
-{"file": ".claude/commands/trellis/finish-work.md", "reason": "Finish work checklist"}
-{"file": ".claude/commands/trellis/check.md", "reason": "Code quality check spec"}
+{"file": ".agents/skills/finish-work/SKILL.md", "reason": "Finish work checklist"}
+{"file": ".agents/skills/check/SKILL.md", "reason": "Code quality check spec"}
 {"file": "docs/WORLD_SCHEMA.md", "reason": "Verify schema docs match backend/frontend payloads"}
 {"file": "docs/ARCHITECTURE.md", "reason": "Verify architecture docs updated for new endpoint"}
 {"file": "docs/FABLEMAP_TAVERN_PLATFORM.md", "reason": "Confirm product boundary is preserved"}
