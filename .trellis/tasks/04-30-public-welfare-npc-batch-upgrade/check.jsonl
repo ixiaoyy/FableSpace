@@ -1,0 +1,6 @@
+{"file": ".agents/skills/finish-work/SKILL.md", "reason": "Finish work checklist"}
+{"file": ".agents/skills/check/SKILL.md", "reason": "Code quality check spec"}
+{"file": ".trellis/spec/frontend/image-asset-guidelines.md", "reason": "Check generated asset placement/provenance"}
+{"file": ".trellis/spec/frontend/npc-art-guidelines.md", "reason": "Check sprite quality/style diversity rules"}
+{"file": ".trellis/spec/backend/database-guidelines.md", "reason": "Check seed/chat/runtime contract"}
+{"file": "tests/test_default_public_welfare_taverns.py", "reason": "Check focused public-welfare regression coverage"}

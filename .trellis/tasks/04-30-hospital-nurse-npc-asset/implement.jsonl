@@ -1,0 +1,5 @@
+{"file": ".trellis/workflow.md", "reason": "Project workflow and conventions"}
+{"file": ".trellis/spec/backend/index.md", "reason": "Backend development guide"}
+{"file": ".trellis/spec/frontend/index.md", "reason": "Frontend development guide"}
+{"file": ".trellis/spec/frontend/image-asset-guidelines.md", "reason": "Generated image asset placement and style extraction default"}
+{"file": ".trellis/spec/frontend/npc-art-guidelines.md", "reason": "Formal NPC art completion contract"}

@@ -1,0 +1,74 @@
+{
+  "id": "character-asset-prompt-skill",
+  "name": "character-asset-prompt-skill",
+  "title": "Character asset prompt skill",
+  "description": "Capture reusable character material prompt-generation patterns from visual style examples into a project Trellis skill/spec for FableMap NPC creation.",
+  "status": "review",
+  "dev_type": "docs",
+  "scope": null,
+  "package": null,
+  "priority": "P2",
+  "creator": "lijin",
+  "assignee": "lijin",
+  "createdAt": "2026-04-30",
+  "completedAt": null,
+  "branch": null,
+  "base_branch": "main",
+  "worktree_path": null,
+  "current_phase": 4,
+  "next_action": [
+    {
+      "phase": 1,
+      "action": "brainstorm"
+    },
+    {
+      "phase": 2,
+      "action": "research"
+    },
+    {
+      "phase": 3,
+      "action": "implement"
+    },
+    {
+      "phase": 4,
+      "action": "check"
+    },
+    {
+      "phase": 5,
+      "action": "update-spec"
+    },
+    {
+      "phase": 6,
+      "action": "record-session"
+    }
+  ],
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [],
+  "parent": null,
+  "relatedFiles": [
+    "prd.md",
+    ".agents/skills/generate-character-prompt/SKILL.md",
+    ".agents/skills/generate-character-prompt/references/prompt-templates.md",
+    ".agents/skills/generate-character-prompt/agents/openai.yaml",
+    ".trellis/spec/frontend/npc-art-guidelines.md",
+    ".agents/skills/generate-character-prompt/references/style-recipes.md",
+    ".agents/skills/image-style-prompt-extractor/SKILL.md",
+    ".agents/skills/image-style-prompt-extractor/agents/openai.yaml",
+    ".trellis/spec/frontend/image-asset-guidelines.md",
+    ".trellis/tasks/04-30-public-welfare-npc-batch-upgrade/",
+    ".trellis/tasks/04-30-public-welfare-npc-batch-upgrade/prd.md"
+  ],
+  "notes": "Captured user-provided prompt/style workflow as project Trellis skills/spec. Default material generation now uses image-style-prompt-extractor first; missing project styles should be added as full style recipes. No runtime code or image assets changed.",
+  "meta": {
+    "pending_review_note": "Skill/spec work is validated but still in review until human acceptance, commit, and record-session.",
+    "used_by_follow_up_task": ".trellis/tasks/04-30-public-welfare-npc-batch-upgrade/",
+    "species_diversity_rule": "Character prompt templates now include species/body-plan; no new schema fields.",
+    "species_diversity_verification": {
+      "generate_character_prompt_quick_validate": "passed",
+      "task_validate": "passed",
+      "runtime_tests": "not run; docs/skill/task rule update only"
+    }
+  }
+}

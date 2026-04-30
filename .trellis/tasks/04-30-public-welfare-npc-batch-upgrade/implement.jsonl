@@ -1,0 +1,8 @@
+{"file": ".trellis/workflow.md", "reason": "Project workflow and conventions"}
+{"file": ".trellis/spec/backend/index.md", "reason": "Backend development guide"}
+{"file": ".trellis/spec/frontend/index.md", "reason": "Frontend development guide"}
+{"file": ".trellis/spec/frontend/image-asset-guidelines.md", "reason": "Generated/rebuilt NPC assets must land in project paths with provenance and validation"}
+{"file": ".trellis/spec/frontend/npc-art-guidelines.md", "reason": "NPC sprites, expression sets, prompt style recipes, and style-extractor workflow"}
+{"file": ".trellis/spec/backend/database-guidelines.md", "reason": "Default public-welfare seed data, 3+ role contract, rules-backend chat contract"}
+{"file": "backend/src/fablemap_api/core/default_taverns.py", "reason": "Default public-welfare tavern and character seed source"}
+{"file": "tests/test_default_public_welfare_taverns.py", "reason": "Regression tests for public-welfare assets, role count, and chat"}

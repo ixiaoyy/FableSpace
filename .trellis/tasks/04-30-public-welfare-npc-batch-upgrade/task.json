@@ -1,0 +1,86 @@
+{
+  "id": "public-welfare-npc-batch-upgrade",
+  "name": "public-welfare-npc-batch-upgrade",
+  "title": "Public-welfare NPC batch visual and role upgrade",
+  "description": "Upgrade legacy default public-welfare NPCs in batches to reduce visual repetition, preserve style recipes, and keep every shop's multi-role chat experience fresh.",
+  "status": "planning",
+  "dev_type": "fullstack",
+  "scope": null,
+  "package": null,
+  "priority": "P2",
+  "creator": "lijin",
+  "assignee": "lijin",
+  "createdAt": "2026-04-30",
+  "completedAt": null,
+  "branch": null,
+  "base_branch": "main",
+  "worktree_path": null,
+  "current_phase": 1,
+  "next_action": [
+    {
+      "phase": 1,
+      "action": "brainstorm"
+    },
+    {
+      "phase": 2,
+      "action": "research"
+    },
+    {
+      "phase": 3,
+      "action": "implement"
+    },
+    {
+      "phase": 4,
+      "action": "check"
+    },
+    {
+      "phase": 5,
+      "action": "update-spec"
+    },
+    {
+      "phase": 6,
+      "action": "record-session"
+    }
+  ],
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [],
+  "parent": null,
+  "relatedFiles": [
+    "prd.md",
+    "backend/src/fablemap_api/core/default_taverns.py",
+    "frontend/public/assets/npcs/public-welfare/",
+    "artifacts/04-30-npc-asset-audit/",
+    "tests/test_default_public_welfare_taverns.py",
+    "tests/test_default_public_welfare_gameplays.py",
+    ".agents/skills/image-style-prompt-extractor/SKILL.md",
+    ".agents/skills/generate-character-prompt/references/style-recipes.md",
+    ".trellis/spec/backend/database-guidelines.md",
+    ".trellis/spec/frontend/image-asset-guidelines.md",
+    ".trellis/spec/frontend/npc-art-guidelines.md",
+    ".trellis/tasks/04-30-hospital-nurse-npc-asset/prd.md",
+    ".trellis/tasks/04-30-character-asset-prompt-skill/prd.md",
+    ".agents/skills/generate-character-prompt/SKILL.md",
+    ".agents/skills/generate-character-prompt/references/prompt-templates.md"
+  ],
+  "notes": "Follow-up task created from current session unresolved scope: audit and batch-upgrade legacy default public-welfare NPC visuals/roles, using image-style-prompt-extractor by default, preserving full style recipes, keeping every shop at 3+ chat-capable roles. Hospital trio is the new quality baseline and not proof that old NPCs are done.",
+  "meta": {
+    "source_session_unfinished_items": [
+      "old public-welfare NPC visual repetition still needs batch audit and rebuild",
+      "no complete legacy NPC style matrix or prioritization table yet",
+      "no formal replacement assets generated for old public-welfare NPCs yet",
+      "low-level API/package-import enforcement of at-least-one-chat-character remains deferred; UI/default seeds covered",
+      "character-asset-prompt-skill and hospital-nurse-npc-asset remain in review pending human acceptance/commit/session record"
+    ],
+    "quality_baseline": "pw_hospital_night_care trio: 3 roles, 5 sprites each, role division, non-degraded rules-backend chat",
+    "default_style_workflow": "$image-style-prompt-extractor first; add missing complete recipes to style-recipes.md",
+    "context_validation": "passed after replacing legacy .claude context paths with .agents/skills paths",
+    "species_diversity_rule": "Fantasy/isekai/non-realistic taverns must not accidentally default every NPC to ordinary humans; audit species/body-plan and encode differences in existing character fields/prompts.",
+    "species_diversity_verification": {
+      "generate_character_prompt_quick_validate": "passed",
+      "task_validate": "passed",
+      "runtime_tests": "not run; docs/skill/task rule update only"
+    }
+  }
+}

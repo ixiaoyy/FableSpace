@@ -1,0 +1,88 @@
+{
+  "id": "hospital-nurse-npc-asset",
+  "name": "hospital-nurse-npc-asset",
+  "title": "Hospital tavern nurse NPC asset",
+  "description": "Add a hospital place/tavern with a differentiated nurse NPC portrait asset, preserving generated image in project paths and reducing visual repetition.",
+  "status": "review",
+  "dev_type": "fullstack",
+  "scope": "hospital-nurse-npc-asset",
+  "package": null,
+  "priority": "P2",
+  "creator": "lijin",
+  "assignee": "lijin",
+  "createdAt": "2026-04-30",
+  "completedAt": null,
+  "branch": null,
+  "base_branch": "main",
+  "worktree_path": null,
+  "current_phase": 4,
+  "next_action": [
+    {
+      "phase": 1,
+      "action": "brainstorm"
+    },
+    {
+      "phase": 2,
+      "action": "research"
+    },
+    {
+      "phase": 3,
+      "action": "implement"
+    },
+    {
+      "phase": 4,
+      "action": "check"
+    },
+    {
+      "phase": 5,
+      "action": "update-spec"
+    },
+    {
+      "phase": 6,
+      "action": "record-session"
+    }
+  ],
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [],
+  "parent": null,
+  "relatedFiles": [
+    "backend/src/fablemap_api/core/default_taverns.py",
+    "backend/src/fablemap_api/core/tavern.py",
+    "backend/src/fablemap_api/core/web/service.py",
+    "frontend/app/lib/place-types.js",
+    "frontend/app/lib/taverns.ts",
+    "frontend/public/assets/npcs/public-welfare/char_pw_mika_nurse/",
+    "artifacts/04-30-hospital-nurse-npc-asset/nurse-full-reference.png",
+    "docs/WORLD_SCHEMA.md",
+    "tests/test_default_public_welfare_taverns.py",
+    "tests/test_default_public_welfare_gameplays.py",
+    "backend/tests/test_v1_place_home_mvp.py",
+    "frontend/scripts/place-types-test.mjs",
+    "frontend/app/routes/create.tsx",
+    ".trellis/spec/backend/database-guidelines.md",
+    ".trellis/spec/frontend/type-safety.md",
+    ".trellis/tasks/04-30-public-welfare-npc-batch-upgrade/"
+  ],
+  "notes": "Hospital Place type and default public-welfare night-care station corrected to three NPC roles (弥夏/青柚/南星), with 512x512 expression assets, role-division gameplay, and verified core per-character chat; /create now requires at least one named NPC before UI creation.",
+  "meta": {
+    "latest_verification": {
+      "backend_compileall": "passed",
+      "default_public_welfare_pytest": "32 passed",
+      "frontend_typecheck": "passed",
+      "frontend_build": "passed",
+      "task_validate": "passed",
+      "png_audit": "hospital trio has 15 sprites, all 512x512"
+    },
+    "role_count_correction": "hospital now has 3 NPCs; no one-NPC exception remains",
+    "core_chat_contract": "Every default public-welfare shop must enter and chat non-degraded with every seeded character via rules backend; UI-created shops require an initial named NPC.",
+    "follow_up_task": ".trellis/tasks/04-30-public-welfare-npc-batch-upgrade/",
+    "deferred_not_done": [
+      "legacy public-welfare NPC batch audit and rebuild",
+      "full old NPC style matrix and prioritization table",
+      "formal replacement assets for old public-welfare NPCs",
+      "low-level API/package-import enforcement of at-least-one-chat-character"
+    ]
+  }
+}
