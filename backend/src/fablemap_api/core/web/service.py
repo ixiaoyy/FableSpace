@@ -409,6 +409,16 @@ class WebService:
     def meta_payload(self, *, base_url: str) -> dict[str, Any]:
         return build_meta_payload(base_url=base_url)
 
+    def _state_cards_for_prompt(self, tavern_id: str) -> list[dict[str, Any]]:
+        """Load tavern state cards for PromptBuilder; builder applies visibility/status filters."""
+        try:
+            return [
+                card.to_dict() if hasattr(card, "to_dict") else card
+                for card in self.tavern_store.list_state_cards(tavern_id)
+            ]
+        except Exception:
+            return []
+
     def nearby_payload(
         self,
         *,
@@ -1289,6 +1299,7 @@ class WebService:
             visitor_relationship_strength=float(payload.get("visitor_relationship_strength") or 0.0),
             visitor_message_count=int(payload.get("visitor_message_count") or 0),
             world_info_entries=[e.to_dict() if hasattr(e, "to_dict") else e for e in tavern.world_info],
+            state_cards=self._state_cards_for_prompt(tavern_id),
             prompt_blocks=blocks,
             history_max_messages=8,
         )
@@ -2087,6 +2098,7 @@ class WebService:
             memory_atoms=[atom.to_dict() for atom in prompt_memory_atoms],
             memory_budget_tokens=int(memory_policy.get("budget_tokens", 0) or 0),
             world_info_entries=[e.to_dict() if hasattr(e, "to_dict") else e for e in getattr(tavern, "world_info", [])],
+            state_cards=self._state_cards_for_prompt(tavern_id),
             prompt_blocks=normalize_prompt_blocks(getattr(tavern, "prompt_blocks", [])),
             output_format=output_format,
             history_max_messages=20,

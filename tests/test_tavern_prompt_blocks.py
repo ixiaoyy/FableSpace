@@ -2,7 +2,9 @@ import pytest
 
 from fablemap_api.core.prompt_blocks import default_prompt_blocks, normalize_prompt_blocks, truncate_to_budget
 from fablemap_api.core.prompt_builder import PromptBuildConfig, PromptBuilder
+from fablemap_api.core.state_cards import StateCard
 from fablemap_api.core.web.config import ApiSettings
+from fablemap_api.core.web.service import WebService
 
 
 def _combined_prompt_text(prompt_result: dict) -> str:
@@ -170,3 +172,147 @@ def test_prompt_blocks_api_defaults_save_preview_and_authz(tmp_path):
             json={"blocks": []},
         )
         assert forbidden.status_code == 403
+
+
+def _prompt_config_with_state_cards(blocks: list[dict] | None = None, state_cards: list[dict] | None = None) -> PromptBuildConfig:
+    cfg = _prompt_config(blocks)
+    cfg.state_cards = state_cards
+    return cfg
+
+
+def test_state_cards_injected_into_prompt_when_configured():
+    blocks = default_prompt_blocks()
+    cards = [
+        {"id": "sc1", "category": "task", "title": "Blue Ticket Task", "summary": "Find the blue ticket in the archive.", "status": "confirmed", "fixed_canon": True},
+        {"id": "sc2", "category": "resource", "title": "Old Ticket", "summary": "An old ticket from Fog Harbor.", "status": "confirmed", "fixed_canon": False},
+    ]
+    result = PromptBuilder(_prompt_config_with_state_cards(blocks, cards)).build([], "I want to see the ticket.")
+    text = _combined_prompt_text(result)
+
+    assert "Blue Ticket Task" in text
+    assert "Find the blue ticket in the archive" in text
+    # sc2 has fixed_canon=False so should NOT appear in prompt
+    assert "Old Ticket" not in text
+
+
+def test_state_cards_fixed_canon_filter():
+    blocks = default_prompt_blocks()
+    # Only sc1 has both confirmed + fixed_canon; sc2 is confirmed but not fixed_canon
+    cards = [
+        {"id": "sc1", "category": "task", "title": "Blue Ticket", "summary": "Blue ticket confirmed.", "status": "confirmed", "fixed_canon": True},
+        {"id": "sc2", "category": "resource", "title": "Old Ticket", "summary": "Old ticket confirmed.", "status": "confirmed", "fixed_canon": False},
+        {"id": "sc3", "category": "event", "title": "Pending Card", "summary": "Pending card.", "status": "pending", "fixed_canon": True},
+    ]
+    result = PromptBuilder(_prompt_config_with_state_cards(blocks, cards)).build([], "Hello.")
+    text = _combined_prompt_text(result)
+
+    assert "Blue Ticket" in text
+    assert "Blue ticket confirmed" in text
+    # sc2 is not fixed_canon, so should not appear
+    assert "Old Ticket" not in text
+    # sc3 is not confirmed, so should not appear
+    assert "Pending Card" not in text
+
+
+def test_state_cards_render_empty_when_no_cards():
+    cfg = _prompt_config()
+    cfg.state_cards = []
+
+    result = PromptBuilder(cfg).build([], "Hello.")
+    text = _combined_prompt_text(result)
+    # When no confirmed+fixed_canon cards exist, nothing injected
+    assert "Blue Ticket" not in text
+    assert "Pending Card" not in text
+
+
+def test_state_cards_block_respects_token_budget():
+    blocks = default_prompt_blocks()
+    long_text = "Very long content description. " * 200
+    cards = [
+        {"id": f"sc{i}", "category": "task", "title": f"Task {i}", "summary": long_text, "status": "confirmed", "fixed_canon": True}
+        for i in range(10)
+    ]
+    cfg = _prompt_config_with_state_cards(blocks, cards)
+    cfg.state_cards_budget_tokens = 50
+
+    result = PromptBuilder(cfg).build([], "Hello")
+    text = _combined_prompt_text(result)
+    # Should have state cards section with budget truncated
+    assert "Task 0" in text or "Task" in text
+
+
+def test_state_cards_block_id_and_type():
+    blocks = default_prompt_blocks()
+    result = PromptBuilder(_prompt_config_with_state_cards(blocks, [])).build([], "Hello")
+    block_ids = [b["id"] for b in result["prompt_blocks"]]
+    assert "state_cards" in block_ids
+    state_cards_block = next(b for b in result["prompt_blocks"] if b["id"] == "state_cards")
+    assert state_cards_block["type"] == "state_cards"
+
+
+def test_runtime_chat_prompt_loads_confirmed_fixed_state_cards(tmp_path):
+    service = WebService(ApiSettings(output_root=tmp_path, fixture_file=None, frontend_root=None))
+    owner_id = "owner_sc03_runtime"
+    tavern_id = "tavern_sc03_runtime"
+    visitor_id = "visitor_sc03_runtime"
+
+    service.create_tavern_payload(
+        {
+            "id": tavern_id,
+            "name": "SC-03 Runtime Tavern",
+            "description": "A tavern for runtime state-card prompt tests.",
+            "lat": 31.23,
+            "lon": 121.47,
+            "llm_config": {"backend": "rules", "model": "rules"},
+        },
+        owner_id=owner_id,
+    )
+    service.add_character_payload(
+        tavern_id,
+        {"id": "char_sc03_keeper", "name": "Keeper", "system_prompt": "Stay in character."},
+        owner_id,
+    )
+    service.tavern_store.save_state_card(
+        tavern_id,
+        StateCard(
+            id="sc_fixed_task",
+            tavern_id=tavern_id,
+            category="task",
+            title="Blue Ticket Task",
+            summary="The blue ticket is now fixed canon for this tavern.",
+            status="confirmed",
+            canon_scope="tavern",
+            fixed_canon=True,
+            confirmed_by=owner_id,
+        ),
+    )
+    service.tavern_store.save_state_card(
+        tavern_id,
+        StateCard(
+            id="sc_ordinary_resource",
+            tavern_id=tavern_id,
+            category="resource",
+            title="Ordinary Confirmed Resource",
+            summary="This confirmed card is not fixed canon and should stay out of the prompt.",
+            status="confirmed",
+            canon_scope="visitor",
+            fixed_canon=False,
+            visitor_id=visitor_id,
+            confirmed_by=visitor_id,
+        ),
+    )
+
+    tavern = service.tavern_store.get_tavern(tavern_id)
+    character = next(item for item in tavern.characters if item.id == "char_sc03_keeper")
+    prompt_bundle = service._build_tavern_character_prompt(
+        tavern=tavern,
+        character=character,
+        llm_config=tavern.llm_config,
+        message="What should I remember?",
+        visitor_id=visitor_id,
+    )
+    text = _combined_prompt_text(prompt_bundle["prompt_result"])
+
+    assert "Blue Ticket Task" in text
+    assert "The blue ticket is now fixed canon" in text
+    assert "Ordinary Confirmed Resource" not in text

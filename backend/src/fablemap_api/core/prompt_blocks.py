@@ -17,6 +17,7 @@ PROMPT_BLOCK_TYPES = {
     "style_guard",
     "author_note",
     "output_rule",
+    "state_cards",
     "custom",
 }
 
@@ -86,6 +87,16 @@ DEFAULT_PROMPT_BLOCKS: list[dict[str, Any]] = [
         "order": 50,
         "template": "",
         "token_budget": 4000,
+        "built_in": True,
+    },
+    {
+        "id": "state_cards",
+        "name": "剧情正史",
+        "enabled": True,
+        "type": "state_cards",
+        "order": 55,
+        "template": "",
+        "token_budget": 1000,
         "built_in": True,
     },
     {

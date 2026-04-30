@@ -24,6 +24,7 @@ from .world_info_injector import WorldInfoInjector, InjectionContext, MacroSubst
 from .char_card_parser import ParsedCharacter
 from .time_context import build_time_context, build_time_context_prompt, build_closed_tavern_prompt, TimeContext
 from .affinity import AffinityPromptBuilder, AffinityStage
+from .state_cards import format_state_cards_for_prompt
 
 logger = logging.getLogger(__name__)
 
@@ -70,6 +71,8 @@ class PromptBuildConfig:
     memory_budget_tokens: int = 0
     # WorldInfo
     world_info_entries: list[dict] = field(default_factory=list)
+    # State cards (confirmed + fixed_canon cards injected as prompt context)
+    state_cards: list[dict] = field(default_factory=list)
     # Prompt blocks (optional compatibility layer; empty means compatibility builder)
     prompt_blocks: list[dict] = field(default_factory=list)
     # Author's note
@@ -311,6 +314,19 @@ class PromptBuilder:
         # ── Layer 4: WorldInfo injection ────────────────────────────────────
         wi_injected = self.injector.inject(ctx, [m for m in messages])
         result_messages.extend(wi_injected)
+
+        # ── Layer 4b: State cards (confirmed + fixed_canon) ────────────────
+        if config.state_cards:
+            from .state_cards import StateCard
+            cards = [StateCard.from_dict(c) if isinstance(c, dict) else c for c in config.state_cards]
+            cards = [c for c in cards if c.status == "confirmed" and c.fixed_canon]
+            if cards:
+                sc_text = format_state_cards_for_prompt(cards)
+                if sc_text:
+                    result_messages.append({
+                        "role": "system",
+                        "content": sc_text,
+                    })
 
         # ── Layer 5: Chat history ──────────────────────────────────────────
         history_msgs = self._format_history(messages)
@@ -556,6 +572,16 @@ class PromptBuilder:
             return ""
         if block_type == "character" and template.strip() == "{{char_system_prompt}}" and not config.char_system_prompt:
             return ""
+        if block_type == "state_cards":
+            from .state_cards import StateCard
+            if not config.state_cards:
+                return ""
+            cards = [StateCard.from_dict(c) if isinstance(c, dict) else c for c in config.state_cards]
+            cards = [c for c in cards if c.status == "confirmed" and c.fixed_canon]
+            if not cards:
+                return ""
+            rendered = format_state_cards_for_prompt(cards)
+            return truncate_to_budget(rendered, int(block.get("token_budget", 0) or 0))
 
         rendered = self.macro.substitute(
             template,

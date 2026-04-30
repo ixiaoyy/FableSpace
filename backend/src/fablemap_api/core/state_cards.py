@@ -298,3 +298,27 @@ def _summary_for_category(category: str, text: str) -> str:
         "event_log": "本轮可观察事件：",
     }.get(category, "连续性候选：")
     return _text(f"{prefix}{text}", max_length=600)
+
+
+_CATEGORY_LABELS = {
+    "character": "角色",
+    "task": "任务",
+    "resource": "资源/线索",
+    "conflict": "冲突/机会",
+    "event_log": "事件",
+}
+
+
+def format_state_cards_for_prompt(cards: list[StateCard]) -> str:
+    """Format confirmed + fixed_canon state cards as a readable system prompt section."""
+    if not cards:
+        return ""
+    category_order = ["character", "task", "resource", "conflict", "event_log"]
+    lines = []
+    for card in sorted(cards, key=lambda c: (category_order.index(c.category) if c.category in category_order else 99, c.created_at)):
+        cat_label = _CATEGORY_LABELS.get(card.category, card.category)
+        scope_mark = "[正史] " if card.fixed_canon else "[酒馆] "
+        lines.append(f"- {scope_mark}**{card.title}**（{cat_label}）：{card.summary}")
+    header = "## 剧情正史（已确认）\n"
+    footer = f"\n---\n已确认剧情卡共 {len(cards)} 张。如有矛盾，以正史为准。"
+    return header + "\n".join(lines) + footer

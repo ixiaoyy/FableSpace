@@ -161,6 +161,16 @@ class OwnerConfigApplicationMixin:
             "tavern": tavern.to_dict_private(user_id),
         }
 
+    def _state_cards_for_prompt(self, tavern_id: str) -> list[dict[str, Any]]:
+        """Load state cards for PromptBuilder; builder keeps only confirmed fixed canon."""
+        try:
+            return [
+                card.to_dict() if hasattr(card, "to_dict") else card
+                for card in self.store.list_state_cards(tavern_id)
+            ]
+        except Exception:
+            return []
+
     def preview_prompt_blocks(self, tavern_id: str, data: dict[str, Any], user_id: str = "") -> dict[str, Any]:
         tavern = self._get_tavern_or_404(tavern_id)
         self._ensure_owner(tavern, user_id)
@@ -192,6 +202,7 @@ class OwnerConfigApplicationMixin:
             visitor_relationship_strength=self._safe_float(payload.get("visitor_relationship_strength"), 0.0),
             visitor_message_count=self._safe_int(payload.get("visitor_message_count"), 0),
             world_info_entries=[entry.to_dict() if hasattr(entry, "to_dict") else entry for entry in tavern.world_info],
+            state_cards=self._state_cards_for_prompt(tavern_id),
             prompt_blocks=blocks,
             history_max_messages=8,
         )
