@@ -1,0 +1,69 @@
+{
+  "id": "image-asset-prompt-sidecars",
+  "name": "image-asset-prompt-sidecars",
+  "title": "Image asset prompt sidecars and inventory",
+  "description": "Co-locate final image-generation prompts beside project image assets, update global memory/specs, audit existing assets, and reverse-generate missing prompt sidecars for future high-quality replacement.",
+  "status": "planning",
+  "dev_type": "fullstack",
+  "scope": "image-assets/prompt-sidecars",
+  "package": null,
+  "priority": "P0",
+  "creator": "lijin",
+  "assignee": "lijin",
+  "createdAt": "2026-04-30",
+  "completedAt": null,
+  "branch": null,
+  "base_branch": "main",
+  "worktree_path": null,
+  "current_phase": 1,
+  "next_action": [
+    {
+      "phase": 1,
+      "action": "brainstorm"
+    },
+    {
+      "phase": 2,
+      "action": "research"
+    },
+    {
+      "phase": 3,
+      "action": "implement"
+    },
+    {
+      "phase": 4,
+      "action": "check"
+    },
+    {
+      "phase": 5,
+      "action": "update-spec"
+    },
+    {
+      "phase": 6,
+      "action": "record-session"
+    }
+  ],
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [],
+  "parent": null,
+  "relatedFiles": [
+    "prd.md",
+    "AGENTS.md",
+    "docs/IMAGE_ASSETS_SPEC.md",
+    ".trellis/spec/frontend/image-asset-guidelines.md",
+    ".trellis/spec/frontend/npc-art-guidelines.md",
+    ".agents/skills/generate-character-prompt/SKILL.md",
+    ".agents/skills/image-style-prompt-extractor/SKILL.md",
+    "frontend/public/",
+    "frontend/app/assets/",
+    "artifacts/04-30-public-welfare-npc-batch-upgrade/batch-1-prompt-manifest/public-welfare-batch-1-prompt-manifest.json",
+    "artifacts/04-30-public-welfare-npc-batch-upgrade/batch-2-prompt-manifest/public-welfare-batch-2-prompt-manifest.json"
+  ],
+  "notes": "P0 task created from explicit user request on 2026-04-30: co-locate final prompts beside image assets, write the rule into global memory/specs, inventory current project images, and reverse-generate prompt sidecars for assets missing original prompts.",
+  "meta": {
+    "user_request": "Put final prompts next to corresponding image assets, update global memory, inventory project images, reverse-generate missing prompts, and record as highest-priority Trellis task first.",
+    "prompt_sidecar_convention": "Same directory as image, preferred filename <image-stem>.prompt.md; reverse-generated prompts must be explicitly labeled reverse-engineered.",
+    "priority_reason": "P0 because promptless image assets block reliable future high-quality regeneration/replacement and create provenance/IP/style-drift risk."
+  }
+}
