@@ -3,19 +3,19 @@
   "name": "04-30-voice-greeting-tts-synthesis-playback",
   "title": "Voice Greeting TTS Synthesis and Playback",
   "description": "在 no-audio preview 之后，设计可控 TTS 合成、音频存储和播放边界。",
-  "status": "in_progress",
-  "dev_type": null,
-  "scope": null,
+  "status": "completed",
+  "dev_type": "docs",
+  "scope": "voice-greeting-tts-playback-design",
   "package": null,
   "priority": "P2",
   "creator": "lijin",
   "assignee": "lijin",
   "createdAt": "2026-04-30",
-  "completedAt": null,
+  "completedAt": "2026-05-04",
   "branch": null,
   "base_branch": "main",
   "worktree_path": null,
-  "current_phase": 1,
+  "current_phase": 6,
   "next_action": [
     {
       "phase": 1,
@@ -49,8 +49,31 @@
   "parent": "04-29-npc-role-prompt-safety-brainstorm",
   "relatedFiles": [
     "prd.md",
-    ".trellis/tasks/04-29-npc-role-prompt-safety-brainstorm/"
+    ".trellis/tasks/04-29-npc-role-prompt-safety-brainstorm/",
+    "task.json",
+    "implement.jsonl",
+    "check.jsonl",
+    "debug.jsonl",
+    "voice-greeting-tts-playback-design.md"
   ],
-  "notes": "Backlog child task created from prior brainstorm/planning so the idea is not lost; not implemented yet.",
-  "meta": {}
+  "notes": "Completed as TTS playback boundary design; existing preview plus explicit synthesizeVoice flow remains the safe MVP.",
+  "meta": {
+    "done": [
+      "Inspected backend/frontend voice preview and TTS service boundaries.",
+      "Recorded explicit-click playback, no auto-play, no persistent audio, no voice cloning/upload boundary.",
+      "Defined future persistent-audio gates if storage is later requested."
+    ],
+    "deferred_not_done": [
+      "No persistent audio cache, voice cloning/upload, auto-play behavior, or provider-specific new integration."
+    ],
+    "verification": [
+      "Docs/design task completion recorded in PRD and task artifact on 2026-05-04.",
+      "No backend/frontend/source/schema files changed for this batch; run focused tests when future implementation changes code.",
+      "Custom task.json parse: non_completed_count=0.",
+      "python .\\.trellis\\scripts\\task.py list --status in_progress (passed; no active tasks).",
+      "git -c safe.directory=D:/work/ai- diff --check (passed; only pre-existing CRLF warnings).",
+      "node .\\frontend\\scripts\\voice-greeting-test.mjs (passed)."
+    ],
+    "completion_artifact": "voice-greeting-tts-playback-design.md"
+  }
 }

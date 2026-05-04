@@ -33,3 +33,23 @@
 * 子任务 2: 街区传闻系统
 * 子任务 3: 酒馆异步留言板
 
+## Completion Outcome (2026-05-04)
+
+Completed through Trellis bookkeeping because all three planned child feature tasks are already `completed`:
+
+* `04-29-neighborhood-rumor-system/`
+* `04-29-ai-assisted-tavern-drafts/`
+* `04-29-tavern-guestbook/`
+
+See `completion-note.md` for the parent closure note. This parent completion does not create new implementation scope beyond the child task records.
+
+## Verification (2026-05-04)
+
+* Inspected child task metadata and confirmed all three children are completed.
+* No runtime tests are required for parent brainstorm status cleanup.
+
+### Verification Commands Run (2026-05-04)
+
+* Custom `task.json` parse — passed (`non_completed_count=0`).
+* `& 'C:\Users\phpxi\miniconda3\python.exe' .\.trellis\scripts\task.py list --status in_progress` — passed (`Total: 0 task(s)`).
+* `git -c safe.directory=D:/work/ai- diff --check` — passed; output only included CRLF conversion warnings from the existing working tree.

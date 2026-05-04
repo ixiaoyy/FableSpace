@@ -47,6 +47,7 @@ Frontend work must preserve:
 | [Map Anchor Emotional Copy](./map-anchor-copy.md) | Real-coordinate tavern entrance copy and marker/card wording | Current |
 | [Discovery Liveliness Signals](./discovery-liveliness-signals.md) | Discovery page rumor/feedback/activity labels without visitor social features | Current |
 | [Mobile Single-mainline Experience](./mobile-single-mainline.md) | Mobile dock and tavern first-screen contracts for the visitor-first entry path | Current |
+| [Revisit-care Notification Boundary](./revisit-care-notification-boundary.md) | Preview-only proactive revisit notification policy with opt-in/quiet-hours/rate-limit/unsubscribe guardrails | Current |
 
 ---
 
@@ -69,7 +70,8 @@ Frontend work must preserve:
 15. For map/discovery card copy that describes real coordinates, tavern markers, or street entrance wording, read `map-anchor-copy.md`.
 16. For discovery liveliness labels using rumor, guestbook/feedback, visits, or activity summaries, read `discovery-liveliness-signals.md`.
 17. For mobile dock order, mobile first-screen tavern entry, or collapsed tavern secondary panels, read `mobile-single-mainline.md`.
-18. Run the right verification:
+18. For revisit-care, return-visit reminders, proactive notification copy, or notification scheduling previews, read `revisit-care-notification-boundary.md`.
+19. Run the right verification:
    - UI/build change: `npm --prefix .\frontend run build`
    - Service/rule script change: `npm --prefix .\frontend test`
 

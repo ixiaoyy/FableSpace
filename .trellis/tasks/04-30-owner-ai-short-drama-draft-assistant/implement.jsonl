@@ -1,0 +1,8 @@
+{"file": ".trellis/workflow.md", "reason": "Project workflow and conventions"}
+{"file": ".trellis/spec/frontend/index.md", "reason": "Frontend development guide"}
+{"file": "docs/WHAT_NOT_TO_BUILD.md", "reason": "AI draft and out-of-scope constraints"}
+{"file": "docs/WORLD_SCHEMA.md", "reason": "Gameplay and AI draft boundaries"}
+{"file": ".trellis/spec/frontend/component-guidelines.md", "reason": "Owner editor component patterns"}
+{"file": ".trellis/spec/frontend/quality-guidelines.md", "reason": "Frontend verification"}
+{"file": ".trellis/spec/frontend/character-prompt-risk-linter.md", "reason": "Prompt safety boundary"}
+{"file": ".trellis/spec/guides/code-reuse-thinking-guide.md", "reason": "Reuse existing gameplay/draft helpers"}

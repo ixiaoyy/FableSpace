@@ -3,19 +3,19 @@
   "name": "04-30-prompt-composer-style-dials-mvp",
   "title": "Prompt Composer and Style Dials MVP",
   "description": "保留 owner-facing prompt layer preview 和安全风格拨盘任务。",
-  "status": "in_progress",
-  "dev_type": null,
+  "status": "completed",
+  "dev_type": "frontend",
   "scope": null,
   "package": null,
   "priority": "P2",
   "creator": "lijin",
   "assignee": "lijin",
   "createdAt": "2026-04-30",
-  "completedAt": null,
+  "completedAt": "2026-05-04",
   "branch": null,
   "base_branch": "main",
   "worktree_path": null,
-  "current_phase": 1,
+  "current_phase": 6,
   "next_action": [
     {
       "phase": 1,
@@ -49,8 +49,35 @@
   "parent": "04-29-npc-role-prompt-safety-brainstorm",
   "relatedFiles": [
     "prd.md",
-    ".trellis/tasks/04-29-npc-role-prompt-safety-brainstorm/"
+    ".trellis/tasks/archive/2026-04/npc-role-prompt-safety-brainstorm/",
+    "frontend/app/product/promptStyleDials.js",
+    "frontend/app/product/CharacterEditor.jsx",
+    "frontend/app/product/styles.css",
+    "frontend/scripts/prompt-composer-style-dials-test.mjs",
+    "frontend/scripts/playwright-prompt-composer-check.mjs",
+    "frontend/package.json",
+    "artifacts/playwright/prompt-composer-style-dials/report.md",
+    "artifacts/playwright/prompt-composer-style-dials/desktop-prompt-composer.png",
+    "artifacts/playwright/prompt-composer-style-dials/mobile-prompt-composer.png"
   ],
-  "notes": "Backlog child task created from prior brainstorm/planning so the idea is not lost; not implemented yet.",
-  "meta": {}
+  "notes": "Completed frontend-only Prompt Composer / Style Dials MVP in CharacterEditor: owner-only layer preview, safe style dial compilation into existing system_prompt, no schema/API/storage changes, with unit/static test plus desktop/mobile Playwright self-acceptance.",
+  "meta": {
+    "completed_scope": [
+      "Owner-facing prompt layer preview for platform boundary, TavernCharacter, style dials, world info, and visitor state.",
+      "Safe style dial definitions and idempotent managed system_prompt block application.",
+      "CharacterEditor UI integration and mobile-responsive styling.",
+      "Unit/static verification and Playwright desktop/mobile self-acceptance artifacts."
+    ],
+    "deferred_not_done": [
+      "No backend/API/storage/schema persistence for style dials.",
+      "No AI generation or automatic tavern/NPC/story publication.",
+      "No token billing, visitor social/ranking/combat, or other out-of-scope platform features."
+    ],
+    "verification": [
+      "node frontend/scripts/prompt-composer-style-dials-test.mjs",
+      "npm --prefix .\\frontend test",
+      "npm --prefix .\\frontend run typecheck; npm --prefix .\\frontend run build",
+      "npm --prefix .\\frontend run test:prompt-composer-ux"
+    ]
+  }
 }

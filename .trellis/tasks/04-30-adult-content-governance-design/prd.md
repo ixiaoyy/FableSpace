@@ -18,10 +18,10 @@
 
 ## Acceptance Criteria
 
-* [ ] Relevant existing code/docs are inspected before implementation.
-* [ ] MVP scope is confirmed against `docs/WHAT_NOT_TO_BUILD.md` and owner-sovereignty rules.
-* [ ] Implementation, if any, uses existing schema/API where possible; any contract change updates tests and docs.
-* [ ] Verification commands are recorded in this PRD before moving to review/completed.
+* [x] Relevant existing code/docs are inspected before implementation.
+* [x] MVP scope is confirmed against `docs/WHAT_NOT_TO_BUILD.md` and owner-sovereignty rules.
+* [x] Implementation, if any, uses existing schema/API where possible; any contract change updates tests and docs.
+* [x] Verification commands are recorded in this PRD before moving to review/completed.
 
 ## Out of Scope
 
@@ -33,3 +33,30 @@
 
 * Created during 2026-04-30 backlog hardening at user request: “把所有的规划全部拆成子任务，防止未来丢失”.
 * This task is intentionally a planning/backlog placeholder until selected for implementation.
+
+## Completion Outcome (2026-05-04)
+
+Completed through Trellis as a docs/research/design task. See `governance-design.md`.
+
+### Done
+
+* Inspected product/architecture/schema/not-to-build docs and current prompt-risk linter boundary.
+* Recorded future gates for age/consent/access/exit/moderation/retention design.
+* Deferred any adult-content runtime or schema implementation until a separate approved compliance task.
+
+### Deferred / Not Done
+
+* No adult content system, labels, discovery surface, schema fields, routes, or default templates.
+* No legal/compliance claim beyond requiring future specialist review.
+
+## Verification (2026-05-04)
+
+* Task metadata was updated and parsed locally after edits.
+* `git diff --check` is the whitespace/path sanity check for this docs-only batch.
+* No runtime build/test is required for this specific completion batch because no backend/frontend/source/schema files were changed by these eight task completions. Future implementation tasks must run the focused commands listed in the referenced specs.
+
+### Verification Commands Run (2026-05-04)
+
+* Custom `task.json` parse — passed (`non_completed_count=0`).
+* `& 'C:\Users\phpxi\miniconda3\python.exe' .\.trellis\scripts\task.py list --status in_progress` — passed (`Total: 0 task(s)`).
+* `git -c safe.directory=D:/work/ai- diff --check` — passed; output only included CRLF conversion warnings from the existing working tree.

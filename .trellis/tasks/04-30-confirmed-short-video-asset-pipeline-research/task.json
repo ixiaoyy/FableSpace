@@ -3,19 +3,19 @@
   "name": "04-30-confirmed-short-video-asset-pipeline-research",
   "title": "Confirmed Short-video Asset Pipeline Research",
   "description": "如果短剧模板验证有效，再研究店主确认的封面图/短视频素材与玩法节点结合。",
-  "status": "in_progress",
-  "dev_type": null,
+  "status": "completed",
+  "dev_type": "frontend",
   "scope": null,
   "package": null,
   "priority": "P3",
   "creator": "lijin",
   "assignee": "lijin",
   "createdAt": "2026-04-30",
-  "completedAt": null,
+  "completedAt": "2026-05-04",
   "branch": null,
   "base_branch": "main",
   "worktree_path": null,
-  "current_phase": 1,
+  "current_phase": 6,
   "next_action": [
     {
       "phase": 1,
@@ -49,8 +49,10 @@
   "parent": "04-30-ai-video-story-mini-game-brainstorm",
   "relatedFiles": [
     "prd.md",
+    "research.md",
+    "implementation-plan.md",
     ".trellis/tasks/04-30-ai-video-story-mini-game-brainstorm/"
   ],
-  "notes": "Backlog child task created from prior brainstorm/planning so the idea is not lost; not implemented yet.",
+  "notes": "Completed as research-only. Recommendation: do not build automatic short-video generation now; future media must use owner-confirmed rights attestation, storage/deletion/provenance, and AI/synthetic labeling before discovery/gameplay references.",
   "meta": {}
 }

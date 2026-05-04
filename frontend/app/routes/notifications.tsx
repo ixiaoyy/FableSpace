@@ -2,6 +2,7 @@ import { BellRing, DoorOpen, RefreshCw } from "lucide-react"
 import { Link, useSearchParams } from "react-router"
 
 import { NotificationCenterPanel } from "../components/NotificationCenterPanel"
+import { RevisitCarePolicyPanel } from "../components/RevisitCarePolicyPanel"
 import { useNotifications } from "../hooks/useNotifications"
 import { DEFAULT_OWNER_ID } from "../lib/taverns"
 import { ProductShell } from "../shell/product-shell"
@@ -67,6 +68,9 @@ export default function NotificationsRoute() {
               </div>
             </CardContent>
           </Card>
+
+          {/* revisit-care safety policy preview stays local-only; no proactive send is enabled here. */}
+          <RevisitCarePolicyPanel userId={userId} />
         </aside>
 
         <NotificationCenterPanel

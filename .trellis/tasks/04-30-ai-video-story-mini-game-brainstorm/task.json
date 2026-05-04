@@ -3,7 +3,7 @@
   "name": "04-30-ai-video-story-mini-game-brainstorm",
   "title": "brainstorm: AI video story mini-game direction",
   "description": "Explore whether FableMap should adapt the AI-generated plot-video mini-game pattern seen in examples like 显眼包本包 into a tavern-native, owner-confirmed interactive story loop.",
-  "status": "in_progress",
+  "status": "completed",
   "dev_type": null,
   "scope": null,
   "package": null,
@@ -11,11 +11,11 @@
   "creator": "lijin",
   "assignee": "lijin",
   "createdAt": "2026-04-30",
-  "completedAt": null,
+  "completedAt": "2026-05-04",
   "branch": null,
   "base_branch": "main",
   "worktree_path": null,
-  "current_phase": 1,
+  "current_phase": 6,
   "next_action": [
     {
       "phase": 1,
@@ -52,7 +52,14 @@
     "04-30-confirmed-short-video-asset-pipeline-research"
   ],
   "parent": null,
-  "relatedFiles": [],
-  "notes": "",
+  "relatedFiles": [
+    "prd.md",
+    ".trellis/tasks/04-30-tavern-short-drama-gameplay-template-mvp/",
+    ".trellis/tasks/04-30-discovery-short-drama-teaser-cards/",
+    ".trellis/tasks/04-30-owner-ai-short-drama-draft-assistant/",
+    ".trellis/tasks/04-30-confirmed-short-video-asset-pipeline-research/",
+    ".trellis/tasks/05-04-05-04-short-drama-playwright-self-acceptance/"
+  ],
+  "notes": "Completed parent brainstorm: MVP definition and tradeoffs recorded; four child tasks completed. Discovery teaser and owner draft assistant are implemented with tests/build; short-video asset pipeline remains research-only and explicitly not implemented.",
   "meta": {}
 }

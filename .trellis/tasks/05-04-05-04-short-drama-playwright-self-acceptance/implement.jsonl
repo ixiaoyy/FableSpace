@@ -1,0 +1,5 @@
+{"file": ".trellis/workflow.md", "reason": "Project workflow and conventions"}
+{"file": ".trellis/spec/frontend/index.md", "reason": "Frontend development guide"}
+{"file": "docs/WHAT_NOT_TO_BUILD.md", "reason": "Owner sovereignty and no auto-publication constraints for short-drama validation."}
+{"file": ".trellis/spec/frontend/quality-guidelines.md", "reason": "Frontend verification and reporting expectations."}
+{"file": ".trellis/spec/frontend/mobile-single-mainline.md", "reason": "Mobile/narrow viewport self-acceptance expectations."}

@@ -1,0 +1,6 @@
+{"file": ".agents/skills/finish-work/SKILL.md", "reason": "Finish work checklist"}
+{"file": ".agents/skills/check/SKILL.md", "reason": "Code quality check spec"}
+{"file": "frontend\\scripts\\notification-center-test.mjs", "reason": "Existing notification center tests to extend"}
+{"file": "frontend\\scripts\\revisit-care-notification-policy-test.mjs", "reason": "Regression coverage for policy rules and UI integration"}
+{"file": "frontend\\scripts\\playwright-revisit-care-notifications-check.mjs", "reason": "Desktop/mobile Playwright self-acceptance for notifications route"}
+{"file": ".trellis\\spec\\frontend\\revisit-care-notification-boundary.md", "reason": "Spec records required checks and guardrails"}

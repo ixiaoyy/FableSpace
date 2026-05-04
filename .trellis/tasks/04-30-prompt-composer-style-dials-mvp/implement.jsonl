@@ -1,0 +1,9 @@
+{"file": ".trellis/workflow.md", "reason": "Project workflow and conventions"}
+{"file": ".trellis/spec/frontend/index.md", "reason": "Frontend development guide"}
+{"file": "docs/WHAT_NOT_TO_BUILD.md", "reason": "Owner sovereignty and no platform auto-publication constraints."}
+{"file": ".trellis/spec/frontend/component-guidelines.md", "reason": "Character editor UI and owner-facing prompt composer patterns."}
+{"file": ".trellis/spec/frontend/state-management.md", "reason": "Local draft state and no new global state."}
+{"file": ".trellis/spec/frontend/quality-guidelines.md", "reason": "Frontend verification expectations."}
+{"file": ".trellis/spec/frontend/type-safety.md", "reason": "JS runtime normalization and safe defaults."}
+{"file": ".trellis/spec/frontend/character-prompt-risk-linter.md", "reason": "Prompt composer must preserve visitor agency and prompt-risk boundaries."}
+{"file": ".trellis/spec/guides/code-reuse-thinking-guide.md", "reason": "Search and reuse existing character editor/prompt tooling."}

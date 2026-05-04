@@ -1,0 +1,8 @@
+{"file": ".trellis/workflow.md", "reason": "Project workflow and conventions"}
+{"file": "docs/WHAT_NOT_TO_BUILD.md", "reason": "product boundary and forbidden scope"}
+{"file": "docs/PRODUCT_BRIEF.md", "reason": "owner sovereignty and platform mainline"}
+{"file": "docs/ARCHITECTURE.md", "reason": "current platform layers and preview boundaries"}
+{"file": "docs/WORLD_SCHEMA.md", "reason": "schema compatibility guardrail"}
+{"file": ".trellis/spec/backend/directory-structure.md", "reason": "WorldInfo API and ownership boundary"}
+{"file": "backend/src/fablemap_api/core/world_info_injector.py", "reason": "existing trigger injection behavior"}
+{"file": "frontend/app/product/WorldBookEditor.jsx", "reason": "owner-editable WorldInfo UI"}

@@ -18,10 +18,10 @@
 
 ## Acceptance Criteria
 
-* [ ] Relevant existing code/docs are inspected before implementation.
-* [ ] MVP scope is confirmed against `docs/WHAT_NOT_TO_BUILD.md` and owner-sovereignty rules.
-* [ ] Implementation, if any, uses existing schema/API where possible; any contract change updates tests and docs.
-* [ ] Verification commands are recorded in this PRD before moving to review/completed.
+* [x] Relevant existing code/docs are inspected before implementation.
+* [x] MVP scope is confirmed against `docs/WHAT_NOT_TO_BUILD.md` and owner-sovereignty rules.
+* [x] Implementation, if any, uses existing schema/API where possible; any contract change updates tests and docs.
+* [x] Verification commands are recorded in this PRD before moving to review/completed.
 
 ## Out of Scope
 
@@ -33,3 +33,31 @@
 
 * Created during 2026-04-30 backlog hardening at user request: “把所有的规划全部拆成子任务，防止未来丢失”.
 * This task is intentionally a planning/backlog placeholder until selected for implementation.
+
+## 2026-05-04 Research Notes
+
+This task was completed as **research-only**. It intentionally did not implement a short-video pipeline because current project constraints require owner-confirmed content, explicit media provenance, deletion support, and no platform auto-generated publication.
+
+Files/docs inspected:
+
+* `docs/WHAT_NOT_TO_BUILD.md`
+* `docs/WORLD_SCHEMA.md`
+* `docs/IMAGE_ASSETS_SPEC.md`
+* `.trellis/spec/frontend/image-asset-guidelines.md`
+* `.trellis/spec/frontend/visual-souvenir-preview-boundary.md`
+* `.trellis/spec/guides/cross-layer-thinking-guide.md`
+* Existing frontend gameplay/media references under `frontend/app/product/` and `frontend/app/lib/`
+
+Research output:
+
+* See `.trellis/tasks/04-30-confirmed-short-video-asset-pipeline-research/research.md`.
+* Decision: do **not** build automatic short-video generation now.
+* Safe next product step, if needed later: owner-confirmed cover/teaser asset attachment for already-published short-drama gameplay.
+* Short video remains blocked until a future backend/media design supports rights attestation, asset records, deletion/purge, provenance, and AI/synthetic labeling.
+
+No code, schema, API, or storage contract changed.
+
+## Verification
+
+* `& 'C:\Users\phpxi\miniconda3\python.exe' ./.trellis/scripts/task.py validate .trellis/tasks/04-30-confirmed-short-video-asset-pipeline-research` — passed.
+* No frontend/backend tests required for this task because it is docs/research only and changed no executable behavior.

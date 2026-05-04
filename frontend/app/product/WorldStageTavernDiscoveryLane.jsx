@@ -10,6 +10,7 @@ import {
 } from './services/tavernService'
 import { buildMapAnchorCardCopy, buildMapAnchorSummaryCopy } from './mapAnchorCopy'
 import { inferTavernPlayMode } from './tavernPlayModes'
+import { buildShortDramaTeaser } from '../lib/short-drama-teasers.js'
 
 const ACCESS_OPTIONS = [
   { value: 'all', label: '全部入口' },
@@ -230,6 +231,7 @@ export default function WorldStageTavernDiscoveryLane({
             const characterCount = getCharacterCount(tavern)
             const playMode = inferTavernPlayMode(tavern)
             const anchorCopy = buildMapAnchorCardCopy(tavern)
+            const shortDramaTeaser = buildShortDramaTeaser(tavern)
             return (
               <button
                 key={tavern.id}
@@ -252,6 +254,14 @@ export default function WorldStageTavernDiscoveryLane({
                   <strong>{anchorCopy.anchorLine}</strong>
                   <small>{anchorCopy.statusLine} · {anchorCopy.accessLine}</small>
                 </div>
+                {shortDramaTeaser ? (
+                  <div className="tavern-short-drama-teaser" aria-label="短剧入口提示">
+                    <span>{shortDramaTeaser.kicker}</span>
+                    <strong>{shortDramaTeaser.conflictTitle}</strong>
+                    <p>{shortDramaTeaser.summary}</p>
+                    <small>{shortDramaTeaser.ctaLabel} · {shortDramaTeaser.guardrail}</small>
+                  </div>
+                ) : null}
                 <div className="tavern-discovery-card__meta">
                   <span
                     className={`tavern-access-chip tavern-access-chip--${getTavernAccessTone(tavern.access)}`}

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { buildAiDraftLifecycle } from '../lib/ai-draft-lifecycle.js'
 import { getGameplays, saveGameplays as persistGameplays } from '../lib/taverns'
 import GameplayDefinitionEditor, { createBlankGameplay } from './GameplayDefinitionEditor'
+import { createShortDramaDraftFromTavern } from './shortDramaDraftAssistant'
 import {
   OWNER_GAMEPLAY_TEMPLATE_CATEGORIES,
   createOwnerGameplayFromTemplate,
@@ -36,6 +37,8 @@ export default function GameplayManager({ tavern, ownerId = '', onUpdated, onClo
   const [error, setError] = useState('')
   const [templateQuery, setTemplateQuery] = useState('')
   const [templateCategory, setTemplateCategory] = useState('全部')
+  const [assistantConflictHook, setAssistantConflictHook] = useState('')
+  const [assistantTone, setAssistantTone] = useState('短剧主持感、节奏清楚、克制、不羞辱任何人')
 
   const selectedGameplay = useMemo(() => (
     gameplays.find((item) => item.id === selectedId) || gameplays[0] || null
@@ -81,6 +84,17 @@ export default function GameplayManager({ tavern, ownerId = '', onUpdated, onClo
     setGameplays((prev) => [next, ...prev])
     setSelectedId(next.id)
     setStatus('短剧模板已生成本地草稿；请检查内容、按本酒馆调整，并保存/发布后访客才可见。')
+  }
+
+  function addAssistantShortDramaDraft() {
+    const next = createShortDramaDraftFromTavern(tavern, {
+      conflictHook: assistantConflictHook,
+      tone: assistantTone,
+    }, gameplays.length + 1)
+    if (!next) return
+    setGameplays((prev) => [next, ...prev])
+    setSelectedId(next.id)
+    setStatus('AI 短剧草稿助手已生成本地未发布建议；请编辑、删除或保存后再决定是否发布。')
   }
 
   function addOwnerTemplateGameplay(template) {
@@ -204,6 +218,39 @@ export default function GameplayManager({ tavern, ownerId = '', onUpdated, onClo
                   <p className="note muted">没有匹配模板。换个关键词或切回“全部”。</p>
                 )}
               </div>
+            </section>
+            <section className="short-drama-assistant-panel" aria-label="AI 短剧草稿助手">
+              <div className="short-drama-assistant-panel__header">
+                <span className="mini-label">AI 短剧草稿助手</span>
+                <strong>基于当前酒馆设定生成未发布草稿</strong>
+                <small>短剧草稿是本地未发布建议；不会覆盖已有玩法，保存前不写入酒馆，发布前访客不可见。</small>
+              </div>
+              <label className="short-drama-assistant-field">
+                <span>冲突钩子</span>
+                <textarea
+                  value={assistantConflictHook}
+                  onChange={(event) => setAssistantConflictHook(event.target.value)}
+                  rows={3}
+                  placeholder="例如：有人说登记册上的名字不是自己写的"
+                />
+              </label>
+              <label className="short-drama-assistant-field">
+                <span>语气边界</span>
+                <textarea
+                  value={assistantTone}
+                  onChange={(event) => setAssistantTone(event.target.value)}
+                  rows={3}
+                  placeholder="轻推理、克制、像竖屏短剧但不羞辱任何人"
+                />
+              </label>
+              <div className="short-drama-assistant-risks" aria-label="短剧草稿风险提示">
+                <span>Prompt safety：不索取隐私、不替访客/店主做决定</span>
+                <span>版权素材：不套用影视、名人或外部 IP 桥段</span>
+                <span>Token 成本：当前只生成本地草稿，不调用外部模型</span>
+              </div>
+              <button type="button" className="short-drama-assistant-button" onClick={addAssistantShortDramaDraft}>
+                生成未发布短剧草稿
+              </button>
             </section>
             <section className="short-drama-template-panel" aria-label="短剧玩法模板">
               <div className="short-drama-template-panel__header">

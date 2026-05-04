@@ -1,3 +1,5 @@
+import { isShortDramaGameplayCandidate } from '../lib/short-drama-teasers.js'
+
 const COMMON_FORBIDDEN = [
   '不索取真实身份信息、手机号、住址或证件',
   '不要求访客执行真实危险行动',
@@ -14,11 +16,6 @@ function safeId(value) {
     .toLowerCase()
     .replace(/[^a-z0-9_-]+/g, '-')
     .replace(/^-+|-+$/g, '') || 'short-drama'
-}
-
-function hasChoiceNode(gameplay) {
-  return Array.isArray(gameplay?.nodes)
-    && gameplay.nodes.some((node) => Array.isArray(node?.choices) && node.choices.length >= 2)
 }
 
 function fallback(text, nextNodeId) {
@@ -314,14 +311,5 @@ export function createShortDramaGameplayFromTemplate(template, index = 1) {
 }
 
 export function isShortDramaCandidate(gameplay) {
-  if (!gameplay || typeof gameplay !== 'object') return false
-  const title = String(gameplay.title || gameplay.summary || gameplay.entry_label || '')
-  return hasChoiceNode(gameplay) && (
-    title.includes('短剧')
-    || title.includes('救场')
-    || title.includes('潜台词')
-    || title.includes('深夜')
-    || title.includes('说谎')
-    || String(gameplay.entry_label || '').includes('小剧场')
-  )
+  return isShortDramaGameplayCandidate(gameplay)
 }

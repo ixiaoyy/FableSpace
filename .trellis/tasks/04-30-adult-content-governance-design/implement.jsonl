@@ -1,0 +1,6 @@
+{"file": ".trellis/workflow.md", "reason": "Project workflow and conventions"}
+{"file": "docs/WHAT_NOT_TO_BUILD.md", "reason": "product boundary and forbidden scope"}
+{"file": "docs/PRODUCT_BRIEF.md", "reason": "owner sovereignty and platform mainline"}
+{"file": "docs/ARCHITECTURE.md", "reason": "current platform layers and preview boundaries"}
+{"file": "docs/WORLD_SCHEMA.md", "reason": "schema compatibility guardrail"}
+{"file": ".trellis/spec/frontend/character-prompt-risk-linter.md", "reason": "existing prompt safety guardrail"}

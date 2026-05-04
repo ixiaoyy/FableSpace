@@ -3,19 +3,19 @@
   "name": "04-30-safe-npc-character-card-template-guidelines",
   "title": "Safe NPC Character Card Template Guidelines",
   "description": "把安全 NPC 角色卡模板规范落成文档/示例任务，保留风味、清理越权/PII/强制内容。",
-  "status": "in_progress",
-  "dev_type": null,
-  "scope": null,
+  "status": "completed",
+  "dev_type": "docs",
+  "scope": "safe-npc-character-card-template-guidelines",
   "package": null,
   "priority": "P2",
   "creator": "lijin",
   "assignee": "lijin",
   "createdAt": "2026-04-30",
-  "completedAt": null,
+  "completedAt": "2026-05-04",
   "branch": null,
   "base_branch": "main",
   "worktree_path": null,
-  "current_phase": 1,
+  "current_phase": 6,
   "next_action": [
     {
       "phase": 1,
@@ -49,8 +49,31 @@
   "parent": "04-29-npc-role-prompt-safety-brainstorm",
   "relatedFiles": [
     "prd.md",
-    ".trellis/tasks/04-29-npc-role-prompt-safety-brainstorm/"
+    ".trellis/tasks/04-29-npc-role-prompt-safety-brainstorm/",
+    "task.json",
+    "implement.jsonl",
+    "check.jsonl",
+    "debug.jsonl",
+    "safe-character-card-template-guidelines.md"
   ],
-  "notes": "Backlog child task created from prior brainstorm/planning so the idea is not lost; not implemented yet.",
-  "meta": {}
+  "notes": "Completed as owner-facing safe role-card guideline and rewrite example using existing TavernCharacter fields.",
+  "meta": {
+    "done": [
+      "Mapped safe role-card guidance to existing TavernCharacter fields only.",
+      "Documented risky prompt rewrite pattern and owner confirmation boundary.",
+      "Added an example safe role card that avoids PII, jailbreak, secret extraction, and unsafe control."
+    ],
+    "deferred_not_done": [
+      "No new schema fields, no backend persistence change, and no new automatic draft publication behavior."
+    ],
+    "verification": [
+      "Docs/design task completion recorded in PRD and task artifact on 2026-05-04.",
+      "No backend/frontend/source/schema files changed for this batch; run focused tests when future implementation changes code.",
+      "Custom task.json parse: non_completed_count=0.",
+      "python .\\.trellis\\scripts\\task.py list --status in_progress (passed; no active tasks).",
+      "git -c safe.directory=D:/work/ai- diff --check (passed; only pre-existing CRLF warnings).",
+      "node .\\frontend\\scripts\\character-prompt-risk-linter-test.mjs (passed)."
+    ],
+    "completion_artifact": "safe-character-card-template-guidelines.md"
+  }
 }

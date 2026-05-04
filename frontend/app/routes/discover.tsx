@@ -21,6 +21,7 @@ import { DiscoveryLivelinessStrip } from "../components/DiscoveryLivelinessStrip
 import { TavernPreviewModal } from "../components/tavern-preview-modal"
 import { buildDiscoveryLiveliness, getDiscoveryLivelinessSearchText } from "../lib/discovery-liveliness.js"
 import { DISCOVERABLE_PLACE_TYPES, derivePlaceTypeDisplay, placeTypeMatchesTavern } from "../lib/place-types.js"
+import { buildShortDramaTeaser, getShortDramaTeaserSearchText } from "../lib/short-drama-teasers.js"
 import { errorMessage, listTaverns, type Tavern, type TavernCharacter, type TavernListResponse } from "../lib/taverns"
 import { buildMapAnchorCardCopy, formatTavernAnchorLocation } from "../product/mapAnchorCopy.js"
 import { ProductShell } from "../shell/product-shell"
@@ -204,6 +205,7 @@ function tavernSearchText(tavern: TavernListResponse["taverns"][number]) {
     tavern.address,
     tavern.scene_prompt,
     getDiscoveryLivelinessSearchText(tavern),
+    getShortDramaTeaserSearchText(tavern),
     ...(tavern.characters?.flatMap((character) => [character.name, ...(character.tags ?? [])]) ?? []),
   ]
     .filter(Boolean)
@@ -304,6 +306,64 @@ function EntrySignalGrid({
           <p className={`mt-0.5 truncate text-[0.68rem] ${muted ? "text-white/26" : "text-white/55"}`}>{signal.helper}</p>
         </div>
       ))}
+    </div>
+  )
+}
+
+type ShortDramaTeaser = NonNullable<ReturnType<typeof buildShortDramaTeaser>>
+
+function ShortDramaTeaserCard({
+  teaser,
+  muted = false,
+  compact = false,
+}: {
+  teaser: ShortDramaTeaser
+  muted?: boolean
+  compact?: boolean
+}) {
+  return (
+    <div
+      className={`rounded-2xl border p-3 ${
+        muted
+          ? "border-white/10 bg-white/[0.025] text-white/42"
+          : "border-fuchsia-300/22 bg-fuchsia-300/10 text-fuchsia-50"
+      }`}
+      aria-label="短剧入口卡"
+    >
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+        <div className="min-w-0">
+          <span className={`text-[0.62rem] font-black uppercase tracking-[0.18em] ${muted ? "text-white/28" : "text-fuchsia-100/70"}`}>
+            {teaser.kicker}
+          </span>
+          <p className={`mt-1 font-black ${compact ? "text-sm" : "text-base"} ${muted ? "text-white/48" : "text-white"}`}>
+            {teaser.conflictTitle}
+          </p>
+          <p className={`mt-1 line-clamp-2 text-xs leading-5 ${muted ? "text-white/30" : "text-fuchsia-50/70"}`}>
+            {teaser.summary}
+          </p>
+        </div>
+        {teaser.tavernId ? (
+          <Link
+            to={`/tavern/${teaser.tavernId}`}
+            className={`inline-flex min-h-11 shrink-0 touch-manipulation items-center justify-center gap-1 rounded-full border px-3 py-2 text-xs font-black transition ${
+              muted
+                ? "border-white/10 text-white/38"
+                : "border-fuchsia-200/30 bg-fuchsia-200/10 text-fuchsia-50 hover:bg-fuchsia-200/18"
+            }`}
+          >
+            {teaser.ctaLabel}
+            <ArrowRight className="h-3 w-3" />
+          </Link>
+        ) : null}
+      </div>
+      {!compact && teaser.sceneHook ? (
+        <p className={`mt-2 rounded-xl border px-3 py-2 text-xs leading-5 ${muted ? "border-white/8 text-white/28" : "border-white/10 text-fuchsia-50/62"}`}>
+          {teaser.sceneHook}
+        </p>
+      ) : null}
+      <p className={`mt-2 text-[0.68rem] leading-4 ${muted ? "text-white/24" : "text-fuchsia-50/45"}`}>
+        {teaser.guardrail}
+      </p>
     </div>
   )
 }
@@ -481,6 +541,7 @@ function RadarSignalCard({ tavern, index, onPreview }: { tavern: Tavern; index: 
   const placeType = derivePlaceTypeDisplay(tavern)
   const entry = entryStatusDisplay(tavernWithTimeStatus)
   const strength = signalStrength(tavern, index)
+  const shortDramaTeaser = buildShortDramaTeaser(tavern)
 
   return (
     <article
@@ -541,6 +602,11 @@ function RadarSignalCard({ tavern, index, onPreview }: { tavern: Tavern; index: 
           <div className="mt-3">
             <DiscoveryLivelinessStrip tavern={tavernWithTimeStatus} compact muted={isClosed} />
           </div>
+          {shortDramaTeaser ? (
+            <div className="mt-3">
+              <ShortDramaTeaserCard teaser={shortDramaTeaser} compact muted={isClosed} />
+            </div>
+          ) : null}
           <div className={`mt-3 flex flex-wrap items-center gap-2 text-xs ${isClosed ? "text-white/24" : "text-violet-100/48"}`}>
             <span>{locationLabel(tavern)}</span>
             {tavernWithTimeStatus.local_time_display ? (
@@ -562,6 +628,7 @@ function ResultCard({ tavern, index, onPreview }: { tavern: Tavern; index: numbe
   const placeType = derivePlaceTypeDisplay(tavern)
   const entry = entryStatusDisplay(tavernWithTimeStatus)
   const isClosed = tavernWithTimeStatus.is_open === false
+  const shortDramaTeaser = buildShortDramaTeaser(tavern)
 
   return (
     <article className="group overflow-hidden rounded-[1.75rem] border border-white/10 bg-slate-950/78 transition hover:-translate-y-0.5 hover:border-cyan-300/45">
@@ -603,6 +670,9 @@ function ResultCard({ tavern, index, onPreview }: { tavern: Tavern; index: numbe
         </div>
         <EntrySignalGrid tavern={tavernWithTimeStatus} placeType={placeType} muted={isClosed} />
         <DiscoveryLivelinessStrip tavern={tavernWithTimeStatus} muted={isClosed} />
+        {shortDramaTeaser ? (
+          <ShortDramaTeaserCard teaser={shortDramaTeaser} muted={isClosed} />
+        ) : null}
         <div className="flex flex-wrap items-center gap-2 text-xs font-bold">
           <span className="rounded-full border border-cyan-300/18 bg-cyan-300/10 px-2.5 py-1 text-cyan-100">Signal {signalStrength(tavern, index)}%</span>
           <span className={`rounded-full border px-2.5 py-1 ${isClosed ? "border-white/10 bg-white/[0.04] text-violet-100/42" : entry.className}`}>{entry.label}</span>

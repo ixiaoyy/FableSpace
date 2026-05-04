@@ -3,19 +3,19 @@
   "name": "04-30-visual-souvenir-full-image-asset-pipeline",
   "title": "Visual Souvenir Full Image Asset Pipeline",
   "description": "在 prompt preview 之后，设计/实现真正图像生成、资产落盘、引用和保留/删除策略。",
-  "status": "in_progress",
-  "dev_type": null,
-  "scope": null,
+  "status": "completed",
+  "dev_type": "docs",
+  "scope": "visual-souvenir-asset-pipeline-design",
   "package": null,
   "priority": "P2",
   "creator": "lijin",
   "assignee": "lijin",
   "createdAt": "2026-04-30",
-  "completedAt": null,
+  "completedAt": "2026-05-04",
   "branch": null,
   "base_branch": "main",
   "worktree_path": null,
-  "current_phase": 1,
+  "current_phase": 6,
   "next_action": [
     {
       "phase": 1,
@@ -49,8 +49,31 @@
   "parent": "04-29-npc-role-prompt-safety-brainstorm",
   "relatedFiles": [
     "prd.md",
-    ".trellis/tasks/04-29-npc-role-prompt-safety-brainstorm/"
+    ".trellis/tasks/04-29-npc-role-prompt-safety-brainstorm/",
+    "task.json",
+    "implement.jsonl",
+    "check.jsonl",
+    "debug.jsonl",
+    "visual-souvenir-asset-pipeline-design.md"
   ],
-  "notes": "Backlog child task created from prior brainstorm/planning so the idea is not lost; not implemented yet.",
-  "meta": {}
+  "notes": "Completed as future image asset pipeline design; current visual souvenir remains no-image/no-persistence preview.",
+  "meta": {
+    "done": [
+      "Mapped future prompt-preview to generation/storage/sidecar/retention pipeline.",
+      "Recorded privacy, cost, asset-path, prompt sidecar, and deletion gates.",
+      "Confirmed no generated images or project image assets were created by this task."
+    ],
+    "deferred_not_done": [
+      "No image generation endpoint, asset storage schema, public sharing UI, or generated image deliverable."
+    ],
+    "verification": [
+      "Docs/design task completion recorded in PRD and task artifact on 2026-05-04.",
+      "No backend/frontend/source/schema files changed for this batch; run focused tests when future implementation changes code.",
+      "Custom task.json parse: non_completed_count=0.",
+      "python .\\.trellis\\scripts\\task.py list --status in_progress (passed; no active tasks).",
+      "git -c safe.directory=D:/work/ai- diff --check (passed; only pre-existing CRLF warnings).",
+      "node .\\frontend\\scripts\\visual-souvenir-test.mjs (passed)."
+    ],
+    "completion_artifact": "visual-souvenir-asset-pipeline-design.md"
+  }
 }

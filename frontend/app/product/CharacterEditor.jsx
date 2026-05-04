@@ -16,6 +16,14 @@ import {
   analyzeCharacterPromptRisk,
   formatPromptRiskBlockMessage,
 } from './characterPromptRiskLinter.js'
+import {
+  DEFAULT_PROMPT_STYLE_DIALS,
+  PROMPT_STYLE_DIAL_GROUPS,
+  applyPromptStyleDialsToDraft,
+  buildPromptLayerPreview,
+  compilePromptStyleDialLines,
+  normalizePromptStyleDials,
+} from './promptStyleDials.js'
 
 const SPRITE_FIELDS = [
   ['neutral', '中性'],
@@ -164,10 +172,12 @@ export default function CharacterEditor({
   const [error, setError] = useState('')
   const [activeTemplateCategory, setActiveTemplateCategory] = useState('推荐')
   const [templateQuery, setTemplateQuery] = useState('')
+  const [styleDials, setStyleDials] = useState(() => normalizePromptStyleDials(DEFAULT_PROMPT_STYLE_DIALS))
 
   useEffect(() => {
     setDraft(normalizeCharacterDraft(value))
     setError('')
+    setStyleDials(normalizePromptStyleDials(DEFAULT_PROMPT_STYLE_DIALS))
   }, [value])
 
   const configuredSpriteCount = useMemo(() => Object.keys(cleanSpriteMap(draft.sprites)).length, [draft.sprites])
@@ -182,6 +192,8 @@ export default function CharacterEditor({
     limit: 4,
   }), [activeTemplateCategory, draft, templateQuery])
   const promptRiskReport = useMemo(() => analyzeCharacterPromptRisk(draft), [draft])
+  const styleDialLines = useMemo(() => compilePromptStyleDialLines(styleDials), [styleDials])
+  const promptLayerPreview = useMemo(() => buildPromptLayerPreview(draft, styleDials), [draft, styleDials])
   const completion = useMemo(() => {
     const checks = [
       { label: '名称', done: Boolean(draft.name.trim()) },
@@ -284,6 +296,15 @@ export default function CharacterEditor({
 
   function applyPersonalityTemplate(template, mode = 'fill') {
     setDraft((prev) => applyNpcPersonalityTemplateToDraft(prev, template, { mode }))
+    setError('')
+  }
+
+  function updateStyleDial(groupId, optionId) {
+    setStyleDials((prev) => normalizePromptStyleDials({ ...prev, [groupId]: optionId }))
+  }
+
+  function handleApplyStyleDials() {
+    setDraft((prev) => applyPromptStyleDialsToDraft(prev, styleDials))
     setError('')
   }
 
@@ -417,6 +438,83 @@ export default function CharacterEditor({
             没有匹配的模版。换个关键词，或切回“推荐”。
           </div>
         )}
+      </details>
+
+      <details className="character-prompt-composer">
+        <summary>
+          <span>Prompt Composer / Style Dials</span>
+          <small>
+            预览角色卡、世界书、访客状态和风格拨盘如何进入 Prompt；应用后只写入当前草稿的角色指令，保存仍需店主确认。
+          </small>
+        </summary>
+
+        <div className="character-prompt-composer__notice">
+          <strong>Owner-only preview</strong>
+          <p>
+            这里不会调用 AI、不会保存、不会展示 API Key 或其他访客私密记忆。风格拨盘只生成安全提示片段，帮助店主少粘贴社区大段 preset。
+          </p>
+        </div>
+
+        <div className="character-style-dials" aria-label="角色风格拨盘">
+          {PROMPT_STYLE_DIAL_GROUPS.map((group) => (
+            <section key={group.id} className="character-style-dial-group">
+              <div>
+                <strong>{group.label}</strong>
+                <small>{group.helper}</small>
+              </div>
+              <div className="character-style-dial-options">
+                {group.options.map((option) => {
+                  const active = styleDials[group.id] === option.id
+                  return (
+                    <button
+                      key={option.id}
+                      type="button"
+                      className={active ? 'is-active' : ''}
+                      aria-pressed={active}
+                      onClick={() => updateStyleDial(group.id, option.id)}
+                      disabled={disabled}
+                    >
+                      <span>{option.label}</span>
+                      <small>{option.detail}</small>
+                    </button>
+                  )
+                })}
+              </div>
+            </section>
+          ))}
+        </div>
+
+        <section className="character-style-dial-compiled" aria-label="风格拨盘编译结果">
+          <div className="character-editor-section-heading">
+            <span>将写入角色指令的安全片段</span>
+            <small>不会覆盖店主已有指令；再次应用会替换旧的 FableMap 风格拨盘片段。</small>
+          </div>
+          <ul>
+            {styleDialLines.map((line) => <li key={line}>{line}</li>)}
+          </ul>
+          <button type="button" className="secondary" onClick={handleApplyStyleDials} disabled={disabled}>
+            应用到角色指令
+          </button>
+        </section>
+
+        <section className="character-prompt-layer-preview" aria-label="Prompt Layer Preview">
+          <div className="character-editor-section-heading">
+            <span>Prompt Layer Preview</span>
+            <small>展示层次顺序和来源，不是最终 hidden prompt，也不包含 secret。</small>
+          </div>
+          <div className="character-prompt-layer-grid">
+            {promptLayerPreview.map((layer, index) => (
+              <article key={layer.id} className="character-prompt-layer-card">
+                <div>
+                  <b>{index + 1}</b>
+                  <span>{layer.label}</span>
+                </div>
+                <small>{layer.helper}</small>
+                <pre>{layer.body}</pre>
+              </article>
+            ))}
+          </div>
+        </section>
       </details>
 
       <section className="character-preview-card" aria-label="NPC 对话预览">

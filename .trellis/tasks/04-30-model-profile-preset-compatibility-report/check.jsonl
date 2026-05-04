@@ -1,0 +1,8 @@
+{"file": ".claude/commands/trellis/finish-work.md", "reason": "Finish work checklist"}
+{"file": ".claude/commands/trellis/check.md", "reason": "Code quality check spec"}
+{"file": "docs/WHAT_NOT_TO_BUILD.md", "reason": "product boundary and forbidden scope"}
+{"file": "docs/PRODUCT_BRIEF.md", "reason": "owner sovereignty and platform mainline"}
+{"file": "docs/ARCHITECTURE.md", "reason": "current platform layers and preview boundaries"}
+{"file": "docs/WORLD_SCHEMA.md", "reason": "schema compatibility guardrail"}
+{"file": ".trellis/spec/backend/preset-import-preview-contract.md", "reason": "preview-only preset classification contract"}
+{"file": ".trellis/spec/frontend/preset-import-preview-ui-boundary.md", "reason": "owner-only preset report UI boundary"}

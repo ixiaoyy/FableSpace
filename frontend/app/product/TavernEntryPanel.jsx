@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { getTavernAccessIcon, getTavernAccessLabel } from './services/tavernService'
 import fallbackNpcPortrait from '../assets/npc-style-cast/portraits/merchant-a.png'
 import { enterTavern, getTavern } from '../lib/taverns'
+import { buildShortDramaTeaser } from '../lib/short-drama-teasers.js'
 import { inferTavernPlayMode, getTavernPlayBadges } from './tavernPlayModes'
 
 function characterAvatarUrl(character = {}) {
@@ -91,6 +92,7 @@ export default function TavernEntryPanel({
   if (!tavern) return null
   const playMode = inferTavernPlayMode(tavern)
   const playBadges = getTavernPlayBadges(tavern)
+  const shortDramaTeaser = buildShortDramaTeaser(tavern)
 
   return (
     <div className="panel tavern-entry-panel slide-up">
@@ -125,6 +127,15 @@ export default function TavernEntryPanel({
             {playMode.prompts.slice(0, 3).map((prompt) => <span key={prompt}>{prompt}</span>)}
           </div>
         </div>
+
+        {shortDramaTeaser ? (
+          <div className="tavern-entry-short-drama" aria-label="短剧玩法入口">
+            <span>{shortDramaTeaser.kicker}</span>
+            <strong>{shortDramaTeaser.conflictTitle}</strong>
+            <p>{shortDramaTeaser.sceneHook || shortDramaTeaser.summary}</p>
+            <small>{shortDramaTeaser.ctaLabel} · {shortDramaTeaser.guardrail}</small>
+          </div>
+        ) : null}
         
         <div className="tavern-chars-preview">
           <label className="mini-label">驻店角色 ({tavern.characters?.length || 0})</label>

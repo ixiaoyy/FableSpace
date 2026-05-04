@@ -61,10 +61,10 @@ FableMap 应借鉴的是 **竖屏短剧情互动表达**，不是复制小游戏
 
 ## Acceptance Criteria (evolving)
 
-* [ ] 形成一个与 FableMap 主线一致的 MVP 定义。
-* [ ] 明确哪些参考玩法可以借鉴，哪些会违反 `WHAT_NOT_TO_BUILD`。
-* [ ] 给出 2–3 个可实施方向与取舍。
-* [ ] 明确 MVP 不做自动视频生成、不做平台自动发布内容、不做传统游戏化数值系统。
+* [x] 形成一个与 FableMap 主线一致的 MVP 定义。
+* [x] 明确哪些参考玩法可以借鉴，哪些会违反 `WHAT_NOT_TO_BUILD`。
+* [x] 给出 2–3 个可实施方向与取舍。
+* [x] 明确 MVP 不做自动视频生成、不做平台自动发布内容、不做传统游戏化数值系统。
 
 ## Definition of Done (team quality bar)
 
@@ -205,3 +205,11 @@ FableMap 应借鉴的是 **竖屏短剧情互动表达**，不是复制小游戏
 2026-05-03 update:
 
 - `04-30-tavern-short-drama-gameplay-template-mvp` 已补齐缺失的 child task 目录，并基于现有 tracked frontend implementation 完成 Trellis 验证闭环；父任务进度现在为 1/4 done。
+
+2026-05-04 update:
+
+- `04-30-discovery-short-drama-teaser-cards` 已实现发现页/入口短剧预告卡，复用现有 published gameplay，不新增 API/Schema。
+- `04-30-owner-ai-short-drama-draft-assistant` 已实现店主侧本地未发布短剧草稿助手，保留店主确认/保存/发布边界。
+- `04-30-confirmed-short-video-asset-pipeline-research` 已完成 research-only 结论：现在不做自动短视频生成；未来只可在权利确认、存储/删除、来源证明和 AI/合成标识支持后推进店主确认的封面/短视频资产管线。
+- 安装 Playwright 后补齐 `05-04-05-04-short-drama-playwright-self-acceptance`，对 native `/discover` 短剧入口完成桌面 + 窄屏 Chromium 自验收，报告路径：`artifacts/playwright/short-drama-ux/report.md`。
+- 本 brainstorm 的 4 个拆分子任务已全部 completed；短视频资产管线只保留 research 结论，不视为已实现视频能力。

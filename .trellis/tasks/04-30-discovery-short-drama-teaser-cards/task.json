@@ -3,19 +3,19 @@
   "name": "04-30-discovery-short-drama-teaser-cards",
   "title": "Discovery Short-drama Teaser Cards",
   "description": "在发现页/酒馆入口展示短剧式冲突标题和 CTA，引导进入对应酒馆玩法。",
-  "status": "in_progress",
-  "dev_type": null,
+  "status": "completed",
+  "dev_type": "frontend",
   "scope": null,
   "package": null,
   "priority": "P2",
   "creator": "lijin",
   "assignee": "lijin",
   "createdAt": "2026-04-30",
-  "completedAt": null,
+  "completedAt": "2026-05-04",
   "branch": null,
   "base_branch": "main",
   "worktree_path": null,
-  "current_phase": 1,
+  "current_phase": 6,
   "next_action": [
     {
       "phase": 1,
@@ -51,6 +51,6 @@
     "prd.md",
     ".trellis/tasks/04-30-ai-video-story-mini-game-brainstorm/"
   ],
-  "notes": "Backlog child task created from prior brainstorm/planning so the idea is not lost; not implemented yet.",
+  "notes": "Implemented frontend-only discovery and entry teaser cards for published short-drama gameplay; no API/schema changes.",
   "meta": {}
 }
