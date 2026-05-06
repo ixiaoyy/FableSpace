@@ -1,0 +1,12 @@
+{
+  "url": "http://127.0.0.1:5173/",
+  "screenshots": [
+    "D:\\work\\ai-\\.trellis\\tasks\\05-05-homepage-seed-fallback-hero-scale\\evidence\\homepage-desktop.png",
+    "D:\\work\\ai-\\.trellis\\tasks\\05-05-homepage-seed-fallback-hero-scale\\evidence\\homepage-mobile.png"
+  ],
+  "checks": [
+    "desktop: loaded, seed cards visible, non-zero metrics, no horizontal overflow",
+    "mobile: loaded, seed cards visible, non-zero metrics, no horizontal overflow"
+  ],
+  "pageErrors": []
+}

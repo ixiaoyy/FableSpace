@@ -180,12 +180,35 @@ class RuntimeApplicationMixin:
         if not clean_message:
             raise HTTPException(status_code=400, detail="消息不能为空")
 
-        if tavern.status != "open":
-            return self._degraded_chat(character_id, character.name, tavern.status, "酒馆正在歇业", "店主暂时关闭了这间酒馆。")
-
         llm_config = self._get_runtime_llm_config(tavern_id)
+        if tavern.status != "open":
+            if not llm_config or not llm_config.is_configured():
+                return self._degraded_chat(
+                    character_id,
+                    character.name,
+                    "closed",
+                    "AI 后端还没配置",
+                    "这间酒馆还没有可用的模型配置。",
+                    reason="llm_not_configured",
+                )
+            return self._degraded_chat(
+                character_id,
+                character.name,
+                tavern.status,
+                "酒馆正在歇业",
+                "店主暂时关闭了这间酒馆。",
+                reason="tavern_closed",
+            )
+
         if not llm_config or not llm_config.is_configured():
-            return self._degraded_chat(character_id, character.name, "closed", "AI 后端还没配置", "这间酒馆还没有可用的模型配置。")
+            return self._degraded_chat(
+                character_id,
+                character.name,
+                "closed",
+                "AI 后端还没配置",
+                "这间酒馆还没有可用的模型配置。",
+                reason="llm_not_configured",
+            )
 
         prompt_visitor_state = self.store.get_visitor_state(tavern_id, visitor_id)
         degradation: dict[str, Any] | None = None
@@ -286,6 +309,10 @@ class RuntimeApplicationMixin:
             "mood": "curious",
             "degraded": bool(degradation),
             "degradation": degradation,
+            "response_mode": self._chat_response_mode(
+                llm_config,
+                reason=str((degradation or {}).get("reason") or ""),
+            ),
             "tavern_status": "closed" if degradation else tavern.status,
             "visitor_state": visitor_state.to_dict(),
             "affinity": affinity_result.get("affinity"),
@@ -984,14 +1011,60 @@ class RuntimeApplicationMixin:
         rumor_text = clean_text(rumor.get("rumor_text"), max_length=180) or "有旅人提起过那里。"
         return f"这只是传闻、不是正史：{target_name}——{rumor_text}"
 
-    def _degraded_chat(self, character_id: str, character_name: str, status: str, title: str, message: str) -> dict[str, Any]:
+    def _chat_response_mode(self, llm_config: Any | None = None, *, reason: str = "") -> dict[str, Any]:
+        if reason == "llm_not_configured":
+            return {
+                "kind": "llm_not_configured",
+                "label": "AI 后端未配置",
+                "message": "这间酒馆还没有可用模型配置；店主需要在 AI 配置页补全连接并测试通过后，NPC 才会以外部 LLM 接待。",
+                "requires_owner_llm": True,
+            }
+        if reason in {"llm_error", "llm_unexpected_error"}:
+            return {
+                "kind": "local_fallback",
+                "label": "规则兜底回应",
+                "message": "模型调用失败，本轮已切换为本地规则回应；店主可以检查模型配置。",
+                "requires_owner_llm": True,
+            }
+        if llm_config and _is_rules_backend(getattr(llm_config, "backend", "")):
+            return {
+                "kind": "built_in_rules",
+                "label": "规则模式 / 无 Key 轻量接待",
+                "message": "这间内置公益酒馆使用本地规则模板接待，不消耗店主 Token；它不是外部 LLM NPC。",
+                "requires_owner_llm": False,
+            }
+        if reason:
+            return {
+                "kind": "unavailable",
+                "label": "暂不可用",
+                "message": "当前不能以 AI NPC 接待；请稍后再来，或联系店主检查营业状态与模型配置。",
+                "requires_owner_llm": True,
+            }
+        return {
+            "kind": "owner_llm",
+            "label": "外部 LLM 模式",
+            "message": "当前由店主配置的外部 LLM 驱动 NPC 对话。",
+            "requires_owner_llm": True,
+        }
+
+    def _degraded_chat(
+        self,
+        character_id: str,
+        character_name: str,
+        status: str,
+        title: str,
+        message: str,
+        *,
+        reason: str = "unavailable",
+    ) -> dict[str, Any]:
         return {
             "character_id": character_id,
             "character_name": character_name,
             "response": message,
             "mood": "quiet",
             "degraded": True,
-            "degradation": {"reason": "unavailable", "title": title, "message": message, "action": "稍后再来或请店主检查配置。"},
+            "degradation": {"reason": reason, "title": title, "message": message, "action": "稍后再来或请店主检查配置。"},
+            "response_mode": self._chat_response_mode(reason=reason),
             "tavern_status": status,
             "visitor_state": None,
             "created_memories": [],

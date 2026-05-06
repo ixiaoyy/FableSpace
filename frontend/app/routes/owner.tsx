@@ -75,8 +75,8 @@ function formatNumber(value: number) {
   return Number(value || 0).toLocaleString("zh-CN")
 }
 
-function ownerTavernPath(tavernId: string, ownerId: string) {
-  return `/tavern/${encodeURIComponent(tavernId)}?owner_id=${encodeURIComponent(ownerId)}`
+function ownerTavernManagePath(tavernId: string, ownerId: string) {
+  return `/tavern/${encodeURIComponent(tavernId)}/manage?owner_id=${encodeURIComponent(ownerId)}`
 }
 
 export async function clientLoader({ request }: ClientLoaderFunctionArgs): Promise<OwnerLoaderData> {
@@ -326,8 +326,8 @@ export default function OwnerRoute() {
                     </Button>
                   ) : action.tavernId ? (
                     <Button asChild size="sm" variant="ghost" className="mt-3">
-                      <Link to={ownerTavernPath(action.tavernId, ownerId)}>
-                        查看酒馆
+                      <Link to={ownerTavernManagePath(action.tavernId, ownerId)}>
+                        管理酒馆
                         <ArrowRight className="h-4 w-4" />
                       </Link>
                     </Button>
@@ -495,8 +495,8 @@ export default function OwnerRoute() {
                   <p className="mt-3 text-sm leading-6 text-violet-100/72">{note.content || "访客未留下文字内容"}</p>
                   {note.tavernId ? (
                     <Button asChild size="sm" variant="ghost" className="mt-3">
-                      <Link to={ownerTavernPath(note.tavernId, ownerId)}>
-                        进入酒馆处理反馈
+                      <Link to={ownerTavernManagePath(note.tavernId, ownerId)}>
+                        进入管理页处理反馈
                         <ArrowRight className="h-4 w-4" />
                       </Link>
                     </Button>
@@ -521,7 +521,7 @@ export default function OwnerRoute() {
                   {summary.tavernHighlights.map((item) => (
                     <Link
                       key={item.tavernId}
-                      to={ownerTavernPath(item.tavernId, ownerId)}
+                      to={ownerTavernManagePath(item.tavernId, ownerId)}
                       className="group grid gap-4 rounded-2xl border border-white/10 bg-white/[0.045] p-4 transition hover:border-cyan-300/45 hover:bg-cyan-300/10 sm:grid-cols-[minmax(0,1fr)_auto]"
                     >
                       <div className="min-w-0">

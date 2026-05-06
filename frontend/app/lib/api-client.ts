@@ -34,6 +34,9 @@ export async function readApiJson<T>(path: string, init: ApiInit = {}): Promise<
       payload = JSON.parse(text)
     } catch {
       const snippet = text.trim().slice(0, 80)
+      if (!response.ok) {
+        throw new Error(`API 请求失败（${response.status}）：${snippet || response.statusText || "非 JSON 响应"}`)
+      }
       throw new Error(`API 返回了无效 JSON：${snippet}`)
     }
   }

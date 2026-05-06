@@ -83,3 +83,48 @@ export function buildOwnerDialoguePreview({ tavern = {}, character = {}, visitor
     ],
   }
 }
+
+export function normalizeOwnerDialogueDryRunPreview(payload = {}, fallback = null) {
+  const dryRun = Boolean(payload.dry_run)
+  const persisted = Boolean(payload.persisted)
+  const assistant = toText(payload.assistant_message).trim()
+  const fallbackPreview = fallback || {}
+  const notes = Array.isArray(payload.notes) && payload.notes.length
+    ? payload.notes
+    : [
+        '后端 dry-run：已组装真实 Tavern / NPC / WorldInfo prompt。',
+        'persisted=false：不会写入 chat history、记忆、visitor state 或 writeback。',
+      ]
+
+  return {
+    ...fallbackPreview,
+    ok: payload.ok !== false,
+    preview_only: true,
+    dry_run: dryRun,
+    persisted,
+    llm_called: Boolean(payload.model_called),
+    model_called: Boolean(payload.model_called),
+    model_requested: Boolean(payload.model_requested),
+    history_written: Boolean(payload.history_written),
+    memory_written: Boolean(payload.memory_written),
+    writeback_written: Boolean(payload.writeback_written),
+    visitor_state_written: Boolean(payload.visitor_state_written),
+    provider_cost: Number(payload.token_estimate || 0) > 0 ? `token_estimate:${payload.token_estimate}` : 'none',
+    token_estimate: Number(payload.token_estimate || 0),
+    model_status: toText(payload.model_status) || (payload.model_called ? 'called' : 'not_requested'),
+    model_error: toText(payload.model_error),
+    tavern_name: fallbackPreview.tavern_name,
+    character_name: toText(payload.character_name) || fallbackPreview.character_name,
+    visitor_message: toText(payload.message) || fallbackPreview.visitor_message || DEFAULT_OWNER_PREVIEW_MESSAGE,
+    assistant_message: assistant || '已完成后端 prompt dry-run；本次未调用模型，因此没有真实模型回复。',
+    messages: Array.isArray(payload.messages) ? payload.messages : [],
+    message_count: Number(payload.message_count || 0),
+    matched_world_info_count: Number(payload.matched_world_info_count || 0),
+    matched_world_info: Array.isArray(payload.matched_world_info) ? payload.matched_world_info : [],
+    prompt_summary: {
+      ...(fallbackPreview.prompt_summary || {}),
+      ...(payload.prompt_summary || {}),
+    },
+    notes,
+  }
+}

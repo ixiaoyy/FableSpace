@@ -124,3 +124,22 @@ Playwright self-acceptance does **not** replace `npm --prefix .\frontend run bui
 - Treating a Vite dev server manual check as a substitute for `npm --prefix .\frontend run build`.
 - Forgetting to update script tests when changing service contracts or rule helpers.
 - Shipping UI that works only with a configured external LLM, despite the project maintaining no-key/fallback demo flows.
+
+---
+
+## Scenario: Owner Dialogue Preview Dry-run UI
+
+- Owner dialogue preview UI must call the centralized `frontend/app/lib/taverns.ts` dry-run service instead of sending chat messages or using direct `fetch` in the component.
+- Copy must distinguish backend prompt dry-run from real visitor chat: default no LLM call, no chat history, no memory, no writeback, and `persisted=false`.
+- Any model test action must be explicit owner confirmation because it may consume owner provider tokens.
+- Display dry-run flags (`dry_run`, `persisted`, `model_called`, `history_written`, `memory_written`, `writeback_written`) and readable model error/status.
+- Keep the local simulator helper only as a degraded fallback when tavern/owner identity is unavailable; it must not be presented as a real AI response.
+
+Required checks:
+
+```powershell
+node .\scripts\owner-dialogue-preview-test.mjs
+npm --prefix .\frontend run typecheck
+npm --prefix .\frontend test
+npm --prefix .\frontend run build
+```

@@ -1,0 +1,16 @@
+{"file": ".trellis/workflow.md", "reason": "Project workflow and conventions"}
+{"file": ".trellis/spec/backend/index.md", "reason": "Backend development guide"}
+{"file": ".trellis/spec/frontend/index.md", "reason": "Frontend development guide"}
+{"file": "backend/src/fablemap_api/core/preset_import.py", "reason": "current preview-only backend"}
+{"file": "backend/src/fablemap_api/core/web/service.py", "reason": "service layer for apply endpoint"}
+{"file": "backend/src/fablemap_api/core/web/router.py", "reason": "route layer for apply endpoint"}
+{"file": "frontend/app/product/PresetImportPreviewModal.jsx", "reason": "preview-only import UI"}
+{"file": ".trellis/spec/backend/preset-import-preview-contract.md", "reason": "existing preview contract"}
+{"file": ".trellis/spec/frontend/preset-import-preview-ui-boundary.md", "reason": "existing preview UI boundary"}
+{"file": ".trellis\\tasks\\05-06-preset-import-apply-flow\\prd.md", "reason": "task PRD requirements"}
+{"file": "backend/src/fablemap_api/api/v1/owner_config.py", "reason": "v1 owner apply endpoint"}
+{"file": "backend/src/fablemap_api/contracts/owner_config.py", "reason": "apply request contract"}
+{"file": "backend/src/fablemap_api/application/services/owner_config.py", "reason": "owner-only apply service and persistence"}
+{"file": "frontend/app/lib/taverns.ts", "reason": "typed preview/apply client contract"}
+{"file": "frontend/app/product/services/tavernService.js", "reason": "product service apply endpoint helper"}
+{"file": "frontend/app/product/styles.css", "reason": "modal diff and selection styles"}

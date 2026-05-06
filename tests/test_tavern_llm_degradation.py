@@ -80,8 +80,34 @@ def test_missing_llm_config_returns_friendly_degradation_and_closes_tavern():
 
         assert payload["degraded"] is True
         assert payload["degradation"]["reason"] == "llm_not_configured"
+        assert payload["response_mode"]["kind"] == "llm_not_configured"
+        assert payload["response_mode"]["requires_owner_llm"] is True
         assert payload["tavern_status"] == "closed"
         assert service.tavern_store.get_tavern(tavern.id).status == "closed"
+
+
+def test_rules_backend_returns_explicit_rules_response_mode():
+    with TemporaryDirectory() as tmpdir:
+        service = _service(tmpdir)
+        tavern = _create_open_tavern(service)
+        service.tavern_store.save_llm_config(
+            tavern.id,
+            LLMConfig(backend="rules", model="local-rules", api_key=""),
+        )
+
+        payload = service.tavern_chat_payload(
+            tavern_id=tavern.id,
+            character_id="char_degrade",
+            message="你好",
+            visitor_id="visitor_rules",
+        )
+
+        assert payload["degraded"] is False
+        assert payload["response_mode"]["kind"] == "built_in_rules"
+        assert payload["response_mode"]["requires_owner_llm"] is False
+        assert "规则模式" in payload["response_mode"]["label"]
+        assert "system_prompt" not in payload["response"]
+        assert "scene_prompt" not in payload["response"]
 
 
 def test_visitor_name_is_used_in_prompt_and_persisted(monkeypatch):

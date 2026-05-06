@@ -1,0 +1,53 @@
+{
+  "id": "cultivation-offline-return-loop",
+  "name": "cultivation-offline-return-loop",
+  "title": "Cultivation Offline Return Loop",
+  "description": "设计修行酒馆在线/离线挂机循环：每日回访、阶段事件、访客私有进度、节流上限和可回放结算。",
+  "status": "planning",
+  "dev_type": null,
+  "scope": null,
+  "package": null,
+  "priority": "P1",
+  "creator": "lijin",
+  "assignee": "lijin",
+  "createdAt": "2026-05-06",
+  "completedAt": null,
+  "branch": null,
+  "base_branch": "codex-homepage-dynamic-entry-covers",
+  "worktree_path": null,
+  "current_phase": 0,
+  "next_action": [
+    {
+      "phase": 1,
+      "action": "brainstorm"
+    },
+    {
+      "phase": 2,
+      "action": "research"
+    },
+    {
+      "phase": 3,
+      "action": "implement"
+    },
+    {
+      "phase": 4,
+      "action": "check"
+    },
+    {
+      "phase": 5,
+      "action": "update-spec"
+    },
+    {
+      "phase": 6,
+      "action": "record-session"
+    }
+  ],
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [],
+  "parent": "05-06-xiuxian-idle-text-image-game-brainstorm",
+  "relatedFiles": [],
+  "notes": "",
+  "meta": {}
+}

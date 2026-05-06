@@ -1,0 +1,7 @@
+{"file": ".trellis/workflow.md", "reason": "Project workflow and conventions"}
+{"file": ".trellis/spec/backend/index.md", "reason": "Backend development guide"}
+{"file": ".trellis/spec/frontend/index.md", "reason": "Frontend development guide"}
+{"file": ".trellis/spec/backend/database-guidelines.md", "reason": "Default public-welfare seed and LLM config persistence contract"}
+{"file": ".trellis/spec/backend/quality-guidelines.md", "reason": "Backend validation and tests"}
+{"file": ".trellis/spec/backend/logging-guidelines.md", "reason": "Sensitive LLM data logging boundary"}
+{"file": ".trellis/spec/frontend/quality-guidelines.md", "reason": "Frontend LLM config form quality and verification"}

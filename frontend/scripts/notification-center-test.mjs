@@ -86,6 +86,8 @@ const routeSource = readFileSync(new URL('../app/routes/notifications.tsx', impo
 assert(routeSource.includes('useNotifications(userId)'))
 assert(routeSource.includes('不会变成公开社交流'))
 assert(routeSource.includes('不会用于广告复活'))
+assert(!routeSource.includes('Existing notification MVP'))
+assert(!routeSource.includes('通知 MVP'))
 
 const routesSource = readFileSync(new URL('../app/routes.ts', import.meta.url), 'utf8')
 assert(routesSource.includes('route("notifications", "./routes/notifications.tsx")'))
@@ -93,8 +95,11 @@ assert(routesSource.includes('route("notifications", "./routes/notifications.tsx
 const bellSource = readFileSync(new URL('../app/components/NotificationBell.tsx', import.meta.url), 'utf8')
 assert(bellSource.includes('notifications?user_id='))
 
+const hookSource = readFileSync(new URL('../app/hooks/useNotifications.ts', import.meta.url), 'utf8')
+assert(hookSource.includes('/api/v1/notifications/ws/${encodeURIComponent(userId)}?user_id=${encodeURIComponent(userId)}'))
+
 const forbiddenProductCopy = `${panelSource}\n${routeSource}`
-for (const forbidden of ['购买 Token', '营销群发', '广告投放', '排行榜', '复活广告']) {
+for (const forbidden of ['购买 Token', '营销群发', '广告投放', '排行榜', '复活广告', 'MVP']) {
   assert(!forbiddenProductCopy.includes(forbidden), `notification center should not include forbidden copy: ${forbidden}`)
 }
 

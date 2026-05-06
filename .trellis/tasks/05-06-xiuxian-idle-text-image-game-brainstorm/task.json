@@ -1,0 +1,59 @@
+{
+  "id": "xiuxian-idle-text-image-game-brainstorm",
+  "name": "xiuxian-idle-text-image-game-brainstorm",
+  "title": "brainstorm: 修仙在线离线挂机文字加图片游戏",
+  "description": "围绕 FableMap 内的修仙/在线离线挂机、文字加图片体验做 Trellis 头脑风暴，明确是否纳入赛博酒馆主线、MVP 范围、视觉资产边界和后续实现路径。",
+  "status": "planning",
+  "dev_type": null,
+  "scope": null,
+  "package": null,
+  "priority": "P2",
+  "creator": "lijin",
+  "assignee": "lijin",
+  "createdAt": "2026-05-06",
+  "completedAt": null,
+  "branch": null,
+  "base_branch": "codex-homepage-dynamic-entry-covers",
+  "worktree_path": null,
+  "current_phase": 0,
+  "next_action": [
+    {
+      "phase": 1,
+      "action": "brainstorm"
+    },
+    {
+      "phase": 2,
+      "action": "research"
+    },
+    {
+      "phase": 3,
+      "action": "implement"
+    },
+    {
+      "phase": 4,
+      "action": "check"
+    },
+    {
+      "phase": 5,
+      "action": "update-spec"
+    },
+    {
+      "phase": 6,
+      "action": "record-session"
+    }
+  ],
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [
+    "05-06-special-tavern-type-thin-layer",
+    "05-06-cultivation-tavern-play-pack-mvp",
+    "05-06-cultivation-offline-return-loop",
+    "05-06-cultivation-text-image-card-slots",
+    "05-06-special-tavern-type-roadmap"
+  ],
+  "parent": null,
+  "relatedFiles": [],
+  "notes": "",
+  "meta": {}
+}

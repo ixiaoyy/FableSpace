@@ -1,0 +1,3 @@
+{"file": "backend/tests/test_v1_preset_import_preview.py", "reason": "apply API tests: diff/confirm, persistence, permission, blocked-warning rejection"}
+{"file": "frontend/scripts/preset-import-preview-test.mjs", "reason": "frontend service and modal contract test for apply flow"}
+{"file": "docs/ARCHITECTURE.md", "reason": "API/UI architecture contract updated"}

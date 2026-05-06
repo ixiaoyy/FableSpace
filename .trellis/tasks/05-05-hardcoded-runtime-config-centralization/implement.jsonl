@@ -1,0 +1,10 @@
+{"file": ".trellis/workflow.md", "reason": "Project workflow and conventions"}
+{"file": ".trellis/spec/backend/index.md", "reason": "Backend development guide"}
+{"file": ".trellis/spec/frontend/index.md", "reason": "Frontend development guide"}
+{"file": ".trellis/spec/backend/quality-guidelines.md", "reason": "backend runtime/service refactor boundaries and verification"}
+{"file": ".trellis/spec/backend/directory-structure.md", "reason": "backend module placement for config helpers"}
+{"file": ".trellis/spec/frontend/directory-structure.md", "reason": "frontend shared config and service placement"}
+{"file": ".trellis/spec/frontend/quality-guidelines.md", "reason": "frontend build/test requirements"}
+{"file": ".trellis/spec/frontend/npc-art-guidelines.md", "reason": "NPC asset fallback contract"}
+{"file": ".trellis/spec/guides/code-reuse-thinking-guide.md", "reason": "centralize repeated constants"}
+{"file": ".trellis/spec/guides/cross-layer-thinking-guide.md", "reason": "cross-layer data flow for assets and runtime rules"}

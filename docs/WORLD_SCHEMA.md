@@ -820,12 +820,74 @@ type QueueStatus = "waiting" | "promoted" | "expired";
 
 ### 16.10 数据库表
 
-对应 MySQL 表：`npc_public_bonds`、`npc_public_bond_queues`，详见 `backend/src/fablemap_api/infrastructure/models.py`。
+对应 SQLAlchemy 表：`taverns`、`characters`、`world_info`、`visitors`、`chat_messages`、`memory_atoms`、`gameplay_sessions`、`llm_configs`、`tavern_messages`、`owner_configs`、`visitor_notes`、`notifications`、`neighborhood_rumors`、`homes`、`home_visits`、`writeback_states`、`npc_public_bonds`、`npc_public_bond_queues`，详见 `backend/src/fablemap_api/infrastructure/models.py`。
 
 ---
 
+
+## 十七、RelationshipGraph（酒馆/角色关系图谱）
+
+RelationshipGraph 表达店主 / 系统在其治理范围内确认的酒馆与角色关系，以及这些关系对单个访客的私有关系投影。它不是访客社交图谱、阵营战或排行榜系统。
+
+```typescript
+type RelationshipNodeType = 'tavern' | 'character';
+type RelationshipBehaviorType = 'friendly' | 'allied' | 'neutral' | 'rival' | 'hostile';
+type RelationshipStrengthPreset = 'weak' | 'normal' | 'strong';
+type RelationshipGovernanceMode = 'manual' | 'assisted' | 'delegated_ai' | 'system_ai';
+type RelationshipEdgeStatus = 'pending' | 'confirmed' | 'rejected' | 'disabled';
+
+interface RelationshipEdge {
+  id: string;
+  source_owner_id: string;       // 声明该立场的 owner / system scope
+  source_tavern_id: string;      // source node 所属 tavern
+  source_node_type: RelationshipNodeType;
+  source_node_id: string;
+  target_owner_id: string;
+  target_tavern_id: string;
+  target_node_type: RelationshipNodeType;
+  target_node_id: string;
+  behavior_type: RelationshipBehaviorType;
+  display_name: string;          // 店主可编辑展示名，逻辑仍使用 behavior_type
+  description?: string;
+  strength_preset: RelationshipStrengthPreset;
+  status: RelationshipEdgeStatus;
+  governance_mode: RelationshipGovernanceMode;
+  confirmed_by?: string;
+  confirmed_by_type?: 'owner' | 'delegated_ai' | 'system_ai' | string;
+  created_at: string;
+  updated_at: string;
+  metadata?: Record<string, unknown>;
+}
+
+interface VisitorRelationshipProjection {
+  visitor_id: string;
+  node_type: RelationshipNodeType;
+  node_id: string;
+  tavern_id?: string;
+  affinity: number;              // 0.0–1.0，兼容既有正向好感语义
+  hostility: number;             // 0.0–∞，敌意 / 紧张度，不写入 relationship_strength
+  last_event_at?: string;
+  updated_at: string;
+  metadata?: Record<string, unknown>; // source_edge_id / provenance 等
+}
+```
+
+约束：
+
+- `RelationshipEdge` 是 owner / system 视角的正史或候选；`pending` / `disabled` 不参与传播。
+- 跨 owner 的一边声明只能作为 source owner 的 perspective；不得强迫 target owner 接受、展示或用于其 prompt / 传播。
+- Same-owner 或 system/public-welfare scope 内的关系可在该治理范围内双向生效；跨 owner 仍以各自方向的 edge 表达。
+- 访客投影为私有运行时数据；不得进入公开 Tavern payload，不得作为访客间社交资料。
+- 负向效果先降低 `affinity` 到 0，再把剩余量计入 `hostility`；不得把负数强塞进既有 `VisitorState.relationship_strength`。
+- 关系类型固定为 `friendly/allied/neutral/rival/hostile`，强度固定为 `weak/normal/strong`；展示名可定制但不能改变后端公式。
+- AI 可按 `delegated_ai` / `system_ai` 自动确认 source-side perspective，但不能替另一个 owner 自动确认 target-side 关系。
+
+对应 SQLAlchemy 表：`relationship_edges`、`visitor_relationship_projections`。
+
 ## 版本历史
 
+- v1.5 (2026-05-06): 增加 RelationshipGraph 基础 Schema：owner/source-side `relationship_edges` 与 visitor-private `visitor_relationship_projections`，采用双轴 affinity/hostility、固定关系行为枚举、strength preset 与治理模式。
+- v1.4 (2026-05-06): 运行时持久化默认切换为数据库存储；未配置数据库 URL 时使用 `<output_root>/fablemap.sqlite3`，JSON 文件存储仅保留为显式本地兼容模式。
 - v1.3 (2026-04-30): `PlaceType` 增加公开 `hospital` 类型，用于医院 / 护士站 / 分诊便签等地点语义；医院类 NPC 内容必须保留现实医疗安全边界，不替代医生诊疗、处方或急救。
 - v1.2 (2026-04-29): 增加 Tavern Skill Packs MVP：`Tavern.skill_packs` 持久字段、`local-rumor` 环境传闻技能包、店主 `GET/PUT /skill-packs` 配置端点；技能包只能启用显式能力，不自动改写角色、世界书、记忆或正史状态卡。
 - v1.1 (2026-04-29): 增加 StateCard / Canon Ledger 连续性状态卡：Chat 可生成 pending 任务、资源、冲突、事件台账候选；确认后进入结构化正史记录；状态卡存储在 `_state_cards` 私有桶，不进入公开 Tavern payload 或酒馆包。

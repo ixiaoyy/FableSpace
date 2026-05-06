@@ -1,0 +1,4 @@
+{"file": ".trellis/tasks/05-06-05-06-hide-visitor-memory-panels/prd.md", "reason": "Task requirements and acceptance criteria."}
+{"file": ".trellis/tasks/05-06-05-06-hide-visitor-memory-panels/evidence/visitor-memory-panel-browser-check.mjs", "reason": "desktop and mobile Playwright self-acceptance script"}
+{"file": ".trellis/tasks/05-06-05-06-hide-visitor-memory-panels/evidence/visitor-memory-panel-browser-check.json", "reason": "Playwright self-acceptance report"}
+{"file": ".trellis/tasks/05-06-05-06-hide-visitor-memory-panels/verification.md", "reason": "verification commands and browser evidence summary"}

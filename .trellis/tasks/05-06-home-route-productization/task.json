@@ -1,0 +1,59 @@
+{
+  "id": "home-route-productization",
+  "name": "home-route-productization",
+  "title": "Home route productization or retirement",
+  "description": "个人 Home 路由存在 isOwner=true 与成员对话占位，需要并入 tavern home 主线或从产品入口下线。",
+  "status": "review",
+  "dev_type": "fullstack",
+  "scope": null,
+  "package": null,
+  "priority": "P1",
+  "creator": "lijin",
+  "assignee": "lijin",
+  "createdAt": "2026-05-06",
+  "completedAt": null,
+  "branch": null,
+  "base_branch": "codex-homepage-dynamic-entry-covers",
+  "worktree_path": null,
+  "current_phase": 4,
+  "next_action": [
+    {
+      "phase": 1,
+      "action": "brainstorm"
+    },
+    {
+      "phase": 2,
+      "action": "research"
+    },
+    {
+      "phase": 3,
+      "action": "implement"
+    },
+    {
+      "phase": 4,
+      "action": "check"
+    },
+    {
+      "phase": 5,
+      "action": "update-spec"
+    },
+    {
+      "phase": 6,
+      "action": "record-session"
+    }
+  ],
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [],
+  "parent": "05-06-demo-level-implementation-audit",
+  "relatedFiles": [
+    "frontend/app/routes/home-me.tsx",
+    "frontend/app/routes/create.tsx",
+    "frontend/scripts/home-route-productization-test.mjs",
+    "frontend/package.json",
+    ".trellis/spec/frontend/type-safety.md"
+  ],
+  "notes": "Chose retire/merge path: /home/me is now a compatibility page that does not call legacy Home store/chat/message APIs or hardcode owner privileges; it routes owner actions to /create?place_type=home and /owner, hides placeholder member chat/留言 from visitors, and /create now normalizes ?place_type=home through shared place-type helpers. Validation passed: RED/GREEN home-route-productization script, frontend typecheck/test/build, backend compileall, git diff --check.",
+  "meta": {}
+}

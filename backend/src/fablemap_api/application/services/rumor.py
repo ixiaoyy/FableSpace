@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING, Any
 
 from fastapi import HTTPException
 
-from fablemap_api.core.rumor import NeighborhoodRumor, RumorStore
+from fablemap_api.core.rumor import NeighborhoodRumor, RumorStore, SQLAlchemyRumorStore
 
 if TYPE_CHECKING:
     from fablemap_api.core.tavern import Tavern
@@ -36,7 +36,11 @@ class RumorApplicationMixin:
 
     def _get_rumor_store(self) -> RumorStore:
         """获取 rumor store"""
-        if not hasattr(self, "_rumor_store"):
+        current = getattr(self, "_rumor_store", None)
+        db_getter = getattr(self.store, "_session", None)
+        if callable(db_getter) and not isinstance(current, SQLAlchemyRumorStore):
+            self._rumor_store = SQLAlchemyRumorStore(db_getter())
+        elif current is None:
             self._rumor_store = RumorStore()
         return self._rumor_store
 

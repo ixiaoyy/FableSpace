@@ -165,6 +165,8 @@ Contracts:
 - Normalize Home create payloads through `normalizeCreatePlacePayload(...)` so public access becomes private before POST.
 - Normalize Home member drafts so `silent_member` and `display_object` cannot drift into conversational speech modes.
 - Components must call service helpers (`addHomeMember`, `createPlaceRelationship`, `createSchoolEnrollment`, `decidePlaceRelationship`) instead of ad hoc `fetch`.
+- The legacy `/home/me` route is only a compatibility/retirement page: it must not call `getMyHome`, `createHome`, `chatWithHomeMember`, or `leaveHomeMessage`, must not hardcode owner privileges, and must route owners to `/create?place_type=home` / `/owner` instead of creating a second Home product surface.
+- `/create` may accept `?place_type=home`, but it must normalize the query value through `normalizePlaceTypeId(...)` and still submit through the standard Tavern/Place create flow.
 - UI copy must make the pending approval boundary visible; cross-owner Place relationships are not publicly shown until approved by the target Place owner.
 - Student-school is only the `school_enrollment` relationship type; generic relationship drafts must use `target_tavern_id` + `relation_type`, while `school_tavern_id` is legacy compatibility.
 
@@ -174,6 +176,12 @@ Required verification after changing these clients or route components:
 npm --prefix .\frontend test
 npm --prefix .\frontend run typecheck
 npm --prefix .\frontend run build
+```
+
+For `/home/me` compatibility-page changes, also run:
+
+```powershell
+node frontend/scripts/home-route-productization-test.mjs
 ```
 
 ## Scenario: Visitor/NPC gender payload boundaries

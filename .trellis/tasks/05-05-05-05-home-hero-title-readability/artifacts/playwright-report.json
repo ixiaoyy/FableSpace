@@ -1,0 +1,30 @@
+{
+  "ok": true,
+  "baseUrl": "http://127.0.0.1:8950/",
+  "results": [
+    {
+      "name": "desktop",
+      "screenshot": "D:\\work\\ai-\\.trellis\\tasks\\05-05-05-05-home-hero-title-readability\\artifacts\\desktop.png",
+      "metrics": {
+        "text": "真实坐标，藏着会回应的世界",
+        "fontSize": 41.28,
+        "lineHeight": 48.7104,
+        "fontWeight": "700",
+        "scrollWidth": 1440,
+        "innerWidth": 1440
+      }
+    },
+    {
+      "name": "mobile",
+      "screenshot": "D:\\work\\ai-\\.trellis\\tasks\\05-05-05-05-home-hero-title-readability\\artifacts\\mobile.png",
+      "metrics": {
+        "text": "真实坐标，藏着会回应的世界",
+        "fontSize": 27.52,
+        "lineHeight": 34.1248,
+        "fontWeight": "700",
+        "scrollWidth": 390,
+        "innerWidth": 390
+      }
+    }
+  ]
+}

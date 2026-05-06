@@ -22,11 +22,11 @@ export default function NotificationsRoute() {
             <CardHeader>
               <div className="mb-2 inline-flex w-fit items-center gap-2 rounded-full border border-fuchsia-300/20 bg-fuchsia-300/10 px-3 py-1.5 text-xs font-black text-fuchsia-100">
                 <BellRing className="h-3.5 w-3.5" />
-                Existing notification MVP
+                持久化通知中心
               </div>
               <CardTitle className="text-4xl font-black leading-tight">通知中心</CardTitle>
               <CardDescription className="text-base leading-7">
-                这是已有通知 MVP 的表现化入口：复用 WebSocket / 标记已读能力，不新增营销推送协议。
+                复用持久化通知与实时连接能力，只呈现当前身份相关事件，不新增营销推送协议。
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-5">

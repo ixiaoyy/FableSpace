@@ -1,0 +1,101 @@
+{
+  "id": "homepage-seed-fallback-hero-scale",
+  "name": "homepage-seed-fallback-hero-scale",
+  "title": "Fix homepage seed fallback and hero scale",
+  "description": "修复首页公益 seed 因损坏 taverns.json 被隐藏导致数据为 0，并收小首页 hero 左侧字号。",
+  "status": "review",
+  "dev_type": "fullstack",
+  "scope": {
+    "allowed": [
+      "backend/src/fablemap_api/core/tavern.py",
+      "tests/test_default_public_welfare_taverns.py",
+      "frontend/app/routes/home.tsx",
+      "frontend/scripts/homepage-dynamic-entry-test.mjs",
+      ".trellis/tasks/05-05-homepage-seed-fallback-hero-scale/",
+      "backend/src/fablemap_api/core/public_welfare_rules.py",
+      "backend/src/fablemap_api/application/services/runtime.py",
+      "backend/tests/test_v1_runtime_features.py"
+    ],
+    "forbidden": [
+      "schema changes",
+      "new dependencies",
+      "doc moves/deletes",
+      "silent overwrite of corrupt taverns.json"
+    ]
+  },
+  "package": null,
+  "priority": "P1",
+  "creator": "lijin",
+  "assignee": "lijin",
+  "createdAt": "2026-05-05",
+  "completedAt": null,
+  "branch": null,
+  "base_branch": "codex-homepage-dynamic-entry-covers",
+  "worktree_path": null,
+  "current_phase": 4,
+  "next_action": [
+    {
+      "phase": 1,
+      "action": "brainstorm"
+    },
+    {
+      "phase": 2,
+      "action": "research"
+    },
+    {
+      "phase": 3,
+      "action": "implement"
+    },
+    {
+      "phase": 4,
+      "action": "check"
+    },
+    {
+      "phase": 5,
+      "action": "update-spec"
+    },
+    {
+      "phase": 6,
+      "action": "record-session"
+    }
+  ],
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [],
+  "parent": null,
+  "relatedFiles": [
+    "backend/src/fablemap_api/core/tavern.py",
+    "tests/test_default_public_welfare_taverns.py",
+    "frontend/app/routes/home.tsx",
+    "frontend/scripts/homepage-dynamic-entry-test.mjs",
+    ".trellis/tasks/05-05-homepage-seed-fallback-hero-scale/prd.md",
+    ".trellis/tasks/05-05-homepage-seed-fallback-hero-scale/implementation-plan.md",
+    ".trellis/tasks/05-05-homepage-seed-fallback-hero-scale/check.jsonl",
+    ".trellis/tasks/05-05-homepage-seed-fallback-hero-scale/evidence/homepage-browser-check.mjs",
+    ".trellis/tasks/05-05-homepage-seed-fallback-hero-scale/evidence/homepage-browser-check.json",
+    ".trellis/tasks/05-05-homepage-seed-fallback-hero-scale/evidence/homepage-desktop.png",
+    ".trellis/tasks/05-05-homepage-seed-fallback-hero-scale/evidence/homepage-mobile.png",
+    ".trellis/tasks/05-05-homepage-seed-fallback-hero-scale/verification.md",
+    ".trellis/tasks/05-05-homepage-seed-fallback-hero-scale/debug.jsonl",
+    ".trellis/tasks/05-05-homepage-seed-fallback-hero-scale/evidence/discover-browser-check.mjs",
+    ".trellis/tasks/05-05-homepage-seed-fallback-hero-scale/evidence/discover-browser-check.json",
+    ".trellis/tasks/05-05-homepage-seed-fallback-hero-scale/evidence/discover-desktop.png",
+    ".trellis/tasks/05-05-homepage-seed-fallback-hero-scale/evidence/discover-mobile.png",
+    ".fablemap-api/taverns/taverns.json",
+    ".trellis/tasks/05-05-homepage-seed-fallback-hero-scale/backups/taverns.before-repair.20260505-234026.json",
+    ".trellis/tasks/05-05-homepage-seed-fallback-hero-scale/evidence/repair-runtime-taverns.py",
+    ".trellis/tasks/05-05-homepage-seed-fallback-hero-scale/evidence/runtime-taverns-repair-report.json",
+    "backend/src/fablemap_api/core/public_welfare_rules.py",
+    "backend/src/fablemap_api/application/services/runtime.py",
+    "backend/tests/test_v1_runtime_features.py",
+    ".trellis/tasks/05-05-homepage-seed-fallback-hero-scale/evidence/weather-chat-request.json",
+    ".trellis/tasks/05-05-homepage-seed-fallback-hero-scale/evidence/weather-chat-response-after-fix.json",
+    ".trellis/tasks/05-05-homepage-seed-fallback-hero-scale/evidence/repair-bad-rules-chat-artifacts.py",
+    ".trellis/tasks/05-05-homepage-seed-fallback-hero-scale/evidence/bad-rules-chat-artifact-repair-report.json",
+    ".fablemap-api/taverns/chat_history/pw_third_shelf_observatory/visitor-demo_char_pw_9_delta.jsonl",
+    ".fablemap-api/taverns/chat_history/pw_hospital_night_care/visitor-demo_char_pw_mika_nurse.jsonl"
+  ],
+  "notes": "Root cause: runtime taverns.json is invalid JSON; read paths need public-welfare seed fallback while preserving damaged file. Also shrink homepage hero title. Verification passed: backend full pytest, frontend typecheck/build/test, API count=9, Playwright desktop/mobile screenshots. Trellis context validation passed. Follow-up: discover list was empty because /api/v1/taverns returned 500 when a valid JSON store contained a partial public-welfare seed record missing Tavern fields. Follow-up fixed Discover: partial seed record now overlays canonical public-welfare read fallback; API/Vite return count=10; Playwright discover desktop/mobile passed. Runtime taverns.json thoroughly repaired after backup: partial pw_third_shelf_observatory restored canonically, _memory_atoms preserved, API/proxy count=10, homepage/discover browser checks passed. Follow-up hero typography polish: two-line compact title, smaller type scale, build/test/browser check passed. Follow-up rules-chat fix: root cause was the native v1 rules fallback echoing message + scene_prompt (`这里的气味和灯光...氛围是...`), while core rules fallback used a generic helper tone for unmatched messages; both now reuse public-welfare tavern-specific fallback copy and avoid prompt/scene leakage. Focused pytest, compileall, backend runtime suite, and live API weather-chat check passed. Follow-up artifact cleanup: repaired prior bad rules-chat artifacts in runtime data with backups; removed old auto memory/state cards containing prompt leakage, rewrote affected visitor-demo assistant messages to current rules responses, removed codex verification chat files, and reset public-welfare rules token_used to 0.",
+  "meta": {}
+}

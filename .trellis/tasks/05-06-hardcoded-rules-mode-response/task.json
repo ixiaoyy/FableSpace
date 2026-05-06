@@ -1,0 +1,64 @@
+{
+  "id": "hardcoded-rules-mode-response",
+  "name": "hardcoded-rules-mode-response",
+  "title": "De-demo hardcoded rules response mode",
+  "description": "公益/无 Key 规则回复当前代码写死，需产品化为明确规则模式和数据驱动降级。",
+  "status": "review",
+  "dev_type": "fullstack",
+  "scope": null,
+  "package": null,
+  "priority": "P1",
+  "creator": "lijin",
+  "assignee": "lijin",
+  "createdAt": "2026-05-06",
+  "completedAt": null,
+  "branch": null,
+  "base_branch": "codex-homepage-dynamic-entry-covers",
+  "worktree_path": null,
+  "current_phase": 4,
+  "next_action": [
+    {
+      "phase": 1,
+      "action": "brainstorm"
+    },
+    {
+      "phase": 2,
+      "action": "research"
+    },
+    {
+      "phase": 3,
+      "action": "implement"
+    },
+    {
+      "phase": 4,
+      "action": "check"
+    },
+    {
+      "phase": 5,
+      "action": "update-spec"
+    },
+    {
+      "phase": 6,
+      "action": "record-session"
+    }
+  ],
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [],
+  "parent": "05-06-demo-level-implementation-audit",
+  "relatedFiles": [
+    "backend/src/fablemap_api/application/services/runtime.py",
+    "backend/src/fablemap_api/core/web/service.py",
+    "backend/src/fablemap_api/core/public_welfare_rules.py",
+    "backend/tests/test_v1_runtime_features.py",
+    "tests/test_tavern_llm_degradation.py",
+    "frontend/app/lib/taverns.ts",
+    "frontend/app/features/tavern-chat-workbench/index.tsx",
+    "frontend/app/product/TavernChatRoom.jsx",
+    "frontend/app/product/styles.css",
+    "frontend/scripts/tavern-chat-workbench-test.mjs"
+  ],
+  "notes": "Implemented response_mode metadata for rules/owner-LLM/no-key/fallback chat; frontend mode badges; de-demo public welfare rules wording. Validation passed: backend focused pytest (18 passed), compileall, frontend typecheck/test/build, diff check.",
+  "meta": {}
+}

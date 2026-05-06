@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+import os
+from dataclasses import dataclass, field
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[5]
@@ -13,6 +14,23 @@ DEFAULT_FRONTEND_BUILD_CLIENT_DIR = Path("build") / "client"
 DEFAULT_FRONTEND_PUBLIC_DIRNAME = "public"
 
 
+def _env_value(name: str, default: str = "") -> str:
+    return os.environ.get(name, default).strip()
+
+
+def _default_database_url() -> str:
+    return _env_value("FABLEMAP_DATABASE_URL")
+
+
+def _default_mysql_url() -> str:
+    return _env_value("FABLEMAP_MYSQL_URL")
+
+
+def _default_storage_backend() -> str:
+    value = _env_value("FABLEMAP_STORAGE_BACKEND", "database").lower()
+    return value if value in {"database", "json"} else "database"
+
+
 @dataclass(frozen=True)
 class ApiSettings:
     output_root: Path = DEFAULT_OUTPUT_ROOT
@@ -21,6 +39,9 @@ class ApiSettings:
     frontend_dist: Path | None = None
     frontend_public: Path | None = None
     sillytavern_url: str = "http://127.0.0.1:8000"
+    storage_backend: str = field(default_factory=_default_storage_backend)
+    database_url: str = field(default_factory=_default_database_url)
+    mysql_url: str = field(default_factory=_default_mysql_url)
 
     def resolved(self) -> "ApiSettings":
         resolved_frontend_root = self.frontend_root.resolve() if self.frontend_root else None
@@ -36,4 +57,8 @@ class ApiSettings:
             frontend_root=resolved_frontend_root,
             frontend_dist=resolved_frontend_dist,
             frontend_public=resolved_frontend_public,
+            sillytavern_url=self.sillytavern_url,
+            storage_backend=self.storage_backend,
+            database_url=self.database_url,
+            mysql_url=self.mysql_url,
         )

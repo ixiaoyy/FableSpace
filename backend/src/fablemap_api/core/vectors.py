@@ -246,7 +246,7 @@ def _cosine_similarity(a: list[float], b: list[float]) -> float:
     return dot / (norm_a * norm_b)
 
 
-# ─── Memory Store Adapter Stub ────────────────────────────────────────────────
+# ─── Optional Semantic Memory Store Adapter ───────────────────────────────────
 
 
 from fablemap_api.core.memory.core import KeywordMemoryStore, MemoryAtom, MemorySearchResult, MemoryStore

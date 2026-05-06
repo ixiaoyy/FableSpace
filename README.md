@@ -87,7 +87,7 @@ http://127.0.0.1:8950/
 仓库提供两服务 Docker Compose 配置：`backend` 运行 FastAPI v1 API，`frontend` 用 nginx 托管 React Router 静态构建并代理 `/api` 到后端。
 
 ```powershell
-# 可选：复制环境变量模板并按需调整端口 / MySQL URL
+# 可选：复制环境变量模板并按需调整端口 / 数据库 URL
 Copy-Item .env.example .env
 
 # 构建并启动
@@ -98,7 +98,19 @@ http://127.0.0.1:3000/
 http://127.0.0.1:8000/api/v1/health
 ```
 
-默认情况下后端使用 Docker volume `fablemap_data` 保存 JSON 文件数据；设置 `FABLEMAP_MYSQL_URL` 后会按后端现有逻辑切换到 MySQL。店主 LLM API Key 仍应通过 FableMap 的店主配置写入，不要放入共享 `.env`。
+默认情况下后端使用真实数据库存储：未设置数据库 URL 时会在后端输出目录创建 `fablemap.sqlite3`；生产部署优先设置 `FABLEMAP_DATABASE_URL`（`FABLEMAP_MYSQL_URL` 仅作为旧别名）。如需本地兼容旧文件存储，可显式设置 `FABLEMAP_STORAGE_BACKEND=json`。店主 LLM API Key 仍应通过 FableMap 的店主配置写入，不要放入共享 `.env`。
+
+### 旧文件数据迁移到 MySQL
+
+下一阶段正式运行时存储目标是 MySQL。旧 `.fablemap-api` 下的 JSON/file runtime 数据只作为迁移输入，不继续作为生产权威存储：
+
+```powershell
+$env:PYTHONPATH = "$PWD\backend\src"
+$env:FABLEMAP_DATABASE_URL = "mysql+pymysql://user:pass@localhost:3306/fablemap"
+py -3 -m fablemap_api.infrastructure.migrate --output-root .fablemap-api
+```
+
+迁移范围：`taverns/`、`taverns_keyvault.json`、`chat_history/`、visitor state、memory atoms、gameplay sessions、state cards、`owner_configs.json`、`visitor_notes.json`、`homes/`、`writeback/writeback-state.json`。不会迁移 Overpass/cache、导出包、生成图片、前端静态资源或测试 fixtures。
 
 ## 核心模块
 

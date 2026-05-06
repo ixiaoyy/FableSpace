@@ -2326,6 +2326,10 @@ class WebService:
             "mood": "curious",
             "degraded": bool(degradation),
             "degradation": degradation,
+            "response_mode": self._chat_response_mode(
+                llm_config,
+                reason=str((degradation or {}).get("reason") or ""),
+            ),
             "output_rules": {
                 "changed": output_rule_result.get("changed", False),
                 "applied": output_rule_result.get("applied", []),
@@ -2383,8 +2387,45 @@ class WebService:
                 action=action,
                 technical_detail=technical_detail,
             ),
+            "response_mode": self._chat_response_mode(reason=reason),
             "tavern_status": tavern_status,
             "timestamp": _now_ms(),
+        }
+
+    def _chat_response_mode(self, llm_config: Any | None = None, *, reason: str = "") -> dict[str, Any]:
+        if reason == "llm_not_configured":
+            return {
+                "kind": "llm_not_configured",
+                "label": "AI 后端未配置",
+                "message": "这间酒馆还没有可用模型配置；店主需要在 AI 配置页补全连接并测试通过后，NPC 才会以外部 LLM 接待。",
+                "requires_owner_llm": True,
+            }
+        if reason in {"llm_error", "llm_unexpected_error"}:
+            return {
+                "kind": "local_fallback",
+                "label": "规则兜底回应",
+                "message": "模型调用失败，本轮已切换为本地规则回应；店主可以检查模型配置。",
+                "requires_owner_llm": True,
+            }
+        if llm_config and str(getattr(llm_config, "backend", "") or "").lower() in {"rules", "rule_based", "public_welfare"}:
+            return {
+                "kind": "built_in_rules",
+                "label": "规则模式 / 无 Key 轻量接待",
+                "message": "这间内置公益酒馆使用本地规则模板接待，不消耗店主 Token；它不是外部 LLM NPC。",
+                "requires_owner_llm": False,
+            }
+        if reason:
+            return {
+                "kind": "unavailable",
+                "label": "暂不可用",
+                "message": "当前不能以 AI NPC 接待；请稍后再来，或联系店主检查营业状态与模型配置。",
+                "requires_owner_llm": True,
+            }
+        return {
+            "kind": "owner_llm",
+            "label": "外部 LLM 模式",
+            "message": "当前由店主配置的外部 LLM 驱动 NPC 对话。",
+            "requires_owner_llm": True,
         }
 
     def _mark_tavern_closed(self, tavern) -> None:

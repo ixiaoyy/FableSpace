@@ -24,6 +24,7 @@ from .services.public_bond import NpcPublicBondApplicationMixin
 from .services.rumor import RumorApplicationMixin
 from .services.skill_packs import SkillPackApplicationMixin
 from .services.state_cards import StateCardApplicationMixin
+from .services.relationship_graph import RelationshipGraphApplicationMixin
 
 
 class TavernApplicationService(
@@ -41,6 +42,7 @@ class TavernApplicationService(
     RumorApplicationMixin,
     SkillPackApplicationMixin,
     StateCardApplicationMixin,
+    RelationshipGraphApplicationMixin,
 ):
     """Application facade for native `/api/v1/taverns` use cases.
 
@@ -69,10 +71,17 @@ class TavernApplicationService(
 
     @classmethod
     def from_settings(cls, settings: ApiSettings) -> "TavernApplicationService":
+        from ..infrastructure.storage import (
+            create_owner_config_store,
+            create_tavern_store,
+            create_visitor_note_store,
+        )
+
+        store = create_tavern_store(settings)
         return cls(
-            TavernStore(settings.output_root / "taverns"),
-            OwnerConfigStore(settings.output_root / "owner_configs.json"),
-            VisitorNoteStore(settings.output_root / "visitor_notes.json"),
+            store,
+            create_owner_config_store(settings, store),
+            create_visitor_note_store(settings, store),
         )
 
     def _get_tavern_or_404(self, tavern_id: str) -> Tavern:

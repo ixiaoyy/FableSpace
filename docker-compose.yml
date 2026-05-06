@@ -5,6 +5,8 @@ services:
       dockerfile: backend/Dockerfile
     image: fablemap-backend:local
     environment:
+      FABLEMAP_STORAGE_BACKEND: ${FABLEMAP_STORAGE_BACKEND:-database}
+      FABLEMAP_DATABASE_URL: ${FABLEMAP_DATABASE_URL:-}
       FABLEMAP_MYSQL_URL: ${FABLEMAP_MYSQL_URL:-}
       FABLEMAP_OUTPUT_ROOT: /data
       FABLEMAP_SEED_DEFAULT_TAVERNS: ${FABLEMAP_SEED_DEFAULT_TAVERNS:-1}

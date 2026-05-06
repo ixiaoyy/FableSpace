@@ -1,8 +1,8 @@
-"""Draft-only preset import preview helpers.
+"""Preset import preview and owner-confirmed apply helpers.
 
-This module intentionally does not mutate Tavern state. It normalizes a
-community/SillyTavern-style preset-like JSON payload into a risk report that an
-owner can review before manually editing FableMap runtime/prompt settings.
+Preview intentionally does not mutate Tavern state. Apply helpers only build a
+safe, owner-selected diff plan; application services remain responsible for the
+actual owner check and persistence.
 """
 
 from __future__ import annotations
@@ -58,6 +58,8 @@ MODULE_LIST_KEYS = {
     "worldInfo",
     "entries",
 }
+
+APPLY_TARGETS = {"prompt_blocks", "world_info", "characters"}
 
 TEXT_FIELD_KEYS = {
     "content",
@@ -246,6 +248,109 @@ def preview_preset_import(payload: Any) -> dict[str, Any]:
         "blocked": blocked,
         "runtime_parameters": runtime_parameters,
         "notes": notes,
+    }
+
+
+def build_preset_import_apply_plan(
+    payload: Any,
+    *,
+    selected_ids: Any = None,
+    target_map: Any = None,
+    include_runtime_parameters: bool = False,
+) -> dict[str, Any]:
+    """Build a safe diff plan for owner-confirmed preset import apply.
+
+    The plan accepts only explicitly selected ``supported`` preview items.
+    Warning/blocked modules are kept visible in the returned report but are
+    rejected if selected. The returned ``diff`` is safe to display before a
+    separate confirm step; this function itself performs no persistence.
+    """
+
+    preset = _coerce_preset_payload(payload)
+    preset_name = _preset_name(preset)
+    modules = _extract_modules(preset)
+    runtime_parameters = _extract_runtime_parameters(preset)
+
+    supported: list[dict[str, Any]] = []
+    warnings: list[dict[str, Any]] = []
+    blocked: list[dict[str, Any]] = []
+    module_content_by_id: dict[str, str] = {}
+    item_by_id: dict[str, dict[str, Any]] = {}
+
+    for index, module in enumerate(modules, start=1):
+        item = _classify_module(module, index)
+        item_by_id[item["id"]] = item
+        module_content_by_id[item["id"]] = _redact_sample(str(module.get("content") or ""))[:4000]
+        if item["severity"] == "blocked":
+            blocked.append(item)
+        elif item["severity"] == "warning":
+            warnings.append(item)
+        else:
+            supported.append(item)
+
+    for item in _runtime_warnings(runtime_parameters):
+        warnings.append(item)
+        item_by_id[item["id"]] = item
+
+    selected = _normalize_selected_ids(selected_ids)
+    invalid: list[str] = []
+    for selected_id in selected:
+        item = item_by_id.get(selected_id)
+        if not item:
+            invalid.append(f"{selected_id}: unknown")
+        elif item.get("severity") != "supported":
+            invalid.append(f"{selected_id}: {item.get('severity')}")
+    if invalid:
+        raise PresetImportError(f"Apply 仅允许 selected supported 项；已拒绝：{', '.join(invalid)}")
+
+    targets = target_map if isinstance(target_map, dict) else {}
+    diff: dict[str, list[dict[str, Any]]] = {
+        "prompt_blocks": [],
+        "world_info": [],
+        "characters": [],
+        "runtime_presets": [],
+    }
+    for selected_id in selected:
+        item = item_by_id[selected_id]
+        target = _apply_target_for_item(item, targets.get(selected_id))
+        content = module_content_by_id.get(selected_id, item.get("sample", ""))
+        if target == "world_info":
+            diff["world_info"].append(_world_info_entry_from_item(item, content))
+        elif target == "characters":
+            diff["characters"].append(_character_from_item(item, content))
+        else:
+            diff["prompt_blocks"].append(_prompt_block_from_item(item, content))
+
+    if include_runtime_parameters and runtime_parameters:
+        runtime_preset = _runtime_preset_from_parameters(preset_name, runtime_parameters)
+        if runtime_preset:
+            diff["runtime_presets"].append(runtime_preset)
+
+    return {
+        "ok": True,
+        "preview_only": False,
+        "applied": False,
+        "confirm_required": True,
+        "preset_name": preset_name,
+        "summary": {
+            "total_modules": len(modules),
+            "supported": len(supported),
+            "warning": len(warnings),
+            "blocked": len(blocked),
+            "runtime_parameters": len(runtime_parameters),
+            "selected": len(selected),
+        },
+        "selected_ids": selected,
+        "supported": supported,
+        "warnings": warnings,
+        "blocked": blocked,
+        "runtime_parameters": runtime_parameters,
+        "diff": diff,
+        "applied_counts": _diff_counts(diff),
+        "notes": [
+            "confirm_required=true：这是导入影响预览，不会写入 Tavern。",
+            "Apply 只接受店主选择的 supported 项；warning / blocked 不会被应用。",
+        ],
     }
 
 
@@ -469,6 +574,167 @@ def _runtime_warnings(runtime: dict[str, Any]) -> list[dict[str, Any]]:
     return warnings
 
 
+def _normalize_selected_ids(value: Any) -> list[str]:
+    if value is None:
+        return []
+    if isinstance(value, str):
+        items = [value]
+    elif isinstance(value, list):
+        items = value
+    else:
+        items = []
+
+    selected: list[str] = []
+    seen: set[str] = set()
+    for item in items:
+        text = str(item or "").strip()
+        if text and text not in seen:
+            selected.append(text)
+            seen.add(text)
+    return selected
+
+
+def _apply_target_for_item(item: dict[str, Any], requested_target: Any = None) -> str:
+    target = str(requested_target or "").strip()
+    if target:
+        if target not in APPLY_TARGETS:
+            raise PresetImportError(f"不支持的 apply target：{target}")
+        return target
+    if item.get("category") == "world_info":
+        return "world_info"
+    return "prompt_blocks"
+
+
+def _prompt_block_from_item(item: dict[str, Any], content: str) -> dict[str, Any]:
+    return {
+        "id": _safe_import_id("preset_prompt", item),
+        "name": f"{item.get('name') or 'Imported Prompt'}",
+        "enabled": bool(item.get("enabled", True)),
+        "type": "custom",
+        "order": 120,
+        "template": str(content or item.get("sample") or "")[:4000],
+        "token_budget": 800,
+        "built_in": False,
+    }
+
+
+def _world_info_entry_from_item(item: dict[str, Any], content: str) -> dict[str, Any]:
+    return {
+        "id": _safe_import_id("preset_world", item),
+        "tavern_id": "",
+        "keys": [_keyword_from_item(item, content)],
+        "content": str(content or item.get("sample") or "")[:4000],
+        "keys_secondary": [],
+        "selective": True,
+        "constant": False,
+        "depth": 4,
+        "order": 120,
+        "probability": 100,
+        "disable": False,
+    }
+
+
+def _character_from_item(item: dict[str, Any], content: str) -> dict[str, Any]:
+    text = str(content or item.get("sample") or "")[:4000]
+    return {
+        "id": _safe_import_id("preset_character", item),
+        "tavern_id": "",
+        "name": _character_name_from_item(item),
+        "description": "由店主确认的预设 supported 项导入。",
+        "personality": text[:1200],
+        "scenario": "",
+        "system_prompt": text,
+        "first_mes": "",
+        "mes_example": "",
+        "alternate_greetings": [],
+        "tags": ["preset-import"],
+        "sprites": {},
+        "avatar": "",
+        "appearance": {},
+        "talkativeness": 0.5,
+    }
+
+
+def _runtime_preset_from_parameters(preset_name: str, runtime: dict[str, Any]) -> dict[str, Any]:
+    llm_config = _safe_runtime_llm_config(runtime)
+    if not llm_config:
+        return {}
+    return {
+        "id": _safe_id(f"preset_runtime_{preset_name}"),
+        "name": f"{preset_name} · 导入运行参数",
+        "description": "由预设导入工具识别的安全运行参数；不包含 API Key 或密钥。",
+        "version": "1.0",
+        "built_in": False,
+        "model_hint": " / ".join(
+            str(runtime.get(key) or "").strip()
+            for key in ("backend", "provider", "model")
+            if str(runtime.get(key) or "").strip()
+        )[:160],
+        "llm_config": llm_config,
+        "prompt_blocks": [],
+        "memory_policy": {},
+        "output_rules": [],
+    }
+
+
+def _safe_runtime_llm_config(runtime: dict[str, Any]) -> dict[str, Any]:
+    config: dict[str, Any] = {}
+    backend = str(runtime.get("backend") or runtime.get("provider") or "").strip()
+    model = str(runtime.get("model") or "").strip()
+    if backend:
+        config["backend"] = backend[:80]
+    if model:
+        config["model"] = model[:120]
+    if "temperature" in runtime:
+        number = _float(runtime.get("temperature"))
+        if number is not None:
+            config["temperature"] = max(0.0, min(2.0, number))
+    if "top_p" in runtime:
+        number = _float(runtime.get("top_p"))
+        if number is not None:
+            config["top_p"] = max(0.01, min(1.0, number))
+    if "max_tokens" in runtime:
+        try:
+            config["max_tokens"] = max(256, min(200000, int(runtime.get("max_tokens"))))
+        except (TypeError, ValueError):
+            pass
+    return config
+
+
+def _keyword_from_item(item: dict[str, Any], content: str) -> str:
+    text = f"{item.get('name', '')} {content or ''}"
+    match = re.search(r"(?:keyword|关键词)\s*[:：]?\s*([A-Za-z0-9_\-\u4e00-\u9fff]{1,32})", text, flags=re.IGNORECASE)
+    if match:
+        return match.group(1)
+    name = re.sub(r"\s+", " ", str(item.get("name") or "")).strip()
+    return name[:32] or "imported-preset"
+
+
+def _character_name_from_item(item: dict[str, Any]) -> str:
+    name = re.sub(r"\s+", " ", str(item.get("name") or "")).strip()
+    if name:
+        return name[:32]
+    return "导入角色"
+
+
+def _safe_import_id(prefix: str, item: dict[str, Any]) -> str:
+    return _safe_id(f"{prefix}_{item.get('id')}_{item.get('name')}")
+
+
+def _safe_id(value: str) -> str:
+    slug = re.sub(r"[^\w\-]+", "_", str(value or "").strip(), flags=re.UNICODE).strip("_").lower()
+    return (slug or "preset_import")[:96]
+
+
+def _diff_counts(diff: dict[str, list[dict[str, Any]]]) -> dict[str, int]:
+    return {
+        "prompt_blocks": len(diff.get("prompt_blocks", [])),
+        "world_info": len(diff.get("world_info", [])),
+        "characters": len(diff.get("characters", [])),
+        "runtime_presets": len(diff.get("runtime_presets", [])),
+    }
+
+
 def _contains_any(text: str, needles: tuple[str, ...]) -> bool:
     return any(needle.casefold() in text for needle in needles)
 
@@ -490,4 +756,4 @@ def _redact_sample(value: str) -> str:
     return redacted
 
 
-__all__ = ["PresetImportError", "preview_preset_import"]
+__all__ = ["PresetImportError", "build_preset_import_apply_plan", "preview_preset_import"]

@@ -4,8 +4,11 @@ import { dirname, resolve } from "node:path"
 import { fileURLToPath } from "node:url"
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
+const routesSource = readFileSync(resolve(__dirname, "../app/routes.ts"), "utf8")
 const shellSource = readFileSync(resolve(__dirname, "../app/shell/product-shell.tsx"), "utf8")
 const tavernSource = readFileSync(resolve(__dirname, "../app/routes/tavern.tsx"), "utf8")
+const manageRouteSource = readFileSync(resolve(__dirname, "../app/routes/tavern-manage.tsx"), "utf8")
+const ownerSource = readFileSync(resolve(__dirname, "../app/routes/owner.tsx"), "utf8")
 const workbenchSource = readFileSync(resolve(__dirname, "../app/features/tavern-chat-workbench/index.tsx"), "utf8")
 const packageJson = JSON.parse(readFileSync(resolve(__dirname, "../package.json"), "utf8"))
 
@@ -66,23 +69,38 @@ assert.ok(tavernSource.includes("<TavernChatWorkbench"), "tavern route should re
 assert.ok(!tavernSource.includes('<details className="mt-6 lg:hidden">'), "tavern route should not keep a separate pre-chat mobile secondary details block")
 
 const workbenchIndex = tavernSource.indexOf("<TavernChatWorkbench")
-const activityIndex = tavernSource.indexOf("<TavernActivitySignalsCard")
-assert.ok(workbenchIndex !== -1 && activityIndex !== -1 && workbenchIndex < activityIndex, "tavern activity signals should be folded inside the workbench after the chat surface")
+assert.ok(workbenchIndex !== -1, "tavern route should keep the chat workbench as the main surface")
+assert.ok(!tavernSource.includes("TavernActivitySignalsCard"), "visitor tavern route should not expose activity analytics in the folded public sidecar")
 
 assert.ok(workbenchSource.includes('data-chat-workbench="sillytavern-style"'), "workbench should expose the chat-first contract marker")
 assert.ok(workbenchSource.includes('aria-label="NPC 角色列表"'), "workbench mobile first screen should include the NPC roster")
 assert.ok(workbenchSource.includes('aria-label="聊天记录"'), "workbench mobile first screen should include chat history")
 assert.ok(workbenchSource.includes("Shift+Enter 换行"), "workbench should keep an obvious composer hint")
 assert.ok(workbenchSource.includes("更多酒馆功能"), "public secondary panels should be folded behind 更多酒馆功能")
-assert.ok(workbenchSource.includes("data-owner-only-panel"), "owner management should have an explicit owner-only panel marker")
+assert.ok(!workbenchSource.includes("data-owner-only-panel"), "visitor chat workbench should not contain owner-only management panels")
 
 assert.ok(tavernSource.includes("publicPanel={"), "route should pass folded public tavern features into the workbench")
 assert.ok(tavernSource.includes("<NeighborhoodRumorBubble tavernId={tavern.id} limit={3} />"), "public folded panel should retain NeighborhoodRumorBubble")
 assert.ok(tavernSource.includes("<CreatorConversionCard tavern={tavern} />"), "public folded panel should retain creator conversion")
-assert.ok(tavernSource.includes("ownerPanel={isOwner"), "owner secondary panels should be gated by ownership")
-assert.ok(tavernSource.includes("<RoleplayPanel"), "owner folded panel should retain roleplay management")
-assert.ok(tavernSource.includes("<PlaceHomePanel tavern={tavern} />"), "owner folded panel should retain PlaceHomePanel")
-assert.ok(tavernSource.includes("<VisitorNotesPanel tavern={tavern} />"), "owner folded panel should retain VisitorNotesPanel")
+assert.ok(!tavernSource.includes("ownerPanel="), "visitor tavern route should not pass owner panels into the chat workbench")
+assert.ok(!tavernSource.includes("<RoleplayPanel"), "visitor tavern route should not render roleplay management")
+assert.ok(!tavernSource.includes("<PlaceHomePanel"), "visitor tavern route should not render Place/Home management")
+assert.ok(!tavernSource.includes("<VisitorNotesPanel"), "visitor tavern route should not render visitor-note review management")
+assert.ok(
+  routesSource.includes('route("tavern/:tavernId/manage", "./routes/tavern-manage.tsx")'),
+  "dedicated owner management route should be registered",
+)
+assert.ok(
+  manageRouteSource.includes('data-tavern-owner-management="dedicated-route"') &&
+    manageRouteSource.includes("<TavernOwnerManagement") &&
+    !manageRouteSource.includes("TavernChatWorkbench") &&
+    !manageRouteSource.includes('data-chat-composer="fast-entry"'),
+  "owner management route should contain management only and no chat workbench",
+)
+assert.ok(
+  ownerSource.includes("/manage?owner_id=${encodeURIComponent(ownerId)}"),
+  "owner dashboard tavern links should go to management route instead of visitor chat",
+)
 
 for (const forbidden of ["@capacitor", "ionic", "react-native", "onsenui"]) {
   assert.ok(!JSON.stringify(packageJson).toLowerCase().includes(forbidden), `should not introduce mobile framework dependency: ${forbidden}`)

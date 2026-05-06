@@ -27,6 +27,22 @@ export function createAiCharacterDraftRequest({ styleTagsText = '', forbiddenTex
   }
 }
 
+export function describeCharacterDraftSource(response = {}) {
+  const source = cleanText(response.source)
+  const label = cleanText(response.source_label)
+  const reason = cleanText(response.source_reason)
+  if (source === 'owner_llm') {
+    return `${label || '店主默认 LLM 草稿'}已放入编辑器；保存前仍需店主审核。`
+  }
+  if (source === 'local_template_fallback') {
+    if (reason === 'owner_llm_failed') {
+      return `${label || '本地模板草稿'}已放入编辑器；店主默认 LLM 调用失败，这不是真实 AI 生成，请审核或稍后重试。`
+    }
+    return `${label || '本地模板草稿'}已放入编辑器；当前没有可用店主默认 LLM，这不是真实 AI 生成，请配置后重试或只当占位。`
+  }
+  return '草稿已放入编辑器；保存前请店主审核。'
+}
+
 export function draftResponseToEditorDraft(response, baseDraft = {}) {
   const draft = response?.draft
   if (!draft || typeof draft !== 'object') {

@@ -34,7 +34,7 @@ export function useNotifications(userId: string | null) {
     if (!userId || wsRef.current?.readyState === WebSocket.OPEN) return
 
     const protocol = window.location.protocol === "https:" ? "wss:" : "ws:"
-    const wsUrl = `${protocol}//${window.location.host}/api/v1/notifications/ws/${encodeURIComponent(userId)}`
+    const wsUrl = `${protocol}//${window.location.host}/api/v1/notifications/ws/${encodeURIComponent(userId)}?user_id=${encodeURIComponent(userId)}`
 
     try {
       const ws = new WebSocket(wsUrl)

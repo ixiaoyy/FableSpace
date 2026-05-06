@@ -108,6 +108,60 @@ class WritebackStore:
         self.save(state)
         return msg
 
+    def persistence_payload(self, *, player_id: str, slice_id: str, stored_event_count: int) -> dict[str, Any]:
+        return {
+            "storage": "json-file",
+            "state_file": str(self.paths.state_file),
+            "player_id": player_id,
+            "slice_id": slice_id,
+            "stored_event_count": stored_event_count,
+        }
+
+
+class SQLAlchemyWritebackStore(WritebackStore):
+    """Database-backed store for the legacy writeback world state."""
+
+    def __init__(self, database: Any, *, key: str = "default"):
+        self.database = database
+        self.key = str(key or "default")
+        self.paths = WritebackStoragePaths(
+            root=Path("database-writeback"),
+            state_file=Path(f"database-writeback/{self.key}"),
+        )
+
+    def load(self) -> dict[str, Any]:
+        from fablemap_api.infrastructure.models import WritebackStateModel
+
+        with self.database.session_scope() as session:
+            model = session.query(WritebackStateModel).filter_by(key=self.key).first()
+            if not model or not isinstance(model.state, dict):
+                return _default_store_state()
+            return deepcopy(model.state)
+
+    def save(self, state: dict[str, Any]) -> None:
+        from fablemap_api.infrastructure.models import WritebackStateModel
+
+        with self.database.session_scope() as session:
+            model = session.query(WritebackStateModel).filter_by(key=self.key).first()
+            if model:
+                model.state = deepcopy(state)
+                model.updated_at = datetime.utcnow()
+            else:
+                session.add(WritebackStateModel(
+                    key=self.key,
+                    state=deepcopy(state),
+                    updated_at=datetime.utcnow(),
+                ))
+
+    def persistence_payload(self, *, player_id: str, slice_id: str, stored_event_count: int) -> dict[str, Any]:
+        return {
+            "storage": "database",
+            "state_key": self.key,
+            "player_id": player_id,
+            "slice_id": slice_id,
+            "stored_event_count": stored_event_count,
+        }
+
 
 class WritebackEngine:
     def __init__(self, store: WritebackStore):
@@ -166,13 +220,11 @@ class WritebackEngine:
             "player_state": deepcopy(player_state),
             "place_state": result["place_state"],
             "world_feedback": result["world_feedback"],
-            "persistence": {
-                "storage": "json-file",
-                "state_file": str(self.store.paths.state_file),
-                "player_id": player_id,
-                "slice_id": slice_id,
-                "stored_event_count": len(events),
-            },
+            "persistence": self.store.persistence_payload(
+                player_id=player_id,
+                slice_id=slice_id,
+                stored_event_count=len(events),
+            ),
         }
 
     # ─── Chat history methods ──────────────────────────────────────────────────

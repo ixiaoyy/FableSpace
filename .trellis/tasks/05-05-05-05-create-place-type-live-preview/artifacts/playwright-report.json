@@ -1,0 +1,34 @@
+{
+  "baseUrl": "http://127.0.0.1:4181/create",
+  "checks": [
+    {
+      "viewport": "desktop",
+      "overflow": {
+        "scrollWidth": 1440,
+        "clientWidth": 1440
+      }
+    },
+    {
+      "viewport": "desktop",
+      "consoleErrorCount": 0,
+      "notFoundUrls": []
+    },
+    {
+      "viewport": "mobile",
+      "overflow": {
+        "scrollWidth": 390,
+        "clientWidth": 390
+      }
+    },
+    {
+      "viewport": "mobile",
+      "consoleErrorCount": 0,
+      "notFoundUrls": []
+    }
+  ],
+  "screenshots": {
+    "desktop": "D:\\work\\ai-\\.trellis\\tasks\\05-05-05-05-create-place-type-live-preview\\artifacts\\desktop.png",
+    "mobile": "D:\\work\\ai-\\.trellis\\tasks\\05-05-05-05-create-place-type-live-preview\\artifacts\\mobile.png"
+  },
+  "ok": true
+}

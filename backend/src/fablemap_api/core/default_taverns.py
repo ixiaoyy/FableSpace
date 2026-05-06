@@ -6,35 +6,48 @@ from typing import Any
 DEFAULT_PUBLIC_WELFARE_OWNER_ID = "system_public_welfare"
 DEFAULT_PUBLIC_WELFARE_CREATED_AT = "2026-04-20T00:00:00Z"
 DEFAULT_PUBLIC_WELFARE_MODEL = "public-welfare-rules-v1"
+DEFAULT_PUBLIC_WELFARE_NPC_ASSET_BASE = "/assets/npcs/public-welfare"
+DEFAULT_PUBLIC_WELFARE_NPC_IDS = (
+    "char_pw_xiaozhou",
+    "char_pw_anlan",
+    "char_pw_ahuai",
+    "char_pw_heguang",
+    "char_pw_wenjian",
+    "char_pw_9_delta",
+    "char_pw_mu_mu",
+    "char_pw_v17",
+    "char_pw_pi_pi",
+    "char_pw_mozhan",
+    "char_pw_zhideng",
+    "char_pw_aheng",
+    "char_pw_zhijian",
+    "char_pw_yinpiao",
+    "char_pw_luming",
+    "char_pw_qiaoqiao",
+    "char_pw_yeyu",
+    "char_pw_dengxin",
+    "char_pw_qiaoshou",
+    "char_pw_shiyi",
+    "char_pw_suoyin",
+    "char_pw_huoyan",
+    "char_pw_xingdai",
+    "char_pw_tongling",
+    "char_pw_mimi_nya",
+    "char_pw_mika_nurse",
+    "char_pw_qingyou_records",
+    "char_pw_nanxing_liaison",
+)
+
+
+def public_welfare_npc_asset_url(char_id: str, expression: str = "neutral") -> str:
+    safe_char_id = str(char_id or "").strip()
+    safe_expression = str(expression or "neutral").strip() or "neutral"
+    return f"{DEFAULT_PUBLIC_WELFARE_NPC_ASSET_BASE}/{safe_char_id}/{safe_expression}.png" if safe_char_id else ""
+
+
 DEFAULT_PUBLIC_WELFARE_NPC_NEUTRAL_ASSETS = {
-    "char_pw_xiaozhou": "/assets/npcs/public-welfare/char_pw_xiaozhou/neutral.png",
-    "char_pw_anlan": "/assets/npcs/public-welfare/char_pw_anlan/neutral.png",
-    "char_pw_ahuai": "/assets/npcs/public-welfare/char_pw_ahuai/neutral.png",
-    "char_pw_heguang": "/assets/npcs/public-welfare/char_pw_heguang/neutral.png",
-    "char_pw_wenjian": "/assets/npcs/public-welfare/char_pw_wenjian/neutral.png",
-    "char_pw_9_delta": "/assets/npcs/public-welfare/char_pw_9_delta/neutral.png",
-    "char_pw_mu_mu": "/assets/npcs/public-welfare/char_pw_mu_mu/neutral.png",
-    "char_pw_v17": "/assets/npcs/public-welfare/char_pw_v17/neutral.png",
-    "char_pw_pi_pi": "/assets/npcs/public-welfare/char_pw_pi_pi/neutral.png",
-    "char_pw_mozhan": "/assets/npcs/public-welfare/char_pw_mozhan/neutral.png",
-    "char_pw_zhideng": "/assets/npcs/public-welfare/char_pw_zhideng/neutral.png",
-    "char_pw_aheng": "/assets/npcs/public-welfare/char_pw_aheng/neutral.png",
-    "char_pw_zhijian": "/assets/npcs/public-welfare/char_pw_zhijian/neutral.png",
-    "char_pw_yinpiao": "/assets/npcs/public-welfare/char_pw_yinpiao/neutral.png",
-    "char_pw_luming": "/assets/npcs/public-welfare/char_pw_luming/neutral.png",
-    "char_pw_qiaoqiao": "/assets/npcs/public-welfare/char_pw_qiaoqiao/neutral.png",
-    "char_pw_yeyu": "/assets/npcs/public-welfare/char_pw_yeyu/neutral.png",
-    "char_pw_dengxin": "/assets/npcs/public-welfare/char_pw_dengxin/neutral.png",
-    "char_pw_qiaoshou": "/assets/npcs/public-welfare/char_pw_qiaoshou/neutral.png",
-    "char_pw_shiyi": "/assets/npcs/public-welfare/char_pw_shiyi/neutral.png",
-    "char_pw_suoyin": "/assets/npcs/public-welfare/char_pw_suoyin/neutral.png",
-    "char_pw_huoyan": "/assets/npcs/public-welfare/char_pw_huoyan/neutral.png",
-    "char_pw_xingdai": "/assets/npcs/public-welfare/char_pw_xingdai/neutral.png",
-    "char_pw_tongling": "/assets/npcs/public-welfare/char_pw_tongling/neutral.png",
-    "char_pw_mimi_nya": "/assets/npcs/public-welfare/char_pw_mimi_nya/neutral.png",
-    "char_pw_mika_nurse": "/assets/npcs/public-welfare/char_pw_mika_nurse/neutral.png",
-    "char_pw_qingyou_records": "/assets/npcs/public-welfare/char_pw_qingyou_records/neutral.png",
-    "char_pw_nanxing_liaison": "/assets/npcs/public-welfare/char_pw_nanxing_liaison/neutral.png",
+    char_id: public_welfare_npc_asset_url(char_id, "neutral")
+    for char_id in DEFAULT_PUBLIC_WELFARE_NPC_IDS
 }
 
 DEFAULT_PUBLIC_WELFARE_NPC_EXPRESSION_ASSET_SUFFIXES = (

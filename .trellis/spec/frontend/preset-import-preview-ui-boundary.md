@@ -1,10 +1,9 @@
-# Preset Import Preview UI Boundary
+# Preset Import Preview / Apply UI Boundary
 
 ## Scope
 
-Use this spec when changing the owner-facing preset import preview modal,
-frontend preset import service methods, or script tests for the preview-only
-contract.
+Use this spec when changing the owner-facing preset import modal, frontend
+preset import service methods, or script tests for the preview/apply contract.
 
 ## Service contract
 
@@ -12,16 +11,18 @@ Shared typed clients belong in `frontend/app/lib/taverns.ts`:
 
 ```typescript
 previewPresetImport(tavernId, data, userId)
+applyPresetImport(tavernId, data, userId)
 ```
 
 Product-parity helpers in `frontend/app/product/services/tavernService.js`
-should expose the same `previewPresetImport(...)` method when product
-components or script tests need it.
+should expose the same methods when product components or script tests need
+them.
 
-Endpoint:
+Endpoints:
 
 ```http
 POST /api/v1/taverns/{tavern_id}/preset-import/preview
+POST /api/v1/taverns/{tavern_id}/preset-import/apply
 ```
 
 ## UI contract
@@ -32,19 +33,25 @@ POST /api/v1/taverns/{tavern_id}/preset-import/preview
   tools), not visitor chat controls.
 - Parse pasted JSON client-side and show a readable parse error before calling
   the API when JSON is invalid.
-- State clearly that this is `preview only`: nothing is applied, saved, or
-  overwritten.
+- State clearly that preview produces a risk report first; live writes require
+  owner selection, an apply diff, and an explicit confirm step.
 - Show summary counts plus supported / warning / blocked groups.
-- Surface blocked modules with reasons so the owner can recognize risks.
+- Make only supported items selectable. Warning / blocked items must remain
+  visible but not selectable for direct apply.
+- Let the owner choose supported-item targets (`prompt_blocks`, `world_info`,
+  `characters`) and whether safe runtime parameters become a custom runtime
+  preset.
+- Display the apply diff before enabling final confirmation, with counts for
+  Prompt Blocks / WorldInfo / Characters / Runtime Presets.
 - Avoid showing owner API keys or secrets in UI copy.
-- Keep loading and error states visible.
+- Keep loading, error, diff, and applied-result states visible.
 
 ## Forbidden patterns
 
 - Direct `fetch` inside owner UI components instead of service helpers.
 - Copy implying imported presets are automatically applied to live tavern state.
-- Applying prompt blocks, runtime presets, world info, characters, memory, State
-  Cards, or skill packs from the preview modal.
+- Applying warning/blocked prompt blocks, runtime presets, world info,
+  characters, memory, State Cards, or skill packs from the modal.
 - Visitor-facing controls for importing or previewing owner-private prompts.
 
 ## Required verification

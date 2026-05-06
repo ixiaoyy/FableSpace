@@ -1,0 +1,65 @@
+{
+  "id": "05-06-design-audit-visual-polish",
+  "name": "05-06-design-audit-visual-polish",
+  "title": "Design audit visual polish",
+  "description": "Small frontend visual polish from the design audit: mobile discover filters, tavern owner roleplay console styling, and create wizard step cue.",
+  "status": "completed",
+  "dev_type": "frontend",
+  "scope": null,
+  "package": null,
+  "priority": "P2",
+  "creator": "lijin",
+  "assignee": "lijin",
+  "createdAt": "2026-05-06",
+  "completedAt": "2026-05-06",
+  "branch": null,
+  "base_branch": "codex-homepage-dynamic-entry-covers",
+  "worktree_path": null,
+  "current_phase": 4,
+  "next_action": [
+    {
+      "phase": 1,
+      "action": "brainstorm"
+    },
+    {
+      "phase": 2,
+      "action": "research"
+    },
+    {
+      "phase": 3,
+      "action": "implement"
+    },
+    {
+      "phase": 4,
+      "action": "check"
+    },
+    {
+      "phase": 5,
+      "action": "update-spec"
+    },
+    {
+      "phase": 6,
+      "action": "record-session"
+    }
+  ],
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [],
+  "parent": null,
+  "relatedFiles": [
+    "docs/设计参考_视觉与角色评估.md",
+    "frontend/app/routes/discover.tsx",
+    "frontend/app/routes/tavern.tsx",
+    "frontend/app/routes/create.tsx",
+    ".trellis/tasks/05-06-05-06-design-audit-visual-polish/prd.md",
+    ".trellis/tasks/05-06-05-06-design-audit-visual-polish/completion.md",
+    ".trellis/tasks/05-06-05-06-design-audit-visual-polish/playwright-visual-self-acceptance.mjs",
+    ".trellis/tasks/05-06-05-06-design-audit-visual-polish/artifacts/playwright/report.md",
+    "frontend/app/features/tavern-chat-workbench/index.tsx",
+    "frontend/scripts/tavern-chat-workbench-test.mjs",
+    ".trellis/tasks/05-06-05-06-design-audit-visual-polish/visitor-first-layout-plan.md"
+  ],
+  "notes": "Implemented scoped visual polish plus visitor-first tavern layout consolidation: mobile Discover is brighter, Tavern desktop no longer has a permanent right rail, secondary/public tools are folded under chat, and owner tools are folded + owner-gated with a bounded drawer. Verified with red/green static layout check, frontend build, focused scripts, and Chromium Playwright desktop/mobile self-acceptance.",
+  "meta": {}
+}

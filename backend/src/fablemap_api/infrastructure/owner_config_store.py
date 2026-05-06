@@ -8,7 +8,7 @@ from fablemap_api.domain.owner_llm_policy import normalize_owner_llm_config
 
 
 class OwnerConfigStore:
-    """JSON-backed owner-level configuration store."""
+    """JSON-backed owner-level configuration store for explicit local/dev fallback."""
 
     def __init__(self, path: Path):
         self.path = Path(path)
@@ -46,3 +46,45 @@ class OwnerConfigStore:
         data[safe_owner] = owner_data
         self._write_all(data)
         return owner_data["default_llm"]
+
+
+class SQLAlchemyOwnerConfigStore:
+    """Database-backed owner-level configuration store."""
+
+    def __init__(self, database: Any):
+        self.database = database
+
+    def get_default_llm_config(self, owner_id: str) -> dict[str, Any]:
+        safe_owner = str(owner_id or "").strip()
+        if not safe_owner:
+            return {}
+        from fablemap_api.infrastructure.models import OwnerConfigModel
+
+        with self.database.session_scope() as session:
+            model = session.query(OwnerConfigModel).filter_by(owner_id=safe_owner).first()
+            if not model or not isinstance(model.default_llm, dict):
+                return {}
+            return normalize_owner_llm_config(model.default_llm) if model.default_llm else {}
+
+    def save_default_llm_config(self, owner_id: str, config: dict[str, Any]) -> dict[str, Any]:
+        safe_owner = str(owner_id or "").strip()
+        if not safe_owner:
+            raise ValueError("owner_id is required")
+        from datetime import datetime
+        from fablemap_api.infrastructure.models import OwnerConfigModel
+
+        normalized = normalize_owner_llm_config(config)
+        now = datetime.utcnow()
+        with self.database.session_scope() as session:
+            model = session.query(OwnerConfigModel).filter_by(owner_id=safe_owner).first()
+            if model:
+                model.default_llm = normalized
+                model.updated_at = now
+            else:
+                session.add(OwnerConfigModel(
+                    owner_id=safe_owner,
+                    default_llm=normalized,
+                    created_at=now,
+                    updated_at=now,
+                ))
+        return normalized

@@ -1,7 +1,7 @@
 """
 Notification System - Core Module
 
-Provides notification data model and in-memory store for MVP.
+Provides notification data model plus in-memory and database-backed stores.
 """
 
 from __future__ import annotations
@@ -55,12 +55,7 @@ class Notification:
 
 
 class NotificationStore:
-    """
-    In-memory notification store for MVP.
-
-    Stores notifications per user and manages WebSocket connections.
-    Note: Data is lost on server restart.
-    """
+    """In-memory notification store used only when explicit JSON/dev storage is selected."""
 
     def __init__(self):
         self._notifications: dict[str, list[Notification]] = {}
@@ -195,8 +190,144 @@ class NotificationStore:
             return sum(1 for n in notifications if not n.read)
 
 
+class SQLAlchemyNotificationStore(NotificationStore):
+    """Database-backed notification store with in-memory WebSocket queues."""
+
+    def __init__(self, database: Any):
+        self.database = database
+        self._connections: dict[str, set[asyncio.Queue]] = {}
+        self._lock = asyncio.Lock()
+
+    @staticmethod
+    def _model_to_notification(model: Any) -> Notification:
+        created_at = model.created_at
+        if created_at and created_at.tzinfo is None:
+            created_at = created_at.replace(tzinfo=UTC)
+        return Notification(
+            id=model.id,
+            user_id=model.user_id,
+            notification_type=model.notification_type,
+            title=model.title,
+            content=model.content,
+            data=model.data if isinstance(model.data, dict) else {},
+            created_at=created_at or datetime.now(UTC),
+            read=bool(model.read),
+            tavern_id=model.tavern_id,
+            tavern_name=model.tavern_name,
+        )
+
+    async def add_notification(
+        self,
+        user_id: str,
+        notification_type: str,
+        title: str,
+        content: str,
+        data: dict[str, Any] | None = None,
+        tavern_id: str | None = None,
+        tavern_name: str | None = None,
+    ) -> Notification:
+        from fablemap_api.infrastructure.models import NotificationModel
+
+        notification = Notification(
+            id=self._generate_id(),
+            user_id=user_id,
+            notification_type=notification_type,
+            title=title,
+            content=content,
+            data=data or {},
+            created_at=datetime.now(UTC),
+            read=False,
+            tavern_id=tavern_id,
+            tavern_name=tavern_name,
+        )
+        async with self._lock:
+            with self.database.session_scope() as session:
+                session.add(NotificationModel(
+                    id=notification.id,
+                    user_id=notification.user_id,
+                    notification_type=notification.notification_type,
+                    title=notification.title,
+                    content=notification.content,
+                    data=notification.data,
+                    created_at=notification.created_at.replace(tzinfo=None),
+                    read=notification.read,
+                    tavern_id=notification.tavern_id,
+                    tavern_name=notification.tavern_name,
+                ))
+                # Keep only the latest 100 notifications per user.
+                old_models = (
+                    session.query(NotificationModel)
+                    .filter_by(user_id=user_id)
+                    .order_by(NotificationModel.created_at.desc())
+                    .offset(100)
+                    .all()
+                )
+                for old in old_models:
+                    session.delete(old)
+            await self._broadcast(user_id, notification)
+        logger.info("Notification sent to %s: %s - %s", user_id, notification_type, title)
+        return notification
+
+    async def get_notifications(
+        self,
+        user_id: str,
+        limit: int = 20,
+        offset: int = 0,
+        unread_only: bool = False,
+    ) -> tuple[list[dict[str, Any]], int, int]:
+        from fablemap_api.infrastructure.models import NotificationModel
+
+        safe_limit = max(1, min(int(limit or 20), 100))
+        safe_offset = max(0, int(offset or 0))
+        with self.database.session_scope() as session:
+            base = session.query(NotificationModel).filter_by(user_id=user_id)
+            unread_count = base.filter_by(read=False).count()
+            query = base.filter_by(read=False) if unread_only else base
+            total = query.count()
+            models = query.order_by(NotificationModel.created_at.desc()).offset(safe_offset).limit(safe_limit).all()
+            return [self._model_to_notification(model).to_dict() for model in models], total, unread_count
+
+    async def mark_as_read(self, user_id: str, notification_id: str) -> bool:
+        from fablemap_api.infrastructure.models import NotificationModel
+
+        with self.database.session_scope() as session:
+            model = session.query(NotificationModel).filter_by(user_id=user_id, id=notification_id).first()
+            if not model:
+                return False
+            model.read = True
+            return True
+
+    async def mark_all_as_read(self, user_id: str) -> int:
+        from fablemap_api.infrastructure.models import NotificationModel
+
+        with self.database.session_scope() as session:
+            models = session.query(NotificationModel).filter_by(user_id=user_id, read=False).all()
+            for model in models:
+                model.read = True
+            return len(models)
+
+    async def delete_notification(self, user_id: str, notification_id: str) -> bool:
+        from fablemap_api.infrastructure.models import NotificationModel
+
+        with self.database.session_scope() as session:
+            count = session.query(NotificationModel).filter_by(user_id=user_id, id=notification_id).delete()
+            return count > 0
+
+    async def get_unread_count(self, user_id: str) -> int:
+        from fablemap_api.infrastructure.models import NotificationModel
+
+        with self.database.session_scope() as session:
+            return session.query(NotificationModel).filter_by(user_id=user_id, read=False).count()
+
+
 # Global notification store instance
 _notification_store: NotificationStore | None = None
+
+
+def set_notification_store(store: NotificationStore) -> None:
+    """Configure the process-wide notification store for route helpers."""
+    global _notification_store
+    _notification_store = store
 
 
 def get_notification_store() -> NotificationStore:

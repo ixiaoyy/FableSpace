@@ -1,0 +1,23 @@
+{
+  "id": "05-05-chat-sidecar-context",
+  "name": "05-05-chat-sidecar-context",
+  "title": "Chat sidecar should be conversation-focused",
+  "description": "Replace project-like NPC profile/asset/map metadata in the tavern chat sidebar with context that helps the visitor continue the conversation.",
+  "status": "completed",
+  "dev_type": "frontend",
+  "priority": "P2",
+  "creator": "lijin",
+  "assignee": "lijin",
+  "createdAt": "2026-05-05",
+  "relatedFiles": [
+    "frontend/app/features/tavern-chat-workbench/index.tsx",
+    "frontend/scripts/tavern-chat-workbench-test.mjs",
+    ".trellis/tasks/05-05-05-05-chat-sidecar-context/prd.md",
+    ".trellis/tasks/05-05-05-05-chat-sidecar-context/implementation-plan.md",
+    ".trellis/tasks/05-05-05-05-chat-sidecar-context/completion.md",
+    ".trellis/tasks/05-05-05-05-chat-sidecar-context/artifacts/playwright-check.mjs",
+    ".trellis/tasks/05-05-05-05-chat-sidecar-context/artifacts/playwright-report.json"
+  ],
+  "notes": "Replaced project-like visitor sidebar with conversation-focused chat assistance and added tests/Playwright checks to keep old NPC profile thumbnails and raw tavern metadata out of the chat sidecar.",
+  "completedAt": "2026-05-05"
+}

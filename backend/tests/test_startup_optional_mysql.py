@@ -6,7 +6,7 @@ import sys
 from pathlib import Path
 
 
-def test_default_native_app_startup_does_not_require_sqlalchemy(tmp_path: Path) -> None:
+def test_explicit_json_storage_startup_does_not_require_sqlalchemy(tmp_path: Path) -> None:
     repo_root = Path(__file__).resolve().parents[2]
     script = r"""
 import builtins
@@ -23,15 +23,24 @@ def blocked_import(name, globals=None, locals=None, fromlist=(), level=0):
 builtins.__import__ = blocked_import
 
 from fastapi.testclient import TestClient
-from fablemap_api.infrastructure.settings import ApiSettings
 from fablemap_api.main import create_app
+from fablemap_api.infrastructure.settings import ApiSettings
 
-app = create_app(ApiSettings(output_root=Path(sys.argv[1]), fixture_file=None, frontend_root=None, mysql_url=""))
+app = create_app(ApiSettings(
+    output_root=Path(sys.argv[1]),
+    fixture_file=None,
+    frontend_root=None,
+    storage_backend="json",
+    database_url="",
+    mysql_url="",
+))
 response = TestClient(app).get("/api/v1/health")
 assert response.status_code == 200, response.text
 assert response.json()["ok"] is True
 """
     env = os.environ.copy()
+    env["FABLEMAP_STORAGE_BACKEND"] = "json"
+    env.pop("FABLEMAP_DATABASE_URL", None)
     env.pop("FABLEMAP_MYSQL_URL", None)
     env["PYTHONPATH"] = str(repo_root / "backend" / "src")
     result = subprocess.run(

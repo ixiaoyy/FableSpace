@@ -1,0 +1,47 @@
+{
+  "id": "tavern-character-relationship-graph-brainstorm",
+  "name": "tavern-character-relationship-graph-brainstorm",
+  "title": "brainstorm: 酒馆与角色关系联动图谱",
+  "description": "",
+  "status": "completed",
+  "dev_type": "fullstack",
+  "scope": "relationship graph brainstorm and implementation planning",
+  "package": null,
+  "priority": "P2",
+  "creator": "lijin",
+  "assignee": "lijin",
+  "createdAt": "2026-05-06",
+  "completedAt": "2026-05-06",
+  "branch": null,
+  "base_branch": "codex-homepage-dynamic-entry-covers",
+  "worktree_path": null,
+  "current_phase": 2,
+  "next_action": [
+    {
+      "phase": 2,
+      "action": "choose-child-task-and-run-trellis-context-before-implementation"
+    }
+  ],
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [
+    "05-06-relationship-graph-schema-storage",
+    "05-06-relationship-graph-propagation-engine",
+    "05-06-relationship-graph-api-governance",
+    "05-06-relationship-graph-owner-ui",
+    "05-06-relationship-graph-prompt-discovery-integration"
+  ],
+  "parent": null,
+  "relatedFiles": [
+    ".trellis/tasks/05-06-tavern-character-relationship-graph-brainstorm/prd.md",
+    ".trellis/tasks/05-06-tavern-character-relationship-graph-brainstorm/implementation-plan.md",
+    ".trellis/tasks/05-06-relationship-graph-schema-storage/prd.md",
+    ".trellis/tasks/05-06-relationship-graph-propagation-engine/prd.md",
+    ".trellis/tasks/05-06-relationship-graph-api-governance/prd.md",
+    ".trellis/tasks/05-06-relationship-graph-owner-ui/prd.md",
+    ".trellis/tasks/05-06-relationship-graph-prompt-discovery-integration/prd.md"
+  ],
+  "notes": "Brainstorm completed and user approved unified relationship graph MVP. Implementation plan and five child Trellis tasks created. No code implementation was started.",
+  "meta": {}
+}

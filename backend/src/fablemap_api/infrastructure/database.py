@@ -7,6 +7,7 @@ MySQL 数据库连接管理
 from __future__ import annotations
 
 from contextlib import contextmanager
+from pathlib import Path
 from typing import Generator
 
 try:
@@ -15,8 +16,8 @@ try:
     from sqlalchemy.pool import QueuePool
 except ImportError as exc:  # pragma: no cover - exercised by startup smoke subprocess
     raise ImportError(
-        "MySQL infrastructure requires optional SQLAlchemy dependencies. "
-        "Install sqlalchemy plus a MySQL driver, or unset FABLEMAP_MYSQL_URL to use JSON storage."
+        "Database infrastructure requires SQLAlchemy dependencies. "
+        "Install sqlalchemy plus a database driver, or set FABLEMAP_STORAGE_BACKEND=json for explicit dev-only JSON storage."
     ) from exc
 
 from .settings import ApiSettings
@@ -47,6 +48,12 @@ class Database:
             echo: 是否打印 SQL 语句（调试用）
         """
         self.url = url
+        connect_args = {}
+        if url.startswith("sqlite:///"):
+            sqlite_path = url.removeprefix("sqlite:///")
+            if sqlite_path and sqlite_path != ":memory:":
+                Path(sqlite_path).expanduser().resolve().parent.mkdir(parents=True, exist_ok=True)
+            connect_args["check_same_thread"] = False
         self.engine: Engine = create_engine(
             url,
             poolclass=QueuePool,
@@ -55,6 +62,7 @@ class Database:
             pool_recycle=pool_recycle,
             pool_pre_ping=True,  # 每次使用前检查连接是否有效
             echo=echo,
+            connect_args=connect_args,
         )
         self.SessionLocal = sessionmaker(
             autocommit=False,
@@ -103,10 +111,14 @@ def create_database_from_settings(settings: ApiSettings) -> Database | None:
     根据 ApiSettings 创建数据库连接
 
     Returns:
-        Database 实例，或 None（如果未配置 MySQL URL）
+        Database 实例，或 None（如果显式选择 JSON 存储）
     """
-    mysql_url = getattr(settings, "mysql_url", None)
-    if not mysql_url:
+    try:
+        from .storage import resolve_database_url
+        database_url = resolve_database_url(settings)
+    except Exception:
+        database_url = getattr(settings, "database_url", None) or getattr(settings, "mysql_url", None)
+    if not database_url:
         return None
 
     mysql_pool_size = getattr(settings, "mysql_pool_size", 5)
@@ -114,7 +126,7 @@ def create_database_from_settings(settings: ApiSettings) -> Database | None:
     mysql_echo = getattr(settings, "mysql_echo", False)
 
     return Database(
-        url=mysql_url,
+        url=database_url,
         pool_size=mysql_pool_size,
         max_overflow=mysql_max_overflow,
         echo=mysql_echo,

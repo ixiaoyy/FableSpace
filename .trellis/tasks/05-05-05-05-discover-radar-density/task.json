@@ -1,0 +1,22 @@
+{
+  "id": "05-05-discover-radar-density",
+  "name": "05-05-discover-radar-density",
+  "title": "Discover radar card density and empty avatar cleanup",
+  "description": "Reduce crowding in the discover radar result cards and prevent empty/broken NPC avatar images from showing as blank image icons.",
+  "status": "completed",
+  "dev_type": "frontend",
+  "priority": "P2",
+  "creator": "lijin",
+  "assignee": "lijin",
+  "createdAt": "2026-05-05",
+  "relatedFiles": [
+    "frontend/app/routes/discover.tsx",
+    "frontend/scripts/discover-pc-polish-test.mjs",
+    ".trellis/tasks/05-05-05-05-discover-radar-density/prd.md",
+    ".trellis/tasks/05-05-05-05-discover-radar-density/implementation-plan.md",
+    ".trellis/tasks/05-05-05-05-discover-radar-density/completion.md",
+    ".trellis/tasks/05-05-05-05-discover-radar-density/artifacts/playwright-report.json"
+  ],
+  "notes": "Reduced discover radar density, added avatar image fallback, converted preview tiles to background art fallback, and verified with tests/typecheck/build/Playwright.",
+  "completedAt": "2026-05-05"
+}

@@ -1,7 +1,8 @@
 import { jsonInit, readApiBlob, readApiJson } from "./api-client"
+import { getOrCreateVisitorIdentity } from "./tavern-runtime-config.js"
 
-export const DEFAULT_OWNER_ID = "owner-demo"
-export const DEFAULT_VISITOR_ID = "visitor-demo"
+export const DEFAULT_OWNER_ID: string = ""
+export const DEFAULT_VISITOR_ID: string = getOrCreateVisitorIdentity()
 
 export type Gender = "unspecified" | "female" | "male" | "nonbinary" | "other"
 
@@ -158,6 +159,7 @@ export type Tavern = {
   time_status?: TavernTimeStatus
   is_open?: boolean
   local_time_display?: string
+  llm_config?: Record<string, unknown>
 }
 
 export type TavernListResponse = {
@@ -256,6 +258,13 @@ export type VisitorStatePayload = {
   [key: string]: unknown
 }
 
+export type ChatResponseMode = {
+  kind: "owner_llm" | "built_in_rules" | "llm_not_configured" | "local_fallback" | "unavailable" | string
+  label: string
+  message?: string
+  requires_owner_llm?: boolean
+}
+
 export type ChatResponse = {
   character_id: string
   character_name: string
@@ -266,6 +275,7 @@ export type ChatResponse = {
     message?: string
     action?: string
   } | null
+  response_mode?: ChatResponseMode
   tavern_status?: string
   visitor_state?: VisitorStatePayload | null
   affinity?: AffinityResult | null
@@ -535,6 +545,35 @@ export type PromptBlock = Record<string, unknown> & {
   token_budget?: number
 }
 
+export type OwnerDialoguePreviewDryRunResponse = {
+  ok: boolean
+  tavern_id: string
+  character_id: string
+  character_name: string
+  visitor_id: string
+  visitor_name: string
+  message: string
+  dry_run: boolean
+  persisted: boolean
+  model_requested: boolean
+  model_called: boolean
+  model_status: string
+  model_error?: string
+  degraded?: boolean
+  assistant_message?: string
+  token_estimate?: number
+  history_written: boolean
+  memory_written: boolean
+  writeback_written: boolean
+  visitor_state_written?: boolean
+  messages: { role: string; content: string }[]
+  message_count: number
+  matched_world_info_count: number
+  matched_world_info?: Record<string, unknown>[]
+  prompt_summary?: Record<string, unknown>
+  notes?: string[]
+}
+
 export type RuntimePreset = Record<string, unknown> & {
   id?: string
   name?: string
@@ -584,6 +623,27 @@ export type PresetImportPreviewResponse = {
   blocked: PresetImportPreviewItem[]
   runtime_parameters: Record<string, unknown>
   notes: string[]
+}
+
+export type PresetImportApplyDiff = {
+  prompt_blocks: PromptBlock[]
+  world_info: Record<string, unknown>[]
+  characters: TavernCharacter[]
+  runtime_presets: RuntimePreset[]
+}
+
+export type PresetImportApplyResponse = PresetImportPreviewResponse & {
+  preview_only: false
+  confirm_required: boolean
+  selected_ids: string[]
+  diff: PresetImportApplyDiff
+  applied_counts: {
+    prompt_blocks: number
+    world_info: number
+    characters: number
+    runtime_presets: number
+  }
+  tavern?: Tavern
 }
 
 export type TavernVisitor = {
@@ -658,6 +718,9 @@ export type CharacterDraftResponse = {
   ok: boolean
   tavern_id: string
   status: "ai_draft" | string
+  source: "owner_llm" | "local_template_fallback" | string
+  source_label: string
+  source_reason?: string
   draft: CharacterDraftPreview
   warnings: string[]
 }
@@ -1499,6 +1562,23 @@ export function previewPromptBlocks(
   )
 }
 
+export function previewOwnerDialogueDryRun(
+  tavernId: string,
+  data: {
+    character_id?: string
+    message?: string
+    visitor_id?: string
+    visitor_name?: string
+    call_model?: boolean
+  },
+  userId = DEFAULT_OWNER_ID,
+) {
+  return readApiJson<OwnerDialoguePreviewDryRunResponse>(
+    `/api/v1/taverns/${encodeURIComponent(tavernId)}/dialogue-preview/dry-run`,
+    jsonInit("POST", data, userId),
+  )
+}
+
 export function getRuntimePresets(tavernId: string, userId = DEFAULT_OWNER_ID) {
   return readApiJson<RuntimePresetsResponse>(
     `/api/v1/taverns/${encodeURIComponent(tavernId)}/runtime-presets`,
@@ -1535,6 +1615,25 @@ export function previewPresetImport(
 ) {
   return readApiJson<PresetImportPreviewResponse>(
     `/api/v1/taverns/${encodeURIComponent(tavernId)}/preset-import/preview`,
+    jsonInit("POST", data, userId),
+  )
+}
+
+export function applyPresetImport(
+  tavernId: string,
+  data: {
+    preset?: Record<string, unknown> | string
+    preset_json?: string
+    content?: string
+    selected_ids?: string[]
+    target_map?: Record<string, "prompt_blocks" | "world_info" | "characters" | string>
+    include_runtime_parameters?: boolean
+    confirm?: boolean
+  } & Record<string, unknown>,
+  userId = DEFAULT_OWNER_ID,
+) {
+  return readApiJson<PresetImportApplyResponse>(
+    `/api/v1/taverns/${encodeURIComponent(tavernId)}/preset-import/apply`,
     jsonInit("POST", data, userId),
   )
 }

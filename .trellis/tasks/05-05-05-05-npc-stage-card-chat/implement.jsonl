@@ -1,0 +1,6 @@
+{"file": ".trellis/workflow.md", "reason": "Project workflow and conventions"}
+{"file": ".trellis/spec/frontend/index.md", "reason": "Frontend development guide"}
+{"file": ".trellis/spec/frontend/component-guidelines.md", "reason": "TavernChatWorkbench visual component patterns"}
+{"file": ".trellis/spec/frontend/quality-guidelines.md", "reason": "Frontend build and visual acceptance requirements"}
+{"file": ".trellis/spec/frontend/mobile-single-mainline.md", "reason": "Tavern workbench mobile mainline contract"}
+{"file": ".trellis/spec/frontend/npc-art-guidelines.md", "reason": "NPC portrait display and fallback contract"}

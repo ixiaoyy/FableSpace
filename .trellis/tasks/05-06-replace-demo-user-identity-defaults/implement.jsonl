@@ -1,0 +1,11 @@
+{"file": ".trellis/workflow.md", "reason": "Project workflow and conventions"}
+{"file": ".trellis/spec/backend/index.md", "reason": "Backend development guide"}
+{"file": ".trellis/spec/frontend/index.md", "reason": "Frontend development guide"}
+{"file": "frontend/app/lib/tavern-runtime-config.js", "reason": "demo identity constants"}
+{"file": "frontend/app/lib/taverns.ts", "reason": "API client default identities"}
+{"file": "frontend/app/features/tavern-chat/index.tsx", "reason": "visitor identity usage"}
+{"file": "backend/src/fablemap_api/core/web/service.py", "reason": "backend identity-sensitive API behavior"}
+{"file": "backend/src/fablemap_api/core/web/router.py", "reason": "backend route identity surface"}
+{"file": ".trellis/spec/guides/cross-layer-thinking-guide.md", "reason": "cross-layer identity checklist"}
+{"file": ".trellis\\tasks\\05-06-replace-demo-user-identity-defaults\\prd.md", "reason": "task PRD requirements"}
+{"file": "backend/src/fablemap_api/core/tavern.py", "reason": "native create tavern requires explicit owner identity"}

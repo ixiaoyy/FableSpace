@@ -125,9 +125,9 @@ class NeighborhoodRumor:
 
 class RumorStore:
     """
-    传闻存储（内存实现）
+    传闻存储（显式本地/dev fallback 的内存实现）
 
-    实际项目中应该使用数据库存储。
+    默认运行时应由 `SQLAlchemyRumorStore` 接管。
     """
 
     def __init__(self):
@@ -209,3 +209,125 @@ class RumorStore:
 
     def count(self) -> int:
         return len(self._rumors)
+
+
+class SQLAlchemyRumorStore(RumorStore):
+    """Database-backed rumor store."""
+
+    def __init__(self, database: Any):
+        self.database = database
+
+    @staticmethod
+    def _parse_dt(value: str | None):
+        if not value:
+            return None
+        try:
+            return datetime.fromisoformat(str(value).replace("Z", "+00:00")).replace(tzinfo=None)
+        except (TypeError, ValueError):
+            return None
+
+    @staticmethod
+    def _model_to_rumor(model: Any) -> NeighborhoodRumor:
+        created = model.created_at.replace(tzinfo=UTC).isoformat().replace("+00:00", "Z") if model.created_at else _utc_now_iso()
+        expires = model.expires_at.replace(tzinfo=UTC).isoformat().replace("+00:00", "Z") if model.expires_at else None
+        return NeighborhoodRumor.from_dict({
+            "id": model.id,
+            "source_tavern_id": model.source_tavern_id,
+            "target_tavern_id": model.target_tavern_id,
+            "target_tavern_name": model.target_tavern_name or "",
+            "character_id": model.character_id,
+            "character_name": model.character_name or "",
+            "rumor_text": model.rumor_text,
+            "trigger_type": model.trigger_type or "keyword",
+            "trigger_keywords": model.trigger_keywords or [],
+            "weight": model.weight or 1.0,
+            "created_at": created,
+            "expires_at": expires,
+            "view_count": model.view_count or 0,
+            "click_count": model.click_count or 0,
+            "is_active": bool(model.is_active),
+        })
+
+    def add(self, rumor: NeighborhoodRumor) -> NeighborhoodRumor:
+        from fablemap_api.infrastructure.models import NeighborhoodRumorModel
+
+        with self.database.session_scope() as session:
+            existing = session.query(NeighborhoodRumorModel).filter_by(id=rumor.id).first()
+            payload = {
+                "source_tavern_id": rumor.source_tavern_id,
+                "target_tavern_id": rumor.target_tavern_id,
+                "target_tavern_name": rumor.target_tavern_name,
+                "character_id": rumor.character_id,
+                "character_name": rumor.character_name,
+                "rumor_text": rumor.rumor_text,
+                "trigger_type": rumor.trigger_type,
+                "trigger_keywords": rumor.trigger_keywords,
+                "weight": rumor.weight,
+                "created_at": self._parse_dt(rumor.created_at) or datetime.utcnow(),
+                "expires_at": self._parse_dt(rumor.expires_at),
+                "view_count": rumor.view_count,
+                "click_count": rumor.click_count,
+                "is_active": rumor.is_active,
+            }
+            if existing:
+                for key, value in payload.items():
+                    setattr(existing, key, value)
+            else:
+                session.add(NeighborhoodRumorModel(id=rumor.id, **payload))
+        return rumor
+
+    def get(self, rumor_id: str) -> NeighborhoodRumor | None:
+        from fablemap_api.infrastructure.models import NeighborhoodRumorModel
+
+        with self.database.session_scope() as session:
+            model = session.query(NeighborhoodRumorModel).filter_by(id=str(rumor_id)).first()
+            return self._model_to_rumor(model) if model else None
+
+    def list_by_source(self, source_tavern_id: str, limit: int = 10, include_expired: bool = False) -> list[NeighborhoodRumor]:
+        from fablemap_api.infrastructure.models import NeighborhoodRumorModel
+
+        with self.database.session_scope() as session:
+            query = session.query(NeighborhoodRumorModel).filter_by(source_tavern_id=str(source_tavern_id))
+            if not include_expired:
+                query = query.filter_by(is_active=True)
+            models = query.order_by(NeighborhoodRumorModel.weight.desc()).limit(max(1, int(limit or 10))).all()
+            rumors = [self._model_to_rumor(model) for model in models]
+            return [r for r in rumors if include_expired or not r.is_expired()]
+
+    def list_recent(self, limit: int = 20, exclude_tavern_id: str | None = None) -> list[NeighborhoodRumor]:
+        from fablemap_api.infrastructure.models import NeighborhoodRumorModel
+
+        with self.database.session_scope() as session:
+            query = session.query(NeighborhoodRumorModel).filter_by(is_active=True)
+            if exclude_tavern_id:
+                query = query.filter(NeighborhoodRumorModel.source_tavern_id != str(exclude_tavern_id))
+            models = query.order_by(NeighborhoodRumorModel.created_at.desc()).limit(max(1, int(limit or 20))).all()
+            return [r for r in (self._model_to_rumor(model) for model in models) if not r.is_expired()]
+
+    def delete(self, rumor_id: str) -> bool:
+        from fablemap_api.infrastructure.models import NeighborhoodRumorModel
+
+        with self.database.session_scope() as session:
+            return session.query(NeighborhoodRumorModel).filter_by(id=str(rumor_id)).delete() > 0
+
+    def record_view(self, rumor_id: str) -> None:
+        from fablemap_api.infrastructure.models import NeighborhoodRumorModel
+
+        with self.database.session_scope() as session:
+            model = session.query(NeighborhoodRumorModel).filter_by(id=str(rumor_id)).first()
+            if model:
+                model.view_count = (model.view_count or 0) + 1
+
+    def record_click(self, rumor_id: str) -> None:
+        from fablemap_api.infrastructure.models import NeighborhoodRumorModel
+
+        with self.database.session_scope() as session:
+            model = session.query(NeighborhoodRumorModel).filter_by(id=str(rumor_id)).first()
+            if model:
+                model.click_count = (model.click_count or 0) + 1
+
+    def count(self) -> int:
+        from fablemap_api.infrastructure.models import NeighborhoodRumorModel
+
+        with self.database.session_scope() as session:
+            return session.query(NeighborhoodRumorModel).count()

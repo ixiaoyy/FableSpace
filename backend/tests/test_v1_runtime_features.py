@@ -166,6 +166,69 @@ def test_v1_third_shelf_generic_rules_chat_does_not_echo_scene_prompt(tmp_path: 
     assert client.app.state.taverns.store.get_token_usage("pw_third_shelf_observatory") == 0
 
 
+def test_v1_public_welfare_rules_chat_reports_rules_mode_without_internal_fields(tmp_path: Path) -> None:
+    client = _client(tmp_path)
+
+    response = client.post(
+        "/api/v1/taverns/pw_after_school_hero_supply/chat",
+        headers={"X-User-Id": "visitor-v1-rules-mode"},
+        json={
+            "character_id": "char_pw_aheng",
+            "message": "我想修补旧道具，也想知道怎么玩。",
+            "visitor_id": "visitor-v1-rules-mode",
+            "visitor_name": "测试旅人",
+        },
+    )
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["degraded"] is False
+    assert payload["tavern_status"] == "open"
+    assert payload["response_mode"]["kind"] == "built_in_rules"
+    assert payload["response_mode"]["requires_owner_llm"] is False
+    assert "规则模式" in payload["response_mode"]["label"]
+    assert "无 Key" in payload["response_mode"]["label"]
+
+    combined_text = f"{payload['response']}\n{payload['response_mode']}"
+    for internal_field in (
+        "system_prompt",
+        "scene_prompt",
+        "prompt_blocks",
+        "backend=rules",
+        "public-welfare-rules-v1",
+    ):
+        assert internal_field not in combined_text
+
+
+def test_v1_user_tavern_without_llm_reports_configuration_mode(tmp_path: Path) -> None:
+    client = _client(tmp_path)
+    tavern_id, character_ids = _create_tavern(
+        client,
+        llm_config={"backend": "openai", "model": "gpt-test", "api_key": "", "base_url": ""},
+    )
+
+    response = client.post(
+        f"/api/v1/taverns/{tavern_id}/chat",
+        headers={"X-User-Id": VISITOR_ID},
+        json={
+            "character_id": character_ids[0],
+            "message": "今晚可以聊聊吗？",
+            "visitor_id": VISITOR_ID,
+            "visitor_name": "测试旅人",
+        },
+    )
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["degraded"] is True
+    assert payload["degradation"]["reason"] == "llm_not_configured"
+    assert payload["response_mode"]["kind"] == "llm_not_configured"
+    assert payload["response_mode"]["requires_owner_llm"] is True
+    assert "配置" in payload["response_mode"]["message"]
+    assert "AI NPC" not in payload["response_mode"]["label"]
+    assert payload["tavern_status"] == "closed"
+
+
 def test_v1_public_welfare_uses_versioned_kilo_config_when_free_model_is_selected(
     tmp_path: Path,
     monkeypatch,

@@ -1,0 +1,7 @@
+{"file": ".trellis/workflow.md", "reason": "Project workflow and conventions"}
+{"file": ".trellis/spec/backend/index.md", "reason": "Backend development guide"}
+{"file": ".trellis/spec/frontend/index.md", "reason": "Frontend development guide"}
+{"file": "frontend/app/routes/quests.tsx", "reason": "quest route MVP text and UI"}
+{"file": "frontend/app/lib/quest-guide.js", "reason": "quest guide data/helpers"}
+{"file": "docs/WHAT_NOT_TO_BUILD.md", "reason": "no ranking/reward/gameification scope guard"}
+{"file": ".trellis\\tasks\\05-06-quest-checklist-persistence\\prd.md", "reason": "task PRD requirements"}

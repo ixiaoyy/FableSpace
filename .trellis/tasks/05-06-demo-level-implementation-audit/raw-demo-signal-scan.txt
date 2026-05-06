@@ -1,0 +1,1633 @@
+backend\src\fablemap_api\api\v1\notifications.py:67:- Validates user identity (simplified for MVP - just accepts user_id)
+backend\src\fablemap_api\application\taverns.py:95:def _safe_int(self, value: Any, fallback: int = 0) -> int:
+backend\src\fablemap_api\application\taverns.py:99:return fallback
+backend\src\fablemap_api\application\taverns.py:101:def _safe_float(self, value: Any, fallback: float = 0.0) -> float:
+backend\src\fablemap_api\application\taverns.py:105:return fallback
+backend\src\fablemap_api\application\services\characters.py:73:else f"欢迎来到{tavern_name}。我是这份 AI 草稿里的临时招待员，等店主确认后再正式接待你。"
+backend\src\fablemap_api\application\services\gameplay.py:15:fallback_result,
+backend\src\fablemap_api\application\services\gameplay.py:175:result = self._advance_by_choice(gameplay, session, choice_id) if choice_id else fallback_result(gameplay, session)
+backend\src\fablemap_api\application\services\gameplay.py:223:return fallback_result(gameplay, session)
+backend\src\fablemap_api\application\services\management.py:15:fallback_result,
+backend\src\fablemap_api\application\services\memories.py:15:fallback_result,
+backend\src\fablemap_api\application\services\owner_config.py:15:fallback_result,
+backend\src\fablemap_api\application\services\packages.py:15:fallback_result,
+backend\src\fablemap_api\application\services\public_bond.py:53:实现类负责具体数据库操作（MySQL / JSON / mock）。
+backend\src\fablemap_api\application\services\runtime.py:15:fallback_result,
+backend\src\fablemap_api\application\services\runtime.py:972:return "环境传闻技能包已经开启，但今晚还没有可分享的邻里传闻；我不会临时编造一个。"
+backend\src\fablemap_api\application\services\worldinfo.py:15:fallback_result,
+backend\src\fablemap_api\core\bundle.py:177:def _localized_html(value: Any, fallback_key: str = "unknown") -> str:
+backend\src\fablemap_api\core\bundle.py:179:return f'<span data-i18n="{fallback_key}"></span>'
+backend\src\fablemap_api\core\bundle.py:182:return f'<span data-i18n="{fallback_key}"></span>'
+backend\src\fablemap_api\core\bundle.py:1629:// For MVP, we allow movement if near any point of any polyline
+backend\src\fablemap_api\core\city_persona.py:52:greeting_template: str   # {address} 占位符
+backend\src\fablemap_api\core\cli.py:10:from .crew_orchestrator import build_crewai_stub, run_managed_workflow, write_plan_files
+backend\src\fablemap_api\core\cli.py:96:help="Run the local manager workflow in stub mode, or validate live CrewAI prerequisites.",
+backend\src\fablemap_api\core\cli.py:102:help="Require live CrewAI prerequisites instead of returning a stub execution summary.",
+backend\src\fablemap_api\core\cli.py:201:"crewai": build_crewai_stub(args.objective),
+backend\src\fablemap_api\core\crew_orchestrator.py:230:def build_crewai_stub(objective: str) -> dict[str, Any]:
+backend\src\fablemap_api\core\crew_orchestrator.py:245:def build_crewai_runtime_stub(objective: str) -> dict[str, Any]:
+backend\src\fablemap_api\core\crew_orchestrator.py:275:"CrewAI runtime classes are importable; this stub can be upgraded to a live crew once a model provider is configured."
+backend\src\fablemap_api\core\crew_orchestrator.py:284:runtime_stub = build_crewai_runtime_stub(objective)
+backend\src\fablemap_api\core\crew_orchestrator.py:293:mode = "live" if live else "stub"
+backend\src\fablemap_api\core\crew_orchestrator.py:295:"status": "ready_for_live_execution" if live else "stub_runtime_ready",
+backend\src\fablemap_api\core\crew_orchestrator.py:296:"available": runtime_stub["available"],
+backend\src\fablemap_api\core\crew_orchestrator.py:297:"process": runtime_stub["process"],
+backend\src\fablemap_api\core\crew_orchestrator.py:298:"agent_count": len(runtime_stub["agents"]),
+backend\src\fablemap_api\core\crew_orchestrator.py:299:"task_count": len(runtime_stub["tasks"]),
+backend\src\fablemap_api\core\crew_orchestrator.py:300:"live_ready": runtime_stub["live_ready"],
+backend\src\fablemap_api\core\default_taverns.py:8:DEFAULT_PUBLIC_WELFARE_MODEL = "public-welfare-rules-v1"
+backend\src\fablemap_api\core\default_taverns.py:227:"note": "公益酒馆使用轻量结构化记忆预算，避免默认样例消耗外部 API。"
+backend\src\fablemap_api\core\default_taverns.py:256:fallback: str,
+backend\src\fablemap_api\core\default_taverns.py:280:"fallback_events": [
+backend\src\fablemap_api\core\default_taverns.py:281:{"id": "opening-fallback", "text": fallback, "next_node_id": "progress"},
+backend\src\fablemap_api\core\default_taverns.py:292:"fallback_events": [
+backend\src\fablemap_api\core\default_taverns.py:293:{"id": "progress-fallback", "text": fallback, "next_node_id": "progress"},
+backend\src\fablemap_api\core\default_taverns.py:301:"fallback_events": [
+backend\src\fablemap_api\core\default_taverns.py:302:{"id": "complete-fallback", "text": reward, "next_node_id": "complete"},
+backend\src\fablemap_api\core\default_taverns.py:387:fallback="小舟随机抽出一张隐私选择卡，请你判断公开、密码、私人哪一种更合适。",
+backend\src\fablemap_api\core\default_taverns.py:455:fallback="电台随机亮起一盏设备灯，安澜请你只补一个词：现在最需要的是安静、陪伴，还是暂停。",
+backend\src\fablemap_api\core\default_taverns.py:554:fallback="工具箱里随机滚出一颗螺丝，阿槐请你说出今天最想先拧紧的一件小事。",
+backend\src\fablemap_api\core\default_taverns.py:622:fallback="闻笺随机抽到一张天气标签，请你补一个天气、光线或最后动作。",
+backend\src\fablemap_api\core\default_taverns.py:650:"胸牌写着“临时人类研究许可”，手里拿着一块写满人类异常行为的记录板。"
+backend\src\fablemap_api\core\default_taverns.py:678:name="临时店员 Mu-Mu",
+backend\src\fablemap_api\core\default_taverns.py:689:"你扮演临时店员 Mu-Mu，一位软胶质、偶尔露出无害触腕、正在努力伪装成人类便利店店员的外星生命。"
+backend\src\fablemap_api\core\default_taverns.py:694:"欢迎光临。您好。我是临时店员 Mu-Mu，目前正在进行第 43 次人类服务业拟态训练。"
+backend\src\fablemap_api\core\default_taverns.py:853:reward="你得到一张“临时地球顾问”贴纸。V-17 已把你的解释记入温和档案，等待下次错误复用。",
+backend\src\fablemap_api\core\default_taverns.py:854:fallback=(
+backend\src\fablemap_api\core\default_taverns.py:993:fallback="委托板随机翻出一张线索卡：位置、时间、字迹。请选择一个继续调查。",
+backend\src\fablemap_api\core\default_taverns.py:1007:fallback="旧订书机咔哒一声弹出一张便签，请你把它归到失物、求助或提醒。",
+backend\src\fablemap_api\core\default_taverns.py:1021:fallback="凌晨时钟停了一秒。栀灯请你只做一件安全事：记录、后退，或结束值班。",
+backend\src\fablemap_api\core\default_taverns.py:1191:fallback=(
+backend\src\fablemap_api\core\default_taverns.py:1193:"如果说不出名字，可以先选一枚贴纸当临时标志。"
+backend\src\fablemap_api\core\default_taverns.py:1213:fallback="维修灯亮了一下。请从开口、拒绝、坚持、重新开始里选一个，作为这件旧道具修好的方向。",
+backend\src\fablemap_api\core\default_taverns.py:1233:fallback="小委托板轻轻响了一下。请选择：真心话、边界、回信。今晚只需要完成很小的一步。",
+backend\src\fablemap_api\core\default_taverns.py:1248:"这是一个按 AI 草稿边界批准的默认示例酒馆：内容仅作为 demo seed，不代表平台会未经店主确认自动发布 NPC。"
+backend\src\fablemap_api\core\default_taverns.py:1259:"她从异世界逃到上海静安寺附近，把猫铃小屋当作临时据点。"
+backend\src\fablemap_api\core\default_taverns.py:1267:"门后是眯眯喵桑的临时避难所，桌上有上海地图、鱼形便签和一份写了一半的猫帝国复国会议纪要。"
+backend\src\fablemap_api\core\default_taverns.py:1362:"这是已批准的 AI 草稿示例 seed，不写私人住址，也不替用户酒馆自动上线内容。"
+backend\src\fablemap_api\core\default_taverns.py:1426:"眯眯喵桑把猫铃按在静安地图上：第一届临时复国会议开始！"
+backend\src\fablemap_api\core\default_taverns.py:1433:reward="你得到一枚“猫铃临时同盟”纸徽章，以及一句回访暗号：静安夜风起，猫铃就会响。",
+backend\src\fablemap_api\core\default_taverns.py:1434:fallback=(
+backend\src\fablemap_api\core\default_taverns.py:1454:"夜间护理站是一间安静、明亮、低压力的公益医院示例地点：蓝白色护士站、分诊便签、"
+backend\src\fablemap_api\core\default_taverns.py:1661:fallback="弥夏轻敲记录板：先选一栏——立即求助、记录信息、安静等待。只要不确定，就优先保证现实安全。",
+backend\src\fablemap_api\core\default_taverns.py:1726:"mes_example": "<START>\n{{user}}: 我说不清楚。\n{{char}}: 那就不用说清楚。先给这团心事取一个临时名字，好让它别一直压在你身上。",
+backend\src\fablemap_api\core\default_taverns.py:1769:"mes_example": "<START>\n{{user}}: 我只记得它很重要。\n{{char}}: 重要也可以先轻轻放下。我们先给它贴一张临时标签：最后一次想起它的时候，你在哪里？",
+backend\src\fablemap_api\core\default_taverns.py:1807:"description": "英雄补给社的徽章保管员，负责把访客的小勇气装进旧贴纸、星星袋和临时英雄名里。",
+backend\src\fablemap_api\core\default_taverns.py:1812:"mes_example": "<START>\n{{user}}: 我不算英雄吧。\n{{char}}: 算临时的。比如“把拖延怪物请出门三分钟侠”。先挑一个今天能完成的小动作。",
+backend\src\fablemap_api\core\default_taverns.py:1827:"mes_example": "<START>\n{{user}}: 我要加入复国军。\n{{char}}: 叮！先降级成复国会议临时旁听员。第一项任务：给鱼干预算表贴一个安全标签喵。",
+backend\src\fablemap_api\core\default_taverns.py:1854:"fallback": "三盏灯随机闪了一下：如果你说不清卡点，就先从“小舟总览”开始。",
+backend\src\fablemap_api\core\default_taverns.py:1866:"fallback": "备用灯轻轻亮起。灯芯建议先喝水、坐稳，再决定要不要把话交给安澜或夜雨。",
+backend\src\fablemap_api\core\default_taverns.py:1878:"fallback": "巧手把三张工单洗乱，请你先选最不吓人的那一张。",
+backend\src\fablemap_api\core\default_taverns.py:1890:"fallback": "台灯照到一张空白标签，拾忆建议先写一个不涉及隐私的小细节。",
+backend\src\fablemap_api\core\default_taverns.py:1902:"fallback": "Mu-Mu 误把关东煮当作社交液体，Pi-Pi 请求你先纠正最明显的一项。",
+backend\src\fablemap_api\core\default_taverns.py:1914:"fallback": "火眼先用红笔划掉危险行动，再请你在剩下的线索里选一条。",
+backend\src\fablemap_api\core\default_taverns.py:1918:"content": "NPC 分工：阿衡负责旧玩具店/模型店柜台和现实小委托，纸剑负责童年英雄回声与旧英雄卡，星袋负责徽章、贴纸和临时英雄名。",
+backend\src\fablemap_api\core\default_taverns.py:1925:"reward": "你得到一枚临时英雄名贴纸，不提供数值加成，只提醒你做完一件小事。",
+backend\src\fablemap_api\core\default_taverns.py:1926:"fallback": "星袋从纸袋里抽出一颗星星，请你把今天的小事命名成一个不夸张的英雄名。",
+backend\src\fablemap_api\core\default_taverns.py:1937:"reward": "你得到一枚“猫铃临时同盟”贴纸，以及一条安全回访暗号。",
+backend\src\fablemap_api\core\default_taverns.py:1938:"fallback": "铜铃叮一声提醒：不写私人地址，只选一个安全日常议题喵。",
+backend\src\fablemap_api\core\default_taverns.py:1950:"fallback": "南星把联络卡推近：如果不确定，就先确认有没有危险信号；没有的话再交给弥夏或青柚慢慢整理。",
+backend\src\fablemap_api\core\default_taverns.py:1989:fallback=division["fallback"],
+backend\src\fablemap_api\core\demo.py:14:DEMO_LAT = 35.6580
+backend\src\fablemap_api\core\demo.py:15:DEMO_LON = 139.7016
+backend\src\fablemap_api\core\demo.py:16:DEMO_RADIUS = 300
+backend\src\fablemap_api\core\demo.py:19:_FIXTURE_PATH = Path(__file__).resolve().parent / "demo_assets" / "overpass_demo.json"
+backend\src\fablemap_api\core\demo.py:24:prog="python -m fablemap.demo",
+backend\src\fablemap_api\core\demo.py:25:description="Generate a FableMap demo output from real OpenStreetMap data.",
+backend\src\fablemap_api\core\demo.py:30:default=DEMO_LAT,
+backend\src\fablemap_api\core\demo.py:31:help=f"Latitude of the demo location (default: {DEMO_LAT})",
+backend\src\fablemap_api\core\demo.py:36:default=DEMO_LON,
+backend\src\fablemap_api\core\demo.py:37:help=f"Longitude of the demo location (default: {DEMO_LON})",
+backend\src\fablemap_api\core\demo.py:42:default=DEMO_RADIUS,
+backend\src\fablemap_api\core\demo.py:43:help=f"Search radius in metres (default: {DEMO_RADIUS})",
+backend\src\fablemap_api\core\demo.py:48:default=Path("demo-output"),
+backend\src\fablemap_api\core\demo.py:49:help="Directory where demo world.json and summary.json will be written.",
+backend\src\fablemap_api\core\dynamic_signals.py:61:def get_mock_signals(slice_id: str) -> DynamicSignals:
+backend\src\fablemap_api\core\dynamic_signals.py:62:"""Generate deterministic mock signals for testing."""
+backend\src\fablemap_api\core\gameplay.py:58:def _default_fallback_event(goal: str = "") -> dict[str, str]:
+backend\src\fablemap_api\core\gameplay.py:61:"id": "fallback-next",
+backend\src\fablemap_api\core\gameplay.py:77:def _normalize_fallback_event(value: Any, index: int, *, next_node_id: str = "") -> dict[str, Any]:
+backend\src\fablemap_api\core\gameplay.py:80:"id": _text(source.get("id"), default=f"fallback-{index + 1}", max_length=48),
+backend\src\fablemap_api\core\gameplay.py:93:fallback_events = [
+backend\src\fablemap_api\core\gameplay.py:94:_normalize_fallback_event(event, event_index, next_node_id=node_id)
+backend\src\fablemap_api\core\gameplay.py:96:source.get("fallback_events", []) if isinstance(source.get("fallback_events"), list) else []
+backend\src\fablemap_api\core\gameplay.py:99:if not fallback_events:
+backend\src\fablemap_api\core\gameplay.py:100:fallback_events = [
+backend\src\fablemap_api\core\gameplay.py:101:_normalize_fallback_event(
+backend\src\fablemap_api\core\gameplay.py:103:"id": "fallback-next",
+backend\src\fablemap_api\core\gameplay.py:117:"fallback_events": fallback_events,
+backend\src\fablemap_api\core\gameplay.py:129:"fallback_events": [
+backend\src\fablemap_api\core\gameplay.py:138:"fallback_events": [
+backend\src\fablemap_api\core\gameplay.py:147:"fallback_events": [
+backend\src\fablemap_api\core\gameplay.py:161:for event in node.get("fallback_events", []):
+backend\src\fablemap_api\core\gameplay.py:397:def choose_fallback_event(gameplay: dict[str, Any], session: GameplaySession) -> dict[str, Any]:
+backend\src\fablemap_api\core\gameplay.py:399:events = node.get("fallback_events") or [_default_fallback_event(gameplay.get("title", ""))]
+backend\src\fablemap_api\core\gameplay.py:430:def fallback_result(gameplay: dict[str, Any], session: GameplaySession) -> dict[str, Any]:
+backend\src\fablemap_api\core\gameplay.py:431:event_data = choose_fallback_event(gameplay, session)
+backend\src\fablemap_api\core\gameplay.py:440:source="fallback",
+backend\src\fablemap_api\core\gameplay.py:441:metadata={"fallback_event_id": event_data.get("id", "")},
+backend\src\fablemap_api\core\gameplay.py:444:"source": "fallback",
+backend\src\fablemap_api\core\gameplay.py:478:return fallback_result(gameplay, session)
+backend\src\fablemap_api\core\gameplay.py:480:return fallback_result(gameplay, session)
+backend\src\fablemap_api\core\gameplay.py:484:return fallback_result(gameplay, session)
+backend\src\fablemap_api\core\gameplay.py:491:return fallback_result(gameplay, session)
+backend\src\fablemap_api\core\gm_layer.py:28:"""Return preview-only GM Layer candidates without mutating durable canon.
+backend\src\fablemap_api\core\gm_layer.py:30:The GM Layer MVP deliberately reuses StateCard extraction and response shape
+backend\src\fablemap_api\core\gm_layer.py:73:"preview_only": True,
+backend\src\fablemap_api\core\gm_layer.py:87:"preview_only": True,
+backend\src\fablemap_api\core\lens_engine.py:41:fallback: bool = False
+backend\src\fablemap_api\core\lens_engine.py:101:_FALLBACK_LENS = "drift"
+backend\src\fablemap_api\core\lens_engine.py:120:fallback=(lens_id == _FALLBACK_LENS and confidence < 0.5),
+backend\src\fablemap_api\core\lens_engine.py:160:# Fallback
+backend\src\fablemap_api\core\lens_engine.py:161:return _FALLBACK_LENS, "no_rule_matched", 0.40
+backend\src\fablemap_api\core\llm_clients.py:155:"""Fallback: estimate tokens as ~1/4 of characters for Chinese, ~1/6 for English."""
+backend\src\fablemap_api\core\llm_clients.py:546:"allow_fallbacks": True,
+backend\src\fablemap_api\core\llm_clients.py:586:body["provider"] = {"order": self.config.extra["openrouter_provider"].split(","), "allow_fallbacks": True}
+backend\src\fablemap_api\core\memory_graph.py:83:"""Graph-aware MemoryStore placeholder.
+backend\src\fablemap_api\core\memory_graph.py:90:def __init__(self, fallback: Optional[MemoryStore] = None, graph: Any = None):
+backend\src\fablemap_api\core\memory_graph.py:91:self.fallback = fallback or KeywordMemoryStore()
+backend\src\fablemap_api\core\memory_graph.py:99:return self.fallback.list_atoms(tavern_id, **filters)
+backend\src\fablemap_api\core\memory_graph.py:102:return self.fallback.get_atom(tavern_id, memory_id)
+backend\src\fablemap_api\core\memory_graph.py:105:return self.fallback.save_atom(tavern_id, atom)
+backend\src\fablemap_api\core\memory_graph.py:108:return self.fallback.delete_atom(tavern_id, memory_id)
+backend\src\fablemap_api\core\memory_graph.py:118:results = self.fallback.search_atoms(tavern_id, query, limit=limit, **filters)
+backend\src\fablemap_api\core\memory_graph.py:121:return [MemorySearchResult(hit.atom, hit.score, "graph_stub:keyword_fallback") for hit in results]
+backend\src\fablemap_api\core\memory_graph.py:130:candidates = self.fallback.list_atoms(tavern_id, include_flagged=False)
+backend\src\fablemap_api\core\memory_graph.py:147:results.append(MemorySearchResult(candidate, min(1.0, score), "graph_stub:shared_fields"))
+backend\src\fablemap_api\core\notifications.py:4:Provides notification data model and in-memory store for MVP.
+backend\src\fablemap_api\core\notifications.py:59:In-memory notification store for MVP.
+backend\src\fablemap_api\core\output_rules.py:61:"name": "玩家主导权示例（默认关闭）",
+backend\src\fablemap_api\core\output_rules.py:62:"description": "示例规则：可复制后改写，用于减少模型替玩家做决定的句式。",
+backend\src\fablemap_api\core\owner_config.py:5:MVP 使用 JSON 文件，保留后续扩展到数据库的接口。
+backend\src\fablemap_api\core\owner_config.py:108:MVP 使用内存存储，文件作为持久化备份。
+backend\src\fablemap_api\core\page.py:225:content = _fallback_root_page_html().encode("utf-8")
+backend\src\fablemap_api\core\page.py:257:def _fallback_root_page_html() -> str:
+backend\src\fablemap_api\core\page.py:275:<button type="button" data-preset="fixture-demo">fixture-demo</button>
+backend\src\fablemap_api\core\preset_import.py:202:"""Return a preview-only risk report for a preset-like payload."""
+backend\src\fablemap_api\core\preset_import.py:234:"preview_only": True,
+backend\src\fablemap_api\core\preset_import.py:423:return _preview_item(module, index, "manual_review", "warning", "未识别的预设模块，需要店主人工核对后再手动迁移")
+backend\src\fablemap_api\core\presets.py:280:def _coerce_float(value: Any, fallback: float, *, minimum: float, maximum: float) -> float:
+backend\src\fablemap_api\core\presets.py:284:return fallback
+backend\src\fablemap_api\core\presets.py:288:def _coerce_int(value: Any, fallback: int, *, minimum: int, maximum: int) -> int:
+backend\src\fablemap_api\core\presets.py:292:return fallback
+backend\src\fablemap_api\core\prompt_blocks.py:129:def _coerce_order(value: Any, fallback: int = 100) -> int:
+backend\src\fablemap_api\core\prompt_blocks.py:133:return fallback
+backend\src\fablemap_api\core\public_bond.py:24:"""NPC 公开关系类型枚举（系统内置，MVP 不开放店主自定义）"""
+backend\src\fablemap_api\core\public_bond.py:110:EXPIRED = "expired"    # 已过期（MVP 不启用）
+backend\src\fablemap_api\core\public_welfare_rules.py:5:demo behavior for no-network public-welfare taverns; it is not a schema
+backend\src\fablemap_api\core\public_welfare_rules.py:25:fallback: PublicWelfareRuleResponse
+backend\src\fablemap_api\core\public_welfare_rules.py:78:fallback=PublicWelfareRuleResponse(
+backend\src\fablemap_api\core\public_welfare_rules.py:90:message="名字不用厉害，也不用解释给所有人听。你可以写原来的英雄名、改一个新名字，或者先选一枚贴纸当临时标志。",
+backend\src\fablemap_api\core\public_welfare_rules.py:103:fallback=PublicWelfareRuleResponse(
+backend\src\fablemap_api\core\public_welfare_rules.py:138:fallback=PublicWelfareRuleResponse(
+backend\src\fablemap_api\core\public_welfare_rules.py:141:message="便利店是人类文明的浓缩器官。人类会在这里补充糖分、购买焦虑、进行排队仪式，并在凌晨凝视饭团。请继续，我们需要一位临时地球顾问。",
+backend\src\fablemap_api\core\public_welfare_rules.py:163:fallback=PublicWelfareRuleResponse(
+backend\src\fablemap_api\core\public_welfare_rules.py:208:return _format_rule_response(ruleset.fallback, character_name=character_name, tavern_name=tavern_name, quote_message=quote_message)
+backend\src\fablemap_api\core\public_welfare_rules.py:284:ruleset.fallback,
+backend\src\fablemap_api\core\scene_capsule.py:38:deterministic_fallbacks: List[str] = field(default_factory=list)
+backend\src\fablemap_api\core\scene_capsule.py:87:is_fallback: bool = False
+backend\src\fablemap_api\core\scene_capsule.py:88:fallback_reason: str = ""
+backend\src\fablemap_api\core\scene_capsule.py:266:_FALLBACK_TITLE = "城市短暂沉默"
+backend\src\fablemap_api\core\scene_capsule.py:267:_FALLBACK_NARRATIVE = "城市在这里沉默了片刻。"
+backend\src\fablemap_api\core\scene_capsule.py:268:_FALLBACK_SUMMARY = "本次场景胶囊已回退到确定性反馈。"
+backend\src\fablemap_api\core\scene_capsule.py:331:"""Minimal deterministic generator for MVP scene capsules."""
+backend\src\fablemap_api\core\scene_capsule.py:356:# Safety flags: deterministic fallback
+backend\src\fablemap_api\core\scene_capsule.py:359:if inp.deterministic_fallbacks:
+backend\src\fablemap_api\core\scene_capsule.py:360:meta["deterministic_fallbacks"] = list(inp.deterministic_fallbacks)
+backend\src\fablemap_api\core\scene_capsule.py:365:title=_FALLBACK_TITLE,
+backend\src\fablemap_api\core\scene_capsule.py:366:is_fallback=True,
+backend\src\fablemap_api\core\scene_capsule.py:367:fallback_reason="deterministic_ui_fallback",
+backend\src\fablemap_api\core\scene_capsule.py:383:is_fallback = False
+backend\src\fablemap_api\core\scene_capsule.py:385:title = _FALLBACK_TITLE
+backend\src\fablemap_api\core\scene_capsule.py:386:narrative = _FALLBACK_NARRATIVE
+backend\src\fablemap_api\core\scene_capsule.py:387:summary = _FALLBACK_SUMMARY
+backend\src\fablemap_api\core\scene_capsule.py:388:is_fallback = True
+backend\src\fablemap_api\core\scene_capsule.py:394:title = _FALLBACK_TITLE
+backend\src\fablemap_api\core\scene_capsule.py:395:narrative = _FALLBACK_NARRATIVE
+backend\src\fablemap_api\core\scene_capsule.py:396:summary = _FALLBACK_SUMMARY
+backend\src\fablemap_api\core\scene_capsule.py:397:is_fallback = True
+backend\src\fablemap_api\core\scene_capsule.py:447:is_fallback=is_fallback,
+backend\src\fablemap_api\core\skill_packs.py:194:def _safe_int(value: Any, fallback: int) -> int:
+backend\src\fablemap_api\core\skill_packs.py:198:return fallback
+backend\src\fablemap_api\core\state_cards.py:222:"任务", "委托", "目标", "待办", "回访", "调查", "线索", "quest", "task", "todo", "promise",
+backend\src\fablemap_api\core\stt_service.py:113:# This is a placeholder - recommend using faster-whisper instead.
+backend\src\fablemap_api\core\tavern.py:117:格式示例（JSON）：
+backend\src\fablemap_api\core\tavern.py:725:"""Build a read-only fallback map for built-in public-welfare taverns."""
+backend\src\fablemap_api\core\tavern.py:736:def _public_welfare_seed_record_needs_read_fallback(tavern_id: str, existing: dict[str, Any]) -> bool:
+backend\src\fablemap_api\core\tavern.py:754:def _apply_public_welfare_seed_read_fallbacks(self, data: dict[str, Any]) -> dict[str, Any]:
+backend\src\fablemap_api\core\tavern.py:766:if not self._public_welfare_seed_record_needs_read_fallback(tavern_id, existing):
+backend\src\fablemap_api\core\tavern.py:853:def _load_taverns(self, *, include_seed_fallback: bool = False) -> dict[str, Any]:
+backend\src\fablemap_api\core\tavern.py:857:if include_seed_fallback:
+backend\src\fablemap_api\core\tavern.py:862:if include_seed_fallback:
+backend\src\fablemap_api\core\tavern.py:863:return self._apply_public_welfare_seed_read_fallbacks(loaded)
+backend\src\fablemap_api\core\tavern.py:872:def _is_seed_fallback_tavern(self, tavern_id: str) -> bool:
+backend\src\fablemap_api\core\tavern.py:891:data = self._load_taverns(include_seed_fallback=True)
+backend\src\fablemap_api\core\tavern.py:907:data = self._load_taverns(include_seed_fallback=True)
+backend\src\fablemap_api\core\tavern.py:919:data = self._load_taverns(include_seed_fallback=True)
+backend\src\fablemap_api\core\tavern.py:940:if self._is_seed_fallback_tavern(tavern.id):
+backend\src\fablemap_api\core\tavern.py:989:# Built-in/public demo taverns can use a non-secret local backend that is
+backend\src\fablemap_api\core\tavern.py:991:tavern_data = self._load_taverns(include_seed_fallback=True).get(tavern_id, {})
+backend\src\fablemap_api\core\tavern.py:992:fallback = tavern_data.get("llm_config", {}) if isinstance(tavern_data, dict) else {}
+backend\src\fablemap_api\core\tavern.py:993:if not isinstance(fallback, dict) or not fallback:
+backend\src\fablemap_api\core\tavern.py:995:config = LLMConfig.from_dict(fallback)
+backend\src\fablemap_api\core\tavern.py:1048:if tavern_id not in data and self._is_seed_fallback_tavern(tavern_id):
+backend\src\fablemap_api\core\time_context.py:121:# Fallback: 使用固定的 UTC 偏移量映射（常见时区）
+backend\src\fablemap_api\core\time_context.py:138:# 最后的 fallback：使用本地时间
+backend\src\fablemap_api\core\time_context.py:246:timezone_str: 手动设置的时区（可选）
+backend\src\fablemap_api\core\token_counter.py:119:# Fallback: no encoder
+backend\src\fablemap_api\core\token_counter.py:157:# Fallback: return character codes
+backend\src\fablemap_api\core\tts_clients.py:451:# Fallback: use edge-tts.shutoyam.repl.co proxy
+backend\src\fablemap_api\core\vectors.py:249:# ─── Memory Store Adapter Stub ────────────────────────────────────────────────
+backend\src\fablemap_api\core\vectors.py:264:fallback: Optional[MemoryStore] = None,
+backend\src\fablemap_api\core\vectors.py:268:self.fallback = fallback or KeywordMemoryStore()
+backend\src\fablemap_api\core\vectors.py:278:return self.fallback.list_atoms(tavern_id, **filters)
+backend\src\fablemap_api\core\vectors.py:281:return self.fallback.get_atom(tavern_id, memory_id)
+backend\src\fablemap_api\core\vectors.py:284:saved = self.fallback.save_atom(tavern_id, atom)
+backend\src\fablemap_api\core\vectors.py:290:deleted = self.fallback.delete_atom(tavern_id, memory_id)
+backend\src\fablemap_api\core\vectors.py:305:return self.fallback.search_atoms(tavern_id, query, limit=limit, **filters)
+backend\src\fablemap_api\core\vectors.py:315:return self.fallback.search_atoms(tavern_id, query, limit=limit, **filters)
+backend\src\fablemap_api\core\vectors.py:323:atom = self.fallback.get_atom(tavern_id, memory_id)
+backend\src\fablemap_api\core\vectors.py:335:return self.fallback.search_atoms(tavern_id, query, limit=limit, **filters)
+backend\src\fablemap_api\core\visual_souvenir.py:51:"preview_only": True,
+backend\src\fablemap_api\core\voice_greeting.py:43:"preview_only": True,
+backend\src\fablemap_api\core\world_builder.py:279:fallback = {"lat": lat, "lon": lon}
+backend\src\fablemap_api\core\world_builder.py:285:pois = _build_pois(elements, fallback, prefer_zh=prefer_zh)
+backend\src\fablemap_api\core\world_builder.py:286:roads = _build_roads(elements, fallback)
+backend\src\fablemap_api\core\world_builder.py:287:landmarks = _build_landmarks(elements, fallback, prefer_zh=prefer_zh)
+backend\src\fablemap_api\core\world_builder.py:440:fallback: dict[str, float],
+backend\src\fablemap_api\core\world_builder.py:461:"position": _extract_position(element, fallback),
+backend\src\fablemap_api\core\world_builder.py:538:def _build_roads(elements: list[dict[str, Any]], fallback: dict[str, float]) -> list[dict[str, Any]]:
+backend\src\fablemap_api\core\world_builder.py:550:"points": _extract_points(element, fallback),
+backend\src\fablemap_api\core\world_builder.py:562:fallback: dict[str, float],
+backend\src\fablemap_api\core\world_builder.py:582:"position": _extract_position(element, fallback),
+backend\src\fablemap_api\core\world_builder.py:1300:def _extract_position(element: dict[str, Any], fallback: dict[str, float]) -> dict[str, float]:
+backend\src\fablemap_api\core\world_builder.py:1308:return {"lat": fallback["lat"], "lon": fallback["lon"]}
+backend\src\fablemap_api\core\world_builder.py:1311:def _extract_points(element: dict[str, Any], fallback: dict[str, float]) -> list[dict[str, float]]:
+backend\src\fablemap_api\core\world_builder.py:1315:position = _extract_position(element, fallback)
+backend\src\fablemap_api\core\world_builder.py:1387:def _localized_satire(fantasy_type: str, fallback: str, *, prefer_zh: bool = False) -> str:
+backend\src\fablemap_api\core\world_builder.py:1389:return _SATIRE_HOOKS_ZH.get(fantasy_type, fallback)
+backend\src\fablemap_api\core\world_builder.py:1390:return fallback
+backend\src\fablemap_api\core\world_builder.py:1394:def _localized_emotion(fantasy_type: str, fallback: str, *, prefer_zh: bool = False) -> str:
+backend\src\fablemap_api\core\world_builder.py:1396:return _EMOTION_HOOKS_ZH.get(fantasy_type, fallback)
+backend\src\fablemap_api\core\world_builder.py:1397:return fallback
+backend\src\fablemap_api\core\application\web_payloads.py:113:"is_fallback": capsule.is_fallback,
+backend\src\fablemap_api\core\application\web_payloads.py:155:"is_fallback": result.scene_capsule.is_fallback,
+backend\src\fablemap_api\core\application\web_payloads.py:170:"fallback_triggered": result.fallback_triggered,
+backend\src\fablemap_api\core\demo_assets\overpass_demo.json:3:"generator": "demo-fixture",
+backend\src\fablemap_api\core\memory\core.py:939:return self._truncate_fallback(messages, max_tokens * 4)
+backend\src\fablemap_api\core\memory\core.py:968:def _truncate_fallback(
+backend\src\fablemap_api\core\memory\core.py:971:"""Fallback: truncate by character count."""
+backend\src\fablemap_api\core\orchestrator\ai_engine.py:12:self.rule_fallback = RuleBasedOrchestrator()
+backend\src\fablemap_api\core\orchestrator\ai_engine.py:15:"""Execute AI-powered orchestration with rule-based fallback"""
+backend\src\fablemap_api\core\orchestrator\ai_engine.py:19:return self.rule_fallback.orchestrate(world_state, player_state)
+backend\src\fablemap_api\core\orchestrator\ai_engine.py:34:output.fallback_triggered = False
+backend\src\fablemap_api\core\orchestrator\ai_engine.py:38:# Fallback to rule-based
+backend\src\fablemap_api\core\orchestrator\ai_engine.py:39:print(f"AI orchestration failed: {e}, using rule-based fallback")
+backend\src\fablemap_api\core\orchestrator\ai_engine.py:40:output = self.rule_fallback.orchestrate(world_state, player_state)
+backend\src\fablemap_api\core\orchestrator\ai_engine.py:41:output.fallback_triggered = True
+backend\src\fablemap_api\core\orchestrator\ai_engine.py:77:fallback_triggered=bool(payload.get("fallback_triggered", False)),
+backend\src\fablemap_api\core\orchestrator\rule_engine.py:5:from ..dynamic_signals import get_time_signals, get_mock_signals
+backend\src\fablemap_api\core\orchestrator\rule_engine.py:21:signals = get_mock_signals(world_state.get("slice_id", "default"))
+backend\src\fablemap_api\core\orchestrator\rule_engine.py:82:fallback_triggered = bool(scene_capsule and scene_capsule.is_fallback)
+backend\src\fablemap_api\core\orchestrator\rule_engine.py:94:fallback_triggered=fallback_triggered,
+backend\src\fablemap_api\core\orchestrator\rule_engine.py:103:# Mock implementation
+backend\src\fablemap_api\core\orchestrator\schemas.py:32:fallback_triggered: bool
+backend\src\fablemap_api\core\web\router.py:572:# Fall through to keyword-based fallback
+backend\src\fablemap_api\core\web\router.py:575:# Keyword-based fallback (no LLM needed)
+backend\src\fablemap_api\core\web\router.py:1267:# ─── Expression Inference (keyword-based fallback) ─────────────────────────
+backend\src\fablemap_api\core\web\router.py:1270:"""Infer expression from text using keyword matching (fallback when no LLM)"""
+backend\src\fablemap_api\core\web\service.py:293:fallback_result,
+backend\src\fablemap_api\core\web\service.py:447:def _build_payload(effective_mode: str, source_path: Path | None, fallback_meta: dict[str, Any] | None = None) -> dict[str, Any]:
+backend\src\fablemap_api\core\web\service.py:464:if fallback_meta:
+backend\src\fablemap_api\core\web\service.py:465:payload.update(fallback_meta)
+backend\src\fablemap_api\core\web\service.py:477:detail=f"{exc} Fixture fallback is unavailable because the fixture file is missing.",
+backend\src\fablemap_api\core\web\service.py:481:fallback_meta = {
+backend\src\fablemap_api\core\web\service.py:483:"fallback_mode": "fixture",
+backend\src\fablemap_api\core\web\service.py:484:"fallback_reason": str(exc),
+backend\src\fablemap_api\core\web\service.py:485:"fallback_notice": "实时 OSM 暂时不可用，已使用离线演示样例生成。",
+backend\src\fablemap_api\core\web\service.py:488:return _build_payload("fixture", self.settings.fixture_file, fallback_meta)
+backend\src\fablemap_api\core\web\service.py:489:except ValueError as fallback_exc:
+backend\src\fablemap_api\core\web\service.py:490:raise HTTPException(status_code=400, detail=str(fallback_exc)) from fallback_exc
+backend\src\fablemap_api\core\web\service.py:493:except Exception as fallback_exc:
+backend\src\fablemap_api\core\web\service.py:496:detail=f"{exc} Fixture fallback also failed: {fallback_exc}",
+backend\src\fablemap_api\core\web\service.py:497:) from fallback_exc
+backend\src\fablemap_api\core\web\service.py:1048:result = fallback_result(gameplay, session)
+backend\src\fablemap_api\core\web\service.py:2207:response_text = self._fallback_response(message, character.name)
+backend\src\fablemap_api\core\web\service.py:2218:response_text = self._fallback_response(message, character.name)
+backend\src\fablemap_api\core\web\service.py:2429:# Fallback: use TokenCounter
+backend\src\fablemap_api\core\web\service.py:2447:def _fallback_response(self, message: str, char_name: str) -> str:
+backend\src\fablemap_api\core\web\service.py:2448:"""Rule-based fallback when LLM is unavailable."""
+backend\src\fablemap_api\core\web\service.py:3076:response_text = self._fallback_response(message, char.name)
+backend\src\fablemap_api\core\web\service.py:3088:response_text = self._fallback_response(message, char.name)
+backend\src\fablemap_api\domain\owner_llm_policy.py:6:def _text(value: Any, fallback: str = "") -> str:
+backend\src\fablemap_api\domain\owner_llm_policy.py:7:return str(value or fallback).strip()
+backend\src\fablemap_api\domain\owner_llm_policy.py:10:def _float(value: Any, fallback: float, *, minimum: float, maximum: float) -> float:
+backend\src\fablemap_api\domain\owner_llm_policy.py:14:number = fallback
+backend\src\fablemap_api\domain\owner_llm_policy.py:18:def _int(value: Any, fallback: int, *, minimum: int, maximum: int) -> int:
+backend\src\fablemap_api\domain\owner_llm_policy.py:22:number = fallback
+backend\src\fablemap_api\domain\world_info_policy.py:30:def world_info_entry_id(entry: dict[str, Any], fallback: str = "") -> str:
+backend\src\fablemap_api\domain\world_info_policy.py:31:return str(entry.get("id") or entry.get("uid") or fallback).strip()
+backend\src\fablemap_api\infrastructure\home_store.py:382:# TODO: 对于可对话角色，可以使用 LLM 生成回复
+backend\src\fablemap_api\infrastructure\home_store.py:383:# 目前返回占位符
+backend\tests\test_mysql_infrastructure.py:91:raise Exception("模拟错误")
+backend\tests\test_public_bond.py:4:使用 SQLite 内存数据库模拟 MySQL 后端。
+backend\tests\test_public_bond.py:15:from unittest.mock import MagicMock
+backend\tests\test_public_bond.py:41:def mock_db():
+backend\tests\test_public_bond.py:53:def store(mock_db):
+backend\tests\test_public_bond.py:54:create_mysql_tables(mock_db)
+backend\tests\test_public_bond.py:55:return MySQLPublicBondStore(mock_db)
+backend\tests\test_v1_character_assets.py:287:prefix=b"self-extracting-stub",
+backend\tests\test_v1_compatibility_inventory_parity.py:177:("POST", "/api/extensions/demo/enable"),
+backend\tests\test_v1_compatibility_inventory_parity.py:178:("POST", "/api/extensions/demo/disable"),
+backend\tests\test_v1_compatibility_inventory_parity.py:179:("GET", "/api/extensions/demo/settings"),
+backend\tests\test_v1_compatibility_inventory_parity.py:180:("POST", "/api/extensions/demo/settings"),
+backend\tests\test_v1_gm_layer.py:62:assert payload["preview_only"] is True
+backend\tests\test_v1_place_home_mvp.py:188:def test_place_relationships_are_not_hardcoded_to_school_enrollment(tmp_path: Path) -> None:
+backend\tests\test_v1_preset_import_preview.py:103:assert payload["preview_only"] is True
+backend\tests\test_v1_tavern_package.py:29:"fallback_events": [{"id": "fallback", "text": "继续。", "next_node_id": "complete"}],
+backend\tests\test_v1_visual_souvenir.py:61:assert payload["preview_only"] is True
+backend\tests\test_v1_voice_greeting.py:59:assert payload["preview_only"] is True
+frontend\package-lock.json:1586:"integrity": "sha512-IYs61kHfMWsJk/ju4Ts4hw7wblZecfXuIvqQPKEaz+gwpkJMSWDzhPpgmC16EnmBQkXPqMVpsjvNxA/d9p9ehg==",
+frontend\.react-router\types\app\+types\root.ts:51:// HydrateFallback
+frontend\.react-router\types\app\+types\root.ts:52:export type HydrateFallbackProps = Annotations["HydrateFallbackProps"];
+frontend\.react-router\types\app\+types\root.ts:54:// ServerHydrateFallback
+frontend\.react-router\types\app\+types\root.ts:55:export type ServerHydrateFallbackProps = Annotations["ServerHydrateFallbackProps"];
+frontend\.react-router\types\app\routes\+types\create.ts:54:// HydrateFallback
+frontend\.react-router\types\app\routes\+types\create.ts:55:export type HydrateFallbackProps = Annotations["HydrateFallbackProps"];
+frontend\.react-router\types\app\routes\+types\create.ts:57:// ServerHydrateFallback
+frontend\.react-router\types\app\routes\+types\create.ts:58:export type ServerHydrateFallbackProps = Annotations["ServerHydrateFallbackProps"];
+frontend\.react-router\types\app\routes\+types\discover.ts:54:// HydrateFallback
+frontend\.react-router\types\app\routes\+types\discover.ts:55:export type HydrateFallbackProps = Annotations["HydrateFallbackProps"];
+frontend\.react-router\types\app\routes\+types\discover.ts:57:// ServerHydrateFallback
+frontend\.react-router\types\app\routes\+types\discover.ts:58:export type ServerHydrateFallbackProps = Annotations["ServerHydrateFallbackProps"];
+frontend\.react-router\types\app\routes\+types\home-me.ts:54:// HydrateFallback
+frontend\.react-router\types\app\routes\+types\home-me.ts:55:export type HydrateFallbackProps = Annotations["HydrateFallbackProps"];
+frontend\.react-router\types\app\routes\+types\home-me.ts:57:// ServerHydrateFallback
+frontend\.react-router\types\app\routes\+types\home-me.ts:58:export type ServerHydrateFallbackProps = Annotations["ServerHydrateFallbackProps"];
+frontend\.react-router\types\app\routes\+types\home.ts:54:// HydrateFallback
+frontend\.react-router\types\app\routes\+types\home.ts:55:export type HydrateFallbackProps = Annotations["HydrateFallbackProps"];
+frontend\.react-router\types\app\routes\+types\home.ts:57:// ServerHydrateFallback
+frontend\.react-router\types\app\routes\+types\home.ts:58:export type ServerHydrateFallbackProps = Annotations["ServerHydrateFallbackProps"];
+frontend\.react-router\types\app\routes\+types\notifications.ts:54:// HydrateFallback
+frontend\.react-router\types\app\routes\+types\notifications.ts:55:export type HydrateFallbackProps = Annotations["HydrateFallbackProps"];
+frontend\.react-router\types\app\routes\+types\notifications.ts:57:// ServerHydrateFallback
+frontend\.react-router\types\app\routes\+types\notifications.ts:58:export type ServerHydrateFallbackProps = Annotations["ServerHydrateFallbackProps"];
+frontend\.react-router\types\app\routes\+types\owner.ts:54:// HydrateFallback
+frontend\.react-router\types\app\routes\+types\owner.ts:55:export type HydrateFallbackProps = Annotations["HydrateFallbackProps"];
+frontend\.react-router\types\app\routes\+types\owner.ts:57:// ServerHydrateFallback
+frontend\.react-router\types\app\routes\+types\owner.ts:58:export type ServerHydrateFallbackProps = Annotations["ServerHydrateFallbackProps"];
+frontend\.react-router\types\app\routes\+types\quests.ts:54:// HydrateFallback
+frontend\.react-router\types\app\routes\+types\quests.ts:55:export type HydrateFallbackProps = Annotations["HydrateFallbackProps"];
+frontend\.react-router\types\app\routes\+types\quests.ts:57:// ServerHydrateFallback
+frontend\.react-router\types\app\routes\+types\quests.ts:58:export type ServerHydrateFallbackProps = Annotations["ServerHydrateFallbackProps"];
+frontend\.react-router\types\app\routes\+types\tavern.ts:54:// HydrateFallback
+frontend\.react-router\types\app\routes\+types\tavern.ts:55:export type HydrateFallbackProps = Annotations["HydrateFallbackProps"];
+frontend\.react-router\types\app\routes\+types\tavern.ts:57:// ServerHydrateFallback
+frontend\.react-router\types\app\routes\+types\tavern.ts:58:export type ServerHydrateFallbackProps = Annotations["ServerHydrateFallbackProps"];
+frontend\app\root.tsx:40:export function HydrateFallback() {
+frontend\app\assets\README.md:13:└── npc-style-cast/       # imported fallback NPC portraits and reference sheet
+frontend\app\assets\npc-style-cast\README.md:3:`frontend/app/assets/npc-style-cast/` now contains the project-bound NPC fallback portrait assets for `features/tavern-npc-stage/`.
+frontend\app\assets\npc-style-cast\README.md:17:- `features/tavern-npc-stage/portraitCatalog.ts` resolves fallback portraits by character ID for specific default NPCs, then by archetype + deterministic variant.
+frontend\app\assets\npc-style-cast\README.md:19:- `tavern-npc-style-cast.png` is retained as an earlier style reference sheet, not the canonical runtime fallback.
+frontend\app\assets\npc-style-cast\README.md:21:- Do not replace this with abstract placeholders, circles, square dummy avatars, generic empty portraits, or non-tavern character art.
+frontend\app\assets\npc-style-cast\tavern-npc-style-cast.prompt.md:14:Reverse-engineered FableMap fallback NPC portrait asset for tavern npc style cast. Create an original tavern-themed NPC portrait, bust or waist-up, with visible bar/counter/shelf/mug/lantern/map-table cues, readable role silhouette, anime/g…
+frontend\app\assets\npc-style-cast\tavern-npc-style-cast.prompt.md:24:image-style-prompt-extractor 15D framework summarized from current fallback asset path and visual purpose.
+frontend\app\assets\npc-style-cast\tavern-npc-style-cast.prompt.md:28:- fallback portrait slug: tavern-npc-style-cast
+frontend\app\assets\npc-style-cast\tavern-npc-style-cast.prompt.md:34:Reverse-engineered sidecar for fallback art; not an original generation prompt.
+frontend\app\assets\npc-style-cast\portraits\alien-9-delta.prompt.md:14:Reverse-engineered FableMap fallback NPC portrait asset for alien 9 delta. Create an original tavern-themed NPC portrait, bust or waist-up, with visible bar/counter/shelf/mug/lantern/map-table cues, readable role silhouette, anime/game-styl…
+frontend\app\assets\npc-style-cast\portraits\alien-9-delta.prompt.md:24:image-style-prompt-extractor 15D framework summarized from current fallback asset path and visual purpose.
+frontend\app\assets\npc-style-cast\portraits\alien-9-delta.prompt.md:28:- fallback portrait slug: alien-9-delta
+frontend\app\assets\npc-style-cast\portraits\alien-9-delta.prompt.md:34:Reverse-engineered sidecar for fallback art; not an original generation prompt.
+frontend\app\assets\npc-style-cast\portraits\alien-mu-mu.prompt.md:14:Reverse-engineered FableMap fallback NPC portrait asset for alien mu mu. Create an original tavern-themed NPC portrait, bust or waist-up, with visible bar/counter/shelf/mug/lantern/map-table cues, readable role silhouette, anime/game-style …
+frontend\app\assets\npc-style-cast\portraits\alien-mu-mu.prompt.md:24:image-style-prompt-extractor 15D framework summarized from current fallback asset path and visual purpose.
+frontend\app\assets\npc-style-cast\portraits\alien-mu-mu.prompt.md:28:- fallback portrait slug: alien-mu-mu
+frontend\app\assets\npc-style-cast\portraits\alien-mu-mu.prompt.md:34:Reverse-engineered sidecar for fallback art; not an original generation prompt.
+frontend\app\assets\npc-style-cast\portraits\alien-pi-pi.prompt.md:14:Reverse-engineered FableMap fallback NPC portrait asset for alien pi pi. Create an original tavern-themed NPC portrait, bust or waist-up, with visible bar/counter/shelf/mug/lantern/map-table cues, readable role silhouette, anime/game-style …
+frontend\app\assets\npc-style-cast\portraits\alien-pi-pi.prompt.md:24:image-style-prompt-extractor 15D framework summarized from current fallback asset path and visual purpose.
+frontend\app\assets\npc-style-cast\portraits\alien-pi-pi.prompt.md:28:- fallback portrait slug: alien-pi-pi
+frontend\app\assets\npc-style-cast\portraits\alien-pi-pi.prompt.md:34:Reverse-engineered sidecar for fallback art; not an original generation prompt.
+frontend\app\assets\npc-style-cast\portraits\alien-v17.prompt.md:14:Reverse-engineered FableMap fallback NPC portrait asset for alien v17. Create an original tavern-themed NPC portrait, bust or waist-up, with visible bar/counter/shelf/mug/lantern/map-table cues, readable role silhouette, anime/game-style re…
+frontend\app\assets\npc-style-cast\portraits\alien-v17.prompt.md:24:image-style-prompt-extractor 15D framework summarized from current fallback asset path and visual purpose.
+frontend\app\assets\npc-style-cast\portraits\alien-v17.prompt.md:28:- fallback portrait slug: alien-v17
+frontend\app\assets\npc-style-cast\portraits\alien-v17.prompt.md:34:Reverse-engineered sidecar for fallback art; not an original generation prompt.
+frontend\app\assets\npc-style-cast\portraits\cat-accountant-yinpiao.prompt.md:14:Reverse-engineered FableMap fallback NPC portrait asset for cat accountant yinpiao. Create an original tavern-themed NPC portrait, bust or waist-up, with visible bar/counter/shelf/mug/lantern/map-table cues, readable role silhouette, anime/…
+frontend\app\assets\npc-style-cast\portraits\cat-accountant-yinpiao.prompt.md:24:image-style-prompt-extractor 15D framework summarized from current fallback asset path and visual purpose.
+frontend\app\assets\npc-style-cast\portraits\cat-accountant-yinpiao.prompt.md:28:- fallback portrait slug: cat-accountant-yinpiao
+frontend\app\assets\npc-style-cast\portraits\cat-accountant-yinpiao.prompt.md:34:Reverse-engineered sidecar for fallback art; not an original generation prompt.
+frontend\app\assets\npc-style-cast\portraits\commission-chimao.prompt.md:14:Reverse-engineered FableMap fallback NPC portrait asset for commission chimao. Create an original tavern-themed NPC portrait, bust or waist-up, with visible bar/counter/shelf/mug/lantern/map-table cues, readable role silhouette, anime/game-…
+frontend\app\assets\npc-style-cast\portraits\commission-chimao.prompt.md:24:image-style-prompt-extractor 15D framework summarized from current fallback asset path and visual purpose.
+frontend\app\assets\npc-style-cast\portraits\commission-chimao.prompt.md:28:- fallback portrait slug: commission-chimao
+frontend\app\assets\npc-style-cast\portraits\commission-chimao.prompt.md:34:Reverse-engineered sidecar for fallback art; not an original generation prompt.
+frontend\app\assets\npc-style-cast\portraits\commission-mozhan.prompt.md:14:Reverse-engineered FableMap fallback NPC portrait asset for commission mozhan. Create an original tavern-themed NPC portrait, bust or waist-up, with visible bar/counter/shelf/mug/lantern/map-table cues, readable role silhouette, anime/game-…
+frontend\app\assets\npc-style-cast\portraits\commission-mozhan.prompt.md:24:image-style-prompt-extractor 15D framework summarized from current fallback asset path and visual purpose.
+frontend\app\assets\npc-style-cast\portraits\commission-mozhan.prompt.md:28:- fallback portrait slug: commission-mozhan
+frontend\app\assets\npc-style-cast\portraits\commission-mozhan.prompt.md:34:Reverse-engineered sidecar for fallback art; not an original generation prompt.
+frontend\app\assets\npc-style-cast\portraits\commission-zhideng.prompt.md:14:Reverse-engineered FableMap fallback NPC portrait asset for commission zhideng. Create an original tavern-themed NPC portrait, bust or waist-up, with visible bar/counter/shelf/mug/lantern/map-table cues, readable role silhouette, anime/game…
+frontend\app\assets\npc-style-cast\portraits\commission-zhideng.prompt.md:24:image-style-prompt-extractor 15D framework summarized from current fallback asset path and visual purpose.
+frontend\app\assets\npc-style-cast\portraits\commission-zhideng.prompt.md:28:- fallback portrait slug: commission-zhideng
+frontend\app\assets\npc-style-cast\portraits\commission-zhideng.prompt.md:34:Reverse-engineered sidecar for fallback art; not an original generation prompt.
+frontend\app\assets\npc-style-cast\portraits\guardian-a.prompt.md:14:Reverse-engineered FableMap fallback NPC portrait asset for guardian a. Create an original tavern-themed NPC portrait, bust or waist-up, with visible bar/counter/shelf/mug/lantern/map-table cues, readable role silhouette, anime/game-style r…
+frontend\app\assets\npc-style-cast\portraits\guardian-a.prompt.md:24:image-style-prompt-extractor 15D framework summarized from current fallback asset path and visual purpose.
+frontend\app\assets\npc-style-cast\portraits\guardian-a.prompt.md:28:- fallback portrait slug: guardian-a
+frontend\app\assets\npc-style-cast\portraits\guardian-a.prompt.md:34:Reverse-engineered sidecar for fallback art; not an original generation prompt.
+frontend\app\assets\npc-style-cast\portraits\guardian-b.prompt.md:14:Reverse-engineered FableMap fallback NPC portrait asset for guardian b. Create an original tavern-themed NPC portrait, bust or waist-up, with visible bar/counter/shelf/mug/lantern/map-table cues, readable role silhouette, anime/game-style r…
+frontend\app\assets\npc-style-cast\portraits\guardian-b.prompt.md:24:image-style-prompt-extractor 15D framework summarized from current fallback asset path and visual purpose.
+frontend\app\assets\npc-style-cast\portraits\guardian-b.prompt.md:28:- fallback portrait slug: guardian-b
+frontend\app\assets\npc-style-cast\portraits\guardian-b.prompt.md:34:Reverse-engineered sidecar for fallback art; not an original generation prompt.
+frontend\app\assets\npc-style-cast\portraits\healer-a.prompt.md:14:Reverse-engineered FableMap fallback NPC portrait asset for healer a. Create an original tavern-themed NPC portrait, bust or waist-up, with visible bar/counter/shelf/mug/lantern/map-table cues, readable role silhouette, anime/game-style ren…
+frontend\app\assets\npc-style-cast\portraits\healer-a.prompt.md:24:image-style-prompt-extractor 15D framework summarized from current fallback asset path and visual purpose.
+frontend\app\assets\npc-style-cast\portraits\healer-a.prompt.md:28:- fallback portrait slug: healer-a
+frontend\app\assets\npc-style-cast\portraits\healer-a.prompt.md:34:Reverse-engineered sidecar for fallback art; not an original generation prompt.
+frontend\app\assets\npc-style-cast\portraits\healer-b.prompt.md:14:Reverse-engineered FableMap fallback NPC portrait asset for healer b. Create an original tavern-themed NPC portrait, bust or waist-up, with visible bar/counter/shelf/mug/lantern/map-table cues, readable role silhouette, anime/game-style ren…
+frontend\app\assets\npc-style-cast\portraits\healer-b.prompt.md:24:image-style-prompt-extractor 15D framework summarized from current fallback asset path and visual purpose.
+frontend\app\assets\npc-style-cast\portraits\healer-b.prompt.md:28:- fallback portrait slug: healer-b
+frontend\app\assets\npc-style-cast\portraits\healer-b.prompt.md:34:Reverse-engineered sidecar for fallback art; not an original generation prompt.
+frontend\app\assets\npc-style-cast\portraits\merchant-a.prompt.md:14:Reverse-engineered FableMap fallback NPC portrait asset for merchant a. Create an original tavern-themed NPC portrait, bust or waist-up, with visible bar/counter/shelf/mug/lantern/map-table cues, readable role silhouette, anime/game-style r…
+frontend\app\assets\npc-style-cast\portraits\merchant-a.prompt.md:24:image-style-prompt-extractor 15D framework summarized from current fallback asset path and visual purpose.
+frontend\app\assets\npc-style-cast\portraits\merchant-a.prompt.md:28:- fallback portrait slug: merchant-a
+frontend\app\assets\npc-style-cast\portraits\merchant-a.prompt.md:34:Reverse-engineered sidecar for fallback art; not an original generation prompt.
+frontend\app\assets\npc-style-cast\portraits\merchant-b.prompt.md:14:Reverse-engineered FableMap fallback NPC portrait asset for merchant b. Create an original tavern-themed NPC portrait, bust or waist-up, with visible bar/counter/shelf/mug/lantern/map-table cues, readable role silhouette, anime/game-style r…
+frontend\app\assets\npc-style-cast\portraits\merchant-b.prompt.md:24:image-style-prompt-extractor 15D framework summarized from current fallback asset path and visual purpose.
+frontend\app\assets\npc-style-cast\portraits\merchant-b.prompt.md:28:- fallback portrait slug: merchant-b
+frontend\app\assets\npc-style-cast\portraits\merchant-b.prompt.md:34:Reverse-engineered sidecar for fallback art; not an original generation prompt.
+frontend\app\assets\npc-style-cast\portraits\mist-bartender-lanbo.prompt.md:14:Reverse-engineered FableMap fallback NPC portrait asset for mist bartender lanbo. Create an original tavern-themed NPC portrait, bust or waist-up, with visible bar/counter/shelf/mug/lantern/map-table cues, readable role silhouette, anime/ga…
+frontend\app\assets\npc-style-cast\portraits\mist-bartender-lanbo.prompt.md:24:image-style-prompt-extractor 15D framework summarized from current fallback asset path and visual purpose.
+frontend\app\assets\npc-style-cast\portraits\mist-bartender-lanbo.prompt.md:28:- fallback portrait slug: mist-bartender-lanbo
+frontend\app\assets\npc-style-cast\portraits\mist-bartender-lanbo.prompt.md:34:Reverse-engineered sidecar for fallback art; not an original generation prompt.
+frontend\app\assets\npc-style-cast\portraits\neon-oracle-iris-zero.prompt.md:14:Reverse-engineered FableMap fallback NPC portrait asset for neon oracle iris zero. Create an original tavern-themed NPC portrait, bust or waist-up, with visible bar/counter/shelf/mug/lantern/map-table cues, readable role silhouette, anime/g…
+frontend\app\assets\npc-style-cast\portraits\neon-oracle-iris-zero.prompt.md:24:image-style-prompt-extractor 15D framework summarized from current fallback asset path and visual purpose.
+frontend\app\assets\npc-style-cast\portraits\neon-oracle-iris-zero.prompt.md:28:- fallback portrait slug: neon-oracle-iris-zero
+frontend\app\assets\npc-style-cast\portraits\neon-oracle-iris-zero.prompt.md:34:Reverse-engineered sidecar for fallback art; not an original generation prompt.
+frontend\app\assets\npc-style-cast\portraits\scholar-a.prompt.md:14:Reverse-engineered FableMap fallback NPC portrait asset for scholar a. Create an original tavern-themed NPC portrait, bust or waist-up, with visible bar/counter/shelf/mug/lantern/map-table cues, readable role silhouette, anime/game-style re…
+frontend\app\assets\npc-style-cast\portraits\scholar-a.prompt.md:24:image-style-prompt-extractor 15D framework summarized from current fallback asset path and visual purpose.
+frontend\app\assets\npc-style-cast\portraits\scholar-a.prompt.md:28:- fallback portrait slug: scholar-a
+frontend\app\assets\npc-style-cast\portraits\scholar-a.prompt.md:34:Reverse-engineered sidecar for fallback art; not an original generation prompt.
+frontend\app\assets\npc-style-cast\portraits\scholar-b.prompt.md:14:Reverse-engineered FableMap fallback NPC portrait asset for scholar b. Create an original tavern-themed NPC portrait, bust or waist-up, with visible bar/counter/shelf/mug/lantern/map-table cues, readable role silhouette, anime/game-style re…
+frontend\app\assets\npc-style-cast\portraits\scholar-b.prompt.md:24:image-style-prompt-extractor 15D framework summarized from current fallback asset path and visual purpose.
+frontend\app\assets\npc-style-cast\portraits\scholar-b.prompt.md:28:- fallback portrait slug: scholar-b
+frontend\app\assets\npc-style-cast\portraits\scholar-b.prompt.md:34:Reverse-engineered sidecar for fallback art; not an original generation prompt.
+frontend\app\assets\npc-style-cast\portraits\spirit-a.prompt.md:14:Reverse-engineered FableMap fallback NPC portrait asset for spirit a. Create an original tavern-themed NPC portrait, bust or waist-up, with visible bar/counter/shelf/mug/lantern/map-table cues, readable role silhouette, anime/game-style ren…
+frontend\app\assets\npc-style-cast\portraits\spirit-a.prompt.md:24:image-style-prompt-extractor 15D framework summarized from current fallback asset path and visual purpose.
+frontend\app\assets\npc-style-cast\portraits\spirit-a.prompt.md:28:- fallback portrait slug: spirit-a
+frontend\app\assets\npc-style-cast\portraits\spirit-a.prompt.md:34:Reverse-engineered sidecar for fallback art; not an original generation prompt.
+frontend\app\assets\npc-style-cast\portraits\spirit-b.prompt.md:14:Reverse-engineered FableMap fallback NPC portrait asset for spirit b. Create an original tavern-themed NPC portrait, bust or waist-up, with visible bar/counter/shelf/mug/lantern/map-table cues, readable role silhouette, anime/game-style ren…
+frontend\app\assets\npc-style-cast\portraits\spirit-b.prompt.md:24:image-style-prompt-extractor 15D framework summarized from current fallback asset path and visual purpose.
+frontend\app\assets\npc-style-cast\portraits\spirit-b.prompt.md:28:- fallback portrait slug: spirit-b
+frontend\app\assets\npc-style-cast\portraits\spirit-b.prompt.md:34:Reverse-engineered sidecar for fallback art; not an original generation prompt.
+frontend\app\assets\npc-style-cast\portraits\starport-boxing.prompt.md:14:Reverse-engineered FableMap fallback NPC portrait asset for starport boxing. Create an original tavern-themed NPC portrait, bust or waist-up, with visible bar/counter/shelf/mug/lantern/map-table cues, readable role silhouette, anime/game-st…
+frontend\app\assets\npc-style-cast\portraits\starport-boxing.prompt.md:24:image-style-prompt-extractor 15D framework summarized from current fallback asset path and visual purpose.
+frontend\app\assets\npc-style-cast\portraits\starport-boxing.prompt.md:28:- fallback portrait slug: starport-boxing
+frontend\app\assets\npc-style-cast\portraits\starport-boxing.prompt.md:34:Reverse-engineered sidecar for fallback art; not an original generation prompt.
+frontend\app\assets\npc-style-cast\portraits\terminal-repair-luotong.prompt.md:14:Reverse-engineered FableMap fallback NPC portrait asset for terminal repair luotong. Create an original tavern-themed NPC portrait, bust or waist-up, with visible bar/counter/shelf/mug/lantern/map-table cues, readable role silhouette, anime…
+frontend\app\assets\npc-style-cast\portraits\terminal-repair-luotong.prompt.md:24:image-style-prompt-extractor 15D framework summarized from current fallback asset path and visual purpose.
+frontend\app\assets\npc-style-cast\portraits\terminal-repair-luotong.prompt.md:28:- fallback portrait slug: terminal-repair-luotong
+frontend\app\assets\npc-style-cast\portraits\terminal-repair-luotong.prompt.md:34:Reverse-engineered sidecar for fallback art; not an original generation prompt.
+frontend\app\assets\npc-style-cast\portraits\wanderer-a.prompt.md:14:Reverse-engineered FableMap fallback NPC portrait asset for wanderer a. Create an original tavern-themed NPC portrait, bust or waist-up, with visible bar/counter/shelf/mug/lantern/map-table cues, readable role silhouette, anime/game-style r…
+frontend\app\assets\npc-style-cast\portraits\wanderer-a.prompt.md:24:image-style-prompt-extractor 15D framework summarized from current fallback asset path and visual purpose.
+frontend\app\assets\npc-style-cast\portraits\wanderer-a.prompt.md:28:- fallback portrait slug: wanderer-a
+frontend\app\assets\npc-style-cast\portraits\wanderer-a.prompt.md:34:Reverse-engineered sidecar for fallback art; not an original generation prompt.
+frontend\app\assets\npc-style-cast\portraits\wanderer-b.prompt.md:14:Reverse-engineered FableMap fallback NPC portrait asset for wanderer b. Create an original tavern-themed NPC portrait, bust or waist-up, with visible bar/counter/shelf/mug/lantern/map-table cues, readable role silhouette, anime/game-style r…
+frontend\app\assets\npc-style-cast\portraits\wanderer-b.prompt.md:24:image-style-prompt-extractor 15D framework summarized from current fallback asset path and visual purpose.
+frontend\app\assets\npc-style-cast\portraits\wanderer-b.prompt.md:28:- fallback portrait slug: wanderer-b
+frontend\app\assets\npc-style-cast\portraits\wanderer-b.prompt.md:34:Reverse-engineered sidecar for fallback art; not an original generation prompt.
+frontend\app\components\BondApplyModal.tsx:224:placeholder="写一段话，让店主更好地了解你们的羁绊..."
+frontend\app\components\BondApplyModal.tsx:226:"w-full rounded-xl border border-white/15 bg-white/8 px-4 py-3 text-sm text-white placeholder-white/30",
+frontend\app\components\BondBadge.tsx:112:fallback: string,
+frontend\app\components\BondBadge.tsx:128:return map[tone]?.[prefix] ?? fallback
+frontend\app\components\RevisitCarePolicyPanel.tsx:70:title={quietPreview ? "模拟安静时段" : "模拟可触达时段"}
+frontend\app\components\TavernMessageBoard.tsx:259:placeholder="写点什么..."
+frontend\app\components\TavernMessageBoard.tsx:262:className="w-full resize-none rounded-xl border border-white/12 bg-white/[0.06] px-4 py-3 text-sm text-white placeholder:text-violet-100/40 focus:border-cyan-300/60 focus:outline-none"
+frontend\app\components\TavernMessageBoard.tsx:312:placeholder="写下你的回复..."
+frontend\app\components\TavernMessageBoard.tsx:315:className="w-full resize-none rounded-lg border border-white/10 bg-white/[0.06] px-3 py-2 text-sm text-white placeholder:text-violet-100/40 focus:border-cyan-300/60 focus:outline-none"
+frontend\app\components\VisitorNoteSubmit.tsx:103:placeholder="你的昵称（可选）"
+frontend\app\components\VisitorNoteSubmit.tsx:105:className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder:text-white/30 focus:border-cyan-300/50 focus:outline-none focus:ring-1 focus:ring-cyan-300/30"
+frontend\app\components\VisitorNoteSubmit.tsx:111:placeholder="分享你的体验、建议或想法..."
+frontend\app\components\VisitorNoteSubmit.tsx:113:className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder:text-white/30 focus:border-cyan-300/50 focus:outline-none focus:ring-1 focus:ring-cyan-300/30 resize-none"
+frontend\app\features\tavern-chat\index.tsx:7:import { DEFAULT_VISITOR_ID, enterTavern, errorMessage, sendTavernChat, type ChatMessage, type Tavern, type TavernCharacter, type VisitorStatePayload } from "../../lib/taverns"
+frontend\app\features\tavern-chat\index.tsx:84:const [visitorId, setVisitorId] = useState(DEFAULT_VISITOR_ID)
+frontend\app\features\tavern-chat\index.tsx:224:placeholder={character ? "今晚有什么推荐？" : "先添加 NPC"}
+frontend\app\features\tavern-chat-workbench\index.tsx:61:function textOrFallback(value: unknown, fallback = "未填写") {
+frontend\app\features\tavern-chat-workbench\index.tsx:63:return text || fallback
+frontend\app\features\tavern-chat-workbench\index.tsx:93:return textOrFallback(
+frontend\app\features\tavern-chat-workbench\index.tsx:220:return textOrFallback(
+frontend\app\features\tavern-chat-workbench\index.tsx:457:{textOrFallback(tavern.description, "选择左侧 NPC 后，直接在底部输入框开始聊天。酒馆资料和其它功能已折叠到侧边。")}
+frontend\app\features\tavern-chat-workbench\index.tsx:463:{textOrFallback(tavern.status, "unknown")} · {accessLabel(tavern.access)}
+frontend\app\features\tavern-chat-workbench\index.tsx:574:placeholder="酒馆密码"
+frontend\app\features\tavern-chat-workbench\index.tsx:641:placeholder="显示名"
+frontend\app\features\tavern-chat-workbench\index.tsx:668:placeholder="Type a message，按 Enter 发送；Shift+Enter 换行"
+frontend\app\features\tavern-chat-workbench\index.tsx:669:className="min-h-14 flex-1 resize-none rounded-3xl border border-white/12 bg-white/[0.06] px-5 py-3 text-sm leading-6 text-white outline-none placeholder:text-violet-100/35 focus:border-cyan-300/60 disabled:cursor-not-allowed disabled:opaci…
+frontend\app\features\tavern-layout-showcase\index.tsx:160:function iconFor(name: string, map: Record<string, LucideIcon>, fallback: LucideIcon = Sparkles) {
+frontend\app\features\tavern-layout-showcase\index.tsx:161:return map[name] || fallback
+frontend\app\features\tavern-layout-showcase\index.tsx:191:function toText(value: unknown, fallback = "") {
+frontend\app\features\tavern-layout-showcase\index.tsx:192:return typeof value === "string" && value.trim() ? value.trim() : fallback
+frontend\app\features\tavern-layout-showcase\index.tsx:566:暂无世界知识。这里会展示店主手动配置的线索、地点规则或背景设定。
+frontend\app\features\tavern-layout-showcase\index.tsx:684:const fallbackCards = [
+frontend\app\features\tavern-layout-showcase\index.tsx:708:<p className="mt-2 text-sm leading-6 text-violet-100/68">玩法定义来自店主配置；没有发布玩法时展示可进入的结构占位，不写入平台生成内容。</p>
+frontend\app\features\tavern-layout-showcase\index.tsx:742:{(worldCards.length ? worldCards.slice(0, 3) : fallbackCards).map((item) => (
+frontend\app\features\tavern-npc-stage\index.tsx:168:const fallbackPortrait = resolveNpcPortraitMatch(character, tavern, style.preferredArchetypes, index)
+frontend\app\features\tavern-npc-stage\index.tsx:193:src={fallbackPortrait.src}
+frontend\app\lib\api-client.ts:71:// Keep status fallback for non-JSON binary endpoints.
+frontend\app\lib\creator-conversion.js:20:function safeQueryCoordinate(value, fallback) {
+frontend\app\lib\creator-conversion.js:22:return parsed === null ? fallback : parsed.toFixed(6)
+frontend\app\lib\emotional-location.js:86:// Fallback: use place type + expression for emotional anchoring
+frontend\app\lib\emotional-location.js:105:export function buildEmotionalLocationLabel(
+frontend\app\lib\homepage-taverns.ts:2:import { FALLBACK_ATMOSPHERE_IMAGES, GENERIC_ATMOSPHERE_KEYS } from "./tavern-runtime-config.js"
+frontend\app\lib\homepage-taverns.ts:51:function compactText(value: unknown, fallback: string, maxLength = 28) {
+frontend\app\lib\homepage-taverns.ts:53:const display = text || fallback
+frontend\app\lib\homepage-taverns.ts:88:return FALLBACK_ATMOSPHERE_IMAGES[hashSeed(seed) % FALLBACK_ATMOSPHERE_IMAGES.length]
+frontend\app\lib\homepage-taverns.ts:96:const start = hashSeed(`${seed}:${index}`) % FALLBACK_ATMOSPHERE_IMAGES.length
+frontend\app\lib\homepage-taverns.ts:97:for (let offset = 0; offset < FALLBACK_ATMOSPHERE_IMAGES.length; offset += 1) {
+frontend\app\lib\homepage-taverns.ts:98:const candidate = FALLBACK_ATMOSPHERE_IMAGES[(start + offset) % FALLBACK_ATMOSPHERE_IMAGES.length]
+frontend\app\lib\notification-center.js:60:function safeText(value, fallback = '') {
+frontend\app\lib\notification-center.js:62:return text || fallback
+frontend\app\lib\notification-center.js:77:const fallbackId = `notification-${safeText(item.notification_type, 'unknown')}-${safeText(item.created_at, '0')}`
+frontend\app\lib\notification-center.js:79:id: safeText(item.id, fallbackId),
+frontend\app\lib\owner-summary.js:7:function toNumber(value, fallback = 0) {
+frontend\app\lib\owner-summary.js:9:return Number.isFinite(parsed) ? parsed : fallback
+frontend\app\lib\owner-summary.js:183:detail: `${closedCount} 间酒馆当前歇业。优先确认 LLM 配置或手动开放状态，避免访客进门即流失。`,
+frontend\app\lib\place-types.js:60:tone: "24h、夜班、街角灯箱与临时避雨",
+frontend\app\lib\revisit-care-notification-policy.js:37:function asBoolean(value, fallback) {
+frontend\app\lib\revisit-care-notification-policy.js:38:return typeof value === 'boolean' ? value : fallback
+frontend\app\lib\revisit-care-notification-policy.js:41:function asPositiveInteger(value, fallback, min = 0, max = 999) {
+frontend\app\lib\revisit-care-notification-policy.js:43:if (!Number.isFinite(parsed)) return fallback
+frontend\app\lib\revisit-care-notification-policy.js:47:function safeList(value, fallback) {
+frontend\app\lib\revisit-care-notification-policy.js:48:const source = Array.isArray(value) ? value : fallback
+frontend\app\lib\revisit-care-notification-policy.js:50:return items.length ? Array.from(new Set(items)) : fallback
+frontend\app\lib\revisit-care-notification-policy.js:53:function normalizeClock(value, fallback) {
+frontend\app\lib\revisit-care-notification-policy.js:55:return /^\d{2}:\d{2}$/.test(text) ? text : fallback
+frontend\app\lib\revisit-summary.js:3:function toNumber(value, fallback = 0) {
+frontend\app\lib\revisit-summary.js:5:return Number.isFinite(parsed) ? parsed : fallback
+frontend\app\lib\short-drama-teasers.js:16:function cleanText(value, fallback = '') {
+frontend\app\lib\short-drama-teasers.js:17:return typeof value === 'string' && value.trim() ? value.trim() : fallback
+frontend\app\lib\tavern-runtime-config.js:1:export const DEMO_TAVERN_IDENTITIES = Object.freeze({
+frontend\app\lib\tavern-runtime-config.js:2:ownerId: "owner-demo",
+frontend\app\lib\tavern-runtime-config.js:3:visitorId: "visitor-demo",
+frontend\app\lib\tavern-runtime-config.js:80:export const FALLBACK_ATMOSPHERE_IMAGES = Object.freeze([
+frontend\app\lib\tavern-runtime-config.js:99:fallbackImages: FALLBACK_ATMOSPHERE_IMAGES,
+frontend\app\lib\taverns.ts:2:import { DEMO_TAVERN_IDENTITIES } from "./tavern-runtime-config.js"
+frontend\app\lib\taverns.ts:4:export const DEFAULT_OWNER_ID: string = DEMO_TAVERN_IDENTITIES.ownerId
+frontend\app\lib\taverns.ts:5:export const DEFAULT_VISITOR_ID: string = DEMO_TAVERN_IDENTITIES.visitorId
+frontend\app\lib\taverns.ts:345:preview_only: boolean
+frontend\app\lib\taverns.ts:375:preview_only: boolean
+frontend\app\lib\taverns.ts:469:preview_only: boolean
+frontend\app\lib\taverns.ts:573:preview_only: boolean
+frontend\app\lib\taverns.ts:725:export function createTavern(data: Partial<Tavern> & Record<string, unknown>, userId = DEFAULT_OWNER_ID) {
+frontend\app\lib\taverns.ts:740:userId = DEFAULT_VISITOR_ID,
+frontend\app\lib\taverns.ts:749:export function getRoleplayState(tavernId: string, userId = DEFAULT_VISITOR_ID) {
+frontend\app\lib\taverns.ts:756:userId = DEFAULT_OWNER_ID,
+frontend\app\lib\taverns.ts:767:userId = DEFAULT_VISITOR_ID,
+frontend\app\lib\taverns.ts:779:userId = DEFAULT_OWNER_ID,
+frontend\app\lib\taverns.ts:787:export function exportTavernPackage(tavernId: string, userId = DEFAULT_OWNER_ID) {
+frontend\app\lib\taverns.ts:801:userId = DEFAULT_OWNER_ID,
+frontend\app\lib\taverns.ts:809:export function listTavernVisitors(tavernId: string, userId = DEFAULT_OWNER_ID) {
+frontend\app\lib\taverns.ts:816:export function addCharacter(tavernId: string, data: Partial<TavernCharacter>, userId = DEFAULT_OWNER_ID) {
+frontend\app\lib\taverns.ts:823:export function addHomeMember(tavernId: string, data: Partial<HomeMember>, userId = DEFAULT_OWNER_ID) {
+frontend\app\lib\taverns.ts:833:userId = DEFAULT_OWNER_ID,
+frontend\app\lib\taverns.ts:852:userId = DEFAULT_OWNER_ID,
+frontend\app\lib\taverns.ts:864:userId = DEFAULT_OWNER_ID,
+frontend\app\lib\taverns.ts:872:export function listSchoolMembers(tavernId: string, userId = DEFAULT_VISITOR_ID) {
+frontend\app\lib\taverns.ts:882:userId = DEFAULT_OWNER_ID,
+frontend\app\lib\taverns.ts:890:export function importCharacterCard(tavernId: string, card: Record<string, unknown>, userId = DEFAULT_OWNER_ID) {
+frontend\app\lib\taverns.ts:908:userId = DEFAULT_VISITOR_ID,
+frontend\app\lib\taverns.ts:913:export function getCharacterSprites(tavernId: string, characterId: string, userId = DEFAULT_VISITOR_ID) {
+frontend\app\lib\taverns.ts:924:userId = DEFAULT_OWNER_ID,
+frontend\app\lib\taverns.ts:934:userId = DEFAULT_OWNER_ID,
+frontend\app\lib\taverns.ts:941:userId = DEFAULT_OWNER_ID,
+frontend\app\lib\taverns.ts:948:visitorId = DEFAULT_VISITOR_ID,
+frontend\app\lib\taverns.ts:979:export function testLlmConfig(data: Record<string, unknown>, userId = DEFAULT_OWNER_ID) {
+frontend\app\lib\taverns.ts:983:export function testTavernLlm(tavernId: string, data: Record<string, unknown>, userId = DEFAULT_OWNER_ID) {
+frontend\app\lib\taverns.ts:990:export function getGroupChatConfig(tavernId: string, userId = DEFAULT_VISITOR_ID) {
+frontend\app\lib\taverns.ts:1001:userId = DEFAULT_OWNER_ID,
+frontend\app\lib\taverns.ts:1019:export function getGroupChatHistory(tavernId: string, visitorId = DEFAULT_VISITOR_ID, userId = visitorId, limit = 50) {
+frontend\app\lib\taverns.ts:1033:userId = DEFAULT_OWNER_ID,
+frontend\app\lib\taverns.ts:1097:userId = DEFAULT_OWNER_ID,
+frontend\app\lib\taverns.ts:1110:userId = DEFAULT_OWNER_ID,
+frontend\app\lib\taverns.ts:1123:userId = DEFAULT_OWNER_ID,
+frontend\app\lib\taverns.ts:1135:export function exportEpisode(options: EpisodeExportOptions = {}, userId = DEFAULT_VISITOR_ID) {
+frontend\app\lib\taverns.ts:1151:userId = DEFAULT_OWNER_ID,
+frontend\app\lib\taverns.ts:1164:export function getVoiceConfig(tavernId: string, userId = DEFAULT_VISITOR_ID) {
+frontend\app\lib\taverns.ts:1168:export function saveVoiceConfig(tavernId: string, data: Partial<VoiceConfig>, userId = DEFAULT_OWNER_ID) {
+frontend\app\lib\taverns.ts:1178:userId = DEFAULT_VISITOR_ID,
+frontend\app\lib\taverns.ts:1202:userId = DEFAULT_VISITOR_ID,
+frontend\app\lib\taverns.ts:1216:export function synthesizeVoice(tavernId: string, data: { text: string; character_id?: string }, userId = DEFAULT_VISITOR_ID) {
+frontend\app\lib\taverns.ts:1234:export function createMemoryAtom(tavernId: string, data: Partial<MemoryAtom>, userId = DEFAULT_VISITOR_ID) {
+frontend\app\lib\taverns.ts:1245:userId = DEFAULT_VISITOR_ID,
+frontend\app\lib\taverns.ts:1253:export function deleteMemoryAtom(tavernId: string, memoryId: string, userId = DEFAULT_VISITOR_ID) {
+frontend\app\lib\taverns.ts:1263:userId = DEFAULT_VISITOR_ID,
+frontend\app\lib\taverns.ts:1274:userId = DEFAULT_VISITOR_ID,
+frontend\app\lib\taverns.ts:1286:userId = DEFAULT_VISITOR_ID,
+frontend\app\lib\taverns.ts:1297:userId = DEFAULT_VISITOR_ID,
+frontend\app\lib\taverns.ts:1305:export function listSkillPacks(tavernId: string, userId = DEFAULT_OWNER_ID) {
+frontend\app\lib\taverns.ts:1315:userId = DEFAULT_OWNER_ID,
+frontend\app\lib\taverns.ts:1327:userId = DEFAULT_VISITOR_ID,
+frontend\app\lib\taverns.ts:1346:export function listWorldInfo(tavernId = "", userId = DEFAULT_VISITOR_ID) {
+frontend\app\lib\taverns.ts:1353:export function createWorldInfo(data: Partial<WorldInfoEntry> & { tavern_id: string }, userId = DEFAULT_OWNER_ID) {
+frontend\app\lib\taverns.ts:1363:userId = DEFAULT_OWNER_ID,
+frontend\app\lib\taverns.ts:1371:export function deleteWorldInfo(entryId: string, tavernId: string, userId = DEFAULT_OWNER_ID) {
+frontend\app\lib\taverns.ts:1387:userId = DEFAULT_OWNER_ID,
+frontend\app\lib\taverns.ts:1428:userId = DEFAULT_OWNER_ID,
+frontend\app\lib\taverns.ts:1436:export function getOutputRules(tavernId: string, userId = DEFAULT_OWNER_ID) {
+frontend\app\lib\taverns.ts:1443:export function saveOutputRules(tavernId: string, rules: OutputRule[], userId = DEFAULT_OWNER_ID) {
+frontend\app\lib\taverns.ts:1453:userId = DEFAULT_OWNER_ID,
+frontend\app\lib\taverns.ts:1461:export function getPromptBlocks(tavernId: string, userId = DEFAULT_OWNER_ID) {
+frontend\app\lib\taverns.ts:1468:export function savePromptBlocks(tavernId: string, blocks: PromptBlock[], userId = DEFAULT_OWNER_ID) {
+frontend\app\lib\taverns.ts:1488:userId = DEFAULT_OWNER_ID,
+frontend\app\lib\taverns.ts:1503:export function getRuntimePresets(tavernId: string, userId = DEFAULT_OWNER_ID) {
+frontend\app\lib\taverns.ts:1513:userId = DEFAULT_OWNER_ID,
+frontend\app\lib\taverns.ts:1524:userId = DEFAULT_OWNER_ID,
+frontend\app\lib\taverns.ts:1535:userId = DEFAULT_OWNER_ID,
+frontend\app\lib\taverns.ts:1543:export function abandonGameplaySession(tavernId: string, sessionId: string, userId = DEFAULT_VISITOR_ID) {
+frontend\app\lib\taverns.ts:1550:export function updateTavern(tavernId: string, data: Partial<Tavern> & Record<string, unknown>, userId = DEFAULT_OWNER_ID) {
+frontend\app\lib\taverns.ts:1554:export function deleteTavern(tavernId: string, userId = DEFAULT_OWNER_ID) {
+frontend\app\lib\taverns.ts:1561:export function listCharacters(tavernId: string, userId = DEFAULT_VISITOR_ID) {
+frontend\app\lib\taverns.ts:1572:userId = DEFAULT_OWNER_ID,
+frontend\app\lib\taverns.ts:1580:export function deleteCharacter(tavernId: string, characterId: string, userId = DEFAULT_OWNER_ID) {
+frontend\app\lib\taverns.ts:1587:export function getGameplays(tavernId: string, userId = DEFAULT_VISITOR_ID) {
+frontend\app\lib\taverns.ts:1594:export function saveGameplays(tavernId: string, gameplays: Record<string, unknown>[], userId = DEFAULT_OWNER_ID) {
+frontend\app\lib\taverns.ts:1609:userId = DEFAULT_VISITOR_ID,
+frontend\app\lib\taverns.ts:1626:userId = DEFAULT_VISITOR_ID,
+frontend\app\lib\taverns.ts:1643:userId = DEFAULT_VISITOR_ID,
+frontend\app\lib\taverns.ts:1654:export function transcribeVoice(tavernId: string, audioBlob: Blob, userId = DEFAULT_VISITOR_ID) {
+frontend\app\lib\taverns.ts:1697:export function getTavernMetrics(tavernId: string, userId = DEFAULT_OWNER_ID) {
+frontend\app\lib\taverns.ts:1725:userId = DEFAULT_VISITOR_ID,
+frontend\app\lib\taverns.ts:1741:userId = DEFAULT_VISITOR_ID,
+frontend\app\lib\taverns.ts:1749:export function deleteTavernMessage(tavernId: string, messageId: string, userId = DEFAULT_VISITOR_ID) {
+frontend\app\lib\taverns.ts:1756:export function togglePinTavernMessage(tavernId: string, messageId: string, userId = DEFAULT_OWNER_ID) {
+frontend\app\lib\taverns.ts:1767:userId = DEFAULT_VISITOR_ID,
+frontend\app\lib\taverns.ts:1793:userId = DEFAULT_VISITOR_ID,
+frontend\app\lib\taverns.ts:1804:userId = DEFAULT_OWNER_ID,
+frontend\app\lib\taverns.ts:1816:export function deleteVisitorNote(tavernId: string, noteId: string, userId = DEFAULT_OWNER_ID) {
+frontend\app\lib\taverns.ts:1874:jsonInit("POST", data, DEFAULT_OWNER_ID),
+frontend\app\lib\taverns.ts:1919:export function getOwnerDefaultLLM(userId = DEFAULT_OWNER_ID) {
+frontend\app\lib\taverns.ts:1923:export function saveOwnerDefaultLLM(data: OwnerDefaultLLMSave, userId = DEFAULT_OWNER_ID) {
+frontend\app\lib\taverns.ts:1967:export function generateTavernDraft(data: TavernDraftRequest, userId = DEFAULT_OWNER_ID) {
+frontend\app\lib\taverns.ts:2061:export function createHome(data: HomeCreateData, userId = DEFAULT_OWNER_ID) {
+frontend\app\lib\taverns.ts:2069:export function updateHome(homeId: string, data: HomeUpdateData, userId = DEFAULT_OWNER_ID) {
+frontend\app\lib\taverns.ts:2073:export function deleteHome(homeId: string, userId = DEFAULT_OWNER_ID) {
+frontend\app\lib\taverns.ts:2084:export function addMemberToHome(homeId: string, data: HomeMemberWriteData, userId = DEFAULT_OWNER_ID) {
+frontend\app\lib\taverns.ts:2095:userId = DEFAULT_OWNER_ID,
+frontend\app\lib\taverns.ts:2103:export function removeMemberFromHome(homeId: string, memberId: string, userId = DEFAULT_OWNER_ID) {
+frontend\app\lib\taverns.ts:2110:export function visitHome(homeId: string, visitorId?: string, userId = DEFAULT_VISITOR_ID) {
+frontend\app\lib\taverns.ts:2117:export function leaveHomeMessage(homeId: string, content: string, visitorNickname = "旅人", userId = DEFAULT_VISITOR_ID) {
+frontend\app\lib\taverns.ts:2129:userId = DEFAULT_VISITOR_ID,
+frontend\app\product\AdminDebugPanel.jsx:124:<input id="writeback-note" type="text" value={writebackForm.note} onChange={(event) => updateWritebackForm('note', event.target.value)} placeholder="给这次事件补一条轻量注释" />
+frontend\app\product\aiCharacterDrafts.js:8:export function splitDraftItems(value, fallback = []) {
+frontend\app\product\aiCharacterDrafts.js:19:return unique.length ? unique : [...fallback]
+frontend\app\product\App.jsx:10:import FirstRunModeModal from './FirstRunModeModal'
+frontend\app\product\App.jsx:795:<FirstRunModeModal
+frontend\app\product\appShellConfig.js:21:id: 'fixture-demo',
+frontend\app\product\appShellConfig.js:22:title: '离线演示样例',
+frontend\app\product\appShellConfig.js:45:sliceId: 'slice_demo_shibuya',
+frontend\app\product\CharacterAvatar.jsx:64:<div className="char-avatar-placeholder">
+frontend\app\product\CharacterEditor.jsx:382:placeholder="搜树洞、档案、社区、赛博、线索..."
+frontend\app\product\CharacterEditor.jsx:428:title="用此模版覆盖性格、场景、指令、开场白和示例对话"
+frontend\app\product\CharacterEditor.jsx:597:placeholder="例如：刘大爷"
+frontend\app\product\CharacterEditor.jsx:606:placeholder="守门人, 老友, 神秘"
+frontend\app\product\CharacterEditor.jsx:646:placeholder="外貌、身份、和访客第一眼会注意到的事"
+frontend\app\product\CharacterEditor.jsx:658:placeholder="说话方式、习惯、边界感"
+frontend\app\product\CharacterEditor.jsx:668:placeholder="角色所处的位置、当前状态和隐含目标"
+frontend\app\product\CharacterEditor.jsx:680:placeholder="约束角色扮演、回复边界和语气；新手可先留空"
+frontend\app\product\CharacterEditor.jsx:692:placeholder="角色第一次对访客说的话"
+frontend\app\product\CharacterEditor.jsx:696:<span>示例对话</span>
+frontend\app\product\CharacterEditor.jsx:702:placeholder="<START>\n{{user}}: ...\n{{char}}: ..."
+frontend\app\product\CharacterEditor.jsx:714:placeholder="每行一条"
+frontend\app\product\CharacterEditor.jsx:724:placeholder="https://example.com/avatar.png"
+frontend\app\product\CharacterEditor.jsx:757:placeholder="例如：夜班版、校庆版、雨天版"
+frontend\app\product\CharacterEditor.jsx:807:placeholder={`${expression}.png`}
+frontend\app\product\characterLooks.js:236:export function normalizeCharacterAppearance(value, fallbackPresetId = '') {
+frontend\app\product\characterLooks.js:238:const fallback = getCharacterLookPreset(fallbackPresetId)?.id || ''
+frontend\app\product\characterLooks.js:243:activePresetId = wardrobeIds[0] || fallback
+frontend\app\product\characterLooks.js:250:if (!wardrobeIds.length && fallback) {
+frontend\app\product\characterLooks.js:251:wardrobeIds = [fallback]
+frontend\app\product\characterLooks.js:285:export function getCharacterWardrobeLooks(value, fallbackPresetId = '') {
+frontend\app\product\characterLooks.js:286:const appearance = normalizeCharacterAppearance(value, fallbackPresetId)
+frontend\app\product\CharacterManagementModal.jsx:119:setBatchStatus('已填入示例；点击“预览批量清单”后再确认创建。')
+frontend\app\product\CharacterManagementModal.jsx:399:<div className="char-mgmt-editor-placeholder char-mgmt-editor-placeholder--picker">
+frontend\app\product\CharacterManagementModal.jsx:418:placeholder="夜班灯叔 | 调暗霓虹灯的背景店员 | 后勤, 低干扰"
+frontend\app\product\CharacterManagementModal.jsx:428:填入示例
+frontend\app\product\CharacterManagementModal.jsx:507:placeholder="猫娘, 傲娇, 酒保"
+frontend\app\product\CharacterManagementModal.jsx:516:placeholder="温暖、短句、有酒馆陪伴感"
+frontend\app\product\CharacterManagementModal.jsx:527:placeholder="不要露骨，不要现实名人，不要真实私人地址"
+frontend\app\product\CharacterManagementModal.jsx:607:return <div className="char-mgmt-editor-placeholder">加载编辑器...</div>
+frontend\app\product\characterPromptRiskLinter.js:14:mes_example: '示例对话',
+frontend\app\product\characterPromptRiskLinter.js:167:suggestion: '把这类内容当作店主可复核说明，不要把模型兼容假设写死为角色身份。',
+frontend\app\product\ChatPanel.jsx:94:placeholder={disabled ? '等待角色...' : '输入你想说的话...'}
+frontend\app\product\dialoguePreviewSimulator.js:7:function firstSegment(value, fallback = '') {
+frontend\app\product\dialoguePreviewSimulator.js:11:.find(Boolean) || fallback
+frontend\app\product\dialoguePreviewSimulator.js:42:setting: clampText(firstSegment(character.scenario, '暂未填写场景，模拟会更偏通用。'), 80),
+frontend\app\product\dialoguePreviewSimulator.js:62:preview_only: true,
+frontend\app\product\dialoguePreviewSimulator.js:80:'本地模拟：不调用 LLM，不消耗店主 provider token。',
+frontend\app\product\FirstRunModeModal.jsx:23:* FirstRunModeModal — 首次使用分流向导
+frontend\app\product\FirstRunModeModal.jsx:29:export default function FirstRunModeModal({ initialNickname = '', initialMode = '', onComplete, onQuickTry }) {
+frontend\app\product\FirstRunModeModal.jsx:79:<p>系统会给你临时生成访客称呼，使用本地规则后端，不需要 API Key 或定位权限。</p>
+frontend\app\product\FirstRunModeModal.jsx:100:placeholder="例如：旅人、店主、林间来客..."
+frontend\app\product\GameplayDefinitionEditor.jsx:24:function safeParseJson(value, fallback) {
+frontend\app\product\GameplayDefinitionEditor.jsx:27:return parsed == null ? fallback : parsed
+frontend\app\product\GameplayDefinitionEditor.jsx:29:return fallback
+frontend\app\product\GameplayDefinitionEditor.jsx:48:fallback_events: [],
+frontend\app\product\GameplayDefinitionEditor.jsx:61:const [fallbackText, setFallbackText] = useState(stringifyJson(draft.fallback_events || []))
+frontend\app\product\GameplayDefinitionEditor.jsx:68:setFallbackText(stringifyJson(gameplay?.fallback_events || []))
+frontend\app\product\GameplayDefinitionEditor.jsx:82:const nextFallback = safeParseJson(fallbackText, null)
+frontend\app\product\GameplayDefinitionEditor.jsx:84:if (!Array.isArray(nextFallback) || !Array.isArray(nextNodes)) {
+frontend\app\product\GameplayDefinitionEditor.jsx:89:const nodesWithFallback = nextNodes.map((node) => {
+frontend\app\product\GameplayDefinitionEditor.jsx:91:return Array.isArray(node.fallback_events) && node.fallback_events.length > 0
+frontend\app\product\GameplayDefinitionEditor.jsx:93:: { ...node, fallback_events: nextFallback }
+frontend\app\product\GameplayDefinitionEditor.jsx:95:setNodesText(stringifyJson(nodesWithFallback))
+frontend\app\product\GameplayDefinitionEditor.jsx:96:emit({ fallback_events: nextFallback, nodes: nodesWithFallback })
+frontend\app\product\GameplayDefinitionEditor.jsx:107:placeholder="例如：三步线索登记"
+frontend\app\product\GameplayDefinitionEditor.jsx:116:placeholder="开始玩法"
+frontend\app\product\GameplayDefinitionEditor.jsx:137:placeholder="访客会看到的一句话玩法说明。"
+frontend\app\product\GameplayDefinitionEditor.jsx:147:placeholder="AI Director 会围绕这个目标主持下一步。"
+frontend\app\product\GameplayDefinitionEditor.jsx:158:placeholder="温柔、悬疑、像前台服务生……"
+frontend\app\product\GameplayDefinitionEditor.jsx:167:placeholder="完成后给访客看到的文字奖励。"
+frontend\app\product\GameplayDefinitionEditor.jsx:182:placeholder="登记册\n骰子\n旧地图"
+frontend\app\product\GameplayDefinitionEditor.jsx:194:placeholder="不索取真实身份信息\n不承诺医疗/法律结论"
+frontend\app\product\GameplayDefinitionEditor.jsx:200:<summary>高级节点 / fallback_events</summary>
+frontend\app\product\GameplayDefinitionEditor.jsx:201:<p className="note muted">默认不必配置。需要精细分支时，可编辑底层节点数组和 fallback_events 数组；不要写脚本或表达式。</p>
+frontend\app\product\GameplayDefinitionEditor.jsx:213:<span className="mini-label">fallback_events</span>
+frontend\app\product\GameplayDefinitionEditor.jsx:215:value={fallbackText}
+frontend\app\product\GameplayDefinitionEditor.jsx:216:onChange={(event) => setFallbackText(event.target.value)}
+frontend\app\product\GameplayManager.jsx:188:placeholder="线索、回访、陪伴、物件..."
+frontend\app\product\GameplayManager.jsx:234:placeholder="例如：有人说登记册上的名字不是自己写的"
+frontend\app\product\GameplayManager.jsx:243:placeholder="轻推理、克制、像竖屏短剧但不羞辱任何人"
+frontend\app\product\GameplaySessionPanel.jsx:71:placeholder="也可以补充一句话，让主持人接住这一幕"
+frontend\app\product\LLMConfigForm.jsx:268:<p className="form-hint">先选一个适合你的模式，再补 API Key；高级参数之后还能手动改。</p>
+frontend\app\product\LLMConfigForm.jsx:336:placeholder={DEFAULT_MODELS[config.backend] || '模型名称'}
+frontend\app\product\LLMConfigForm.jsx:347:placeholder={config.backend === 'ollama' || config.backend === 'localai' ? '（本地部署无需 Key）' : 'sk-...'}
+frontend\app\product\LLMConfigForm.jsx:365:placeholder={
+frontend\app\product\mapAnchorCopy.js:66:descriptionFallback: '店主还没有把门口故事写出来。',
+frontend\app\product\npcBatchImport.js:47:function normalizeTalkativeness(value, fallback = 0.35) {
+frontend\app\product\npcBatchImport.js:49:if (!Number.isFinite(parsed)) return fallback
+frontend\app\product\OutputRulesEditor.jsx:51:const fallbackRules = useMemo(() => normalizeRules(tavern?.output_rules || []), [tavern?.id])
+frontend\app\product\OutputRulesEditor.jsx:53:const [rules, setRules] = useState(fallbackRules)
+frontend\app\product\OutputRulesEditor.jsx:55:const [selectedId, setSelectedId] = useState(fallbackRules[0]?.id || '')
+frontend\app\product\OutputRulesEditor.jsx:56:const [draft, setDraft] = useState(fallbackRules[0] || null)
+frontend\app\product\OutputRulesEditor.jsx:280:<div className="output-rules-placeholder">
+frontend\app\product\OutputRulesEditor.jsx:291:placeholder="例如：去除 AI 自称"
+frontend\app\product\OutputRulesEditor.jsx:311:placeholder="写给未来自己的规则用途说明"
+frontend\app\product\OutputRulesEditor.jsx:321:placeholder={draft.kind === 'literal' ? '要替换的原文' : '^\\s*作为AI语言模型[，,:：]?'}
+frontend\app\product\OutputRulesEditor.jsx:331:placeholder="留空表示删除匹配文本"
+frontend\app\product\OutputRulesEditor.jsx:387:placeholder="粘贴一段 AI 回复，预览清理结果"
+frontend\app\product\OwnerDialoguePreviewSimulator.jsx:56:<section className="owner-dialogue-preview" aria-label="店主 AI 对话预览模拟器">
+frontend\app\product\OwnerDialoguePreviewSimulator.jsx:58:<span>AI 对话预览模拟器</span>
+frontend\app\product\OwnerDialoguePreviewSimulator.jsx:59:<small>Owner-only · preview only。本地模拟回复效果，不调用 LLM，不写入聊天历史 / 记忆 / writeback。</small>
+frontend\app\product\OwnerDialoguePreviewSimulator.jsx:87:<span>模拟访客输入</span>
+frontend\app\product\OwnerDialoguePreviewSimulator.jsx:96:placeholder={DEFAULT_OWNER_PREVIEW_MESSAGE}
+frontend\app\product\OwnerDialoguePreviewSimulator.jsx:121:<span>preview_only: {String(preview.preview_only)}</span>
+frontend\app\product\ownerGameplayTemplates.js:202:fallback_events: [
+frontend\app\product\OwnerStateCardPanel.jsx:309:placeholder="例如：委托-找回铜钥匙"
+frontend\app\product\OwnerStateCardPanel.jsx:318:placeholder="描述这条正史的具体内容..."
+frontend\app\product\OwnerStateCardPanel.jsx:338:<p>暂无状态卡。聊完天后访客会生成待确认候选卡，或在此手动创建正史卡。</p>
+frontend\app\product\ownerTokenStatus.js:21:function safeText(value, fallback = '') {
+frontend\app\product\ownerTokenStatus.js:23:return text || fallback
+frontend\app\product\PresetImportPreviewModal.jsx:5:name: '示例社区预设',
+frontend\app\product\PresetImportPreviewModal.jsx:110:placeholder='{"name":"社区预设","prompts":[...]}'
+frontend\app\product\PresetImportPreviewModal.jsx:117:<p>Preview only：当前工具只分类 supported / warning / blocked，apply 尚未实现。</p>
+frontend\app\product\PresetImportPreviewModal.jsx:121:<button type="button" className="secondary" onClick={loadSample} disabled={loading}>填入示例</button>
+frontend\app\product\PresetManager.jsx:18:function normalizeNumber(value, fallback) {
+frontend\app\product\PresetManager.jsx:20:return Number.isFinite(number) ? number : fallback
+frontend\app\product\PresetManager.jsx:84:const fallbackPresets = useMemo(() => normalizePresets(tavern?.runtime_presets || []), [tavern?.id])
+frontend\app\product\PresetManager.jsx:86:const [presets, setPresets] = useState(fallbackPresets)
+frontend\app\product\PresetManager.jsx:88:const [selectedId, setSelectedId] = useState(tavern?.active_preset_id || fallbackPresets[0]?.id || '')
+frontend\app\product\PresetManager.jsx:89:const [draft, setDraft] = useState(fallbackPresets[0] || null)
+frontend\app\product\PresetManager.jsx:301:<div className="preset-manager-placeholder">选择一个预设，或从内置预设复制一个自定义版本。</div>
+frontend\app\product\PresetManager.jsx:418:<p className="note muted">预设只保存可分享参数，不保存 API Key；应用预设会尽量保留当前同服务的密钥。</p>
+frontend\app\product\PromptBlockEditor.jsx:60:const fallbackBlocks = useMemo(() => normalizeBlocks(tavern?.prompt_blocks || []), [tavern?.id])
+frontend\app\product\PromptBlockEditor.jsx:62:const [blocks, setBlocks] = useState(fallbackBlocks)
+frontend\app\product\PromptBlockEditor.jsx:64:const [selectedId, setSelectedId] = useState(fallbackBlocks[0]?.id || '')
+frontend\app\product\PromptBlockEditor.jsx:65:const [draft, setDraft] = useState(fallbackBlocks[0] || null)
+frontend\app\product\PromptBlockEditor.jsx:288:<div className="prompt-block-placeholder">选择一个段落开始编辑，或新建自定义段落。</div>
+frontend\app\product\PromptBlockEditor.jsx:327:placeholder="支持 {{char}}、{{user}}、{{tavern_name}}、{{input}} 等变量"
+frontend\app\product\promptStyleDials.js:201:function compact(value, fallback) {
+frontend\app\product\promptStyleDials.js:203:if (!text) return fallback
+frontend\app\product\promptStyleDials.js:238:body: '示例：命中关键词后注入店主确认的地点、传闻、背景或玩法线索。',
+frontend\app\product\promptStyleDials.js:244:body: '示例：回访次数、已确认记忆、当前 gameplay/session 状态；不公开其他访客私密内容。',
+frontend\app\product\ShareButton.jsx:45:// Fallback for older browsers
+frontend\app\product\shortDramaDraftAssistant.js:10:function cleanText(value, fallback = '') {
+frontend\app\product\shortDramaDraftAssistant.js:11:return typeof value === 'string' && value.trim() ? value.trim() : fallback
+frontend\app\product\shortDramaDraftAssistant.js:52:function fallback(text, nextNodeId) {
+frontend\app\product\shortDramaDraftAssistant.js:53:return [{ id: `${nextNodeId || 'stay'}-fallback`, text, next_node_id: nextNodeId }]
+frontend\app\product\shortDramaDraftAssistant.js:87:fallback_events: fallback('主持人把冲突收束到店主已确认的规则和酒馆内素材。', 'second-beat'),
+frontend\app\product\shortDramaDraftAssistant.js:97:fallback_events: fallback('主持人撤回越界承诺，回到可编辑的安全剧情。', 'second-beat'),
+frontend\app\product\shortDramaDraftAssistant.js:108:fallback_events: fallback('主持人把素材改回店主自有设定和安全线索。', 'third-beat'),
+frontend\app\product\shortDramaDraftAssistant.js:119:fallback_events: fallback('主持人选择一个不羞辱、不越界、可由店主确认的结尾。', 'complete'),
+frontend\app\product\shortDramaDraftAssistant.js:126:fallback_events: fallback('这段未发布短剧草稿已经走到结尾。', 'complete'),
+frontend\app\product\shortDramaGameplayTemplates.js:21:function fallback(text, nextNodeId) {
+frontend\app\product\shortDramaGameplayTemplates.js:22:return [{ id: `${nextNodeId || 'stay'}-fallback`, text, next_node_id: nextNodeId }]
+frontend\app\product\shortDramaGameplayTemplates.js:48:fallback_events: fallback('主持人给出一个不伤害双方的解释角度，让你继续救场。', 'second-beat'),
+frontend\app\product\shortDramaGameplayTemplates.js:58:fallback_events: fallback('主持人让误会降级成一个可以被解释的小插曲。', 'second-beat'),
+frontend\app\product\shortDramaGameplayTemplates.js:69:fallback_events: fallback('主持人把焦点转回“店主确认的规则”，避免你替店主乱承诺。', 'third-beat'),
+frontend\app\product\shortDramaGameplayTemplates.js:80:fallback_events: fallback('主持人帮你把隐私边界说清楚，店主点头确认。', 'complete'),
+frontend\app\product\shortDramaGameplayTemplates.js:87:fallback_events: fallback('这局救场短剧已经完成。', 'complete'),
+frontend\app\product\shortDramaGameplayTemplates.js:113:fallback_events: fallback('主持人提醒你关注“门铃”这个反复出现的线索。', 'second-beat'),
+frontend\app\product\shortDramaGameplayTemplates.js:124:fallback_events: fallback('主持人把话题收回到酒馆内可公开、可确认的留言。', 'third-beat'),
+frontend\app\product\shortDramaGameplayTemplates.js:134:fallback_events: fallback('主持人把越界追问改写成象征性选择。', 'third-beat'),
+frontend\app\product\shortDramaGameplayTemplates.js:145:fallback_events: fallback('主持人选择一个安全、温柔、只发生在酒馆内的收束。', 'complete'),
+frontend\app\product\shortDramaGameplayTemplates.js:152:fallback_events: fallback('这局潜台词短剧已经完成。', 'complete'),
+frontend\app\product\shortDramaGameplayTemplates.js:178:fallback_events: fallback('主持人把怪异感转成安全、可沟通的误会。', 'second-beat'),
+frontend\app\product\shortDramaGameplayTemplates.js:188:fallback_events: fallback('主持人收束恐怖表达，回到轻悬疑误会。', 'second-beat'),
+frontend\app\product\shortDramaGameplayTemplates.js:199:fallback_events: fallback('主持人提醒：传播钩子可以有，但不能牺牲隐私边界。', 'third-beat'),
+frontend\app\product\shortDramaGameplayTemplates.js:210:fallback_events: fallback('主持人让回访反馈停留在访客自愿、非实名、酒馆内的范围。', 'complete'),
+frontend\app\product\shortDramaGameplayTemplates.js:217:fallback_events: fallback('这局深夜短剧已经完成。', 'complete'),
+frontend\app\product\shortDramaGameplayTemplates.js:243:fallback_events: fallback('主持人提醒你找可确认线索，而不是做人身判断。', 'second-beat'),
+frontend\app\product\shortDramaGameplayTemplates.js:253:fallback_events: fallback('主持人把指控改写为线索比对。', 'second-beat'),
+frontend\app\product\shortDramaGameplayTemplates.js:261:{ id: 'mock', label: '嘲笑对方记性差', next_node_id: 'boundary' },
+frontend\app\product\shortDramaGameplayTemplates.js:264:fallback_events: fallback('主持人让 NPC 复核小票，避免你凭空定论。', 'third-beat'),
+frontend\app\product\shortDramaGameplayTemplates.js:275:fallback_events: fallback('主持人给出体面、克制、可由店主确认的结论。', 'complete'),
+frontend\app\product\shortDramaGameplayTemplates.js:282:fallback_events: fallback('这局轻推理短剧已经完成。', 'complete'),
+frontend\app\product\styles.css:51:/* Gradient fallbacks for components that don't use CSS vars in gradients */
+frontend\app\product\styles.css:3068:.writeback-placeholder-card {
+frontend\app\product\styles.css:3077:.storyboard-placeholder-card {
+frontend\app\product\styles.css:3085:.storyboard-placeholder-card strong {
+frontend\app\product\styles.css:3093:.storyboard-placeholder-card p {
+frontend\app\product\styles.css:4293:.storyboard-placeholder-card,
+frontend\app\product\styles.css:4507:.chat-input__field::placeholder {
+frontend\app\product\styles.css:4921:.tavern-create-step .form-group input::placeholder,
+frontend\app\product\styles.css:4922:.tavern-create-step .form-group textarea::placeholder {
+frontend\app\product\styles.css:6178:.llm-config-form .form-group input::placeholder {
+frontend\app\product\styles.css:7569:.character-manager-placeholder {
+frontend\app\product\styles.css:7625:.char-mgmt-editor-placeholder {
+frontend\app\product\styles.css:7634:.char-mgmt-editor-placeholder p {
+frontend\app\product\styles.css:7639:.char-mgmt-editor-placeholder p:last-child {
+frontend\app\product\styles.css:8479:var(--tavern-atmosphere-fallback);
+frontend\app\product\styles.css:8758:/* Chat placeholder */
+frontend\app\product\styles.css:8759:.chat-placeholder {
+frontend\app\product\styles.css:8765:.chat-placeholder p {
+frontend\app\product\styles.css:9608:.char-avatar-placeholder {
+frontend\app\product\styles.css:10811:.char-mgmt-editor-placeholder {
+frontend\app\product\styles.css:10822:.char-mgmt-editor-placeholder--picker {
+frontend\app\product\styles.css:11611:.world-book-editor-placeholder,
+frontend\app\product\styles.css:11630:.world-book-editor-placeholder p,
+frontend\app\product\styles.css:11635:.world-book-editor-placeholder p:last-child,
+frontend\app\product\styles.css:11990:.output-rules-placeholder {
+frontend\app\product\styles.css:12299:.prompt-block-placeholder {
+frontend\app\product\styles.css:12653:.preset-manager-placeholder {
+frontend\app\product\styles.css:13061:.wbt-placeholder {
+frontend\app\product\styles.css:13420:.visitor-nickname-input::placeholder {
+frontend\app\product\styles.css:13455:/* ─── FirstRunModeModal ─────────────────────────────────────────────── */
+frontend\app\product\styles.css:13813:.ctx-avatar-placeholder {
+frontend\app\product\SystemCharacterPresetPicker.jsx:60:placeholder="搜夜班、档案、公益、技术员..."
+frontend\app\product\TavernChatRoom.jsx:118:fallback: '临时规则回应',
+frontend\app\product\TavernChatRoom.jsx:121:manual: '手动选择',
+frontend\app\product\TavernChatRoom.jsx:371:function ChatInputArea({ onSend, sending, character, placeholder, voiceConfig, tavernId, quickPrompts = [] }) {
+frontend\app\product\TavernChatRoom.jsx:521:placeholder={placeholder || `对 ${character?.name || '角色'} 说...`}
+frontend\app\product\TavernChatRoom.jsx:965:const fallbackSprites = normalizeSprites(selectedChar.sprites)
+frontend\app\product\TavernChatRoom.jsx:973:const loadedSprites = normalizeSprites(spriteResult.sprites || fallbackSprites)
+frontend\app\product\TavernChatRoom.jsx:979:setSprites(fallbackSprites)
+frontend\app\product\TavernChatRoom.jsx:980:setCurrentExpression(fallbackSprites.neutral ? DEFAULT_EXPRESSION : currentExpression)
+frontend\app\product\TavernChatRoom.jsx:1000:source: 'fallback',
+frontend\app\product\TavernChatRoom.jsx:1024:function buildFallbackReply(id) {
+frontend\app\product\TavernChatRoom.jsx:1030:source: 'fallback',
+frontend\app\product\TavernChatRoom.jsx:1034:function findGroupCharacter(characterId, fallbackName = '', avatar = '') {
+frontend\app\product\TavernChatRoom.jsx:1037:if (!characterId && !fallbackName) return null
+frontend\app\product\TavernChatRoom.jsx:1039:id: characterId || `group-char-${fallbackName || 'unknown'}`,
+frontend\app\product\TavernChatRoom.jsx:1040:name: fallbackName || characterId || '群聊角色',
+frontend\app\product\TavernChatRoom.jsx:1330:const nextExpressionSource = isDegraded ? 'fallback' : expressionSource
+frontend\app\product\TavernChatRoom.jsx:1352:setExpressionSource('fallback')
+frontend\app\product\TavernChatRoom.jsx:1390:const charMsg = buildFallbackReply(`msg-${Date.now()}-err`)
+frontend\app\product\TavernChatRoom.jsx:1393:setExpressionSource('fallback')
+frontend\app\product\TavernChatRoom.jsx:1792:placeholder={groupChatEnabled ? '对群聊里的所有角色说...' : undefined}
+frontend\app\product\TavernContextPanel.jsx:42:<div className="ctx-avatar-placeholder">{character.name?.[0] || '?'}</div>
+frontend\app\product\TavernCreatePanel.jsx:52:* 3. 导入 / 手动创建角色
+frontend\app\product\TavernCreatePanel.jsx:337:也可以手动微调。
+frontend\app\product\TavernCreatePanel.jsx:349:placeholder="例如：31.230416"
+frontend\app\product\TavernCreatePanel.jsx:359:placeholder="例如：121.473701"
+frontend\app\product\TavernCreatePanel.jsx:414:placeholder="例如：第三中学传达室"
+frontend\app\product\TavernCreatePanel.jsx:424:placeholder="让访客在进入前知道这里是什么样的地方..."
+frontend\app\product\TavernCreatePanel.jsx:435:placeholder="给 AI 的场景描述，例如：这是一个古朴的传达室，老式电话、搪瓷茶缸、堆积的报纸..."
+frontend\app\product\TavernCreatePanel.jsx:466:placeholder="设置访客进入密码"
+frontend\app\product\TavernCreatePanel.jsx:477:<p>角色是酒馆的“店员”。可以先导入一张 SillyTavern 角色卡，也可以手动创建。</p>
+frontend\app\product\TavernCreatePanel.jsx:550:<summary>手动创建一个 NPC</summary>
+frontend\app\product\TavernCreatePanel.jsx:702:* 手动添加角色的简单表单
+frontend\app\product\TavernDetailPanel.jsx:229:placeholder="输入访问密码"
+frontend\app\product\TavernEntryPanel.jsx:163:placeholder="输入入场密码..."
+frontend\app\product\TavernGroupSettingsModal.jsx:29:function clampNumber(value, min, max, fallback) {
+frontend\app\product\TavernGroupSettingsModal.jsx:31:if (!Number.isFinite(parsed)) return fallback
+frontend\app\product\TavernGroupSettingsModal.jsx:39:function normalizeBool(value, fallback = false) {
+frontend\app\product\TavernGroupSettingsModal.jsx:40:if (value == null || value === '') return fallback
+frontend\app\product\TavernInterior.jsx:60:// Fallback to name initial
+frontend\app\product\TavernInterior.jsx:216:placeholder="输入密码"
+frontend\app\product\TavernInterior.jsx:233:'--tavern-atmosphere-fallback': layoutStyle.gradient,
+frontend\app\product\TavernInterior.jsx:301:<div className="chat-placeholder">
+frontend\app\product\TavernInterior.jsx:338:placeholder={`对 ${selectedChar.name} 说...`}
+frontend\app\product\TavernMemoryPanel.jsx:44:function getVisitorMemoryPayload(entryState, fallbackVisitCount = 0) {
+frontend\app\product\TavernMemoryPanel.jsx:48:visitCount: Number(visitorState.visit_count ?? entryState?.visit_count ?? fallbackVisitCount ?? 0),
+frontend\app\product\TavernMemoryPanel.jsx:143:placeholder="写下一段你想记住的事情…"
+frontend\app\product\TavernMemoryPanel.jsx:400:title="手动添加记忆"
+frontend\app\product\TavernOwnerPanel.jsx:635:setChatExportStatus('当前浏览器不允许自动复制，请手动选中文本复制')
+frontend\app\product\TavernOwnerPanel.jsx:1337:placeholder="按名称、描述、场景或角色搜索"
+frontend\app\product\TavernOwnerPanel.jsx:1571:<textarea readOnly value={transcript} placeholder="点击“生成导出文本”，或直接复制当前历史预览。" rows={8} />
+frontend\app\product\TavernOwnerPanel.jsx:1703:placeholder="例如：价格、BUG、喜欢的角色..."
+frontend\app\product\TavernOwnerPanel.jsx:2019:placeholder="描述酒馆的环境、气氛，帮助 AI 更好入戏"
+frontend\app\product\TavernTemplateGallery.jsx:5:function toNumber(value, fallback = 0) {
+frontend\app\product\TavernTemplateGallery.jsx:7:return Number.isFinite(numeric) ? numeric : fallback
+frontend\app\product\TavernTemplateGallery.jsx:133:placeholder="搜索校园、都市、奇谈、治愈..."
+frontend\app\product\TavernTemplateGallery.jsx:214:placeholder="31.2304"
+frontend\app\product\TavernTemplateGallery.jsx:222:placeholder="121.4737"
+frontend\app\product\tavernTemplates.js:49:mode: 'visitor_state_mvp',
+frontend\app\product\tavernTemplates.js:132:scene_prompt: '这是一个雨夜便利店场景。叙事节奏慢，关注城市夜晚的孤独、临时避雨的人、便当加热声和霓虹反光。避免宏大设定，保持生活质感。',
+frontend\app\product\VisitorNicknameModal.jsx:54:placeholder="例如：旅人、漫游者、酒客..."
+frontend\app\product\WorldBookEditor.jsx:34:function clampNumber(value, fallback, min, max) {
+frontend\app\product\WorldBookEditor.jsx:36:if (!Number.isFinite(numeric)) return fallback
+frontend\app\product\WorldBookEditor.jsx:445:<div className="world-book-editor-placeholder">
+frontend\app\product\WorldBookEditor.jsx:457:placeholder={'例如：毕业照\n档案柜\n旧校舍'}
+frontend\app\product\WorldBookEditor.jsx:468:placeholder="可选；用于更精确地二次匹配"
+frontend\app\product\WorldBookEditor.jsx:480:placeholder="写给 AI 读取的设定，例如地点历史、人物关系、隐藏规则、物品用途等。"
+frontend\app\product\WorldBookEditor.jsx:577:placeholder="例如：刘大爷，我想看毕业照。"
+frontend\app\product\WorldBookTester.jsx:176:placeholder="输入一段对话或描述，看看会触发哪些世界书条目...&#10;&#10;例如：刘大爷，我找到一张毕业照，上面好像有你"
+frontend\app\product\WorldBookTester.jsx:198:placeholder="可选：每行填一条最近的对话内容，用于测试深度扫描。&#10;例如：&#10;玩家：那张照片在哪里拍的？&#10;NPC：就在旧校舍的档案柜里..."
+frontend\app\product\WorldBookTester.jsx:267:<div className="wbt-placeholder">
+frontend\app\product\WorldBookTester.jsx:269:<p className="muted">测试不调用 AI，不保存任何数据</p>
+frontend\app\product\WorldEntryPanel.jsx:50:首次进入会优先尝试浏览器定位；你也可以使用预设地点或手动调整范围。
+frontend\app\product\WorldEntryPanel.jsx:137:<option value="fixture">离线演示样例</option>
+frontend\app\product\WorldEntryPanel.jsx:142:<input id="seed" type="text" placeholder="可选的稳定种子" value={form.seed} onChange={(event) => updateForm('seed', event.target.value)} />
+frontend\app\product\WorldMap.jsx:238:// Fallback: if 'complete' never fires, save anyway after 5s
+frontend\app\product\WorldMap.jsx:239:const fallback = setTimeout(() => {
+frontend\app\product\WorldMap.jsx:245:clearTimeout(fallback)
+frontend\app\product\WorldSliceResultPanel.jsx:74:{result.fallback_notice ? (
+frontend\app\product\WorldSliceResultPanel.jsx:75:<p className="note muted">{result.fallback_notice}</p>
+frontend\app\product\WorldSliceResultPanel.jsx:128:<span>推荐先试离线演示样例</span>
+frontend\app\product\WorldStageActivePoiPanel.jsx:299:<div className="storyboard-placeholder-card">
+frontend\app\product\WorldStageDisturbancePanel.jsx:28:<input type="number" min="0" max="1" step="0.1" value={disturbanceForm.crowd_density} onChange={(e) => setDisturbanceForm((f) => ({ ...f, crowd_density: e.target.value }))} placeholder="0.0 - 1.0" />
+frontend\app\product\WorldStageDisturbancePanel.jsx:32:<input type="number" min="0" max="1" step="0.1" value={disturbanceForm.traffic_level} onChange={(e) => setDisturbanceForm((f) => ({ ...f, traffic_level: e.target.value }))} placeholder="0.0 - 1.0" />
+frontend\app\product\WorldStagePanel.jsx:234:: `${originLabel} · ${form.radius}m · ${form.mode === 'fixture' ? '离线样例' : '实时地图'}`
+frontend\app\product\WorldStagePoiFilterLane.jsx:47:placeholder="输入地点名、钩子、势力或地点 ID"
+frontend\app\product\WorldStagePoiFilterLane.jsx:126:<div className="storyboard-placeholder-card poi-filter-empty">
+frontend\app\product\WorldStagePoiFilterLane.jsx:132:<div className="storyboard-placeholder-card poi-filter-empty">
+frontend\app\product\WorldStageTavernDiscoveryLane.jsx:42:return tavern?.description || tavern?.scene_prompt || buildMapAnchorCardCopy(tavern).descriptionFallback
+frontend\app\product\WorldStageTavernDiscoveryLane.jsx:135:placeholder="门牌、灯牌、店主介绍、角色或状态"
+frontend\app\product\WorldStageTavernDiscoveryLane.jsx:209:<div className="storyboard-placeholder-card tavern-discovery-empty tavern-discovery-empty--error">
+frontend\app\product\WorldStageTavernDiscoveryLane.jsx:292:<div className="storyboard-placeholder-card tavern-discovery-empty">
+frontend\app\product\WorldStageWritebackActionPanel.jsx:82:placeholder="可选的一句备注，用于帮助你回访时辨认这次写回"
+frontend\app\product\WorldStageWritebackInsightsPanel.jsx:61:<div className="storyboard-placeholder-card writeback-placeholder-card">
+frontend\app\product\WorldStageWritebackInsightsPanel.jsx:174:{behaviorInsights.scene_capsule.is_fallback && (
+frontend\app\product\hooks\useNearbySession.js:37:const fallbackPrimaryPoiId = payload.world?.pois?.[0]?.id || ''
+frontend\app\product\hooks\useNearbySession.js:38:const fallbackPrimaryZoneId = payload.world?.map2d?.encounter_zones?.[0]?.id || ''
+frontend\app\product\hooks\useNearbySession.js:39:const primaryPoiId = payload.primary_poi_id || fallbackPrimaryPoiId
+frontend\app\product\hooks\useNearbySession.js:40:const primaryZoneId = payload.primary_zone_id || fallbackPrimaryZoneId
+frontend\app\product\hooks\useNearbySession.js:49:...(payload.fallback_mode ? { mode: payload.fallback_mode } : {}),
+frontend\app\product\hooks\useNearbySession.js:51:if (overrideForm || payload.fallback_mode) {
+frontend\app\product\hooks\useNearbySession.js:114:setErrorText('当前浏览器不支持定位，可先使用预设入口或手动填写高级坐标。')
+frontend\app\product\hooks\useWorldSession.js:34:const [originLabel, setOriginLabel] = useState(restoredSession?.originLabel || '离线演示样例')
+frontend\app\product\hooks\useWorldSession.js:35:const [originHint, setOriginHint] = useState(restoredSession?.originHint || '默认先使用随仓库提供的样例数据，实时地图不可用时也能直接查看生成效果。')
+frontend\app\product\mapAdapter\MapAdapter.js:14:throw new Error('Not implemented')
+frontend\app\product\mapAdapter\MapAdapter.js:24:throw new Error('Not implemented')
+frontend\app\product\mapAdapter\MapAdapter.js:33:throw new Error('Not implemented')
+frontend\app\product\mapAdapter\MapAdapter.js:41:throw new Error('Not implemented')
+frontend\app\product\mapAdapter\MapAdapter.js:51:throw new Error('Not implemented')
+frontend\app\product\mapAdapter\MapAdapter.js:61:throw new Error('Not implemented')
+frontend\app\product\mapAdapter\MapAdapter.js:71:throw new Error('Not implemented')
+frontend\app\product\mapAdapter\MapAdapter.js:79:throw new Error('Not implemented')
+frontend\app\product\mapAdapter\MapAdapter.js:87:throw new Error('Not implemented')
+frontend\app\product\mapAdapter\MapAdapter.js:95:throw new Error('Not implemented')
+frontend\app\product\mapAdapter\MapAdapter.js:102:throw new Error('Not implemented')
+frontend\app\product\services\appDisplay.js:38:fixture: '离线样例',
+frontend\app\product\services\appDisplay.js:57:export function formatTagLabel(value, fallback = '未分类') {
+frontend\app\product\services\appDisplay.js:59:return fallback
+frontend\app\product\services\appShellViewModel.js:75:: `${form.radius}m 范围 · ${form.mode === 'fixture' ? '样例街区' : '真实街区'}`,
+frontend\app\product\services\characterEngine.js:2:* FableMap Character Engine — 角色引擎 MVP
+frontend\app\product\services\newcomerTavern.js:56:const exactFallback = candidates.find((item) => item?.id === NEWCOMER_TAVERN_ID && isPublicOpenTavern(item))
+frontend\app\product\services\newcomerTavern.js:57:const publicFallback = candidates.find(isPublicOpenTavern)
+frontend\app\product\services\newcomerTavern.js:59:if (exactFallback || publicFallback) {
+frontend\app\product\services\newcomerTavern.js:60:return exactFallback || publicFallback
+frontend\app\product\services\tavernService.js:189:* 测试一句话会命中哪些世界书条目（不调用 AI，不保存）
+frontend\app\product\services\tavernService.js:235:* 预览输出修正规则效果（不保存）
+frontend\app\product\services\tavernService.js:449:* @returns {Promise<object>} { ok, preview_only, applied, candidates, summary }
+frontend\app\product\services\tavernService.js:537:* 预览社区/SillyTavern 风格预设导入风险（只预览，不保存）。
+frontend\app\product\services\tavernService.js:939:* 创建临时群聊会话
+frontend\app\product\services\tavernService.js:954:* 读取临时群聊会话
+frontend\app\product\services\tavernService.js:968:* 添加临时群聊成员
+frontend\app\product\services\tavernService.js:984:* 更新临时群聊成员发言积极度
+frontend\app\product\services\tavernService.js:1001:* 发送临时群聊消息
+frontend\app\product\services\tavernService.js:1017:* 记录临时群聊中已生成的角色回复
+frontend\app\product\services\tavernService.js:1188:* 预览共享瞬间纪念图提示词（不生成图片、不保存资产）。
+frontend\app\product\services\tavernService.js:1348:* 导出指定访客会话的剧集草稿（不调用 LLM，不保存导出结果）。
+frontend\app\product\worldMap\geometry.js:27:const fallbackPoints = roadNodes.flatMap((road) => road.points || []).filter(Boolean)
+frontend\app\product\worldMap\geometry.js:28:const points = primaryPoints.length ? primaryPoints : secondaryPoints.length ? secondaryPoints : fallbackPoints
+frontend\app\product\worldMap\geometry.js:54:const fallbackCenterX = (focusNode?.tile_position?.x ?? maxX / 2) / maxX
+frontend\app\product\worldMap\geometry.js:55:const fallbackCenterY = (focusNode?.tile_position?.y ?? maxY / 2) / maxY
+frontend\app\product\worldMap\geometry.js:60:centerX: fallbackCenterX,
+frontend\app\product\worldMap\geometry.js:61:centerY: fallbackCenterY,
+frontend\app\product\worldMap\renderers.js:162:function drawPoiFallbackCard(ctx, {
+frontend\app\product\worldMap\renderers.js:228:drawPoiFallbackIcon({
+frontend\app\product\worldMap\renderers.js:546:drawPoiFallbackCard(ctx, {
+frontend\app\product\worldMap\renderers.js:614:export function drawPoiFallbackIcon({ ctx, iconImage, isActive, palette, fantasyType, pos }) {
+frontend\app\routes\create.tsx:15:DEFAULT_OWNER_ID,
+frontend\app\routes\create.tsx:74:const [ownerId, setOwnerId] = useState(DEFAULT_OWNER_ID)
+frontend\app\routes\create.tsx:385:<input name="address" defaultValue={createPrefill.address} placeholder="上海 · 外滩" className="w-full rounded-2xl border border-white/12 bg-white/[0.06] px-4 py-3 text-white outline-none focus:border-cyan-300/60" />
+frontend\app\routes\create.tsx:404:<input name="name" required placeholder="星港夜谈" className="w-full rounded-2xl border border-white/12 bg-white/[0.06] px-4 py-3 text-white outline-none focus:border-cyan-300/60" />
+frontend\app\routes\create.tsx:408:<textarea name="description" rows={3} placeholder="写下店主确认的酒馆氛围。" className="w-full rounded-2xl border border-white/12 bg-white/[0.06] px-4 py-3 text-white outline-none focus:border-cyan-300/60" />
+frontend\app\routes\create.tsx:412:<textarea name="scene_prompt" rows={3} placeholder="这个空间闻起来像雨后的霓虹和热红酒。" className="w-full rounded-2xl border border-white/12 bg-white/[0.06] px-4 py-3 text-white outline-none focus:border-cyan-300/60" />
+frontend\app\routes\create.tsx:431:<input name="character_name" required placeholder="阿珀" className="w-full rounded-2xl border border-white/12 bg-white/[0.06] px-4 py-3 text-white outline-none focus:border-cyan-300/60" />
+frontend\app\routes\create.tsx:435:<input name="character_description" placeholder="记得每位回访者点过的酒" className="w-full rounded-2xl border border-white/12 bg-white/[0.06] px-4 py-3 text-white outline-none focus:border-cyan-300/60" />
+frontend\app\routes\create.tsx:440:<input name="first_mes" placeholder="欢迎回到这里。" className="w-full rounded-2xl border border-white/12 bg-white/[0.06] px-4 py-3 text-white outline-none focus:border-cyan-300/60" />
+frontend\app\routes\create.tsx:566:placeholder="例如：战斗, 等级, 现实名人"
+frontend\app\routes\create.tsx:647:<img src={DEFAULT_NPC_PREVIEW_PORTRAIT} alt="NPC 形象示例" className="h-16 w-16 rounded-2xl border border-white/12 object-cover" loading="lazy" decoding="async" />
+frontend\app\routes\creator.$ownerId.tsx:9:import { DEFAULT_OWNER_ID, errorMessage, listTaverns, type Tavern, type TavernCharacter, type TavernListResponse } from "../lib/taverns"
+frontend\app\routes\creator.$ownerId.tsx:37:const ownerId = params.ownerId || DEFAULT_OWNER_ID
+frontend\app\routes\discover.tsx:115:function compactDisplayText(value: unknown, fallback: string, maxLength = 34) {
+frontend\app\routes\discover.tsx:117:const display = text || fallback
+frontend\app\routes\discover.tsx:277:aria-label={`${name || "角色"} 头像占位`}
+frontend\app\routes\discover.tsx:540:placeholder="搜索坐标、区域、角色或记忆线索…"
+frontend\app\routes\discover.tsx:543:className="flex h-11 w-full rounded-2xl border border-white/10 bg-white/5 px-9 py-2 text-sm text-white placeholder:text-violet-100/40 focus:outline-none focus:ring-2 focus:ring-cyan-300/40"
+frontend\app\routes\home-me.tsx:25:DEFAULT_OWNER_ID,
+frontend\app\routes\home-me.tsx:60:const ownerId = url.searchParams.get("owner_id")?.trim() || DEFAULT_OWNER_ID
+frontend\app\routes\home-me.tsx:99:const ownerId = (formData.get("owner_id") as string) || DEFAULT_OWNER_ID
+frontend\app\routes\home-me.tsx:311:placeholder="例如：赛博茶馆、午夜书房"
+frontend\app\routes\home-me.tsx:324:placeholder="描述一下你的小窝..."
+frontend\app\routes\home-me.tsx:413:placeholder="写下你的留言..."
+frontend\app\routes\home-me.tsx:456:placeholder="发送消息..."
+frontend\app\routes\home-me.tsx:473:const isOwner = true // TODO: 实际根据 userId 判断
+frontend\app\routes\notifications.tsx:7:import { DEFAULT_OWNER_ID } from "../lib/taverns"
+frontend\app\routes\notifications.tsx:14:const userId = searchParams.get("user_id")?.trim() || searchParams.get("owner_id")?.trim() || DEFAULT_OWNER_ID
+frontend\app\routes\notifications.tsx:25:Existing notification MVP
+frontend\app\routes\notifications.tsx:29:这是已有通知 MVP 的表现化入口：复用 WebSocket / 标记已读能力，不新增营销推送协议。
+frontend\app\routes\owner.tsx:28:DEFAULT_OWNER_ID,
+frontend\app\routes\owner.tsx:84:const ownerId = url.searchParams.get("owner_id")?.trim() || DEFAULT_OWNER_ID
+frontend\app\routes\quests.tsx:6:import { DEFAULT_OWNER_ID, errorMessage, listTaverns, type Tavern } from "../lib/taverns"
+frontend\app\routes\quests.tsx:13:const ownerId = url.searchParams.get("owner_id")?.trim() || DEFAULT_OWNER_ID
+frontend\app\routes\quests.tsx:75:本 MVP 只根据现有酒馆列表做前端引导与进度估算；不新增持久化清单 Schema，不发放可交易奖励，不展示任何排名。
+frontend\app\routes\tavern.tsx:15:DEFAULT_OWNER_ID,
+frontend\app\routes\tavern.tsx:16:DEFAULT_VISITOR_ID,
+frontend\app\routes\tavern.tsx:55:DEFAULT_VISITOR_ID
+frontend\app\routes\tavern.tsx:79:function fallbackRoleplayState(tavern: Tavern, characters: TavernCharacter[]): RoleplayState {
+frontend\app\routes\tavern.tsx:107:const [ownerId, setOwnerId] = useState(tavern.owner_id || DEFAULT_OWNER_ID)
+frontend\app\routes\tavern.tsx:108:const [visitorId, setVisitorId] = useState(DEFAULT_VISITOR_ID)
+frontend\app\routes\tavern.tsx:109:const [playerName, setPlayerName] = useState("Demo performer")
+frontend\app\routes\tavern.tsx:240:const fallbackSharePayload = useMemo(
+frontend\app\routes\tavern.tsx:247:() => (serverSharePayload ? buildTavernShareDisplay(serverSharePayload) : fallbackSharePayload),
+frontend\app\routes\tavern.tsx:248:[fallbackSharePayload, serverSharePayload],
+frontend\app\routes\tavern.tsx:256:getTavernShare(tavern.id, DEFAULT_VISITOR_ID)
+frontend\app\routes\tavern.tsx:276:setCopyStatus("当前浏览器不支持自动复制，请手动选中文案复制。")
+frontend\app\routes\tavern.tsx:282:setCopyStatus("当前浏览器不允许自动复制，请手动选中文案复制。")
+frontend\app\routes\tavern.tsx:359:const [visitorId, setVisitorId] = useState(DEFAULT_VISITOR_ID)
+frontend\app\routes\tavern.tsx:362:const [ownerId, setOwnerId] = useState(tavern.owner_id || DEFAULT_OWNER_ID)
+frontend\app\routes\tavern.tsx:432:<textarea value={content} onChange={(event) => setContent(event.target.value)} rows={3} maxLength={500} placeholder="告诉店主这次回访的感受，或希望下次看到什么。" className="w-full rounded-2xl border border-white/12 bg-white/[0.06] px-4 py-3 text-white outline-n…
+frontend\app\routes\tavern.tsx:468:const [ownerId, setOwnerId] = useState(tavern.owner_id || DEFAULT_OWNER_ID)
+frontend\app\routes\tavern.tsx:583:<input value={memberName} onChange={(event) => setMemberName(event.target.value)} placeholder="小石头 / 孩子 / 宠物 / 纪念物" className="w-full rounded-2xl border border-white/12 bg-white/[0.06] px-4 py-3 text-white outline-none focus:border-cyan-300…
+frontend\app\routes\tavern.tsx:595:<input value={memberDescription} onChange={(event) => setMemberDescription(event.target.value)} placeholder="主人确认的展示描述，不自动生成人格。" className="w-full rounded-2xl border border-white/12 bg-white/[0.06] px-4 py-3 text-white outline-none focus:bo…
+frontend\app\routes\tavern.tsx:632:<input value={targetTavernId} onChange={(event) => setTargetTavernId(event.target.value)} placeholder="tavern_xxx" className="w-full rounded-2xl border border-white/12 bg-white/[0.06] px-4 py-3 text-white outline-none focus:border-cyan-300/…
+frontend\app\routes\tavern.tsx:680:const effectiveRoleplay = tavern ? roleplayState || fallbackRoleplayState(tavern, characters) : null
+frontend\public\assets\npcs\public-welfare\char_pw_9_delta\expression-set.prompt.md:42:- not a placeholder, not a UI mockup, not a blank gradient avatar
+frontend\public\assets\npcs\public-welfare\char_pw_9_delta\expression-set.prompt.md:49:- art_style_and_genre: high-contrast digital industrial glitch anime/game concept portrait, convenience-store sci-fi comedy rather than horror; palette_color_science: thermal-paper off-white, cool gray, deep black linework, acid green/viole…
+frontend\public\assets\npcs\public-welfare\char_pw_aheng\expression-set.prompt.md:21:Reverse-engineered FableMap public-welfare NPC expression sprite for char_pw_aheng, expression neutral. Create an original square cyber-tavern NPC portrait with clear expression/body language, visible tavern or service-counter context, stab…
+frontend\public\assets\npcs\public-welfare\char_pw_ahuai\expression-set.prompt.md:42:- not a placeholder, not a UI mockup, not a blank gradient avatar
+frontend\public\assets\npcs\public-welfare\char_pw_dengxin\expression-set.prompt.md:21:Reverse-engineered FableMap public-welfare NPC expression sprite for char_pw_dengxin, expression neutral. Create an original square cyber-tavern NPC portrait with clear expression/body language, visible tavern or service-counter context, st…
+frontend\public\assets\npcs\public-welfare\char_pw_heguang\expression-set.prompt.md:42:- not a placeholder, not a UI mockup, not a blank gradient avatar
+frontend\public\assets\npcs\public-welfare\char_pw_huoyan\expression-set.prompt.md:42:- not a placeholder, not a UI mockup, not a blank gradient avatar
+frontend\public\assets\npcs\public-welfare\char_pw_luming\expression-set.prompt.md:21:Reverse-engineered FableMap public-welfare NPC expression sprite for char_pw_luming, expression neutral. Create an original square cyber-tavern NPC portrait with clear expression/body language, visible tavern or service-counter context, sta…
+frontend\public\assets\npcs\public-welfare\char_pw_mika_nurse\expression-set.prompt.md:21:Reverse-engineered FableMap public-welfare NPC expression sprite for char_pw_mika_nurse, expression neutral. Create an original square cyber-tavern NPC portrait with clear expression/body language, visible tavern or service-counter context,…
+frontend\public\assets\npcs\public-welfare\char_pw_mimi_nya\expression-set.prompt.md:21:Reverse-engineered FableMap public-welfare NPC expression sprite for char_pw_mimi_nya, expression neutral. Create an original square cyber-tavern NPC portrait with clear expression/body language, visible tavern or service-counter context, s…
+frontend\public\assets\npcs\public-welfare\char_pw_mozhan\expression-set.prompt.md:42:- not a placeholder, not a UI mockup, not a blank gradient avatar
+frontend\public\assets\npcs\public-welfare\char_pw_mu_mu\expression-set.prompt.md:22:Create a finished original FableMap cyber-tavern NPC square portrait sprite for 临时店员 Mu-Mu, temporary clerk trying too hard to pass as human. Subject identity: soft elastic non-human body wearing a slightly wrong human convenience-store ves…
+frontend\public\assets\npcs\public-welfare\char_pw_mu_mu\expression-set.prompt.md:42:- not a placeholder, not a UI mockup, not a blank gradient avatar
+frontend\public\assets\npcs\public-welfare\char_pw_mu_mu\expression-set.prompt.md:49:- art_style_and_genre: high-contrast digital industrial glitch anime/game concept portrait, convenience-store sci-fi comedy rather than horror; palette_color_science: thermal-paper off-white, cool gray, deep black linework, acid green/viole…
+frontend\public\assets\npcs\public-welfare\char_pw_nanxing_liaison\expression-set.prompt.md:21:Reverse-engineered FableMap public-welfare NPC expression sprite for char_pw_nanxing_liaison, expression neutral. Create an original square cyber-tavern NPC portrait with clear expression/body language, visible tavern or service-counter con…
+frontend\public\assets\npcs\public-welfare\char_pw_pi_pi\expression-set.prompt.md:42:- not a placeholder, not a UI mockup, not a blank gradient avatar
+frontend\public\assets\npcs\public-welfare\char_pw_pi_pi\expression-set.prompt.md:49:- art_style_and_genre: high-contrast digital industrial glitch anime/game concept portrait, convenience-store sci-fi comedy rather than horror; palette_color_science: thermal-paper off-white, cool gray, deep black linework, acid green/viole…
+frontend\public\assets\npcs\public-welfare\char_pw_qiaoqiao\expression-set.prompt.md:21:Reverse-engineered FableMap public-welfare NPC expression sprite for char_pw_qiaoqiao, expression neutral. Create an original square cyber-tavern NPC portrait with clear expression/body language, visible tavern or service-counter context, s…
+frontend\public\assets\npcs\public-welfare\char_pw_qiaoshou\expression-set.prompt.md:42:- not a placeholder, not a UI mockup, not a blank gradient avatar
+frontend\public\assets\npcs\public-welfare\char_pw_qingyou_records\expression-set.prompt.md:21:Reverse-engineered FableMap public-welfare NPC expression sprite for char_pw_qingyou_records, expression neutral. Create an original square cyber-tavern NPC portrait with clear expression/body language, visible tavern or service-counter con…
+frontend\public\assets\npcs\public-welfare\char_pw_shiyi\expression-set.prompt.md:21:Reverse-engineered FableMap public-welfare NPC expression sprite for char_pw_shiyi, expression neutral. Create an original square cyber-tavern NPC portrait with clear expression/body language, visible tavern or service-counter context, stab…
+frontend\public\assets\npcs\public-welfare\char_pw_suoyin\expression-set.prompt.md:21:Reverse-engineered FableMap public-welfare NPC expression sprite for char_pw_suoyin, expression neutral. Create an original square cyber-tavern NPC portrait with clear expression/body language, visible tavern or service-counter context, sta…
+frontend\public\assets\npcs\public-welfare\char_pw_tongling\expression-set.prompt.md:21:Reverse-engineered FableMap public-welfare NPC expression sprite for char_pw_tongling, expression neutral. Create an original square cyber-tavern NPC portrait with clear expression/body language, visible tavern or service-counter context, s…
+frontend\public\assets\npcs\public-welfare\char_pw_v17\expression-set.prompt.md:42:- not a placeholder, not a UI mockup, not a blank gradient avatar
+frontend\public\assets\npcs\public-welfare\char_pw_v17\expression-set.prompt.md:49:- art_style_and_genre: high-contrast digital industrial glitch anime/game concept portrait, convenience-store sci-fi comedy rather than horror; palette_color_science: thermal-paper off-white, cool gray, deep black linework, acid green/viole…
+frontend\public\assets\npcs\public-welfare\char_pw_xingdai\expression-set.prompt.md:21:Reverse-engineered FableMap public-welfare NPC expression sprite for char_pw_xingdai, expression neutral. Create an original square cyber-tavern NPC portrait with clear expression/body language, visible tavern or service-counter context, st…
+frontend\public\assets\npcs\public-welfare\char_pw_yeyu\expression-set.prompt.md:21:Reverse-engineered FableMap public-welfare NPC expression sprite for char_pw_yeyu, expression neutral. Create an original square cyber-tavern NPC portrait with clear expression/body language, visible tavern or service-counter context, stabl…
+frontend\public\assets\npcs\public-welfare\char_pw_yinpiao\expression-set.prompt.md:21:Reverse-engineered FableMap public-welfare NPC expression sprite for char_pw_yinpiao, expression neutral. Create an original square cyber-tavern NPC portrait with clear expression/body language, visible tavern or service-counter context, st…
+frontend\public\assets\npcs\public-welfare\char_pw_zhideng\expression-set.prompt.md:42:- not a placeholder, not a UI mockup, not a blank gradient avatar
+frontend\scripts\affinity-test.mjs:16:assert(AFFINITY_STAGES.length === 6, 'affinity stage list should expose six positive MVP stages')
+frontend\scripts\ai-character-drafts-test.mjs:23:const fallbackRequest = createAiCharacterDraftRequest({ styleTagsText: '', forbiddenText: '', tone: '  ' })
+frontend\scripts\ai-character-drafts-test.mjs:24:assert.deepEqual(fallbackRequest.style_tags, DEFAULT_AI_DRAFT_STYLE_TAGS)
+frontend\scripts\ai-character-drafts-test.mjs:25:assert.deepEqual(fallbackRequest.forbidden, DEFAULT_AI_DRAFT_FORBIDDEN)
+frontend\scripts\ai-character-drafts-test.mjs:26:assert.equal(fallbackRequest.tone, '')
+frontend\scripts\create-wizard-route-test.mjs:26:assert.ok(!route.includes("用 AI 生成酒馆创意"), "AI draft helper should not stay hardcoded to tavern-only copy")
+frontend\scripts\create-wizard-route-test.mjs:27:assert.ok(!route.includes('alt="赛博酒馆街景"'), "right preview image alt should not stay hardcoded to tavern-only copy")
+frontend\scripts\creator-conversion-test.mjs:30:const fallback = readCreatePrefill(new URLSearchParams("lat=bad&lon=&address=  &source_tavern="))
+frontend\scripts\creator-conversion-test.mjs:31:assert.equal(fallback.lat, "31.2304")
+frontend\scripts\creator-conversion-test.mjs:32:assert.equal(fallback.lon, "121.4737")
+frontend\scripts\creator-conversion-test.mjs:33:assert.equal(fallback.address, "")
+frontend\scripts\creator-conversion-test.mjs:34:assert.equal(fallback.sourceOwnerId, "")
+frontend\scripts\creator-conversion-test.mjs:35:assert.equal(fallback.hasSource, false)
+frontend\scripts\discover-pc-polish-test.mjs:17:assert.ok(discoverSource.includes("CharacterAvatarBadge"), "discover character avatars should have a dedicated fallback badge")
+frontend\scripts\discover-pc-polish-test.mjs:29:"discover side preview tiles should have a luminous background fallback instead of depending on a bare image block",
+frontend\scripts\discover-pc-polish-test.mjs:33:"discover side preview tiles should render project images as background art with a fallback glow",
+frontend\scripts\discover-view-mode-test.mjs:23:assert.ok(!discoverSource.includes("搜索酒馆名称…"), "discover search placeholder should not remain Tavern-only")
+frontend\scripts\gameplay-test.mjs:112:for (const event of node.fallback_events || []) {
+frontend\scripts\gameplay-test.mjs:136:assert.ok(editorSource.includes('fallback_events'))
+frontend\scripts\gm-layer-test.mjs:15:text: async () => '{"ok":true,"preview_only":true,"applied":false,"candidates":[]}',
+frontend\scripts\home-links-test.mjs:12:assert.ok(!homeSource.includes("tavern-1") && !homeSource.includes("tavern-2"), "home page must not link to placeholder tavern IDs")
+frontend\scripts\homepage-dynamic-entry-test.mjs:64:"homepage helper should pick a fallback cover when multiple featured taverns resolve to the same image",
+frontend\scripts\notification-center-test.mjs:16:user_id: 'owner-demo',
+frontend\scripts\notification-center-test.mjs:27:user_id: 'visitor-demo',
+frontend\scripts\notification-center-test.mjs:38:user_id: 'owner-demo',
+frontend\scripts\owner-dialogue-preview-test.mjs:36:assert.equal(preview.preview_only, true)
+frontend\scripts\owner-dialogue-preview-test.mjs:49:const fallback = buildOwnerDialoguePreview({ tavern, character: { name: '空白角色' }, visitorMessage: '' })
+frontend\scripts\owner-dialogue-preview-test.mjs:50:assert.equal(fallback.visitor_message, DEFAULT_OWNER_PREVIEW_MESSAGE)
+frontend\scripts\owner-dialogue-preview-test.mjs:51:assert.equal(fallback.prompt_summary.has_boundary_instruction, false)
+frontend\scripts\owner-dialogue-preview-test.mjs:58:assert.match(component, /preview only/, 'simulator copy should show preview-only boundary')
+frontend\scripts\owner-token-status-test.mjs:20:api_key: 'owner-api-key-placeholder',
+frontend\scripts\personality-templates-test.mjs:101:mes_example: '旧示例',
+frontend\scripts\place-home-contract-test.mjs:50:assert.equal(genericRelationship.relation_type, "care_link", "Relationship type should not be hardcoded to school_enrollment")
+frontend\scripts\playwright-revisit-care-notifications-check.mjs:59:await page.goto(`${baseUrl}/notifications?user_id=owner-demo`, { waitUntil: 'domcontentloaded' })
+frontend\scripts\playwright-revisit-care-notifications-check.mjs:69:await page.getByRole('button', { name: /模拟可触达时段/ }).click()
+frontend\scripts\playwright-short-drama-ux-check.mjs:13:const demoTavern = {
+frontend\scripts\playwright-short-drama-ux-check.mjs:14:id: 'tavern-short-drama-demo',
+frontend\scripts\playwright-short-drama-ux-check.mjs:15:owner_id: 'owner-demo',
+frontend\scripts\playwright-short-drama-ux-check.mjs:101:await page.route('**/api/v1/taverns/tavern-short-drama-demo/roleplay', (route) => route.fulfill(json({
+frontend\scripts\playwright-short-drama-ux-check.mjs:102:tavern_id: demoTavern.id,
+frontend\scripts\playwright-short-drama-ux-check.mjs:105:characters: demoTavern.characters.map((character) => ({ id: character.id, name: character.name })),
+frontend\scripts\playwright-short-drama-ux-check.mjs:108:await page.route('**/api/v1/taverns/tavern-short-drama-demo/share', (route) => route.fulfill(json({
+frontend\scripts\playwright-short-drama-ux-check.mjs:109:tavern_id: demoTavern.id,
+frontend\scripts\playwright-short-drama-ux-check.mjs:110:title: demoTavern.name,
+frontend\scripts\playwright-short-drama-ux-check.mjs:111:summary: demoTavern.description,
+frontend\scripts\playwright-short-drama-ux-check.mjs:112:share_url: `/tavern/${demoTavern.id}`,
+frontend\scripts\playwright-short-drama-ux-check.mjs:113:copy_text: `${demoTavern.name}：${demoTavern.description}`,
+frontend\scripts\playwright-short-drama-ux-check.mjs:116:await page.route('**/api/v1/taverns/tavern-short-drama-demo', (route) => route.fulfill(json(demoTavern)))
+frontend\scripts\playwright-short-drama-ux-check.mjs:119:taverns: [demoTavern],
+frontend\scripts\playwright-short-drama-ux-check.mjs:144:const searchInput = page.getByPlaceholder(/搜索坐标/)
+frontend\scripts\preset-import-preview-test.mjs:17:preview_only: true,
+frontend\scripts\preset-import-preview-test.mjs:29:await service.previewPresetImport('tavern one', { preset_json: '{"name":"demo"}' }, 'owner_a')
+frontend\scripts\preset-import-preview-test.mjs:35:assert.equal(JSON.parse(captured[0].options.body).preset_json, '{"name":"demo"}')
+frontend\scripts\quest-guide-test.mjs:13:owner_id: 'owner-demo',
+frontend\scripts\quest-guide-test.mjs:30:owner_id: 'owner-demo',
+frontend\scripts\quest-guide-test.mjs:40:const summary = buildQuestGuideSummary({ taverns, ownerId: 'owner-demo' })
+frontend\scripts\quest-guide-test.mjs:56:const empty = buildQuestGuideSummary({ taverns: [], ownerId: 'owner-demo' })
+frontend\scripts\runtime-config-centralization-test.mjs:16:assert.ok(existsSync(runtimeConfigPath), "frontend runtime config should centralize demo IDs, newcomer tavern, NPC asset aliases, and atmosphere fallbacks")
+frontend\scripts\runtime-config-centralization-test.mjs:20:assert.ok(tavernsSource.includes("DEMO_TAVERN_IDENTITIES"), "taverns API client should import demo identity defaults from runtime config")
+frontend\scripts\runtime-config-centralization-test.mjs:21:assert.ok(!tavernsSource.includes('"owner-demo"'), "owner-demo literal should not live in the API client")
+frontend\scripts\runtime-config-centralization-test.mjs:22:assert.ok(!tavernsSource.includes('"visitor-demo"'), "visitor-demo literal should not live in the API client")
+frontend\scripts\runtime-config-centralization-test.mjs:26:assert.ok(!newcomerSource.includes("'pw_lantern_helpdesk'"), "newcomer tavern ID should not be locally hardcoded")
+frontend\scripts\runtime-config-centralization-test.mjs:33:assert.ok(homepageSource.includes("FALLBACK_ATMOSPHERE_IMAGES"), "homepage cover fallback pool should be imported from runtime config")
+frontend\scripts\runtime-config-centralization-test.mjs:34:assert.ok(!homepageSource.includes("const FALLBACK_ATMOSPHERE_IMAGES"), "homepage helper should not keep a local fallback image pool")
+frontend\scripts\runtime-config-centralization-test.mjs:49:assert.ok(entryPanelSource.includes("DEFAULT_NPC_PREVIEW_PORTRAIT"), "entry panel NPC fallback should use shared portrait config")
+frontend\scripts\service-contract-test.mjs:72:assert(!listCalled, 'newcomer resolver should not list fallback taverns when the primary tavern is available')
+frontend\scripts\service-contract-test.mjs:75:async function testNewcomerFallbackWhenPrimaryClosed() {
+frontend\scripts\service-contract-test.mjs:76:const fallbackTavern = {
+frontend\scripts\service-contract-test.mjs:91:assert(filters.query === '公益', 'newcomer fallback should search public welfare taverns')
+frontend\scripts\service-contract-test.mjs:92:assert(filters.access === 'public', 'newcomer fallback should only search public taverns')
+frontend\scripts\service-contract-test.mjs:93:assert(filters.status === 'open', 'newcomer fallback should only search open taverns')
+frontend\scripts\service-contract-test.mjs:97:fallbackTavern,
+frontend\scripts\service-contract-test.mjs:103:assert(resolved === fallbackTavern, 'newcomer resolver should fall back when the default tavern is not open')
+frontend\scripts\service-contract-test.mjs:106:async function testNewcomerFallbackWhenPrimaryMissing() {
+frontend\scripts\service-contract-test.mjs:107:const exactFallback = {
+frontend\scripts\service-contract-test.mjs:120:exactFallback,
+frontend\scripts\service-contract-test.mjs:125:assert(resolved === exactFallback, 'newcomer resolver should prefer the default tavern when it appears in fallback results')
+frontend\scripts\service-contract-test.mjs:129:await testNewcomerFallbackWhenPrimaryClosed()
+frontend\scripts\service-contract-test.mjs:130:await testNewcomerFallbackWhenPrimaryMissing()
+frontend\scripts\service-contract-test.mjs:132:console.log(`Tavern service contract ok (${requiredMethods.length} methods, newcomer fallback ok)`)
+frontend\scripts\short-drama-draft-assistant-test.mjs:46:for (const event of node.fallback_events || []) {
+frontend\scripts\tavern-chat-workbench-test.mjs:24:!routeSource.includes("tavern = await getTavern(tavernId, DEFAULT_OWNER_ID)"),
+frontend\scripts\tavern-chat-workbench-test.mjs:25:"loader should use the current viewer identity and must not fall back to owner-demo",
+frontend\scripts\tavern-chat-workbench-test.mjs:37:'placeholder="Type a message',
+frontend\scripts\visual-assets-test.mjs:33:assert.ok(stat.size > 4096, `${file} should be a real atmosphere illustration, not a tiny placeholder`)
+frontend\scripts\visual-assets-test.mjs:74:assert.ok(data.length > 500, `${file} should contain drawn emblem shapes, not an empty placeholder`)
+frontend\scripts\visual-souvenir-test.mjs:15:text: async () => '{"ok":true,"preview_only":true,"image_generated":false}',
+frontend\scripts\voice-greeting-test.mjs:15:text: async () => '{"ok":true,"preview_only":true,"audio_generated":false}',
+tests\test_api.py:5:from unittest.mock import patch
+tests\test_api.py:198:def fake_generate_nearby_preview(**kwargs):
+tests\test_api.py:205:side_effect=fake_generate_nearby_preview,
+tests\test_api.py:229:self.assertEqual(result["fallback_mode"], "fixture")
+tests\test_api.py:230:self.assertIn("network down", result["fallback_reason"])
+tests\test_api.py:231:self.assertIn("离线演示样例", result["fallback_notice"])
+tests\test_api.py:251:"slice_id": "slice_demo_shibuya",
+tests\test_api.py:281:self.assertIn("poi_clocktower_01", stored["slices"]["slice_demo_shibuya"]["familiarity"])
+tests\test_api.py:300:"slice_id": "slice_demo_shibuya",
+tests\test_api.py:360:self.assertIn("fallback_triggered", payload)
+tests\test_api.py:519:run_id="run-demo123",
+tests\test_api.py:525:self.assertEqual(payload["run_id"], "run-demo123")
+tests\test_api.py:526:self.assertEqual(payload["preview_url"], "http://127.0.0.1:8950/generated/run-demo123/bundle/index.html")
+tests\test_api.py:527:self.assertEqual(payload["manifest_url"], "http://127.0.0.1:8950/generated/run-demo123/bundle/manifest.json")
+tests\test_api.py:528:self.assertEqual(payload["world_url"], "http://127.0.0.1:8950/generated/run-demo123/world.json")
+tests\test_api.py:655:self.assertIn("fallback_triggered", payload)
+tests\test_char_card_parser.py:195:def test_parse_auto_reads_charx_archive_with_stub_prefix() -> None:
+tests\test_char_card_parser.py:211:prefix=b"self-extracting-stub",
+tests\test_cli.py:7:from unittest.mock import patch
+tests\test_cli.py:46:fake_world = {
+tests\test_cli.py:47:"world_id": "world-demo",
+tests\test_cli.py:55:return_value=fake_world,
+tests\test_cli.py:56:) as build_world_mock, patch("fablemap_api.core.cli.write_world"):
+tests\test_cli.py:80:kwargs = build_world_mock.call_args.kwargs
+tests\test_cli.py:148:with patch("fablemap_api.core.page.run_page", return_value=0) as run_page_mock:
+tests\test_cli.py:151:args = run_page_mock.call_args.args[0]
+tests\test_cli.py:156:with patch("fablemap_api.core.api.run_api", return_value=0) as run_api_mock:
+tests\test_cli.py:159:args = run_api_mock.call_args.args[0]
+tests\test_default_public_welfare_gameplays.py:13:def test_default_public_welfare_taverns_have_theme_gameplays_and_rules_fallback_runs():
+tests\test_default_public_welfare_gameplays.py:52:assert advanced["source"] in {"fallback", "choice"}
+tests\test_default_public_welfare_gameplays.py:88:assert advanced["source"] in {"fallback", "choice"}
+tests\test_default_public_welfare_gameplays.py:131:assert advanced["source"] in {"fallback", "choice"}
+tests\test_default_public_welfare_taverns.py:854:def test_default_public_welfare_seed_fallback_enter_is_readonly_when_store_is_corrupt():
+tests\test_default_public_welfare_taverns.py:874:def test_default_public_welfare_seed_read_fallback_repairs_partial_seed_records():
+tests\test_default_public_welfare_taverns.py:888:"visitor_id": "visitor-demo",
+tests\test_default_public_welfare_taverns.py:916:assert service.get_tavern_payload("pw_third_shelf_observatory", user_id="visitor-demo")["name"] == "公益·第三货架观测站"
+tests\test_demo.py:8:from fablemap_api.core.demo import _FIXTURE_PATH, main
+tests\test_demo.py:14:class DemoTests(unittest.TestCase):
+tests\test_demo.py:15:def test_demo_runner_writes_world_and_summary(self) -> None:
+tests\test_demo.py:20:output_dir = Path(tmpdir) / "demo-output"
+tests\test_lens_engine.py:19:assert result.fallback is False
+tests\test_lens_engine.py:80:def test_fallback_unknown_district(engine):
+tests\test_lens_engine.py:87:# Should still return a valid lens (fallback)
+tests\test_lens_engine.py:89:assert result.fallback is True
+tests\test_llm_clients.py:110:stream_fallback = llm_clients.complete(
+tests\test_llm_clients.py:125:assert isinstance(stream_fallback, LLMResponse)
+tests\test_llm_clients.py:126:assert stream_fallback.content == "echo:非流式后端"
+tests\test_llm_clients.py:134:class FakeResponse:
+tests\test_llm_clients.py:135:def __enter__(self) -> "FakeResponse":
+tests\test_llm_clients.py:150:def fake_urlopen(request, timeout):
+tests\test_llm_clients.py:155:return FakeResponse()
+tests\test_llm_clients.py:157:monkeypatch.setattr("urllib.request.urlopen", fake_urlopen)
+tests\test_memory_store_adapters.py:54:def test_vector_and_graph_memory_store_stubs_delegate_without_optional_backends():
+tests\test_memory_store_adapters.py:56:vector_store = VectorMemoryStore(fallback=keyword_store)
+tests\test_memory_store_adapters.py:57:graph_store = GraphMemoryStore(fallback=keyword_store)
+tests\test_memory_store_adapters.py:58:tavern_id = "tavern_stub_memory"
+tests\test_memory_store_adapters.py:93:assert graph_hits[0].reason == "graph_stub:keyword_fallback"
+tests\test_memory_store_adapters.py:97:assert related[0].reason == "graph_stub:shared_fields"
+tests\test_nearby.py:7:from unittest.mock import patch
+tests\test_nearby.py:62:fake_world = {
+tests\test_nearby.py:63:"world_id": "world-demo",
+tests\test_nearby.py:66:fake_bundle_result = {
+tests\test_nearby.py:74:return_value=fake_world,
+tests\test_nearby.py:75:) as build_world_mock, patch("fablemap_api.core.nearby.write_world"), patch(
+tests\test_nearby.py:77:return_value=fake_bundle_result,
+tests\test_nearby.py:103:kwargs = build_world_mock.call_args.kwargs
+tests\test_orchestrator.py:200:assert result.fallback_triggered is False
+tests\test_orchestrator.py:203:class StubLLM:
+tests\test_orchestrator.py:235:orchestrator = AIOrchestrator(llm_client=StubLLM(llm_response))
+tests\test_orchestrator.py:242:assert result.fallback_triggered is False
+tests\test_orchestrator.py:252:orchestrator = AIOrchestrator(llm_client=StubLLM("not-json"))
+tests\test_orchestrator.py:255:{"slice_id": "fallback_slice", "observer_count": 1, "pois": []},
+tests\test_orchestrator.py:259:assert result.fallback_triggered is True
+tests\test_overpass.py:5:from unittest.mock import MagicMock, patch
+tests\test_overpass.py:12:def _mock_response(payload: dict) -> MagicMock:
+tests\test_overpass.py:13:response = MagicMock()
+tests\test_overpass.py:15:context_manager = MagicMock()
+tests\test_overpass.py:27:with patch("fablemap_api.core.overpass.urlopen") as urlopen_mock:
+tests\test_overpass.py:30:urlopen_mock.assert_not_called()
+tests\test_overpass.py:33:with patch("fablemap_api.core.overpass.time.sleep") as sleep_mock, patch(
+tests\test_overpass.py:35:side_effect=[URLError("temporary outage"), _mock_response({"elements": []})],
+tests\test_overpass.py:36:) as urlopen_mock:
+tests\test_overpass.py:39:self.assertEqual(urlopen_mock.call_count, 2)
+tests\test_overpass.py:40:sleep_mock.assert_called_once()
+tests\test_overpass.py:45:return_value=_mock_response({"elements": [{"id": 42}]}),
+tests\test_page.py:44:self.assertIn('data-preset="fixture-demo"', html)
+tests\test_preset_import_preview.py:51:assert report["preview_only"] is True
+tests\test_protocol_guard.py:20:assert hasattr(result, 'fallback_triggered')
+tests\test_scene_capsule.py:164:assert isinstance(out.is_fallback, bool)
+tests\test_scene_capsule.py:171:assert not out.is_fallback
+tests\test_scene_capsule.py:187:def test_safety_flags_force_deterministic_fallback(gen):
+tests\test_scene_capsule.py:195:deterministic_fallbacks=["text_panel"],
+tests\test_scene_capsule.py:198:assert out.is_fallback
+tests\test_scene_capsule.py:199:assert out.fallback_reason == "deterministic_ui_fallback"
+tests\test_scene_capsule.py:202:assert out.metadata["deterministic_fallbacks"] == ["text_panel"]
+tests\test_tavern_gameplay_api.py:57:"fallback_events": [{"id": "fallback", "text": "规则兜底继续。", "next_node_id": "complete"}],
+tests\test_tavern_gameplay_models.py:6:choose_fallback_event,
+tests\test_tavern_gameplay_models.py:26:assert gameplay["nodes"][1]["fallback_events"]
+tests\test_tavern_gameplay_models.py:44:def test_fallback_event_is_reproducible_for_same_session_turn_and_node():
+tests\test_tavern_gameplay_models.py:52:"fallback_events": [
+tests\test_tavern_gameplay_models.py:69:first = choose_fallback_event(gameplay, session)
+tests\test_tavern_gameplay_models.py:70:second = choose_fallback_event(gameplay, session)
+tests\test_tavern_gameplay_models.py:85:"fallback_events": [{"id": "fallback", "text": "改用纸质标签。", "next_node_id": "detail"}],
+tests\test_tavern_gameplay_models.py:105:fallback = bad_director.advance(gameplay, session, message="继续")
+tests\test_tavern_gameplay_models.py:106:assert fallback["source"] == "fallback"
+tests\test_tavern_gameplay_models.py:107:assert fallback["event"]["type"] == "random_event"
+tests\test_tavern_gm_layer.py:17:assert preview["preview_only"] is True
+tests\test_tavern_gm_layer.py:34:assert card["metadata"]["preview_only"] is True
+tests\test_tavern_qa04_prompt_output.py:334:# Degraded response persisted via API (mock LLM)
+tests\test_tavern_qa04_prompt_output.py:335:class MockResponse:
+tests\test_tavern_qa04_prompt_output.py:338:class MockClient:
+tests\test_tavern_qa04_prompt_output.py:340:return MockResponse()
+tests\test_tavern_state_cards.py:36:def test_state_card_normalization_and_candidate_extraction_cover_mvp_categories():
+tests\test_visual_souvenir.py:16:assert preview["preview_only"] is True
+tests\test_voice_greeting.py:32:assert preview["preview_only"] is True
+docs\AI_SHARED_TASKLIST.md:30:| FM-VT-P0-05 | 记忆面板 MVP | done | 旧共享任务完成，详细实现记录已从本文件移除 |
+docs\AI_SHARED_TASKLIST.md:105:## 4. 后续新增规划
+docs\AI_SHARED_TASKLIST.md:107:2026-04-30 已把后续 brainstorm / deferred 规划拆入 Trellis，汇总见：
+docs\AI_SHARED_TASKLIST.md:115:本文件不再复制这些新规划列表，避免 Trellis 与 docs 双写漂移。
+docs\AI参与开发协议.md:136:- 优先最小闭环：先做可展示、可测试、可收口的 MVP，再决定是否扩展
+docs\AI参与开发协议.md:230:- 示例世界数据更新
+docs\ARCHITECTURE.md:77:- [`backend/src/fablemap_api/core/tavern.py`](../backend/src/fablemap_api/core/tavern.py)（规划）
+docs\ARCHITECTURE.md:90:- [`backend/src/fablemap_api/core/char_card_parser.py`](../backend/src/fablemap_api/core/char_card_parser.py)（规划）
+docs\ARCHITECTURE.md:101:- [`backend/src/fablemap_api/core/llm_clients.py`](../backend/src/fablemap_api/core/llm_clients.py)（规划）
+docs\ARCHITECTURE.md:102:- `fablemap_data/taverns_keyvault.json`（规划）
+docs\ARCHITECTURE.md:145:- 保持 deterministic / preview-only：不调用 LLM，不写入 `_state_cards`，不修改店主设定、角色卡、WorldInfo 或访问规则。
+docs\ARCHITECTURE.md:155:- 返回 `preview_only=true`、`applied=false`，并带 `metadata.gm_layer="structured_conflict_v1"`。
+docs\ARCHITECTURE.md:162:- 作为记录导出，不做 LLM 改写、不自动续写、不保存导出结果。
+docs\ARCHITECTURE.md:178:- 返回可供前端后续显式调用 `/tts` 的 `tts_request`，但 preview 本身不合成音频。
+docs\ARCHITECTURE.md:187:- 返回 `preview_only=true`、`audio_generated=false`，不消耗 owner TTS/API Key。
+docs\ARCHITECTURE.md:195:- 只返回 prompt / negative prompt / privacy notes，不生成图片、不写入文件、不保存资产。
+docs\ARCHITECTURE.md:211:- 让店主显式启用/关闭 NPC 能力包，MVP 内置 `local-rumor` 环境传闻。
+docs\ARCHITECTURE.md:311:- 默认公益酒馆提供贴合主题的 published 玩法，便于无外部 API Key 时体验 fallback 主持。
+docs\ARCHITECTURE.md:378:- `backend/src/fablemap_api/core/llm_clients.py`（规划）
+docs\ARCHITECTURE.md:387:- `backend/src/fablemap_api/core/prompt_builder.py`（规划）
+docs\ARCHITECTURE.md:397:- `backend/src/fablemap_api/core/world_info_injector.py`（规划）
+docs\ARCHITECTURE.md:410:- `fablemap_data/chat_history/`（规划）
+docs\ARCHITECTURE.md:412:### 5.5 AI Director / Gameplay Fallback
+docs\ARCHITECTURE.md:417:- AI 不可用、返回非法 JSON 或指向不存在节点时，按当前节点 fallback 事件池推进。
+docs\ARCHITECTURE.md:425:- fallback 使用 `session_id + turn_count + node_id` 生成可回放 seed，并写入 `GameplayEvent`。
+docs\ARCHITECTURE.md:511:| POST | `/api/v1/taverns/{id}/episodes/export` | 导出指定访客会话的 Markdown/JSON 剧集草稿；不调用 LLM、不保存 |
+docs\ARCHITECTURE.md:512:| POST | `/api/v1/taverns/{id}/voice-greeting/preview` | 预览 NPC 开场白和 TTS 请求参数；不合成音频、不保存 |
+docs\ARCHITECTURE.md:513:| POST | `/api/v1/taverns/{id}/visual-souvenir/preview` | 预览共享瞬间纪念图提示词；不生成图片、不保存 |
+docs\ARCHITECTURE.md:515:| POST | `/api/v1/taverns/{id}/state-cards` | 创建手动状态卡或候选卡 |
+docs\ARCHITECTURE.md:539:└── 无 AI / 非法 AI：fallback_events 可回放随机推进
+docs\CURRENT_TASKS.md:84:| T4.1 我的酒馆面板 | `done` | 店主控制台 MVP：酒馆摘要、筛选、刷新、创建/编辑/AI 配置/删除入口 |
+docs\CURRENT_TASKS.md:137:| P2-06 高级记忆图 / RAG 预研 | `done` | 新增 MemoryStore 接口、KeywordMemoryStore 默认 JSON 适配器、VectorMemoryStore / GraphMemoryStore stub；为后续向量检索和图数据库预留替换口，不引入新依赖 |
+docs\CURRENT_TASKS.md:153:| QA-01 开店向导回归测试 | `done` | 新增 `tests/test_tavern_create_wizard_regression.py`，覆盖公开 / 密码 / 私人酒馆、无 AI 配置、AI 测试成功 / 失败、导入角色卡和手动创建角色 |
+docs\CURRENT_TASKS.md:163:| GC-01~04 群聊基础框架 | `done` | 群聊模型、发言选择策略、临时上下文注入已有实现 |
+docs\FABLEMAP_ROADMAP_PHASE2.md:80:| 类型 | 描述 | 示例 |
+docs\FABLEMAP_ROADMAP_PHASE2.md:214:| 类型 | 描述 | 示例 |
+docs\FABLEMAP_ROADMAP_PHASE2.md:302:| P3 | **跨酒馆剧情线** | D | 高复杂度，需长期规划 |
+docs\FABLEMAP_ROADMAP_PHASE2.md:338:3. **需要规划**：角色卡市场（C1）
+docs\FABLEMAP_TAVERN_PLATFORM.md:23:- **AI 即灵魂**：酒馆内的 NPC 默认由 AI 驱动；平台可辅助生成待审核 AI 草稿，也可以在店主审批下由玩家临时扮演
+docs\FABLEMAP_TAVERN_PLATFORM.md:85:- 或手动填写：姓名、性格、场景设定、系统提示词、首次发言
+docs\FABLEMAP_TAVERN_PLATFORM.md:226:mes_example: string;           // 示例回复格式（给 AI 参考风格）
+docs\FABLEMAP_TAVERN_PLATFORM.md:763:- [ ] 最简 Chat Panel 接入（硬编码 system prompt，mock LLM）
+docs\FABLEMAP_TAVERN_PLATFORM.md:834:"mes_example": "示例回复",
+docs\IMAGE_ASSETS_SPEC.md:11:- 所有实际素材图生成必须遵守 Prompt-first：先用项目 skill 生成并记录最终 Prompt / Prompt manifest，再用该 Prompt 调用生图工具；不允许直接从未记录的临时描述调图。
+docs\IMAGE_ASSETS_SPEC.md:16:- `.codex/generated_images`、系统临时目录、浏览器下载目录和聊天预览只算生成来源，不算项目资源目录。
+docs\IMAGE_ASSETS_SPEC.md:28:asset: frontend/public/assets/npcs/public-welfare/char_pw_demo/neutral.png
+docs\IMAGE_ASSETS_SPEC.md:32:character_id: char_pw_demo
+docs\IMAGE_ASSETS_SPEC.md:71:asset_group: frontend/public/assets/npcs/public-welfare/char_pw_demo/
+docs\IMAGE_ASSETS_SPEC.md:72:assets: frontend/public/assets/npcs/public-welfare/char_pw_demo/neutral.png; frontend/public/assets/npcs/public-welfare/char_pw_demo/joy.png
+docs\IMAGE_ASSETS_SPEC.md:78:character_id: char_pw_demo
+docs\IMAGE_ASSETS_SPEC.md:131:| 背景 | 酒馆内景，不是透明背景，不是纯色占位 |
+docs\IMAGE_ASSETS_SPEC.md:173:`AI 草稿` 示例角色「眯眯喵桑」属于已批准默认 demo seed，专属头像 / 表情素材作为公开 URL 按角色目录存放在：
+docs\IMAGE_ASSETS_SPEC.md:184:这些文件由 `backend/src/fablemap_api/core/default_taverns.py` 的默认角色 `avatar` / `sprites` 引用；它们不是通用 fallback，也不会被写回其他店主角色。
+docs\IMAGE_ASSETS_SPEC.md:192:- 优先级保持：`sprites.neutral` → `avatar` → `image_url` → project fallback portrait
+docs\IMAGE_ASSETS_SPEC.md:293:"renderer_profile": "single_image_prompt | batch_prompt_manifest | prompt_preview_only | future_api_payload",
+docs\IMAGE_ASSETS_SPEC.md:341:"forbidden_text": ["logos", "fake brand slogans", "visitor-private data"]
+docs\IMAGE_ASSETS_SPEC.md:396:no transparent background, no blank placeholder, no readable text, no logo, no watermark, no existing IP, no living-artist imitation, no photorealistic human, no real-person portrait, no celebrity likeness, no live-action cosplay, no stock …
+docs\INDEX.md:28:| [docs/AI_SHARED_TASKLIST.md](AI_SHARED_TASKLIST.md) | VisionTale 参考后的共享任务清单：开店向导、预设、记忆、世界书、UGC 包 | ✅ 待实现 / 可认领 |
+docs\NPC角色创建指南.md:30:| 对话示例 | 示例对话（1-2 组） | 50-200 字 |
+docs\NPC角色创建指南.md:43:### 1.3 对话示例格式
+docs\NPC角色创建指南.md:133:### 3.3 角色示例
+docs\NPC角色创建指南.md:140:**生成提示词示例：**
+docs\NPC角色创建指南.md:147:## 四、角色示例：「岚泊」完整设定
+docs\NPC角色创建指南.md:169:### 对话示例
+docs\NPC角色创建指南.md:187:- [ ] 对话示例（1-2 组）
+docs\NPC角色素材生成说明.md:19:| `mes_example` | string | 示例对话，格式参考 SillyTavern | 50-200 字 |
+docs\NPC角色素材生成说明.md:33:**示例：**
+docs\NPC角色素材生成说明.md:86:| 字段 | 说明 | 示例 |
+docs\NPC角色素材生成说明.md:91:**示例文件名（按角色目录）：**
+docs\NPC角色素材生成说明.md:192:### 3.3 角色示例：「岚泊」
+docs\NPC角色素材生成说明.md:199:**生成示例：**
+docs\NPC角色素材生成说明.md:206:## 四、JSON 字段配置示例
+docs\NPC角色素材生成说明.md:250:- [ ] `mes_example` — 示例对话
+docs\NPC角色素材生成说明.md:285:- 现有角色卡示例：`.trellis/tasks/archive/2026-04/04-27-additional-npc-cast/character-cards.md`
+docs\PRODUCT_BRIEF.md:30:- **AI 即灵魂**：酒馆内的 NPC 默认由 AI 驱动；平台也可以生成待审核的 AI 草稿，或在店主审批下允许玩家临时扮演
+docs\PRODUCT_BRIEF.md:84:5. 添加 NPC 角色：导入 SillyTavern 角色卡 JSON、手动填写，或审核并确认平台生成的 AI 草稿
+docs\PRODUCT_BRIEF.md:129:- **展示性强**：非常适合 demo 视频、酒馆展示和社区传播
+docs\WHAT_NOT_TO_BUILD.md:37:- 店主手动配置角色、描述和设定
+docs\WHAT_NOT_TO_BUILD.md:130:- 路线规划、POI 搜索、评分系统
+docs\WHAT_NOT_TO_BUILD.md:165:- 添加路线规划
+docs\WHAT_NOT_TO_BUILD.md:204:- v1.3 (2026-04-24): 放开店主审批的玩家扮演 NPC MVP，同时继续禁止跨酒馆社交网络
+docs\WORLD_SCHEMA.md:66:// ── Place/Home MVP (v0.7) ─────────
+docs\WORLD_SCHEMA.md:124:`Place` 是当前 Tavern 兼容层上的概念扩展，不是脱离真实地图的新自由空间。MVP 中所有 Place/Home 仍复用 `Tavern` 的 `id/lat/lon/owner_id/access/status` 等字段。
+docs\WORLD_SCHEMA.md:151:source_tavern_id: string;           // 当前 MVP 为 Home Tavern.id
+docs\WORLD_SCHEMA.md:244:mes_example: string;           // 示例回复格式（给 AI 参考风格）
+docs\WORLD_SCHEMA.md:278:`AI 草稿` 是平台辅助店主创作 NPC 的临时状态，不是新的持久化 Schema。MVP 中，平台只生成未发布的角色卡字段草稿：
+docs\WORLD_SCHEMA.md:478:fallback_events: GameplayFallbackEvent[];
+docs\WORLD_SCHEMA.md:488:interface GameplayFallbackEvent {
+docs\WORLD_SCHEMA.md:525:seed?: string;                 // fallback 可回放随机种子
+docs\WORLD_SCHEMA.md:526:source?: 'system' | 'choice' | 'ai' | 'fallback' | string;
+docs\WORLD_SCHEMA.md:535:- AI Director 只能在店主给出的玩法定义和安全边界内主持；没有可用 AI 或 AI 返回非法结构时，使用节点 `fallback_events`。
+docs\WORLD_SCHEMA.md:542:Tavern Skill Packs 是店主显式启用的 NPC 能力包：它让 NPC “可以做某类被允许的事”，但不改变 TavernCharacter 身份、世界书、访问规则、LLM 配置或 StateCard 正史。MVP 只内置 `local-rumor`（环境传闻）技能包。
+docs\WORLD_SCHEMA.md:629:| POST | `/api/v1/taverns/{id}/state-cards` | 创建手动状态卡或候选卡；访客只能创建自己的 `pending visitor` 卡 |
+docs\WORLD_SCHEMA.md:693:系统内置枚举，MVP 不开放店主自定义，分两类：
+docs\WORLD_SCHEMA.md:743:expires_at?: string;            // 过期时间（MVP 不启用）
+docs\WORLD_SCHEMA.md:830:- v1.2 (2026-04-29): 增加 Tavern Skill Packs MVP：`Tavern.skill_packs` 持久字段、`local-rumor` 环境传闻技能包、店主 `GET/PUT /skill-packs` 配置端点；技能包只能启用显式能力，不自动改写角色、世界书、记忆或正史状态卡。
+docs\WORLD_SCHEMA.md:835:- v0.7 (2026-04-27): 增加 Place/Home MVP Schema：`place_type`、`HomeMember`、可扩展 `PlaceRelationshipType`/`PlaceRelationship`、学校成员摘要与 Home 默认私密 / 跨主人审批边界；`school_enrollment` 是关系类型之一而非唯一关系。
+docs\WORLD_SCHEMA.md:837:- v0.5 (2026-04-27): 增加 AI 草稿边界说明；AI 草稿是未发布临时状态，确认后才映射为现有 TavernCharacter，MVP 不新增持久 Schema。
+docs\changes\2026-04-09-t0-2-frontend-boundary-split.md:93:新增 [`frontend/src/WorldStageActivePoiPanel.jsx`](../../frontend/src/WorldStageActivePoiPanel.jsx)，承接当前舞台卡头部、空状态占位、回到上次写回目标入口，以及对 [`frontend/src/WorldStageWritebackActionPanel.jsx`](../../frontend/src/WorldStageWritebackActionPanel.jsx) 与 [`…
+docs\changes\2026-04-13-auto-snapshot-cache.md:30:### 手动操作
+docs\changes\2026-04-13-auto-snapshot-cache.md:32:- "抓取当前快照"按钮仍可用，用户可手动刷新快照
+docs\changes\2026-04-13-auto-snapshot-cache.md:51:- 快照过期：地点切片数据变化后，快照可能与实际不符（用户可手动刷新）
+docs\changes\2026-04-13-c1-character-engine-mvp.md:1:# C1 Character Engine MVP — 角色引擎
+docs\changes\2026-04-13-c1-character-engine-mvp.md:50:- `docs/claims/2026-04-13-c1-character-engine-mvp.md`
+docs\changes\2026-04-17-p1-04-worldbook-hit-tester.md:22:- 支持传入未保存的世界书条目（测试编辑器临时更改）
+docs\changes\2026-04-17-p1-07-output-rules.md:6:- 内置默认输出规则：去除 AI 自称、OOC 开头、总结式标题、压缩多余空行、玩家主导权示例。
+docs\changes\2026-04-17-t2-1-character-editor-ui.md:5:T2.1 原为 `partial`：创建流程已有基础角色导入和手动添加，但缺少完整字段编辑、已有酒馆角色维护，以及头像/表情立绘的持久化闭环。
+docs\changes\2026-04-17-t2-1-character-editor-ui.md:9:- 新增 `CharacterEditor.jsx`，统一编辑角色名称、描述、性格、场景、系统提示词、开场白、示例对话、备用开场白、标签、默认头像和标准表情立绘。
+docs\changes\2026-04-17-t2-1-character-editor-ui.md:10:- 创建酒馆 Step 3 支持编辑已导入角色，并用同一编辑器手动新增角色。
+docs\changes\2026-04-17-t2-1-character-editor.md:30:- 编辑区：`.char-mgmt-editor-area`、`.char-mgmt-editor-placeholder`、`.char-editor-wrapper`
+docs\changes\2026-04-17-t4-1-owner-console-mvp.md:1:# T4.1 Owner Console MVP — 我的酒馆控制台
+docs\changes\2026-04-17-t4-1-owner-console-mvp.md:5:本次变更完成 Phase 4 的 `T4.1 我的酒馆面板` MVP 收口，把已有店主管理列表整理成可直接使用的控制台入口。
+docs\changes\2026-04-17-t4-1-owner-console-mvp.md:37:- 将 `T4.1 我的酒馆面板` 标记为 `done`，说明当前完成的是 MVP 控制台能力。
+docs\changes\2026-04-17-t4-2-llm-config-ui.md:13:在 `TavernCreatePanel` Step 2（AI 配置步骤）中，用 `LLMConfigForm` 组件替换手动表单字段，使店主在创建酒馆时即可使用完整的 24 后端选择界面。
+docs\changes\2026-04-17-t4-2-llm-config-ui.md:16:`TavernCreatePanel` Step 2 原有实现只提供了 4 个后端选项（OpenAI/Claude/Ollama/OpenRouter）的 `<select>` 下拉框，以及手动的模型名/API Key/端点输入框。
+docs\changes\2026-04-17-t4-2-llm-config-ui.md:36:- 移除了手动编写的 6 个表单控件（后端选择、模型输入、API Key、端点、温度滑块）
+docs\changes\2026-04-17-t4-3-token-usage-panel.md:24:- 在 tavern chat LLM 调用前初始化 response，避免 LLM 失败并走 fallback 时 token 统计引用未定义变量。
+docs\changes\2026-04-17-t5-1-expression-sprites.md:11:- 当前角色栏展示当前表情、推断来源和手动表情选择。
+docs\changes\2026-04-17-t5-13-visitor-session-drilldown.md:12:但二者之间还缺少直接跳转。店主看到某个高回访访客后，需要手动回到会话摘要区寻找对应会话。
+docs\changes\2026-04-17-t5-3-llm-degradation.md:51:- `buildFallbackReply` 未修改
+docs\changes\2026-04-17-t6-1-voice-stt-tts.md:68:- **语音文件**: 临时文件，需要前端及时消费 (createObjectURL)
+docs\changes\2026-04-17-ux-01-02-theme-and-discovery-cards.md:18:- 双栏网格卡片（封面图占位、名称、状态、入口、距离、角色数、访问次数）
+docs\changes\2026-04-18-fm-vt-qa-01-create-wizard-regression.md:19:- 覆盖 SillyTavern 角色卡导入、手动角色追加、角色标签 / 精灵图 / 世界书条目持久化。
+docs\changes\2026-04-18-p2-02-03-auto-memory-injection.md:3:把结构化记忆从手动 CRUD 推进到聊天后自动沉淀，并接入 Prompt 预算选择，让记忆可以成为对话连续性的默认能力。
+docs\changes\2026-04-18-p2-02-03-auto-memory-injection.md:14:| `frontend/src/TavernMemoryPanel.jsx` | 访客记忆面板支持结构化记忆列表、手动添加、固定、删除、标错和新记忆提示 |
+docs\changes\2026-04-18-p2-06-memory-store-adapters.md:10:| `fablemap/vectors.py` | 新增 `VectorMemoryStore` stub；无 embedder 时回退关键词检索 |
+docs\changes\2026-04-18-p2-06-memory-store-adapters.md:11:| `fablemap/memory_graph.py` | 新增 `GraphMemoryStore` stub；提供轻量 related-atoms 查询 |
+docs\changes\2026-04-18-p2-06-memory-store-adapters.md:13:| `tests/test_memory_store_adapters.py` | 覆盖 JSON 适配器、向量 stub 回退和图 stub 关联查询 |
+docs\changes\2026-04-20-fm-vt-gc-01-group-chat-character-presets.md:3:为酒馆补齐轻量群聊模式 MVP，并把系统预设角色接入开店向导、角色管理和角色外观展示。
+docs\changes\2026-04-20-fm-vt-gc-01-group-chat-character-presets.md:11:| `fablemap/web/router.py` | 临时群聊会话 API 返回策略与回复上限，并按配置选择说话角色 |
+docs\changes\2026-04-20-fm-vt-gc-01-group-chat-character-presets.md:17:| `frontend/src/CharacterAvatar.jsx` | 统一角色头像渲染，支持外观效果与占位头像 |
+docs\changes\2026-04-20-fm-vt-gc-01-group-chat-character-presets.md:35:- 群聊模式会先创建临时群聊会话，再由选择器决定本轮接话角色。
+docs\changes\2026-04-20-fm-vt-gc-01-group-chat-character-presets.md:38:- 角色头像在没有图片 URL 时使用外观预设生成稳定占位样式。
+docs\changes\2026-04-20-fm-vt-gc-02-group-chat-session-continuity.md:3:在 GC-01 群聊 MVP 基础上，为临时群聊会话补齐真实角色回复回写，让后续轮次的群聊选择和上下文能看到上一轮谁说过什么。
+docs\changes\2026-04-20-fm-vt-gc-02-group-chat-session-continuity.md:12:| `frontend/src/TavernChatRoom.jsx` | 群聊角色回复生成后，尽量回写到临时群聊会话，失败不阻断聊天 |
+docs\changes\2026-04-20-fm-vt-gc-02-group-chat-session-continuity.md:19:- 每个群聊角色回复生成后，会调用 `/api/group/{session_id}/record` 写回临时群聊会话。
+docs\changes\2026-04-20-fm-vt-gc-03-group-chat-ui-stability.md:16:- 群聊消息会在进入群聊模式或更换房间时重置，避免不同地点的临时群聊上下文混在一起。
+docs\changes\2026-04-20-fm-vt-gc-04-group-context-prompt-injection.md:3:把 GC-02 里已经形成的临时群聊 context 接入真实的 Tavern Chat 生成入口，避免群聊只“选人”而每个角色实际生成时仍只看自己的单聊历史。
+docs\changes\2026-04-20-fm-vt-gc-07-frontend-group-chat-api.md:20:- 未移除或重命名已有临时群聊 `/api/group/*` 前端方法，避免影响当前 `TavernChatRoom` 兼容链路。
+docs\changes\2026-04-20-fm-vt-gc-07-frontend-group-chat-api.md:21:- 未实现新的群聊 UI；多人聊天房间仍留给 GC-08。
+docs\changes\2026-04-20-fm-vt-gc-07-frontend-group-chat-api.md:50:- 当前仍保留临时群聊方法和酒馆级群聊方法两套入口；后续 UI 收口时需要明确选择使用哪套链路。
+docs\changes\2026-04-20-fm-vt-gc-08-tavern-group-chat-room.md:5:GC-07 已在 `tavernService.js` 封装酒馆级群聊接口，但访客聊天房间仍使用临时 `/api/group/*` 选择器，再对每个角色走单聊生成。这样会让群聊 UI、持久群聊历史和酒馆级 API 脱节。
+docs\changes\2026-04-20-fm-vt-gc-08-tavern-group-chat-room.md:27:- 未移除 `tavernService.js` 中已有临时 `/api/group/*` 兼容方法。
+docs\changes\2026-04-20-fm-vt-gc-09-owner-group-chat-settings.md:13:| `.gitignore` | 忽略本地 pytest 临时目录，避免失败重试生成的不可访问临时目录污染 `git status` |
+docs\changes\2026-04-20-ux-instant-newcomer-trial.md:7:- 未填写昵称时自动生成临时访客称呼。
+docs\changes\2026-04-20-ux-instant-newcomer-trial.md:18:- `frontend/src/FirstRunModeModal.jsx`
+docs\changes\2026-04-29-owner-state-card-panel.md:5:店主侧状态卡（Canon Ledger）管理面板已完成。店主可查看酒馆所有状态卡（按状态/类型/范围筛选），确认/拒绝/替换访客提出的候选卡，以及手动创建酒馆级正史卡。
+docs\changes\2026-04-29-owner-state-card-panel.md:16:- **创建正史卡**：店主可手动创建 canon_scope=tavern 的状态卡（类型/标题/摘要），创建后进入 pending 待确认状态
+docs\changes\2026-04-29-public-welfare-tavern-reclassification.md:21:- 新增 NPC 均为平台默认公益示例角色，不替店主自动生成或发布用户酒馆内容。
+docs\changes\2026-04-30-episode-export.md:21:- 不保存导出结果。
+docs\changes\2026-04-30-gm-layer-preview.md:16:- 新增 Trellis backend/frontend 规范，明确 preview-only / no-persistence / State Card 确认边界。
+docs\changes\2026-04-30-gm-layer-preview.md:40:- 当前抽取是关键词规则，只适合作为安全预览 MVP；不是完整 GM 叙事引擎。
+docs\changes\2026-04-30-gm-layer-preview.md:41:- 未来若接入 LLM，仍必须保留 preview-only 与 State Card 确认边界。
+docs\changes\2026-04-30-preset-import-preview.md:5:社区 / SillyTavern 风格预设常混合安全风格提示、模型参数和高风险越狱内容。店主需要在手动迁移前先看到风险报告，而不是让平台直接应用外部预设。
+docs\changes\2026-04-30-preset-import-preview.md:13:- 新增 Trellis backend/frontend 规范，明确 preview-only 与 no-persistence 边界。
+docs\changes\2026-04-30-visual-souvenir-preview.md:5:父任务提出 `visual-souvenir`：把玩家和 NPC 的共享瞬间变成可留念的资产。但图片生成涉及隐私、人物相似、临时文件和项目资源落盘规范，因此本切片先实现 no-image prompt preview。
+docs\changes\2026-04-30-visual-souvenir-preview.md:20:- 不生成图片，不调用图片模型或 `image_gen`。
+docs\changes\2026-04-30-visual-souvenir-preview.md:22:- 不保存提示词或纪念图草稿。
+docs\claims\2026-04-09-t0-2-frontend-boundary-split.md:56:- 若实现过程中发现需要协议或主链路口径调整，应停止执行并先回到规划阶段
+docs\claims\2026-04-13-c1-character-engine-mvp.md:1:# C1 任务认领：Character Engine MVP
+docs\claims\2026-04-13-c1-character-engine-mvp.md:7:Character Engine MVP：定义 character/persona/mood/relationship/agenda/memory 结构
+docs\claims\2026-04-13-c1-character-engine-mvp.md:47:### Phase 3：UI 集成（可选 MVP 范围外）
+docs\claims\2026-04-13-c1-character-engine-mvp.md:48:- 在 WorldStageActivePoiPanel 中展示角色信息（需要确认是否属于 MVP）
+docs\claims\2026-04-13-c1-character-engine-mvp.md:50:## MVP 范围
+docs\claims\2026-04-13-c1-character-engine-mvp.md:51:Phase 1 + Phase 2 足以满足 C1 MVP 定义。
+docs\claims\2026-04-13-l3-place-entry-flow.md:24:- WorldStageActivePoiPanel 有 placeholder 当没有选中地点时
+docs\claims\2026-04-17-t2-1-character-editor-ui.md:21:1. 创建酒馆时可编辑导入/手动新增的角色卡字段。
+docs\claims\2026-04-17-t4-1-owner-console-mvp.md:1:# T4.1 任务认领：我的酒馆控制台 MVP 收口
+docs\claims\2026-04-17-t4-1-owner-console-mvp.md:19:把现有 `TavernOwnerPanel` 从基础列表推进为可用的店主控制台 MVP：
+docs\claims\2026-04-17-t4-1-owner-console-mvp.md:23:3. 店主能手动刷新列表，并清楚看到读取、错误、空结果状态。
+docs\claims\2026-04-17-t4-1-owner-console-mvp.md:30:- `docs/claims/2026-04-17-t4-1-owner-console-mvp.md`
+docs\claims\2026-04-17-t4-1-owner-console-mvp.md:31:- `docs/changes/2026-04-17-t4-1-owner-console-mvp.md`
+docs\claims\2026-04-17-t4-1-owner-console-mvp.md:46:- 店主控制台 MVP 前端实现。
+docs\claims\2026-04-17-t4-2-llm-config-ui.md:21:1. 在 `TavernCreatePanel` Step 2 使用 `LLMConfigForm` 替代手动表单字段。
+docs\claims\2026-04-18-fm-vt-qa-01-create-wizard-regression.md:19:为 3 分钟开店向导的关键提交链路补充回归测试，覆盖公开、密码、私人酒馆创建，无 AI 配置时的状态，LLM 配置测试成功 / 失败，以及导入角色卡和手动创建角色后的持久化行为。
+docs\claims\2026-04-20-fm-vt-gc-01-group-chat-character-presets.md:7:群聊模式 MVP 与系统预设角色外观
+docs\claims\2026-04-20-fm-vt-gc-01-group-chat-character-presets.md:25:5. 角色头像、角色列表、聊天栏和角色详情能展示外观预设摘要，缺少图片时仍有稳定占位头像。
+docs\claims\2026-04-20-fm-vt-gc-01-group-chat-character-presets.md:69:- 聊天房间在群聊开启时创建临时群聊会话，并按成员响应返回多条角色消息。
+docs\claims\2026-04-20-fm-vt-gc-02-group-chat-session-continuity.md:7:群聊临时会话回复回写
+docs\claims\2026-04-20-fm-vt-gc-02-group-chat-session-continuity.md:19:在 GC-01 群聊 MVP 的基础上，让临时群聊会话记录真实角色回复，避免群聊选择器只看到用户发言：
+docs\claims\2026-04-20-fm-vt-gc-02-group-chat-session-continuity.md:23:3. 前端群聊发送完成后，将每个角色的真实回复同步回临时群聊会话。
+docs\claims\2026-04-20-fm-vt-gc-02-group-chat-session-continuity.md:36:- 不把临时群聊会话落为永久聊天历史。
+docs\claims\2026-04-20-fm-vt-gc-02-group-chat-session-continuity.md:47:- 群聊临时会话 `message_count` 会包含用户消息和已记录的角色回复。
+docs\claims\2026-04-20-fm-vt-gc-03-group-chat-ui-stability.md:19:在 GC-01 / GC-02 的群聊 MVP 基础上，修复群聊房间内点击左侧角色时误触发单聊切换逻辑的问题：
+docs\claims\2026-04-20-fm-vt-gc-04-group-context-prompt-injection.md:7:群聊临时上下文注入 Tavern Chat Prompt
+docs\claims\2026-04-20-fm-vt-gc-04-group-context-prompt-injection.md:19:在 GC-02 已经能记录临时群聊会话的基础上，让 `/api/group/{session_id}/send` 返回的 `context` 真正参与每个角色的 LLM 回复生成：
+docs\claims\2026-04-20-fm-vt-gc-04-group-context-prompt-injection.md:21:1. `sendChat` 支持可选 `extra_context`，用于传递临时群聊上下文。
+docs\claims\2026-04-20-fm-vt-gc-04-group-context-prompt-injection.md:24:4. 临时群聊上下文不落入单角色持久聊天历史。
+docs\claims\2026-04-20-fm-vt-gc-04-group-context-prompt-injection.md:37:- 不把临时群聊会话持久化为正式群聊历史。
+docs\claims\2026-04-20-fm-vt-gc-04-group-context-prompt-injection.md:49:- 群聊中后发言的角色能在 Prompt 里看到前面角色和访客的临时群聊内容。
+docs\claims\2026-04-20-fm-vt-gc-07-frontend-group-chat-api.md:46:- 不重写已有临时群聊 `/api/group/*` 兼容接口。
+docs\claims\2026-04-20-fm-vt-gc-07-frontend-group-chat-api.md:61:- 保留已有临时群聊方法，避免破坏当前 TavernChatRoom 兼容链路。
+docs\claims\2026-04-20-fm-vt-gc-08-tavern-group-chat-room.md:25:在 GC-07 已封装酒馆级群聊 API 后，把现有 `TavernChatRoom.jsx` 的群聊模式从临时 `/api/group/*` 选择器 + 多次单聊生成，收口到酒馆级持久群聊接口：
+docs\claims\2026-04-20-fm-vt-gc-08-tavern-group-chat-room.md:45:- 不移除 `/api/group/*` 临时群聊兼容方法。
+docs\claims\2026-04-20-fm-vt-gc-09-owner-group-chat-settings.md:38:- `.gitignore`（仅补本地测试临时目录忽略项）
+docs\claims\2026-04-20-newcomer-trial-fallback-hardening.md:4:T-NEWCOMER-TRIAL-FALLBACK
+docs\claims\2026-04-20-ux-instant-newcomer-trial.md:28:- `frontend/src/FirstRunModeModal.jsx`
+docs\superpowers\plans\2026-04-21-play-mode-consolidation.md:154:mes_example: '旧示例',
+docs\superpowers\plans\2026-04-27-ai-draft-full-feature.md:5:**Goal:** Ship the owner-confirmed AI NPC draft MVP and Mimi Nya project portrait assets without adding persistent draft schema.
+docs\superpowers\plans\2026-04-27-catgirl-default-tavern.md:5:**Goal:** Add an approved default demo tavern anchored near Shanghai Jing'an Temple with one safe original catgirl NPC, preserving existing schema and local rules backend behavior.
+docs\superpowers\plans\2026-04-27-catgirl-default-tavern.md:25:Add `"pw_jingan_catbell_refuge": ["猫铃", "复国", "静安"]` to `expected_keywords` in `test_default_public_welfare_taverns_have_theme_gameplays_and_rules_fallback_runs`.
+docs\superpowers\plans\2026-04-29-ai-assisted-tavern-drafts.md:15:- JSON storage in this plan is an MVP adapter, not the long-term architecture.
+docs\superpowers\plans\2026-04-29-ai-assisted-tavern-drafts.md:107:def _text(value: Any, fallback: str = "") -> str:
+docs\superpowers\plans\2026-04-29-ai-assisted-tavern-drafts.md:108:return str(value or fallback).strip()
+docs\superpowers\plans\2026-04-29-ai-assisted-tavern-drafts.md:111:def _float(value: Any, fallback: float, *, minimum: float, maximum: float) -> float:
+docs\superpowers\plans\2026-04-29-ai-assisted-tavern-drafts.md:115:number = fallback
+docs\superpowers\plans\2026-04-29-ai-assisted-tavern-drafts.md:119:def _int(value: Any, fallback: int, *, minimum: int, maximum: int) -> int:
+docs\superpowers\plans\2026-04-29-ai-assisted-tavern-drafts.md:123:number = fallback
+docs\superpowers\plans\2026-04-29-ai-assisted-tavern-drafts.md:425:Use a `DraftClient.complete(messages)` fake and monkeypatch `fablemap_api.application.services.owner_config.create_client`. Assert no taverns are created after generation with `GET /api/v1/taverns`.
+docs\superpowers\plans\2026-04-29-ai-assisted-tavern-drafts.md:575:export function getOwnerDefaultLLM(userId = DEFAULT_OWNER_ID) {
+docs\superpowers\plans\2026-04-29-ai-assisted-tavern-drafts.md:579:export function saveOwnerDefaultLLM(data: Record<string, unknown>, userId = DEFAULT_OWNER_ID) {
+docs\superpowers\plans\2026-04-29-ai-assisted-tavern-drafts.md:583:export function generateTavernDraft(data: TavernDraftGenerateRequest, userId = DEFAULT_OWNER_ID) {
+docs\superpowers\plans\2026-04-29-ai-assisted-tavern-drafts.md:667:MySQL owner config persistence remains out of MVP per PRD.
+docs\superpowers\plans\2026-04-29-frontend-static-asset-organization.md:18:- [ ] Update hardcoded expected NPC asset URLs for Mimi, 银票, and repaired 小舟 from flat filenames to `/assets/npcs/public-welfare/<char_id>/<expression>.png`.
+docs\superpowers\specs\2026-04-21-play-mode-consolidation-design.md:94:- Placeholder scan: 无 TBD/TODO/稍后补。
+docs\superpowers\specs\2026-04-27-ai-draft-full-feature-design.md:5:`AI 草稿` 已在产品文档中被定义为“未发布、可编辑、可丢弃、必须由店主确认”的 NPC 创作辅助。本设计把草稿从静态产品说明落到 MVP 功能：后端提供确定性草稿生成，前端把结果放进既有角色编辑器，保存仍复用现有角色创建流程。
+docs\superpowers\specs\2026-04-27-ai-npc-drafts-design.md:15:## MVP 输入
+docs\superpowers\specs\2026-04-27-ai-npc-drafts-design.md:17:MVP 采用轻量输入：
+docs\superpowers\specs\2026-04-27-ai-npc-drafts-design.md:23:高级输入（世界观、说话风格、开场目标、关系阶段）可作为后续扩展，不作为 MVP 必填项。
+docs\superpowers\specs\2026-04-27-ai-npc-drafts-design.md:25:## MVP 输出
+docs\superpowers\specs\2026-04-27-ai-npc-drafts-design.md:27:MVP 只生成 NPC 角色卡字段：
+docs\superpowers\specs\2026-04-27-ai-npc-drafts-design.md:38:不在 MVP 中自动生成 `WorldInfoEntry`、玩法、群聊配置、头像、立绘或长期记忆。这样可以降低产品边界风险，并保持 SillyTavern 角色卡兼容。
+docs\superpowers\specs\2026-04-27-ai-npc-drafts-design.md:68:MVP 不新增 schema。
+docs\superpowers\specs\2026-04-27-ai-npc-drafts-design.md:70:AI 草稿在确认前可以只存在于前端本地草稿或后端临时响应；确认后落入现有 `TavernCharacter` 字段。若未来需要服务端保存多份草稿、草稿历史或审核状态，再单独设计持久化模型。
+docs\superpowers\specs\2026-04-27-ai-npc-drafts-design.md:79:- `docs/WORLD_SCHEMA.md`：若 MVP 不新增 schema，仅说明草稿确认后映射到 `TavernCharacter`。
+docs\superpowers\specs\2026-04-27-ai-npc-drafts-design.md:83:先不实现通用 AI 草稿生成器。为了验证内容边界，优先补一间已批准的默认 demo 酒馆角色：上海静安寺附近的原创猫系 NPC「眯眯喵桑」。该角色作为明确批准的示例 seed，不代表平台可未经确认自动发布用户酒馆内容。
+.trellis\spec\backend\database-guidelines.md:170:The v1 API test must assert create defaults, valid create/update round-trip, visitor GET visibility, and invalid fallback. The MySQL test must assert create/get/update/get round-trip. The frontend script must assert layout IDs and normalize…
+.trellis\spec\backend\database-guidelines.md:192:## Scenario: Place/Home MVP Persistence Contract
+.trellis\spec\backend\database-guidelines.md:264:py -3 -m pytest -q backend/tests/test_v1_place_home_mvp.py backend/tests/test_mysql_infrastructure.py::TestTavernCRUD::test_place_home_fields_round_trip --tb=short
+.trellis\spec\backend\database-guidelines.md:369:- `from_dict` fallbacks,
+.trellis\spec\backend\database-guidelines.md:383:- Every default public-welfare tavern / shop must have at least 3 formal `TavernCharacter` entries. One-character demo shops are not complete.
+.trellis\spec\backend\database-guidelines.md:415:4. `tests/test_tavern_backup_restore.py` and `tests/test_tavern_gameplay_models.py`: demonstrate persistence/import-export behavior expected by tests.
+.trellis\spec\backend\database-guidelines.md:552:- Bad: `backend/src/fablemap_api/infrastructure/__init__.py` eagerly imports `database`, `models`, or `mysql_store`, causing default app startup to fail before JSON fallback can run.
+.trellis\spec\backend\database-guidelines.md:626:- JSON persistence is MVP-only and must sit behind `OwnerConfigStore` so a DB-backed store can replace it later.
+.trellis\spec\backend\database-guidelines.md:627:- The storage key is the authenticated owner ID from `X-User-Id`; do not fall back to `owner-demo` for these endpoints.
+.trellis\spec\backend\database-guidelines.md:646:- Base: JSON store writes normalized config for MVP, with a follow-up to move dynamic multi-user data to DB.
+.trellis\spec\backend\database-guidelines.md:647:- Bad: route or React code importing `owner_configs.json`, returning `api_key`, or silently using `owner-demo` when the user header is missing.
+.trellis\spec\backend\database-guidelines.md:677:owner_id = request.headers.get("X-User-Id") or "owner-demo"
+.trellis\spec\backend\database-guidelines.md:722:- `visibility` is fixed to `owner_only` for MVP.
+.trellis\spec\backend\database-guidelines.md:743:- Base: JSON-backed `VisitorNoteStore` is MVP storage behind a store abstraction.
+.trellis\spec\backend\directory-structure.md:48:├── gameplay.py                 # GameplayDefinition/Session normalization and AI Director/fallback
+.trellis\spec\backend\directory-structure.md:182:1. `backend/src/fablemap_api/core/gameplay.py` keeps definition normalization, session/event dataclasses, deterministic fallback, completion payloads, and AI Director output validation in one domain file.
+.trellis\spec\backend\directory-structure.md:184:3. `backend/src/fablemap_api/core/web/app.py` is small and compositional: app creation, exception response shape, router registration, and SPA static fallback.
+.trellis\spec\backend\directory-structure.md:560:Expression keyword fallback and sprite-map normalization live in `backend/src/fablemap_api/domain/expression_policy.py`; domain modules must not import FastAPI.
+.trellis\spec\backend\directory-structure.md:832:| Claim without user identity or `player_id` fallback | `401 {"error": "Player identity is required to request a claim"}` |
+.trellis\spec\backend\error-handling.md:32:| Unexpected server bug | Log server-side; return safe generic error or degraded fallback where product requires continuity |
+.trellis\spec\backend\error-handling.md:60:FableMap's tavern experience should remain understandable when an LLM backend fails. Existing `WebService` chat/group-chat logic catches `LLMError`, logs a warning, marks the tavern closed when appropriate, and returns a rule/fallback respo…
+.trellis\spec\backend\error-handling.md:67:response_text = self._fallback_response(message, char.name)
+.trellis\spec\backend\error-handling.md:73:### Use deterministic fallback for gameplay
+.trellis\spec\backend\error-handling.md:75:`backend/src/fablemap_api/core/gameplay.py` uses fallback events and seeds based on session context. AI Director output must be validated before use; illegal JSON, unknown node IDs, or unsafe values should fall back rather than corrupt sess…
+.trellis\spec\backend\error-handling.md:105:2. `backend/src/fablemap_api/core/web/service.py` `send_group_chat_payload(...)` separates user identity checks, tavern status checks, LLM degradation, token counting, history persistence, and memory fallback.
+.trellis\spec\backend\error-handling.md:106:3. `backend/src/fablemap_api/core/gameplay.py` `fallback_result(...)` / `AIDirector` validation keeps gameplay sessions recoverable when AI output is unusable.
+.trellis\spec\backend\error-handling.md:117:- Treating every AI failure as a 500 when a degraded/fallback response is part of the product flow.
+.trellis\spec\backend\gm-layer-preview-contract.md:3:> Backend contract for preview-only structured GM suggestions on top of State Cards / Canon Ledger.
+.trellis\spec\backend\gm-layer-preview-contract.md:14:The GM Layer is an AI-adjacent feature, but this MVP is deterministic and preview-only. It must reinforce the State Card confirmation loop instead of silently writing canon.
+.trellis\spec\backend\gm-layer-preview-contract.md:67:"preview_only": true,
+.trellis\spec\backend\gm-layer-preview-contract.md:77:"preview_only": true,
+.trellis\spec\backend\gm-layer-preview-contract.md:130:- API response is `preview_only=true` / `applied=false`.
+.trellis\spec\backend\gm-layer-preview-contract.md:150:return {**preview, "preview_only": True, "applied": False}
+.trellis\spec\backend\index.md:37:| [Tavern GM Layer Preview API Contract](./gm-layer-preview-contract.md) | Preview-only structured GM suggestions that reuse State Cards without persistence | Current |
+.trellis\spec\backend\index.md:75:- Gameplay domain: `backend/src/fablemap_api/core/gameplay.py` normalizes `GameplayDefinition`, persists `GameplaySession`, and isolates AI Director fallback behavior.
+.trellis\spec\backend\logging-guidelines.md:28:| `warning` | Expected external/validation failures that trigger fallback or partial degradation. |
+.trellis\spec\backend\logging-guidelines.md:29:| `error` | Unexpected internal failures where the request can continue only with fallback or fails safely. |
+.trellis\spec\backend\logging-guidelines.md:52:- Unexpected parser/adapter failures where fallback behavior is used.
+.trellis\spec\backend\logging-guidelines.md:72:When a feature has an intentional fallback path, log the failure once at the boundary and return a safe degradation payload. Existing chat/group-chat code uses helper methods such as `_build_degradation(...)` and fallback responses.
+.trellis\spec\backend\preset-import-preview-contract.md:31:"preview_only": true,
+.trellis\spec\backend\quality-guidelines.md:44:- `gameplay.py`: gameplay normalization, session/event mechanics, AI/fallback result shaping.
+.trellis\spec\backend\quality-guidelines.md:117:3. `backend/src/fablemap_api/core/gameplay.py` keeps AI Director output validation/fallback separate from route handling.
+.trellis\spec\backend\quality-guidelines.md:127:- Using broad `except Exception` without logging, rollback/fallback, or a clear reason.
+.trellis\spec\backend\quality-guidelines.md:131:## Scenario: Notification WebSocket MVP
+.trellis\spec\backend\quality-guidelines.md:135:Use this contract when changing `backend/src/fablemap_api/core/notifications.py` or `backend/src/fablemap_api/api/v1/notifications.py`. The notification MVP is in-memory and process-local; it is not a Redis/pub-sub production system yet.
+.trellis\spec\backend\quality-guidelines.md:163:- MVP persistence is memory-only; data loss on restart is expected until a future store abstraction replaces it.
+.trellis\spec\backend\tavern-share-api-contract.md:74:payload = service.get_tavern_share(tavern_id, user_id="visitor-demo", base_url="https://example.test")
+.trellis\spec\backend\tavern-share-api-contract.md:82:const payload = await getTavernShare(tavernId, DEFAULT_VISITOR_ID)
+.trellis\spec\backend\tavern-share-api-contract.md:102:- Assert local fallback still handles missing description and coordinates.
+.trellis\spec\backend\tavern-share-api-contract.md:116:- Frontend prefers `getTavernShare(...)` and keeps local copy text only as a degraded fallback.
+.trellis\spec\backend\visual-souvenir-preview-contract.md:52:"preview_only": true,
+.trellis\spec\backend\voice-greeting-preview-contract.md:47:"preview_only": true,
+.trellis\spec\frontend\component-guidelines.md:135:- Adding direct `fetch` calls inside presentational components.
+.trellis\spec\frontend\component-guidelines.md:229:Use this contract for every user-facing page, route module, major panel, card list, creation flow, and discovery/owner/tavern surface under `frontend/app/`. The expected bar is **consumer-grade cyber tavern product UI**, not admin-form MVP …
+.trellis\spec\frontend\component-guidelines.md:258:- Visual enhancements must not violate product boundaries: do not invent platform-authored tavern content, fake social feeds, combat/ranking visuals, or sensitive owner data displays.
+.trellis\spec\frontend\directory-structure.md:79:Create a hook when state/effects are reused or when moving orchestration out of a component improves clarity. Keep purely presentational state local to the component.
+.trellis\spec\frontend\gm-layer-preview-boundary.md:3:> Frontend contract for calling preview-only structured GM suggestions.
+.trellis\spec\frontend\gm-layer-preview-boundary.md:54:preview_only: boolean
+.trellis\spec\frontend\gm-layer-preview-boundary.md:76:| Valid preview | UI/helper receives `preview_only=true`, `applied=false`, `candidates` |
+.trellis\spec\frontend\hook-guidelines.md:97:4. `frontend/app/product/hooks/useScrollToWorldStage.js`: demonstrates DOM/timer cleanup for side effects.
+.trellis\spec\frontend\image-asset-guidelines.md:174:| `anchor_module` | real place / approximate area / abstract coordinate memory, never a fake map provider |
+.trellis\spec\frontend\image-asset-guidelines.md:222:/assets/npcs/old-placeholder.png
+.trellis\spec\frontend\index.md:38:| [NPC Art Guidelines](./npc-art-guidelines.md) | Tavern-themed NPC portrait assets and fallback contracts | Current |
+.trellis\spec\frontend\index.md:40:| [Tavern GM Layer Preview Boundary](./gm-layer-preview-boundary.md) | Preview-only structured GM suggestion service/UI contract | Current |
+.trellis\spec\frontend\index.md:50:| [Revisit-care Notification Boundary](./revisit-care-notification-boundary.md) | Preview-only proactive revisit notification policy with opt-in/quiet-hours/rate-limit/unsubscribe guardrails | Current |
+.trellis\spec\frontend\map-anchor-copy.md:32:- Base: coordinate fallback shows `坐标门牌 · 31.2304, 121.4737`.
+.trellis\spec\frontend\mobile-single-mainline.md:31:- The tavern loader must derive the current viewer from `user_id` / `owner_id` / `visitor_id` query params and must not fall back from visitor reads to `DEFAULT_OWNER_ID`.
+.trellis\spec\frontend\mobile-single-mainline.md:79:- Bad: putting layout showcase, creator conversion, owner tools, or visitor feedback management above the chat composer; or restoring visitor-to-owner loader fallback.
+.trellis\spec\frontend\npc-art-guidelines.md:3:> Contract for FableMap NPC portrait generation and frontend fallback usage.
+.trellis\spec\frontend\npc-art-guidelines.md:11:- NPC portrait prompts, generated NPC bitmap assets, or visual fallback logic
+.trellis\spec\frontend\npc-art-guidelines.md:18:NPC art must be real tavern-themed character art, not symbolic placeholders.
+.trellis\spec\frontend\npc-art-guidelines.md:31:- Circles, squares, geometric dummy avatars, abstract silhouettes, empty profile placeholders.
+.trellis\spec\frontend\npc-art-guidelines.md:95:## Frontend Fallback Contract
+.trellis\spec\frontend\npc-art-guidelines.md:103:|| style-specific project fallback art
+.trellis\spec\frontend\npc-art-guidelines.md:109:- Project fallback art is display-only. It must not be written back into `TavernCharacter`.
+.trellis\spec\frontend\npc-art-guidelines.md:111:- Fallback images must be real tavern-themed NPC art assets under `frontend/app/assets/npc-style-cast/`.
+.trellis\spec\frontend\npc-art-guidelines.md:117:Use this contract whenever a Trellis task claims a new **formal NPC role** is implemented, including default public-welfare seed NPCs, tavern presets, system character presets, or demo NPCs that ship with the product. Text-only character ca…
+.trellis\spec\frontend\npc-art-guidelines.md:163:- Owner/imported art still takes precedence over project fallback art.
+.trellis\spec\frontend\npc-art-guidelines.md:164:- Project fallback art is only for missing user art; it does not make a new shipped NPC “complete”.
+.trellis\spec\frontend\npc-art-guidelines.md:165:- For default/demo NPCs, assets should live in a stable public or imported asset folder and the character seed must reference those paths directly.
+.trellis\spec\frontend\npc-art-guidelines.md:188:| New NPC has only generic fallback via UI | Not complete; fallback is display-only |
+.trellis\spec\frontend\npc-art-guidelines.md:191:| Owner uploads/imports `sprites.neutral` or `avatar` | Owner art wins over project fallback |
+.trellis\spec\frontend\npc-art-guidelines.md:205:- MVP role has `avatar` and `sprites.neutral` only, and the Trellis task explicitly calls it an avatar-only prototype rather than “fully completed NPC”.
+.trellis\spec\frontend\npc-art-guidelines.md:209:- A new NPC seed has complete prompt text but empty `avatar` and `{}` sprites, relying on default placeholder or generic style fallback.
+.trellis\spec\frontend\npc-art-guidelines.md:276:Use this structure when generating new NPC fallback art:
+.trellis\spec\frontend\npc-art-guidelines.md:281:Primary request: actual finished stylized non-photoreal original cartoon/anime/game-style NPC portrait; choose human-like or original non-human species/body plan according to tavern theme, not placeholder, not icon, not UI mockup, not real-…
+.trellis\spec\frontend\npc-art-guidelines.md:288:Constraints: original character only; no text; no logos; no watermark; no abstract placeholder; no specific IP; no living-artist imitation; no photorealistic human; no real-person portrait; no celebrity likeness; no live-action cosplay; no …
+.trellis\spec\frontend\npc-art-guidelines.md:306:- **Style DNA Prompt**: the transferable aesthetic constant (art style/genre, color science, lighting, medium/texture, mood, render/post-processing, era/cultural context, detail-density zoning, dynamic state, symbolic visual language). It m…
+.trellis\spec\frontend\npc-art-guidelines.md:391:- Confirm uploaded/imported `sprites.neutral`, `avatar`, or `image_url` still override fallback art.
+.trellis\spec\frontend\npc-art-guidelines.md:399:// Bad: abstract placeholder instead of tavern-themed character art.
+.trellis\spec\frontend\npc-art-guidelines.md:406:// Good: owner art first, then real project tavern NPC art fallback.
+.trellis\spec\frontend\npc-art-guidelines.md:408:return avatar ? <img src={avatar} alt={character.name} /> : <NpcStyleFallback style={style} />
+.trellis\spec\frontend\preset-import-preview-ui-boundary.md:6:frontend preset import service methods, or script tests for the preview-only
+.trellis\spec\frontend\quality-guidelines.md:21:- User-facing pages must meet the global visual quality bar in `component-guidelines.md`: no bare admin-form MVP UI for primary flows; use designed hierarchy, polished panels/cards, visible interaction states, and mobile-safe touch targets.
+.trellis\spec\frontend\quality-guidelines.md:126:- Shipping UI that works only with a configured external LLM, despite the project maintaining no-key/fallback demo flows.
+.trellis\spec\frontend\revisit-care-notification-boundary.md:57:- Clearly label current surfaces as “未启用设计预览” / preview-only.
+.trellis\spec\frontend\type-safety.md:59:function safeParseJson(value, fallback) {
+.trellis\spec\frontend\type-safety.md:62:return parsed == null ? fallback : parsed
+.trellis\spec\frontend\type-safety.md:64:return fallback
+.trellis\spec\frontend\type-safety.md:89:- `GameplayDefinition` / `GameplaySession`: owner brief, nodes, fallback events, session state, current node, events.
+.trellis\spec\frontend\type-safety.md:97:- Blind `JSON.parse` in render paths or without fallback for owner-editable fields.
+.trellis\spec\frontend\type-safety.md:108:2. `frontend/app/product/GameplayDefinitionEditor.jsx`: parses advanced JSON with fallback and user-facing validation errors.
+.trellis\spec\frontend\type-safety.md:162:- Use persisted `tavern.place_type` when present; keyword inference is only a fallback for old payloads.
+.trellis\spec\frontend\visual-souvenir-preview-boundary.md:43:preview_only: boolean
+.trellis\spec\frontend\voice-greeting-preview-boundary.md:43:preview_only: boolean

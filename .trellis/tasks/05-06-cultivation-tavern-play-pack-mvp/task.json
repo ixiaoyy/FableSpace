@@ -1,0 +1,53 @@
+{
+  "id": "cultivation-tavern-play-pack-mvp",
+  "name": "cultivation-tavern-play-pack-mvp",
+  "title": "Cultivation Tavern Play Pack MVP",
+  "description": "设计并实现修行酒馆默认玩法包：店主确认的 NPC/世界书建议、GameplayDefinition 模板、在线问道动作和安全边界。",
+  "status": "planning",
+  "dev_type": null,
+  "scope": null,
+  "package": null,
+  "priority": "P1",
+  "creator": "lijin",
+  "assignee": "lijin",
+  "createdAt": "2026-05-06",
+  "completedAt": null,
+  "branch": null,
+  "base_branch": "codex-homepage-dynamic-entry-covers",
+  "worktree_path": null,
+  "current_phase": 0,
+  "next_action": [
+    {
+      "phase": 1,
+      "action": "brainstorm"
+    },
+    {
+      "phase": 2,
+      "action": "research"
+    },
+    {
+      "phase": 3,
+      "action": "implement"
+    },
+    {
+      "phase": 4,
+      "action": "check"
+    },
+    {
+      "phase": 5,
+      "action": "update-spec"
+    },
+    {
+      "phase": 6,
+      "action": "record-session"
+    }
+  ],
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [],
+  "parent": "05-06-xiuxian-idle-text-image-game-brainstorm",
+  "relatedFiles": [],
+  "notes": "",
+  "meta": {}
+}

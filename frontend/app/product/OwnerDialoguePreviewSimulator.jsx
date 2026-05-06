@@ -2,12 +2,15 @@ import { useEffect, useMemo, useState } from 'react'
 import {
   DEFAULT_OWNER_PREVIEW_MESSAGE,
   buildOwnerDialoguePreview,
+  normalizeOwnerDialogueDryRunPreview,
   summarizePreviewCharacter,
 } from './dialoguePreviewSimulator'
+import { errorMessage, previewOwnerDialogueDryRun } from '../lib/taverns'
 
 export default function OwnerDialoguePreviewSimulator({
   tavern,
   characters = [],
+  ownerId = '',
   disabled = false,
 }) {
   const availableCharacters = useMemo(
@@ -18,6 +21,7 @@ export default function OwnerDialoguePreviewSimulator({
   const [visitorMessage, setVisitorMessage] = useState(DEFAULT_OWNER_PREVIEW_MESSAGE)
   const [preview, setPreview] = useState(null)
   const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
 
   useEffect(() => {
     if (availableCharacters.length === 0) {
@@ -42,21 +46,46 @@ export default function OwnerDialoguePreviewSimulator({
     [selectedCharacter],
   )
 
-  function handlePreview() {
+  async function handlePreview(callModel = false) {
     if (!selectedCharacter) {
       setError('请先新建或导入至少一个 NPC。')
       setPreview(null)
       return
     }
+    const fallbackPreview = buildOwnerDialoguePreview({ tavern, character: selectedCharacter, visitorMessage })
+    if (!tavern?.id || !ownerId) {
+      setError('缺少酒馆或店主身份，暂时只能显示本地模拟降级结果。')
+      setPreview(fallbackPreview)
+      return
+    }
     setError('')
-    setPreview(buildOwnerDialoguePreview({ tavern, character: selectedCharacter, visitorMessage }))
+    setLoading(true)
+    try {
+      const payload = await previewOwnerDialogueDryRun(
+        tavern.id,
+        {
+          character_id: getCharacterOptionId(selectedCharacter),
+          message: visitorMessage,
+          visitor_id: 'owner-preview-dry-run',
+          visitor_name: '预览旅人',
+          call_model: Boolean(callModel),
+        },
+        ownerId,
+      )
+      setPreview(normalizeOwnerDialogueDryRunPreview(payload, fallbackPreview))
+    } catch (err) {
+      setError(errorMessage(err))
+      setPreview(null)
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
-    <section className="owner-dialogue-preview" aria-label="店主 AI 对话预览模拟器">
+    <section className="owner-dialogue-preview" aria-label="店主 AI 对话 prompt dry-run">
       <div className="character-editor-section-heading">
-        <span>AI 对话预览模拟器</span>
-        <small>Owner-only · preview only。本地模拟回复效果，不调用 LLM，不写入聊天历史 / 记忆 / writeback。</small>
+        <span>AI 对话 prompt dry-run</span>
+        <small>Owner-only · dry_run。后端组装真实 Tavern / NPC / WorldInfo prompt；默认不调用 LLM，不写入聊天历史 / 记忆 / writeback。</small>
       </div>
 
       {availableCharacters.length === 0 ? (
@@ -109,24 +138,36 @@ export default function OwnerDialoguePreviewSimulator({
           ) : null}
 
           <div className="owner-dialogue-preview__actions">
-            <button type="button" className="primary" onClick={handlePreview} disabled={disabled}>
-              生成本地预览
+            <button type="button" className="primary" onClick={() => handlePreview(false)} disabled={disabled || loading}>
+              {loading ? '组装中…' : '后端 dry-run 组装'}
             </button>
-            <span>正式 LLM 调用仍由店主 provider 设置控制；此处不消耗 token。</span>
+            <button type="button" className="secondary" onClick={() => handlePreview(true)} disabled={disabled || loading}>
+              确认调用模型测试一次
+            </button>
+            <span>只有点击模型测试才可能消耗店主 provider token；dry-run 结果始终 persisted=false。</span>
           </div>
 
           {preview ? (
             <div className="owner-dialogue-preview__result" role="status">
               <div className="owner-dialogue-preview__flags">
-                <span>preview_only: {String(preview.preview_only)}</span>
-                <span>llm_called: {String(preview.llm_called)}</span>
+                <span>dry_run: {String(preview.dry_run)}</span>
+                <span>persisted: {String(preview.persisted)}</span>
+                <span>model_called: {String(preview.model_called)}</span>
                 <span>history_written: {String(preview.history_written)}</span>
+                <span>memory_written: {String(preview.memory_written)}</span>
                 <span>writeback_written: {String(preview.writeback_written)}</span>
+                <span>token_estimate: {String(preview.token_estimate || 0)}</span>
               </div>
               <div className="owner-dialogue-preview__chat">
                 <p className="owner-dialogue-preview__bubble is-user">{preview.visitor_message}</p>
                 <p className="owner-dialogue-preview__bubble is-assistant">{preview.assistant_message}</p>
               </div>
+              <div className="owner-dialogue-preview__flags">
+                <span>prompt_messages: {String(preview.message_count || preview.messages?.length || 0)}</span>
+                <span>world_info_matched: {String(preview.matched_world_info_count || 0)}</span>
+                <span>model_status: {preview.model_status || 'not_requested'}</span>
+              </div>
+              {preview.model_error ? <div className="char-mgmt-error">{preview.model_error}</div> : null}
               <ul>
                 {preview.notes.map((note) => <li key={note}>{note}</li>)}
               </ul>

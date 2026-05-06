@@ -22,7 +22,7 @@ export function TavernActivitySignalsCard({ tavern }: TavernActivitySignalsCardP
             </div>
             <CardTitle>酒馆活性信号</CardTitle>
             <CardDescription className="mt-2">
-              用传闻、回访反馈和聚合活动摘要说明这里“有人来过”，但不做访客好友、私信、公开访客墙或全局社交图谱。
+              用街区传闻和聚合活动摘要表现这里的生活痕迹，但不展示访客身份、聊天记录或公开社交关系。
             </CardDescription>
           </div>
           <span className="inline-flex w-fit items-center gap-2 rounded-full border border-emerald-300/24 bg-emerald-300/10 px-3 py-1 text-xs font-black text-emerald-100">

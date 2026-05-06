@@ -7,6 +7,7 @@ export default [
   route("create", "./routes/create.tsx"),
   route("owner", "./routes/owner.tsx"),
   route("notifications", "./routes/notifications.tsx"),
+  route("tavern/:tavernId/manage", "./routes/tavern-manage.tsx"),
   route("tavern/:tavernId", "./routes/tavern.tsx"),
   route("home/me", "./routes/home-me.tsx"),
 ] satisfies RouteConfig

@@ -1,0 +1,46 @@
+{
+  "id": "relationship-graph-api-governance",
+  "name": "relationship-graph-api-governance",
+  "title": "Relationship graph API and governance",
+  "description": "Expose owner/system APIs for edge CRUD, pending candidates, governance modes, and AI auto-confirm authority checks.",
+  "status": "review",
+  "dev_type": "backend",
+  "scope": "relationship graph api/governance",
+  "package": null,
+  "priority": "P1",
+  "creator": "lijin",
+  "assignee": "lijin",
+  "createdAt": "2026-05-06",
+  "completedAt": null,
+  "branch": null,
+  "base_branch": "codex-homepage-dynamic-entry-covers",
+  "worktree_path": null,
+  "current_phase": 4,
+  "next_action": [
+    {
+      "phase": 2,
+      "action": "research-init-context-start-before-implementation"
+    },
+    {
+      "phase": 3,
+      "action": "implement-after-task-selected"
+    }
+  ],
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [],
+  "parent": "05-06-tavern-character-relationship-graph-brainstorm",
+  "relatedFiles": [
+    "backend/src/fablemap_api/api/v1/relationship_graph.py",
+    "backend/src/fablemap_api/api/v1/router.py",
+    "backend/src/fablemap_api/application/services/relationship_graph.py",
+    "backend/src/fablemap_api/application/taverns.py",
+    "backend/src/fablemap_api/infrastructure/relationship_graph_store.py",
+    "backend/tests/test_relationship_graph_api.py",
+    "docs/ARCHITECTURE.md",
+    ".trellis/spec/backend/quality-guidelines.md"
+  ],
+  "notes": "Implemented relationship graph API governance: thin tavern-scoped v1 routes, source-side owner authority, delegated/system AI auto-confirm boundaries, pending candidate decision flow, and public-safe edge payloads. Validation passed: RED/GREEN API tests, full focused relationship graph suite, compileall, git diff --check.",
+  "meta": {}
+}

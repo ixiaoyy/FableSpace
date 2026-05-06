@@ -12,18 +12,14 @@ import {
   UsersRound,
   type LucideIcon,
 } from "lucide-react"
-import { Link } from "react-router"
+import { Link, useLoaderData } from "react-router"
 
-import discoverCozyShopImage from "../assets/discover/reference/discover-cover-cozy-shop.png"
-import discoverNeonAlleyImage from "../assets/discover/reference/discover-cover-neon-alley.png"
-import discoverQuietSanctuaryImage from "../assets/discover/reference/discover-cover-quiet-sanctuary.png"
 import discoverRadarSurfaceImage from "../assets/discover/reference/discover-radar-surface.png"
 import memoryModuleImage from "../assets/homepage/reference/modules/memory-module.png"
 import npcDialogueImage from "../assets/homepage/reference/modules/npc-dialogue.png"
-import guardianPortrait from "../assets/npc-style-cast/portraits/guardian-a.png"
-import merchantPortrait from "../assets/npc-style-cast/portraits/merchant-a.png"
-import scholarPortrait from "../assets/npc-style-cast/portraits/scholar-a.png"
-import spiritPortrait from "../assets/npc-style-cast/portraits/spirit-a.png"
+import { HOMEPAGE_NPC_PREVIEW_PORTRAITS } from "../features/tavern-npc-stage/portraitCatalogConfig"
+import { buildHomepageView, type HomepageMetric, type HomepageMetricId } from "../lib/homepage-taverns"
+import { errorMessage, listTaverns, type TavernListResponse } from "../lib/taverns"
 import { Button } from "../ui/button"
 
 type Metric = {
@@ -36,7 +32,7 @@ type CitySlicePreview = {
   image: string
   name: string
   location: string
-  distance: string
+  entryMeta: string
   tags: string[]
   id: string
 }
@@ -47,6 +43,11 @@ type Feature = {
   text: string
 }
 
+type HomeLoaderData = {
+  result: TavernListResponse
+  error: string
+}
+
 const navItems = [
   { to: "/discover", label: "探索" },
   { to: "/discover", label: "区域" },
@@ -55,18 +56,12 @@ const navItems = [
   { to: "/create", label: "创建空间" },
 ]
 
-const metrics: Metric[] = [
-  { icon: MapPinned, value: "1,248+", label: "发光坐标" },
-  { icon: UsersRound, value: "356+", label: "AI 角色" },
-  { icon: MessageCircle, value: "28,690+", label: "相遇记录" },
-  { icon: Star, value: "4.9", label: "回访期待" },
-]
-
-const citySlices: CitySlicePreview[] = [
-  { image: discoverCozyShopImage, name: "夜莺门牌", location: "成都 · 宽窄巷子", distance: "320m", tags: ["可进入", "记忆回响"], id: "pw_lantern_helpdesk" },
-  { image: discoverNeonAlleyImage, name: "雾红坐标", location: "重庆 · 九街", distance: "1.2km", tags: ["霓虹深夜", "角色在线"], id: "pw_third_shelf_observatory" },
-  { image: discoverQuietSanctuaryImage, name: "黑猫区域", location: "广州 · 永庆坊", distance: "2.1km", tags: ["社区温度", "等待探索"], id: "pw_community_repair" },
-]
+const metricIcons: Record<HomepageMetricId, LucideIcon> = {
+  coordinates: MapPinned,
+  characters: UsersRound,
+  encounters: MessageCircle,
+  open: Star,
+}
 
 const features: Feature[] = [
   { icon: MapPinned, title: "真实坐标", text: "每个入口都落在现实地图上，而不是漂浮空间。" },
@@ -74,7 +69,14 @@ const features: Feature[] = [
   { icon: ShieldCheck, title: "主人边界", text: "内容、访问和记忆权限由空间主人控制，平台不越权发布。" },
 ]
 
-const portraits = [merchantPortrait, scholarPortrait, spiritPortrait, guardianPortrait]
+const portraits = HOMEPAGE_NPC_PREVIEW_PORTRAITS
+
+function withMetricIcons(metrics: HomepageMetric[]): Metric[] {
+  return metrics.map((metric) => ({
+    ...metric,
+    icon: metricIcons[metric.id],
+  }))
+}
 
 function HomeNav() {
   return (
@@ -129,7 +131,7 @@ function MetricCard({ icon: Icon, value, label }: Metric) {
   )
 }
 
-function DesktopMetricRail() {
+function DesktopMetricRail({ metrics }: { metrics: Metric[] }) {
   return (
     <div className="hidden lg:grid lg:grid-cols-2 lg:gap-3">
       {metrics.map(({ icon: Icon, value, label }) => (
@@ -146,7 +148,7 @@ function DesktopMetricRail() {
   )
 }
 
-function CitySlicePreviewCard({ image, name, location, distance, tags, id }: CitySlicePreview) {
+function CitySlicePreviewCard({ image, name, location, entryMeta, tags, id }: CitySlicePreview) {
   return (
     <Link
       to={`/tavern/${id}`}
@@ -163,7 +165,7 @@ function CitySlicePreviewCard({ image, name, location, distance, tags, id }: Cit
         <div className="absolute inset-0 bg-gradient-to-t from-[#090a1d] via-[#090a1d]/10 to-transparent" />
         <LockKeyhole className="absolute left-4 top-4 h-4 w-4 text-fuchsia-100/80" />
         <span className="absolute bottom-4 right-4 rounded-full border border-cyan-300/24 bg-cyan-300/10 px-3 py-1 text-xs font-bold text-cyan-100 backdrop-blur-md">
-          距离 {distance}
+          {entryMeta}
         </span>
       </div>
       <div className="space-y-3 p-5">
@@ -191,6 +193,23 @@ function FeatureItem({ icon: Icon, title, text }: Feature) {
       </span>
       <p className="mt-5 font-black text-white">{title}</p>
       <p className="mt-2 text-sm leading-6 text-violet-100/58">{text}</p>
+    </div>
+  )
+}
+
+function EmptyCitySliceState({ error }: { error?: string }) {
+  return (
+    <div className="grid min-h-64 place-items-center rounded-[1.75rem] border border-white/10 bg-white/[0.035] text-center md:col-span-3">
+      <div className="max-w-md space-y-3 px-6">
+        <MapPinned className="mx-auto h-10 w-10 text-cyan-100/65" />
+        <p className="font-black text-white">暂时没有可展示的真实坐标入口</p>
+        <p className="text-sm leading-6 text-violet-100/58">
+          {error ? `酒馆列表暂不可用：${error}` : "创建第一个公开酒馆后，这里会自动显示真实入口与对应氛围图。"}
+        </p>
+        <Button asChild variant="secondary">
+          <Link to="/create">创建我的空间</Link>
+        </Button>
+      </div>
     </div>
   )
 }
@@ -242,7 +261,19 @@ function HeroPosterPreview() {
   )
 }
 
+export async function clientLoader(): Promise<HomeLoaderData> {
+  try {
+    return { result: await listTaverns(), error: "" }
+  } catch (error) {
+    return { result: { taverns: [], count: 0 }, error: errorMessage(error) }
+  }
+}
+
 export default function HomeRoute() {
+  const { result, error } = useLoaderData<typeof clientLoader>()
+  const homepage = buildHomepageView(result, error)
+  const metrics = withMetricIcons(homepage.metrics)
+
   return (
     <main className="min-h-screen overflow-hidden bg-[#030512] text-white">
       <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_16%_10%,rgba(217,70,239,0.14),transparent_30rem),radial-gradient(circle_at_82%_16%,rgba(0,214,201,0.13),transparent_28rem)]" />
@@ -255,13 +286,12 @@ export default function HomeRoute() {
             Real coordinates. Hidden worlds.
           </div>
           <div className="space-y-4">
-            <h1 className="max-w-2xl text-[2.7rem] font-black leading-[1.1] tracking-tight text-white sm:text-6xl sm:leading-[1.05] lg:text-[4rem] lg:leading-[1.03]">
-              <span className="block">每个坐标，</span>
-              <span className="block">都可能藏着</span>
-              <span className="block">一个世界</span>
+            <h1 className="max-w-lg text-[1.72rem] font-bold leading-[1.24] tracking-[-0.015em] text-white sm:text-[2.25rem] sm:leading-[1.2] lg:text-[2.4rem] lg:leading-[1.18] xl:text-[2.58rem]">
+              <span className="block">真实坐标，</span>
+              <span className="block">藏着会回应的世界</span>
             </h1>
-            <p className="max-w-xl text-base leading-7 text-violet-100/70 sm:text-lg">
-              在真实地图上，进入一个个会回应你的区域。
+            <p className="max-w-lg text-base leading-7 text-violet-100/70 sm:text-lg">
+              在真实地图上，进入一个个由角色、记忆和主人设定共同点亮的区域。
             </p>
           </div>
           <div className="flex flex-col gap-3 sm:flex-row">
@@ -278,7 +308,7 @@ export default function HomeRoute() {
               </Link>
             </Button>
           </div>
-          <DesktopMetricRail />
+          <DesktopMetricRail metrics={metrics} />
         </div>
 
         <HeroPosterPreview />
@@ -287,7 +317,7 @@ export default function HomeRoute() {
       <section className="relative border-y border-white/8 bg-white/[0.018] lg:hidden">
         <div className="mx-auto grid max-w-[1320px] gap-4 px-6 py-5 sm:grid-cols-2 lg:grid-cols-4">
           {metrics.map((metric) => (
-            <MetricCard key={metric.value} {...metric} />
+            <MetricCard key={metric.label} {...metric} />
           ))}
         </div>
       </section>
@@ -307,10 +337,15 @@ export default function HomeRoute() {
             </Link>
           </Button>
         </div>
+        {homepage.error ? (
+          <p className="mb-4 rounded-2xl border border-amber-300/24 bg-amber-300/10 px-4 py-3 text-sm text-amber-100">
+            酒馆列表暂不可用，首页已切换为安全空态：{homepage.error}
+          </p>
+        ) : null}
         <div className="grid gap-6 md:grid-cols-3">
-          {citySlices.map((citySlice) => (
-            <CitySlicePreviewCard key={citySlice.name} {...citySlice} />
-          ))}
+          {homepage.featuredCitySlices.length ? homepage.featuredCitySlices.map((citySlice) => (
+            <CitySlicePreviewCard key={citySlice.id} {...citySlice} />
+          )) : <EmptyCitySliceState error={homepage.error} />}
         </div>
       </section>
 

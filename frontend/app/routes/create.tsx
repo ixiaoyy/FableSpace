@@ -3,11 +3,11 @@ import { useState, useEffect, type FormEvent } from "react"
 import { useNavigate, useSearchParams } from "react-router"
 
 import tavernStreetImage from "../assets/homepage/reference/modules/tavern-street.png"
-import merchantPortrait from "../assets/npc-style-cast/portraits/merchant-a.png"
+import { DEFAULT_NPC_PREVIEW_PORTRAIT } from "../features/tavern-npc-stage/portraitCatalogConfig"
 import { readCreatePrefill } from "../lib/creator-conversion.js"
 import { buildAiDraftLifecycle } from "../lib/ai-draft-lifecycle.js"
 import { normalizeCreatePlacePayload } from "../lib/place-home.js"
-import { derivePlaceTypeDisplay, PLACE_TYPES } from "../lib/place-types.js"
+import { derivePlaceTypeDisplay, normalizePlaceTypeId, PLACE_TYPES } from "../lib/place-types.js"
 import { createTavernDraftRequest, draftResponseToCreateForm } from "../lib/tavern-drafts.js"
 import {
   addCharacter,
@@ -38,18 +38,35 @@ const CREATE_WIZARD_STEPS = [
   { id: "open", number: "04", icon: ShieldCheck, title: "店主确认后开门", text: "最终由店主提交创建，AI 草稿不会自动发布。" },
 ]
 
-const checklist = ["真实坐标", "店主确认的酒馆内容", "角色卡可导出", "API Key 不向访客暴露"]
-
 export default function CreateRoute() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const createPrefill = readCreatePrefill(searchParams)
+  const tavernDraftLifecycle = buildAiDraftLifecycle("tavern")
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState("")
   const [createdId, setCreatedId] = useState("")
-  const [placeType, setPlaceType] = useState("tavern")
+  const [placeType, setPlaceType] = useState(() => normalizePlaceTypeId(searchParams.get("place_type") || "tavern"))
   const activePlaceType = derivePlaceTypeDisplay(placeType)
+  const activePlaceTypeName = activePlaceType.shortLabel || activePlaceType.label
+  const activePlaceTypeAccessHint = activePlaceType.reserved
+    ? `${activePlaceType.label} 默认私密，不进入公开发现筛选。`
+    : `${activePlaceType.label} 可按入口规则公开、私密或密码访问。`
+  const activeDraftSummary = `AI 草稿只填入可编辑表单；店主检查并点击「创建酒馆」后，才会保存为正式${activePlaceTypeName}和首个 NPC。`
+  const activeDraftGuardrails = tavernDraftLifecycle.guardrails.map((item) =>
+    item.replace("公开 Tavern payload", `公开${activePlaceTypeName} payload`).replace("酒馆", activePlaceTypeName),
+  )
+  const activeRequiredChecklist = ["真实坐标", `店主确认的${activePlaceTypeName}内容`, "角色卡可导出", "API Key 不向访客暴露"]
+  const activePlaceTypeChecklist = [
+    { icon: MapPinned, title: `${activePlaceTypeName}真实坐标`, text: "先钉住地图锚点、地点类型和入口规则。" },
+    { icon: Sparkles, title: `${activePlaceTypeName}内容`, text: `填写店主确认的名称、简介与${activePlaceTypeName}场景氛围。` },
+    { icon: UserRoundPlus, title: `${activePlaceTypeName} NPC 接待`, text: "添加首个 NPC，之后可导入完整角色卡。" },
+    { icon: ShieldCheck, title: "店主确认后开门", text: "最终由店主提交创建，AI 草稿不会自动发布。" },
+  ]
   const [activeGuideStep, setActiveGuideStep] = useState(CREATE_WIZARD_STEPS[0].id)
+  const activeGuideStepIndex = Math.max(0, CREATE_WIZARD_STEPS.findIndex((step) => step.id === activeGuideStep))
+  const activeGuideStepMeta = CREATE_WIZARD_STEPS[activeGuideStepIndex] || CREATE_WIZARD_STEPS[0]
+  const nextGuideStepMeta = CREATE_WIZARD_STEPS[activeGuideStepIndex + 1]
 
   // AI Draft states
   const [llmConfigured, setLlmConfigured] = useState<boolean | null>(null)
@@ -65,7 +82,6 @@ export default function CreateRoute() {
   const [selectedTags, setSelectedTags] = useState<string[]>([])
   const [forbiddenText, setForbiddenText] = useState("")
   const [tone, setTone] = useState("角色扮演")
-  const tavernDraftLifecycle = buildAiDraftLifecycle("tavern")
 
   // Check LLM config status on mount
   useEffect(() => {
@@ -263,6 +279,27 @@ export default function CreateRoute() {
             })}
           </nav>
 
+          <div className="mb-6 rounded-[1.85rem] border border-cyan-300/14 bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.14),transparent_32%),rgba(255,255,255,0.035)] p-4">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="min-w-0">
+                <p className="text-xs font-black uppercase tracking-[0.22em] text-cyan-100/58">当前筑梦步骤</p>
+                <h2 className="mt-1 text-lg font-black text-white">
+                  Step {activeGuideStepMeta.number} · {activeGuideStepMeta.title}
+                </h2>
+                <p className="mt-1 text-sm leading-6 text-violet-100/62">{activeGuideStepMeta.text}</p>
+              </div>
+              <div className="rounded-2xl border border-white/10 bg-slate-950/45 px-4 py-3 text-sm leading-6 text-violet-50/72">
+                {nextGuideStepMeta ? (
+                  <>
+                    下一步：<span className="font-bold text-cyan-100">{nextGuideStepMeta.title}</span>
+                  </>
+                ) : (
+                  <span className="font-bold text-emerald-100">店主确认后即可提交开门</span>
+                )}
+              </div>
+            </div>
+          </div>
+
           <form className="space-y-5" onSubmit={handleSubmit}>
             <section
               data-create-wizard-step="anchor"
@@ -455,7 +492,7 @@ export default function CreateRoute() {
           </form>
         </div>
 
-        <aside className="space-y-5">
+        <aside data-create-live-preview={activePlaceType.id} className="space-y-5">
           {/* AI Draft Panel */}
           <div className="rounded-[2rem] border border-purple-300/20 bg-gradient-to-br from-purple-950/60 to-slate-950/72 p-5 backdrop-blur-xl">
             <div className="mb-4 flex items-center gap-3">
@@ -463,12 +500,12 @@ export default function CreateRoute() {
                 <Sparkles className="h-5 w-5 text-purple-200" />
               </div>
               <div>
-                <h2 className="font-black text-white">AI 辅助草稿</h2>
-                <p className="text-xs text-violet-100/60">用 AI 生成酒馆创意</p>
+                <h2 className="font-black text-white">AI 辅助草稿 · {activePlaceTypeName}</h2>
+                <p className="text-xs text-violet-100/60">按当前地点类型生成可丢弃草稿</p>
               </div>
             </div>
             <section aria-label="AI 草稿生命周期" className="mb-4 rounded-2xl border border-white/10 bg-white/[0.045] p-3">
-              <p className="text-xs font-black uppercase tracking-[0.18em] text-purple-100/65">{tavernDraftLifecycle.title}</p>
+              <p className="text-xs font-black uppercase tracking-[0.18em] text-purple-100/65">{activePlaceTypeName}草稿生命周期</p>
               <div className="mt-3 grid gap-2">
                 {tavernDraftLifecycle.steps.map((step) => (
                   <div key={step.id} className="rounded-xl border border-white/10 bg-slate-950/44 px-3 py-2">
@@ -477,9 +514,9 @@ export default function CreateRoute() {
                   </div>
                 ))}
               </div>
-              <p className="mt-3 text-xs leading-5 text-violet-100/62">{tavernDraftLifecycle.summary}</p>
+              <p className="mt-3 text-xs leading-5 text-violet-100/62">{activeDraftSummary}</p>
               <ul className="mt-3 grid gap-1.5 text-[0.7rem] leading-4 text-emerald-100/72">
-                {tavernDraftLifecycle.guardrails.map((item) => (
+                {activeDraftGuardrails.map((item) => (
                   <li key={item}>• {item}</li>
                 ))}
               </ul>
@@ -609,29 +646,42 @@ export default function CreateRoute() {
             )}
           </div>
 
-          <div className="relative overflow-hidden rounded-[2.2rem] border border-cyan-300/18 bg-slate-950/72 shadow-2xl shadow-black/30">
-            <img src={tavernStreetImage} alt="赛博酒馆街景" className="h-72 w-full object-cover" loading="lazy" decoding="async" />
+          <div
+            data-active-place-type-preview
+            className="relative overflow-hidden rounded-[2.2rem] border border-cyan-300/18 bg-slate-950/72 shadow-2xl shadow-black/30"
+          >
+            <img src={tavernStreetImage} alt={`${activePlaceType.label}空间预览`} className="h-72 w-full object-cover" loading="lazy" decoding="async" />
             <div className="absolute inset-0 bg-gradient-to-t from-[#050615] via-[#050615]/20 to-transparent" />
-            <div className="absolute bottom-5 left-5 right-5 rounded-2xl border border-white/10 bg-slate-950/66 p-4 backdrop-blur-md">
-              <p className="text-xs font-black uppercase tracking-[0.22em] text-cyan-100/70">Owner authored</p>
-              <p className="mt-2 text-sm leading-6 text-violet-100/72">内容来自店主，不来自平台自动生成。</p>
+            <div className="absolute left-5 top-5">
+              <span className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-black ${activePlaceType.cardClass || "border-cyan-300/24 bg-cyan-300/10 text-cyan-50"}`}>
+                <span aria-hidden="true">{activePlaceType.icon}</span>
+                {activePlaceType.label}
+              </span>
+            </div>
+            <div className="absolute bottom-5 left-5 right-5 rounded-2xl border border-white/10 bg-slate-950/72 p-4 backdrop-blur-md">
+              <p className="text-xs font-black tracking-[0.18em] text-cyan-100/70">{activePlaceType.label} 空间预览</p>
+              <p className="mt-2 text-sm font-bold leading-6 text-white">{activePlaceType.tone}</p>
+              <p className="mt-1 text-sm leading-6 text-violet-100/72">{activePlaceType.description}</p>
+              <p className="mt-2 text-xs leading-5 text-violet-100/56">{activePlaceTypeAccessHint}</p>
             </div>
           </div>
 
           <div className="rounded-[2rem] border border-white/12 bg-white/[0.04] p-5 backdrop-blur-xl">
             <div className="flex items-center gap-4">
-              <img src={merchantPortrait} alt="NPC 形象示例" className="h-16 w-16 rounded-2xl border border-white/12 object-cover" loading="lazy" decoding="async" />
+              <img src={DEFAULT_NPC_PREVIEW_PORTRAIT} alt="NPC 形象示例" className="h-16 w-16 rounded-2xl border border-white/12 object-cover" loading="lazy" decoding="async" />
               <div>
-                <h2 className="font-black text-white">首个 NPC</h2>
-                <p className="mt-1 text-sm text-violet-100/58">可先填写最小角色信息，后续再导入完整角色卡。</p>
+                <h2 className="font-black text-white">首个 {activePlaceTypeName} NPC</h2>
+                <p className="mt-1 text-sm text-violet-100/58">
+                  先写一个能接待{activePlaceTypeName}访客的角色，后续再导入完整角色卡。
+                </p>
               </div>
             </div>
           </div>
 
           <div className="rounded-[2rem] border border-white/12 bg-white/[0.04] p-5 backdrop-blur-xl">
-            <h2 className="text-xl font-black text-white">开店检查</h2>
+            <h2 className="text-xl font-black text-white">{activePlaceTypeName}开店检查</h2>
             <ul className="mt-4 space-y-3 text-sm text-violet-100/72">
-              {checklist.map((item) => (
+              {activeRequiredChecklist.map((item) => (
                 <li key={item} className="flex items-center gap-3">
                   <CheckCircle2 className="h-4 w-4 text-cyan-200" />
                   {item}
@@ -639,7 +689,7 @@ export default function CreateRoute() {
               ))}
             </ul>
             <div className="mt-5 grid gap-3">
-              {CREATE_WIZARD_STEPS.map((step) => (
+              {activePlaceTypeChecklist.map((step) => (
                 <div key={step.title} className="flex gap-3 rounded-2xl border border-white/10 bg-slate-950/50 p-4">
                   <step.icon className="mt-1 h-5 w-5 shrink-0 text-cyan-200" />
                   <div>

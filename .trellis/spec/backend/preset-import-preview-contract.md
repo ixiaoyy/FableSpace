@@ -1,19 +1,20 @@
-# Preset Import Preview API Contract
+# Preset Import Preview / Apply API Contract
 
 ## Scope
 
-Use this spec when changing the draft-only preset import preview parser or
-`POST /api/v1/taverns/{tavern_id}/preset-import/preview`.
-
-This feature is an owner utility for community / SillyTavern-style preset JSON.
-It produces a risk report only; it must not apply or persist imported preset
-content to live tavern state.
-
-## API contract
+Use this spec when changing preset import parsing or these owner-only endpoints:
 
 ```http
 POST /api/v1/taverns/{tavern_id}/preset-import/preview
+POST /api/v1/taverns/{tavern_id}/preset-import/apply
 ```
+
+This feature is an owner utility for community / SillyTavern-style preset JSON.
+Preview produces a risk report only. Apply may persist only an owner-selected
+`selected_ids` subset that was classified as `supported`, and only after the
+owner has had a diff/impact preview.
+
+## Preview API contract
 
 Request body accepts one of:
 
@@ -46,6 +47,55 @@ Response shape:
 }
 ```
 
+## Apply API contract
+
+`POST /preset-import/apply` request body accepts the same preset payload plus:
+
+```json
+{
+  "selected_ids": ["module_1"],
+  "target_map": {"module_1": "prompt_blocks"},
+  "include_runtime_parameters": true,
+  "confirm": false
+}
+```
+
+- `confirm=false` returns an apply diff only and must not mutate Tavern state.
+- `confirm=true` applies the exact diff to safe Tavern fields.
+- `selected_ids` must refer only to `supported` preview items. Selecting a
+  `warning`, `blocked`, unknown, or runtime-warning item returns HTTP 400.
+- Supported targets are `prompt_blocks`, `world_info`, and `characters`; default
+  target is `world_info` for world-info items and `prompt_blocks` otherwise.
+- Runtime parameters are applied only when `include_runtime_parameters=true`, and
+  then only as a custom runtime preset with safe LLM parameters and no API Key.
+
+Response shape includes:
+
+```json
+{
+  "ok": true,
+  "preview_only": false,
+  "applied": false,
+  "confirm_required": true,
+  "selected_ids": [],
+  "diff": {
+    "prompt_blocks": [],
+    "world_info": [],
+    "characters": [],
+    "runtime_presets": []
+  },
+  "applied_counts": {
+    "prompt_blocks": 0,
+    "world_info": 0,
+    "characters": 0,
+    "runtime_presets": 0
+  }
+}
+```
+
+When `confirm=true`, response sets `applied=true`, `confirm_required=false`, and
+returns owner-private `tavern` after persistence.
+
 ## Classification contract
 
 - `supported`: safe style/runtime hints such as style, atmosphere, dialogue
@@ -65,7 +115,9 @@ silently discarded or converted into usable prompt blocks.
 - Preview must not mutate `Tavern.runtime_presets`, `prompt_blocks`,
   `world_info`, `characters`, `skill_packs`, State Cards, memory atoms, access
   rules, LLM config, or owner keyvault data.
-- Endpoint is owner-only because imported preset text may contain private or
+- Apply must mutate only `runtime_presets`, `prompt_blocks`, `world_info`, and
+  `characters`, and only from selected supported items or safe runtime params.
+- Endpoints are owner-only because imported preset text may contain private or
   unsafe prompts.
 - Response must not include `api_key`, authorization headers, keyvault content,
   or raw secret values from uploaded JSON.
@@ -76,9 +128,13 @@ silently discarded or converted into usable prompt blocks.
 - Good: owner previews a preset containing one style prompt, one model-specific
   note, and one jailbreak; response has supported/warning/blocked groups and no
   tavern fields change.
+- Good: owner selects supported style/world-info/role-consistency items, previews
+  a diff with `confirm=false`, then persists the same safe subset with
+  `confirm=true`.
 - Base: JSON-string body parses successfully and produces a preview report.
 - Bad: preview applies imported prompt blocks or runtime presets automatically;
-  non-owner can inspect private prompt text; response echoes uploaded API keys.
+  apply accepts warning/blocked items; non-owner can inspect private prompt text;
+  response echoes uploaded API keys.
 
 ## Required verification
 

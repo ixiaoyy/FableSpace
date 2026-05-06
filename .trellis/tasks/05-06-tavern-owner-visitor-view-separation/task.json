@@ -1,0 +1,95 @@
+{
+  "id": "tavern-owner-visitor-view-separation",
+  "name": "tavern-owner-visitor-view-separation",
+  "title": "Tavern owner and visitor view separation",
+  "description": "Separate /tavern/:id visitor chat from /tavern/:id/manage owner management so management no longer lives inside the chat workbench.",
+  "status": "completed",
+  "dev_type": "frontend",
+  "scope": "frontend route/view split for tavern visitor vs owner management; no backend/schema changes",
+  "package": null,
+  "priority": "P2",
+  "creator": "lijin",
+  "assignee": "lijin",
+  "createdAt": "2026-05-06",
+  "completedAt": "2026-05-06",
+  "branch": null,
+  "base_branch": "codex-homepage-dynamic-entry-covers",
+  "worktree_path": null,
+  "current_phase": 5,
+  "next_action": [
+    {
+      "phase": 1,
+      "action": "brainstorm"
+    },
+    {
+      "phase": 2,
+      "action": "research"
+    },
+    {
+      "phase": 3,
+      "action": "implement"
+    },
+    {
+      "phase": 4,
+      "action": "check"
+    },
+    {
+      "phase": 5,
+      "action": "update-spec"
+    },
+    {
+      "phase": 6,
+      "action": "record-session"
+    }
+  ],
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [],
+  "parent": null,
+  "relatedFiles": [
+    "frontend/app/routes.ts",
+    "frontend/app/routes/tavern.tsx",
+    "frontend/app/routes/tavern-manage.tsx",
+    "frontend/app/features/tavern-chat-workbench/index.tsx",
+    "frontend/app/features/tavern-owner-management/index.tsx",
+    "frontend/app/routes/owner.tsx",
+    "frontend/scripts/tavern-chat-workbench-test.mjs",
+    "frontend/scripts/mobile-single-mainline-test.mjs",
+    ".trellis/spec/frontend/mobile-single-mainline.md",
+    "frontend/app/shell/product-shell.tsx"
+  ],
+  "notes": "User confirmed the root issue is mixed owner/visitor product views, not only right-rail CSS. Owner management must become a separate management-only route.\nImplemented and verified dedicated owner/visitor route split. See completion.md and artifacts/playwright/report.md.\nDeferred/not done items were explicitly recorded in meta.deferred_not_done on 2026-05-06.",
+  "meta": {
+    "verification": {
+      "focused_scripts": "pass",
+      "frontend_test": "pass",
+      "typecheck": "pass",
+      "build": "pass",
+      "playwright": "pass",
+      "playwright_report": ".trellis/tasks/05-06-tavern-owner-visitor-view-separation/artifacts/playwright/report.md"
+    },
+    "deferred_not_done": [
+      {
+        "item": "店主管理页内各管理面板的二次 UX 重设计",
+        "reason": "本任务目标是先完成访客/店主视角与路由分离；Roleplay/Home/Visitor Notes 面板只迁移复用，未重新设计交互密度、分区和表单体验。",
+        "suggested_followup": "单独创建 owner management UX polish 任务，按模块重排店主控制台。"
+      },
+      {
+        "item": "完整角色编辑器、SillyTavern 导入、LLM Key/模型配置、访问规则编辑整合到新管理页",
+        "reason": "这些属于更大的 owner console 功能整合，会触及更多服务/API/UI 合约；本任务未扩展后端或 Schema。",
+        "suggested_followup": "按“角色管理 / LLM 配置 / 访问规则”拆分 Trellis 子任务。"
+      },
+      {
+        "item": "后端 owner-only 权限模型调整",
+        "reason": "当前仅调整前端路由与视图分离，仍沿用既有 user_id/owner_id 查询参数和后端校验；未新增认证机制。",
+        "suggested_followup": "如需正式权限体系，另开身份与权限边界任务。"
+      },
+      {
+        "item": "管理页经营信息可视化重排",
+        "reason": "本任务只保证管理页不再混在聊天页里；经营指标、访客反馈、NPC 审批等信息的优先级和布局仍可继续优化。",
+        "suggested_followup": "基于当前 dedicated manage route 做 dashboard 信息架构设计。"
+      }
+    ]
+  }
+}

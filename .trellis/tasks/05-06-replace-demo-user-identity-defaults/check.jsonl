@@ -1,0 +1,4 @@
+{"file": "frontend/scripts/identity-boundary-test.mjs", "reason": "frontend identity boundary regression"}
+{"file": "tests/test_identity_boundaries.py", "reason": "backend explicit owner identity regression"}
+{"file": "frontend/package.json", "reason": "include identity boundary test in frontend test suite"}
+{"file": "frontend/scripts/runtime-config-centralization-test.mjs", "reason": "update runtime config expectations from demo constants to identity helpers"}

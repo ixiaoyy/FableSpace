@@ -7,8 +7,10 @@ from fastapi import APIRouter, Request
 from ...contracts.owner_config import (
     OutputRulesTestRequest,
     OutputRulesWriteRequest,
+    OwnerDialoguePreviewDryRunRequest,
     PromptBlocksPreviewRequest,
     PromptBlocksWriteRequest,
+    PresetImportApplyRequest,
     PresetImportPreviewRequest,
     RuntimePresetApplyRequest,
     RuntimePresetsWriteRequest,
@@ -54,6 +56,15 @@ def preview_prompt_blocks(request: Request, tavern_id: str, data: PromptBlocksPr
     return taverns_service(request).preview_prompt_blocks(tavern_id, data.to_payload(), get_user_id(request))
 
 
+@router.post("/{tavern_id}/dialogue-preview/dry-run")
+def preview_owner_dialogue_dry_run(
+    request: Request,
+    tavern_id: str,
+    data: OwnerDialoguePreviewDryRunRequest,
+) -> dict[str, Any]:
+    return taverns_service(request).preview_owner_dialogue_dry_run(tavern_id, data.to_payload(), get_user_id(request))
+
+
 @router.get("/{tavern_id}/runtime-presets")
 def get_runtime_presets(request: Request, tavern_id: str) -> dict[str, Any]:
     return taverns_service(request).get_runtime_presets(tavern_id, get_user_id(request))
@@ -72,3 +83,8 @@ def apply_runtime_preset(request: Request, tavern_id: str, data: RuntimePresetAp
 @router.post("/{tavern_id}/preset-import/preview")
 def preview_preset_import(request: Request, tavern_id: str, data: PresetImportPreviewRequest) -> dict[str, Any]:
     return taverns_service(request).preview_preset_import(tavern_id, data.to_payload(), get_user_id(request))
+
+
+@router.post("/{tavern_id}/preset-import/apply")
+def apply_preset_import(request: Request, tavern_id: str, data: PresetImportApplyRequest) -> dict[str, Any]:
+    return taverns_service(request).apply_preset_import(tavern_id, data.to_payload(), get_user_id(request))

@@ -66,6 +66,14 @@ class PromptBlocksPreviewRequest(FlexibleBody):
     visitor_message_count: int | None = None
 
 
+class OwnerDialoguePreviewDryRunRequest(FlexibleBody):
+    character_id: str | None = None
+    message: str | None = None
+    visitor_id: str | None = None
+    visitor_name: str | None = None
+    call_model: bool | None = None
+
+
 class RuntimePresetsWriteRequest(FlexibleBody):
     presets: list[dict[str, Any]] | None = None
     runtime_presets: list[dict[str, Any]] | None = None
@@ -82,6 +90,16 @@ class PresetImportPreviewRequest(FlexibleBody):
     preset: dict[str, Any] | str | None = None
     preset_json: str | None = None
     content: str | None = None
+
+
+class PresetImportApplyRequest(FlexibleBody):
+    preset: dict[str, Any] | str | None = None
+    preset_json: str | None = None
+    content: str | None = None
+    selected_ids: list[str] | None = None
+    target_map: dict[str, str] | None = None
+    include_runtime_parameters: bool | None = None
+    confirm: bool | None = None
 
 
 class TavernDraftGenerateRequest(FlexibleBody):
@@ -116,6 +134,8 @@ __all__ = [
     "OwnerDefaultLLMRequest",
     "OwnerDefaultLLMSafeResponse",
     "OwnerDefaultLLMSaveResponse",
+    "OwnerDialoguePreviewDryRunRequest",
+    "PresetImportApplyRequest",
     "PresetImportPreviewRequest",
     "TavernDraftCharacter",
     "TavernDraftGenerateRequest",

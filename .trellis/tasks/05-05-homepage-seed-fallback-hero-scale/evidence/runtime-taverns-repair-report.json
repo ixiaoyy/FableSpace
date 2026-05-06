@@ -1,0 +1,18 @@
+{
+  "taverns_file": "D:\\work\\ai-\\.fablemap-api\\taverns\\taverns.json",
+  "record_count": 10,
+  "public_welfare_count": 9,
+  "changed": [
+    {
+      "id": "pw_third_shelf_observatory",
+      "reason": "canonical_public_welfare_restore_preserving_runtime_fields",
+      "preserved_keys": [
+        "_memory_atoms"
+      ],
+      "had_complete_id": false
+    }
+  ],
+  "custom_ids_preserved": [
+    "tavern_b4c574b31fad"
+  ]
+}

@@ -4,6 +4,7 @@ import {
   DEFAULT_AI_DRAFT_FORBIDDEN,
   DEFAULT_AI_DRAFT_STYLE_TAGS,
   createAiCharacterDraftRequest,
+  describeCharacterDraftSource,
   draftResponseToEditorDraft,
   splitDraftItems,
 } from '../app/product/aiCharacterDrafts.js'
@@ -27,24 +28,43 @@ assert.equal(fallbackRequest.tone, '')
 
 const editorDraft = draftResponseToEditorDraft(
   {
+    source: 'local_template_fallback',
     draft: {
-      name: '猫铃看板娘',
+      name: '路口向导草稿招待员',
       description: '未发布草稿',
       personality: '傲娇',
       scenario: '吧台旁',
       system_prompt: '店主确认前不发布',
       first_mes: '欢迎喵',
       mes_example: '<START>',
-      tags: ['AI 草稿', '猫娘'],
+      tags: ['本地模板草稿', '猫娘'],
     },
   },
   { name: '', tags_text: '', avatar: '', sprites: { neutral: '/old.png' }, talkativeness: 0.5 },
 )
-assert.equal(editorDraft.name, '猫铃看板娘')
-assert.equal(editorDraft.tags_text, 'AI 草稿, 猫娘')
+assert.equal(editorDraft.name, '路口向导草稿招待员')
+assert.equal(editorDraft.tags_text, '本地模板草稿, 猫娘')
 assert.equal(editorDraft.sprites.neutral, '/old.png')
 assert.equal(editorDraft.talkativeness, 0.5)
 
+assert.match(
+  describeCharacterDraftSource({ source: 'owner_llm', source_label: '店主默认 LLM 草稿' }),
+  /店主默认 LLM 草稿/,
+)
+assert.match(
+  describeCharacterDraftSource({ source: 'local_template_fallback', source_reason: 'missing_owner_llm' }),
+  /本地模板草稿/,
+)
+assert.match(
+  describeCharacterDraftSource({ source: 'local_template_fallback', source_reason: 'missing_owner_llm' }),
+  /不是真实 AI 生成/,
+)
+
 assert.throws(() => draftResponseToEditorDraft({}, {}), /AI 草稿返回为空/)
+
+const modalSource = await import('node:fs/promises').then(({ readFile }) =>
+  readFile(new URL('../app/product/CharacterManagementModal.jsx', import.meta.url), 'utf8'),
+)
+assert.match(modalSource, /describeCharacterDraftSource/, 'character modal should display source-aware draft copy')
 
 console.log('AI character draft helpers ok')

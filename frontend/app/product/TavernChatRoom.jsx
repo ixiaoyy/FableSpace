@@ -155,6 +155,30 @@ function getGroupStrategyLabel(strategy) {
   return GROUP_STRATEGY_LABELS[strategy] || GROUP_STRATEGY_LABELS.balanced
 }
 
+function getTavernResponseMode(tavern) {
+  const llmConfig = tavern?.llm_config && typeof tavern.llm_config === 'object' ? tavern.llm_config : {}
+  const backend = String(llmConfig.backend || '').trim().toLowerCase()
+  if (['rules', 'rule_based', 'public_welfare'].includes(backend)) {
+    return {
+      label: '规则模式 / 无 Key 轻量接待',
+      className: 'is-rules',
+      title: '内置公益酒馆使用本地规则模板接待，不会伪装成外部 LLM。',
+    }
+  }
+  if (tavern?.status === 'closed' && !['rules', 'rule_based', 'public_welfare'].includes(backend)) {
+    return {
+      label: 'AI 后端未开放或未配置',
+      className: 'is-missing-llm',
+      title: '店主需要开放酒馆并配置、测试模型后，NPC 才能以外部 LLM 接待。',
+    }
+  }
+  return {
+    label: '外部 LLM 模式',
+    className: 'is-llm',
+    title: '当前按店主配置的外部 LLM 进行 NPC 对话。',
+  }
+}
+
 function getGroupResponseCapLabel(maxResponses) {
   const parsed = Number.parseInt(maxResponses, 10)
   const count = Number.isFinite(parsed) ? Math.max(1, Math.min(3, parsed)) : 2
@@ -854,6 +878,7 @@ export default function TavernChatRoom({
   const messagesEndRef = useRef(null)
   const groupChatEnabled = Boolean(tavern?.group_chat_enabled && characters.length > 1)
   const groupChatConfig = tavern?.group_chat_config || {}
+  const tavernResponseMode = getTavernResponseMode(tavern)
   const playMode = useMemo(
     () => inferTavernPlayMode(tavern || { characters }, selectedChar),
     [tavern, characters, selectedChar],
@@ -1555,6 +1580,9 @@ export default function TavernChatRoom({
           {groupChatEnabled ? (
             <span className="char-badge is-group">群聊模式</span>
           ) : null}
+          <span className={`char-badge ${tavernResponseMode.className}`} title={tavernResponseMode.title}>
+            {tavernResponseMode.label}
+          </span>
           <button
             type="button"
             className={`btn-context-panel ${contextPanelOpen ? 'active' : ''}`}

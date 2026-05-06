@@ -1,0 +1,2 @@
+{"file": "frontend/scripts/ai-character-drafts-test.mjs", "reason": "existing draft test script"}
+{"file": "backend/tests/test_character_draft_generation.py", "reason": "focused backend draft generation tests"}

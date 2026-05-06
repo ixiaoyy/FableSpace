@@ -80,6 +80,7 @@ class TavernModel(Base):
     gameplay_sessions = relationship("GameplaySessionModel", back_populates="tavern", cascade="all, delete-orphan")
     llm_config = relationship("LLMConfigModel", back_populates="tavern", uselist=False, cascade="all, delete-orphan")
     messages = relationship("TavernMessageModel", back_populates="tavern", cascade="all, delete-orphan")
+    state_cards = relationship("StateCardModel", back_populates="tavern", cascade="all, delete-orphan")
 
     __table_args__ = (
         Index("idx_owner_id", "owner_id"),
@@ -96,7 +97,7 @@ class CharacterModel(Base):
     __tablename__ = "characters"
 
     id = Column(String(64), primary_key=True)
-    tavern_id = Column(String(64), ForeignKey("taverns.id", ondelete="CASCADE"), nullable=False)
+    tavern_id = Column(String(64), ForeignKey("taverns.id", ondelete="CASCADE"), primary_key=True)
     name = Column(String(255), nullable=False)
     description = Column(Text, default="")
     personality = Column(Text, default="")
@@ -124,7 +125,7 @@ class WorldInfoModel(Base):
     __tablename__ = "world_info"
 
     id = Column(String(64), primary_key=True)
-    tavern_id = Column(String(64), ForeignKey("taverns.id", ondelete="CASCADE"), nullable=False)
+    tavern_id = Column(String(64), ForeignKey("taverns.id", ondelete="CASCADE"), primary_key=True)
     keys = Column(JSON, nullable=False)
     content = Column(Text, nullable=False)
     keys_secondary = Column(JSON, default=list)
@@ -342,3 +343,227 @@ class TavernMessageModel(Base):
         Index("idx_tm_tavern_created", "tavern_id", "created_at"),
         Index("idx_tm_parent", "parent_id"),
     )
+
+
+class StateCardModel(Base):
+    """Continuity state-card model."""
+
+    __tablename__ = "state_cards"
+
+    id = Column(String(64), primary_key=True)
+    tavern_id = Column(String(64), ForeignKey("taverns.id", ondelete="CASCADE"), primary_key=True)
+    status = Column(String(32), nullable=False, default="pending")
+    category = Column(String(32), nullable=False, default="event_log")
+    canon_scope = Column(String(32), nullable=False, default="visitor")
+    visitor_id = Column(String(64), default="")
+    character_id = Column(String(64), default="")
+    payload = Column(JSON, default=dict)
+    created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
+    updated_at = Column(DateTime, nullable=False, default=datetime.utcnow)
+
+    tavern = relationship("TavernModel", back_populates="state_cards")
+
+    __table_args__ = (
+        Index("idx_sc_tavern_status", "tavern_id", "status"),
+        Index("idx_sc_tavern_visitor", "tavern_id", "visitor_id"),
+        Index("idx_sc_updated", "updated_at"),
+    )
+
+
+class RelationshipEdgeModel(Base):
+    """Owner-governed relationship graph edge.
+
+    Cross-owner edges are stored as source-side perspectives.  The target owner
+    is not forced to accept or display the relation unless they create/confirm
+    their own edge.
+    """
+
+    __tablename__ = "relationship_edges"
+
+    id = Column(String(64), primary_key=True)
+    source_owner_id = Column(String(64), nullable=False, default="")
+    source_tavern_id = Column(String(64), nullable=False, default="")
+    source_node_type = Column(String(32), nullable=False)
+    source_node_id = Column(String(64), nullable=False)
+    target_owner_id = Column(String(64), nullable=False, default="")
+    target_tavern_id = Column(String(64), nullable=False, default="")
+    target_node_type = Column(String(32), nullable=False)
+    target_node_id = Column(String(64), nullable=False)
+    behavior_type = Column(String(32), nullable=False)
+    display_name = Column(String(255), default="")
+    description = Column(Text, default="")
+    strength_preset = Column(String(32), nullable=False, default="normal")
+    status = Column(String(32), nullable=False, default="pending")
+    governance_mode = Column(String(32), nullable=False, default="manual")
+    confirmed_by = Column(String(64), default="")
+    confirmed_by_type = Column(String(32), default="")
+    created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
+    updated_at = Column(DateTime, nullable=False, default=datetime.utcnow)
+    metadata_ = Column("metadata", JSON, default=dict)
+
+    __table_args__ = (
+        Index("idx_rel_edge_source", "source_node_type", "source_node_id", "status"),
+        Index("idx_rel_edge_target", "target_node_type", "target_node_id", "status"),
+        Index("idx_rel_edge_source_owner", "source_owner_id", "status"),
+        Index("idx_rel_edge_behavior", "behavior_type", "strength_preset"),
+    )
+
+
+class VisitorRelationshipProjectionModel(Base):
+    """Visitor-private dual-axis relationship projection for one graph node."""
+
+    __tablename__ = "visitor_relationship_projections"
+
+    visitor_id = Column(String(64), primary_key=True)
+    node_type = Column(String(32), primary_key=True)
+    node_id = Column(String(64), primary_key=True)
+    tavern_id = Column(String(64), nullable=False, default="")
+    affinity = Column(Float, nullable=False, default=0.0)
+    hostility = Column(Float, nullable=False, default=0.0)
+    last_event_at = Column(DateTime, nullable=True)
+    updated_at = Column(DateTime, nullable=False, default=datetime.utcnow)
+    metadata_ = Column("metadata", JSON, default=dict)
+
+    __table_args__ = (
+        Index("idx_rel_projection_tavern", "tavern_id"),
+        Index("idx_rel_projection_node", "node_type", "node_id"),
+    )
+
+
+class OwnerConfigModel(Base):
+    """Owner-level private configuration."""
+
+    __tablename__ = "owner_configs"
+
+    owner_id = Column(String(64), primary_key=True)
+    default_llm = Column(JSON, default=dict)
+    created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
+    updated_at = Column(DateTime, nullable=False, default=datetime.utcnow)
+
+
+class VisitorNoteModel(Base):
+    """Owner-visible visitor feedback, not a public message board."""
+
+    __tablename__ = "visitor_notes"
+
+    id = Column(String(64), primary_key=True)
+    tavern_id = Column(String(64), nullable=False)
+    visitor_id = Column(String(64), nullable=False)
+    visitor_nickname = Column(String(64), default="旅人")
+    content = Column(Text, nullable=False)
+    created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
+    visibility = Column(String(32), nullable=False, default="owner_only")
+
+    __table_args__ = (
+        Index("idx_vn_tavern_created", "tavern_id", "created_at"),
+        Index("idx_vn_visitor", "visitor_id"),
+    )
+
+
+class NotificationModel(Base):
+    """Persistent user notification."""
+
+    __tablename__ = "notifications"
+
+    id = Column(String(64), primary_key=True)
+    user_id = Column(String(64), nullable=False)
+    notification_type = Column(String(64), nullable=False)
+    title = Column(String(255), nullable=False)
+    content = Column(Text, nullable=False)
+    data = Column(JSON, default=dict)
+    created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
+    read = Column(Boolean, nullable=False, default=False)
+    tavern_id = Column(String(64), nullable=True)
+    tavern_name = Column(String(255), nullable=True)
+
+    __table_args__ = (
+        Index("idx_notif_user_created", "user_id", "created_at"),
+        Index("idx_notif_user_read", "user_id", "read"),
+    )
+
+
+class NeighborhoodRumorModel(Base):
+    """Persistent neighborhood rumor."""
+
+    __tablename__ = "neighborhood_rumors"
+
+    id = Column(String(64), primary_key=True)
+    source_tavern_id = Column(String(64), nullable=False)
+    target_tavern_id = Column(String(64), nullable=False)
+    target_tavern_name = Column(String(255), default="")
+    character_id = Column(String(64), nullable=False)
+    character_name = Column(String(255), default="")
+    rumor_text = Column(Text, nullable=False)
+    trigger_type = Column(String(32), nullable=False, default="keyword")
+    trigger_keywords = Column(JSON, default=list)
+    weight = Column(Float, default=1.0)
+    created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
+    expires_at = Column(DateTime, nullable=True)
+    view_count = Column(Integer, default=0)
+    click_count = Column(Integer, default=0)
+    is_active = Column(Boolean, nullable=False, default=True)
+
+    __table_args__ = (
+        Index("idx_rumor_source", "source_tavern_id", "is_active"),
+        Index("idx_rumor_target", "target_tavern_id"),
+        Index("idx_rumor_created", "created_at"),
+    )
+
+
+class HomeModel(Base):
+    """Legacy Home API persistence model."""
+
+    __tablename__ = "homes"
+
+    id = Column(String(64), primary_key=True)
+    owner_id = Column(String(64), nullable=False)
+    name = Column(String(255), nullable=False)
+    description = Column(Text, default="")
+    avatar = Column(String(500), default="")
+    cover_image = Column(String(500), default="")
+    theme = Column(String(64), default="cozy")
+    visit_settings = Column(JSON, default=dict)
+    members = Column(JSON, default=list)
+    status = Column(String(32), nullable=False, default="hidden")
+    created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
+    updated_at = Column(DateTime, nullable=False, default=datetime.utcnow)
+    metadata_ = Column("metadata", JSON, default=dict)
+
+    __table_args__ = (
+        Index("idx_home_owner", "owner_id"),
+        Index("idx_home_status", "status"),
+    )
+
+
+class HomeVisitModel(Base):
+    """Legacy Home visit/message persistence model."""
+
+    __tablename__ = "home_visits"
+
+    id = Column(String(64), primary_key=True)
+    home_id = Column(String(64), nullable=False)
+    visitor_id = Column(String(64), nullable=False)
+    visited_at = Column(DateTime, nullable=False, default=datetime.utcnow)
+    stay_duration = Column(Integer, default=0)
+    left_message = Column(Text, nullable=True)
+    metadata_ = Column("metadata", JSON, default=dict)
+
+    __table_args__ = (
+        Index("idx_home_visit_home", "home_id", "visited_at"),
+        Index("idx_home_visit_visitor", "visitor_id"),
+    )
+
+
+class WritebackStateModel(Base):
+    """Persistent legacy writeback world state.
+
+    The old writeback surface stores a dynamic nested state document.  Keep the
+    document shape intact for compatibility, but persist it in the configured
+    database instead of a JSON file.
+    """
+
+    __tablename__ = "writeback_states"
+
+    key = Column(String(64), primary_key=True)
+    state = Column(JSON, default=dict)
+    updated_at = Column(DateTime, nullable=False, default=datetime.utcnow)

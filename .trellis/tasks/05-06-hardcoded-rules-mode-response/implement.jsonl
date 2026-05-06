@@ -1,0 +1,11 @@
+{"file": ".trellis/workflow.md", "reason": "Project workflow and conventions"}
+{"file": ".trellis/spec/backend/index.md", "reason": "Backend development guide"}
+{"file": ".trellis/spec/frontend/index.md", "reason": "Frontend development guide"}
+{"file": "backend/src/fablemap_api/core/public_welfare_rules.py", "reason": "current rules response implementation"}
+{"file": "backend/src/fablemap_api/core/web/service.py", "reason": "chat service response routing"}
+{"file": "backend/src/fablemap_api/core/default_taverns.py", "reason": "public welfare seed config"}
+{"file": "frontend/app/features/tavern-chat-workbench/index.tsx", "reason": "visitor chat UI mode boundary"}
+{"file": "frontend/app/product/TavernChatRoom.jsx", "reason": "product chat UI mode boundary"}
+{"file": ".trellis\\tasks\\05-06-hardcoded-rules-mode-response\\prd.md", "reason": "task PRD requirements"}
+{"file": "backend/src/fablemap_api/application/services/runtime.py", "reason": "v1 runtime chat response_mode and no-key degradation"}
+{"file": "frontend/app/lib/taverns.ts", "reason": "typed response_mode contract"}

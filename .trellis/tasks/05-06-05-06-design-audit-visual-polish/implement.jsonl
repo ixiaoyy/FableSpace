@@ -1,0 +1,9 @@
+{"file": ".trellis/workflow.md", "reason": "Project workflow and conventions"}
+{"file": ".trellis/spec/frontend/index.md", "reason": "Frontend development guide"}
+{"file": ".trellis/spec/frontend/component-guidelines.md", "reason": "Global visual quality, designed panels, mobile-safe controls"}
+{"file": ".trellis/spec/frontend/state-management.md", "reason": "Use local UI state only for collapsible filters/steps"}
+{"file": ".trellis/spec/frontend/quality-guidelines.md", "reason": "Frontend build and no forbidden product drift"}
+{"file": ".trellis/spec/frontend/mobile-single-mainline.md", "reason": "Tavern owner panels must remain secondary and folded"}
+{"file": "frontend/app/routes/discover.tsx", "reason": "Existing FilterPanel and RadarSignalCard patterns"}
+{"file": "frontend/app/routes/tavern.tsx", "reason": "Existing Roleplay owner panel and secondary panel patterns"}
+{"file": "frontend/app/routes/create.tsx", "reason": "Existing create wizard step sections and owner-authored AI draft guardrails"}

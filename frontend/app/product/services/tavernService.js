@@ -550,6 +550,22 @@ export function createTavernService(getBaseUrl) {
     },
 
     /**
+     * 预览或确认应用社区/SillyTavern 风格预设的 supported 子集。
+     * @param {string} tavernId
+     * @param {object} data — { preset?, selected_ids?, target_map?, include_runtime_parameters?, confirm? }
+     * @param {string} userId
+     * @returns {Promise<object>}
+     */
+    async applyPresetImport(tavernId, data, userId = '') {
+      const response = await fetch(`${getBaseUrl()}/api/v1/taverns/${encodeURIComponent(tavernId)}/preset-import/apply`, {
+        method: 'POST',
+        headers: buildJsonHeaders(userId),
+        body: JSON.stringify(data || {}),
+      })
+      return readJson(response)
+    },
+
+    /**
      * 导出可分享的酒馆包（不包含 API Key / 访客聊天 / 私密记忆）
      * @param {string} tavernId
      * @param {string} userId

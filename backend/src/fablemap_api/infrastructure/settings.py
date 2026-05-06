@@ -46,9 +46,19 @@ def _default_sillytavern_url() -> str:
     return os.environ.get("FABLEMAP_SILLYTAVERN_URL", "http://127.0.0.1:8000").strip() or "http://127.0.0.1:8000"
 
 
+def _default_database_url() -> str:
+    """Primary SQLAlchemy database URL. Empty means use the default SQLite file when storage_backend=database."""
+    return os.environ.get("FABLEMAP_DATABASE_URL", "").strip()
+
+
 def _default_mysql_url() -> str:
-    """从环境变量获取 MySQL URL，默认空（使用 JSON 文件存储）"""
-    return os.environ.get("FABLEMAP_MYSQL_URL", "")
+    """Legacy alias for database URL. Kept for existing deployments."""
+    return os.environ.get("FABLEMAP_MYSQL_URL", "").strip()
+
+
+def _default_storage_backend() -> str:
+    value = os.environ.get("FABLEMAP_STORAGE_BACKEND", "database").strip().lower()
+    return value if value in {"database", "json"} else "database"
 
 
 def _int_from_env(name: str, default: int) -> int:
@@ -78,7 +88,9 @@ class ApiSettings:
     frontend_root: Path | None = field(default_factory=_default_frontend_root)
     sillytavern_url: str = field(default_factory=_default_sillytavern_url)
 
-    # MySQL 配置
+    # Database configuration. `mysql_url` is a legacy alias; `database_url` may also be sqlite:///...
+    storage_backend: str = field(default_factory=_default_storage_backend)
+    database_url: str = field(default_factory=_default_database_url)
     mysql_url: str = field(default_factory=_default_mysql_url)
     mysql_pool_size: int = field(default_factory=lambda: _int_from_env("FABLEMAP_MYSQL_POOL_SIZE", 5))
     mysql_max_overflow: int = field(default_factory=lambda: _int_from_env("FABLEMAP_MYSQL_MAX_OVERFLOW", 10))

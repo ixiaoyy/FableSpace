@@ -1,0 +1,53 @@
+{
+  "id": "special-tavern-type-roadmap",
+  "name": "special-tavern-type-roadmap",
+  "title": "Special Tavern Type Roadmap",
+  "description": "整理后续特殊酒馆类型路线图：占卜、侦探、短剧、怪谈、公益陪伴等如何复用薄类型层和玩法包，不做插件市场或泛游戏框架。",
+  "status": "planning",
+  "dev_type": null,
+  "scope": null,
+  "package": null,
+  "priority": "P3",
+  "creator": "lijin",
+  "assignee": "lijin",
+  "createdAt": "2026-05-06",
+  "completedAt": null,
+  "branch": null,
+  "base_branch": "codex-homepage-dynamic-entry-covers",
+  "worktree_path": null,
+  "current_phase": 0,
+  "next_action": [
+    {
+      "phase": 1,
+      "action": "brainstorm"
+    },
+    {
+      "phase": 2,
+      "action": "research"
+    },
+    {
+      "phase": 3,
+      "action": "implement"
+    },
+    {
+      "phase": 4,
+      "action": "check"
+    },
+    {
+      "phase": 5,
+      "action": "update-spec"
+    },
+    {
+      "phase": 6,
+      "action": "record-session"
+    }
+  ],
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [],
+  "parent": "05-06-xiuxian-idle-text-image-game-brainstorm",
+  "relatedFiles": [],
+  "notes": "",
+  "meta": {}
+}

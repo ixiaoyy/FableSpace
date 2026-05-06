@@ -16,7 +16,7 @@ def _text(value: Any, *, limit: int = 500) -> str:
 
 
 class VisitorNoteStore:
-    """JSON-backed owner-visible visitor notes store.
+    """JSON-backed owner-visible visitor notes store for explicit local/dev fallback.
 
     This store is intentionally separate from Tavern public payloads so visitor
     feedback cannot leak into public tavern responses or become a social feed.
@@ -76,3 +76,66 @@ class VisitorNoteStore:
         all_notes[str(tavern_id)] = kept
         self._write_all(all_notes)
         return True
+
+class SQLAlchemyVisitorNoteStore:
+    """Database-backed owner-visible visitor notes store."""
+
+    def __init__(self, database: Any):
+        self.database = database
+
+    @staticmethod
+    def _to_dict(model: Any) -> dict[str, Any]:
+        created_at = model.created_at.strftime("%Y-%m-%dT%H:%M:%SZ") if model.created_at else ""
+        return {
+            "id": model.id,
+            "tavern_id": model.tavern_id,
+            "visitor_id": model.visitor_id,
+            "visitor_nickname": model.visitor_nickname or "旅人",
+            "content": model.content or "",
+            "created_at": created_at,
+            "visibility": model.visibility or "owner_only",
+        }
+
+    def create_note(self, tavern_id: str, visitor_id: str, data: dict[str, Any]) -> dict[str, Any]:
+        from datetime import UTC, datetime
+        from fablemap_api.infrastructure.models import VisitorNoteModel
+
+        note = {
+            "id": f"note_{secrets.token_hex(8)}",
+            "tavern_id": _text(tavern_id, limit=128),
+            "visitor_id": _text(visitor_id, limit=128),
+            "visitor_nickname": _text(data.get("visitor_nickname") or "旅人", limit=64) or "旅人",
+            "content": _text(data.get("content"), limit=500),
+            "created_at": datetime.now(UTC).replace(tzinfo=None),
+            "visibility": "owner_only",
+        }
+        with self.database.session_scope() as session:
+            session.add(VisitorNoteModel(**note))
+        public = dict(note)
+        public["created_at"] = note["created_at"].strftime("%Y-%m-%dT%H:%M:%SZ")
+        return public
+
+    def list_notes(self, tavern_id: str, *, limit: int = 20, offset: int = 0) -> tuple[list[dict[str, Any]], int]:
+        from fablemap_api.infrastructure.models import VisitorNoteModel
+
+        safe_limit = max(1, min(int(limit or 20), 100))
+        safe_offset = max(0, int(offset or 0))
+        with self.database.session_scope() as session:
+            query = session.query(VisitorNoteModel).filter_by(tavern_id=str(tavern_id))
+            total = query.count()
+            models = query.order_by(VisitorNoteModel.created_at.desc()).offset(safe_offset).limit(safe_limit).all()
+            return [self._to_dict(model) for model in models], total
+
+    def get_note(self, tavern_id: str, note_id: str) -> dict[str, Any] | None:
+        from fablemap_api.infrastructure.models import VisitorNoteModel
+
+        with self.database.session_scope() as session:
+            model = session.query(VisitorNoteModel).filter_by(tavern_id=str(tavern_id), id=str(note_id)).first()
+            return self._to_dict(model) if model else None
+
+    def delete_note(self, tavern_id: str, note_id: str) -> bool:
+        from fablemap_api.infrastructure.models import VisitorNoteModel
+
+        with self.database.session_scope() as session:
+            count = session.query(VisitorNoteModel).filter_by(tavern_id=str(tavern_id), id=str(note_id)).delete()
+            return count > 0

@@ -1,0 +1,12 @@
+{
+  "url": "http://127.0.0.1:5173/tavern/pw_third_shelf_observatory?visitor_id=privacy_ui_check",
+  "screenshots": [
+    "D:\\work\\ai-\\.trellis\\tasks\\05-06-05-06-hide-visitor-memory-panels\\evidence\\visitor-memory-panel-desktop.png",
+    "D:\\work\\ai-\\.trellis\\tasks\\05-06-05-06-hide-visitor-memory-panels\\evidence\\visitor-memory-panel-mobile.png"
+  ],
+  "checks": [
+    "desktop: tavern loaded, memory/status panel copy hidden, chat helper remains, no horizontal overflow",
+    "mobile: tavern loaded, memory/status panel copy hidden, chat helper remains, no horizontal overflow"
+  ],
+  "pageErrors": []
+}

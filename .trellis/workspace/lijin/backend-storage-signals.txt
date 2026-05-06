@@ -1,0 +1,438 @@
+backend\src\fablemap_api\api\v1\homes.py:29: def _get_store():
+backend\src\fablemap_api\api\v1\homes.py:30: return get_home_store()
+backend\src\fablemap_api\api\v1\homes.py:40: home = _get_store().get_home_by_owner(user_id)
+backend\src\fablemap_api\api\v1\homes.py:48: home = _get_store().create_home(
+backend\src\fablemap_api\api\v1\homes.py:64: home = _get_store().get_home(home_id)
+backend\src\fablemap_api\api\v1\homes.py:72: home = _get_store().get_home(home_id)
+backend\src\fablemap_api\api\v1\homes.py:90: updated = _get_store().update_home(home_id, updates)
+backend\src\fablemap_api\api\v1\homes.py:98: home = _get_store().get_home(home_id)
+backend\src\fablemap_api\api\v1\homes.py:108: success = _get_store().delete_home(home_id)
+backend\src\fablemap_api\api\v1\homes.py:115: homes, total = _get_store().list_public_homes()
+backend\src\fablemap_api\api\v1\homes.py:129: home = _get_store().get_home(home_id)
+backend\src\fablemap_api\api\v1\homes.py:140: member = _get_store().add_member(home_id, member_data)
+backend\src\fablemap_api\api\v1\homes.py:148: home = _get_store().get_home(home_id)
+backend\src\fablemap_api\api\v1\homes.py:159: member = _get_store().update_member(home_id, member_id, updates)
+backend\src\fablemap_api\api\v1\homes.py:167: home = _get_store().get_home(home_id)
+backend\src\fablemap_api\api\v1\homes.py:177: success = _get_store().remove_member(home_id, member_id)
+backend\src\fablemap_api\api\v1\homes.py:188: home = _get_store().get_home(home_id)
+backend\src\fablemap_api\api\v1\homes.py:212: _get_store().record_visit(home_id, visitor_id)
+backend\src\fablemap_api\api\v1\homes.py:228: success = _get_store().add_visit_message(
+backend\src\fablemap_api\api\v1\homes.py:241: home = _get_store().get_home(home_id)
+backend\src\fablemap_api\api\v1\homes.py:251: visits = _get_store().get_visits(home_id)
+backend\src\fablemap_api\api\v1\homes.py:261: message = _get_store().chat_with_member(home_id, data.member_id, data.message)
+backend\src\fablemap_api\api\v1\homes.py:270: member = _get_store().get_member(home_id, data.member_id)
+backend\src\fablemap_api\api\v1\notifications.py:25: class ConnectionManager:
+backend\src\fablemap_api\api\v1\notifications.py:59: manager = ConnectionManager()
+backend\src\fablemap_api\api\v1\notifications.py:72: store = get_notification_store()
+backend\src\fablemap_api\api\v1\notifications.py:115: message = json.loads(data)
+backend\src\fablemap_api\api\v1\notifications.py:161: store = get_notification_store()
+backend\src\fablemap_api\api\v1\notifications.py:183: store = get_notification_store()
+backend\src\fablemap_api\api\v1\notifications.py:200: store = get_notification_store()
+backend\src\fablemap_api\api\v1\notifications.py:216: store = get_notification_store()
+backend\src\fablemap_api\api\v1\notifications.py:233: store = get_notification_store()
+backend\src\fablemap_api\api\v1\public_bond.py:256: store = service._get_public_bond_store()
+backend\src\fablemap_api\api\v1\public_bond.py:304: store = service._get_public_bond_store()
+backend\src\fablemap_api\application\services\characters.py:227: source = json.loads(decoded.decode("utf-8"))
+backend\src\fablemap_api\application\services\owner_config.py:323: if not self.owner_config_store:
+backend\src\fablemap_api\application\services\owner_config.py:331: if not self.owner_config_store:
+backend\src\fablemap_api\application\services\owner_config.py:340: if not self.owner_config_store:
+backend\src\fablemap_api\application\services\owner_config.py:371: parsed = json.loads(str(response.content or ""))
+backend\src\fablemap_api\application\services\public_bond.py:50: class PublicBondStore:
+backend\src\fablemap_api\application\services\public_bond.py:124: class MySQLPublicBondStore(PublicBondStore):
+backend\src\fablemap_api\application\services\public_bond.py:449: store = self._get_public_bond_store()
+backend\src\fablemap_api\application\services\public_bond.py:548: store = self._get_public_bond_store()
+backend\src\fablemap_api\application\services\public_bond.py:584: store = self._get_public_bond_store()
+backend\src\fablemap_api\application\services\public_bond.py:618: store = self._get_public_bond_store()
+backend\src\fablemap_api\application\services\public_bond.py:670: store = self._get_public_bond_store()
+backend\src\fablemap_api\application\services\public_bond.py:707: store = self._get_public_bond_store()
+backend\src\fablemap_api\application\services\public_bond.py:726: store = self._get_public_bond_store()
+backend\src\fablemap_api\application\services\public_bond.py:741: store = self._get_public_bond_store()
+backend\src\fablemap_api\application\services\public_bond.py:762: def _get_public_bond_store(self) -> PublicBondStore:
+backend\src\fablemap_api\application\services\rumor.py:35: self._rumor_store = RumorStore()
+backend\src\fablemap_api\application\services\rumor.py:37: def _get_rumor_store(self) -> RumorStore:
+backend\src\fablemap_api\application\services\rumor.py:40: self._rumor_store = RumorStore()
+backend\src\fablemap_api\application\services\rumor.py:50: store = self._get_rumor_store()
+backend\src\fablemap_api\application\services\rumor.py:110: store = self._get_rumor_store()
+backend\src\fablemap_api\application\services\rumor.py:158: store = self._get_rumor_store()
+backend\src\fablemap_api\application\services\rumor.py:168: store = self._get_rumor_store()
+backend\src\fablemap_api\application\services\rumor.py:178: store = self._get_rumor_store()
+backend\src\fablemap_api\application\services\rumor.py:202: store = self._get_rumor_store()
+backend\src\fablemap_api\application\services\runtime.py:416: manager = GroupChatManager()
+backend\src\fablemap_api\application\taverns.py:56: owner_config_store: OwnerConfigStore | None = None,
+backend\src\fablemap_api\application\taverns.py:57: visitor_note_store: VisitorNoteStore | None = None,
+backend\src\fablemap_api\application\taverns.py:73: TavernStore(settings.output_root / "taverns"),
+backend\src\fablemap_api\application\taverns.py:74: OwnerConfigStore(settings.output_root / "owner_configs.json"),
+backend\src\fablemap_api\application\taverns.py:75: VisitorNoteStore(settings.output_root / "visitor_notes.json"),
+backend\src\fablemap_api\application\taverns.py:117: if not self.visitor_note_store:
+backend\src\fablemap_api\application\taverns.py:137: if not self.visitor_note_store:
+backend\src\fablemap_api\application\taverns.py:145: if not self.visitor_note_store:
+backend\src\fablemap_api\application\taverns.py:157: def _get_public_bond_store(self) -> "PublicBondStore":
+backend\src\fablemap_api\application\taverns.py:162: return MySQLPublicBondStore(db)
+backend\src\fablemap_api\core\memory\core.py:151: class MemoryStore(ABC):
+backend\src\fablemap_api\core\memory\core.py:182: class KeywordMemoryStore(MemoryStore):
+backend\src\fablemap_api\core\memory\core.py:582: tavern_store: Any,
+backend\src\fablemap_api\core\memory\core.py:986: class MemoryManager:
+backend\src\fablemap_api\core\orchestrator\ai_engine.py:62: payload = json.loads(response)
+backend\src\fablemap_api\core\web\app.py:58: OwnerConfigStore(service.settings.output_root / "owner_configs.json"),
+backend\src\fablemap_api\core\web\app.py:59: VisitorNoteStore(service.settings.output_root / "visitor_notes.json"),
+backend\src\fablemap_api\core\web\router.py:950: source = json.loads(decoded.decode("utf-8"))
+backend\src\fablemap_api\core\web\service.py:396: self.writeback = WritebackEngine(WritebackStore(self.settings.output_root / "writeback"))
+backend\src\fablemap_api\core\web\service.py:566: (snapshot_dir / "manifest.json").write_text(json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8")
+backend\src\fablemap_api\core\web\service.py:952: {"role": "user", "content": json.dumps(payload, ensure_ascii=False)},
+backend\src\fablemap_api\core\web\service.py:1899: backup_file.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
+backend\src\fablemap_api\core\web\service.py:1920: backup_data = json.loads(backup_file.read_text(encoding="utf-8"))
+backend\src\fablemap_api\core\web\service.py:2709: data = json.loads(f.read_text("utf-8"))
+backend\src\fablemap_api\core\web\service.py:2743: def get_quick_reply_manager(self):
+backend\src\fablemap_api\core\web\service.py:2747: self._quick_reply_manager = QuickReplyManager()
+backend\src\fablemap_api\core\web\service.py:2755: def get_command_manager(self):
+backend\src\fablemap_api\core\web\service.py:2759: self._command_manager = get_command_manager()
+backend\src\fablemap_api\core\web\service.py:2764: def get_extension_manager(self):
+backend\src\fablemap_api\core\web\service.py:2768: self._extension_manager = get_extension_manager()
+backend\src\fablemap_api\core\web\service.py:2973: manager = GroupChatManager()
+backend\src\fablemap_api\core\web\service.py:3296: def get_preset_manager(self):
+backend\src\fablemap_api\core\web\service.py:3301: self._preset_manager = PresetManager(storage_path)
+backend\src\fablemap_api\core\web\service.py:3429: with urlopen(request, timeout=20) as response:
+backend\src\fablemap_api\core\api_service.py:42: world_data = _json.loads(world_path.read_text(encoding="utf-8")) if world_path and world_path.exists() else None
+backend\src\fablemap_api\core\api.py:95: json.dumps(
+backend\src\fablemap_api\core\api.py:113: webbrowser.open(f"{base_url}/")
+backend\src\fablemap_api\core\auth.py:72: class AuthStore:
+backend\src\fablemap_api\core\auth.py:89: self.users_file.write_text("{}", "utf-8")
+backend\src\fablemap_api\core\auth.py:91: self.sessions_file.write_text("{}", "utf-8")
+backend\src\fablemap_api\core\auth.py:93: self.apikeys_file.write_text("{}", "utf-8")
+backend\src\fablemap_api\core\auth.py:98: return json.loads(self.users_file.read_text("utf-8"))
+backend\src\fablemap_api\core\auth.py:104: self.users_file.write_text(json.dumps(users, ensure_ascii=False, indent=2), "utf-8")
+backend\src\fablemap_api\core\auth.py:109: return json.loads(self.sessions_file.read_text("utf-8"))
+backend\src\fablemap_api\core\auth.py:115: self.sessions_file.write_text(json.dumps(sessions, ensure_ascii=False, indent=2), "utf-8")
+backend\src\fablemap_api\core\auth.py:120: return json.loads(self.apikeys_file.read_text("utf-8"))
+backend\src\fablemap_api\core\auth.py:126: self.apikeys_file.write_text(json.dumps(apikeys, ensure_ascii=False, indent=2), "utf-8")
+backend\src\fablemap_api\core\auth.py:403: class SSOManager:
+backend\src\fablemap_api\core\bundle.py:37: print(json.dumps(export_bundle(world, output_dir), ensure_ascii=False, indent=2))
+backend\src\fablemap_api\core\bundle.py:45: return json.loads(input_path.read_text(encoding="utf-8"))
+backend\src\fablemap_api\core\bundle.py:64: summary_path.write_text(json.dumps(summary, ensure_ascii=False, indent=2), encoding="utf-8")
+backend\src\fablemap_api\core\bundle.py:65: showcase_json_path.write_text(json.dumps(showcase, ensure_ascii=False, indent=2), encoding="utf-8")
+backend\src\fablemap_api\core\bundle.py:66: showcase_md_path.write_text(_render_showcase_markdown(showcase), encoding="utf-8")
+backend\src\fablemap_api\core\bundle.py:67: preview_html_path.write_text(_render_preview_html(world, showcase, manifest), encoding="utf-8")
+backend\src\fablemap_api\core\bundle.py:68: manifest_path.write_text(json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8")
+backend\src\fablemap_api\core\bundle.py:1168: translations_json = json.dumps(translations, ensure_ascii=False)
+backend\src\fablemap_api\core\bundle.py:1170: default_feature_id_json = json.dumps(default_feature_id, ensure_ascii=False)
+backend\src\fablemap_api\core\cache.py:33: payload = json.loads(path.read_text(encoding="utf-8"))
+backend\src\fablemap_api\core\cache.py:40: path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
+backend\src\fablemap_api\core\char_card_parser.py:211: v2_json = json.dumps(character_json, ensure_ascii=False)
+backend\src\fablemap_api\core\char_card_parser.py:222: v3_json = json.dumps(v3_data, ensure_ascii=False)
+backend\src\fablemap_api\core\char_card_parser.py:281: data = json.loads(json_str)
+backend\src\fablemap_api\core\char_card_parser.py:304: data = json.loads(archive.read(card_name).decode("utf-8"))
+backend\src\fablemap_api\core\char_card_parser.py:493: return self.parse_auto(json.loads(Path(data).read_text("utf-8")))
+backend\src\fablemap_api\core\cli.py:147: source_data = json.loads(args.source_file.read_text(encoding="utf-8"))
+backend\src\fablemap_api\core\cli.py:168: json.dumps(
+backend\src\fablemap_api\core\cli.py:187: world = json.loads(args.input.read_text(encoding="utf-8"))
+backend\src\fablemap_api\core\cli.py:189: print(json.dumps(_build_inspect_summary(world, args.input), ensure_ascii=False, indent=2))
+backend\src\fablemap_api\core\cli.py:196: json.dumps(
+backend\src\fablemap_api\core\cli.py:212: print(json.dumps(result.to_dict(), ensure_ascii=False, indent=2))
+backend\src\fablemap_api\core\crew_orchestrator.py:211: json_path.write_text(json.dumps(plan.to_dict(), ensure_ascii=False, indent=2), encoding="utf-8")
+backend\src\fablemap_api\core\crew_orchestrator.py:212: md_path.write_text(render_markdown(plan), encoding="utf-8")
+backend\src\fablemap_api\core\demo.py:86: source_data = json.loads(args.source_file.read_text(encoding="utf-8"))
+backend\src\fablemap_api\core\demo.py:108: summary_path.write_text(json.dumps(summary, ensure_ascii=False, indent=2), encoding="utf-8")
+backend\src\fablemap_api\core\demo.py:111: json.dumps(
+backend\src\fablemap_api\core\extensions.py:112: class ExtensionManager:
+backend\src\fablemap_api\core\extensions.py:235: manifest_data = json.loads(manifest_file.read_text("utf-8"))
+backend\src\fablemap_api\core\extensions.py:308: def get_extension_manager() -> ExtensionManager:
+backend\src\fablemap_api\core\extensions.py:312: _extension_manager = ExtensionManager()
+backend\src\fablemap_api\core\gameplay.py:476: parsed = json.loads(self.responder(payload))
+backend\src\fablemap_api\core\group_chat.py:195: class GroupChatManager:
+backend\src\fablemap_api\core\llm_clients.py:187: data=json.dumps(body).encode("utf-8"),
+backend\src\fablemap_api\core\llm_clients.py:193: with urllib.request.urlopen(req, timeout=120) as resp:
+backend\src\fablemap_api\core\llm_clients.py:194: data = json.loads(resp.read().decode("utf-8"))
+backend\src\fablemap_api\core\llm_clients.py:225: data=json.dumps(body).encode("utf-8"),
+backend\src\fablemap_api\core\llm_clients.py:231: with urllib.request.urlopen(req, timeout=120) as resp:
+backend\src\fablemap_api\core\llm_clients.py:241: data = json.loads(data_str)
+backend\src\fablemap_api\core\llm_clients.py:305: data=json.dumps(body).encode("utf-8"),
+backend\src\fablemap_api\core\llm_clients.py:311: with urllib.request.urlopen(req, timeout=120) as resp:
+backend\src\fablemap_api\core\llm_clients.py:312: data = json.loads(resp.read().decode("utf-8"))
+backend\src\fablemap_api\core\llm_clients.py:363: data=json.dumps(body).encode("utf-8"),
+backend\src\fablemap_api\core\llm_clients.py:368: with urllib.request.urlopen(req, timeout=120) as resp:
+backend\src\fablemap_api\core\llm_clients.py:381: data = json.loads(data_str)
+backend\src\fablemap_api\core\llm_clients.py:447: data=json.dumps(body).encode("utf-8"),
+backend\src\fablemap_api\core\llm_clients.py:453: with urllib.request.urlopen(req, timeout=300) as resp:
+backend\src\fablemap_api\core\llm_clients.py:454: data = json.loads(resp.read().decode("utf-8"))
+backend\src\fablemap_api\core\llm_clients.py:487: data=json.dumps(body).encode("utf-8"),
+backend\src\fablemap_api\core\llm_clients.py:492: with urllib.request.urlopen(req, timeout=300) as resp:
+backend\src\fablemap_api\core\llm_clients.py:498: data = json.loads(line)
+backend\src\fablemap_api\core\llm_clients.py:510: data=json.dumps({"content": text, "model": self.config.model}).encode("utf-8"),
+backend\src\fablemap_api\core\llm_clients.py:514: with urllib.request.urlopen(req, timeout=10) as resp:
+backend\src\fablemap_api\core\llm_clients.py:515: data = json.loads(resp.read().decode("utf-8"))
+backend\src\fablemap_api\core\llm_clients.py:553: data=json.dumps(body).encode("utf-8"),
+backend\src\fablemap_api\core\llm_clients.py:559: with urllib.request.urlopen(req, timeout=120) as resp:
+backend\src\fablemap_api\core\llm_clients.py:560: data = json.loads(resp.read().decode("utf-8"))
+backend\src\fablemap_api\core\llm_clients.py:590: data=json.dumps(body).encode("utf-8"),
+backend\src\fablemap_api\core\llm_clients.py:595: with urllib.request.urlopen(req, timeout=120) as resp:
+backend\src\fablemap_api\core\llm_clients.py:604: data = json.loads(data_str)
+backend\src\fablemap_api\core\llm_clients.py:643: data=json.dumps(body).encode("utf-8"),
+backend\src\fablemap_api\core\llm_clients.py:652: with urllib.request.urlopen(req, timeout=120) as resp:
+backend\src\fablemap_api\core\llm_clients.py:653: data = json.loads(resp.read().decode("utf-8"))
+backend\src\fablemap_api\core\llm_clients.py:682: data=json.dumps(body).encode("utf-8"),
+backend\src\fablemap_api\core\llm_clients.py:687: with urllib.request.urlopen(req, timeout=120) as resp:
+backend\src\fablemap_api\core\llm_clients.py:696: data = json.loads(data_str)
+backend\src\fablemap_api\core\llm_clients.py:727: data=json.dumps(body).encode("utf-8"),
+backend\src\fablemap_api\core\llm_clients.py:733: with urllib.request.urlopen(req, timeout=60) as resp:
+backend\src\fablemap_api\core\llm_clients.py:734: data = json.loads(resp.read().decode("utf-8"))
+backend\src\fablemap_api\core\llm_clients.py:751: data=json.dumps(body).encode("utf-8"),
+backend\src\fablemap_api\core\llm_clients.py:756: with urllib.request.urlopen(req, timeout=60) as resp:
+backend\src\fablemap_api\core\llm_clients.py:765: data = json.loads(data_str)
+backend\src\fablemap_api\core\llm_clients.py:796: data=json.dumps(body).encode("utf-8"),
+backend\src\fablemap_api\core\llm_clients.py:802: with urllib.request.urlopen(req, timeout=120) as resp:
+backend\src\fablemap_api\core\llm_clients.py:803: data = json.loads(resp.read().decode("utf-8"))
+backend\src\fablemap_api\core\llm_clients.py:820: data=json.dumps(body).encode("utf-8"),
+backend\src\fablemap_api\core\llm_clients.py:825: with urllib.request.urlopen(req, timeout=120) as resp:
+backend\src\fablemap_api\core\llm_clients.py:834: data = json.loads(data_str)
+backend\src\fablemap_api\core\llm_clients.py:865: data=json.dumps(body).encode("utf-8"),
+backend\src\fablemap_api\core\llm_clients.py:871: with urllib.request.urlopen(req, timeout=120) as resp:
+backend\src\fablemap_api\core\llm_clients.py:872: data = json.loads(resp.read().decode("utf-8"))
+backend\src\fablemap_api\core\llm_clients.py:889: data=json.dumps(body).encode("utf-8"),
+backend\src\fablemap_api\core\llm_clients.py:894: with urllib.request.urlopen(req, timeout=120) as resp:
+backend\src\fablemap_api\core\llm_clients.py:903: data = json.loads(data_str)
+backend\src\fablemap_api\core\llm_clients.py:959: data=json.dumps(body).encode("utf-8"),
+backend\src\fablemap_api\core\llm_clients.py:969: with urllib.request.urlopen(req, timeout=120) as resp:
+backend\src\fablemap_api\core\llm_clients.py:970: data = json.loads(resp.read().decode("utf-8"))
+backend\src\fablemap_api\core\llm_clients.py:1009: data=json.dumps(body).encode("utf-8"),
+backend\src\fablemap_api\core\llm_clients.py:1015: with urllib.request.urlopen(req, timeout=120) as resp:
+backend\src\fablemap_api\core\llm_clients.py:1016: data = json.loads(resp.read().decode("utf-8"))
+backend\src\fablemap_api\core\llm_clients.py:1033: data=json.dumps(body).encode("utf-8"),
+backend\src\fablemap_api\core\llm_clients.py:1038: with urllib.request.urlopen(req, timeout=120) as resp:
+backend\src\fablemap_api\core\llm_clients.py:1047: data = json.loads(data_str)
+backend\src\fablemap_api\core\llm_clients.py:1078: data=json.dumps(body).encode("utf-8"),
+backend\src\fablemap_api\core\llm_clients.py:1084: with urllib.request.urlopen(req, timeout=120) as resp:
+backend\src\fablemap_api\core\llm_clients.py:1085: data = json.loads(resp.read().decode("utf-8"))
+backend\src\fablemap_api\core\llm_clients.py:1102: data=json.dumps(body).encode("utf-8"),
+backend\src\fablemap_api\core\llm_clients.py:1107: with urllib.request.urlopen(req, timeout=120) as resp:
+backend\src\fablemap_api\core\llm_clients.py:1116: data = json.loads(data_str)
+backend\src\fablemap_api\core\llm_clients.py:1147: data=json.dumps(body).encode("utf-8"),
+backend\src\fablemap_api\core\llm_clients.py:1153: with urllib.request.urlopen(req, timeout=120) as resp:
+backend\src\fablemap_api\core\llm_clients.py:1154: data = json.loads(resp.read().decode("utf-8"))
+backend\src\fablemap_api\core\llm_clients.py:1171: data=json.dumps(body).encode("utf-8"),
+backend\src\fablemap_api\core\llm_clients.py:1176: with urllib.request.urlopen(req, timeout=120) as resp:
+backend\src\fablemap_api\core\llm_clients.py:1185: data = json.loads(data_str)
+backend\src\fablemap_api\core\llm_clients.py:1222: data=json.dumps(body).encode("utf-8"),
+backend\src\fablemap_api\core\llm_clients.py:1228: with urllib.request.urlopen(req, timeout=120) as resp:
+backend\src\fablemap_api\core\llm_clients.py:1229: data = json.loads(resp.read().decode("utf-8"))
+backend\src\fablemap_api\core\llm_clients.py:1257: data=json.dumps(body).encode("utf-8"),
+backend\src\fablemap_api\core\llm_clients.py:1263: with urllib.request.urlopen(req, timeout=120) as resp:
+backend\src\fablemap_api\core\llm_clients.py:1272: data = json.loads(data_str)
+backend\src\fablemap_api\core\llm_clients.py:1310: data=json.dumps(body).encode("utf-8"),
+backend\src\fablemap_api\core\llm_clients.py:1316: with urllib.request.urlopen(req, timeout=120) as resp:
+backend\src\fablemap_api\core\llm_clients.py:1317: data = json.loads(resp.read().decode("utf-8"))
+backend\src\fablemap_api\core\llm_clients.py:1334: data=json.dumps(body).encode("utf-8"),
+backend\src\fablemap_api\core\llm_clients.py:1339: with urllib.request.urlopen(req, timeout=120) as resp:
+backend\src\fablemap_api\core\llm_clients.py:1348: data = json.loads(data_str)
+backend\src\fablemap_api\core\llm_clients.py:1380: data=json.dumps(body).encode("utf-8"),
+backend\src\fablemap_api\core\llm_clients.py:1386: with urllib.request.urlopen(req, timeout=120) as resp:
+backend\src\fablemap_api\core\llm_clients.py:1387: data = json.loads(resp.read().decode("utf-8"))
+backend\src\fablemap_api\core\llm_clients.py:1405: data=json.dumps(body).encode("utf-8"),
+backend\src\fablemap_api\core\llm_clients.py:1410: with urllib.request.urlopen(req, timeout=120) as resp:
+backend\src\fablemap_api\core\llm_clients.py:1419: data = json.loads(data_str)
+backend\src\fablemap_api\core\llm_clients.py:1450: data=json.dumps(body).encode("utf-8"),
+backend\src\fablemap_api\core\llm_clients.py:1456: with urllib.request.urlopen(req, timeout=120) as resp:
+backend\src\fablemap_api\core\llm_clients.py:1457: data = json.loads(resp.read().decode("utf-8"))
+backend\src\fablemap_api\core\llm_clients.py:1474: data=json.dumps(body).encode("utf-8"),
+backend\src\fablemap_api\core\llm_clients.py:1479: with urllib.request.urlopen(req, timeout=120) as resp:
+backend\src\fablemap_api\core\llm_clients.py:1488: data = json.loads(data_str)
+backend\src\fablemap_api\core\llm_clients.py:1519: data=json.dumps(body).encode("utf-8"),
+backend\src\fablemap_api\core\llm_clients.py:1525: with urllib.request.urlopen(req, timeout=120) as resp:
+backend\src\fablemap_api\core\llm_clients.py:1526: data = json.loads(resp.read().decode("utf-8"))
+backend\src\fablemap_api\core\llm_clients.py:1543: data=json.dumps(body).encode("utf-8"),
+backend\src\fablemap_api\core\llm_clients.py:1548: with urllib.request.urlopen(req, timeout=120) as resp:
+backend\src\fablemap_api\core\llm_clients.py:1557: data = json.loads(data_str)
+backend\src\fablemap_api\core\llm_clients.py:1588: data=json.dumps(body).encode("utf-8"),
+backend\src\fablemap_api\core\llm_clients.py:1594: with urllib.request.urlopen(req, timeout=120) as resp:
+backend\src\fablemap_api\core\llm_clients.py:1595: data = json.loads(resp.read().decode("utf-8"))
+backend\src\fablemap_api\core\llm_clients.py:1612: data=json.dumps(body).encode("utf-8"),
+backend\src\fablemap_api\core\llm_clients.py:1617: with urllib.request.urlopen(req, timeout=120) as resp:
+backend\src\fablemap_api\core\llm_clients.py:1626: data = json.loads(data_str)
+backend\src\fablemap_api\core\llm_clients.py:1687: data=json.dumps(body).encode("utf-8"),
+backend\src\fablemap_api\core\llm_clients.py:1693: with urllib.request.urlopen(req, timeout=300) as resp:
+backend\src\fablemap_api\core\llm_clients.py:1694: data = json.loads(resp.read().decode("utf-8"))
+backend\src\fablemap_api\core\llm_clients.py:1738: data=json.dumps(body).encode("utf-8"),
+backend\src\fablemap_api\core\llm_clients.py:1743: with urllib.request.urlopen(req, timeout=300) as resp:
+backend\src\fablemap_api\core\llm_clients.py:1752: data = json.loads(data_str)
+backend\src\fablemap_api\core\memory_graph.py:82: class GraphMemoryStore(MemoryStore):
+backend\src\fablemap_api\core\memory_graph.py:91: self.fallback = fallback or KeywordMemoryStore()
+backend\src\fablemap_api\core\nearby.py:84: print(json.dumps(result, ensure_ascii=False, indent=2))
+backend\src\fablemap_api\core\nearby.py:109: source_data = json.loads(source_file.read_text(encoding="utf-8"))
+backend\src\fablemap_api\core\notifications.py:57: class NotificationStore:
+backend\src\fablemap_api\core\notifications.py:199: _notification_store: NotificationStore | None = None
+backend\src\fablemap_api\core\notifications.py:202: def get_notification_store() -> NotificationStore:
+backend\src\fablemap_api\core\notifications.py:206: _notification_store = NotificationStore()
+backend\src\fablemap_api\core\notifications.py:213: return await get_notification_store().add_notification(
+backend\src\fablemap_api\core\notifications.py:226: return await get_notification_store().add_notification(
+backend\src\fablemap_api\core\notifications.py:239: return await get_notification_store().add_notification(
+backend\src\fablemap_api\core\notifications.py:254: return await get_notification_store().add_notification(
+backend\src\fablemap_api\core\overpass.py:61: with urlopen(request, timeout=timeout_seconds) as response:
+backend\src\fablemap_api\core\overpass.py:62: payload = json.loads(response.read().decode("utf-8"))
+backend\src\fablemap_api\core\owner_config.py:104: class OwnerConfigStore:
+backend\src\fablemap_api\core\owner_config.py:121: with open(OWNER_CONFIGS_FILE, "r", encoding="utf-8") as f:
+backend\src\fablemap_api\core\owner_config.py:122: data = json.load(f)
+backend\src\fablemap_api\core\owner_config.py:134: with open(OWNER_CONFIGS_FILE, "w", encoding="utf-8") as f:
+backend\src\fablemap_api\core\owner_config.py:135: json.dump(data, f, ensure_ascii=False, indent=2)
+backend\src\fablemap_api\core\owner_config.py:186: _owner_config_store: OwnerConfigStore | None = None
+backend\src\fablemap_api\core\owner_config.py:189: def get_owner_config_store() -> OwnerConfigStore:
+backend\src\fablemap_api\core\owner_config.py:193: _owner_config_store = OwnerConfigStore()
+backend\src\fablemap_api\core\page.py:73: json.dumps(
+backend\src\fablemap_api\core\page.py:88: webbrowser.open(page_url)
+backend\src\fablemap_api\core\page.py:240: encoded = json.dumps(payload, ensure_ascii=False, indent=2).encode("utf-8")
+backend\src\fablemap_api\core\preset_import.py:266: parsed = json.loads(value)
+backend\src\fablemap_api\core\presets.py:188: class PresetManager:
+backend\src\fablemap_api\core\presets.py:205: data = json.loads(self.storage_path.read_text("utf-8"))
+backend\src\fablemap_api\core\presets.py:221: self.storage_path.write_text(
+backend\src\fablemap_api\core\presets.py:222: json.dumps(data, ensure_ascii=False, indent=2),
+backend\src\fablemap_api\core\quick_replies.py:74: class QuickReplyManager:
+backend\src\fablemap_api\core\quick_replies.py:171: path.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
+backend\src\fablemap_api\core\quick_replies.py:180: data = json.loads(path.read_text("utf-8"))
+backend\src\fablemap_api\core\rumor.py:126: class RumorStore:
+backend\src\fablemap_api\core\sd_clients.py:93: data=json.dumps(payload).encode("utf-8"),
+backend\src\fablemap_api\core\sd_clients.py:99: with urllib.request.urlopen(req, timeout=300) as resp:
+backend\src\fablemap_api\core\sd_clients.py:100: data = json.loads(resp.read().decode("utf-8"))
+backend\src\fablemap_api\core\sd_clients.py:134: data=json.dumps(payload).encode("utf-8"),
+backend\src\fablemap_api\core\sd_clients.py:140: with urllib.request.urlopen(req, timeout=300) as resp:
+backend\src\fablemap_api\core\sd_clients.py:141: data = json.loads(resp.read().decode("utf-8"))
+backend\src\fablemap_api\core\sd_clients.py:160: data=json.dumps(payload).encode("utf-8"),
+backend\src\fablemap_api\core\sd_clients.py:165: with urllib.request.urlopen(req, timeout=300) as resp:
+backend\src\fablemap_api\core\sd_clients.py:166: data = json.loads(resp.read().decode("utf-8"))
+backend\src\fablemap_api\core\sd_clients.py:175: with urllib.request.urlopen(req, timeout=30) as resp:
+backend\src\fablemap_api\core\sd_clients.py:176: return json.loads(resp.read().decode("utf-8"))
+backend\src\fablemap_api\core\sd_clients.py:184: with urllib.request.urlopen(req, timeout=30) as resp:
+backend\src\fablemap_api\core\sd_clients.py:185: return json.loads(resp.read().decode("utf-8"))
+backend\src\fablemap_api\core\sd_clients.py:193: with urllib.request.urlopen(req, timeout=30) as resp:
+backend\src\fablemap_api\core\sd_clients.py:194: return json.loads(resp.read().decode("utf-8"))
+backend\src\fablemap_api\core\sd_clients.py:202: with urllib.request.urlopen(req, timeout=30) as resp:
+backend\src\fablemap_api\core\sd_clients.py:203: return json.loads(resp.read().decode("utf-8"))
+backend\src\fablemap_api\core\sd_clients.py:211: with urllib.request.urlopen(req, timeout=30) as resp:
+backend\src\fablemap_api\core\sd_clients.py:212: return json.loads(resp.read().decode("utf-8"))
+backend\src\fablemap_api\core\sd_clients.py:245: data=json.dumps(body).encode("utf-8"),
+backend\src\fablemap_api\core\sd_clients.py:251: with urllib.request.urlopen(req, timeout=30) as resp:
+backend\src\fablemap_api\core\sd_clients.py:252: resp_data = json.loads(resp.read().decode("utf-8"))
+backend\src\fablemap_api\core\sd_clients.py:296: with urllib.request.urlopen(req, timeout=60) as resp:
+backend\src\fablemap_api\core\sd_clients.py:297: upload_result = json.loads(resp.read().decode("utf-8"))
+backend\src\fablemap_api\core\sd_clients.py:313: with urllib.request.urlopen(req, timeout=30) as resp:
+backend\src\fablemap_api\core\sd_clients.py:314: history = json.loads(resp.read().decode("utf-8"))
+backend\src\fablemap_api\core\sd_clients.py:323: with urllib.request.urlopen(req2, timeout=60) as r:
+backend\src\fablemap_api\core\sd_clients.py:420: with urllib.request.urlopen(url, timeout=60) as resp:
+backend\src\fablemap_api\core\sd_clients.py:463: data=json.dumps(body).encode("utf-8"),
+backend\src\fablemap_api\core\sd_clients.py:469: with urllib.request.urlopen(req, timeout=60) as resp:
+backend\src\fablemap_api\core\sd_clients.py:470: data = json.loads(resp.read().decode("utf-8"))
+backend\src\fablemap_api\core\sd_clients.py:481: with urllib.request.urlopen(req2, timeout=60) as r:
+backend\src\fablemap_api\core\showcase.py:40: showcase_json_path.write_text(json.dumps(showcase, ensure_ascii=False, indent=2), encoding="utf-8")
+backend\src\fablemap_api\core\showcase.py:41: showcase_md_path.write_text(_render_showcase_markdown(showcase), encoding="utf-8")
+backend\src\fablemap_api\core\showcase.py:44: json.dumps(
+backend\src\fablemap_api\core\showcase.py:63: return json.loads(input_path.read_text(encoding="utf-8"))
+backend\src\fablemap_api\core\slash_commands.py:383: class CommandManager:
+backend\src\fablemap_api\core\slash_commands.py:488: def get_command_manager() -> CommandManager:
+backend\src\fablemap_api\core\slash_commands.py:492: _command_manager = CommandManager()
+backend\src\fablemap_api\core\stt_caption_service.py:71: img_bytes = open(image_source, "rb").read()
+backend\src\fablemap_api\core\tavern.py:674: class TavernStore:
+backend\src\fablemap_api\core\tavern.py:687: self.taverns_file.write_text("{}", encoding="utf-8")
+backend\src\fablemap_api\core\tavern.py:689: self.keyvault_file.write_text("{}", encoding="utf-8")
+backend\src\fablemap_api\core\tavern.py:696: loaded = json.loads(self.taverns_file.read_text(encoding="utf-8"))
+backend\src\fablemap_api\core\tavern.py:855: loaded = json.loads(self.taverns_file.read_text(encoding="utf-8"))
+backend\src\fablemap_api\core\tavern.py:867: self.taverns_file.write_text(
+backend\src\fablemap_api\core\tavern.py:868: json.dumps(data, ensure_ascii=False, indent=2, sort_keys=True),
+backend\src\fablemap_api\core\tavern.py:877: return json.loads(self.keyvault_file.read_text(encoding="utf-8"))
+backend\src\fablemap_api\core\tavern.py:882: self.keyvault_file.write_text(
+backend\src\fablemap_api\core\tavern.py:883: json.dumps(data, ensure_ascii=False, indent=2, sort_keys=True),
+backend\src\fablemap_api\core\tavern.py:1338: with file_path.open("w", encoding="utf-8") as fh:
+backend\src\fablemap_api\core\tavern.py:1340: fh.write(json.dumps(message.to_dict(), ensure_ascii=False) + "\n")
+backend\src\fablemap_api\core\tavern.py:1346: for line in file_path.read_text(encoding="utf-8").strip().split("\n"):
+backend\src\fablemap_api\core\tavern.py:1348: d = json.loads(line)
+backend\src\fablemap_api\core\tavern.py:1358: with file_path.open("a", encoding="utf-8") as fh:
+backend\src\fablemap_api\core\tavern.py:1359: fh.write(json.dumps(msg.to_dict(), ensure_ascii=False) + "\n")
+backend\src\fablemap_api\core\tavern.py:2665: return json.loads(json_str)
+backend\src\fablemap_api\core\translate.py:70: data=json.dumps(body).encode("utf-8"),
+backend\src\fablemap_api\core\translate.py:75: with urllib.request.urlopen(req, timeout=30) as resp:
+backend\src\fablemap_api\core\translate.py:76: data = json.loads(resp.read().decode("utf-8"))
+backend\src\fablemap_api\core\translate.py:93: data=json.dumps(body).encode("utf-8"),
+backend\src\fablemap_api\core\translate.py:97: with urllib.request.urlopen(req, timeout=30) as resp:
+backend\src\fablemap_api\core\translate.py:98: data = json.loads(resp.read().decode("utf-8"))
+backend\src\fablemap_api\core\translate.py:124: with urllib.request.urlopen(req, timeout=30) as resp:
+backend\src\fablemap_api\core\translate.py:125: result = json.loads(resp.read().decode("utf-8"))
+backend\src\fablemap_api\core\translate.py:169: data=json.dumps(body).encode("utf-8"),
+backend\src\fablemap_api\core\translate.py:174: with urllib.request.urlopen(req, timeout=60) as resp:
+backend\src\fablemap_api\core\translate.py:175: data = json.loads(resp.read().decode("utf-8"))
+backend\src\fablemap_api\core\translate.py:202: data=json.dumps(body).encode("utf-8"),
+backend\src\fablemap_api\core\translate.py:206: with urllib.request.urlopen(req, timeout=30) as resp:
+backend\src\fablemap_api\core\translate.py:207: data = json.loads(resp.read().decode("utf-8"))
+backend\src\fablemap_api\core\translate.py:231: data=json.dumps(body).encode("utf-8"),
+backend\src\fablemap_api\core\translate.py:236: with urllib.request.urlopen(req, timeout=30) as resp:
+backend\src\fablemap_api\core\translate.py:237: data = json.loads(resp.read().decode("utf-8"))
+backend\src\fablemap_api\core\translate.py:274: data=json.dumps(body).encode("utf-8"),
+backend\src\fablemap_api\core\translate.py:279: with urllib.request.urlopen(req, timeout=30) as resp:
+backend\src\fablemap_api\core\translate.py:280: data = json.loads(resp.read().decode("utf-8"))
+backend\src\fablemap_api\core\translate.py:295: data=json.dumps({"q": text}).encode("utf-8"),
+backend\src\fablemap_api\core\translate.py:299: with urllib.request.urlopen(req, timeout=30) as resp:
+backend\src\fablemap_api\core\translate.py:300: data = json.loads(resp.read().decode("utf-8"))
+backend\src\fablemap_api\core\tts_clients.py:141: data=json.dumps(body).encode("utf-8"),
+backend\src\fablemap_api\core\tts_clients.py:146: with urllib.request.urlopen(req, timeout=60) as resp:
+backend\src\fablemap_api\core\tts_clients.py:147: return json.loads(resp.read().decode("utf-8"))
+backend\src\fablemap_api\core\tts_clients.py:165: with urllib.request.urlopen(req, timeout=30) as resp:
+backend\src\fablemap_api\core\tts_clients.py:168: return json.loads(resp.read().decode("utf-8"))
+backend\src\fablemap_api\core\tts_clients.py:191: with urllib.request.urlopen(req, timeout=120) as resp:
+backend\src\fablemap_api\core\tts_clients.py:237: data=json.dumps(body).encode("utf-8"),
+backend\src\fablemap_api\core\tts_clients.py:243: with urllib.request.urlopen(req, timeout=120) as resp:
+backend\src\fablemap_api\core\tts_clients.py:330: data=json.dumps(body).encode("utf-8"),
+backend\src\fablemap_api\core\tts_clients.py:336: with urllib.request.urlopen(req, timeout=60) as resp:
+backend\src\fablemap_api\core\tts_clients.py:474: data=json.dumps(body).encode("utf-8"),
+backend\src\fablemap_api\core\tts_clients.py:479: with urllib.request.urlopen(req, timeout=60) as resp:
+backend\src\fablemap_api\core\tts_clients.py:545: with urllib.request.urlopen(req, timeout=30) as resp:
+backend\src\fablemap_api\core\tts_clients.py:566: data=json.dumps(payload).encode("utf-8"),
+backend\src\fablemap_api\core\tts_clients.py:572: with urllib.request.urlopen(req, timeout=60) as resp:
+backend\src\fablemap_api\core\tts_clients.py:624: data=json.dumps(body).encode("utf-8"),
+backend\src\fablemap_api\core\tts_clients.py:630: with urllib.request.urlopen(req, timeout=60) as resp:
+backend\src\fablemap_api\core\tts_clients.py:664: data=json.dumps(body).encode("utf-8"),
+backend\src\fablemap_api\core\tts_clients.py:670: with urllib.request.urlopen(req, timeout=60) as resp:
+backend\src\fablemap_api\core\tts_clients.py:772: with urllib.request.urlopen(req, timeout=60) as resp:
+backend\src\fablemap_api\core\tts_clients.py:802: data=json.dumps(body).encode("utf-8"),
+backend\src\fablemap_api\core\tts_clients.py:808: with urllib.request.urlopen(req, timeout=60) as resp:
+backend\src\fablemap_api\core\tts_clients.py:940: with urllib.request.urlopen(url, timeout=60) as resp:
+backend\src\fablemap_api\core\vectors.py:84: data=json.dumps(body).encode("utf-8"),
+backend\src\fablemap_api\core\vectors.py:89: with urllib.request.urlopen(req, timeout=60) as resp:
+backend\src\fablemap_api\core\vectors.py:90: data = json.loads(resp.read().decode("utf-8"))
+backend\src\fablemap_api\core\vectors.py:130: data=json.dumps(body).encode("utf-8"),
+backend\src\fablemap_api\core\vectors.py:135: with urllib.request.urlopen(req, timeout=60) as resp:
+backend\src\fablemap_api\core\vectors.py:136: data = json.loads(resp.read().decode("utf-8"))
+backend\src\fablemap_api\core\vectors.py:149: class VectorStore:
+backend\src\fablemap_api\core\vectors.py:255: class VectorMemoryStore(MemoryStore):
+backend\src\fablemap_api\core\vectors.py:265: vector_store: Optional[VectorStore] = None,
+backend\src\fablemap_api\core\vectors.py:268: self.fallback = fallback or KeywordMemoryStore()
+backend\src\fablemap_api\core\vectors.py:269: self.vector_store = vector_store or VectorStore(collection="memory_atoms")
+backend\src\fablemap_api\core\vectors.py:392: store = VectorStore()
+backend\src\fablemap_api\core\world_builder.py:435: path.write_text(json.dumps(world, ensure_ascii=False, indent=2), encoding="utf-8")
+backend\src\fablemap_api\core\writeback.py:36: class WritebackStore:
+backend\src\fablemap_api\core\writeback.py:49: return json.loads(self.paths.state_file.read_text(encoding="utf-8"))
+backend\src\fablemap_api\core\writeback.py:54: self.paths.state_file.write_text(
+backend\src\fablemap_api\core\writeback.py:55: json.dumps(state, ensure_ascii=False, indent=2, sort_keys=True),
+backend\src\fablemap_api\infrastructure\home_store.py:23: class HomeStore:
+backend\src\fablemap_api\infrastructure\home_store.py:50: with open(self._homes_file, "r", encoding="utf-8") as f:
+backend\src\fablemap_api\infrastructure\home_store.py:51: return json.load(f)
+backend\src\fablemap_api\infrastructure\home_store.py:57: with open(self._homes_file, "w", encoding="utf-8") as f:
+backend\src\fablemap_api\infrastructure\home_store.py:58: json.dump(homes, f, ensure_ascii=False, indent=2)
+backend\src\fablemap_api\infrastructure\home_store.py:63: with open(self._visits_file, "r", encoding="utf-8") as f:
+backend\src\fablemap_api\infrastructure\home_store.py:64: return json.load(f)
+backend\src\fablemap_api\infrastructure\home_store.py:70: with open(self._visits_file, "w", encoding="utf-8") as f:
+backend\src\fablemap_api\infrastructure\home_store.py:71: json.dump(visits, f, ensure_ascii=False, indent=2)
+backend\src\fablemap_api\infrastructure\home_store.py:389: _home_store: HomeStore | None = None
+backend\src\fablemap_api\infrastructure\home_store.py:392: def get_home_store() -> HomeStore:
+backend\src\fablemap_api\infrastructure\home_store.py:396: _home_store = HomeStore()
+backend\src\fablemap_api\infrastructure\migrate.py:66: data = json.loads(taverns_file.read_text(encoding="utf-8"))
+backend\src\fablemap_api\infrastructure\migrate.py:83: data = json.loads(keyvault_file.read_text(encoding="utf-8"))
+backend\src\fablemap_api\infrastructure\migrate.py:308: for line in jsonl_file.read_text(encoding="utf-8").strip().split("\n"):
+backend\src\fablemap_api\infrastructure\migrate.py:312: msg_dict = json.loads(line)
+backend\src\fablemap_api\infrastructure\mysql_store.py:61: class MySQLTavernStore:
+backend\src\fablemap_api\infrastructure\owner_config_store.py:10: class OwnerConfigStore:
+backend\src\fablemap_api\infrastructure\owner_config_store.py:21: data = json.loads(self.path.read_text(encoding="utf-8"))
+backend\src\fablemap_api\infrastructure\owner_config_store.py:28: self.path.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
+backend\src\fablemap_api\infrastructure\visitor_note_store.py:18: class VisitorNoteStore:
+backend\src\fablemap_api\infrastructure\visitor_note_store.py:32: payload = json.loads(self.path.read_text(encoding="utf-8"))
+backend\src\fablemap_api\infrastructure\visitor_note_store.py:39: self.path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
+backend\src\fablemap_api\main.py:20: def create_store(settings: ApiSettings) -> TavernStore:
+backend\src\fablemap_api\main.py:33: return MySQLTavernStore(db)
+backend\src\fablemap_api\main.py:43: return TavernStore(output_root / "taverns")
+backend\src\fablemap_api\main.py:54: store = create_store(resolved)
+backend\src\fablemap_api\main.py:57: OwnerConfigStore(resolved.output_root / "owner_configs.json"),
+backend\src\fablemap_api\main.py:58: VisitorNoteStore(resolved.output_root / "visitor_notes.json"),

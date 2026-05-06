@@ -12,6 +12,7 @@ import {
   DEFAULT_AI_DRAFT_FORBIDDEN,
   DEFAULT_AI_DRAFT_STYLE_TAGS,
   createAiCharacterDraftRequest,
+  describeCharacterDraftSource,
   draftResponseToEditorDraft,
 } from './aiCharacterDrafts'
 import {
@@ -56,6 +57,7 @@ export default function CharacterManagementModal({ tavern, ownerId, onClose, onC
   // AI 草稿状态（只生成编辑器草稿，保存仍走 addCharacter）
   const [drafting, setDrafting] = useState(false)
   const [draftError, setDraftError] = useState('')
+  const [draftStatus, setDraftStatus] = useState('')
   const [aiDraftStyleText, setAiDraftStyleText] = useState(DEFAULT_AI_DRAFT_STYLE_TAGS.join(', '))
   const [aiDraftForbiddenText, setAiDraftForbiddenText] = useState(DEFAULT_AI_DRAFT_FORBIDDEN.join(', '))
   const [aiDraftTone, setAiDraftTone] = useState('温暖、短句、有酒馆陪伴感')
@@ -155,6 +157,7 @@ export default function CharacterManagementModal({ tavern, ownerId, onClose, onC
   async function handleGenerateAiDraft() {
     setDrafting(true)
     setDraftError('')
+    setDraftStatus('')
     setEditorError('')
     try {
       const response = await generateCharacterDraft(
@@ -168,6 +171,7 @@ export default function CharacterManagementModal({ tavern, ownerId, onClose, onC
       )
       setEditingChar('new')
       setEditorDraft(draftResponseToEditorDraft(response, createEmptyCharacterDraft()))
+      setDraftStatus(describeCharacterDraftSource(response))
     } catch (err) {
       setDraftError(`生成失败：${err.message}`)
     } finally {
@@ -472,13 +476,14 @@ export default function CharacterManagementModal({ tavern, ownerId, onClose, onC
                 <OwnerDialoguePreviewSimulator
                   tavern={tavern}
                   characters={characters}
+                  ownerId={ownerId}
                   disabled={batchSaving || saving || importing || deleting || drafting}
                 />
 
                 <section className="char-mgmt-ai-draft">
                   <div className="character-editor-section-heading">
                     <span>生成 AI 草稿</span>
-                    <small>只放进右侧编辑器；店主保存后才会成为正式角色。</small>
+                    <small>优先使用店主默认 LLM；无可用配置时只返回本地模板草稿。只放进右侧编辑器，店主保存后才会成为正式角色。</small>
                   </div>
                   <div className="ai-draft-lifecycle" aria-label="AI 草稿生命周期">
                     <strong>{characterDraftLifecycle.title}</strong>
@@ -535,6 +540,7 @@ export default function CharacterManagementModal({ tavern, ownerId, onClose, onC
                   >
                     {drafting ? '生成中...' : '生成 AI 草稿'}
                   </button>
+                  {draftStatus && <div className="char-mgmt-batch-status">{draftStatus}</div>}
                   {draftError && <div className="char-mgmt-error">{draftError}</div>}
                 </section>
                 <SystemCharacterPresetPicker

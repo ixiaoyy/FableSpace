@@ -444,7 +444,8 @@ Updated:
 
 - Created and started .trellis/tasks/04-29-04-29-npc-expression-art-quality-rebuild/.
 - Wrote PRD and added image/npc-art guidelines to task context.
-- Marked rejected public-welfare NPC assets with path, hash, and reason in ejected-public-welfare-npc-assets.json.
+- Marked rejected public-welfare NPC assets with path, hash, and reason in 
+ejected-public-welfare-npc-assets.json.
 - Root cause: old tests accepted file existence + hash difference, so tint/icon-only variants passed.
 - Next: regenerate true expression sprites and add rejected-hash regression checks.
 
@@ -642,3 +643,427 @@ Reviewed 04-30-hospital-nurse-npc-asset task. Added hospital Place type with 3 N
 ### Next Steps
 
 - None - task complete
+
+
+## Session 12: Trellis backlog triage
+
+**Date**: 2026-05-06
+**Task**: Trellis backlog triage
+**Branch**: `codex-homepage-dynamic-entry-covers`
+
+### Summary
+
+整理当前 Trellis 待办：统计 92 个有效 task、20 个待办/待收口，并生成优先级队列与下一步认领建议。
+
+### Main Changes
+
+# Trellis 待办任务整理（2026-05-06）
+
+> Scope: 只整理 `.trellis/tasks/` 中的任务状态与优先队列；未修改业务代码、未改任何 task 状态。
+
+## 1. 快照摘要
+
+- 有效 `task.json`：92 个。
+- 已完成/已做：72 个（`completed` 71，`done` 1）。
+- 待办/待收口：20 个（`review` 1，`planning` 19）。
+- `P1` 待办：9 个（其中 1 个 review、8 个 planning）。
+- `P2` 待办：11 个。
+- 目录但无 `task.json`：4 个：`archive`（预期）、`04-28-guest-message-board`、`04-28-owner-dashboard`、`04-29-new-feature-directions`。
+- `task.py list` 只显示 80 个任务；另有 12 个有效 task 因父任务 `04-29-npc-role-prompt-safety-brainstorm` 缺失而不可达，但它们全是 completed，不影响当前待办。
+- `task.py list --status planning` 只显示 5 个顶层 planning；completed 父任务下的 planning 子任务会被过滤隐藏，因此本次待办统计以直接解析 `task.json` 为准。
+
+## 2. 当前最需要先收口
+
+### A. Review / 分支收口
+
+1. `05-05-homepage-seed-fallback-hero-scale` — **P1 / review / fullstack**
+   - 状态：已有 notes 显示多轮验证已通过，仍停在 `review`。
+   - 建议：先做人工确认、record-session/commit 或明确退回修改；不要在当前 103 个未提交变更上继续混入新功能。
+
+## 3. P1 开发队列（建议顺序）
+
+### B. Demo → Product 基础治理
+
+1. `05-06-replace-demo-user-identity-defaults` — **P1 / fullstack**
+   - 原因：owner/visitor 身份边界是通知、记忆、Home、权限测试的基础。
+   - 建议先做：显式 owner identity、稳定匿名 visitor session、移除生产默认 `owner-demo` / `visitor-demo`。
+
+2. `05-06-hardcoded-rules-mode-response` — **P1 / fullstack**
+   - 原因：直接影响访客聊天主体验；当前规则模式容易被感知为“系统回复 / 写死”。
+   - 建议先做：规则模式产品化、文案透明、避免 prompt/scene/system 字段泄露。
+
+3. `05-06-productize-ai-draft-generation` — **P1 / fullstack**
+   - 原因：店主 AI 草稿不应伪装为真实 LLM 生成；需要 owner LLM / fallback 元数据。
+   - 建议先做：`source=owner_llm | local_template_fallback`，店主确认前访客不可见。
+
+4. `05-06-persistent-notification-auth` — **P1 / fullstack**
+   - 依赖/关联：建议在 identity 边界明确后做。
+   - 建议先做：持久化通知、REST/WS 统一身份校验、越权测试。
+
+5. `05-06-home-route-productization` — **P1 / fullstack**
+   - 依赖/关联：建议在 identity 边界明确后做。
+   - 建议先做：二选一——产品化为真实 `place_type=home` 主线，或从入口下线半成品 `home-me`。
+
+### C. 角色关系图链路（按依赖顺序）
+
+1. `05-06-relationship-graph-schema-storage` — **P1 / backend**
+2. `05-06-relationship-graph-propagation-engine` — **P1 / backend**
+3. `05-06-relationship-graph-api-governance` — **P1 / backend**
+4. `05-06-relationship-graph-owner-ui` — **P2 / frontend**
+5. `05-06-relationship-graph-prompt-discovery-integration` — **P2 / fullstack**
+
+建议：先完成 schema/storage，再做 propagation，再开放 API；UI 和 prompt/discovery 必须等 confirmed/enabled 边界稳定后再接。
+
+## 4. P2 产品化补齐队列
+
+1. `05-06-memory-search-adapter-productization` — **P2 / backend**
+   - 二选一：实现可配置 graph/vector adapter，或改名为 keyword/shared-field search，消除 `graph_stub` 能力错配。
+
+2. `05-06-owner-dialogue-preview-dryrun` — **P2 / fullstack**
+   - 二选一：接后端 prompt dry-run / 可选 owner LLM 测试，或 UI 明确改名为本地模拟器。
+
+3. `05-06-preset-import-apply-flow` — **P2 / fullstack**
+   - 在 preview risk report 之后补 owner-confirmed apply，只应用 supported 子集，blocked/warning 默认不自动应用。
+
+4. `05-06-quest-checklist-persistence` — **P2 / fullstack**
+   - 二选一：改成探索指南（不承诺进度），或做非竞技、非奖励化的 visitor 持久清单。
+
+## 5. Brainstorm / 方案评估类待办
+
+这些任务目前适合先继续沉淀方案，不建议和上面的实现任务混在同一次代码改动里：
+
+- `05-05-brainstorm-sillytavern-vs-fablemap` — SillyTavern vs FableMap 架构对比。
+- `05-05-character-gacha-gameplay-brainstorm` — 角色抽卡/玩法方向。
+- `05-06-local-codex-llm-chat-evaluation` — 本地 Codex 作为 LLM/chat backend 可行性评估。
+- `05-06-tavern-soft-currency-gifts-design` — 酒馆纪念币 / 礼物 / 好感度 / 限额抽卡券设计。
+- `05-06-visitor-profile-affinity-access-brainstorm` — 游客身份画像、初始好感、可见性与长期记忆边界。
+
+## 6. 建议的下一步认领策略
+
+如果现在要继续开发，建议三选一：
+
+1. **先收口当前分支**：认领/继续 `05-05-homepage-seed-fallback-hero-scale` review，完成 record-session 与提交。
+2. **做产品化基础设施**：认领 `05-06-replace-demo-user-identity-defaults`，它会减少后续通知、记忆、Home、权限类任务返工。
+3. **优先修聊天体验**：认领 `05-06-hardcoded-rules-mode-response`，直接回应“像系统回复 / 写死”的用户可见问题。
+
+## 7. 建议但本次未执行的 Trellis 清理
+
+- 可考虑把 `05-06-05-06-hide-visitor-memory-panels` 的 status 从 `done` 统一成 `completed`；当前 Trellis progress 已把 `done` 当完成处理，因此不是阻塞。
+- 可考虑恢复或清理缺失父任务 `04-29-npc-role-prompt-safety-brainstorm` 的 12 个 completed 子任务 parent 链接；这只影响历史列表可达性，不影响当前待办。
+- 可考虑增强 `task.py list --status <status>`：即使父任务不匹配，也应能显示匹配状态的子任务，避免漏掉 completed 父任务下的 planning backlog。
+- `05-06-demo-level-implementation-audit` 与 `05-06-tavern-character-relationship-graph-brainstorm` 自身为 completed，但 children 仍 planning；这是“父任务完成产出 backlog”的合理状态，不建议改成未完成。
+
+## 8. 开发前风险提醒
+
+- 当前工作区有 103 个未提交变更；开始新实现前应先收口/提交/另开 worktree，避免把多个任务混在一起。
+- P1 fullstack/API/schema 任务开始前需按 `AGENTS.md` 读取对应权威文档与 `.trellis/spec/` 指南，并预先确定验证命令。
+
+
+### Git Commits
+
+(No commits - planning session)
+
+### Testing
+
+- [OK] `py -3 .trellis/scripts/task.py list` produced current task hierarchy.
+- [OK] Parsed `.trellis/tasks/*/task.json` to count status/priority/parent-link health.
+- No code tests run; this was Trellis metadata/report整理 only.
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- If continuing implementation, first close/review `05-05-homepage-seed-fallback-hero-scale` or use an isolated worktree because the current branch has many uncommitted changes.
+- Recommended next claim after branch hygiene: `05-06-replace-demo-user-identity-defaults` or `05-06-hardcoded-rules-mode-response`.
+
+
+## Session 13: De-demo hardcoded rules response mode
+
+**Date**: 2026-05-06
+**Task**: `.trellis/tasks/05-06-hardcoded-rules-mode-response/`
+**Branch**: `codex-homepage-dynamic-entry-covers`
+
+### Summary
+
+将公益 / 无 Key 规则回复产品化为显式 `response_mode`：访客聊天 payload 和前端聊天页会区分“规则模式 / 无 Key 轻量接待”“外部 LLM 模式”“AI 后端未配置/未开放”和“规则兜底回应”，同时保留内置公益酒馆 no-key 可聊天能力。
+
+### Main Changes
+
+- Backend v1 runtime and product-core chat service return `response_mode` metadata without exposing prompt/system/config internals.
+- 用户自建酒馆无可用 LLM 时返回 `llm_not_configured` 降级原因与店主配置引导，不再只显示泛化歇业原因。
+- `public_welfare_rules.py` 文档改为 built-in local rules fixture，不再描述为 demo behavior。
+- Native tavern workbench and legacy `TavernChatRoom` 增加规则/LLM模式 badge。
+- Added regressions for public-welfare rules mode, no-key user tavern degradation, and frontend mode badge contract.
+
+### Testing
+
+- `py -3 -m pytest -q backend/tests/test_v1_runtime_features.py tests/test_tavern_llm_degradation.py --tb=short` → 18 passed, 17 existing deprecation warnings.
+- `py -3 -m compileall -q backend/src` → passed.
+- `npm --prefix .\frontend run typecheck` → passed.
+- `npm --prefix .\frontend test` → passed.
+- `npm --prefix .\frontend run build` → passed.
+- `git diff --check -- <changed files>` → passed with CRLF normalization warnings only.
+
+### Status
+
+[OK] **Review-ready**
+
+### Next Steps
+
+- Continue with the next open Trellis task after clearing current task pointer.
+
+
+## Session 14: Persistent notification identity guard
+
+**Date**: 2026-05-06
+**Task**: `.trellis/tasks/05-06-persistent-notification-auth/`
+**Branch**: `codex-homepage-dynamic-entry-covers`
+
+### Summary
+
+将通知中心从内存/MVP 表述收口到持久化通知与显式身份边界：默认 SQLAlchemy 通知 store 的重启恢复能力被回归测试覆盖，REST 与 WebSocket 均按当前用户身份隔离，前端不再暴露 “MVP” 内部实现文案。
+
+### Main Changes
+
+- Added notification regression tests for persistence across app recreation, cross-user REST isolation, and WebSocket path-only / mismatched identity rejection.
+- Hardened `websocket_notifications` to require matching header/query/session user identity and close unauthorized connections with 1008.
+- Updated notification hook to send matching query identity, and updated notification page product copy to avoid MVP leakage.
+- Updated backend Trellis quality spec with persistent notification / WebSocket identity contracts and no-marketing/no-social-push boundary.
+
+### Testing
+
+- `py -3 -m pytest -q tests/test_notifications.py --tb=short` → 4 passed.
+- `py -3 -m compileall -q backend/src` → passed.
+- `node .\scripts\notification-center-test.mjs`（cwd: `frontend`）→ passed.
+- `npm --prefix .\frontend run typecheck` → passed.
+- `npm --prefix .\frontend test` → passed.
+- `npm --prefix .\frontend run build` → passed.
+- `git diff --check -- <changed files>` → passed with CRLF normalization warnings only.
+
+### Status
+
+[OK] **Review-ready**
+
+### Next Steps
+
+- Clear current Trellis task pointer and continue claiming the next P1 task.
+
+
+## Session 15: Home route productization by mainline merge
+
+**Date**: 2026-05-06
+**Task**: `.trellis/tasks/05-06-home-route-productization/`
+**Branch**: `codex-homepage-dynamic-entry-covers`
+
+### Summary
+
+选择低风险“下线/合并”路径：旧 `/home/me` 不再作为独立 Home MVP 产品面，而是兼容提示页，引导到真实坐标 `place_type=home` 创建/管理主线；同时去掉硬编码 owner 权限与占位成员聊天/留言入口。
+
+### Main Changes
+
+- Replaced `/home/me` with a retired-mainline compatibility page that explains Home moved into Place/Home, distinguishes owner/visitor copy without granting privileges, and links to `/create?place_type=home` / `/owner`.
+- Removed legacy route usage of `getMyHome`, `createHome`, `chatWithHomeMember`, and `leaveHomeMessage` from the page.
+- Added `?place_type=home` preselection to `/create` via shared `normalizePlaceTypeId(...)`.
+- Added `frontend/scripts/home-route-productization-test.mjs` and included it in `npm test`.
+- Updated frontend type-safety spec with `/home/me` compatibility and `place_type=home` query contracts.
+
+### Testing
+
+- RED: `node .\scripts\home-route-productization-test.mjs`（cwd: `frontend`）failed on `const isOwner = true`.
+- GREEN: `node .\scripts\home-route-productization-test.mjs`（cwd: `frontend`）→ passed.
+- `npm --prefix .\frontend run typecheck` → passed.
+- `npm --prefix .\frontend test` → passed.
+- `npm --prefix .\frontend run build` → passed.
+- `py -3 -m compileall -q backend/src` → passed.
+- `git diff --check -- <changed files>` → passed with CRLF normalization warnings only.
+
+### Status
+
+[OK] **Review-ready**
+
+### Next Steps
+
+- Clear current Trellis task pointer and continue with the relationship-graph P1 chain.
+
+
+## Session 16: Relationship graph schema and storage
+
+**Date**: 2026-05-06
+**Task**: `.trellis/tasks/05-06-relationship-graph-schema-storage/`
+**Branch**: `codex-homepage-dynamic-entry-covers`
+
+### Summary
+
+完成统一酒馆/角色关系图谱的后端 schema/storage 切片：新增关系边与访客私有投影的 domain helpers、SQLAlchemy 表与 store，并同步世界模型、架构和 backend persistence spec。
+
+### Main Changes
+
+- Added `relationship_graph.py` with fixed node/behavior/strength/governance/status enums, dual-axis `affinity` / `hostility` projection helpers, and specificity ranking.
+- Added `relationship_edges` and `visitor_relationship_projections` SQLAlchemy models plus `SQLAlchemyRelationshipGraphStore`.
+- Added focused domain/store tests for negative drain-then-hostility, positive cap, specificity winner, confirmed edge round-trip, pending/disabled exclusion, and projection provenance upsert.
+- Updated `docs/WORLD_SCHEMA.md`, `docs/ARCHITECTURE.md`, and `.trellis/spec/backend/database-guidelines.md` with owner/source-side perspective and visitor-private projection boundaries.
+
+### Testing
+
+- RED: `py -3 -m pytest -q backend/tests/test_relationship_graph_domain.py backend/tests/test_relationship_graph_store.py --tb=short` failed on missing module.
+- GREEN: `py -3 -m pytest -q backend/tests/test_relationship_graph_domain.py backend/tests/test_relationship_graph_store.py --tb=short` → 9 passed.
+- `py -3 -m compileall -q backend/src` → passed.
+- `py -3 -m pytest -q backend/tests/test_mysql_infrastructure.py --tb=short` → 19 passed, 6 existing utcnow deprecation warnings.
+- `git diff --check -- <changed files>` → passed.
+
+### Status
+
+[OK] **Review-ready**
+
+### Next Steps
+
+- Continue with `05-06-relationship-graph-propagation-engine`.
+
+
+## Session 17: Relationship graph propagation engine
+
+**Date**: 2026-05-06
+**Task**: `.trellis/tasks/05-06-relationship-graph-propagation-engine/`
+**Branch**: `codex-homepage-dynamic-entry-covers`
+
+### Summary
+
+实现关系图谱一跳传播引擎：confirmed edges 可将访客对一个酒馆/角色的关系变化确定性传播到直接相邻节点，并保留 source-side perspective、specificity、双轴 affinity/hostility 与角色到父 Tavern 弱回流边界。
+
+### Main Changes
+
+- Added propagation event/result domain types.
+- Added `RelationshipGraphService.propagate_event(...)` with friendly/allied caps, neutral no-op, rival/hostile negative effects, target-to-source perspective reactions, specificity suppression, and character roll-up.
+- Added focused propagation tests for friendly/allied/rival/hostile/neutral, one-hop only, cross-owner reaction, same-owner mutual behavior, character-specific override, and influence-weighted roll-up.
+- Updated architecture and backend quality specs with propagation contracts.
+
+### Testing
+
+- RED: `py -3 -m pytest -q backend/tests/test_relationship_graph_propagation.py --tb=short` failed on missing service module.
+- GREEN: `py -3 -m pytest -q backend/tests/test_relationship_graph_propagation.py --tb=short` → 7 passed.
+- `py -3 -m pytest -q backend/tests/test_relationship_graph_domain.py backend/tests/test_relationship_graph_store.py backend/tests/test_relationship_graph_propagation.py --tb=short` → 16 passed.
+- `py -3 -m compileall -q backend/src` → passed.
+- `git diff --check -- <changed files>` → passed with CRLF normalization warning for docs only.
+
+### Status
+
+[OK] **Review-ready**
+
+### Next Steps
+
+- Continue with `05-06-relationship-graph-api-governance`.
+
+
+## Session 18: Relationship graph API governance
+
+**Date**: 2026-05-06
+**Task**: `.trellis/tasks/05-06-relationship-graph-api-governance/`
+**Branch**: `codex-homepage-dynamic-entry-covers`
+
+### Summary
+
+完成关系图谱的后端 API / governance 切片：在 tavern 作用域下暴露 edge list/create/update/decision routes，并把 owner source-side authority、AI auto-confirm 边界和 pending candidate 不参与传播的规则落到服务层测试。
+
+### Main Changes
+
+- Added `backend/src/fablemap_api/api/v1/relationship_graph.py` and registered it in the v1 router.
+- Added application-service governance methods for relationship edge list/create/update/decision flows.
+- Added `SQLAlchemyRelationshipGraphStore.get_edge(...)` for edge decision/update flows.
+- Added API tests for owner mutation, non-owner denial, delegated AI source-side auto-confirm, cross-owner directionality, and pending-to-confirmed decisions.
+- Updated architecture and backend quality specs with source-side API governance contracts.
+
+### Testing
+
+- RED: `py -3 -m pytest -q backend/tests/test_relationship_graph_api.py --tb=short` failed with 404s before routes existed.
+- GREEN: `py -3 -m pytest -q backend/tests/test_relationship_graph_api.py --tb=short` → 4 passed.
+- `py -3 -m pytest -q backend/tests/test_relationship_graph_domain.py backend/tests/test_relationship_graph_store.py backend/tests/test_relationship_graph_propagation.py backend/tests/test_relationship_graph_api.py --tb=short` → 20 passed.
+- `py -3 -m compileall -q backend/src` → passed.
+- `git diff --check -- <changed files>` → passed with CRLF normalization warnings only.
+
+### Status
+
+[OK] **Review-ready**
+
+### Next Steps
+
+- Continue with remaining P2 productization / relationship graph integration tasks.
+
+
+## Session 19: Memory search adapter productization
+
+**Date**: 2026-05-06
+**Task**: `.trellis/tasks/05-06-memory-search-adapter-productization/`
+**Branch**: `codex-homepage-dynamic-entry-covers`
+
+### Summary
+
+将当前 memory graph/vector adapter 的产品口径收敛为真实可用的 keyword / shared-field 轻量检索，不再暴露 `graph_stub:*` 这类半成品 source label；同时补上访客过滤与 source label 回归测试。
+
+### Main Changes
+
+- `GraphMemoryStore.search_atoms(...)` now preserves keyword/recent result reasons from `KeywordMemoryStore`.
+- `GraphMemoryStore.related_atoms(...)` now returns `shared_fields`, documenting that it is field-overlap retrieval rather than graph traversal.
+- Renamed the vector adapter source heading away from stub language while keeping no-dependency keyword fallback behavior.
+- Updated adapter tests for productized fallback names, visitor filter scoping, and static source-label regression.
+- Updated architecture and backend quality specs with memory adapter productization contracts.
+
+### Testing
+
+- RED: `py -3 -m pytest -q tests/test_memory_store_adapters.py --tb=short` failed on old `graph_stub:*` reason/source labels.
+- GREEN: `py -3 -m pytest -q tests/test_memory_store_adapters.py --tb=short` → 3 passed.
+- `py -3 -m pytest -q tests/test_memory_store_adapters.py tests/test_tavern_memory_permissions.py tests/test_tavern_memory_atoms.py --tb=short` → 11 passed.
+- `py -3 -m compileall -q backend/src` → passed.
+- `git diff --check -- <changed files>` → passed with CRLF normalization warnings only.
+
+### Status
+
+[OK] **Review-ready**
+
+### Next Steps
+
+- Continue claiming remaining P2 productization tasks.
+
+
+## Session 20: Owner dialogue preview prompt dry-run
+
+**Date**: 2026-05-06
+**Task**: `.trellis/tasks/05-06-owner-dialogue-preview-dryrun/`
+**Branch**: `codex-homepage-dynamic-entry-covers`
+
+### Summary
+
+把店主角色对话预览从前端假回复升级为 owner-only 后端 prompt dry-run：默认只组装真实 Tavern/NPC/WorldInfo prompt，不调用模型；店主显式点击后才可测试一次模型；全程不写 chat history、memory、visitor state 或 writeback。
+
+### Main Changes
+
+- Added `POST /api/v1/taverns/{id}/dialogue-preview/dry-run` request contract, route, and application service method.
+- Dry-run response includes `dry_run`, `persisted`, `model_called`, write flags, matched WorldInfo count, model status/error, and token estimate.
+- Added backend tests for prompt building, owner-only permission, explicit model-call gating, no chat history writes, and no memory atom writes.
+- Updated frontend `taverns.ts` service, owner preview component, local fallback normalizer, modal owner identity propagation, and static frontend regression script.
+- Updated architecture plus backend/frontend quality specs with the dry-run contract.
+
+### Testing
+
+- RED: `py -3 -m pytest -q backend/tests/test_v1_owner_dialogue_preview.py --tb=short` failed with 404 before route existed.
+- GREEN: `py -3 -m pytest -q backend/tests/test_v1_owner_dialogue_preview.py --tb=short` → 3 passed.
+- `py -3 -m pytest -q backend/tests/test_v1_owner_dialogue_preview.py backend/tests/test_v1_owner_config.py --tb=short` → 17 passed.
+- `py -3 -m compileall -q backend/src` → passed.
+- `node .\scripts\owner-dialogue-preview-test.mjs`（cwd: `frontend`）→ passed.
+- `npm --prefix .\frontend run typecheck` → passed.
+- `npm --prefix .\frontend test` → passed.
+- `npm --prefix .\frontend run build` → passed.
+- `git diff --check -- <changed files>` → passed with CRLF normalization warnings only.
+
+### Status
+
+[OK] **Review-ready**
+
+### Deferred / Not Done
+
+- No Playwright desktop/narrow screenshot self-acceptance was run for this modal UI slice.
+
+### Next Steps
+
+- Continue claiming remaining P2 productization tasks.

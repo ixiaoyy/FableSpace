@@ -1,0 +1,61 @@
+{
+  "id": "memory-search-adapter-productization",
+  "name": "memory-search-adapter-productization",
+  "title": "Memory search adapter productization",
+  "description": "graph/vector memory adapter 当前是 keyword fallback stub，需要实现可配置适配或降级命名。",
+  "status": "review",
+  "dev_type": "backend",
+  "scope": null,
+  "package": null,
+  "priority": "P2",
+  "creator": "lijin",
+  "assignee": "lijin",
+  "createdAt": "2026-05-06",
+  "completedAt": null,
+  "branch": null,
+  "base_branch": "codex-homepage-dynamic-entry-covers",
+  "worktree_path": null,
+  "current_phase": 5,
+  "next_action": [
+    {
+      "phase": 1,
+      "action": "brainstorm"
+    },
+    {
+      "phase": 2,
+      "action": "research"
+    },
+    {
+      "phase": 3,
+      "action": "implement"
+    },
+    {
+      "phase": 4,
+      "action": "check"
+    },
+    {
+      "phase": 5,
+      "action": "update-spec"
+    },
+    {
+      "phase": 6,
+      "action": "record-session"
+    }
+  ],
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [],
+  "parent": "05-06-demo-level-implementation-audit",
+  "relatedFiles": [
+    "backend/src/fablemap_api/core/memory_graph.py",
+    "backend/src/fablemap_api/core/vectors.py",
+    "tests/test_memory_store_adapters.py",
+    "tests/test_tavern_memory_permissions.py",
+    "tests/test_tavern_memory_atoms.py",
+    "docs/ARCHITECTURE.md",
+    ".trellis/spec/backend/quality-guidelines.md"
+  ],
+  "notes": "Productized current memory adapter behavior as keyword/shared-field retrieval instead of graph/vector stub labels; added adapter source-label regression, visitor filter coverage, and documented limitations. Validation passed: RED/GREEN adapter tests, focused memory permission/atom tests, compileall, git diff --check.",
+  "meta": {}
+}

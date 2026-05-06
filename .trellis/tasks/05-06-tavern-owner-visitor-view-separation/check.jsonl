@@ -1,0 +1,10 @@
+{"file": ".claude/commands/trellis/finish-work.md", "reason": "Finish work checklist"}
+{"file": ".claude/commands/trellis/check.md", "reason": "Code quality check spec"}
+{"file": ".trellis/spec/frontend/component-guidelines.md", "reason": "quality review of user-facing route/components"}
+{"file": ".trellis/spec/frontend/directory-structure.md", "reason": "verify new files follow route/feature organization"}
+{"file": ".trellis/spec/frontend/state-management.md", "reason": "verify no new global state/secrets"}
+{"file": ".trellis/spec/frontend/type-safety.md", "reason": "verify schema-aligned types"}
+{"file": ".trellis/spec/frontend/quality-guidelines.md", "reason": "verify build/test/Playwright evidence"}
+{"file": ".trellis/spec/frontend/mobile-single-mainline.md", "reason": "verify visitor route no longer includes management panels"}
+{"file": ".trellis/spec/guides/code-reuse-thinking-guide.md", "reason": "verify extracted owner panel reuse"}
+{"file": ".trellis/spec/guides/cross-layer-thinking-guide.md", "reason": "verify owner route identity boundary"}

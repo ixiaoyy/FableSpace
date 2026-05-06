@@ -48,7 +48,7 @@ const MOBILE_CRITICAL_FLOW_GUIDES: Record<string, {
   },
   Tavern: {
     title: "先选 NPC，直接开聊",
-    helper: "移动首屏聚焦角色列表和聊天输入；酒馆资料、玩法、店主管理都折叠在下方，不把高级管理挤进第一屏。",
+    helper: "移动首屏聚焦角色列表和聊天输入；酒馆资料与公开功能折叠在下方，配置/审批进入专用管理页，不把高级管理挤进第一屏。",
     primaryLabel: "进入聊天主线",
     href: "#tavern-mainline",
   },

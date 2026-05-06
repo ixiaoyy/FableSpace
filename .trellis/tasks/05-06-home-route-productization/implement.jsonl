@@ -1,0 +1,9 @@
+{"file": ".trellis/workflow.md", "reason": "Project workflow and conventions"}
+{"file": ".trellis/spec/backend/index.md", "reason": "Backend development guide"}
+{"file": ".trellis/spec/frontend/index.md", "reason": "Frontend development guide"}
+{"file": "frontend/app/routes/home-me.tsx", "reason": "home route with hardcoded owner state"}
+{"file": "backend/src/fablemap_api/infrastructure/home_store.py", "reason": "home backend store placeholder response"}
+{"file": "frontend/app/lib/taverns.ts", "reason": "home/place API client surface"}
+{"file": "backend/src/fablemap_api/core/tavern.py", "reason": "tavern/place model boundary"}
+{"file": "docs/WHAT_NOT_TO_BUILD.md", "reason": "no free-space/social scope guard"}
+{"file": ".trellis\\tasks\\05-06-home-route-productization\\prd.md", "reason": "task PRD requirements"}

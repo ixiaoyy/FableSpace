@@ -8,10 +8,11 @@ from typing import Any
 from fastapi import HTTPException
 
 from fablemap_api.core.llm_clients import LLMConfig as ClientLLMConfig
-from fablemap_api.core.llm_clients import create_client
+from fablemap_api.core.llm_clients import LLMError, create_client
 from fablemap_api.core.tavern import EXPRESSION_CATEGORIES, STANDARD_EXPRESSIONS, TavernSpriteSet
 
 from ...domain.expression_policy import infer_expression_keyword, normalize_sprite_map
+from ...domain.owner_llm_policy import owner_llm_is_configured
 from ...domain.tavern_policy import clean_text
 
 
@@ -37,12 +38,77 @@ def _draft_list(value: Any, *, max_items: int = 8, max_length: int = 48) -> list
     return result
 
 
-def _draft_tags(style_tags: list[str]) -> list[str]:
-    tags = ["AI 草稿"]
+def _with_source_tag(tags: list[str], source: str) -> list[str]:
+    source_tag = "AI 草稿" if source == "owner_llm" else "本地模板草稿"
+    result = [source_tag]
+    for tag in tags:
+        if tag and tag not in result:
+            result.append(tag)
+        if len(result) >= 10:
+            break
+    return result
+
+
+def _draft_tags(style_tags: list[str], *, source: str) -> list[str]:
+    tags: list[str] = []
     for tag in style_tags or ["酒馆 NPC"]:
         if tag not in tags:
             tags.append(tag)
-    return tags[:10]
+    return _with_source_tag(tags, source)
+
+
+def _fallback_role_name(tavern_name: str, style_tags: list[str]) -> str:
+    generic_tags = {"AI 草稿", "本地模板草稿", "酒馆 NPC", "NPC", "招待员", "温暖"}
+    primary_style = next((tag for tag in style_tags if tag and tag not in generic_tags), "")
+    if primary_style:
+        return f"{primary_style[:16]}草稿招待员"
+    base_name = (
+        tavern_name.replace("酒馆", "")
+        .replace("小店", "")
+        .replace("空间", "")
+        .strip(" \t\r\n《》“”\"'")
+    )
+    if base_name:
+        return f"{base_name[:12]}草稿招待员"
+    return "本地模板 NPC 草稿"
+
+
+def _sanitize_character_draft(data: dict[str, Any], *, style_tags: list[str]) -> dict[str, Any]:
+    tags = _draft_list(data.get("tags"), max_items=10, max_length=32) or style_tags
+    draft: dict[str, Any] = {
+        "name": clean_text(data.get("name"), max_length=80),
+        "description": clean_text(data.get("description"), max_length=500),
+        "personality": clean_text(data.get("personality"), max_length=500),
+        "scenario": clean_text(data.get("scenario"), max_length=800),
+        "system_prompt": clean_text(data.get("system_prompt"), max_length=1200),
+        "first_mes": clean_text(data.get("first_mes"), max_length=500),
+        "mes_example": clean_text(data.get("mes_example"), max_length=1000),
+        "tags": _with_source_tag(tags, "owner_llm"),
+    }
+    alternate_greetings = _draft_list(data.get("alternate_greetings"), max_items=4, max_length=160)
+    if alternate_greetings:
+        draft["alternate_greetings"] = alternate_greetings
+    if not draft["name"] or not draft["first_mes"]:
+        raise ValueError("AI 草稿缺少 NPC 名称或首次问候")
+    if not draft["description"]:
+        draft["description"] = "店主默认 LLM 生成的未发布 NPC 草稿。"
+    if not draft["system_prompt"]:
+        draft["system_prompt"] = "你是 FableMap 店主确认前的未发布 AI 草稿 NPC；店主保存后才可正式接待访客。"
+    return draft
+
+
+def _source_warnings(source: str, reason: str = "") -> list[str]:
+    if source == "owner_llm":
+        return ["AI 草稿不会自动发布，必须由店主确认保存。"]
+    if reason == "owner_llm_failed":
+        return [
+            "AI 草稿不会自动发布，必须由店主确认保存。",
+            "店主默认 LLM 调用失败，已返回本地模板草稿；这不是真实 AI 生成，请审核后再保存。",
+        ]
+    return [
+        "AI 草稿不会自动发布，必须由店主确认保存。",
+        "当前返回的是本地模板草稿，不是真实 AI 生成；请配置店主默认 LLM 后重试，或把它当作可编辑占位。",
+    ]
 
 
 class CharacterApplicationMixin:
@@ -65,50 +131,133 @@ class CharacterApplicationMixin:
         style_text = "、".join(style_tags) if style_tags else "酒馆 NPC"
         forbidden_text = "；".join(forbidden) if forbidden else "不要露骨、不要真实私人地址、不要现实名人或受版权保护角色"
 
-        catlike = any(tag in {"猫娘", "猫系", "傲娇"} for tag in style_tags)
-        role_name = "猫铃看板娘" if catlike else "夜航招待员"
-        first_mes = (
-            f"（猫铃轻轻一响）哼，欢迎来到{tavern_name}喵～先说好，这只是 AI 草稿，人家要等店主点头才正式上岗！"
-            if catlike
-            else f"欢迎来到{tavern_name}。我是这份 AI 草稿里的临时招待员，等店主确认后再正式接待你。"
-        )
+        if self.owner_config_store:
+            owner_config = self.owner_config_store.get_default_llm_config(user_id)
+            if owner_llm_is_configured(owner_config):
+                try:
+                    draft = self._generate_owner_llm_character_draft(
+                        owner_config=owner_config,
+                        tavern_name=tavern_name,
+                        tavern_description=tavern_description,
+                        tavern_scene_prompt=clean_text(tavern.scene_prompt, max_length=240),
+                        style_text=style_text,
+                        forbidden_text=forbidden_text,
+                        tone=tone,
+                        style_tags=style_tags,
+                    )
+                    return {
+                        "ok": True,
+                        "tavern_id": tavern_id,
+                        "status": "ai_draft",
+                        "source": "owner_llm",
+                        "source_label": "店主默认 LLM 草稿",
+                        "source_reason": "",
+                        "draft": draft,
+                        "warnings": _source_warnings("owner_llm"),
+                    }
+                except LLMError as exc:
+                    logger.warning(
+                        "Owner LLM character draft failed for tavern=%s; falling back to local template (%s)",
+                        tavern_id,
+                        exc.__class__.__name__,
+                    )
+                    source_reason = "owner_llm_failed"
+            else:
+                source_reason = "missing_owner_llm"
+        else:
+            source_reason = "missing_owner_llm"
+
         mes_example = (
             "<START>\n"
             "{{user}}: 这里是什么地方？\n"
-            f"{{{{char}}}}: 这里是{tavern_name}，现在先按店主给的方向试营业。"
+            f"{{{{char}}}}: 这里是{tavern_name}，这是店主审核前的本地模板草稿。"
             "如果你提到越界内容，我会把话题带回酒馆氛围和安全互动。"
         )
 
         draft = {
-            "name": role_name,
+            "name": _fallback_role_name(tavern_name, style_tags),
             "description": (
-                f"{tavern_name}的未发布 AI 草稿 NPC。灵感来自酒馆简介：{tavern_description}。"
+                f"{tavern_name}的未发布本地模板 NPC 草稿。灵感来自酒馆简介：{tavern_description}。"
                 f"当前风格标签：{style_text}。"
             ),
-            "personality": f"说话风格偏{tone}；会围绕店主给出的标签展开，但不替店主自动发布内容。",
+            "personality": f"说话风格偏{tone}；围绕店主输入的标签提供占位方向，等待店主改写确认。",
             "scenario": (
                 f"角色暂时站在{tavern_name}的入口或吧台旁，等待店主审核。"
                 f"酒馆背景：{tavern_description}"
             ),
             "system_prompt": (
-                "你是 FableMap 店主确认前的未发布 AI 草稿 NPC。保持原创，不模仿现实名人、受版权保护角色或特定 IP；"
+                "你是 FableMap 店主确认前的未发布本地模板草稿 NPC。保持原创，不模仿现实名人、受版权保护角色或特定 IP；"
                 "不得声称自己已自动发布，也不得覆盖已有角色。店主确认保存后才可成为 TavernCharacter。"
                 f"遵守禁忌方向：{forbidden_text}。保持角色扮演口吻，遇到越界请求时简短拒绝并回到酒馆互动。"
             ),
-            "first_mes": first_mes,
+            "first_mes": f"欢迎来到{tavern_name}。我只是店主审核前的本地模板草稿，等店主确认后才会正式接待你。",
             "mes_example": mes_example,
-            "tags": _draft_tags(style_tags),
+            "tags": _draft_tags(style_tags, source="local_template_fallback"),
         }
         return {
             "ok": True,
             "tavern_id": tavern_id,
             "status": "ai_draft",
+            "source": "local_template_fallback",
+            "source_label": "本地模板草稿",
+            "source_reason": source_reason,
             "draft": draft,
-            "warnings": [
-                "AI 草稿不会自动发布，必须由店主确认保存。",
-                "保存前请检查角色设定、禁忌方向和 SillyTavern 字段。",
-            ],
+            "warnings": _source_warnings("local_template_fallback", source_reason),
         }
+
+    def _generate_owner_llm_character_draft(
+        self,
+        *,
+        owner_config: dict[str, Any],
+        tavern_name: str,
+        tavern_description: str,
+        tavern_scene_prompt: str,
+        style_text: str,
+        forbidden_text: str,
+        tone: str,
+        style_tags: list[str],
+    ) -> dict[str, Any]:
+        system = (
+            "你是 FableMap 的 NPC 草稿助手。只返回 JSON，不要 Markdown，不要解释。"
+            "生成内容必须是未发布、可编辑、可丢弃的候选 NPC 草稿。"
+            "不要声称已经创建、发布或覆盖任何角色。不要生成现实名人、影视/游戏/IP 角色。"
+            "不要生成露骨色情、未成年性化、非自愿、仇恨骚扰、现实危险行动。"
+            "不要写真实私人地址、身份证、手机号、API Key 等敏感信息。"
+            "不要生成战斗、等级、装备、排行榜。"
+        )
+        user = (
+            "请基于店主的酒馆上下文生成一份 NPC 草稿 JSON。\n"
+            f"酒馆名称：{tavern_name}\n"
+            f"酒馆简介：{tavern_description}\n"
+            f"酒馆场景提示：{tavern_scene_prompt or '未填写'}\n"
+            f"风格标签：{style_text}\n"
+            f"禁忌方向：{forbidden_text}\n"
+            f"语气：{tone}\n"
+            'JSON 结构必须为：{"name": string, "description": string, "personality": string, '
+            '"scenario": string, "system_prompt": string, "first_mes": string, '
+            '"mes_example": string, "tags": string[], "alternate_greetings": string[]}'
+        )
+        response = create_client(
+            ClientLLMConfig(
+                backend=str(owner_config.get("backend") or "openai"),
+                model=str(owner_config.get("model") or "gpt-4o-mini"),
+                api_key=str(owner_config.get("api_key") or ""),
+                base_url=str(owner_config.get("base_url") or ""),
+                temperature=float(owner_config.get("temperature", 0.8)),
+                max_tokens=int(owner_config.get("max_tokens", 1024)),
+                top_p=float(owner_config.get("top_p", 1.0)),
+            )
+        ).complete([{"role": "system", "content": system}, {"role": "user", "content": user}])
+        try:
+            parsed = json.loads(str(response.content or ""))
+        except json.JSONDecodeError as exc:
+            raise LLMError("AI 草稿返回不是有效 JSON") from exc
+        if not isinstance(parsed, dict):
+            raise LLMError("AI 草稿 JSON 必须是对象")
+        try:
+            return _sanitize_character_draft(parsed, style_tags=style_tags)
+        except ValueError as exc:
+            raise LLMError(str(exc)) from exc
 
     def add_character(self, tavern_id: str, data: dict[str, Any], user_id: str = "") -> dict[str, Any]:
         return self.taverns.add_character(tavern_id, data, user_id)

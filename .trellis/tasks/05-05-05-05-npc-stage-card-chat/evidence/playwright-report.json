@@ -1,0 +1,21 @@
+{
+  "baseUrl": "http://127.0.0.1:5173/tavern/pw_third_shelf_observatory?visitor_id=visual-npc-stage",
+  "results": [
+    {
+      "name": "desktop",
+      "width": 1440,
+      "height": 1000,
+      "screenshot": ".trellis/tasks/05-05-05-05-npc-stage-card-chat/evidence/npc-stage-desktop.png",
+      "stageText": "当前 NPC 舞台 社长 9-Delta AI NPC · 未说明 · 正在接待你 外星人类行为学研究负责人，严肃、礼貌，并且总把人类日常误读成重大文明课题。 正在接待你 Shift+Enter 换行",
+      "errors": []
+    },
+    {
+      "name": "mobile",
+      "width": 390,
+      "height": 844,
+      "screenshot": ".trellis/tasks/05-05-05-05-npc-stage-card-chat/evidence/npc-stage-mobile.png",
+      "stageText": "当前 NPC 舞台 社长 9-Delta AI NPC · 未说明 · 正在接待你 外星人类行为学研究负责人，严肃、礼貌，并且总把人类日常误读成重大文明课题。",
+      "errors": []
+    }
+  ]
+}

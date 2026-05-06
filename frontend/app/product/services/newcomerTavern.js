@@ -1,5 +1,7 @@
-export const NEWCOMER_TAVERN_ID = 'pw_lantern_helpdesk'
-export const NEWCOMER_TAVERN_QUERY = '公益'
+import { NEWCOMER_TAVERN_CONFIG } from "../../lib/tavern-runtime-config.js"
+
+export const NEWCOMER_TAVERN_ID = NEWCOMER_TAVERN_CONFIG.tavernId
+export const NEWCOMER_TAVERN_QUERY = NEWCOMER_TAVERN_CONFIG.query
 
 export function buildGuestNickname() {
   return `旅人${Math.random().toString(36).slice(2, 6).toUpperCase()}`

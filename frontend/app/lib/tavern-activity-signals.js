@@ -49,9 +49,9 @@ export function buildTavernActivitySignals(tavern = {}) {
     signals: [
       {
         id: 'visits',
-        label: '到访热度',
+        label: '入口热度',
         value: visitCount ? `${visitCount.toLocaleString('zh-CN')} 次` : '暂无记录',
-        helper: '只显示聚合次数，不公开访客身份。',
+        helper: '只显示聚合次数，不展示个人身份或聊天记录。',
       },
       {
         id: 'cast',
@@ -67,9 +67,9 @@ export function buildTavernActivitySignals(tavern = {}) {
       },
       {
         id: 'feedback',
-        label: '回访反馈',
-        value: '店主可见',
-        helper: '反馈用于本酒馆治理，不提供点赞、回复或私信。',
+        label: '店主反馈',
+        value: '私下可见',
+        helper: '反馈只给店主治理，不提供点赞、回复或私信。',
       },
       {
         id: 'gameplay',

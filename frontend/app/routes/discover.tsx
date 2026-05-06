@@ -13,13 +13,12 @@ import {
 import { Link, useLoaderData } from "react-router"
 import { useMemo, useState } from "react"
 
-import discoverCozyShopImage from "../assets/discover/reference/discover-cover-cozy-shop.png"
 import discoverNeonAlleyImage from "../assets/discover/reference/discover-cover-neon-alley.png"
-import discoverQuietSanctuaryImage from "../assets/discover/reference/discover-cover-quiet-sanctuary.png"
 import discoverRadarSurfaceImage from "../assets/discover/reference/discover-radar-surface.png"
 import { DiscoveryLivelinessStrip } from "../components/DiscoveryLivelinessStrip"
 import { TavernPreviewModal } from "../components/tavern-preview-modal"
 import { buildDiscoveryLiveliness, getDiscoveryLivelinessSearchText } from "../lib/discovery-liveliness.js"
+import { resolveHomepageTavernCover, resolveUniqueHomepageTavernCovers } from "../lib/homepage-taverns"
 import { DISCOVERABLE_PLACE_TYPES, derivePlaceTypeDisplay, placeTypeMatchesTavern } from "../lib/place-types.js"
 import { buildShortDramaTeaser, getShortDramaTeaserSearchText } from "../lib/short-drama-teasers.js"
 import { errorMessage, listTaverns, type Tavern, type TavernCharacter, type TavernListResponse } from "../lib/taverns"
@@ -78,8 +77,6 @@ const previewCards = [
   { image: discoverNeonAlleyImage, title: "隐藏入口", text: "进入后遇见主人配置的 AI 角色与记忆线索。" },
 ]
 
-const coverImages = [discoverNeonAlleyImage, discoverCozyShopImage, discoverQuietSanctuaryImage]
-
 function characterAvatar(character: TavernCharacter) {
   if (!character) return ""
   return (
@@ -104,8 +101,8 @@ function coordinateLabel(tavern: Tavern) {
   return buildMapAnchorCardCopy(tavern).locationLabel
 }
 
-function coverForIndex(index: number) {
-  return coverImages[index % coverImages.length]
+function coverForTavern(tavern: Tavern, index: number) {
+  return resolveHomepageTavernCover(tavern, index)
 }
 
 function signalStrength(tavern: Tavern, index: number) {
@@ -119,6 +116,15 @@ function compactDisplayText(value: unknown, fallback: string, maxLength = 34) {
   const text = typeof value === "string" ? value.trim() : ""
   const display = text || fallback
   return display.length > maxLength ? `${display.slice(0, maxLength)}…` : display
+}
+
+function previewBackgroundImage(image: string) {
+  return [
+    "linear-gradient(180deg, rgba(3, 7, 18, 0.08), rgba(3, 7, 18, 0.26))",
+    "radial-gradient(circle at 28% 34%, rgba(34, 211, 238, 0.24), transparent 38%)",
+    "radial-gradient(circle at 72% 62%, rgba(217, 70, 239, 0.22), transparent 42%)",
+    `url("${image}")`,
+  ].join(", ")
 }
 
 function entryStatusDisplay(tavern: TavernWithTimeStatus | Tavern): EntryStatusDisplay {
@@ -244,24 +250,7 @@ function CharacterStack({ characters = [], muted = false }: { characters?: Taver
     <div className="flex min-w-0 items-center gap-2">
       <div className="flex -space-x-2">
         {characters.slice(0, 4).map((character, index) => {
-          const avatar = characterAvatar(character)
-          return avatar ? (
-            <img
-              key={character.id || index}
-              src={avatar}
-              alt={character.name || "角色"}
-              className="h-8 w-8 rounded-full border-2 border-slate-950 object-cover"
-              loading="lazy"
-              decoding="async"
-            />
-          ) : (
-            <span
-              key={character.id || index}
-              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border-2 border-slate-950 bg-gradient-to-br from-cyan-300/20 to-fuchsia-300/20 text-xs font-bold text-white"
-            >
-              {initialFor(character.name)}
-            </span>
-          )
+          return <CharacterAvatarBadge key={character.id || index} character={character} muted={muted} />
         })}
         {characters.length > 4 ? (
           <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border-2 border-slate-950 bg-slate-800 text-xs font-bold text-violet-100">
@@ -273,6 +262,110 @@ function CharacterStack({ characters = [], muted = false }: { characters?: Taver
         {characters.slice(0, 2).map((character) => character.name || "未命名").join(" · ")}
         {characters.length > 2 ? " · ..." : ""}
       </span>
+    </div>
+  )
+}
+
+function CharacterInitialBadge({ name, muted = false }: { name?: string; muted?: boolean }) {
+  return (
+    <span
+      className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full border-2 border-slate-950 bg-gradient-to-br text-xs font-bold ${
+        muted
+          ? "from-white/8 to-white/4 text-white/42"
+          : "from-cyan-300/20 to-fuchsia-300/20 text-white"
+      }`}
+      aria-label={`${name || "角色"} 头像占位`}
+      title={name || "角色"}
+    >
+      {initialFor(name)}
+    </span>
+  )
+}
+
+function CharacterAvatarBadge({ character, muted = false }: { character: TavernCharacter; muted?: boolean }) {
+  const [broken, setBroken] = useState(false)
+  const avatar = characterAvatar(character)
+
+  if (!avatar || broken) {
+    return <CharacterInitialBadge name={character.name} muted={muted} />
+  }
+
+  return (
+    <img
+      src={avatar}
+      alt={character.name || "角色"}
+      className={`h-8 w-8 rounded-full border-2 border-slate-950 object-cover ${muted ? "opacity-45 grayscale" : ""}`}
+      loading="lazy"
+      decoding="async"
+      onError={() => setBroken(true)}
+    />
+  )
+}
+
+function compactCharacterNames(characters: TavernCharacter[]) {
+  if (!characters.length) return "待配置 NPC"
+  const names = characters.slice(0, 3).map((character) => character.name || "未命名").join(" · ")
+  return characters.length > 3 ? `${names} · +${characters.length - 3}` : names
+}
+
+function visitSignalLabel(tavern: Tavern) {
+  const visitCount = Number(tavern.visit_count)
+  return Number.isFinite(visitCount) && visitCount > 0 ? `${Math.round(visitCount)} 次到访` : "新入口"
+}
+
+function RadarSignalSummary({
+  tavern,
+  strength,
+  muted = false,
+}: {
+  tavern: TavernWithTimeStatus | Tavern
+  placeType: ReturnType<typeof derivePlaceTypeDisplay>
+  strength: number
+  muted?: boolean
+}) {
+  const characters = Array.isArray(tavern.characters) ? tavern.characters : []
+  const liveliness = buildDiscoveryLiveliness(tavern)
+  const summaryItems = [
+    {
+      label: characters.length ? `${characters.length} 位 NPC` : "NPC",
+      value: compactCharacterNames(characters),
+      icon: UsersRound,
+    },
+    {
+      label: "活性",
+      value: liveliness.headline,
+      icon: RadioTower,
+    },
+    {
+      label: "信号",
+      value: `${visitSignalLabel(tavern)} · ${strength}%`,
+      icon: Waves,
+    },
+  ]
+
+  return (
+    <div className="mt-4 grid gap-2 sm:grid-cols-3" aria-label="雷达信号摘要">
+      {summaryItems.map((item) => {
+        const Icon = item.icon
+        return (
+          <div
+            key={item.label}
+            className={`min-w-0 rounded-2xl border px-3 py-2 ${
+              muted
+                ? "border-white/8 bg-white/[0.025] text-white/34"
+                : "border-cyan-300/14 bg-cyan-300/[0.055] text-cyan-50"
+            }`}
+          >
+            <p className={`flex items-center gap-1.5 text-[0.62rem] font-black uppercase tracking-[0.16em] ${muted ? "text-white/24" : "text-cyan-100/54"}`}>
+              <Icon className="h-3 w-3" />
+              {item.label}
+            </p>
+            <p className={`mt-1 truncate text-xs font-bold ${muted ? "text-white/38" : "text-violet-50/72"}`}>
+              {item.value}
+            </p>
+          </div>
+        )
+      })}
     </div>
   )
 }
@@ -420,23 +513,46 @@ function FilterPanel({
   onOpenOnlyChange: (value: boolean) => void
   onClear: () => void
 }) {
+  const [filtersOpen, setFiltersOpen] = useState(false)
+  const activeFilterCount =
+    activePlaceTypes.size +
+    activeCategories.size +
+    (publicOnly ? 1 : 0) +
+    (openOnly ? 1 : 0)
+  const advancedFiltersId = "discover-signal-tuning"
+
   return (
-    <div className="space-y-4 rounded-[2rem] border border-white/10 bg-white/[0.035] p-5">
-      <div className="flex items-center justify-between">
+    <div
+      data-discover-filter-shell="mobile-lifted"
+      className="space-y-4 rounded-[2rem] border border-cyan-300/18 bg-[radial-gradient(circle_at_top_right,rgba(34,211,238,0.14),transparent_36%),linear-gradient(135deg,rgba(255,255,255,0.075),rgba(139,92,246,0.05))] p-5 shadow-[0_0_36px_rgba(34,211,238,0.08)]"
+    >
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <span className="inline-flex items-center gap-2 text-xs font-black uppercase tracking-widest text-cyan-100/60">
           <Search className="h-3.5 w-3.5" />
           查找信号
         </span>
-        {hasFilters ? (
+        <div className="flex items-center gap-2">
           <button
             type="button"
-            onClick={onClear}
-            className="flex min-h-11 touch-manipulation items-center gap-1 rounded-full border border-white/10 px-3 py-2 text-xs text-violet-100/70 transition hover:border-rose-300/40 hover:text-rose-300"
+            onClick={() => setFiltersOpen((open) => !open)}
+            aria-expanded={filtersOpen}
+            aria-controls={advancedFiltersId}
+            className="inline-flex min-h-11 touch-manipulation items-center gap-2 rounded-full border border-cyan-300/22 bg-cyan-300/10 px-3 py-2 text-xs font-bold text-cyan-50 transition hover:border-cyan-300/45 hover:bg-cyan-300/16 md:hidden"
           >
-            <X className="h-3 w-3" />
-            清空
+            <Radar className="h-3.5 w-3.5" />
+            {filtersOpen ? "收起调谐" : "展开调谐"}
           </button>
-        ) : null}
+          {hasFilters ? (
+            <button
+              type="button"
+              onClick={onClear}
+              className="flex min-h-11 touch-manipulation items-center gap-1 rounded-full border border-white/10 px-3 py-2 text-xs text-violet-100/70 transition hover:border-rose-300/40 hover:text-rose-300"
+            >
+              <X className="h-3 w-3" />
+              清空
+            </button>
+          ) : null}
+        </div>
       </div>
 
       <label className="relative block">
@@ -451,73 +567,79 @@ function FilterPanel({
         />
       </label>
 
-      <div className="space-y-2">
-        <p className="text-xs font-bold text-violet-100/48">场所类型</p>
-        <div className="flex flex-wrap gap-2">
-          {DISCOVERABLE_PLACE_TYPES.map((type) => {
-            const active = activePlaceTypes.has(type.id)
-            return (
-              <button
-                key={type.id}
-                type="button"
-                onClick={() => onTogglePlaceType(type.id)}
-                className={`inline-flex min-h-11 touch-manipulation items-center gap-1.5 rounded-full border px-3 py-2 text-xs font-bold transition ${
-                  active
-                    ? "border-cyan-300/40 bg-cyan-300/12 text-cyan-100"
-                    : "border-white/10 text-violet-100/60 hover:border-cyan-300/30 hover:text-cyan-100"
-                }`}
-                title={type.description}
-              >
-                <span aria-hidden="true">{type.icon}</span>
-                {type.shortLabel || type.label}
-              </button>
-            )
-          })}
-        </div>
+      <div className="rounded-2xl border border-cyan-300/22 bg-cyan-300/[0.085] px-3 py-2 text-xs leading-5 text-cyan-50/78 md:hidden">
+        {activeFilterCount ? `已锁定 ${activeFilterCount} 个高级信号条件；展开后可继续调谐。` : "移动端默认保留搜索入口；地点类型、标签与开灯状态可展开调谐。"}
       </div>
 
-      <div className="space-y-2">
-        <p className="text-xs font-bold text-violet-100/48">内容标签</p>
-        <div className="flex flex-wrap gap-2">
-          {CATEGORIES.map((category) => {
-            const active = activeCategories.has(category.label)
-            return (
-              <button
-                key={category.label}
-                type="button"
-                onClick={() => onToggleCategory(category.label)}
-                className={`inline-flex min-h-11 touch-manipulation items-center rounded-full border px-3 py-2 text-xs font-bold transition ${
-                  active
-                    ? category.color
-                    : "border-white/10 text-violet-100/60 hover:border-white/25 hover:text-white/80"
-                }`}
-              >
-                {category.label}
-              </button>
-            )
-          })}
+      <div id={advancedFiltersId} className={`${filtersOpen ? "space-y-4" : "hidden"} md:block md:space-y-4`}>
+        <div className="space-y-2">
+          <p className="text-xs font-bold text-violet-100/48">场所类型</p>
+          <div className="flex flex-wrap gap-2">
+            {DISCOVERABLE_PLACE_TYPES.map((type) => {
+              const active = activePlaceTypes.has(type.id)
+              return (
+                <button
+                  key={type.id}
+                  type="button"
+                  onClick={() => onTogglePlaceType(type.id)}
+                  className={`inline-flex min-h-11 touch-manipulation items-center gap-1.5 rounded-full border px-3 py-2 text-xs font-bold transition ${
+                    active
+                      ? "border-cyan-300/40 bg-cyan-300/12 text-cyan-100"
+                      : "border-white/10 text-violet-100/60 hover:border-cyan-300/30 hover:text-cyan-100"
+                  }`}
+                  title={type.description}
+                >
+                  <span aria-hidden="true">{type.icon}</span>
+                  {type.shortLabel || type.label}
+                </button>
+              )
+            })}
+          </div>
         </div>
-      </div>
 
-      <div className="flex flex-wrap gap-3">
-        <label className="flex min-h-11 cursor-pointer touch-manipulation items-center gap-2 text-xs text-violet-100/70">
-          <input
-            type="checkbox"
-            checked={publicOnly}
-            onChange={(event) => onPublicOnlyChange(event.target.checked)}
-            className="accent-cyan-400"
-          />
-          仅公开
-        </label>
-        <label className="flex min-h-11 cursor-pointer touch-manipulation items-center gap-2 text-xs text-violet-100/70">
-          <input
-            type="checkbox"
-            checked={openOnly}
-            onChange={(event) => onOpenOnlyChange(event.target.checked)}
-            className="accent-cyan-400"
-          />
-          仅亮起
-        </label>
+        <div className="space-y-2">
+          <p className="text-xs font-bold text-violet-100/48">内容标签</p>
+          <div className="flex flex-wrap gap-2">
+            {CATEGORIES.map((category) => {
+              const active = activeCategories.has(category.label)
+              return (
+                <button
+                  key={category.label}
+                  type="button"
+                  onClick={() => onToggleCategory(category.label)}
+                  className={`inline-flex min-h-11 touch-manipulation items-center rounded-full border px-3 py-2 text-xs font-bold transition ${
+                    active
+                      ? category.color
+                      : "border-white/10 text-violet-100/60 hover:border-white/25 hover:text-white/80"
+                  }`}
+                >
+                  {category.label}
+                </button>
+              )
+            })}
+          </div>
+        </div>
+
+        <div className="flex flex-wrap gap-3">
+          <label className="flex min-h-11 cursor-pointer touch-manipulation items-center gap-2 text-xs text-violet-100/70">
+            <input
+              type="checkbox"
+              checked={publicOnly}
+              onChange={(event) => onPublicOnlyChange(event.target.checked)}
+              className="accent-cyan-400"
+            />
+            仅公开
+          </label>
+          <label className="flex min-h-11 cursor-pointer touch-manipulation items-center gap-2 text-xs text-violet-100/70">
+            <input
+              type="checkbox"
+              checked={openOnly}
+              onChange={(event) => onOpenOnlyChange(event.target.checked)}
+              className="accent-cyan-400"
+            />
+            仅亮起
+          </label>
+        </div>
       </div>
     </div>
   )
@@ -526,7 +648,12 @@ function FilterPanel({
 function PreviewTile({ image, title, text }: { image: string; title: string; text: string }) {
   return (
     <article className="overflow-hidden rounded-[1.75rem] border border-white/10 bg-white/[0.035]">
-      <img src={image} alt="" className="h-36 w-full object-cover" loading="lazy" decoding="async" />
+      <div
+        className="h-36 w-full bg-slate-950 bg-cover bg-center"
+        style={{ backgroundImage: previewBackgroundImage(image) }}
+        role="img"
+        aria-label={`${title} 视觉预览`}
+      />
       <div className="p-4">
         <h2 className="font-black text-white">{title}</h2>
         <p className="mt-1 text-sm leading-6 text-violet-100/58">{text}</p>
@@ -541,11 +668,10 @@ function RadarSignalCard({ tavern, index, onPreview }: { tavern: Tavern; index: 
   const placeType = derivePlaceTypeDisplay(tavern)
   const entry = entryStatusDisplay(tavernWithTimeStatus)
   const strength = signalStrength(tavern, index)
-  const shortDramaTeaser = buildShortDramaTeaser(tavern)
 
   return (
     <article
-      className={`group relative overflow-hidden rounded-[1.75rem] border bg-slate-950/78 p-4 transition hover:-translate-y-0.5 ${
+      className={`group relative overflow-hidden rounded-[1.75rem] border bg-slate-950/78 p-5 transition hover:-translate-y-0.5 ${
         isClosed
           ? "border-white/5 hover:border-white/10 hover:bg-white/[0.02]"
           : "border-white/10 hover:border-cyan-300/55 hover:bg-cyan-300/10"
@@ -593,21 +719,8 @@ function RadarSignalCard({ tavern, index, onPreview }: { tavern: Tavern; index: 
           <p className={`mt-2 line-clamp-2 text-sm leading-6 ${isClosed ? "text-white/25" : "text-violet-100/65"}`}>
             {tavern.description || "这个区域还没有公开简介，但坐标已经亮起。"}
           </p>
-          <div className="mt-3">
-            <CharacterStack characters={tavern.characters} muted={isClosed} />
-          </div>
-          <div className="mt-3">
-            <EntrySignalGrid tavern={tavernWithTimeStatus} placeType={placeType} compact muted={isClosed} />
-          </div>
-          <div className="mt-3">
-            <DiscoveryLivelinessStrip tavern={tavernWithTimeStatus} compact muted={isClosed} />
-          </div>
-          {shortDramaTeaser ? (
-            <div className="mt-3">
-              <ShortDramaTeaserCard teaser={shortDramaTeaser} compact muted={isClosed} />
-            </div>
-          ) : null}
-          <div className={`mt-3 flex flex-wrap items-center gap-2 text-xs ${isClosed ? "text-white/24" : "text-violet-100/48"}`}>
+          <RadarSignalSummary tavern={tavernWithTimeStatus} placeType={placeType} strength={strength} muted={isClosed} />
+          <div className={`mt-4 flex flex-wrap items-center gap-2 text-xs ${isClosed ? "text-white/24" : "text-violet-100/48"}`}>
             <span>{locationLabel(tavern)}</span>
             {tavernWithTimeStatus.local_time_display ? (
               <span>{isClosed ? "已熄灯" : "亮起中"} · {tavernWithTimeStatus.local_time_display}</span>
@@ -623,7 +736,17 @@ function RadarSignalCard({ tavern, index, onPreview }: { tavern: Tavern; index: 
   )
 }
 
-function ResultCard({ tavern, index, onPreview }: { tavern: Tavern; index: number; onPreview: (tavern: Tavern) => void }) {
+function ResultCard({
+  tavern,
+  index,
+  coverImage,
+  onPreview,
+}: {
+  tavern: Tavern
+  index: number
+  coverImage: string
+  onPreview: (tavern: Tavern) => void
+}) {
   const tavernWithTimeStatus = tavern as TavernWithTimeStatus
   const placeType = derivePlaceTypeDisplay(tavern)
   const entry = entryStatusDisplay(tavernWithTimeStatus)
@@ -634,7 +757,7 @@ function ResultCard({ tavern, index, onPreview }: { tavern: Tavern; index: numbe
     <article className="group overflow-hidden rounded-[1.75rem] border border-white/10 bg-slate-950/78 transition hover:-translate-y-0.5 hover:border-cyan-300/45">
       <button type="button" onClick={() => onPreview(tavern)} className="relative block h-52 w-full touch-manipulation overflow-hidden text-left sm:h-60">
         <img
-          src={coverForIndex(index)}
+          src={coverImage}
           alt=""
           className={`h-full w-full object-cover transition duration-500 group-hover:scale-[1.04] ${isClosed ? "opacity-45" : "opacity-90"}`}
           loading="lazy"
@@ -767,7 +890,7 @@ function RadarBoard({ taverns, hasFilters, onPreview }: { taverns: Tavern[]; has
 
         <DesktopRadarTelemetry taverns={taverns} />
 
-        <div className="grid gap-3 xl:grid-cols-2">
+        <div className="grid gap-4">
           {taverns.length ? (
             taverns.map((tavern, index) => (
               <RadarSignalCard key={tavern.id} tavern={tavern} index={index} onPreview={onPreview} />
@@ -782,6 +905,8 @@ function RadarBoard({ taverns, hasFilters, onPreview }: { taverns: Tavern[]; has
 }
 
 function CardsBoard({ taverns, hasFilters, onPreview }: { taverns: Tavern[]; hasFilters: boolean; onPreview: (tavern: Tavern) => void }) {
+  const coversByTavernId = resolveUniqueHomepageTavernCovers(taverns)
+
   return (
     <section className="rounded-[2.2rem] border border-white/12 bg-slate-950/72 p-5 shadow-2xl shadow-black/30 backdrop-blur-xl">
       <div className="mb-5 flex flex-col gap-3 rounded-[1.75rem] border border-white/10 bg-white/[0.035] p-5 sm:flex-row sm:items-end sm:justify-between">
@@ -798,7 +923,13 @@ function CardsBoard({ taverns, hasFilters, onPreview }: { taverns: Tavern[]; has
       {taverns.length ? (
         <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
           {taverns.map((tavern, index) => (
-            <ResultCard key={tavern.id} tavern={tavern} index={index} onPreview={onPreview} />
+            <ResultCard
+              key={tavern.id}
+              tavern={tavern}
+              index={index}
+              coverImage={coversByTavernId[tavern.id] || coverForTavern(tavern, index)}
+              onPreview={onPreview}
+            />
           ))}
         </div>
       ) : (
@@ -880,7 +1011,7 @@ export default function DiscoverRoute() {
     <ProductShell eyebrow="Discover">
       <section id="discover-mainline" className="grid scroll-mt-28 gap-6 lg:grid-cols-[0.62fr_1.38fr] lg:items-start">
         <aside className="space-y-5 lg:sticky lg:top-28">
-          <div className="rounded-[2rem] border border-cyan-300/18 bg-slate-950/72 p-6 shadow-2xl shadow-black/25 backdrop-blur-xl">
+          <div className="rounded-[2rem] border border-cyan-300/24 bg-[radial-gradient(circle_at_top_right,rgba(34,211,238,0.16),transparent_34%),linear-gradient(160deg,rgba(15,23,42,0.84),rgba(30,27,75,0.62))] p-6 shadow-[0_0_42px_rgba(34,211,238,0.08)] backdrop-blur-xl">
             <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-fuchsia-300/20 bg-fuchsia-300/10 px-3 py-1.5 text-xs font-black text-fuchsia-100">
               <Compass className="h-3.5 w-3.5" />
               Real coordinates. Live signals.
@@ -893,11 +1024,11 @@ export default function DiscoverRoute() {
               默认用雷达扫过城市，感受哪里有区域正在亮起；开始搜索或筛选时，自动切到更方便浏览的卡片结果。
             </p>
             <div className="mt-6 grid gap-3 text-sm text-violet-100/70">
-              <div className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.04] p-3">
+              <div className="flex items-center gap-3 rounded-2xl border border-cyan-300/14 bg-cyan-300/[0.055] p-3">
                 <MapPinned className="h-5 w-5 text-cyan-200" />
                 <span>{filteredTaverns.length} 个坐标{hasFilters ? "符合查找" : "接入发现流"}</span>
               </div>
-              <div className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.04] p-3">
+              <div className="flex items-center gap-3 rounded-2xl border border-violet-300/14 bg-violet-300/[0.055] p-3">
                 <UsersRound className="h-5 w-5 text-fuchsia-100" />
                 <span>角色、传闻和店主可见回访反馈都汇入同一条信号流</span>
               </div>

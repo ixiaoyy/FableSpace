@@ -27,7 +27,7 @@ This guide does not introduce new API, schema, persistence, or mobile-framework 
 - Mobile tavern route renders `TavernChatWorkbench` as the default `/tavern/:id` mainline; the first screen must expose NPC roster, chat history, and the bottom composer before secondary panels.
 - `TavernChatWorkbench` keeps the machine-checkable marker `data-chat-workbench="sillytavern-style"` and accessible regions for `NPC 角色列表` and `聊天记录`.
 - Secondary public tavern panels (`TavernShareCard`, `TavernActivitySignalsCard`, `NeighborhoodRumorBubble`, `CreatorConversionCard`) are passed through `publicPanel` and live behind the workbench `更多酒馆功能` details section.
-- Owner-only secondary panels (`RoleplayPanel`, `PlaceHomePanel`, `VisitorNotesPanel`) are passed through `ownerPanel={isOwner ...}` and render only when the current viewer ID matches `tavern.owner_id`; the owner section keeps `data-owner-only-panel`.
+- Owner-only management panels (`RoleplayPanel`, `PlaceHomePanel`, `VisitorNotesPanel`) must not be passed into the visitor chat workbench. They live in the dedicated `/tavern/:id/manage` route, which renders `data-tavern-owner-management="dedicated-route"` and gates display on `currentUserId === tavern.owner_id`.
 - The tavern loader must derive the current viewer from `user_id` / `owner_id` / `visitor_id` query params and must not fall back from visitor reads to `DEFAULT_OWNER_ID`.
 - No new mobile framework or large route/UI dependency is required for this contract.
 
@@ -49,9 +49,9 @@ This guide does not introduce new API, schema, persistence, or mobile-framework 
 | Mobile shell | Fixed bottom dock has accessible label, touch-safe items, visitor-first labels, and no duplicate top nav |
 | 320px/narrow viewport | Key CTAs remain reachable above the dock; no horizontal overflow from this contract |
 | Mobile tavern | Chat workbench is the first mainline: NPC roster, chat history, and composer are reachable before secondary panels |
-| Mobile tavern secondary | Public features are hidden by default behind `更多酒馆功能`; owner-only features are absent for non-owners |
-| Owner tavern | `?owner_id=<owner>` view renders `data-owner-only-panel`; visitor view does not |
-| Desktop tavern | Workbench can use three columns, but management still remains folded unless the owner opens it |
+| Mobile tavern secondary | Public features are hidden by default behind `更多酒馆功能`; owner-only management features are absent from the chat workbench |
+| Owner tavern | `/tavern/:id/manage?owner_id=<owner>` renders `data-tavern-owner-management="dedicated-route"`; visitor route does not |
+| Desktop tavern | Workbench can use a richer chat layout, but management remains outside the chat page |
 | Dependencies | `package.json` does not gain Capacitor/Ionic/React Native/Onsen UI |
 
 ---
@@ -74,6 +74,6 @@ For user-facing visual changes, also run Playwright self-acceptance with at leas
 
 ## Good / Base / Bad
 
-- Good: `/tavern/:id` opens directly to a SillyTavern-style chat workbench; owner-only management exists only under an owner-gated folded panel.
-- Base: mobile guide copy points users to the chat mainline anchor; desktop keeps richer side columns but still folds non-chat features.
+- Good: `/tavern/:id` opens directly to a SillyTavern-style chat workbench; owner-only management exists only under `/tavern/:id/manage`.
+- Base: mobile guide copy points users to the chat mainline anchor; desktop keeps richer chat affordances but routes non-chat owner work to the management page.
 - Bad: putting layout showcase, creator conversion, owner tools, or visitor feedback management above the chat composer; or restoring visitor-to-owner loader fallback.

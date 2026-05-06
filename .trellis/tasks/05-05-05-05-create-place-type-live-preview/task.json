@@ -1,0 +1,23 @@
+{
+  "id": "05-05-create-place-type-live-preview",
+  "name": "05-05-create-place-type-live-preview",
+  "title": "Create page right preview follows place type",
+  "description": "Make the create page right preview and guidance reflect the selected place type instead of static tavern copy.",
+  "status": "completed",
+  "dev_type": "frontend",
+  "priority": "P2",
+  "creator": "lijin",
+  "assignee": "lijin",
+  "createdAt": "2026-05-05",
+  "relatedFiles": [
+    "frontend/app/routes/create.tsx",
+    "frontend/scripts/create-wizard-route-test.mjs",
+    ".trellis/tasks/05-05-05-05-create-place-type-live-preview/prd.md",
+    ".trellis/tasks/05-05-05-05-create-place-type-live-preview/implementation-plan.md",
+    ".trellis/tasks/05-05-05-05-create-place-type-live-preview/completion.md",
+    ".trellis/tasks/05-05-05-05-create-place-type-live-preview/artifacts/playwright-check.mjs",
+    ".trellis/tasks/05-05-05-05-create-place-type-live-preview/artifacts/playwright-report.json"
+  ],
+  "notes": "Fixed create page right-rail place-type linkage. The right preview, AI helper, first NPC card, checklist, and private hint now follow the selected left-side place type. Verified with tests/typecheck/build and Playwright desktop/mobile screenshots.",
+  "completedAt": "2026-05-05"
+}

@@ -80,11 +80,12 @@ class GhostTrace:
 
 
 class GraphMemoryStore(MemoryStore):
-    """Graph-aware MemoryStore placeholder.
+    """Relationship-aware MemoryStore adapter over keyword/shared-field search.
 
-    This reserves the adapter shape for a future NetworkX or graph database
-    implementation. Today it delegates persistence and retrieval to the default
-    keyword store and exposes a small related-atoms helper with no new dependency.
+    This adapter keeps the storage-neutral MemoryStore shape while deliberately
+    naming today's lightweight behavior as keyword and shared-field retrieval.
+    It does not claim graph or vector semantics unless a future implementation
+    adds a real graph backend behind this interface.
     """
 
     def __init__(self, fallback: Optional[MemoryStore] = None, graph: Any = None):
@@ -115,10 +116,7 @@ class GraphMemoryStore(MemoryStore):
         limit: int = 10,
         **filters: Any,
     ) -> list[MemorySearchResult]:
-        results = self.fallback.search_atoms(tavern_id, query, limit=limit, **filters)
-        if self.graph_enabled:
-            return [MemorySearchResult(hit.atom, hit.score, "graph_keyword") for hit in results]
-        return [MemorySearchResult(hit.atom, hit.score, "graph_stub:keyword_fallback") for hit in results]
+        return self.fallback.search_atoms(tavern_id, query, limit=limit, **filters)
 
     def related_atoms(
         self,
@@ -144,7 +142,7 @@ class GraphMemoryStore(MemoryStore):
             if atom.dimension and candidate.dimension == atom.dimension:
                 score += 0.05
             if score > 0:
-                results.append(MemorySearchResult(candidate, min(1.0, score), "graph_stub:shared_fields"))
+                results.append(MemorySearchResult(candidate, min(1.0, score), "shared_fields"))
         results.sort(key=lambda hit: (hit.score, hit.atom.importance, hit.atom.updated_at or hit.atom.created_at), reverse=True)
         return results[: max(1, int(limit or 1))]
 

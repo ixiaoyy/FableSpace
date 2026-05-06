@@ -8,8 +8,8 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-1.md`
-- **Total Sessions**: 11
-- **Last Active**: 2026-04-30
+- **Total Sessions**: 20
+- **Last Active**: 2026-05-06
 <!-- @@@/auto:current-status -->
 
 ---
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-1.md` | ~645 | Active |
+| `journal-1.md` | ~1225 | Active |
 <!-- @@@/auto:active-documents -->
 
 ---
@@ -29,6 +29,15 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 20 | 2026-05-06 | Owner dialogue preview prompt dry-run | - | `codex-homepage-dynamic-entry-covers` |
+| 19 | 2026-05-06 | Memory search adapter productization | - | `codex-homepage-dynamic-entry-covers` |
+| 18 | 2026-05-06 | Relationship graph API governance | - | `codex-homepage-dynamic-entry-covers` |
+| 17 | 2026-05-06 | Relationship graph propagation engine | - | `codex-homepage-dynamic-entry-covers` |
+| 16 | 2026-05-06 | Relationship graph schema and storage | - | `codex-homepage-dynamic-entry-covers` |
+| 15 | 2026-05-06 | Home route productization by mainline merge | - | `codex-homepage-dynamic-entry-covers` |
+| 14 | 2026-05-06 | Persistent notification identity guard | - | `codex-homepage-dynamic-entry-covers` |
+| 13 | 2026-05-06 | De-demo hardcoded rules response mode | - | `codex-homepage-dynamic-entry-covers` |
+| 12 | 2026-05-06 | Trellis backlog triage | - | `codex-homepage-dynamic-entry-covers` |
 | 11 | 2026-04-30 | Review Hospital Nurse NPC Asset | - | `main` |
 | 10 | 2026-04-30 | Review Character Asset Prompt Skill | - | `main` |
 | 9 | 2026-04-30 | Home Real-coordinate Governance Review | - | `main` |

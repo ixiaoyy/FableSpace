@@ -1,0 +1,34 @@
+{
+  "timestamp": "2026-05-05T16:12:37Z",
+  "taverns_backup": ".trellis/tasks/05-05-homepage-seed-fallback-hero-scale/backups/taverns.before-rules-chat-artifact-repair.20260505-161207.json",
+  "chat_backup_dir": ".trellis/tasks/05-05-homepage-seed-fallback-hero-scale/backups/chat-history.before-rules-chat-artifact-repair.20260505-161207",
+  "validation_backup": ".trellis/tasks/05-05-homepage-seed-fallback-hero-scale/backups/taverns.before-rules-chat-artifact-repair.20260505-161237.json",
+  "removed_memory_atoms": [
+    "pw_third_shelf_observatory:mem_71cb8c30caec"
+  ],
+  "removed_state_cards": [
+    "pw_third_shelf_observatory:card_72d0e83af41b",
+    "pw_third_shelf_observatory:card_7eccf40843e9",
+    "pw_third_shelf_observatory:card_cd413acb2b9f",
+    "pw_third_shelf_observatory:card_e3ea6000e11f"
+  ],
+  "reset_token_taverns": [
+    "pw_third_shelf_observatory"
+  ],
+  "repaired_chat_messages": {
+    ".fablemap-api/taverns/chat_history/pw_hospital_night_care/visitor-demo_char_pw_mika_nurse.jsonl": 1,
+    ".fablemap-api/taverns/chat_history/pw_third_shelf_observatory/visitor-demo_char_pw_9_delta.jsonl": 3
+  },
+  "removed_verification_files": [
+    ".fablemap-api/taverns/chat_history/pw_third_shelf_observatory/codex-weather-verify-2_char_pw_9_delta.jsonl",
+    ".fablemap-api/taverns/chat_history/pw_third_shelf_observatory/codex-weather-verify-3_char_pw_9_delta.jsonl",
+    ".fablemap-api/taverns/chat_history/pw_third_shelf_observatory/codex-weather-verify_char_pw_9_delta.jsonl"
+  ],
+  "remaining_markers": [],
+  "validation": {
+    "bad_marker_scan": "no files under .fablemap-api contain 这里的气味和灯光让我想到 / 我听见了——天气怎么样 / 我听见了——你好",
+    "pw_third_shelf_observatory_token_used": 0,
+    "pw_third_shelf_observatory_memory_atoms": 0,
+    "pw_third_shelf_observatory_state_cards": 3
+  }
+}

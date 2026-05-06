@@ -367,6 +367,77 @@ character.gender = _normalize_gender(data.get("gender"))
 
 Normalization keeps docs, API payloads, JSON, MySQL, and frontend labels aligned.
 
+
+---
+
+## Scenario: Relationship Graph Schema / Storage Contract
+
+### 1. Scope / Trigger
+
+Use this contract when changing `backend/src/fablemap_api/core/relationship_graph.py`, `backend/src/fablemap_api/infrastructure/relationship_graph_store.py`, or the SQLAlchemy `relationship_edges` / `visitor_relationship_projections` tables.
+
+### 2. Signatures
+
+```python
+RelationshipEdge(
+    id, source_owner_id, source_tavern_id, source_node_type, source_node_id,
+    target_owner_id, target_tavern_id, target_node_type, target_node_id,
+    behavior_type, display_name, strength_preset, status, governance_mode,
+)
+RelationshipProjection(visitor_id, node_type, node_id, affinity, hostility)
+SQLAlchemyRelationshipGraphStore.save_edge(edge)
+SQLAlchemyRelationshipGraphStore.list_confirmed_edges_for_node(node_type, node_id)
+SQLAlchemyRelationshipGraphStore.get_projection(visitor_id, node_type, node_id)
+SQLAlchemyRelationshipGraphStore.upsert_projection(projection)
+```
+
+### 3. Contracts
+
+- Node types are the closed set `tavern | character`.
+- Behavior types are the closed set `friendly | allied | neutral | rival | hostile`.
+- Strength presets are the closed set `weak | normal | strong`; do not persist raw formula sliders for MVP.
+- Governance modes are `manual | assisted | delegated_ai | system_ai`.
+- Edge statuses are `pending | confirmed | rejected | disabled`; only `confirmed` participates in propagation queries.
+- `RelationshipProjection.affinity` is clamped to `0.0–1.0`; `hostility` is non-negative and separate from `VisitorState.relationship_strength`.
+- Cross-owner edges are source-owner perspectives. A source owner or delegated/system AI may not confirm another owner’s target-side stance.
+- Visitor projections are runtime-private and must not appear in public Tavern payloads, export packages, or visitor-to-visitor social surfaces.
+
+### 4. Validation & Error Matrix
+
+| Case | Expected |
+|------|----------|
+| Negative effect `0.08` on affinity `0.05` | affinity becomes `0.0`, hostility increases by `0.03` |
+| Positive effect over friendly cap | affinity stops at cap; hostility unchanged |
+| Character↔character and tavern↔tavern both match | character-specific edge wins |
+| Pending/disabled edge in store | excluded from `list_confirmed_edges_for_node` |
+| Projection upsert same visitor/node | updates the same row and preserves provenance metadata |
+
+### 5. Tests Required
+
+```powershell
+py -3 -m pytest -q backend/tests/test_relationship_graph_domain.py backend/tests/test_relationship_graph_store.py --tb=short
+py -3 -m compileall -q backend/src
+```
+
+### 6. Wrong vs Correct
+
+#### Wrong
+
+```python
+projection.relationship_strength = -0.2
+```
+
+This pollutes the existing positive affinity field with hostile semantics.
+
+#### Correct
+
+```python
+projection = apply_negative_effect(projection, 0.2)
+store.upsert_projection(projection)
+```
+
+The helper drains positive affinity first, then records remaining tension on the separate hostility axis.
+
 ---
 
 ## Migrations

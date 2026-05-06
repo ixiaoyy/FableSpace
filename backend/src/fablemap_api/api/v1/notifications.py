@@ -64,11 +64,17 @@ async def websocket_notifications(websocket: WebSocket, user_id: str):
     """
     WebSocket endpoint for real-time notifications.
 
-    - Validates user identity (simplified for MVP - just accepts user_id)
+    - Validates path user_id against the same header/query identity used by REST
     - Sends pending notifications on connect
     - Listens for ping messages
     - Broadcasts new notifications in real-time
     """
+    claimed_user_id = _get_websocket_user_id(websocket)
+    if not claimed_user_id or claimed_user_id != user_id:
+        await websocket.accept()
+        await websocket.close(code=1008, reason="用户身份不匹配")
+        return
+
     store = get_notification_store()
     await manager.connect(websocket, user_id)
     queue = await store.register_connection(user_id)
@@ -250,3 +256,16 @@ def _get_user_id(request: Request) -> str | None:
 
     # Try from userId in request state (if set by auth middleware)
     return getattr(request.state, "user_id", None)
+
+
+def _get_websocket_user_id(websocket: WebSocket) -> str | None:
+    """Extract claimed user identity for WebSocket connections."""
+    user_id = websocket.headers.get("X-User-Id") or websocket.headers.get("X-User-ID")
+    if user_id:
+        return user_id
+
+    user_id = websocket.query_params.get("user_id")
+    if user_id:
+        return user_id
+
+    return getattr(websocket.state, "user_id", None)

@@ -1,0 +1,53 @@
+{
+  "id": "replace-demo-user-identity-defaults",
+  "name": "replace-demo-user-identity-defaults",
+  "title": "Replace demo user identity defaults",
+  "description": "前端 API 层大量默认 owner-demo / visitor-demo，需替换为显式 owner/visitor 会话身份边界。",
+  "status": "review",
+  "dev_type": "fullstack",
+  "scope": null,
+  "package": null,
+  "priority": "P1",
+  "creator": "lijin",
+  "assignee": "lijin",
+  "createdAt": "2026-05-06",
+  "completedAt": null,
+  "branch": null,
+  "base_branch": "codex-homepage-dynamic-entry-covers",
+  "worktree_path": null,
+  "current_phase": 4,
+  "next_action": [
+    {
+      "phase": 1,
+      "action": "brainstorm"
+    },
+    {
+      "phase": 2,
+      "action": "research"
+    },
+    {
+      "phase": 3,
+      "action": "implement"
+    },
+    {
+      "phase": 4,
+      "action": "check"
+    },
+    {
+      "phase": 5,
+      "action": "update-spec"
+    },
+    {
+      "phase": 6,
+      "action": "record-session"
+    }
+  ],
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [],
+  "parent": "05-06-demo-level-implementation-audit",
+  "relatedFiles": [],
+  "notes": "Implemented identity boundary slice on 2026-05-06: production frontend no longer ships owner-demo/visitor-demo; DEFAULT_OWNER_ID is empty, DEFAULT_VISITOR_ID uses stable anonymous visitor helper; backend create tavern now returns 401 without explicit owner identity. Verification passed: frontend identity/runtime focused scripts, full npm test, typecheck, build, compileall, focused pytest identity/create-wizard/v1-runtime.",
+  "meta": {}
+}

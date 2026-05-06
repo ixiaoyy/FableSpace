@@ -32,12 +32,17 @@ from fablemap_api.core.presets import (
     safe_llm_preset_config,
     safe_memory_policy,
 )
-from fablemap_api.core.preset_import import PresetImportError, preview_preset_import as build_preset_import_preview
+from fablemap_api.core.preset_import import (
+    PresetImportError,
+    build_preset_import_apply_plan,
+    preview_preset_import as build_preset_import_preview,
+)
 from fablemap_api.core.prompt_blocks import default_prompt_blocks, normalize_prompt_blocks
 from fablemap_api.core.prompt_builder import PromptBuildConfig, PromptBuilder
 from fablemap_api.core.tavern import (
     ChatMessage,
     Tavern,
+    TavernCharacter,
     VisitorState,
     VoiceConfig,
     WorldInfoEntry,
@@ -217,6 +222,154 @@ class OwnerConfigApplicationMixin:
             "message_count": len(messages),
         }
 
+    def preview_owner_dialogue_dry_run(self, tavern_id: str, data: dict[str, Any], user_id: str = "") -> dict[str, Any]:
+        """Owner-only prompt dry-run for NPC dialogue preview.
+
+        The dry-run uses the same PromptBuilder / WorldInfo path as owner prompt
+        preview. It never writes chat history, memory atoms, visitor state, or
+        writeback state. External model calls happen only when ``call_model`` is
+        explicitly true.
+        """
+        tavern = self._get_tavern_or_404(tavern_id)
+        self._ensure_owner(tavern, user_id)
+        payload = data or {}
+
+        character_id = str(payload.get("character_id") or "").strip()
+        character = next((item for item in tavern.characters if item.id == character_id), None)
+        if not character:
+            character = tavern.characters[0] if tavern.characters else None
+        if not character:
+            raise HTTPException(status_code=400, detail="请先为酒馆添加角色")
+
+        message = clean_text(payload.get("message"), max_length=1600) or "如果我是第一次进店的访客，你会怎么打招呼？"
+        visitor_id = clean_text(payload.get("visitor_id"), max_length=64) or "owner-preview-dry-run"
+        visitor_name = clean_text(payload.get("visitor_name"), max_length=32) or "预览旅人"
+        call_model = bool(payload.get("call_model", False))
+
+        visitor_state = self.store.get_visitor_state(tavern_id, visitor_id) if visitor_id else None
+        history = self.store.get_chat_history(tavern_id, visitor_id, character.id, limit=8) if visitor_id else []
+        visitor_message_count = 0
+        if visitor_id:
+            try:
+                visitor_message_count = sum(
+                    int(session.get("message_count", 0) or 0)
+                    for session in self.store.list_chat_sessions(tavern_id, visitor_id=visitor_id, limit=None)
+                )
+            except Exception:
+                visitor_message_count = len(history)
+
+        blocks = normalize_prompt_blocks(tavern.prompt_blocks)
+        if not blocks:
+            blocks = default_prompt_blocks()
+        config = PromptBuildConfig(
+            tavern_name=tavern.name,
+            tavern_scene_prompt=tavern.scene_prompt or "",
+            char_name=character.name,
+            char_personality=character.personality or "",
+            char_scenario=character.scenario or "",
+            char_first_mes=character.first_mes or "",
+            char_system_prompt=character.system_prompt or "",
+            user_name=visitor_name,
+            visitor_visit_count=visitor_state.visit_count if visitor_state else 0,
+            visitor_relationship_stage=visitor_state.relationship_stage if visitor_state else "",
+            visitor_relationship_strength=float(visitor_state.relationship_strength or 0.0) if visitor_state else 0.0,
+            visitor_message_count=visitor_message_count,
+            world_info_entries=[entry.to_dict() if hasattr(entry, "to_dict") else entry for entry in tavern.world_info],
+            state_cards=self._state_cards_for_prompt(tavern_id),
+            prompt_blocks=blocks,
+            history_max_messages=8,
+        )
+        prompt_result = PromptBuilder(config).build([], message)
+        messages = prompt_result.get("messages", [])
+        world_info_probe = test_world_info_entries(
+            tavern_id=tavern_id,
+            tavern_name=tavern.name,
+            tavern_description=tavern.description,
+            tavern_scene_prompt=tavern.scene_prompt,
+            tavern_world_info=tavern.world_info,
+            data={"message": message, "include_tavern_context": True},
+        )
+
+        llm_config = self._get_runtime_llm_config(tavern_id)
+        assistant_message = ""
+        model_called = False
+        model_error = ""
+        degraded = False
+        token_estimate = 0
+        model_status = "not_requested"
+
+        if call_model:
+            if not llm_config or not llm_config.is_configured():
+                degraded = True
+                model_status = "llm_not_configured"
+                model_error = "AI 后端还没配置；未调用模型。"
+            elif str(llm_config.backend or "").strip().lower() in {"rules", "rule_based", "public_welfare"}:
+                assistant_message = self._rules_response(character.name, message, tavern)
+                model_status = "rules_backend"
+            else:
+                try:
+                    client = create_client(
+                        ClientLLMConfig(
+                            backend=llm_config.backend,
+                            model=llm_config.model,
+                            api_key=llm_config.api_key,
+                            base_url=llm_config.base_url,
+                            temperature=llm_config.temperature,
+                            max_tokens=llm_config.max_tokens,
+                            top_p=llm_config.top_p,
+                        )
+                    )
+                    assistant_message = clean_text(client.complete(messages).content, max_length=2400)
+                    model_called = True
+                    model_status = "called"
+                except LLMError as exc:
+                    degraded = True
+                    model_status = "llm_error"
+                    model_error = str(exc)[:180]
+                except Exception as exc:
+                    degraded = True
+                    model_status = "llm_unexpected_error"
+                    model_error = str(exc)[:180]
+            token_estimate = max(1, (len(message) + len(assistant_message or "")) // 4) if assistant_message or model_called else 0
+
+        return {
+            "ok": True,
+            "tavern_id": tavern_id,
+            "character_id": character.id,
+            "character_name": character.name,
+            "visitor_id": visitor_id,
+            "visitor_name": visitor_name,
+            "message": message,
+            "dry_run": True,
+            "persisted": False,
+            "model_requested": call_model,
+            "model_called": model_called,
+            "model_status": model_status,
+            "model_error": model_error,
+            "degraded": degraded,
+            "assistant_message": assistant_message,
+            "token_estimate": token_estimate,
+            "history_written": False,
+            "memory_written": False,
+            "writeback_written": False,
+            "visitor_state_written": False,
+            "messages": messages,
+            "message_count": len(messages),
+            "matched_world_info_count": int(world_info_probe.get("matched_count", 0) or 0),
+            "matched_world_info": world_info_probe.get("matches", []),
+            "prompt_summary": {
+                "block_count": len(blocks),
+                "history_message_count": len(history),
+                "state_card_count": len(config.state_cards),
+                "world_info_entry_count": len(tavern.world_info),
+            },
+            "notes": [
+                "dry_run=true：仅用于店主预览 prompt 组装。",
+                "persisted=false：不会写入 chat history、memory、visitor state 或 writeback。",
+                "model_called 只有在店主明确请求且外部模型实际调用成功时才为 true。",
+            ],
+        }
+
     def get_runtime_presets(self, tavern_id: str, user_id: str = "") -> dict[str, Any]:
         tavern = self._get_tavern_or_404(tavern_id)
         self._ensure_owner(tavern, user_id)
@@ -310,6 +463,78 @@ class OwnerConfigApplicationMixin:
             "tavern_id": tavern_id,
             "tavern_name": tavern.name,
             **report,
+        }
+
+    def apply_preset_import(self, tavern_id: str, data: dict[str, Any], user_id: str = "") -> dict[str, Any]:
+        tavern = self._get_tavern_or_404(tavern_id)
+        self._ensure_owner(tavern, user_id)
+        payload = data or {}
+        try:
+            plan = build_preset_import_apply_plan(
+                payload,
+                selected_ids=payload.get("selected_ids"),
+                target_map=payload.get("target_map"),
+                include_runtime_parameters=bool(payload.get("include_runtime_parameters", False)),
+            )
+        except PresetImportError as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+        response_base = {
+            "tavern_id": tavern_id,
+            "tavern_name": tavern.name,
+            **plan,
+        }
+        if not bool(payload.get("confirm", False)):
+            return response_base
+
+        diff = plan.get("diff", {})
+        new_prompt_blocks = diff.get("prompt_blocks", []) if isinstance(diff, dict) else []
+        new_world_info = diff.get("world_info", []) if isinstance(diff, dict) else []
+        new_characters = diff.get("characters", []) if isinstance(diff, dict) else []
+        new_runtime_presets = diff.get("runtime_presets", []) if isinstance(diff, dict) else []
+
+        tavern.prompt_blocks = normalize_prompt_blocks(
+            [
+                *tavern.prompt_blocks,
+                *new_prompt_blocks,
+            ]
+        )
+        tavern.world_info = [
+            *tavern.world_info,
+            *[
+                WorldInfoEntry.from_dict({**entry, "tavern_id": tavern_id})
+                for entry in new_world_info
+                if isinstance(entry, dict)
+            ],
+        ]
+        tavern.characters = [
+            *tavern.characters,
+            *[
+                TavernCharacter.from_dict({**character, "tavern_id": tavern_id})
+                for character in new_characters
+                if isinstance(character, dict)
+            ],
+        ]
+        tavern.runtime_presets = custom_runtime_presets(
+            [
+                *tavern.runtime_presets,
+                *new_runtime_presets,
+            ]
+        )
+
+        tavern = self.store.update_tavern(tavern)
+        applied_counts = {
+            "prompt_blocks": len(new_prompt_blocks),
+            "world_info": len(new_world_info),
+            "characters": len(new_characters),
+            "runtime_presets": len(new_runtime_presets),
+        }
+        return {
+            **response_base,
+            "applied": True,
+            "confirm_required": False,
+            "applied_counts": applied_counts,
+            "tavern": tavern.to_dict_private(user_id),
         }
 
     def _require_user_id(self, user_id: str) -> str:

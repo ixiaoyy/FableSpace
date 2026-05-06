@@ -1,8 +1,8 @@
 """Infrastructure adapters and runtime settings.
 
-SQLAlchemy-backed storage is optional at import time.  Keep this package
-initializer lightweight so the default JSON-store application can start in a
-fresh environment without MySQL/SQLAlchemy dependencies installed.
+Keep this package initializer lightweight: database-backed storage is the
+runtime default, but models/SQLAlchemy are imported lazily so utilities that
+only need settings do not initialize a database at import time.
 """
 
 from __future__ import annotations
@@ -25,6 +25,14 @@ __all__ = [
     "MemoryAtomModel",
     "GameplaySessionModel",
     "LLMConfigModel",
+    "HomeVisitModel",
+    "HomeModel",
+    "NeighborhoodRumorModel",
+    "NotificationModel",
+    "VisitorNoteModel",
+    "OwnerConfigModel",
+    "StateCardModel",
+    "WritebackStateModel",
     "MySQLTavernStore",
     "create_mysql_tables",
 ]
@@ -39,6 +47,14 @@ _MODEL_EXPORTS = {
     "MemoryAtomModel",
     "GameplaySessionModel",
     "LLMConfigModel",
+    "HomeVisitModel",
+    "HomeModel",
+    "NeighborhoodRumorModel",
+    "NotificationModel",
+    "VisitorNoteModel",
+    "OwnerConfigModel",
+    "StateCardModel",
+    "WritebackStateModel",
 }
 _MYSQL_STORE_EXPORTS = {"MySQLTavernStore", "create_mysql_tables"}
 

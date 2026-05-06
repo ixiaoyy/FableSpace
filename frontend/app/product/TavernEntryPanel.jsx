@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { getTavernAccessIcon, getTavernAccessLabel } from './services/tavernService'
-import fallbackNpcPortrait from '../assets/npc-style-cast/portraits/merchant-a.png'
+import { DEFAULT_NPC_PREVIEW_PORTRAIT } from '../features/tavern-npc-stage/portraitCatalogConfig'
 import { enterTavern, getTavern } from '../lib/taverns'
 import { buildShortDramaTeaser } from '../lib/short-drama-teasers.js'
 import { inferTavernPlayMode, getTavernPlayBadges } from './tavernPlayModes'
@@ -14,7 +14,7 @@ function characterAvatarUrl(character = {}) {
     character.image_url ||
     character.imageUrl ||
     Object.values(sprites).find(Boolean) ||
-    fallbackNpcPortrait
+    DEFAULT_NPC_PREVIEW_PORTRAIT
   )
 }
 
