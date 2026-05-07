@@ -5,17 +5,17 @@ const MODE_OPTIONS = [
     id: 'play',
     icon: '🧭',
     title: '我只是来玩的',
-    description: '不用懂复杂设置：先设置昵称，进酒馆后可以点快捷句开始聊天或文字小游戏。',
+    description: '不用懂复杂设置：先设置昵称，进空间后可以点快捷句开始聊天或文字小游戏。',
     steps: ['设置昵称', '点快捷句', '聊天/小游戏'],
-    cta: '开始找酒馆',
+    cta: '开始找空间',
   },
   {
     id: 'owner',
     icon: '🏮',
-    title: '我要开一间酒馆',
+    title: '我要开一间空间',
     description: '进入店主后台，用 3 分钟向导从地点、角色和 AI 配置开始开店。',
-    steps: ['设置店主身份', '选择地点', '创建酒馆'],
-    cta: '去开酒馆',
+    steps: ['设置店主身份', '选择地点', '创建空间'],
+    cta: '去开空间',
   },
 ]
 
@@ -23,8 +23,8 @@ const MODE_OPTIONS = [
  * FirstRunModeModal — 首次使用分流向导
  *
  * 将“昵称输入”升级为普通用户可理解的两条路径：
- * 1. 只是来玩：发现酒馆 → 进入对话
- * 2. 我要开店：店主身份 → 选地点 → 创建酒馆
+ * 1. 只是来玩：发现空间 → 进入对话
+ * 2. 我要开店：店主身份 → 选地点 → 创建空间
  */
 export default function FirstRunModeModal({ initialNickname = '', initialMode = '', onComplete, onQuickTry }) {
   const [nickname, setNickname] = useState(initialNickname)
@@ -54,7 +54,7 @@ export default function FirstRunModeModal({ initialNickname = '', initialMode = 
     try {
       await onQuickTry?.({ nickname: nickname.trim() })
     } catch (err) {
-      setError(err?.message || '暂时无法进入新手酒馆，请稍后重试。')
+      setError(err?.message || '暂时无法进入新手空间，请稍后重试。')
     } finally {
       setQuickTrying(false)
     }
@@ -67,7 +67,7 @@ export default function FirstRunModeModal({ initialNickname = '', initialMode = 
           ✦
         </div>
 
-        <h2 id="first-run-title" className="visitor-nickname-title">欢迎来到 FableMap 赛博酒馆</h2>
+        <h2 id="first-run-title" className="visitor-nickname-title">欢迎来到 FableMap 空间</h2>
         <p className="visitor-nickname-subtitle first-run-subtitle">
           不会玩也没关系：可以直接试玩、点快捷句开始，或用模板开店。之后不会重复打扰，可随时重置新手引导。
         </p>
@@ -75,8 +75,8 @@ export default function FirstRunModeModal({ initialNickname = '', initialMode = 
         <div className="first-run-quick-card">
           <div>
             <span className="mini-label">30 秒可体验</span>
-            <strong>不想填配置？直接进入公益新手酒馆。</strong>
-            <p>系统会给你临时生成访客称呼，使用本地规则后端，不需要 API Key 或定位权限。</p>
+            <strong>不想填配置？直接进入新手体验空间。</strong>
+            <p>不用注册，输入称呼即可进入。NPC 会热情接待你。</p>
           </div>
           <button
             type="button"

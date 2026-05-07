@@ -9,6 +9,7 @@ import { buildAiDraftLifecycle } from "../lib/ai-draft-lifecycle.js"
 import { normalizeCreatePlacePayload } from "../lib/place-home.js"
 import { derivePlaceTypeDisplay, normalizePlaceTypeId, PLACE_TYPES } from "../lib/place-types.js"
 import { createTavernDraftRequest, draftResponseToCreateForm } from "../lib/tavern-drafts.js"
+import { hasExplicitOwnerIdentity } from "../lib/tavern-runtime-config.js"
 import {
   addCharacter,
   createTavern,
@@ -34,7 +35,7 @@ import { TAVERN_INTENT_TEMPLATES, deriveTavernIntent } from "../product/tavernIn
 
 const CREATE_WIZARD_STEPS = [
   { id: "anchor", number: "01", icon: MapPinned, title: "真实坐标", text: "先钉住地图锚点、地点类型和入口规则。" },
-  { id: "story", number: "02", icon: Sparkles, title: "酒馆内容", text: "填写店主确认的名称、简介与场景氛围。" },
+  { id: "story", number: "02", icon: Sparkles, title: "空间内容", text: "填写店主确认的名称、简介与场景氛围。" },
   { id: "npc", number: "03", icon: UserRoundPlus, title: "NPC 接待", text: "添加首个 NPC，之后可导入完整角色卡。" },
   { id: "open", number: "04", icon: ShieldCheck, title: "店主确认后开门", text: "最终由店主提交创建，AI 草稿不会自动发布。" },
 ]
@@ -59,9 +60,9 @@ export default function CreateRoute() {
   const activePlaceTypeAccessHint = activePlaceType.reserved
     ? `${activePlaceType.label} 默认私密，不进入公开发现筛选。`
     : `${activePlaceType.label} 可按入口规则公开、私密或密码访问。`
-  const activeDraftSummary = `AI 草稿只填入可编辑表单；店主检查并点击「创建酒馆」后，才会保存为正式${activePlaceTypeName}和首个 NPC。`
+  const activeDraftSummary = `AI 草稿只填入可编辑表单；店主检查并点击「创建空间」后，才会保存为正式${activePlaceTypeName}和首个 NPC。`
   const activeDraftGuardrails = tavernDraftLifecycle.guardrails.map((item) =>
-    item.replace("公开 Tavern payload", `公开${activePlaceTypeName} payload`).replace("酒馆", activePlaceTypeName),
+    item.replace("公开 Tavern payload", `公开${activePlaceTypeName} payload`).replace("空间", activePlaceTypeName),
   )
   const activeRequiredChecklist = ["真实坐标", `店主确认的${activePlaceTypeName}内容`, "角色卡可导出", "API Key 不向访客暴露"]
   const activePlaceTypeChecklist = [
@@ -96,8 +97,14 @@ export default function CreateRoute() {
   }, [ownerId])
 
   async function checkLLMConfig(userId = ownerId) {
+    const resolvedUserId = String(userId || "").trim()
+    if (!hasExplicitOwnerIdentity(resolvedUserId)) {
+      setLlmConfigured(false)
+      return
+    }
+
     try {
-      const result = await getOwnerDefaultLLM(userId)
+      const result = await getOwnerDefaultLLM(resolvedUserId)
       setLlmConfigured(result.configured)
     } catch {
       setLlmConfigured(false)
@@ -202,7 +209,7 @@ export default function CreateRoute() {
     try {
       const created = await createTavern(
         normalizeCreatePlacePayload({
-          name: String(form.get("name") || "").trim() || "未命名酒馆",
+          name: String(form.get("name") || "").trim() || "未命名空间",
           description: String(form.get("description") || "").trim(),
           lat: Number(form.get("lat") || 0),
           lon: Number(form.get("lon") || 0),
@@ -211,7 +218,7 @@ export default function CreateRoute() {
           place_type: String(form.get("place_type") || "tavern"),
           roleplay_mode: String(form.get("roleplay_mode") || "ai_only"),
           scene_prompt: String(form.get("scene_prompt") || "").trim(),
-          llm_config: { backend: "rules", model: "rules" },
+          llm_config: { backend: "public_welfare", model: "kilo-auto/free" },
         }),
         ownerIdSubmit,
       )
@@ -242,13 +249,13 @@ export default function CreateRoute() {
           <div className="mb-6 flex flex-col gap-4 border-b border-white/10 pb-6 sm:flex-row sm:items-end sm:justify-between">
             <div>
               <p className="text-xs font-black uppercase tracking-[0.24em] text-cyan-100/70">Tavernkeeper console</p>
-              <h1 className="mt-2 text-3xl font-black text-white sm:text-4xl">开一间真实坐标上的酒馆</h1>
+              <h1 className="mt-2 text-3xl font-black text-white sm:text-4xl">开一间真实坐标上的空间</h1>
               <p className="mt-3 max-w-2xl text-sm leading-7 text-violet-100/62">
                 表单只保存店主确认的内容：名称、场景、坐标、访问方式和首个 NPC。平台提供结构，不替店主创作故事。
               </p>
               {createPrefill.hasSource ? (
                 <p className="mt-3 max-w-2xl rounded-2xl border border-cyan-300/20 bg-cyan-300/10 p-3 text-sm leading-6 text-cyan-50">
-                  已从酒馆 {createPrefill.sourceTavernId} 带入真实坐标/地址；不会复制原酒馆名称、简介、角色或场景内容。
+                  已从空间 {createPrefill.sourceTavernId} 带入真实坐标/地址；不会复制原空间名称、简介、角色或场景内容。
                 </p>
               ) : null}
             </div>
@@ -258,7 +265,7 @@ export default function CreateRoute() {
           </div>
 
           <nav
-            aria-label="创建酒馆分步向导"
+            aria-label="创建空间分步向导"
             className="mb-6 grid gap-2 sm:grid-cols-2 xl:grid-cols-4"
           >
             {CREATE_WIZARD_STEPS.map((step) => {
@@ -318,7 +325,7 @@ export default function CreateRoute() {
                   <p className="text-xs font-black uppercase tracking-[0.2em] text-cyan-100/70">Step 01</p>
                   <h2 className="mt-1 text-xl font-black text-white">定位真实坐标与入口规则</h2>
                   <p className="mt-1 text-xs leading-5 text-violet-100/58">
-                    FableMap 不创建无锚点空间；每间酒馆都先绑定真实地图位置。
+                    FableMap 不创建无锚点空间；每间空间都先绑定真实地图位置。
                   </p>
                 </div>
                 <span className="w-fit rounded-full border border-cyan-300/24 bg-cyan-300/10 px-3 py-1 text-xs font-bold text-cyan-50">
@@ -407,7 +414,7 @@ export default function CreateRoute() {
                   <div>
                     <p className="text-sm font-black text-white">经营意图</p>
                     <p className="mt-1 text-xs leading-5 text-violet-100/50">
-                      这里选择“这间酒馆主要帮访客完成什么”；它不改 place_type / Schema，也不会绕过店主确认发布内容。
+                      这里选择“这间空间主要帮访客完成什么”；它不改 place_type / Schema，也不会绕过店主确认发布内容。
                     </p>
                   </div>
                   <span className="inline-flex w-fit rounded-full border border-fuchsia-300/24 bg-fuchsia-300/10 px-3 py-1.5 text-xs font-bold text-fuchsia-50">
@@ -463,18 +470,18 @@ export default function CreateRoute() {
             >
               <div>
                 <p className="text-xs font-black uppercase tracking-[0.2em] text-fuchsia-100/65">Step 02</p>
-                <h2 className="mt-1 text-xl font-black text-white">填写店主确认的酒馆内容</h2>
+                <h2 className="mt-1 text-xl font-black text-white">填写店主确认的空间内容</h2>
                 <p className="mt-1 text-xs leading-5 text-violet-100/58">
                   名称、简介和场景提示都是 owner-authored 内容；AI 只能作为可丢弃草稿。
                 </p>
               </div>
               <label className="space-y-1.5 text-sm">
-                <span className="text-violet-100/65">酒馆名称</span>
+                <span className="text-violet-100/65">空间名称</span>
                 <input name="name" required placeholder="星港夜谈" className="w-full rounded-2xl border border-white/12 bg-white/[0.06] px-4 py-3 text-white outline-none focus:border-cyan-300/60" />
               </label>
               <label className="space-y-1.5 text-sm">
                 <span className="text-violet-100/65">简介</span>
-                <textarea name="description" rows={3} placeholder="写下店主确认的酒馆氛围。" className="w-full rounded-2xl border border-white/12 bg-white/[0.06] px-4 py-3 text-white outline-none focus:border-cyan-300/60" />
+                <textarea name="description" rows={3} placeholder="写下店主确认的空间氛围。" className="w-full rounded-2xl border border-white/12 bg-white/[0.06] px-4 py-3 text-white outline-none focus:border-cyan-300/60" />
               </label>
               <label className="space-y-1.5 text-sm">
                 <span className="text-violet-100/65">场景提示</span>
@@ -491,7 +498,7 @@ export default function CreateRoute() {
                 <p className="text-xs font-black uppercase tracking-[0.2em] text-violet-100/65">Step 03</p>
                 <h2 className="mt-1 text-xl font-black text-white">配置首个接待 NPC</h2>
                 <p className="mt-1 text-xs leading-5 text-violet-100/58">
-                  先让酒馆有一个能开口迎客的角色；完整 SillyTavern 角色卡可在创建后继续导入/维护。
+                  先让空间有一个能开口迎客的角色；完整 SillyTavern 角色卡可在创建后继续导入/维护。
                 </p>
               </div>
               <div className="grid gap-3 sm:grid-cols-2">
@@ -530,7 +537,7 @@ export default function CreateRoute() {
               {error ? <p className="rounded-2xl border border-red-300/30 bg-red-300/10 p-3 text-sm text-red-100">{error}</p> : null}
               {createdId ? <p className="rounded-2xl border border-cyan-300/30 bg-cyan-300/10 p-3 text-sm text-cyan-100">已创建：{createdId}</p> : null}
               <Button type="submit" disabled={busy} size="lg" className="min-h-11">
-                {busy ? "正在开店..." : "创建酒馆"}
+                {busy ? "正在开店..." : "创建空间"}
                 <ArrowRight className="h-4 w-4" />
               </Button>
             </section>
@@ -588,7 +595,7 @@ export default function CreateRoute() {
                     <DialogHeader>
                       <DialogTitle>配置默认 AI 服务</DialogTitle>
                       <DialogDescription>
-                        设置用于生成酒馆草稿的默认 AI。API Key 仅你可见，不会被其他用户看到。
+                        设置用于生成空间草稿的默认 AI。API Key 仅你可见，不会被其他用户看到。
                       </DialogDescription>
                     </DialogHeader>
                     <div className="mt-4">
@@ -681,12 +688,12 @@ export default function CreateRoute() {
 
                 {draftSuccess && (
                   <p className="rounded-xl border border-green-300/20 bg-green-300/10 p-3 text-xs text-green-100">
-                    草稿已生成并填入表单，你可以继续编辑后创建酒馆。
+                    草稿已生成并填入表单，你可以继续编辑后创建空间。
                   </p>
                 )}
 
                 <p className="text-xs text-violet-100/40">
-                  草稿只填充表单，不自动创建酒馆。确认后再点击「创建酒馆」。
+                  草稿只填充表单，不自动创建空间。确认后再点击「创建空间」。
                 </p>
               </div>
             )}
@@ -765,7 +772,7 @@ export default function CreateRoute() {
                 <DialogHeader>
                   <DialogTitle>FableMap 创作者工具</DialogTitle>
                   <DialogDescription>
-                    后续表单会以 owner-authored 内容为中心：平台提供结构和体验，不替店主自动生成酒馆内容。
+                    后续表单会以 owner-authored 内容为中心：平台提供结构和体验，不替店主自动生成空间内容。
                   </DialogDescription>
                 </DialogHeader>
               </DialogContent>

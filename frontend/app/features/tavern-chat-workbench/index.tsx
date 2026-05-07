@@ -123,21 +123,21 @@ function responseModeLabel(tavern: Tavern) {
   if (["rules", "rule_based", "public_welfare"].includes(backend)) {
     return {
       kind: "rules",
-      label: "规则模式 / 无 Key 轻量接待",
-      title: "这间内置公益酒馆使用本地规则模板接待，不会伪装成外部 LLM。",
+      label: "公共空间",
+      title: "欢迎来到完全开放的公共空间，NPC 会热情接待你。",
     }
   }
   if (tavern.status === "closed" && backend !== "rules" && backend !== "rule_based" && backend !== "public_welfare") {
     return {
       kind: "missing",
-      label: "AI 后端未开放或未配置",
-      title: "店主需要开放酒馆并配置、测试模型后，NPC 才能以外部 LLM 接待。",
+      label: "暂不开放",
+      title: "店主还没开放聊天功能，敬请期待。",
     }
   }
   return {
     kind: "llm",
-    label: "外部 LLM 模式",
-    title: "当前按店主配置的外部 LLM 进行 NPC 对话。",
+    label: "AI 对话",
+    title: "NPC 已准备好和你对话。",
   }
 }
 
@@ -342,7 +342,7 @@ export function TavernChatWorkbench({
     enterTavern(tavern.id, "", visitorId, visitorGender)
       .then((result) => {
         if (cancelled) return
-        if (result.first_mes) setNotice("已进入酒馆，可以开始和 NPC 聊天。")
+        if (result.first_mes) setNotice("已进入空间，可以开始和 NPC 聊天。")
       })
       .catch((err) => {
         if (cancelled) return
@@ -388,7 +388,7 @@ export function TavernChatWorkbench({
       const result = await enterTavern(tavern.id, password.trim(), visitorId, visitorGender)
       setHasEnteredPasswordTavern(true)
       setPassword("")
-      setNotice(result.first_mes ? "密码通过，已进入酒馆。" : "密码通过。")
+      setNotice(result.first_mes ? "密码通过，已进入空间。" : "密码通过。")
     } catch (err) {
       setError(errorMessage(err))
     } finally {
@@ -476,7 +476,7 @@ export function TavernChatWorkbench({
               </p>
               <h1 className="mt-2 break-words text-3xl font-black tracking-tight text-white sm:text-4xl">{tavern.name}</h1>
               <p className="mt-2 max-w-3xl text-sm leading-6 text-violet-50/70">
-                {textOrFallback(tavern.description, "选择 NPC 后，直接在底部输入框开始聊天。酒馆资料和其它公开功能已折叠在下方。")}
+                {textOrFallback(tavern.description, "选择 NPC 后，直接在底部输入框开始聊天。空间资料和其它公开功能已折叠在下方。")}
               </p>
             </div>
             <div className="flex flex-wrap gap-2">
@@ -545,7 +545,7 @@ export function TavernChatWorkbench({
                 })
               ) : (
                 <div className="rounded-3xl border border-dashed border-white/15 bg-slate-950/35 p-4 text-sm leading-6 text-violet-50/62">
-                  这间酒馆还没有 NPC。店主可以在管理入口导入 SillyTavern 兼容角色卡。
+                  这间空间还没有 NPC。店主可以在管理入口导入 SillyTavern 兼容角色卡。
                 </div>
               )}
             </div>
@@ -593,7 +593,7 @@ export function TavernChatWorkbench({
                 <div className="flex items-start gap-3">
                   <LockKeyhole className="mt-1 h-5 w-5 shrink-0 text-amber-100" />
                   <div className="min-w-0 flex-1">
-                    <p className="font-black text-amber-50">这间酒馆需要密码</p>
+                    <p className="font-black text-amber-50">这间空间需要密码</p>
                     <p className="mt-1 text-sm leading-6 text-amber-50/72">输入店主提供的密码后即可加载聊天记录并开始对话。</p>
                     <div className="mt-3 flex flex-col gap-2 sm:flex-row">
                       <input
@@ -601,11 +601,11 @@ export function TavernChatWorkbench({
                         onChange={(event) => setPassword(event.target.value)}
                         type="password"
                         className="min-h-12 flex-1 rounded-2xl border border-white/12 bg-slate-950/55 px-4 text-white outline-none focus:border-amber-200/70"
-                        placeholder="酒馆密码"
+                        placeholder="空间密码"
                       />
                       <Button type="submit" disabled={busy === "enter" || !password.trim()}>
                         <DoorOpen className="h-4 w-4" />
-                        进入酒馆
+                        进入空间
                       </Button>
                     </div>
                   </div>
@@ -711,7 +711,7 @@ export function TavernChatWorkbench({
                   <ChatConversationSidecar tavern={tavern} character={selectedCharacter} visitorName={visitorName} />
                 </DetailSection>
 
-                <DetailSection title="更多酒馆功能" description="分享、公开扩展和回访入口折叠收纳">
+                <DetailSection title="更多空间功能" description="分享、公开扩展和回访入口折叠收纳">
                   {publicPanel || (
                     <p className="rounded-2xl border border-white/10 bg-slate-950/35 p-3 text-sm leading-6 text-violet-50/62">
                       暂无额外公开功能。

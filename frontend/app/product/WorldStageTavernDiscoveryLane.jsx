@@ -121,13 +121,13 @@ export default function WorldStageTavernDiscoveryLane({
   return (
     <div className="storyboard-lane tavern-discovery-lane">
       <div className="storyboard-lane-header">
-        <span className="storyboard-category-label">酒馆发现</span>
-        <span className="storyboard-lane-meta">{loading ? '正在扫描当前入口周围的酒馆' : summary}</span>
+        <span className="storyboard-category-label">空间发现</span>
+        <span className="storyboard-lane-meta">{loading ? '正在扫描当前入口周围的空间' : summary}</span>
       </div>
 
       <div className="tavern-discovery-toolbar">
         <label className="tavern-discovery-field tavern-discovery-field--search">
-          <span>搜索酒馆</span>
+          <span>搜索空间</span>
           <input
             type="text"
             value={search}
@@ -178,7 +178,7 @@ export default function WorldStageTavernDiscoveryLane({
 
       <div className="tavern-discovery-summary-row" aria-live="polite">
         <span>{summary}</span>
-        {activeTavernId ? <span className="tavern-discovery-active">已选中酒馆</span> : null}
+        {activeTavernId ? <span className="tavern-discovery-active">已选中空间</span> : null}
         {hiddenCount ? <span>列表还有 {hiddenCount} 间未展开</span> : null}
         {markerHiddenCount ? <span>地图点亮 {mapMarkerCount} / {taverns.length} 盏灯牌</span> : null}
       </div>
@@ -188,7 +188,7 @@ export default function WorldStageTavernDiscoveryLane({
           <div>
             <span className="mini-label">新手直达</span>
             <strong>先推开一扇公开的门，再决定要不要换街角。</strong>
-            <p>进入平台内置公益酒馆：公开、营业中、本地规则回应，不需要 API Key。</p>
+            <p>完全开放的公共空间，NPC 会热情接待你。</p>
           </div>
           <button
             type="button"
@@ -208,7 +208,7 @@ export default function WorldStageTavernDiscoveryLane({
       {error ? (
         <div className="storyboard-placeholder-card tavern-discovery-empty tavern-discovery-empty--error">
           <span className="empty-icon">⚠️</span>
-          <strong>附近酒馆暂时没有连通</strong>
+          <strong>附近空间暂时没有连通</strong>
           <p>{error}</p>
           <button type="button" className="secondary" onClick={onRefreshTaverns}>重试</button>
         </div>
@@ -217,7 +217,7 @@ export default function WorldStageTavernDiscoveryLane({
           <div className="loading-spinner">
             <div className="spinner-ring" />
           </div>
-          <p>正在扫描附近酒馆...</p>
+          <p>正在扫描附近空间...</p>
           <div className="skeleton-list">
             <SkeletonTavernCard />
             <SkeletonTavernCard />
@@ -242,14 +242,14 @@ export default function WorldStageTavernDiscoveryLane({
                 style={{ animationDelay: `${index * 50}ms` }}
               >
                 <div className="tavern-discovery-card__top">
-                  <strong>{tavern.name || '未命名酒馆'}</strong>
+                  <strong>{tavern.name || '未命名空间'}</strong>
                   <span className="tavern-discovery-status">
                     <i style={{ background: getTavernStatusColor(tavern.status) }} aria-hidden="true" />
                     {getTavernStatusLabel(tavern.status)}
                   </span>
                 </div>
                 <p>{getTavernDescription(tavern)}</p>
-                <div className="map-anchor-card" aria-label={`${tavern.name || '酒馆'}的真实地图锚点`}>
+                <div className="map-anchor-card" aria-label={`${tavern.name || '空间'}的真实地图锚点`}>
                   <span className="map-anchor-card__eyebrow">{anchorCopy.eyebrow}</span>
                   <strong>{anchorCopy.anchorLine}</strong>
                   <small>{anchorCopy.statusLine} · {anchorCopy.accessLine}</small>
@@ -283,7 +283,7 @@ export default function WorldStageTavernDiscoveryLane({
           })}
           {hiddenCount ? (
             <button type="button" className="tavern-discovery-load-more" onClick={loadMore}>
-              <strong>加载更多酒馆</strong>
+              <strong>加载更多空间</strong>
               <span>再显示 {Math.min(DISCOVERY_BATCH_SIZE, hiddenCount)} 间；地图最多点亮 {mapMarkerLimit || mapMarkerCount} 盏灯牌</span>
             </button>
           ) : null}
@@ -300,7 +300,7 @@ export default function WorldStageTavernDiscoveryLane({
               onClick={onQuickStartTavern}
               disabled={quickStartLoading}
             >
-              {quickStartLoading ? '正在进入新手酒馆...' : '先进入新手公益酒馆'}
+              {quickStartLoading ? '正在进入新手体验空间...' : '先进入新手体验空间'}
             </button>
           ) : null}
         </div>

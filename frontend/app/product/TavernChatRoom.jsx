@@ -41,7 +41,7 @@ import {
 } from '../lib/taverns'
 
 /**
- * TavernChatRoom — 酒馆三栏布局聊天房间
+ * TavernChatRoom — 空间三栏布局聊天房间
  *
  * 核心功能：
  * - 左侧：角色列表（可切换角色）
@@ -160,22 +160,22 @@ function getTavernResponseMode(tavern) {
   const backend = String(llmConfig.backend || '').trim().toLowerCase()
   if (['rules', 'rule_based', 'public_welfare'].includes(backend)) {
     return {
-      label: '规则模式 / 无 Key 轻量接待',
+      label: '公共空间',
       className: 'is-rules',
-      title: '内置公益酒馆使用本地规则模板接待，不会伪装成外部 LLM。',
+      title: '欢迎来到完全开放的公共空间，NPC 会热情接待你。',
     }
   }
   if (tavern?.status === 'closed' && !['rules', 'rule_based', 'public_welfare'].includes(backend)) {
     return {
-      label: 'AI 后端未开放或未配置',
+      label: '暂不开放',
       className: 'is-missing-llm',
-      title: '店主需要开放酒馆并配置、测试模型后，NPC 才能以外部 LLM 接待。',
+      title: '店主还没开放聊天功能，敬请期待。',
     }
   }
   return {
-    label: '外部 LLM 模式',
+    label: 'AI 对话',
     className: 'is-llm',
-    title: '当前按店主配置的外部 LLM 进行 NPC 对话。',
+    title: 'NPC 已准备好和你对话。',
   }
 }
 
@@ -214,7 +214,7 @@ function getGroupRoomRules(groupChatConfig = {}) {
     }
     return {
       ...rule,
-      text: '群聊可能提出记忆或状态卡候选；确认前不是酒馆正史，也不会改写店主设定。',
+      text: '群聊可能提出记忆或状态卡候选；确认前不是空间正史，也不会改写店主设定。',
     }
   })
 }
@@ -282,7 +282,7 @@ function CharacterSidebar({ characters, selectedChar, onSelectChar }) {
       <div className="char-sidebar empty">
         <div className="empty-hint">
           <p>这个地点没有角色。</p>
-          <p className="muted">让酒馆主人添加一些角色吧。</p>
+          <p className="muted">让空间主人添加一些角色吧。</p>
         </div>
       </div>
     )
@@ -602,10 +602,10 @@ function GuildQuestPanel({
   const nextTier = getNextGuildTier(progress.reputation)
 
   return (
-    <section className="guild-quest-panel" aria-label="探索清单与酒馆委托">
+    <section className="guild-quest-panel" aria-label="探索清单与空间委托">
       <div className="guild-quest-panel__header">
         <div>
-          <span className="guild-kicker">🗺️ 探索清单 / 酒馆委托</span>
+          <span className="guild-kicker">🗺️ 探索清单 / 空间委托</span>
           <h4>{tier.title} · {tier.badge}</h4>
           <p>{tier.treatment}</p>
         </div>
@@ -715,7 +715,7 @@ function MultiNpcRoomGuide({ characters = [], groupChatConfig = {} }) {
               <CharacterAvatar character={character} size="small" />
               <div>
                 <strong>{character.name || '未命名 NPC'}</strong>
-                <span>{character.archetype || character.personality?.slice(0, 18) || '酒馆 NPC'}</span>
+                <span>{character.archetype || character.personality?.slice(0, 18) || '空间 NPC'}</span>
                 <small>{getGroupParticipantTone(character)}</small>
               </div>
             </div>

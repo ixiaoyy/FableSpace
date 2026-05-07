@@ -11,8 +11,8 @@ import { TAVERN_TEMPLATES } from './tavernTemplates'
 import { getWizardReadiness } from './tavernCreateReadiness'
 
 const CREATE_STEPS = [
-  { id: 1, title: '地点', hint: '把酒馆钉在真实地图上', icon: '📍' },
-  { id: 2, title: '酒馆', hint: '名称、氛围与入口规则', icon: '🏮' },
+  { id: 1, title: '地点', hint: '把空间钉在真实地图上', icon: '📍' },
+  { id: 2, title: '空间', hint: '名称、氛围与入口规则', icon: '🏮' },
   { id: 3, title: '角色', hint: '导入或创建第一个 NPC', icon: '🎭' },
   { id: 4, title: 'AI', hint: '选择模型配方，可稍后再配', icon: '🤖' },
   { id: 5, title: '开门', hint: '检查摘要并创建', icon: '🚪' },
@@ -44,11 +44,11 @@ function cloneTemplateCharacters(template) {
 }
 
 /**
- * TavernCreatePanel — 3 分钟创建酒馆向导
+ * TavernCreatePanel — 3 分钟创建空间向导
  *
  * 用户可以在一个轻量流程内完成：
  * 1. 选择地图锚点
- * 2. 填写酒馆门牌与入口规则
+ * 2. 填写空间门牌与入口规则
  * 3. 导入 / 手动创建角色
  * 4. 选择 AI 配方并测试连接（可跳过）
  * 5. 检查摘要并开门营业
@@ -115,11 +115,11 @@ export default function TavernCreatePanel({
 
     if (stepToValidate === 2) {
       if (!form.name.trim()) {
-        setError('请填写酒馆名称')
+        setError('请填写空间名称')
         return false
       }
       if (form.access === 'password' && !form.password.trim()) {
-        setError('请设置访问密码，或改为公开 / 私人酒馆')
+        setError('请设置访问密码，或改为公开 / 私人空间')
         return false
       }
     }
@@ -179,6 +179,7 @@ export default function TavernCreatePanel({
       }
 
       // 添加 AI 配置（远端通常需要 API Key；Ollama/本地兼容后端可只填 API 地址）
+      // 如果没有可用 LLM 配置，使用 public_welfare 后端，后端会自动注入系统级 Kilo API Key
       if (hasLlmConfig) {
         payload.llm_config = {
           backend: llmFormData.backend,
@@ -189,6 +190,9 @@ export default function TavernCreatePanel({
           max_tokens: Number.parseInt(llmFormData.max_tokens, 10),
           top_p: Number.parseFloat(llmFormData.top_p),
         }
+      } else {
+        // 兜底：没有配置 LLM 时使用 public_welfare，后端会自动注入系统 Kilo API Key
+        payload.llm_config = { backend: 'public_welfare', model: 'kilo-auto/free' }
       }
 
       const tavern = await createTavern(payload, ownerId)
@@ -296,12 +300,12 @@ export default function TavernCreatePanel({
     <div className="tavern-create-panel">
       <div className="tavern-create-header">
         <div>
-          <h3>3 分钟开一间酒馆</h3>
+          <h3>3 分钟开一间空间</h3>
           <p className="tavern-create-intro">
-            按顺序完成地点、酒馆、角色、AI 和开门检查；复杂参数之后还能在店主后台慢慢调。
+            按顺序完成地点、空间、角色、AI 和开门检查；复杂参数之后还能在店主后台慢慢调。
           </p>
         </div>
-        <div className="tavern-create-steps" aria-label="创建酒馆步骤">
+        <div className="tavern-create-steps" aria-label="创建空间步骤">
           {CREATE_STEPS.map((item) => (
             <button
               key={item.id}
@@ -333,7 +337,7 @@ export default function TavernCreatePanel({
             <div className="location-anchor-card">
               <strong>真实地点是 FableMap 和普通文游最大的差异。</strong>
               <p>
-                酒馆会挂在这个坐标附近，访客从地图发现它。当前已带入你选中的地图点，
+                空间会挂在这个坐标附近，访客从地图发现它。当前已带入你选中的地图点，
                 也可以手动微调。
               </p>
             </div>
@@ -362,20 +366,20 @@ export default function TavernCreatePanel({
             </div>
 
             <p className="form-hint">
-              小提示：之后可以从地图上重新选择位置；这里先保证酒馆有一个明确入口。
+              小提示：之后可以从地图上重新选择位置；这里先保证空间有一个明确入口。
             </p>
           </div>
         )}
 
-        {/* Step 2: 酒馆 */}
+        {/* Step 2: 空间 */}
         {step === 2 && (
           <div className="tavern-create-step">
             <div className="quick-template-strip">
               <div className="quick-template-strip__header">
                 <div>
                   <span className="mini-label">体验加速</span>
-                  <strong>从一个可聊的酒馆模版起步</strong>
-                  <p>会自动补齐酒馆氛围，并在角色为空时带入第一个 NPC；之后仍可逐项修改。</p>
+                  <strong>从一个可聊的空间模版起步</strong>
+                  <p>会自动补齐空间氛围，并在角色为空时带入第一个 NPC；之后仍可逐项修改。</p>
                 </div>
               </div>
               <div className="quick-template-strip__grid">
@@ -406,7 +410,7 @@ export default function TavernCreatePanel({
             </div>
 
             <div className="form-group">
-              <label>酒馆名称 *</label>
+              <label>空间名称 *</label>
               <input
                 type="text"
                 value={form.name}
@@ -474,8 +478,8 @@ export default function TavernCreatePanel({
         {step === 3 && (
           <div className="tavern-create-step">
             <div className="form-note">
-              <p>角色是酒馆的“店员”。可以先导入一张 SillyTavern 角色卡，也可以手动创建。</p>
-              <p>这一步不强制；没有角色时，酒馆仍可创建，但对话体验会更像普通旁白。</p>
+              <p>角色是空间的“店员”。可以先导入一张 SillyTavern 角色卡，也可以手动创建。</p>
+              <p>这一步不强制；没有角色时，空间仍可创建，但对话体验会更像普通旁白。</p>
             </div>
 
             <div className="form-group">
@@ -565,7 +569,7 @@ export default function TavernCreatePanel({
           <div className="tavern-create-step">
             <div className="form-note">
               <p>选择一张 AI 配方卡，再补 API Key / API 地址即可。密钥只保存在你的服务端，不会展示给访客。</p>
-              <p>也可以直接跳过：酒馆会先创建为未配置状态，之后在“我的酒馆 / AI”里补上。</p>
+              <p>也可以直接跳过：空间会先创建为未配置状态，之后在“我的空间 / AI”里补上。</p>
             </div>
 
             <LLMConfigForm
@@ -616,10 +620,10 @@ export default function TavernCreatePanel({
               <div className="wizard-summary-card">
                 <span className="summary-kicker">地图锚点</span>
                 <strong>{formatCoordinate(form.lat)}, {formatCoordinate(form.lon)}</strong>
-                <p>访客会从这个真实坐标附近发现酒馆。</p>
+                <p>访客会从这个真实坐标附近发现空间。</p>
               </div>
               <div className="wizard-summary-card">
-                <span className="summary-kicker">酒馆门牌</span>
+                <span className="summary-kicker">空间门牌</span>
                 <strong>{form.name.trim() || '还没有名称'}</strong>
                 <p>{form.description.trim() || '暂无简介'} · {accessLabel}</p>
               </div>
@@ -641,7 +645,7 @@ export default function TavernCreatePanel({
 
             {!hasLlmConfig && (
               <div className="wizard-warning">
-                你还没有配置 AI。酒馆会被创建出来，但访客聊天前需要店主补齐 AI 配置。
+                你还没有配置 AI。空间会被创建出来，但访客聊天前需要店主补齐 AI 配置。
               </div>
             )}
 
