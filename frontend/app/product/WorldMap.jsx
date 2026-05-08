@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { createMapAdapter } from './mapAdapter'
 import { buildMapAnchorSummaryCopy } from './mapAnchorCopy'
 import { TAVERN_ACCESS_META, getTavernAccessDescription } from './services/tavernService'
+import { territoriesToCircles } from '../lib/territoryService.js'
 
 const SNAPSHOT_STORAGE_KEY = 'fablemap.activeMapSnapshot'
 const TAVERN_ACCESS_ORDER = ['public', 'password', 'private']
@@ -75,6 +76,7 @@ export default function WorldMap({
   tavernMarkerLimit = 0,
   onTavernClick,
   activeTavernId,
+  territories = [],
 }) {
   const containerRef = useRef(null)
   const adapterRef = useRef(null)
@@ -312,6 +314,20 @@ export default function WorldMap({
       },
     })
   }, [taverns, activeTavernId, onTavernClick])
+
+  // Update territory circles when territories change
+  useEffect(() => {
+    const adapter = adapterRef.current
+    if (!adapter) return
+
+    if (layers.territories === false || !territories?.length) {
+      adapter.clearTerritoryCircles()
+      return
+    }
+
+    const circles = territoriesToCircles(territories)
+    adapter.setTerritoryCircles(circles)
+  }, [territories, layers.territories])
 
   // Sync selectedPoi with activePoiId
   useEffect(() => {

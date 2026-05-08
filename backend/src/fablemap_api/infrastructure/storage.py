@@ -140,6 +140,15 @@ def create_visitor_note_store(settings: Any, tavern_store: Any):
     return VisitorNoteStore(Path(getattr(settings, "output_root", Path(".fablemap-api"))) / "visitor_notes.json")
 
 
+def create_territory_store(settings: Any, tavern_store: Any):
+    database = store_database(tavern_store)
+    if database is not None:
+        from fablemap_api.infrastructure.territory_store import SQLAlchemyTerritoryStore
+        return SQLAlchemyTerritoryStore(database)
+    from fablemap_api.infrastructure.territory_store import TerritoryStore
+    return TerritoryStore(Path(getattr(settings, "output_root", Path(".fablemap-api"))) / "territories")
+
+
 def create_writeback_store(settings: Any, tavern_store: Any):
     database = store_database(tavern_store)
     if database is not None:

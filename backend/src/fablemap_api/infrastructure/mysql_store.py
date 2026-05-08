@@ -43,6 +43,7 @@ from .models import (
     LLMConfigModel,
     TavernMessageModel,
     StateCardModel,
+    TerritoryModel,
 )
 
 

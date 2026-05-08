@@ -567,3 +567,29 @@ class WritebackStateModel(Base):
     key = Column(String(64), primary_key=True)
     state = Column(JSON, default=dict)
     updated_at = Column(DateTime, nullable=False, default=datetime.utcnow)
+
+
+class TerritoryModel(Base):
+    """领地模型"""
+
+    __tablename__ = "territories"
+
+    id = Column(String(64), primary_key=True)
+    owner_id = Column(String(64), nullable=False)
+    tavern_id = Column(String(64), ForeignKey("taverns.id", ondelete="SET NULL"), nullable=True)
+    type = Column(String(32), nullable=False)  # TerritoryType
+    center_lat = Column(Float, nullable=False)
+    center_lon = Column(Float, nullable=False)
+    radius = Column(Float, nullable=False)  # 米
+    status = Column(String(32), nullable=False, default="claimed")  # TerritoryStatus
+    name = Column(String(255), nullable=True)
+    created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
+    updated_at = Column(DateTime, nullable=False, default=datetime.utcnow)
+
+    __table_args__ = (
+        Index("idx_territory_owner", "owner_id"),
+        Index("idx_territory_tavern", "tavern_id"),
+        Index("idx_territory_type", "type"),
+        Index("idx_territory_status", "status"),
+        Index("idx_territory_location", "center_lat", "center_lon"),
+    )

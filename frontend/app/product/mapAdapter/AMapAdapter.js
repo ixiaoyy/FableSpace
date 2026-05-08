@@ -64,6 +64,22 @@ function getTavernAccessMarkerTheme(access) {
   }
 }
 
+// Territory type to color mapping
+const TERRITORY_TYPE_COLORS = {
+  tavern: '#FFD700',
+  pet_shop: '#FF69B4',
+  garden: '#32CD32',
+  game_workshop: '#4169E1',
+  gacha: '#9932CC',
+  cultivation: '#8B4513',
+  shop: '#FFD700',
+  warehouse: '#808080',
+}
+
+function getTerritoryCircleColor(type) {
+  return TERRITORY_TYPE_COLORS[type] || '#94a3b8'
+}
+
 function buildPoiMarkerContent({ poi, isActive, familiarity }) {
   const label = poi?.fantasy_name || poi?.real_name || poi?.id || '未命名地点'
   return `
@@ -169,6 +185,7 @@ export class AMapAdapter extends MapAdapter {
     this._poiMarkers = []
     this._landmarkMarkers = []
     this._tavernMarkers = []
+    this._territoryCircles = []
     this._ready = Boolean(window.AMap)
     this._error = ''
   }
@@ -432,14 +449,111 @@ export class AMapAdapter extends MapAdapter {
     }
   }
 
+  clearTerritoryCircles() {
+    if (!this._map) return
+    this._territoryCircles.forEach((circle) => circle.setMap(null))
+    this._territoryCircles = []
+  }
+
+  removeTerritoryCircles(ids) {
+    if (!this._map || !ids?.length) return
+    const idsToRemove = new Set(ids)
+    const remaining = []
+    for (const circle of this._territoryCircles) {
+      const circleId = circle.getExtData()?.id
+      if (circleId && idsToRemove.has(circleId)) {
+        circle.setMap(null)
+      } else {
+        remaining.push(circle)
+      }
+    }
+    this._territoryCircles = remaining
+  }
+
+  setTerritoryCircles(circles) {
+    if (!this._map) return
+
+    // Clear existing circles
+    this.clearTerritoryCircles()
+
+    if (!circles?.length) return
+
+    const newCircles = circles
+      .map((circle) => {
+        const center = circle.center
+        if (!center || center.length < 2) return null
+
+        const lon = Number(center[0])
+        const lat = Number(center[1])
+        const radius = Number(circle.radius)
+        if (!Number.isFinite(lon) || !Number.isFinite(lat) || !Number.isFinite(radius)) return null
+
+        const color = circle.color || getTerritoryCircleColor(circle.type)
+        const status = circle.status || 'active'
+        const opacity = status === 'paused' ? 0.15 : 0.25
+
+        const amapCircle = new window.AMap.Circle({
+          center: [lon, lat],
+          radius: radius,
+          strokeColor: color,
+          strokeWeight: 2,
+          strokeOpacity: 0.8,
+          fillColor: color,
+          fillOpacity: opacity,
+          strokeStyle: 'dashed',
+          showLabel: true,
+          extData: { id: circle.id, name: circle.name, type: circle.type },
+        })
+
+        // Add label for territory name
+        if (circle.name) {
+          const label = new window.AMap.LabelMarker({
+            position: [lon, lat],
+            text: {
+              content: `<div style="
+                background:rgba(15,23,42,0.85);
+                color:#fff;
+                padding:2px 6px;
+                border-radius:4px;
+                font-size:10px;
+                font-weight:600;
+                white-space:nowrap;
+                border:1px solid ${color}40;
+              ">${escapeHtml(circle.name)}</div>`,
+              direction: 'top',
+              offset: new window.AMap.Pixel(0, -8),
+            },
+          })
+          amapCircle._labelMarker = label
+        }
+
+        return amapCircle
+      })
+      .filter(Boolean)
+
+    // Add circles to map
+    this._map.add(newCircles)
+    this._territoryCircles = newCircles
+
+    // Also add labels
+    const labels = newCircles
+      .map((circle) => circle._labelMarker)
+      .filter(Boolean)
+    if (labels.length > 0) {
+      this._map.add(labels)
+    }
+  }
+
   destroy() {
     if (this._map) {
       this._poiMarkers.forEach((m) => m.setMap(null))
       this._landmarkMarkers.forEach((m) => m.setMap(null))
       this._tavernMarkers.forEach((m) => m.setMap(null))
+      this._territoryCircles.forEach((c) => c.setMap(null))
       this._poiMarkers = []
       this._landmarkMarkers = []
       this._tavernMarkers = []
+      this._territoryCircles = []
       this._map.destroy()
       this._map = null
     }

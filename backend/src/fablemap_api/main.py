@@ -6,6 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from .application.taverns import TavernApplicationService
+from .application.territories import TerritoryApplicationService
 from .api.v1.router import api_router
 from .core.tavern import TavernStore
 from .infrastructure.settings import ApiSettings
@@ -13,6 +14,7 @@ from .infrastructure.storage import (
     configure_process_stores,
     create_owner_config_store,
     create_tavern_store,
+    create_territory_store,
     create_visitor_note_store,
 )
 
@@ -38,6 +40,10 @@ def create_app(settings: ApiSettings | None = None) -> FastAPI:
         store,
         create_owner_config_store(resolved, store),
         create_visitor_note_store(resolved, store),
+    )
+
+    app.state.territory_service = TerritoryApplicationService(
+        create_territory_store(resolved, store)
     )
 
     app.add_middleware(

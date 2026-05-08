@@ -26,6 +26,7 @@ export default function WorldStageMapFrame({
   tavernMarkerLimit = 0,
   onTavernClick,
   activeTavernId,
+  territories = [],
 }) {
   return (
     <div className={className}>
@@ -56,6 +57,7 @@ export default function WorldStageMapFrame({
         tavernMarkerLimit={tavernMarkerLimit}
         onTavernClick={onTavernClick}
         activeTavernId={activeTavernId}
+        territories={territories}
       />
     </div>
   )

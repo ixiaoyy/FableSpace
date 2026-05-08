@@ -3,7 +3,7 @@
   "name": "05-08-territory-map-claim-ui-integration",
   "title": "territory-map-claim-ui-integration",
   "description": "领地系统 UI 与真实 API 数据联调、路由整合、大地图可视化集成",
-  "status": "todo",
+  "status": "done",
   "dev_type": "fullstack",
   "scope": null,
   "package": null,
@@ -11,11 +11,11 @@
   "creator": "ai-agent",
   "assignee": "codex",
   "createdAt": "2026-05-08",
-  "completedAt": null,
+  "completedAt": "2026-05-08",
   "branch": null,
   "base_branch": "codex-homepage-dynamic-entry-covers",
   "worktree_path": null,
-  "current_phase": 1,
+  "current_phase": 5,
   "next_action": [
     {
       "phase": 1,
@@ -44,13 +44,26 @@
   "children": [],
   "parent": "05-07-05-07-territory-map-claim-system",
   "relatedFiles": [
-    "frontend/app/features/territory-management/index.tsx",
-    "frontend/app/routes/territory.tsx",
+    "backend/src/fablemap_api/api/v1/territories.py",
+    "backend/src/fablemap_api/application/territories.py",
+    "backend/src/fablemap_api/core/territory.py",
+    "backend/src/fablemap_api/infrastructure/territory_store.py",
+    "backend/tests/test_territory.py",
     "frontend/app/lib/territoryService.js",
-    "frontend/app/product/WorldMap.jsx"
+    "frontend/app/components/TerritoryClaimPanel.tsx",
+    "frontend/app/components/TerritoryManagementPanel.tsx",
+    "frontend/app/routes/territory.tsx",
+    "frontend/app/product/WorldMap.jsx",
+    "frontend/app/product/mapAdapter/AMapAdapter.js"
   ],
-  "notes": "Follow-up task to complete the data binding, routing, and map visualization for the newly designed anime-style territory claim dashboard.",
+  "notes": "2026-05-08: completed API-backed territory claim/manage route, user-scoped frontend service calls, map circle adapter integration, SQLAlchemy/default-database store hookup, and API regression coverage. Verification: py -3 -m compileall -q backend/src; py -3 -m pytest -q backend/tests/test_territory.py --tb=short; npm --prefix .\\\\frontend run typecheck; npm --prefix .\\\\frontend run build.",
   "meta": {
-    "key_features": ["数据联调", "大地图集成", "单元测试"]
+    "key_features": [
+      "API-backed claim/manage",
+      "real-coordinate circle overlay",
+      "SQLAlchemy territory store",
+      "owner-scoped mutations"
+    ],
+    "verification_2026_05_08": "backend compileall + backend/tests/test_territory.py + frontend typecheck + frontend build passed"
   }
 }

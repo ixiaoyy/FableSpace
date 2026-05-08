@@ -52,6 +52,30 @@ export class MapAdapter {
   }
 
   /**
+   * Set territory circles on the map.
+   * Replaces existing territory circles.
+   * @param {Array<object>} circles - Array of { id, center: [lon, lat], radius: number, type, status, color, name }
+   */
+  setTerritoryCircles(circles) {
+    throw new Error('Not implemented')
+  }
+
+  /**
+   * Remove specific territory circles by IDs.
+   * @param {Array<string>} ids - Array of territory IDs to remove
+   */
+  removeTerritoryCircles(ids) {
+    throw new Error('Not implemented')
+  }
+
+  /**
+   * Clear all territory circles.
+   */
+  clearTerritoryCircles() {
+    throw new Error('Not implemented')
+  }
+
+  /**
    * Fit the map view to show all given positions.
    * @param {Array<[number,number]>} positions - Array of [lon, lat]
    * @param {number} [padding=80]
