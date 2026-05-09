@@ -84,6 +84,7 @@ def _sanitize_character_draft(data: dict[str, Any], *, style_tags: list[str]) ->
         "first_mes": clean_text(data.get("first_mes"), max_length=500),
         "mes_example": clean_text(data.get("mes_example"), max_length=1000),
         "tags": _with_source_tag(tags, "owner_llm"),
+        "hobbies": _draft_list(data.get("hobbies"), max_items=10, max_length=32),
     }
     alternate_greetings = _draft_list(data.get("alternate_greetings"), max_items=4, max_length=160)
     if alternate_greetings:
@@ -193,6 +194,7 @@ class CharacterApplicationMixin:
             "first_mes": f"欢迎来到{tavern_name}。我只是店主审核前的本地模板草稿，等店主确认后才会正式接待你。",
             "mes_example": mes_example,
             "tags": _draft_tags(style_tags, source="local_template_fallback"),
+            "hobbies": [],
         }
         return {
             "ok": True,
@@ -404,6 +406,7 @@ class CharacterApplicationMixin:
             "mes_example": character.mes_example,
             "alternate_greetings": list(character.alternate_greetings or []),
             "tags": list(character.tags or []),
+            "hobbies": list(getattr(character, "hobbies", []) or []),
             "sprites": dict(character.sprites or {}),
             "world_info": list(character.world_info or []),
             "source_format": character.source_format,

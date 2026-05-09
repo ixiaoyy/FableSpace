@@ -584,7 +584,7 @@ class Tavern:
     created_at: str = ""
     access: str = "public"  # 'public' | 'password' | 'private'
     password_hash: str = ""
-    status: str = "closed"  # 'open' | 'closed'
+    status: str = "open"  # 'open' | 'closed'
     roleplay_mode: str = "ai_only"  # 'ai_only' | 'hybrid'
     layout_style: str = "lobby"  # 'lobby' | 'npc-chat' | 'quest-play' | 'hybrid-room'
     place_type: str = "tavern"  # 'tavern' | 'cafe' | ... | 'hospital' | 'home'
@@ -714,7 +714,7 @@ class Tavern:
             created_at=d.get("created_at", ""),
             access=d.get("access", "public"),
             password_hash=d.get("password_hash", ""),
-            status=d.get("status", "closed"),
+            status=d.get("status", "open"),
             roleplay_mode=_normalize_roleplay_mode(d.get("roleplay_mode", "ai_only")),
             layout_style=_normalize_tavern_layout_style(d.get("layout_style", "lobby")),
             place_type=_normalize_place_type(d.get("place_type", "tavern")),
@@ -1769,7 +1769,7 @@ class TavernService:
             created_at=now,
             access=access,
             password_hash="",
-            status="closed",
+            status="open",
             roleplay_mode=_normalize_roleplay_mode(data.get("roleplay_mode", "ai_only")),
             layout_style=_normalize_tavern_layout_style(data.get("layout_style", "lobby")),
             place_type=place_type,

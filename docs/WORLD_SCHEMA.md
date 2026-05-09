@@ -246,8 +246,14 @@ interface TavernCharacter {
   // ── 扩展 ──────────────────────────
   alternate_greetings?: string[]; // 备用开场白
   tags: string[];               // 标签（["门卫", "退休教师", "男性"]）
+  hobbies: string[];            // 兴趣与爱好标签（["黑胶唱片", "复古游戏"]）
 
   // ── 立绘 ──────────────────────────
+  avatar: string;                // 默认立绘 URL
+  sprites: Record<string, string>; // 表情立绘映射 (e.g. { "joy": "url" })
+  appearance: dict[str, Any];    // 角色长相/外貌 preset 信息
+  talkativeness: float;          // 0.0-1.0，群聊发言积极度
+}
   sprites?: TavernSpriteSet;     // 表情精灵图
 }
 

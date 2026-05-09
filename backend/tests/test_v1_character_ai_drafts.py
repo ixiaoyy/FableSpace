@@ -61,6 +61,7 @@ def test_owner_generates_ai_character_draft_without_persisting_it(tmp_path: Path
         "first_mes",
         "mes_example",
         "tags",
+        "hobbies",
     }
     for field in ("name", "description", "personality", "scenario", "system_prompt", "first_mes", "mes_example"):
         assert draft[field]
