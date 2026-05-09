@@ -1,0 +1,39 @@
+{
+  "id": "05-09-system-public-welfare-cobuddy-test",
+  "name": "05-09-system-public-welfare-cobuddy-test",
+  "title": "Switch system public welfare LLM to baidu cobuddy free",
+  "description": "",
+  "status": "completed",
+  "dev_type": "backend",
+  "scope": null,
+  "package": null,
+  "priority": "P2",
+  "creator": "lijin",
+  "assignee": "lijin",
+  "createdAt": "2026-05-09",
+  "completedAt": "2026-05-09",
+  "branch": null,
+  "base_branch": "main",
+  "worktree_path": null,
+  "current_phase": 6,
+  "next_action": [],
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [],
+  "parent": null,
+  "relatedFiles": [
+    "backend/config/system_public_welfare_llm.json",
+    ".trellis/tasks/05-09-05-09-system-public-welfare-cobuddy-test/prd.md"
+  ],
+  "notes": "User tested the baidu/cobuddy:free model and reported it as '不好用' (not useful/poor performance). The task is terminated and the configuration remains at its previous stable state (kilo-auto/free).",
+  "meta": {
+    "requested_model": "baidu/cobuddy:free",
+    "resolved_model": "baidu/cobuddy-20260430:free",
+    "connectivity_ok": true,
+    "verification": [
+      "POST http://127.0.0.1:8950/api/llm/test-config with secret-safe payload",
+      "py -3 -m compileall -q backend/src"
+    ]
+  }
+}

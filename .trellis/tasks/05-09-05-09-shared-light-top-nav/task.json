@@ -1,0 +1,49 @@
+{
+  "id": "05-09-shared-light-top-nav",
+  "name": "05-09-shared-light-top-nav",
+  "title": "Shared light reference top navigation",
+  "description": "Extract the bright-theme top navigation into a shared frontend component used by the light homepage and light discover page while keeping the 1:1 reference backing slices.",
+  "status": "completed",
+  "dev_type": "frontend",
+  "scope": "home/discover light theme top navigation componentization",
+  "package": null,
+  "priority": "P1",
+  "creator": "lijin",
+  "assignee": "codex",
+  "createdAt": "2026-05-09",
+  "completedAt": "2026-05-09",
+  "branch": null,
+  "base_branch": "codex-homepage-dynamic-entry-covers",
+  "worktree_path": null,
+  "current_phase": 4,
+  "next_action": [
+    { "phase": 5, "action": "update-spec-if-pattern-stabilizes" },
+    { "phase": 6, "action": "record-session-after-commit" }
+  ],
+  "relatedFiles": [
+    "frontend/app/components/light-reference-top-nav.tsx",
+    "frontend/app/routes/home.tsx",
+    "frontend/app/routes/discover.tsx",
+    "frontend/app/assets/discover/light/slices/discover-light-slice-01a-nav-bar.png",
+    "frontend/app/assets/discover/light/slices/discover-light-slice-02-body.png",
+    "frontend/scripts/home-visual-density-test.mjs",
+    "frontend/scripts/home-pc-polish-test.mjs",
+    "frontend/scripts/homepage-dynamic-entry-test.mjs",
+    "frontend/scripts/discover-light-reference-test.mjs",
+    "frontend/scripts/playwright-discover-light-reference-check.mjs"
+  ],
+  "notes": "LightReferenceTopNav is now shared by home and /discover light themes. /discover light runtime was split into nav/body slices, so the nav can use the same component boundary and real controls/chrome/text-layer pattern as homepage. Static tests, typecheck, build, and Playwright desktop/mobile checks passed.",
+  "meta": {
+    "shared_component": "frontend/app/components/light-reference-top-nav.tsx",
+    "home_variant": "<LightReferenceTopNav variant=\"home\" />",
+    "discover_variant": "<LightReferenceTopNav variant=\"discover\" />",
+    "discover_runtime_slices": [
+      "frontend/app/assets/discover/light/slices/discover-light-slice-01a-nav-bar.png",
+      "frontend/app/assets/discover/light/slices/discover-light-slice-02-body.png"
+    ],
+    "playwright_reports": [
+      "D:/work/ai-/.trellis/tasks/05-09-05-09-discover-light-reference-search-page/artifacts/playwright/report.md",
+      "D:/work/ai-/.trellis/tasks/05-09-05-09-home-light-complete-section-boundaries/artifacts/playwright/report.md"
+    ]
+  }
+}

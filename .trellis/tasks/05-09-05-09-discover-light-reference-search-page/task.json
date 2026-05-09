@@ -1,0 +1,91 @@
+{
+  "id": "05-09-discover-light-reference-search-page",
+  "name": "05-09-discover-light-reference-search-page",
+  "title": "Discover light reference search page",
+  "description": "Replace /discover in light theme with the approved search_light.png reference using shared nav plus complete real-DOM body sections and project-local high-resolution element assets while keeping dark discover behavior intact.",
+  "status": "completed",
+  "dev_type": "frontend",
+  "scope": "discover route light theme full real-DOM replacement",
+  "package": null,
+  "priority": "P1",
+  "creator": "lijin",
+  "assignee": "codex",
+  "createdAt": "2026-05-09",
+  "completedAt": "2026-05-09",
+  "branch": null,
+  "base_branch": "main",
+  "worktree_path": null,
+  "current_phase": 4,
+  "next_action": [
+    {
+      "phase": 1,
+      "action": "brainstorm"
+    },
+    {
+      "phase": 2,
+      "action": "research"
+    },
+    {
+      "phase": 3,
+      "action": "implement"
+    },
+    {
+      "phase": 4,
+      "action": "check"
+    },
+    {
+      "phase": 5,
+      "action": "update-spec"
+    },
+    {
+      "phase": 6,
+      "action": "record-session"
+    }
+  ],
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [],
+  "parent": null,
+  "relatedFiles": [
+    "frontend/app/routes/discover.tsx",
+    "frontend/app/components/discover-light-real-dom.tsx",
+    "frontend/app/components/light-reference-top-nav.tsx",
+    "frontend/app/assets/discover/light/discover-light-reference.png",
+    "frontend/app/assets/discover/light/slices/discover-light-slice-01a-nav-bar.png",
+    "frontend/app/assets/discover/light/elements/",
+    "frontend/scripts/discover-light-reference-test.mjs",
+    "frontend/scripts/playwright-discover-light-reference-check.mjs",
+    ".trellis/tasks/05-09-05-09-discover-light-reference-search-page/prd.md"
+  ],
+  "notes": "Light theme /discover now renders the approved search_light layout as a shared nav plus complete real-DOM body sections. Runtime keeps only the shared nav backing slice; the body no longer imports whole-body or section screenshot fragments. Card covers, recommendation thumbnails, sidebar ornaments, activity wave, and bottom city are cropped into project-local 1x/2x element assets with prompt sidecars for high-fidelity rendering. The search field, filters, cards, recommendation rail, sidebar controls, and bottom stats are live DOM/hotspots; dark theme ProductShell discover behavior remains preserved. Focused static test, typecheck, build, and Playwright desktop/mobile self-acceptance passed in this task.",
+  "meta": {
+    "reference_source": "D:/work/ai-/设计参考/search_light.png",
+    "target_route": "/discover",
+    "target_theme": "light",
+    "dark_theme_preserved": true,
+    "runtime_marker": "data-discover-light-reference=\"search-light-real-dom\"",
+    "body_marker": "data-discover-light-body=\"complete-dom-replacement\"",
+    "artboard": "1448x1086",
+    "runtime_slice_count": 1,
+    "body_fragment_count": 0,
+    "body_section_count": 5,
+    "page_section_count": 6,
+    "reference_element_count": 17,
+    "body_hotspot_count": 41,
+    "asset_paths": [
+      "frontend/app/assets/discover/light/discover-light-reference.png",
+      "frontend/app/assets/discover/light/discover-light-reference-2x.png",
+      "frontend/app/assets/discover/light/discover-light-reference.prompt.md",
+      "frontend/app/assets/discover/light/slices/discover-light-slice-01a-nav-bar.png",
+      "frontend/app/assets/discover/light/elements/"
+    ],
+    "shared_nav_component": "frontend/app/components/light-reference-top-nav.tsx",
+    "real_dom_component": "frontend/app/components/discover-light-real-dom.tsx",
+    "playwright_report": "D:/work/ai-/.trellis/tasks/05-09-05-09-discover-light-reference-search-page/artifacts/playwright/report.md",
+    "playwright_screenshots": [
+      "D:/work/ai-/.trellis/tasks/05-09-05-09-discover-light-reference-search-page/artifacts/playwright/discover-light-reference-desktop.png",
+      "D:/work/ai-/.trellis/tasks/05-09-05-09-discover-light-reference-search-page/artifacts/playwright/discover-light-reference-mobile.png"
+    ]
+  }
+}
