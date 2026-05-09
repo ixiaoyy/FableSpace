@@ -37,7 +37,9 @@ from fablemap_api.core.prompt_blocks import default_prompt_blocks, normalize_pro
 from fablemap_api.core.prompt_builder import PromptBuildConfig, PromptBuilder
 from fablemap_api.core.skill_packs import (
     LOCAL_RUMOR_SKILL_PACK_ID,
+    NEIGHBORHOOD_KNOWLEDGE_SKILL_PACK_ID,
     build_local_rumor_prompt_block,
+    build_neighborhood_knowledge_prompt_block,
     is_skill_pack_enabled,
     normalize_skill_pack_settings,
 )
@@ -1021,15 +1023,39 @@ class RuntimeApplicationMixin:
 
     def _skill_pack_prompt_block(self, tavern: Tavern) -> str:
         settings = normalize_skill_pack_settings(tavern.skill_packs)
-        if not is_skill_pack_enabled(settings, LOCAL_RUMOR_SKILL_PACK_ID):
-            return ""
-        config = next((item.get("config", {}) for item in settings if item.get("id") == LOCAL_RUMOR_SKILL_PACK_ID), {})
-        limit = self._safe_int(config.get("limit"), 3) if isinstance(config, dict) else 3
-        try:
-            rumors = self.get_rumors_for_tavern(tavern.id, limit=limit)
-        except Exception:
-            rumors = []
-        return build_local_rumor_prompt_block(rumors, limit=limit)
+        blocks = []
+        
+        # Local Rumor Pack
+        if is_skill_pack_enabled(settings, LOCAL_RUMOR_SKILL_PACK_ID):
+            config = next((item.get("config", {}) for item in settings if item.get("id") == LOCAL_RUMOR_SKILL_PACK_ID), {})
+            limit = self._safe_int(config.get("limit"), 3) if isinstance(config, dict) else 3
+            try:
+                rumors = self.get_rumors_for_tavern(tavern.id, limit=limit)
+                blocks.append(build_local_rumor_prompt_block(rumors, limit=limit))
+            except Exception:
+                pass
+        
+        # Neighborhood Knowledge Pack
+        if is_skill_pack_enabled(settings, NEIGHBORHOOD_KNOWLEDGE_SKILL_PACK_ID):
+            config = next((item.get("config", {}) for item in settings if item.get("id") == NEIGHBORHOOD_KNOWLEDGE_SKILL_PACK_ID), {})
+            limit = self._safe_int(config.get("limit"), 5) if isinstance(config, dict) else 5
+            radius = self._safe_int(config.get("radius"), 500) if isinstance(config, dict) else 500
+            try:
+                knowledge = self.neighborhood_service.list_nearby_knowledge(
+                    tavern.lat, 
+                    tavern.lon, 
+                    radius_m=radius, 
+                    limit=limit
+                )
+                blocks.append(build_neighborhood_knowledge_prompt_block(
+                    knowledge, 
+                    limit=limit, 
+                    tavern_tags=tavern.intent_tags
+                ))
+            except Exception as exc:
+                logger.warning("Failed to fetch neighborhood knowledge for prompt: %s", exc)
+                
+        return "\n\n".join(blocks) if blocks else ""
 
     def _chat_response_mode(
         self,

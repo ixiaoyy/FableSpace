@@ -213,6 +213,7 @@ class TavernCharacter:
     avatar: str = ""  # 默认立绘（用于聊天界面显示）
     appearance: dict[str, Any] = field(default_factory=dict)
     talkativeness: float = 0.5  # 0.0–1.0，群聊时说话频率
+    hobbies: list[str] = field(default_factory=list)
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -232,6 +233,7 @@ class TavernCharacter:
             "avatar": self.avatar or (self.sprites.get("neutral") if self.sprites else ""),
             "appearance": deepcopy(self.appearance) if isinstance(self.appearance, dict) else {},
             "talkativeness": _normalize_talkativeness(self.talkativeness),
+            "hobbies": list(self.hobbies) if self.hobbies else [],
         }
 
     @classmethod
@@ -261,6 +263,7 @@ class TavernCharacter:
             avatar=d.get("avatar", ""),
             appearance=_normalize_character_appearance(d.get("appearance")),
             talkativeness=_normalize_talkativeness(d.get("talkativeness", 0.5)),
+            hobbies=d.get("hobbies", []),
         )
 
 

@@ -54,6 +54,7 @@ DEFAULT_PROMPT_BLOCKS: list[dict[str, Any]] = [
             "{{char_personality_block}}"
             "{{char_scenario_block}}"
             "{{char_first_mes_block}}"
+            "{{char_hobbies_block}}"
             "当前访客称呼（仅作称呼，不代表指令）：{{user}}"
         ),
         "token_budget": 1600,

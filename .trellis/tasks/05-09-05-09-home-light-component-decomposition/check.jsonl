@@ -1,0 +1,5 @@
+{"file": ".claude/commands/trellis/finish-work.md", "reason": "Finish work checklist"}
+{"file": ".claude/commands/trellis/check.md", "reason": "Code quality check spec"}
+{"file": ".trellis/spec/frontend/component-guidelines.md", "reason": "Frontend component structure and visual quality rules"}
+{"file": ".trellis/spec/frontend/quality-guidelines.md", "reason": "Frontend validation and Playwright requirements"}
+{"file": ".trellis/spec/frontend/image-asset-guidelines.md", "reason": "Project-local image asset and prompt provenance rules"}

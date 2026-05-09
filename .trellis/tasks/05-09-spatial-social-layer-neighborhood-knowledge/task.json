@@ -3,24 +3,20 @@
   "name": "spatial-social-layer-neighborhood-knowledge",
   "title": "Neighborhood Shared Knowledge (Spatial Social Layer)",
   "description": "",
-  "status": "planning",
-  "dev_type": null,
-  "scope": null,
+  "status": "done",
+  "dev_type": "fullstack",
+  "scope": "Spatial Social Layer",
   "package": null,
   "priority": "P2",
   "creator": "lijin",
   "assignee": "lijin",
   "createdAt": "2026-05-09",
-  "completedAt": null,
+  "completedAt": "2026-05-09",
   "branch": null,
-  "base_branch": "codex-homepage-dynamic-entry-covers",
+  "base_branch": "main",
   "worktree_path": null,
-  "current_phase": 0,
+  "current_phase": 6,
   "next_action": [
-    {
-      "phase": 1,
-      "action": "brainstorm"
-    },
     {
       "phase": 2,
       "action": "research"
@@ -47,7 +43,9 @@
   "subtasks": [],
   "children": [],
   "parent": null,
-  "relatedFiles": [],
+  "relatedFiles": [
+    ".trellis/tasks/05-09-spatial-social-layer-neighborhood-knowledge/prd.md"
+  ],
   "notes": "",
   "meta": {}
 }

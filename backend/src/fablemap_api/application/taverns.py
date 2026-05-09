@@ -25,6 +25,7 @@ from .services.rumor import RumorApplicationMixin
 from .services.skill_packs import SkillPackApplicationMixin
 from .services.state_cards import StateCardApplicationMixin
 from .services.relationship_graph import RelationshipGraphApplicationMixin
+from .services.neighborhood import NeighborhoodKnowledgeService
 
 
 class TavernApplicationService(
@@ -57,11 +58,13 @@ class TavernApplicationService(
         store: TavernStore,
         owner_config_store: OwnerConfigStore | None = None,
         visitor_note_store: VisitorNoteStore | None = None,
+        neighborhood_service: NeighborhoodKnowledgeService | None = None,
     ):
         self.store = store
         self.taverns = TavernService(store)
         self.owner_config_store = owner_config_store
         self.visitor_note_store = visitor_note_store
+        self.neighborhood_service = neighborhood_service
 
     def _get_runtime_llm_config(self, tavern_id: str) -> LLMConfig | None:
         private_getter = getattr(self.store, "get_llm_config_private", None)
@@ -72,16 +75,19 @@ class TavernApplicationService(
     @classmethod
     def from_settings(cls, settings: ApiSettings) -> "TavernApplicationService":
         from ..infrastructure.storage import (
+            create_neighborhood_knowledge_store,
             create_owner_config_store,
             create_tavern_store,
             create_visitor_note_store,
         )
 
         store = create_tavern_store(settings)
+        neighborhood_store = create_neighborhood_knowledge_store(settings, store)
         return cls(
             store,
             create_owner_config_store(settings, store),
             create_visitor_note_store(settings, store),
+            neighborhood_service=NeighborhoodKnowledgeService(neighborhood_store)
         )
 
     def _get_tavern_or_404(self, tavern_id: str) -> Tavern:

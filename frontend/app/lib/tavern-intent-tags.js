@@ -5,6 +5,7 @@ const INTENT_TAGS = [
   { id: 'archive-study', label: '档案书房', keywords: ['档案', 'archive', '知识库', '资料', 'SOP'] },
   { id: 'creation-workshop', label: '创作工坊', keywords: ['创作', 'creation', 'brief', '方案', '短剧'] },
   { id: 'companion-beacon', label: '陪伴灯塔', keywords: ['陪伴', 'companion', '援助', '回访', '医院'] },
+  { id: 'gossip-lounge', label: '闲谈八卦', keywords: ['八卦', 'gossip', '新闻', '吃瓜', '聊天', '闲谈'] },
 ]
 
 function collectPublicText(tavern = {}) {

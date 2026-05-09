@@ -104,6 +104,11 @@ class StateCardApplicationMixin:
         metadata["decided_at"] = card.updated_at
         card.metadata = metadata
         saved = self.store.save_state_card(tavern_id, card)
+
+        # Sync to neighborhood knowledge if it's a public tavern-scoped confirmed card
+        if status == "confirmed" and hasattr(self, "neighborhood_service") and self.neighborhood_service:
+            self.neighborhood_service.sync_from_state_card(tavern, saved)
+
         return {"ok": True, "tavern_id": tavern_id, "state_card": saved.to_dict()}
 
     def create_state_card_candidates_from_chat(

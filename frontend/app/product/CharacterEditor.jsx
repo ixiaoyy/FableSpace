@@ -116,6 +116,7 @@ function normalizeCharacterDraft(character = {}) {
     avatar: toText(character.avatar),
     appearance: normalizeCharacterAppearance(character),
     talkativeness: normalizeTalkativeness(character.talkativeness),
+    hobbies: Array.isArray(character.hobbies) ? character.hobbies : [],
     sprites,
   }
 }
@@ -152,6 +153,7 @@ export function normalizeCharacterPayload(draft) {
     avatar: draft.avatar.trim(),
     appearance: normalizeCharacterAppearance(draft),
     talkativeness: normalizeTalkativeness(draft.talkativeness),
+    hobbies: Array.isArray(draft.hobbies) ? draft.hobbies : [],
     sprites: cleanSpriteMap(draft.sprites),
   }
 
@@ -224,6 +226,7 @@ export default function CharacterEditor({
       tone,
       boundary,
       tags,
+      hobbies: draft.hobbies || [],
       gender: normalizeGender(draft.gender),
       talkativenessPercent: Math.round(normalizeTalkativeness(draft.talkativeness) * 100),
     }
@@ -609,6 +612,11 @@ export default function CharacterEditor({
             {preview.tags.map((tag) => <small key={tag}>{tag}</small>)}
           </div>
         ) : null}
+        {preview.hobbies.length ? (
+          <div className="character-preview-card__hobbies" aria-label="兴趣爱好">
+            {preview.hobbies.map((hobby) => <span key={hobby} className="hobby-tag">✨ {hobby}</span>)}
+          </div>
+        ) : null}
       </section>
 
       <section
@@ -679,6 +687,59 @@ export default function CharacterEditor({
             placeholder="守门人, 老友, 神秘"
           />
         </label>
+        <div className="character-editor-full character-hobby-editor">
+          <div className="character-editor-section-heading">
+            <span>兴趣与爱好</span>
+            <small>这些标签将注入 AI 系统提示词，影响角色的知识面和比喻风格。</small>
+          </div>
+          <div className="character-hobby-chips">
+            {draft.hobbies.map((hobby) => (
+              <span key={hobby} className="hobby-chip">
+                {hobby}
+                <button
+                  type="button"
+                  onClick={() => updateField('hobbies', draft.hobbies.filter((h) => h !== hobby))}
+                  disabled={disabled}
+                >
+                  &times;
+                </button>
+              </span>
+            ))}
+            <input
+              type="text"
+              placeholder="输入兴趣并回车..."
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && e.target.value.trim()) {
+                  const val = e.target.value.trim()
+                  if (!draft.hobbies.includes(val)) {
+                    updateField('hobbies', [...draft.hobbies, val])
+                  }
+                  e.target.value = ''
+                  e.preventDefault()
+                }
+              }}
+              disabled={disabled}
+            />
+          </div>
+          <div className="character-hobby-suggestions">
+            <small>推荐标签：</small>
+            {[
+              'Retro Gaming', 'Vinyl Records', 'Local Folklore', 'Mixology', 
+              'Gardening', 'Gourmet Cooking', 'Urban Exploration', 'Star Gazing',
+              'Astrology', 'Crypto-zoology', 'Ancient Languages', 'Street Photography'
+            ].filter(h => !draft.hobbies.includes(h)).map((hobby) => (
+              <button
+                key={hobby}
+                type="button"
+                className="hobby-suggestion"
+                onClick={() => updateField('hobbies', [...draft.hobbies, hobby])}
+                disabled={disabled}
+              >
+                + {hobby}
+              </button>
+            ))}
+          </div>
+        </div>
         <label>
           <span>性别</span>
           <select

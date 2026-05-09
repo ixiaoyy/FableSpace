@@ -512,6 +512,31 @@ class NeighborhoodRumorModel(Base):
     )
 
 
+class NeighborhoodKnowledgeModel(Base):
+    """Persistent neighborhood shared knowledge."""
+
+    __tablename__ = "neighborhood_knowledge"
+
+    id = Column(String(64), primary_key=True)
+    content = Column(Text, nullable=False)
+    lat = Column(Float, nullable=False)
+    lon = Column(Float, nullable=False)
+    radius = Column(Float, nullable=False, default=500.0)
+    importance = Column(Float, default=0.5)
+    category = Column(String(32), nullable=False, default="general")  # general, news, gossip, event
+    source_type = Column(String(32), nullable=False)  # owner, state_card, system
+    source_id = Column(String(64), nullable=True)
+    created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
+    expires_at = Column(DateTime, nullable=True)
+    metadata_ = Column("metadata", JSON, default=dict)
+
+    __table_args__ = (
+        Index("idx_knw_location", "lat", "lon"),
+        Index("idx_knw_category", "category"),
+        Index("idx_knw_created", "created_at"),
+    )
+
+
 class HomeModel(Base):
     """Legacy Home API persistence model."""
 

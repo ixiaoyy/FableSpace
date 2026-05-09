@@ -889,6 +889,16 @@ function CharacterDetail({ character, onClose }) {
             </div>
           </div>
         )}
+        {character.hobbies && character.hobbies.length > 0 && (
+          <div className="char-detail-section">
+            <label>兴趣与爱好</label>
+            <div className="hobby-list">
+              {character.hobbies.map((hobby, i) => (
+                <span key={i} className="hobby-chip">✨ {hobby}</span>
+              ))}
+            </div>
+          </div>
+        )}
         <div className="char-detail-section">
           <label>外观</label>
           <CharacterLookSummary character={character} showDefault showSummary />

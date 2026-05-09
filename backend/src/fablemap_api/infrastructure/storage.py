@@ -158,6 +158,16 @@ def create_writeback_store(settings: Any, tavern_store: Any):
     return WritebackStore(Path(getattr(settings, "output_root", Path(".fablemap-api"))) / "writeback")
 
 
+def create_neighborhood_knowledge_store(settings: Any, tavern_store: Any):
+    database = store_database(tavern_store)
+    if database is not None:
+        from fablemap_api.infrastructure.neighborhood_store import SQLAlchemyNeighborhoodKnowledgeStore
+        return SQLAlchemyNeighborhoodKnowledgeStore(database)
+    from fablemap_api.core.rumor import RumorStore
+    # Fallback to rumor store if needed, or implement a separate JSON store
+    return RumorStore(Path(getattr(settings, "output_root", Path(".fablemap-api"))) / "neighborhood_knowledge")
+
+
 def configure_process_stores(settings: Any, tavern_store: Any) -> None:
     """Configure legacy/global route stores to match the selected backend."""
 

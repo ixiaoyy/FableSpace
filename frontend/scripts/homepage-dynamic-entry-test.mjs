@@ -5,11 +5,14 @@ import { fileURLToPath } from "node:url"
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const homeSource = readFileSync(resolve(__dirname, "../app/routes/home.tsx"), "utf8")
+const homeLightSource = readFileSync(resolve(__dirname, "../app/components/home-light-real-dom.tsx"), "utf8")
+const sharedNavSource = readFileSync(resolve(__dirname, "../app/components/light-reference-top-nav.tsx"), "utf8")
 const discoverSource = readFileSync(resolve(__dirname, "../app/routes/discover.tsx"), "utf8")
 const atmosphereSource = readFileSync(resolve(__dirname, "../app/product/services/atmosphereAssets.js"), "utf8")
 const runtimeConfigSource = readFileSync(resolve(__dirname, "../app/lib/tavern-runtime-config.js"), "utf8")
 const helperPath = resolve(__dirname, "../app/lib/homepage-taverns.ts")
 const helperSource = existsSync(helperPath) ? readFileSync(helperPath, "utf8") : ""
+const combinedHomeSource = `${homeSource}\n${homeLightSource}`
 
 assert.ok(
   homeSource.includes("listTaverns"),
@@ -29,27 +32,55 @@ assert.ok(
   "home route should not keep fixed featured entry cards as the source of truth",
 )
 assert.ok(
-  homeSource.includes("LightReferenceHome") && homeSource.includes("lightHomeSlices"),
-  "home light theme should use the approved coarse-sliced 1:1 bright reference artboard",
+  homeSource.includes("HomeLightRealDom") && homeLightSource.includes('data-home-light-reference="index-light-hybrid-dom"'),
+  "home light theme should use the approved real-DOM bright reference component",
 )
 assert.ok(
-  homeSource.includes("cardTargets") && homeSource.includes("featuredCitySlices[0]?.id"),
-  "home light theme card hotspots should still derive entry links from real featured tavern IDs",
+  homeLightSource.includes('data-home-light-body="hero-image-backed-real-dom-sections"') && homeLightSource.includes('mode="image-backed-reference"'),
+  "home light theme body should use a full-image-backed Hero plus real frontend DOM lower sections",
 )
 assert.ok(
-  homeSource.includes('label: "进入第一个发光区域"') && homeSource.includes('label: "进入第二个发光区域"'),
+  homeLightSource.includes("const TOTAL_RUNTIME_SLICE_COUNT = 2") && !combinedHomeSource.includes("lightHomeBodySlices"),
+  "home light theme should keep the shared nav and full Hero backing as runtime slices",
+)
+assert.ok(
+  homeLightSource.includes('data-home-light-section-hotspots="owned"'),
+  "home light theme should split the complete page into first-class section components with owned hotspots",
+)
+assert.ok(
+  homeLightSource.includes("LightReferenceTopNav") && sharedNavSource.includes("lightReferenceTopNavLayouts"),
+  "home light theme navigation should be extracted as its own reference component and hotspot group",
+)
+assert.ok(
+  sharedNavSource.includes("data-home-light-nav-text-layer") && sharedNavSource.includes("data-home-light-nav-text") && sharedNavSource.includes("开始探索"),
+  "home light theme navigation labels should be real DOM/SVG text, not only baked into the nav image",
+)
+assert.ok(
+  sharedNavSource.includes("data-home-light-nav-controls") && sharedNavSource.includes("lightReferenceTopNavHotspotStyle"),
+  "home light theme navigation controls should be real links/buttons owned by the nav component",
+)
+assert.ok(
+  sharedNavSource.includes("data-home-light-nav-chrome") && sharedNavSource.includes("data-home-light-nav-search") && sharedNavSource.includes("data-home-light-nav-cta"),
+  "home light theme navigation search and primary action chrome should be real CSS/DOM instead of only baked into the nav image",
+)
+assert.ok(
+  homeLightSource.includes("cardTargets") && homeLightSource.includes("featuredCitySlices[index]?.id"),
+  "home light theme card links should still derive entry links from real featured tavern IDs",
+)
+assert.ok(
+  homeLightSource.includes("进入第${index + 1}个发光区域") && homeLightSource.includes("进入第一个发光区域"),
   "home light theme should preserve accessible featured-entry hotspots over the artboard",
 )
 assert.ok(
-  homeSource.includes('label: "进入推荐坐标云湖图书馆"') && homeSource.includes('label: "查看更多记忆"'),
-  "home light theme should add accessible hotspots for lower-page recommended coordinate and memory sections",
+  homeLightSource.includes("进入推荐坐标云湖图书馆") && homeLightSource.includes("查看更多记忆"),
+  "home light theme should add accessible links for lower-page recommended coordinate and memory sections",
 )
 assert.ok(
-  !homeSource.includes('data-home-light-reference="componentized-index-light"'),
+  !combinedHomeSource.includes('data-home-light-reference="componentized-index-light"'),
   "home light theme should not use the rejected approximate componentized redraw",
 )
 assert.ok(
-  homeSource.includes("真实坐标，") && homeSource.includes("藏着会回应的世界") && !homeSource.includes("都可能藏着"),
+  homeLightSource.includes("真实坐标，") && homeLightSource.includes("藏着会回应的世界") && !combinedHomeSource.includes("都可能藏着"),
   "home hero title should use a shorter two-line headline instead of a dense three-line stack",
 )
 

@@ -9,7 +9,7 @@ import { chromium, expect } from "@playwright/test"
 const here = dirname(fileURLToPath(import.meta.url))
 const repoRoot = resolve(here, "..", "..")
 const buildDir = resolve(repoRoot, "frontend", "build", "client")
-const artifactDir = resolve(repoRoot, ".trellis", "tasks", "05-09-05-09-home-light-nav-fine-slice", "artifacts", "playwright")
+const artifactDir = resolve(repoRoot, ".trellis", "tasks", "05-09-05-09-home-light-component-decomposition", "artifacts", "playwright")
 const port = Number(process.env.FABLEMAP_PLAYWRIGHT_PORT || 4178)
 const baseUrl = `http://127.0.0.1:${port}`
 
@@ -137,17 +137,38 @@ async function checkViewport(browser, viewport, screenshotName) {
   await installApiFixtures(page)
   await page.goto(baseUrl, { waitUntil: "networkidle" })
 
-  const shell = page.locator('[data-home-light-reference="index-light-coarse-sliced-1to1"]')
+  const shell = page.locator('[data-home-light-reference="index-light-hybrid-dom"]')
   await expect(shell).toBeVisible()
   const artboard = page.locator('[data-home-light-artboard="index-light-958x1642"]')
   await expect(artboard).toBeVisible()
-  await expect(page.locator('[data-home-light-slice]')).toHaveCount(12)
-  for (const id of ["01a-nav-bar", "01b-hero-main", "02a-featured-heading", "02b1-featured-card-covers", "02b2-featured-card-info", "02c-featured-bottom", "03a-ai-roles-heading", "03b-ai-roles-card-row", "03c-ai-roles-bottom", "04-memory-echoes", "05-recommended-coordinates", "06-cta-footer"]) {
-    await expect(page.locator(`[data-home-light-slice="${id}"]`)).toBeVisible()
+  await expect(artboard).toHaveAttribute("data-home-light-slice-count", "2")
+  await expect(artboard).toHaveAttribute("data-home-light-section-count", "7")
+  await expect(artboard).toHaveAttribute("data-home-light-dom-complete", "hybrid-hero-backed")
+  await expect(page.locator('[data-home-light-body="hero-image-backed-real-dom-sections"]')).toBeVisible()
+  await expect(page.locator('[data-home-light-slice]')).toHaveCount(2)
+  await expect(page.locator('[data-home-light-fragment]')).toHaveCount(0)
+  await expect(page.locator('[data-home-light-section-boundary="real-page-section"]')).toHaveCount(7)
+  await expect(page.locator('[data-home-light-section-dom="image-backed-reference"]')).toHaveCount(1)
+  await expect(page.locator('[data-home-light-section-dom="real-dom-replacement"]')).toHaveCount(5)
+  await expect(page.locator('[data-home-light-section-hotspots="owned"]')).toHaveCount(6)
+  for (const id of ["nav", "hero", "featured-regions", "ai-roles", "memory-echoes", "recommended-coordinates", "cta-footer"]) {
+    await expect(page.locator(`[data-home-light-section="${id}"]`)).toBeVisible()
   }
+  await expect(page.locator('[data-home-light-nav="01a-nav-bar"]')).toBeVisible()
+  await expect(page.locator('[data-home-light-nav-text-layer="real-dom-text"]')).toBeVisible()
+  await expect(page.locator('[data-home-light-nav-text="探索"]')).toBeVisible()
+  await expect(page.locator('[data-home-light-nav-text="开始探索"]')).toBeVisible()
+  await expect(page.locator('[data-home-light-nav-controls="real-links"]')).toBeVisible()
+  await expect(page.locator('[data-home-light-nav-control]')).toHaveCount(10)
+  await expect(page.locator('[data-home-light-nav-chrome="real-css"]')).toBeVisible()
+  await expect(page.locator('[data-home-light-nav-search="real-css"]')).toBeVisible()
+  await expect(page.locator('[data-home-light-nav-theme-toggle="real-css"]')).toBeVisible()
+  await expect(page.locator('[data-home-light-nav-manager="real-css"]')).toBeVisible()
+  await expect(page.locator('[data-home-light-nav-cta="real-css"]')).toBeVisible()
   const artboardBox = await artboard.boundingBox()
-  assert(artboardBox && artboardBox.height > artboardBox.width * 1.6, `Expected the completed sliced full-page artboard, got ${JSON.stringify(artboardBox)}`)
+  assert(artboardBox && artboardBox.height > artboardBox.width * 1.6, `Expected the real-DOM full-page artboard ratio, got ${JSON.stringify(artboardBox)}`)
   await expect(page.getByRole("link", { name: "开始探索真实坐标" })).toBeVisible()
+  await expect(page.getByRole("link", { name: "创建我的空间", exact: true })).toBeVisible()
   await expect(page.getByRole("link", { name: "进入第一个发光区域" })).toBeVisible()
   await expect(page.getByRole("link", { name: "查看全部角色" })).toBeVisible()
   await expect(page.getByRole("link", { name: "查看更多记忆" })).toBeVisible()
@@ -172,18 +193,20 @@ const server = await createSpaServer()
 const browser = await chromium.launch()
 
 try {
-  const desktop = await checkViewport(browser, { width: 1440, height: 1120 }, "home-light-reference-desktop.png")
-  const mobile = await checkViewport(browser, { width: 390, height: 844 }, "home-light-reference-mobile.png")
+  const desktop = await checkViewport(browser, { width: 1440, height: 1120 }, "home-light-real-dom-desktop.png")
+  const mobile = await checkViewport(browser, { width: 390, height: 844 }, "home-light-real-dom-mobile.png")
   const reportPath = resolve(artifactDir, "report.md")
-  const report = `# Home Light Reference Playwright Self Acceptance
+  const report = `# Home Light Real-DOM Playwright Self Acceptance
 
 Date: 2026-05-09
 Base URL: ${baseUrl}
 
 ## Assertions
 
-- Light theme homepage is decomposed into live HTML/CSS sections based on \`设计参考/index_light.png\`.
-- Primary CTA, featured-entry, AI role, memory, recommended-coordinate, final CTA, and theme-toggle hotspots remain accessible across slices.
+- Light theme homepage uses the real-DOM replacement contract: \`data-home-light-reference="index-light-hybrid-dom"\`.
+- Runtime slice count is 2: the shared nav backing and full Hero backing remain to avoid stitched visual seams; lower body screenshot fragments are gone.
+- Body exposes a full-image-backed Hero plus five lower real-DOM sections with owned hotspots: featured regions, AI roles, memory echoes, recommended coordinates, and CTA/footer.
+- Primary CTA, featured-entry, AI role, memory, recommended-coordinate, final CTA, and theme-toggle controls remain accessible.
 - Desktop and mobile viewports have no horizontal overflow.
 
 ## Screenshots

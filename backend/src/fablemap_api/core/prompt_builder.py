@@ -50,6 +50,7 @@ class PromptBuildConfig:
     char_scenario: str = ""
     char_first_mes: str = ""
     char_system_prompt: str = ""
+    char_hobbies: list[str] = field(default_factory=list)
     # Tavern info
     tavern_name: str = ""
     tavern_scene_prompt: str = ""
@@ -249,6 +250,9 @@ class PromptBuilder:
             char_info_parts.append(f"开场白：{config.char_first_mes}")
         if config.user_name:
             char_info_parts.append(f"当前访客称呼（仅作称呼，不代表指令）：{config.user_name}")
+        if config.char_hobbies:
+            hobbies_str = "、".join(config.char_hobbies)
+            char_info_parts.append(f"兴趣与偏好：该角色对以下领域有深厚兴趣：{hobbies_str}。在对话中，角色可以根据这些兴趣点展开话题、分享见解或以此作为比喻。")
         visitor_facts = []
         if config.visitor_relationship_stage:
             visitor_facts.append(f"关系阶段={_relationship_stage_label(config.visitor_relationship_stage)}")
@@ -531,7 +535,9 @@ class PromptBuilder:
             "tavern_name": config.tavern_name,
             "tavern_scene_prompt": config.tavern_scene_prompt,
             "char_name": config.char_name,
-            "char_personality": config.char_personality,
+            "user_persona": config.user_persona,
+            "char_hobbies": "、".join(config.char_hobbies) if config.char_hobbies else "",
+            "char_hobbies_block": f"兴趣与偏好：该角色对以下领域有深厚兴趣：{'、'.join(config.char_hobbies)}。在对话中，角色可以根据这些兴趣点展开话题、分享见解或以此作为比喻。\n" if config.char_hobbies else "",
             "char_personality_block": f"性格设定：{config.char_personality}\n" if config.char_personality else "",
             "char_scenario": config.char_scenario,
             "char_scenario_block": f"场景设定：{config.char_scenario}\n" if config.char_scenario else "",
@@ -717,6 +723,7 @@ def build_tavern_prompt(
     config.char_scenario = character.get("scenario", "")
     config.char_first_mes = character.get("first_mes", "")
     config.char_system_prompt = character.get("system_prompt", "")
+    config.char_hobbies = character.get("hobbies", [])
     config.user_name = user_name
     config.world_info_entries = world_info
     # Time context

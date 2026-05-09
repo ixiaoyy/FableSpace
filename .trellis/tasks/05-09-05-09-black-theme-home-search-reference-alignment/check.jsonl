@@ -1,0 +1,5 @@
+{"file": ".claude/commands/trellis/finish-work.md", "reason": "Finish work checklist"}
+{"file": ".claude/commands/trellis/check.md", "reason": "Code quality check spec"}
+{"file": ".trellis/spec/frontend/index.md", "reason": "frontend visual/page contract"}
+{"file": ".trellis/spec/frontend/component-guidelines.md", "reason": "component/layout reuse and visual quality"}
+{"file": ".trellis/spec/frontend/quality-guidelines.md", "reason": "build/typecheck/playwright requirements"}

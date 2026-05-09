@@ -15,6 +15,8 @@ import { useMemo, useState } from "react"
 
 import discoverNeonAlleyImage from "../assets/discover/reference/discover-cover-neon-alley.png"
 import discoverRadarSurfaceImage from "../assets/discover/reference/discover-radar-surface.png"
+import { DiscoverBlackReference } from "../components/discover-black-reference"
+import { DiscoverLightRealDom } from "../components/discover-light-real-dom"
 import { DiscoveryLivelinessStrip } from "../components/DiscoveryLivelinessStrip"
 import { TavernPreviewModal } from "../components/tavern-preview-modal"
 import { buildDiscoveryLiveliness, getDiscoveryLivelinessSearchText } from "../lib/discovery-liveliness.js"
@@ -29,6 +31,7 @@ import {
 import { buildTavernIntentTags, getTavernIntentTagsSearchText } from "../lib/tavern-intent-tags.js"
 import { errorMessage, listTaverns, type Tavern, type TavernCharacter, type TavernListResponse } from "../lib/taverns"
 import { buildMapAnchorCardCopy, formatTavernAnchorLocation } from "../product/mapAnchorCopy.js"
+import { useTheme } from "../hooks/useTheme"
 import { ProductShell } from "../shell/product-shell"
 import { Button } from "../ui/button"
 
@@ -1032,6 +1035,21 @@ function CardsBoard({ taverns, hasFilters, onPreview }: { taverns: Tavern[]; has
   )
 }
 
+function LightDiscoverReference(props: {
+  search: string
+  taverns: Tavern[]
+  onSearchChange: (value: string) => void
+  onClear: () => void
+  onTogglePlaceType: (placeTypeId: string) => void
+  onToggleSpecialType: (specialTypeId: string) => void
+  onToggleCategory: (label: string) => void
+  onPublicOnlyChange: (value: boolean) => void
+  onOpenOnlyChange: (value: boolean) => void
+  onToggleTheme: () => void
+}) {
+  return <DiscoverLightRealDom {...props} />
+}
+
 export async function clientLoader(): Promise<DiscoverLoaderData> {
   try {
     return { result: await listTaverns(), error: "" }
@@ -1042,6 +1060,8 @@ export async function clientLoader(): Promise<DiscoverLoaderData> {
 
 export default function DiscoverRoute() {
   const { result, error } = useLoaderData<typeof clientLoader>()
+  const { theme, toggleTheme } = useTheme()
+  const isDark = theme === "dark"
 
   const [search, setSearch] = useState("")
   const [activePlaceTypes, setActivePlaceTypes] = useState<Set<string>>(new Set())
@@ -1110,6 +1130,38 @@ export default function DiscoverRoute() {
     setter(value)
     if (value) setManualViewMode("cards")
   }
+
+  if (isDark) {
+    return (
+      <DiscoverBlackReference
+        search={search}
+        taverns={filteredTaverns}
+        onSearchChange={switchToCardsForSearch}
+        onClear={clearFilters}
+        onTogglePlaceType={togglePlaceType}
+        onToggleSpecialType={toggleSpecialType}
+        onToggleCategory={toggleCategory}
+        onPublicOnlyChange={(value) => setBooleanFilter(setPublicOnly, value)}
+        onOpenOnlyChange={(value) => setBooleanFilter(setOpenOnly, value)}
+        onToggleTheme={toggleTheme}
+      />
+    )
+  }
+
+  return (
+    <LightDiscoverReference
+      search={search}
+      taverns={filteredTaverns}
+      onSearchChange={switchToCardsForSearch}
+      onClear={clearFilters}
+      onTogglePlaceType={togglePlaceType}
+      onToggleSpecialType={toggleSpecialType}
+      onToggleCategory={toggleCategory}
+      onPublicOnlyChange={(value) => setBooleanFilter(setPublicOnly, value)}
+      onOpenOnlyChange={(value) => setBooleanFilter(setOpenOnly, value)}
+      onToggleTheme={toggleTheme}
+    />
+  )
 
   return (
     <ProductShell eyebrow="Discover">

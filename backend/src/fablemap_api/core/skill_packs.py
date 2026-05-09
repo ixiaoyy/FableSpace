@@ -7,6 +7,7 @@ from typing import Any
 
 
 LOCAL_RUMOR_SKILL_PACK_ID = "local-rumor"
+NEIGHBORHOOD_KNOWLEDGE_SKILL_PACK_ID = "neighborhood-knowledge"
 
 _SKILL_PACK_DEFINITIONS: tuple[dict[str, Any], ...] = (
     {
@@ -27,6 +28,27 @@ _SKILL_PACK_DEFINITIONS: tuple[dict[str, Any], ...] = (
         ],
         "config_schema": {
             "limit": {"type": "integer", "minimum": 1, "maximum": 5, "default": 3},
+        },
+    },
+    {
+        "id": NEIGHBORHOOD_KNOWLEDGE_SKILL_PACK_ID,
+        "label": "邻里常识",
+        "description": "允许 NPC 共享周边地理区域的已知事实、新闻与八卦。",
+        "category": "social",
+        "default_enabled": False,
+        "capabilities": [
+            "Read existing NeighborhoodKnowledge facts for this area.",
+            "Mention shared local facts, regional news, or ambient gossip naturally in conversation.",
+            "Adjust gossip frequency based on tavern tags (e.g., gossip-lounge).",
+        ],
+        "prompt_notes": [
+            "知识是共享事实，表现得像本地人一样自然了解这些背景。",
+            "优先提及高重要性 (importance) 或最新的信息。",
+            "如果空间有 '八卦' 标签，NPC 会表现得对周边新闻更热衷。",
+        ],
+        "config_schema": {
+            "limit": {"type": "integer", "minimum": 1, "maximum": 8, "default": 5},
+            "radius": {"type": "integer", "minimum": 100, "maximum": 2000, "default": 500},
         },
     },
 )
@@ -131,6 +153,44 @@ def build_local_rumor_prompt_block(rumors: list[dict[str, Any]] | None, *, limit
     return "\n".join(lines)
 
 
+def build_neighborhood_knowledge_prompt_block(
+    knowledge_entries: list[dict[str, Any]] | None,
+    *,
+    limit: int = 5,
+    tavern_tags: list[str] | None = None
+) -> str:
+    """Build a runtime prompt block for the neighborhood-knowledge pack."""
+
+    safe_limit = max(1, min(_safe_int(limit, 5), 10))
+    is_gossip_lounge = any(tag in (tavern_tags or []) for tag in ["gossip-lounge", "闲谈八卦", "八卦"])
+
+    lines = [
+        "【空间技能包：邻里常识 / neighborhood-knowledge】",
+        "你作为本地人，自然了解以下周边邻里的共享事实、动态或八卦。",
+    ]
+    
+    if is_gossip_lounge:
+        lines.append("由于这里是八卦汇聚地，你可以更积极、生动地分享这些消息。")
+
+    normalized = _normalize_knowledge(knowledge_entries or [], safe_limit)
+    if not normalized:
+        lines.append("当前邻里没有特别值得分享的新常识。")
+        return "\n".join(lines)
+
+    lines.append("邻里动态与事实：")
+    for index, entry in enumerate(normalized, start=1):
+        content = entry.get("content") or "暂无详细内容。"
+        category = entry.get("category", "general")
+        cat_mark = {
+            "news": "【新闻】",
+            "gossip": "【八卦】",
+            "event": "【事件】",
+        }.get(category, "")
+        lines.append(f"{index}. {cat_mark}{content}")
+        
+    return "\n".join(lines)
+
+
 def _iter_skill_pack_items(value: Any) -> list[dict[str, Any]]:
     if isinstance(value, dict):
         if isinstance(value.get("skill_packs"), list):
@@ -158,7 +218,32 @@ def _normalize_skill_pack_config(pack_id: str, value: Any) -> dict[str, Any]:
         if limit < 1 or limit > 5:
             limit = 3
         return {"limit": limit}
+    if pack_id == NEIGHBORHOOD_KNOWLEDGE_SKILL_PACK_ID:
+        limit = _safe_int(value.get("limit"), 5)
+        radius = _safe_int(value.get("radius"), 500)
+        return {
+            "limit": max(1, min(limit, 10)),
+            "radius": max(100, min(radius, 2000))
+        }
     return {}
+
+
+def _normalize_knowledge(value: list[dict[str, Any]], limit: int) -> list[dict[str, Any]]:
+    result: list[dict[str, Any]] = []
+    for item in value:
+        if not isinstance(item, dict):
+            continue
+        content = str(item.get("content") or "").strip()[:600]
+        if not content:
+            continue
+        result.append({
+            "content": content,
+            "category": str(item.get("category") or "general"),
+            "importance": float(item.get("importance") or 0.5),
+        })
+        if len(result) >= limit:
+            break
+    return result
 
 
 def _normalize_rumors(value: list[dict[str, Any]], limit: int) -> list[dict[str, str]]:
