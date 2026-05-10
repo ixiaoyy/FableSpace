@@ -1,0 +1,80 @@
+{
+  "id": "05-11-sqlite-special-type-backfill",
+  "name": "05-11-sqlite-special-type-backfill",
+  "title": "Fix local SQLite taverns special_type backfill",
+  "description": "",
+  "status": "review",
+  "dev_type": "backend",
+  "scope": null,
+  "package": null,
+  "priority": "P2",
+  "creator": "lijin",
+  "assignee": "lijin",
+  "createdAt": "2026-05-11",
+  "completedAt": null,
+  "branch": null,
+  "base_branch": "main",
+  "worktree_path": null,
+  "current_phase": 4,
+  "next_action": [
+    {
+      "phase": 1,
+      "action": "brainstorm"
+    },
+    {
+      "phase": 2,
+      "action": "research"
+    },
+    {
+      "phase": 3,
+      "action": "implement"
+    },
+    {
+      "phase": 4,
+      "action": "check"
+    },
+    {
+      "phase": 5,
+      "action": "update-spec"
+    },
+    {
+      "phase": 6,
+      "action": "record-session"
+    }
+  ],
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [],
+  "parent": null,
+  "relatedFiles": [
+    "backend/src/fablemap_api/infrastructure/mysql_store.py",
+    "backend/tests/test_mysql_infrastructure.py",
+    ".trellis/spec/backend/database-guidelines.md"
+  ],
+  "notes": "Implemented SQLite legacy taverns.special_type additive backfill, regression test, and database guideline note; focused validation passed. Optional JSON-without-SQLAlchemy startup test still fails due unrelated eager relationship_graph_store SQLAlchemy import.",
+  "meta": {
+    "validation": [
+      {
+        "command": "py -3 -m pytest -q backend/tests/test_mysql_infrastructure.py::test_create_mysql_tables_backfills_legacy_sqlite_special_type --tb=short",
+        "result": "1 passed"
+      },
+      {
+        "command": "py -3 -m compileall -q backend/src",
+        "result": "passed"
+      },
+      {
+        "command": "py -3 -m pytest -q backend/tests/test_mysql_infrastructure.py --tb=short",
+        "result": "20 passed, 6 existing deprecation warnings"
+      },
+      {
+        "command": "py -3 -m pytest -q backend/tests/test_database_backed_runtime_stores.py backend/tests/test_api_smoke.py --tb=short",
+        "result": "6 passed, 6 existing deprecation warnings"
+      },
+      {
+        "command": "py -3 -m pytest -q backend/tests/test_database_backed_runtime_stores.py backend/tests/test_startup_optional_mysql.py --tb=short",
+        "result": "3 passed, 1 failed: unrelated eager SQLAlchemy import while test blocks SQLAlchemy"
+      }
+    ]
+  }
+}
