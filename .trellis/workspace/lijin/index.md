@@ -8,8 +8,8 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-1.md`
-- **Total Sessions**: 23
-- **Last Active**: 2026-05-09
+- **Total Sessions**: 24
+- **Last Active**: 2026-05-11
 <!-- @@@/auto:current-status -->
 
 ---
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-1.md` | ~1168 | Active |
+| `journal-1.md` | ~1201 | Active |
 <!-- @@@/auto:active-documents -->
 
 ---
@@ -29,6 +29,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 24 | 2026-05-11 | NPC Hobby Persistence & Visual Feedback Polish | `89e706f` | `main` |
 | 23 | 2026-05-09 | Terminate Cobuddy Test | - | `main` |
 | 22 | 2026-05-08 | Garden Tavern Currency Economy | - | `codex-homepage-dynamic-entry-covers` |
 | 21 | 2026-05-07 | Conversation Beats Implementation | - | `codex-homepage-dynamic-entry-covers` |

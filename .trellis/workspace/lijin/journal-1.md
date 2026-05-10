@@ -1166,3 +1166,36 @@ User reported Baidu Cobuddy model as not useful after testing. Updated task to a
 ### Next Steps
 
 - None - task complete
+
+
+## Session 24: NPC Hobby Persistence & Visual Feedback Polish
+
+**Date**: 2026-05-11
+**Task**: NPC Hobby Persistence & Visual Feedback Polish
+**Branch**: `main`
+
+### Summary
+
+Completed full-cycle NPC hobby system: implemented persistence in CharacterModel/MySQLTavernStore, added multi-round stress tests (passing after runtime.py visitor_name fix), and enhanced UI with premium glassmorphism/gradient badges in TavernChatRoom NPC bubbles.
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `89e706f` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
