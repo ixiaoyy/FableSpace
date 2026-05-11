@@ -26,7 +26,6 @@
   "pr_url": null,
   "subtasks": [],
   "children": [
-    "05-06-relationship-graph-schema-storage",
     "05-06-relationship-graph-propagation-engine",
     "05-06-relationship-graph-api-governance",
     "05-06-relationship-graph-owner-ui",
