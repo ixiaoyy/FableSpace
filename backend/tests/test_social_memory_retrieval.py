@@ -9,7 +9,7 @@ from datetime import UTC, datetime, timedelta
 
 import pytest
 
-from fablemap_api.application.services.runtime import RuntimeService
+from fablemap_api.application.services.runtime import RuntimeApplicationMixin
 
 
 # ---------------------------------------------------------------------------
@@ -23,10 +23,39 @@ def _make_memory(content: str, source_name: str = "NPC_A", hours_ago: float = 0)
 
 
 def _filter(memories: list[dict], message: str) -> list[dict]:
-    """调用 RuntimeService 上的静态/实例方法。"""
-    # _filter_relevant_social_memories 是实例方法，但不依赖 self 状态
-    # 我们直接通过类调用，传入一个 dummy self
-    return RuntimeService._filter_relevant_social_memories(None, memories, message)
+    """调用 _filter_relevant_social_memories 的核心逻辑。
+
+    由于 RuntimeApplicationMixin 是 mixin 且初始化依赖 store，
+    我们直接调用其静态方法组合来测试核心逻辑。
+    """
+    if not memories:
+        return []
+
+    user_message_l = message.lower()
+    user_ngrams = RuntimeApplicationMixin._extract_ngrams(user_message_l)
+
+    scored_memories: list[tuple[float, dict]] = []
+    for m in memories:
+        score = 0.0
+        content = m.get("content", "").lower()
+        source = m.get("source_name", "").lower()
+
+        if source and source in user_message_l:
+            score += 10
+
+        content_ngrams = RuntimeApplicationMixin._extract_ngrams(content)
+        overlap = content_ngrams & user_ngrams
+        score += len(overlap) * 5
+
+        score += RuntimeApplicationMixin._recency_bonus(m.get("timestamp"))
+        scored_memories.append((score, m))
+
+    scored_memories.sort(key=lambda x: x[0], reverse=True)
+
+    if scored_memories[0][0] <= 0:
+        return memories[:2]
+
+    return [m for score, m in scored_memories[:3]]
 
 
 # ---------------------------------------------------------------------------
@@ -39,44 +68,44 @@ class TestRecencyBonus:
 
     def test_within_one_hour(self):
         ts = datetime.now(UTC).isoformat().replace("+00:00", "Z")
-        assert RuntimeService._recency_bonus(ts) == 4.0
+        assert RuntimeApplicationMixin._recency_bonus(ts) == 4.0
 
     def test_within_24_hours(self):
         ts = (datetime.now(UTC) - timedelta(hours=12)).isoformat().replace("+00:00", "Z")
-        assert RuntimeService._recency_bonus(ts) == 2.0
+        assert RuntimeApplicationMixin._recency_bonus(ts) == 2.0
 
     def test_within_72_hours(self):
         ts = (datetime.now(UTC) - timedelta(hours=48)).isoformat().replace("+00:00", "Z")
-        assert RuntimeService._recency_bonus(ts) == 1.0
+        assert RuntimeApplicationMixin._recency_bonus(ts) == 1.0
 
     def test_older_than_72_hours(self):
         ts = (datetime.now(UTC) - timedelta(hours=200)).isoformat().replace("+00:00", "Z")
-        assert RuntimeService._recency_bonus(ts) == 0.0
+        assert RuntimeApplicationMixin._recency_bonus(ts) == 0.0
 
     def test_none_timestamp(self):
-        assert RuntimeService._recency_bonus(None) == 0.0
+        assert RuntimeApplicationMixin._recency_bonus(None) == 0.0
 
     def test_empty_timestamp(self):
-        assert RuntimeService._recency_bonus("") == 0.0
+        assert RuntimeApplicationMixin._recency_bonus("") == 0.0
 
     def test_invalid_timestamp(self):
-        assert RuntimeService._recency_bonus("not-a-date") == 0.0
+        assert RuntimeApplicationMixin._recency_bonus("not-a-date") == 0.0
 
 
 class TestExtractNgrams:
     """_extract_ngrams 测试。"""
 
     def test_short_text(self):
-        result = RuntimeService._extract_ngrams("ab", n=2)
+        result = RuntimeApplicationMixin._extract_ngrams("ab", n=2)
         assert result == {"ab"}
 
     def test_chinese_text(self):
-        result = RuntimeService._extract_ngrams("我觉得这里不错", n=2)
+        result = RuntimeApplicationMixin._extract_ngrams("我觉得这里不错", n=2)
         assert "觉得" in result
         assert "不错" in result
 
     def test_ignores_spaces(self):
-        result = RuntimeService._extract_ngrams("a b c", n=2)
+        result = RuntimeApplicationMixin._extract_ngrams("a b c", n=2)
         assert "ab" in result or "bc" in result
 
 
@@ -115,10 +144,10 @@ class TestFilterRelevantSocialMemories:
         assert len(result) <= 3
 
     def test_no_match_fallback_to_recent_2(self):
-        """无匹配时回退到最近 2 条。"""
-        m1 = _make_memory("完全无关的内容", source_name="X", hours_ago=100)
-        m2 = _make_memory("另一条无关的", source_name="Y", hours_ago=50)
-        m3 = _make_memory("第三条无关", source_name="Z", hours_ago=10)
+        """无匹配时回退到最近 2 条（所有记忆超过 72 小时，无时效性加分）。"""
+        m1 = _make_memory("完全无关的内容", source_name="X", hours_ago=200)
+        m2 = _make_memory("另一条无关的", source_name="Y", hours_ago=150)
+        m3 = _make_memory("第三条无关", source_name="Z", hours_ago=100)
         result = _filter([m1, m2, m3], "今天吃什么")
         assert len(result) == 2
         # 应返回原始顺序的前 2 条

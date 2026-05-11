@@ -3,6 +3,8 @@ NPC 仿真背景任务 (Simulation Background Worker)
 定期遍历所有 NPC，更新状态并处理跨空间迁移。
 """
 
+from __future__ import annotations
+
 import asyncio
 import logging
 from datetime import datetime, UTC

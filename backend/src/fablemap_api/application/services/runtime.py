@@ -51,7 +51,7 @@ from fablemap_api.core.episode_builder import build_episode_export
 from fablemap_api.core.visual_souvenir import build_visual_souvenir_preview
 from fablemap_api.core.voice_greeting import build_voice_greeting_preview
 from fablemap_api.core.simulation import generate_npc_feeling
-from .state_cards import format_state_cards_for_prompt
+from fablemap_api.core.state_cards import format_state_cards_for_prompt
 from fablemap_api.core.tavern import (
     ChatMessage,
     LLMConfig as TavernLLMConfig,
