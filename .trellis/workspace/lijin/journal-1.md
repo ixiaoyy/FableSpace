@@ -1263,3 +1263,34 @@ Enhanced tavern entrance greetings to summarize multiple NPCs and improved publi
 ### Next Steps
 
 - None - task complete
+
+
+## Session 27: Skill Audit and Grill-Me Integration
+
+**Date**: 2026-05-11
+**Task**: Skill Audit and Grill-Me Integration
+**Branch**: `main`
+
+### Summary
+
+Audited local skills for redundancy and codified 'grill-me' as a mandatory source-of-truth review gate across Trellis workflow, check/finish skills, and AGENTS.md.
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+(No commits - planning session)
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete

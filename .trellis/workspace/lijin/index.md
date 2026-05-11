@@ -8,7 +8,7 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-1.md`
-- **Total Sessions**: 26
+- **Total Sessions**: 27
 - **Last Active**: 2026-05-11
 <!-- @@@/auto:current-status -->
 
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-1.md` | ~1265 | Active |
+| `journal-1.md` | ~1296 | Active |
 <!-- @@@/auto:active-documents -->
 
 ---
@@ -29,6 +29,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 27 | 2026-05-11 | Skill Audit and Grill-Me Integration | - | `main` |
 | 26 | 2026-05-11 | Optimize NPC Interaction: Greetings and Mentions | - | `main` |
 | 25 | 2026-05-11 | Sidebar UI/UX Icon and Style Refinement | `bc57960` | `main` |
 | 24 | 2026-05-11 | NPC Hobby Persistence & Visual Feedback Polish | `89e706f` | `main` |
