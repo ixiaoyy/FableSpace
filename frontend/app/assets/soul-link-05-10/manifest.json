@@ -7,48 +7,223 @@
         1536,
         1024
       ],
-      "slices": {
-        "sidebar": {
-          "path": "frontend/app/assets/soul-link-05-10/home-light/sidebar.png",
-          "box": [
-            0,
-            0,
-            220,
-            1024
-          ],
+      "slices": {},
+      "assets": {
+        "bg-paper-plane-soft": {
+          "path": "frontend/app/assets/soul-link-05-10/home-light/bg-paper-plane-soft.png",
           "size": [
-            220,
-            1024
+            1781,
+            883
           ],
-          "sha256": "ee57855e0af419d7f312590100b81d70fe060a9a398f3eff739bfedbf38c922d"
+          "sha256": "49124fb58adc7871ed910ecfc942774020e702cca169932d079e9e9b88d0fc94"
         },
-        "main": {
-          "path": "frontend/app/assets/soul-link-05-10/home-light/main.png",
-          "box": [
-            220,
-            0,
-            1000,
-            1024
-          ],
+        "bg-plane-wash": {
+          "path": "frontend/app/assets/soul-link-05-10/home-light/bg-plane-wash.png",
           "size": [
-            1000,
-            1024
+            2064,
+            762
           ],
-          "sha256": "824f210dfe77f68cfcdcd86f2cf779bbfdd5735c0b65ea5be6dbcca94fb0b142"
+          "sha256": "0cd817886cc77dcfe9b728596703ee6ea732cd59738eb5601c928d9fd710348c"
         },
-        "right-rail": {
-          "path": "frontend/app/assets/soul-link-05-10/home-light/right-rail.png",
-          "box": [
-            1220,
-            0,
-            316,
-            1024
-          ],
+        "card-envelope-soft": {
+          "path": "frontend/app/assets/soul-link-05-10/home-light/card-envelope-soft.png",
           "size": [
-            316,
+            1351,
+            1164
+          ],
+          "sha256": "c1ca6aad328806c333cc472670a7134c37d67507b7a874da91580990a5c8aeaa"
+        },
+        "card-invite-soft": {
+          "path": "frontend/app/assets/soul-link-05-10/home-light/card-invite-soft.png",
+          "size": [
+            1403,
+            1121
+          ],
+          "sha256": "10ff5e8accd2a5a320b22deead86ab18e9d320ed61f2969b16ffe36ae6202054"
+        },
+        "card-shield-soft": {
+          "path": "frontend/app/assets/soul-link-05-10/home-light/card-shield-soft.png",
+          "size": [
+            1415,
+            1112
+          ],
+          "sha256": "09bd2cebd46c769a75dc17ff1ce1817a24a2931386234c2aee49c08403a539fc"
+        },
+        "icon-arrow-glow": {
+          "path": "frontend/app/assets/soul-link-05-10/home-light/icon-arrow-glow.png",
+          "size": [
+            1536,
             1024
           ],
-          "sha256": "dc67943f4f07cf88bb689924fdadc014942d92f4d101d123175ddc1ad7009688"
+          "sha256": "8cdb39848b112f38333e52262c5cc1d5a884814616c4b3d1a24646ef05d8f1ee"
+        },
+        "icon-bell-glow": {
+          "path": "frontend/app/assets/soul-link-05-10/home-light/icon-bell-glow.png",
+          "size": [
+            1536,
+            1024
+          ],
+          "sha256": "c7f434ed9aed185798634a427d1589cf57aa54c456247cecd08f2553985ac26e"
+        },
+        "icon-book-glow": {
+          "path": "frontend/app/assets/soul-link-05-10/home-light/icon-book-glow.png",
+          "size": [
+            256,
+            256
+          ],
+          "sha256": "a51007be652002b6730ae615725549f583e59f8516ee19e0aa4608b6ee2f9418"
+        },
+        "icon-bookmark-glow": {
+          "path": "frontend/app/assets/soul-link-05-10/home-light/icon-bookmark-glow.png",
+          "size": [
+            256,
+            256
+          ],
+          "sha256": "a91078634a9f26aaeb4829879f077764d7cee9b24e0104851672dd3886c2b43a"
+        },
+        "icon-compass-glow": {
+          "path": "frontend/app/assets/soul-link-05-10/home-light/icon-compass-glow.png",
+          "size": [
+            256,
+            256
+          ],
+          "sha256": "28eba420623d5224de330e279e7d228327ed7114a948fed30d6fa48ac4c747a8"
+        },
+        "icon-drop-glow": {
+          "path": "frontend/app/assets/soul-link-05-10/home-light/icon-drop-glow.png",
+          "size": [
+            1536,
+            1024
+          ],
+          "sha256": "e55212ace88430031f7c16bfbc7d6ac488af3430c3fb1de12e4fc2a17c46c9e4"
+        },
+        "icon-home-glow": {
+          "path": "frontend/app/assets/soul-link-05-10/home-light/icon-home-glow.png",
+          "size": [
+            256,
+            256
+          ],
+          "sha256": "d028540b0c694038b4a0309e2f45920a731edc65f4a0d6a4313ba67c866ae5c4"
+        },
+        "icon-map-pin-glow": {
+          "path": "frontend/app/assets/soul-link-05-10/home-light/icon-map-pin-glow.png",
+          "size": [
+            256,
+            256
+          ],
+          "sha256": "c04ccfc94d553585e0ff6d8f95df305cb060dac51a8c474af7cd66397139ebcc"
+        },
+        "icon-message-glow": {
+          "path": "frontend/app/assets/soul-link-05-10/home-light/icon-message-glow.png",
+          "size": [
+            256,
+            256
+          ],
+          "sha256": "6766da0a30b8af05fd9a35838db6d0dfd1db187d3b867d7e6988325cdc8a2d33"
+        },
+        "icon-pin-glow": {
+          "path": "frontend/app/assets/soul-link-05-10/home-light/icon-pin-glow.png",
+          "size": [
+            1536,
+            1024
+          ],
+          "sha256": "29ab92aacf6661b8739006207e6b080c36964af76575493b8d3f9ed34b0639a5"
+        },
+        "icon-plane-glow": {
+          "path": "frontend/app/assets/soul-link-05-10/home-light/icon-plane-glow.png",
+          "size": [
+            256,
+            256
+          ],
+          "sha256": "17cc45c80820acf3da2b35fad2dca1b00e3aebe456d63ac624705a537f8f13cf"
+        },
+        "icon-play-glow": {
+          "path": "frontend/app/assets/soul-link-05-10/home-light/icon-play-glow.png",
+          "size": [
+            256,
+            256
+          ],
+          "sha256": "144d0746df6629695ba40f4c9284769026f1046943775b5b446d026a7c2d18d1"
+        },
+        "icon-pulse-bars-glow": {
+          "path": "frontend/app/assets/soul-link-05-10/home-light/icon-pulse-bars-glow.png",
+          "size": [
+            256,
+            256
+          ],
+          "sha256": "d34996065552b616b6ab70fb850153fa2aa758898a52f398f6095fc68b142326"
+        },
+        "icon-search-glow": {
+          "path": "frontend/app/assets/soul-link-05-10/home-light/icon-search-glow.png",
+          "size": [
+            1024,
+            1536
+          ],
+          "sha256": "909dcdbc1c3f1219bc90f0a576666af4564ac44328137a2bc16d1f9aa627a443"
+        },
+        "invite-card-2x": {
+          "path": "frontend/app/assets/soul-link-05-10/home-light/invite-card-2x.png",
+          "size": [
+            1182,
+            1331
+          ],
+          "sha256": "6d6f2b1ca7f2d4c9d4ea2abb7ce54215ed30a34bebb7d2692e0edc18c58311c4"
+        },
+        "invite-card": {
+          "path": "frontend/app/assets/soul-link-05-10/home-light/invite-card.png",
+          "size": [
+            1182,
+            1330
+          ],
+          "sha256": "74e78aedb2b2e260169fd6ed1930f3c8a1d7890400b30ac599adbf3ae004644f"
+        },
+        "scene-library-cafe-wide": {
+          "path": "frontend/app/assets/soul-link-05-10/home-light/scene-library-cafe-wide.png",
+          "size": [
+            436,
+            200
+          ],
+          "sha256": "7fc79729be43445f6025609f18939a46903066d5207177eab1dc471628447ee2"
+        },
+        "scene-library-sunlit": {
+          "path": "frontend/app/assets/soul-link-05-10/home-light/scene-library-sunlit.png",
+          "size": [
+            436,
+            200
+          ],
+          "sha256": "f97204de268a2e4239faaaf4e3bbeab0e5ac0e0357f927f4a8f54e0ae9d0eba1"
+        },
+        "scene-library-wide": {
+          "path": "frontend/app/assets/soul-link-05-10/home-light/scene-library-wide.png",
+          "size": [
+            1800,
+            874
+          ],
+          "sha256": "c70b85cd95d6684fcbb8d030ad93a0543fc96606320d0ce6914b1c8ea47daf94"
+        },
+        "scene-sea-lane": {
+          "path": "frontend/app/assets/soul-link-05-10/home-light/scene-sea-lane.png",
+          "size": [
+            436,
+            200
+          ],
+          "sha256": "3a7d39d5f5b9c776f9b6e3dbe32727ff98cc1c731297d8b3e9f4f659e110274e"
+        },
+        "scene-sky-city-balcony": {
+          "path": "frontend/app/assets/soul-link-05-10/home-light/scene-sky-city-balcony.png",
+          "size": [
+            2000,
+            1060
+          ],
+          "sha256": "434f4ef0149141cf0085d25ebdf5eed77c8017e780e05f11a41e0d5da5a72db2"
+        },
+        "scene-train-platform-rain": {
+          "path": "frontend/app/assets/soul-link-05-10/home-light/scene-train-platform-rain.png",
+          "size": [
+            436,
+            200
+          ],
+          "sha256": "b4fe0dbf4199ee73026aaf2d8497913a4d8b9f8fd2f0a50c7d7752f84c2b645a"
         }
       }
     },
@@ -58,48 +233,111 @@
         1536,
         1024
       ],
-      "slices": {
-        "sidebar": {
-          "path": "frontend/app/assets/soul-link-05-10/home-black/sidebar.png",
-          "box": [
-            0,
-            0,
-            236,
-            1024
-          ],
+      "slices": {},
+      "assets": {
+        "hero-system-visual": {
+          "path": "frontend/app/assets/soul-link-05-10/home-black/hero-system-visual.png",
           "size": [
-            236,
-            1024
+            1672,
+            941
           ],
-          "sha256": "6c3f259974f75b6ea27bd742d9a0f5d72414a11d77b2dd39c98536b4fed0b1f0"
+          "sha256": "43fe809897ea6c14b1dd1c67b4fdbc4627b2c7893f5e84376dd4213c1ab90188"
         },
-        "main": {
-          "path": "frontend/app/assets/soul-link-05-10/home-black/main.png",
-          "box": [
-            236,
-            0,
-            992,
-            1024
-          ],
+        "node-data-harbor": {
+          "path": "frontend/app/assets/soul-link-05-10/home-black/node-data-harbor.png",
           "size": [
-            992,
-            1024
+            1736,
+            906
           ],
-          "sha256": "9904928624be42998e4d80471c23953891857737d15174f2d33a0e43cd0bf279"
+          "sha256": "3a3bf79badc79fd9421ed31d52d8377dd39e1ceeec584bddd0720d2ba03ebd5f"
         },
-        "right-rail": {
-          "path": "frontend/app/assets/soul-link-05-10/home-black/right-rail.png",
-          "box": [
-            1228,
-            0,
-            308,
-            1024
-          ],
+        "node-neon-ruins": {
+          "path": "frontend/app/assets/soul-link-05-10/home-black/node-neon-ruins.png",
           "size": [
-            308,
+            1733,
+            907
+          ],
+          "sha256": "1ceaee9c65e1b364b95637a83463d9c6a35985000cfb45aac1ad1e28046dfe2d"
+        },
+        "node-old-platform": {
+          "path": "frontend/app/assets/soul-link-05-10/home-black/node-old-platform.png",
+          "size": [
+            1734,
+            907
+          ],
+          "sha256": "359406642643678d83e2bf9921d9d0b9b3dfd491fdb543e86e9950749f9de6cf"
+        },
+        "node-white-tower": {
+          "path": "frontend/app/assets/soul-link-05-10/home-black/node-white-tower.png",
+          "size": [
+            1733,
+            908
+          ],
+          "sha256": "931a99d971e5b012233475ac6b199c6aed363cdc18a411b7eef6e07fd2470b20"
+        },
+        "recent-echo-waveform": {
+          "path": "frontend/app/assets/soul-link-05-10/home-black/recent-echo-waveform.png",
+          "size": [
+            1676,
+            939
+          ],
+          "sha256": "e95c127d68b3a1eee4c4bd636d7c3ef065723c548bf8a4560b2f8fbab494f9b3"
+        },
+        "world-stats-sparkline": {
+          "path": "frontend/app/assets/soul-link-05-10/home-black/world-stats-sparkline.png",
+          "size": [
+            2037,
+            772
+          ],
+          "sha256": "1ff092de6e64b4a7a1e7a7a814a2ae1b955bd9e9126496ca7952f451abe43739"
+        },
+        "user-avatar-node07": {
+          "path": "frontend/app/assets/soul-link-05-10/home-black/user-avatar-node07.png",
+          "size": [
+            1024,
             1024
           ],
-          "sha256": "1889cb68357e2868e2ad01683c8e8ccffd8f916d0c8083893c5f3ce8f8a0525a"
+          "sha256": "d0ed56cb5552e4ba2492fae980f9d9d3e97e76d08152d88d8a05430dd17449c2"
+        },
+        "guide-protocol-icon": {
+          "path": "frontend/app/assets/soul-link-05-10/home-black/guide-protocol-icon.png",
+          "size": [
+            1024,
+            1024
+          ],
+          "sha256": "95de9585844927a3d1e732b4b6aa6e99aae6dabb7f9a0dd68b19e55ef0a0e794"
+        },
+        "guide-database-icon": {
+          "path": "frontend/app/assets/soul-link-05-10/home-black/guide-database-icon.png",
+          "size": [
+            1024,
+            1024
+          ],
+          "sha256": "3217f5240132e891dab2a4baf818decf73ce3c9d7a1b6692f2dab131465bddbd"
+        },
+        "guide-security-icon": {
+          "path": "frontend/app/assets/soul-link-05-10/home-black/guide-security-icon.png",
+          "size": [
+            1024,
+            1024
+          ],
+          "sha256": "33dc5fce7ba68967b03d9a632da6e9ea867c5c68f3d67fea30b4e58dc6c2a351"
+        },
+        "invite-card": {
+          "path": "frontend/app/assets/soul-link-05-10/home-black/invite-card.png",
+          "size": [
+            151,
+            170
+          ],
+          "sha256": "3fb4ebb35c5cf7a4643c05a305c2746c0ec2df877f8e778d5531a1f4875a620d"
+        },
+        "invite-card-2x": {
+          "path": "frontend/app/assets/soul-link-05-10/home-black/invite-card-2x.png",
+          "size": [
+            302,
+            340
+          ],
+          "sha256": "9b0bff1e3d159c57142b40c364eb7dcde4a9405c1853f5226c5e347fb3db4ba6"
         }
       }
     },

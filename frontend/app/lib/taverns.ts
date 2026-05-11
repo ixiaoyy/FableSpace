@@ -6,6 +6,24 @@ export const DEFAULT_VISITOR_ID: string = getOrCreateVisitorIdentity()
 
 export type Gender = "unspecified" | "female" | "male" | "nonbinary" | "other"
 
+/** NPC 仿真生理与心理状态 (mirror of backend NpcSimulationState) */
+export type NpcSimulationState = {
+  energy: number       // 0-100 体力
+  hunger: number       // 0-100 饱腹度
+  thirst: number       // 0-100 水分
+  social: number       // 0-100 社交需求
+  entertainment: number // 0-100 娱乐/心情
+  mood: number         // 0-100 心情 (50=中性)
+  last_tick_at?: string
+}
+
+/** A single social memory entry exchanged between NPCs */
+export type NpcSocialMemory = {
+  content: string
+  source_name: string
+  timestamp: string
+}
+
 export type TavernCharacter = {
   id: string
   name: string
@@ -24,6 +42,15 @@ export type TavernCharacter = {
   talkativeness?: number
   tags?: string[]
   hobbies?: string[]
+  // ── Simulation & Mobility ──────────────
+  current_tavern_id?: string
+  home_tavern_id?: string
+  simulation_state?: NpcSimulationState
+  traits?: string[]
+  social_memories?: NpcSocialMemory[]
+  is_visitor?: boolean
+  lat?: number | null
+  lon?: number | null
 }
 
 export type RoleplayMode = "ai_only" | "hybrid"

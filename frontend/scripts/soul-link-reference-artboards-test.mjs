@@ -51,14 +51,19 @@ for (const [file, dimensions, sha256] of archivedReferences) {
 for (const [file, dimensions] of [
   ["frontend/app/assets/soul-link-05-10/home-light/invite-card.png", "1182x1330"],
   ["frontend/app/assets/soul-link-05-10/home-light/invite-card-2x.png", "1182x1331"],
-  ["frontend/app/assets/soul-link-05-10/home-black/sidebar.png", "236x1024"],
-  ["frontend/app/assets/soul-link-05-10/home-black/sidebar-2x.png", "472x2048"],
   ["frontend/app/assets/soul-link-05-10/home-black/invite-card.png", "151x170"],
   ["frontend/app/assets/soul-link-05-10/home-black/invite-card-2x.png", "302x340"],
-  ["frontend/app/assets/soul-link-05-10/home-black/main.png", "992x1024"],
-  ["frontend/app/assets/soul-link-05-10/home-black/main-2x.png", "1984x2048"],
-  ["frontend/app/assets/soul-link-05-10/home-black/right-rail.png", "308x1024"],
-  ["frontend/app/assets/soul-link-05-10/home-black/right-rail-2x.png", "616x2048"],
+  ["frontend/app/assets/soul-link-05-10/home-black/hero-system-visual.png", "1672x941"],
+  ["frontend/app/assets/soul-link-05-10/home-black/node-data-harbor.png", "1736x906"],
+  ["frontend/app/assets/soul-link-05-10/home-black/node-neon-ruins.png", "1733x907"],
+  ["frontend/app/assets/soul-link-05-10/home-black/node-old-platform.png", "1734x907"],
+  ["frontend/app/assets/soul-link-05-10/home-black/node-white-tower.png", "1733x908"],
+  ["frontend/app/assets/soul-link-05-10/home-black/recent-echo-waveform.png", "1676x939"],
+  ["frontend/app/assets/soul-link-05-10/home-black/user-avatar-node07.png", "1024x1024"],
+  ["frontend/app/assets/soul-link-05-10/home-black/world-stats-sparkline.png", "2037x772"],
+  ["frontend/app/assets/soul-link-05-10/home-black/guide-protocol-icon.png", "1024x1024"],
+  ["frontend/app/assets/soul-link-05-10/home-black/guide-database-icon.png", "1024x1024"],
+  ["frontend/app/assets/soul-link-05-10/home-black/guide-security-icon.png", "1024x1024"],
   ["frontend/app/assets/soul-link-05-10/discover-light/sidebar.png", "200x1024"],
   ["frontend/app/assets/soul-link-05-10/discover-light/sidebar-2x.png", "400x2048"],
   ["frontend/app/assets/soul-link-05-10/discover-light/main.png", "1018x1024"],
@@ -76,6 +81,13 @@ for (const [file, dimensions] of [
   assert.equal(`${info.width}x${info.height}`, dimensions, `${file} should preserve locked crop dimensions`)
 }
 
+for (const file of [
+  "frontend/app/assets/soul-link-05-10/home-black/sidebar.png",
+  "frontend/app/assets/soul-link-05-10/home-black/sidebar-2x.png",
+]) {
+  assert.ok(!existsSync(resolve(repoRoot, file)), `${file} must stay deleted; black navigation is real DOM/CSS, not a full sidebar bitmap`)
+}
+
 for (const [file, dimensions] of [
   ["frontend/public/place-atmosphere-hd/atmosphere-ember.png", "1024x576"],
   ["frontend/public/place-atmosphere-hd/atmosphere-lore.png", "1024x576"],
@@ -91,6 +103,9 @@ assert.ok(runtimeConfigSource.includes("/place-atmosphere-hd/"), "atmosphere res
 assert.ok(portraitConfigSource.includes("portraits-hd"), "NPC portrait catalog should use HD imported images")
 assert.ok(homeRouteSource.includes('variant="black"') && homeRouteSource.includes('variant="light"'), "home route should keep theme-driven light/dark rendering")
 assert.ok(discoverRouteSource.includes('variant="black"') && discoverRouteSource.includes('variant="light"'), "discover route should keep theme-driven light/dark rendering")
+assert.ok(!componentSource.includes("../assets/soul-link-05-10/discover-light/main"), "light discover runtime should not import the full main screenshot slice")
+assert.ok(!componentSource.includes("../assets/soul-link-05-10/discover-light/right-rail"), "light discover runtime should not import the full right-rail screenshot slice")
+assert.ok(!discoverRouteSource.includes("../assets/soul-link-05-10/discover-light/main"), "discover route should not import the full light search screenshot")
 
 for (const marker of [
   'data-soul-link-real-dom="true"',
@@ -115,16 +130,23 @@ for (const marker of [
   'onTogglePlaceType("bookstore")',
   'onToggleCategory("陪伴树洞")',
   "const HOME_LAYOUT =",
+  "sidebar: {",
+  "hero: { x: 220, y: 18, w: 1000, h: 530 }",
+  "heroDecorations: {",
+  "currentCoordinate: { x: 1000, y: 397, w: 170, h: 76 }",
+  "recommendedHeader: { x: 252, y: 560, w: 936, h: 44 }",
+  "rightRail: {",
+  "bottomRail: {",
   "const DISCOVER_LAYOUT =",
   "function SoulLinkSidebar",
   'data-soul-link-sidebar="shared"',
-  "const SHARED_SIDEBAR_NAV_ITEMS =",
-  "SHARED_SIDEBAR_NAV_ITEMS.map",
-  "const SIDEBAR_INVITE_CARDS =",
+  "sidebar.navItems.map",
+  "const SIDEBAR_MATERIALS =",
   'data-soul-link-sidebar-invite="fixed-image"',
   "srcSet={`${inviteCard.src} 1x, ${inviteCard.src2x} 2x`}",
   "function SoulLinkUserCluster",
   'data-soul-link-user-cluster="shared"',
+  'data-soul-link-current-coordinate="shared"',
   'data-soul-link-notification="real-button"',
   'data-soul-link-user-avatar="real-image"',
   'data-soul-link-user-name="real-text"',
@@ -141,9 +163,17 @@ for (const marker of [
   "function SoulLinkGuidePanel",
   "function SoulLinkGuideCardView",
   "function SoulLinkWorldStatsPanel",
+  "function SoulLinkDiscoverLightSurface",
+  "function SoulLinkDiscoverLightFilterPanel",
+  "function SoulLinkDiscoverLightRightRail",
   'data-soul-link-feed-panel="real-list"',
   'data-soul-link-feed-thumb="real-image"',
   'data-soul-link-feed-title="real-text"',
+  'data-soul-link-discover-filter-panel="real-dom"',
+  'data-soul-link-discover-timeline="real-dom"',
+  'data-soul-link-discover-right-rail="real-dom"',
+  'data-soul-link-discover-card-cover="real-image"',
+  'data-soul-link-discover-card-title="real-text"',
   'data-soul-link-daily-quote="real-text"',
   'data-soul-link-online-panel="real-list"',
   'data-soul-link-online-avatar="real-image"',
@@ -161,7 +191,7 @@ for (const marker of [
   'data-soul-link-world-stats="real-data"',
   'data-soul-link-world-stat-value="real-text"',
   'data-soul-link-world-stat-label="real-text"',
-  'data-soul-link-world-stats-deco="real-svg"',
+  'data-soul-link-world-stats-deco="real-image"',
   'active="home"',
   'active="discover"',
   "HOME_LAYOUT.cards.map",
@@ -186,8 +216,20 @@ for (const forbidden of [
   "generated_images",
   "设计问题/",
   "homeBlackNavHotspots",
-  "discoverBlackNavHotspots",
+  "HOME_BLACK_LAYOUT",
+  "HOME_BLACK_RIGHT_RAIL",
+  "HOME_BLACK_BOTTOM_RAIL",
+  "HOME_RIGHT_RAIL",
+  "HOME_BOTTOM_RAIL",
+  "SHARED_USER_CLUSTER",
+  "SIDEBAR_REFERENCE_PANELS",
+  "SIDEBAR_INVITE_CARDS",
+  "homeBlackSidePanel",
+  "home-black/sidebar.png",
   "homeBlackCardBoxes",
+  "slice(0, isBlack",
+  "forceVisible && !isBlack",
+  "discoverBlackNavHotspots",
   "discoverBlackCardBoxes",
   "homeLightCardBoxes",
   "discoverLightCardBoxes",
@@ -200,17 +242,13 @@ for (const forbidden of [
   "homeBlackSidebar",
   "discoverLightSidebar",
   "discoverBlackSidebar",
-  "USER_07",
   "Lv.28.png",
   "世界脉搏.png",
   "每日一句.png",
-  "x={isBlack ?",
-  "y={isBlack ?",
-  "w={isBlack ?",
-  "h={isBlack ?",
 ]) {
   assert.ok(!componentSource.includes(forbidden), `runtime real-DOM component must not use full artboard/prototype pattern: ${forbidden}`)
 }
 
 assert.ok(packageJson.scripts.test.includes("soul-link-reference-artboards-test.mjs"), "SoulLink real-DOM contract test should be wired into npm test")
 console.log("soul-link-reference-artboards-test: ok")
+

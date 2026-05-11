@@ -13,7 +13,6 @@ import {
 import { Link, useLoaderData, useSearchParams } from "react-router"
 import { useEffect, useMemo, useState } from "react"
 
-import discoverNeonAlleyImage from "../assets/soul-link-05-10/discover-light/main-2x.png"
 import discoverRadarSurfaceImage from "../assets/soul-link-05-10/discover-black/main-2x.png"
 import { DiscoveryLivelinessStrip } from "../components/DiscoveryLivelinessStrip"
 import { SoulLinkDiscoverReference } from "../components/soul-link-reference-artboards"
@@ -83,7 +82,7 @@ const CATEGORIES: Category[] = [
 
 const previewCards = [
   { image: discoverRadarSurfaceImage, title: "雷达地表", text: "真实坐标上的区域会在开放时段亮起。" },
-  { image: discoverNeonAlleyImage, title: "隐藏入口", text: "进入后遇见主人配置的 AI 角色与记忆线索。" },
+  { image: "/place-atmosphere-hd/atmosphere-lore.png", title: "隐藏入口", text: "进入后遇见主人配置的 AI 角色与记忆线索。" },
 ]
 
 const DISCOVER_DESKTOP_BOARD_FRAME =

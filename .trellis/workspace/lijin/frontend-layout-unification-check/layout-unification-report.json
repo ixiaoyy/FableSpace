@@ -1,0 +1,287 @@
+{
+  "baseUrl": "http://127.0.0.1:5173",
+  "lightDesktop": {
+    "theme": "light",
+    "viewport": {
+      "width": 1536,
+      "height": 1024
+    },
+    "screenshot": "D:\\work\\ai-\\.trellis\\workspace\\lijin\\frontend-layout-unification-check\\home-light-shared-layout-desktop.png",
+    "errors": [],
+    "measurements": {
+      "search": {
+        "x": 878,
+        "y": 41,
+        "w": 335,
+        "h": 44
+      },
+      "feed": {
+        "x": 1248,
+        "y": 118,
+        "w": 240,
+        "h": 316
+      },
+      "recent": {
+        "x": 242,
+        "y": 840,
+        "w": 350,
+        "h": 154
+      },
+      "guide": {
+        "x": 602,
+        "y": 840,
+        "w": 430,
+        "h": 154
+      },
+      "stats": {
+        "x": 1048,
+        "y": 848,
+        "w": 443,
+        "h": 144
+      },
+      "cards": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 0,
+          "h": 0
+        },
+        {
+          "x": 0,
+          "y": 0,
+          "w": 0,
+          "h": 0
+        },
+        {
+          "x": 0,
+          "y": 0,
+          "w": 0,
+          "h": 0
+        },
+        {
+          "x": 0,
+          "y": 0,
+          "w": 0,
+          "h": 0
+        }
+      ],
+      "overflow": {
+        "innerWidth": 1536,
+        "scrollWidth": 1536
+      }
+    }
+  },
+  "blackDesktop": {
+    "theme": "dark",
+    "viewport": {
+      "width": 1536,
+      "height": 1024
+    },
+    "screenshot": "D:\\work\\ai-\\.trellis\\workspace\\lijin\\frontend-layout-unification-check\\home-black-shared-layout-desktop.png",
+    "errors": [],
+    "measurements": {
+      "search": {
+        "x": 878,
+        "y": 41,
+        "w": 335,
+        "h": 44
+      },
+      "feed": {
+        "x": 1248,
+        "y": 118,
+        "w": 240,
+        "h": 316
+      },
+      "recent": {
+        "x": 242,
+        "y": 840,
+        "w": 350,
+        "h": 154
+      },
+      "guide": {
+        "x": 602,
+        "y": 840,
+        "w": 430,
+        "h": 154
+      },
+      "stats": {
+        "x": 1048,
+        "y": 848,
+        "w": 443,
+        "h": 144
+      },
+      "cards": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 0,
+          "h": 0
+        },
+        {
+          "x": 0,
+          "y": 0,
+          "w": 0,
+          "h": 0
+        },
+        {
+          "x": 0,
+          "y": 0,
+          "w": 0,
+          "h": 0
+        },
+        {
+          "x": 0,
+          "y": 0,
+          "w": 0,
+          "h": 0
+        }
+      ],
+      "overflow": {
+        "innerWidth": 1536,
+        "scrollWidth": 1536
+      }
+    }
+  },
+  "lightMobile": {
+    "theme": "light",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "screenshot": "D:\\work\\ai-\\.trellis\\workspace\\lijin\\frontend-layout-unification-check\\home-light-shared-layout-mobile.png",
+    "errors": [],
+    "measurements": {
+      "search": {
+        "x": 0,
+        "y": 0,
+        "w": 0,
+        "h": 0
+      },
+      "feed": {
+        "x": 0,
+        "y": 0,
+        "w": 0,
+        "h": 0
+      },
+      "recent": {
+        "x": 0,
+        "y": 0,
+        "w": 0,
+        "h": 0
+      },
+      "guide": {
+        "x": 0,
+        "y": 0,
+        "w": 0,
+        "h": 0
+      },
+      "stats": {
+        "x": 0,
+        "y": 0,
+        "w": 0,
+        "h": 0
+      },
+      "cards": [
+        {
+          "x": 16,
+          "y": 443,
+          "w": 358,
+          "h": 138
+        },
+        {
+          "x": 16,
+          "y": 593,
+          "w": 358,
+          "h": 138
+        },
+        {
+          "x": 16,
+          "y": 743,
+          "w": 358,
+          "h": 138
+        },
+        {
+          "x": 16,
+          "y": 893,
+          "w": 358,
+          "h": 138
+        }
+      ],
+      "overflow": {
+        "innerWidth": 390,
+        "scrollWidth": 390
+      }
+    }
+  },
+  "blackMobile": {
+    "theme": "dark",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "screenshot": "D:\\work\\ai-\\.trellis\\workspace\\lijin\\frontend-layout-unification-check\\home-black-shared-layout-mobile.png",
+    "errors": [],
+    "measurements": {
+      "search": {
+        "x": 0,
+        "y": 0,
+        "w": 0,
+        "h": 0
+      },
+      "feed": {
+        "x": 0,
+        "y": 0,
+        "w": 0,
+        "h": 0
+      },
+      "recent": {
+        "x": 0,
+        "y": 0,
+        "w": 0,
+        "h": 0
+      },
+      "guide": {
+        "x": 0,
+        "y": 0,
+        "w": 0,
+        "h": 0
+      },
+      "stats": {
+        "x": 0,
+        "y": 0,
+        "w": 0,
+        "h": 0
+      },
+      "cards": [
+        {
+          "x": 16,
+          "y": 443,
+          "w": 358,
+          "h": 138
+        },
+        {
+          "x": 16,
+          "y": 593,
+          "w": 358,
+          "h": 138
+        },
+        {
+          "x": 16,
+          "y": 743,
+          "w": 358,
+          "h": 138
+        },
+        {
+          "x": 16,
+          "y": 893,
+          "w": 358,
+          "h": 138
+        }
+      ],
+      "overflow": {
+        "innerWidth": 390,
+        "scrollWidth": 390
+      }
+    }
+  }
+}

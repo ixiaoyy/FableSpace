@@ -1,0 +1,42 @@
+{
+  "id": "05-11-05-11-state-card-owner-panel-route",
+  "name": "05-11-05-11-state-card-owner-panel-route",
+  "title": "Connect StateCard Review Panel to Owner Management Route",
+  "description": "Wire OwnerStateCardPanel and StateCardReviewPanel (owner view/confirm/reject pending StateCards for tavern continuity) into /tavern/:id/manage route or create /tavern/:id/state-cards route.",
+  "status": "planning",
+  "dev_type": "frontend",
+  "scope": null,
+  "package": null,
+  "priority": "P2",
+  "creator": "lijin",
+  "assignee": "lijin",
+  "createdAt": "2026-05-11",
+  "completedAt": null,
+  "branch": null,
+  "base_branch": "main",
+  "worktree_path": null,
+  "current_phase": 0,
+  "next_action": [
+    {"phase": 1, "action": "brainstorm"},
+    {"phase": 2, "action": "research"},
+    {"phase": 3, "action": "implement"},
+    {"phase": 4, "action": "check"},
+    {"phase": 5, "action": "update-spec"},
+    {"phase": 6, "action": "record-session"}
+  ],
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [],
+  "parent": null,
+  "relatedFiles": [
+    "frontend/app/product/OwnerStateCardPanel.jsx",
+    "frontend/app/product/StateCardReviewPanel.jsx",
+    "frontend/app/routes/tavern-manage.tsx",
+    "backend/src/fablemap_api/api/v1/state_cards.py",
+    "backend/src/fablemap_api/core/state_cards.py",
+    "backend/tests/test_v1_state_cards.py"
+  ],
+  "notes": "StateCard backend (state_cards.py, writeback.py, prompt_builder.py) and frontend panels exist but are not connected to any route. Owner cannot view/confirm pending StateCards.",
+  "meta": {}
+}

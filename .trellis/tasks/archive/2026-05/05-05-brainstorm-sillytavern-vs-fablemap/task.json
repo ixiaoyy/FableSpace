@@ -1,0 +1,53 @@
+{
+  "id": "brainstorm-sillytavern-vs-fablemap",
+  "name": "brainstorm-sillytavern-vs-fablemap",
+  "title": "SillyTavern vs FableMap 架构对比头脑风暴",
+  "description": "",
+  "status": "completed",
+  "dev_type": "docs",
+  "scope": null,
+  "package": null,
+  "priority": "P2",
+  "creator": "lijin",
+  "assignee": "lijin",
+  "createdAt": "2026-05-05",
+  "completedAt": "2026-05-11",
+  "branch": null,
+  "base_branch": "codex-homepage-dynamic-entry-covers",
+  "worktree_path": null,
+  "current_phase": 0,
+  "next_action": [
+    {
+      "phase": 1,
+      "action": "brainstorm"
+    },
+    {
+      "phase": 2,
+      "action": "research"
+    },
+    {
+      "phase": 3,
+      "action": "implement"
+    },
+    {
+      "phase": 4,
+      "action": "check"
+    },
+    {
+      "phase": 5,
+      "action": "update-spec"
+    },
+    {
+      "phase": 6,
+      "action": "record-session"
+    }
+  ],
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [],
+  "parent": null,
+  "relatedFiles": [],
+  "notes": "PRD: FableMap StateCard 连续性机制设计已完成，包括矛盾检测、状态卡演进、分层权重方案。相关 backend 文件（state_cards.py, writeback.py, prompt_builder.py）及测试已落地。",
+  "meta": {}
+}

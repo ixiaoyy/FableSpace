@@ -181,7 +181,7 @@ export function buildHomepageView(result?: Partial<TavernListResponse> | null, e
 
   return {
     metrics: buildHomepageMetrics(taverns),
-    featuredCitySlices: buildFeaturedCitySlices(taverns),
+    featuredCitySlices: buildFeaturedCitySlices(taverns, 4),
     error,
   }
 }

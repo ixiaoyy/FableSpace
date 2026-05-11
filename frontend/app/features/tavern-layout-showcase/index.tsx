@@ -26,13 +26,14 @@ import {
 import { useEffect, useMemo, useState, type ReactNode } from "react"
 import { Link } from "react-router"
 
-import npcDialogueImage from "../../assets/soul-link-05-10/home-light/main.png"
+import npcDialogueImage from "../../assets/soul-link-05-10/home-light/scene-library-wide.png"
 import tavernNeonImage from "../../assets/soul-link-05-10/discover-black/main.png"
-import tavernNightImage from "../../assets/soul-link-05-10/home-black/main.png"
+import tavernNightImage from "../../assets/soul-link-05-10/home-black/hero-system-visual.png"
 import tavernStreetImage from "../../assets/soul-link-05-10/discover-light/main.png"
 import { buildTavernLayoutStats, normalizeTavernLayoutStyle, TAVERN_LAYOUTS } from "../../lib/tavern-layouts.js"
 import type { RoleplayClaim, RoleplayState, Tavern, TavernCharacter } from "../../lib/taverns"
 import { cn } from "../../lib/utils"
+import { NpcSimulationStatusPanel } from "../npc-simulation-status/NpcSimulationStatusPanel"
 import { Button } from "../../ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../ui/card"
 import { TavernChat } from "../tavern-chat"
@@ -533,6 +534,11 @@ function CharacterFocusCard({ tavern, character }: { tavern: Tavern; character?:
           <p className="mt-2 max-w-2xl text-sm leading-6 text-violet-50/72">
             {character?.description || character?.personality || character?.first_mes || `${tavern.name} 还没有可展示的角色介绍。`}
           </p>
+          {character?.simulation_state && (
+            <div className="mt-3 max-w-md">
+              <NpcSimulationStatusPanel character={character} variant="compact" tavernName={tavern.name} />
+            </div>
+          )}
         </div>
         <div className="grid gap-2 sm:grid-cols-3 md:grid-cols-1">
           <span className="rounded-2xl border border-white/10 bg-white/[0.05] px-4 py-3 text-sm font-bold text-violet-50">资料</span>

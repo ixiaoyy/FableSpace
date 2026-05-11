@@ -1,0 +1,282 @@
+[
+  {
+    "theme": "dark",
+    "marker": "home-black-real-dom-1536x1024",
+    "renderedVariant": "black",
+    "screenshot": "D:\\work\\ai-\\.trellis\\workspace\\lijin\\frontend-asset-check\\home-black-1536x1024-current.png",
+    "found": [
+      "home-black/hero-system-visual.png",
+      "home-black/node-data-harbor.png",
+      "home-black/node-neon-ruins.png",
+      "home-black/node-old-platform.png",
+      "home-black/node-white-tower.png",
+      "home-black/recent-echo-waveform.png",
+      "home-black/world-stats-sparkline.png",
+      "home-black/user-avatar-node07.png",
+      "home-black/guide-protocol-icon.png",
+      "home-black/guide-database-icon.png",
+      "home-black/guide-security-icon.png",
+      "home-black/sidebar.png",
+      "home-black/invite-card.png"
+    ],
+    "missing": [],
+    "imageCount": 29,
+    "errors": [],
+    "relevantImages": [
+      {
+        "src": "http://127.0.0.1:5173/app/assets/soul-link-05-10/home-black/hero-system-visual.png",
+        "alt": "",
+        "naturalWidth": 1672,
+        "naturalHeight": 941,
+        "clientWidth": 0,
+        "clientHeight": 0,
+        "visible": false
+      },
+      {
+        "src": "http://127.0.0.1:5173/app/assets/soul-link-05-10/home-black/node-data-harbor.png",
+        "alt": "时光咖啡馆 封面",
+        "naturalWidth": 1736,
+        "naturalHeight": 906,
+        "clientWidth": 0,
+        "clientHeight": 0,
+        "visible": false
+      },
+      {
+        "src": "http://127.0.0.1:5173/app/assets/soul-link-05-10/home-black/node-neon-ruins.png",
+        "alt": "雨巷书店 封面",
+        "naturalWidth": 1733,
+        "naturalHeight": 907,
+        "clientWidth": 0,
+        "clientHeight": 0,
+        "visible": false
+      },
+      {
+        "src": "http://127.0.0.1:5173/app/assets/soul-link-05-10/home-black/node-old-platform.png",
+        "alt": "海街的尽头 封面",
+        "naturalWidth": 1734,
+        "naturalHeight": 907,
+        "clientWidth": 0,
+        "clientHeight": 0,
+        "visible": false
+      },
+      {
+        "src": "http://127.0.0.1:5173/app/assets/soul-link-05-10/home-black/node-white-tower.png",
+        "alt": "旧车站月台 封面",
+        "naturalWidth": 1733,
+        "naturalHeight": 908,
+        "clientWidth": 0,
+        "clientHeight": 0,
+        "visible": false
+      },
+      {
+        "src": "http://127.0.0.1:5173/app/assets/soul-link-05-10/home-black/hero-system-visual.png",
+        "alt": "",
+        "naturalWidth": 1672,
+        "naturalHeight": 941,
+        "clientWidth": 982,
+        "clientHeight": 414,
+        "visible": true
+      },
+      {
+        "src": "http://127.0.0.1:5173/app/assets/soul-link-05-10/home-black/node-data-harbor.png",
+        "alt": "时光咖啡馆 坐标封面",
+        "naturalWidth": 1736,
+        "naturalHeight": 906,
+        "clientWidth": 222,
+        "clientHeight": 111,
+        "visible": true
+      },
+      {
+        "src": "http://127.0.0.1:5173/app/assets/soul-link-05-10/home-black/node-neon-ruins.png",
+        "alt": "雨巷书店 坐标封面",
+        "naturalWidth": 1733,
+        "naturalHeight": 907,
+        "clientWidth": 222,
+        "clientHeight": 111,
+        "visible": true
+      },
+      {
+        "src": "http://127.0.0.1:5173/app/assets/soul-link-05-10/home-black/node-old-platform.png",
+        "alt": "海街的尽头 坐标封面",
+        "naturalWidth": 1734,
+        "naturalHeight": 907,
+        "clientWidth": 222,
+        "clientHeight": 111,
+        "visible": true
+      },
+      {
+        "src": "http://127.0.0.1:5173/app/assets/soul-link-05-10/home-black/node-white-tower.png",
+        "alt": "旧车站月台 坐标封面",
+        "naturalWidth": 1733,
+        "naturalHeight": 908,
+        "clientWidth": 222,
+        "clientHeight": 111,
+        "visible": true
+      },
+      {
+        "src": "http://127.0.0.1:5173/app/assets/soul-link-05-10/home-black/sidebar.png",
+        "alt": "",
+        "naturalWidth": 236,
+        "naturalHeight": 1024,
+        "clientWidth": 235,
+        "clientHeight": 1024,
+        "visible": true
+      },
+      {
+        "src": "http://127.0.0.1:5173/app/assets/soul-link-05-10/home-black/invite-card.png",
+        "alt": "",
+        "naturalWidth": 151,
+        "naturalHeight": 170,
+        "clientWidth": 150,
+        "clientHeight": 170,
+        "visible": true
+      },
+      {
+        "src": "http://127.0.0.1:5173/app/assets/soul-link-05-10/home-black/user-avatar-node07.png",
+        "alt": "USER_07 头像",
+        "naturalWidth": 1024,
+        "naturalHeight": 1024,
+        "clientWidth": 284,
+        "clientHeight": 70,
+        "visible": true
+      },
+      {
+        "src": "http://127.0.0.1:5173/app/assets/soul-link-05-10/home-black/recent-echo-waveform.png",
+        "alt": "",
+        "naturalWidth": 1676,
+        "naturalHeight": 939,
+        "clientWidth": 112,
+        "clientHeight": 64,
+        "visible": true
+      },
+      {
+        "src": "http://127.0.0.1:5173/app/assets/soul-link-05-10/home-black/guide-protocol-icon.png",
+        "alt": "新手指南 图标",
+        "naturalWidth": 1024,
+        "naturalHeight": 1024,
+        "clientWidth": 32,
+        "clientHeight": 32,
+        "visible": true
+      },
+      {
+        "src": "http://127.0.0.1:5173/app/assets/soul-link-05-10/home-black/guide-database-icon.png",
+        "alt": "坐标百科 图标",
+        "naturalWidth": 1024,
+        "naturalHeight": 1024,
+        "clientWidth": 32,
+        "clientHeight": 32,
+        "visible": true
+      },
+      {
+        "src": "http://127.0.0.1:5173/app/assets/soul-link-05-10/home-black/guide-security-icon.png",
+        "alt": "安全指引 图标",
+        "naturalWidth": 1024,
+        "naturalHeight": 1024,
+        "clientWidth": 32,
+        "clientHeight": 32,
+        "visible": true
+      },
+      {
+        "src": "http://127.0.0.1:5173/app/assets/soul-link-05-10/home-black/world-stats-sparkline.png",
+        "alt": "",
+        "naturalWidth": 2037,
+        "naturalHeight": 772,
+        "clientWidth": 224,
+        "clientHeight": 80,
+        "visible": true
+      }
+    ]
+  },
+  {
+    "theme": "light",
+    "marker": "home-light-real-dom-1536x1024",
+    "renderedVariant": "light",
+    "screenshot": "D:\\work\\ai-\\.trellis\\workspace\\lijin\\frontend-asset-check\\home-light-1536x1024-current.png",
+    "found": [
+      "user-cuts-light/scene-sky-city-balcony.png",
+      "user-cuts-light/bg-plane-wash.png",
+      "home-light/invite-card.png",
+      "user-cuts-light/card-invite-soft.png",
+      "user-cuts-light/card-envelope-soft.png",
+      "user-cuts-light/card-shield-soft.png",
+      "user-cuts-light/bg-paper-plane-soft.png"
+    ],
+    "missing": [],
+    "imageCount": 39,
+    "errors": [],
+    "relevantImages": [
+      {
+        "src": "http://127.0.0.1:5173/app/assets/soul-link-05-10/user-cuts-light/scene-sky-city-balcony.png",
+        "alt": "",
+        "naturalWidth": 0,
+        "naturalHeight": 0,
+        "clientWidth": 0,
+        "clientHeight": 0,
+        "visible": false
+      },
+      {
+        "src": "http://127.0.0.1:5173/app/assets/soul-link-05-10/user-cuts-light/bg-plane-wash.png",
+        "alt": "",
+        "naturalWidth": 2064,
+        "naturalHeight": 762,
+        "clientWidth": 1536,
+        "clientHeight": 1024,
+        "visible": true
+      },
+      {
+        "src": "http://127.0.0.1:5173/app/assets/soul-link-05-10/user-cuts-light/scene-sky-city-balcony.png",
+        "alt": "",
+        "naturalWidth": 2000,
+        "naturalHeight": 1060,
+        "clientWidth": 998,
+        "clientHeight": 528,
+        "visible": true
+      },
+      {
+        "src": "http://127.0.0.1:5173/app/assets/soul-link-05-10/home-light/invite-card.png",
+        "alt": "",
+        "naturalWidth": 1182,
+        "naturalHeight": 1330,
+        "clientWidth": 150,
+        "clientHeight": 170,
+        "visible": true
+      },
+      {
+        "src": "http://127.0.0.1:5173/app/assets/soul-link-05-10/user-cuts-light/card-invite-soft.png",
+        "alt": "",
+        "naturalWidth": 1403,
+        "naturalHeight": 1121,
+        "clientWidth": 125,
+        "clientHeight": 98,
+        "visible": true
+      },
+      {
+        "src": "http://127.0.0.1:5173/app/assets/soul-link-05-10/user-cuts-light/card-envelope-soft.png",
+        "alt": "",
+        "naturalWidth": 1351,
+        "naturalHeight": 1164,
+        "clientWidth": 125,
+        "clientHeight": 98,
+        "visible": true
+      },
+      {
+        "src": "http://127.0.0.1:5173/app/assets/soul-link-05-10/user-cuts-light/card-shield-soft.png",
+        "alt": "",
+        "naturalWidth": 1415,
+        "naturalHeight": 1112,
+        "clientWidth": 125,
+        "clientHeight": 98,
+        "visible": true
+      },
+      {
+        "src": "http://127.0.0.1:5173/app/assets/soul-link-05-10/user-cuts-light/bg-paper-plane-soft.png",
+        "alt": "",
+        "naturalWidth": 1781,
+        "naturalHeight": 883,
+        "clientWidth": 441,
+        "clientHeight": 142,
+        "visible": true
+      }
+    ]
+  }
+]

@@ -20,50 +20,39 @@ import discoverBlackMain from "../assets/soul-link-05-10/discover-black/main.png
 import discoverBlackMain2x from "../assets/soul-link-05-10/discover-black/main-2x.png"
 import discoverBlackRightRail from "../assets/soul-link-05-10/discover-black/right-rail.png"
 import discoverBlackRightRail2x from "../assets/soul-link-05-10/discover-black/right-rail-2x.png"
-import discoverLightMain from "../assets/soul-link-05-10/discover-light/main.png"
-import discoverLightMain2x from "../assets/soul-link-05-10/discover-light/main-2x.png"
-import discoverLightRightRail from "../assets/soul-link-05-10/discover-light/right-rail.png"
-import discoverLightRightRail2x from "../assets/soul-link-05-10/discover-light/right-rail-2x.png"
-import homeBlackMain from "../assets/soul-link-05-10/home-black/main.png"
-import homeBlackMain2x from "../assets/soul-link-05-10/home-black/main-2x.png"
-import homeBlackRightRail from "../assets/soul-link-05-10/home-black/right-rail.png"
-import homeBlackRightRail2x from "../assets/soul-link-05-10/home-black/right-rail-2x.png"
 import homeBlackInviteCard from "../assets/soul-link-05-10/home-black/invite-card.png"
 import homeBlackInviteCard2x from "../assets/soul-link-05-10/home-black/invite-card-2x.png"
-import homeBlackSidePanel from "../assets/soul-link-05-10/home-black/sidebar.png"
-import homeBlackSidePanel2x from "../assets/soul-link-05-10/home-black/sidebar-2x.png"
+import homeBlackGuideDatabaseIcon from "../assets/soul-link-05-10/home-black/guide-database-icon.png"
+import homeBlackGuideProtocolIcon from "../assets/soul-link-05-10/home-black/guide-protocol-icon.png"
+import homeBlackGuideSecurityIcon from "../assets/soul-link-05-10/home-black/guide-security-icon.png"
+import homeBlackHeroVisual from "../assets/soul-link-05-10/home-black/hero-system-visual.png"
+import homeBlackNodeDataHarbor from "../assets/soul-link-05-10/home-black/node-data-harbor.png"
+import homeBlackNodeNeonRuins from "../assets/soul-link-05-10/home-black/node-neon-ruins.png"
+import homeBlackNodeOldPlatform from "../assets/soul-link-05-10/home-black/node-old-platform.png"
+import homeBlackNodeWhiteTower from "../assets/soul-link-05-10/home-black/node-white-tower.png"
+import homeBlackRecentEchoWaveform from "../assets/soul-link-05-10/home-black/recent-echo-waveform.png"
+import homeBlackUserAvatar from "../assets/soul-link-05-10/home-black/user-avatar-node07.png"
+import homeBlackWorldStatsSparkline from "../assets/soul-link-05-10/home-black/world-stats-sparkline.png"
 import homeLightInviteCard from "../assets/soul-link-05-10/home-light/invite-card.png"
 import homeLightInviteCard2x from "../assets/soul-link-05-10/home-light/invite-card-2x.png"
-import navAnchorsIcon from "../assets/soul-link-05-10/icons/nav-anchors.png"
-import navCreateIcon from "../assets/soul-link-05-10/icons/nav-create.png"
-import navDiscoverIcon from "../assets/soul-link-05-10/icons/nav-discover.png"
-import navEchoesIcon from "../assets/soul-link-05-10/icons/nav-echoes.png"
-import navHomeIcon from "../assets/soul-link-05-10/icons/nav-home.png"
-import navMemoryIcon from "../assets/soul-link-05-10/icons/nav-memory.png"
-import navSavedIcon from "../assets/soul-link-05-10/icons/nav-saved.png"
-import lightBellIcon from "../assets/soul-link-05-10/user-cuts-light/icon-bell-glow.png"
-import lightBookIcon from "../assets/soul-link-05-10/user-cuts-light/icon-book-glow.png"
-import lightBookmarkIcon from "../assets/soul-link-05-10/user-cuts-light/icon-bookmark-glow.png"
-import lightCompassIcon from "../assets/soul-link-05-10/user-cuts-light/icon-compass-glow.png"
-import lightHomeIcon from "../assets/soul-link-05-10/user-cuts-light/icon-home-glow.png"
-import lightMessageIcon from "../assets/soul-link-05-10/user-cuts-light/icon-message-glow.png"
-import lightPinIcon from "../assets/soul-link-05-10/user-cuts-light/icon-map-pin-glow.png"
-import lightPlaneIcon from "../assets/soul-link-05-10/user-cuts-light/icon-plane-glow.png"
-import lightPulseIcon from "../assets/soul-link-05-10/user-cuts-light/icon-pulse-bars-glow.png"
-import lightSearchIcon from "../assets/soul-link-05-10/user-cuts-light/icon-search-glow.png"
-import lightPlayIcon from "../assets/soul-link-05-10/user-cuts-light/icon-play-glow.png"
-import lightArrowIcon from "../assets/soul-link-05-10/user-cuts-light/icon-arrow-glow.png"
-import lightPlaneWash from "../assets/soul-link-05-10/user-cuts-light/bg-plane-wash.png"
-import lightPaperPlaneSoft from "../assets/soul-link-05-10/user-cuts-light/bg-paper-plane-soft.png"
-import lightSeaLane from "../assets/soul-link-05-10/user-cuts-light/scene-sea-lane.png"
-import lightSkyCityBalcony from "../assets/soul-link-05-10/user-cuts-light/scene-sky-city-balcony.png"
-import lightTrainRainPlatform from "../assets/soul-link-05-10/user-cuts-light/scene-train-platform-rain.png"
-import lightLibraryWide from "../assets/soul-link-05-10/user-cuts-light/scene-library-wide.png"
-import lightLibrarySunlit from "../assets/soul-link-05-10/user-cuts-light/scene-library-sunlit.png"
-import lightLibraryCafeWide from "../assets/soul-link-05-10/user-cuts-light/scene-library-cafe-wide.png"
-import lightGuideStarterBg from "../assets/soul-link-05-10/user-cuts-light/card-invite-soft.png"
-import lightGuideEnvelopeBg from "../assets/soul-link-05-10/user-cuts-light/card-envelope-soft.png"
-import lightGuideShieldBg from "../assets/soul-link-05-10/user-cuts-light/card-shield-soft.png"
+import lightBellIcon from "../assets/soul-link-05-10/home-light/icon-bell-glow.png"
+import lightCompassIcon from "../assets/soul-link-05-10/home-light/icon-compass-glow.png"
+import lightMessageIcon from "../assets/soul-link-05-10/home-light/icon-message-glow.png"
+import lightPinIcon from "../assets/soul-link-05-10/home-light/icon-map-pin-glow.png"
+import lightPlaneIcon from "../assets/soul-link-05-10/home-light/icon-plane-glow.png"
+import lightPulseIcon from "../assets/soul-link-05-10/home-light/icon-pulse-bars-glow.png"
+import lightArrowIcon from "../assets/soul-link-05-10/home-light/icon-arrow-glow.png"
+import lightPlaneWash from "../assets/soul-link-05-10/home-light/bg-plane-wash.png"
+import lightPaperPlaneSoft from "../assets/soul-link-05-10/home-light/bg-paper-plane-soft.png"
+import lightSeaLane from "../assets/soul-link-05-10/home-light/scene-sea-lane.png"
+import lightSkyCityBalcony from "../assets/soul-link-05-10/home-light/scene-sky-city-balcony.png"
+import lightTrainRainPlatform from "../assets/soul-link-05-10/home-light/scene-train-platform-rain.png"
+import lightLibraryWide from "../assets/soul-link-05-10/home-light/scene-library-wide.png"
+import lightLibrarySunlit from "../assets/soul-link-05-10/home-light/scene-library-sunlit.png"
+import lightLibraryCafeWide from "../assets/soul-link-05-10/home-light/scene-library-cafe-wide.png"
+import lightGuideStarterBg from "../assets/soul-link-05-10/home-light/card-invite-soft.png"
+import lightGuideEnvelopeBg from "../assets/soul-link-05-10/home-light/card-envelope-soft.png"
+import lightGuideShieldBg from "../assets/soul-link-05-10/home-light/card-shield-soft.png"
 import soulLinkUserAvatar from "../assets/npc-style-cast/portraits-hd/commission-zhideng.png"
 import type { Tavern } from "../lib/taverns"
 
@@ -166,15 +155,6 @@ type SoulLinkRecentMemory = {
   to?: string
 }
 
-type SoulLinkRecentMemory = {
-  id: string
-  title: string
-  source: string
-  meta: string
-  image: string
-  to?: string
-}
-
 type SoulLinkGuideCard = {
   id: string
   title: string
@@ -243,6 +223,35 @@ const LIGHT_FALLBACK_COORDINATE_CARDS = [
   },
 ] as const
 
+const BLACK_FALLBACK_COORDINATE_CARDS = [
+  {
+    name: "数据港湾",
+    description: "巨大的数据海湾，信息在这里流动不息。",
+    tag: "ACTIVE",
+    image: homeBlackNodeDataHarbor,
+  },
+  {
+    name: "霓虹废墟",
+    description: "被遗忘的商业区，仍有信号在闪烁。",
+    tag: "ACTIVE",
+    image: homeBlackNodeNeonRuins,
+  },
+  {
+    name: "旧地铁站",
+    description: "信号时有时无，可能存在未知干扰。",
+    tag: "UNSTABLE",
+    image: homeBlackNodeOldPlatform,
+  },
+  {
+    name: "白塔图书馆",
+    description: "存储着大量知识，但连接需要权限。",
+    tag: "LOW SIGNAL",
+    image: homeBlackNodeWhiteTower,
+  },
+] as const
+
+const BLACK_GUIDE_ICONS = [homeBlackGuideProtocolIcon, homeBlackGuideDatabaseIcon, homeBlackGuideSecurityIcon] as const
+
 const HOME_LIGHT: Artboard = {
   width: 1536,
   height: 1024,
@@ -256,10 +265,7 @@ const HOME_BLACK: Artboard = {
   height: 1024,
   marker: "home-black-real-dom-1536x1024",
   background: "#020710",
-  slices: [
-    { src: homeBlackMain, src2x: homeBlackMain2x, alt: "SoulLink 首页黑色设计稿主内容切片", x: 220, y: 0, w: 1000, h: 1024 },
-    { src: homeBlackRightRail, src2x: homeBlackRightRail2x, alt: "SoulLink 首页黑色设计稿右侧栏切片", x: 1220, y: 0, w: 316, h: 1024 },
-  ],
+  slices: [],
 }
 
 const DISCOVER_LIGHT: Artboard = {
@@ -267,10 +273,7 @@ const DISCOVER_LIGHT: Artboard = {
   height: 1024,
   marker: "discover-light-real-dom-1536x1024",
   background: "#eef4ff",
-  slices: [
-    { src: discoverLightMain, src2x: discoverLightMain2x, alt: "SoulLink 探索页亮色设计稿主内容切片", x: 220, y: 0, w: 1000, h: 1024 },
-    { src: discoverLightRightRail, src2x: discoverLightRightRail2x, alt: "SoulLink 探索页亮色设计稿右侧栏切片", x: 1220, y: 0, w: 316, h: 1024 },
-  ],
+  slices: [],
 }
 
 const DISCOVER_BLACK: Artboard = {
@@ -284,47 +287,9 @@ const DISCOVER_BLACK: Artboard = {
   ],
 }
 
-const SHARED_USER_CLUSTER = { x: 1234, y: 26, w: 286, h: 72 } as const
-const HOME_RIGHT_RAIL = {
-  worldPulse: { x: 1248, y: 118, w: 240, h: 316 },
-  dailyQuote: { x: 1248, y: 446, w: 240, h: 108 },
-  onlineEntities: { x: 1192, y: 575, w: 286, h: 238 },
-} as const
-const HOME_BOTTOM_RAIL = {
-  recentMemories: { x: 242, y: 840, w: 350, h: 154 },
-  guideCards: { x: 602, y: 840, w: 430, h: 154 },
-  worldStats: { x: 1048, y: 848, w: 443, h: 144 },
-} as const
 const DISCOVER_RIGHT_RAIL = {
   signalFeed: { x: 1236, y: 300, w: 270, h: 250 },
   onlineEntities: { x: 1236, y: 574, w: 270, h: 260 },
-} as const
-
-const SHARED_SIDEBAR_NAV_ITEMS = [
-  { id: "home", label: "首页", eyebrow: "HOME", to: "/", x: 42, y: 143, w: 158, h: 46 },
-  { id: "discover", label: "探索", eyebrow: "EXPLORE", to: "/discover", x: 42, y: 207, w: 158, h: 46 },
-  { id: "echoes", label: "回响", eyebrow: "ECHOES", to: "/home-me", x: 42, y: 273, w: 158, h: 46, badge: "12" },
-  { id: "memory", label: "记忆", eyebrow: "MEMORY", to: "/home-me", x: 42, y: 340, w: 158, h: 46 },
-  { id: "saved", label: "收藏", eyebrow: "SAVED", to: "/home-me", x: 42, y: 407, w: 158, h: 46 },
-  { id: "anchors", label: "我的锚点", eyebrow: "ANCHORS", to: "/home-me", x: 42, y: 474, w: 158, h: 46 },
-  { id: "create", label: "创建坐标", eyebrow: "CREATE", to: "/create", x: 42, y: 541, w: 158, h: 46 },
-] as const
-
-const SHARED_SIDEBAR_INVITE = { x: 46, y: 712, w: 151, h: 170 } as const
-const SHARED_SIDEBAR_BOTTOM_ACTIONS = [
-  { label: "切换主题", x: 53, y: 938, w: 34, h: 34, action: "theme" },
-  { label: "打开回响", x: 103, y: 938, w: 34, h: 34, to: "/home-me" },
-  { label: "打开事务所", x: 154, y: 938, w: 34, h: 34, to: "/owner" },
-] as const
-
-const SIDEBAR_REFERENCE_PANELS = {
-  light: { x: 0, y: 0, w: 220, h: 1024 },
-  black: { src: homeBlackSidePanel, src2x: homeBlackSidePanel2x, x: 0, y: 0, w: 236, h: 1024 },
-} as const
-
-const SIDEBAR_INVITE_CARDS = {
-  light: { src: homeLightInviteCard, src2x: homeLightInviteCard2x },
-  black: { src: homeBlackInviteCard, src2x: homeBlackInviteCard2x },
 } as const
 
 const homeSharedCardBoxes = [
@@ -345,21 +310,61 @@ const discoverSharedCardBoxes = [
   [945, 817, 236, 195],
 ] as const
 
-// Light / black variants share the same interactive DOM layout.
-// Theme differences stay in artboard slices, masks, and color classes only.
+// Light / black home variants intentionally share one geometry source.
+// Theme differences stay in materials, copy, and color branches only.
 const HOME_LAYOUT = {
-  cards: homeSharedCardBoxes,
-  search: { x: 878, y: 41, w: 335, h: 44 },
-  blackSearchMask: { x: 255, y: 14, w: 900, h: 82 },
-  heroActionsMask: { x: 262, y: 304, w: 372, h: 62 },
-  heroActions: {
-    primary: { x: 280, y: 312, w: 136, h: 48 },
-    secondary: { x: 438, y: 312, w: 176, h: 48 },
+  sidebar: {
+    panel: { x: 0, y: 0, w: 220, h: 1024 },
+    logo: { x: 50, y: 48, w: 136, h: 52 },
+    navItems: [
+      { id: "home", label: "首页", eyebrow: "HOME", to: "/", x: 42, y: 143, w: 158, h: 46 },
+      { id: "discover", label: "探索", eyebrow: "EXPLORE", to: "/discover", x: 42, y: 207, w: 158, h: 46 },
+      { id: "echoes", label: "回响", eyebrow: "ECHOES", to: "/home-me", x: 42, y: 273, w: 158, h: 46, badge: "12" },
+      { id: "memory", label: "记忆", eyebrow: "MEMORY", to: "/home-me", x: 42, y: 340, w: 158, h: 46 },
+      { id: "saved", label: "收藏", eyebrow: "SAVED", to: "/home-me", x: 42, y: 407, w: 158, h: 46 },
+      { id: "anchors", label: "我的锚点", eyebrow: "ANCHORS", to: "/home-me", x: 42, y: 474, w: 158, h: 46 },
+      { id: "create", label: "创建坐标", eyebrow: "CREATE", to: "/create", x: 42, y: 541, w: 158, h: 46 },
+    ],
+    invite: { x: 46, y: 712, w: 151, h: 170 },
+    bottomActions: [
+      { label: "切换主题", x: 53, y: 938, w: 34, h: 34, action: "theme" },
+      { label: "打开回响", x: 103, y: 938, w: 34, h: 34, to: "/home-me" },
+    ],
   },
-  links: {
-    allCoordinates: { label: "查看全部坐标", to: "/discover", x: 1070, y: 565, w: 122, h: 44 },
-    memories: { label: "查看更多记忆", to: "/home-me", x: 515, y: 856, w: 82, h: 44 },
-    guide: { label: "探索指南", to: "/quests", x: 603, y: 840, w: 412, h: 178 },
+  userCluster: { x: 1234, y: 26, w: 286, h: 72 },
+  cards: homeSharedCardBoxes,
+  hero: { x: 220, y: 18, w: 1000, h: 530 },
+  title: { x: 280, y: 145, w: 520, h: 178 },
+  heroDecorations: {
+    primary: { x: 830, y: 72, w: 36, h: 36 },
+    secondary: { x: 532, y: 126, w: 22, h: 22 },
+  },
+  currentCoordinate: { x: 1000, y: 397, w: 170, h: 76 },
+  recommendedHeader: { x: 252, y: 560, w: 936, h: 44 },
+  search: { x: 864, y: 41, w: 335, h: 44 },
+  heroActions: {
+    primary: { x: 280, y: 330, w: 136, h: 48 },
+    secondary: { x: 438, y: 330, w: 176, h: 48 },
+  },
+  rightRailSurface: { x: 1220, y: 0, w: 316, h: 1024 },
+  rightRail: {
+    worldPulse: { x: 1248, y: 118, w: 240, h: 316 },
+    dailyQuote: { x: 1248, y: 446, w: 240, h: 108 },
+    onlineEntities: { x: 1192, y: 575, w: 286, h: 238 },
+  },
+  bottomRail: {
+    recentMemories: { x: 242, y: 840, w: 350, h: 154 },
+    guideCards: { x: 602, y: 840, w: 430, h: 154 },
+    worldStats: { x: 1048, y: 848, w: 443, h: 144 },
+  },
+} as const
+
+const SIDEBAR_MATERIALS = {
+  light: {
+    inviteCard: { src: homeLightInviteCard, src2x: homeLightInviteCard2x },
+  },
+  black: {
+    inviteCard: { src: homeBlackInviteCard, src2x: homeBlackInviteCard2x },
   },
 } as const
 
@@ -377,6 +382,35 @@ const DISCOVER_LAYOUT = {
   },
   create: { label: "创建新的坐标", to: "/create", x: 1258, y: 854, w: 260, h: 138 },
 } as const
+
+const DISCOVER_LIGHT_FILTER_GROUPS = [
+  {
+    title: "情绪筛选",
+    items: ["治愈", "温暖", "神秘", "浪漫", "孤独", "怀旧", "希望", "幻想"],
+  },
+  {
+    title: "空间类型",
+    items: ["城市", "自然", "室内", "奇幻", "未来", "其他"],
+  },
+  {
+    title: "连接状态",
+    items: ["任何状态", "稳定连接", "信号波动", "连接中断"],
+  },
+] as const
+
+const DISCOVER_LIGHT_TIMELINE = [
+  { time: "03:41", title: "雨巷书店", subtitle: "新增 3 段回响", tone: "bg-violet-500", image: lightLibraryWide },
+  { time: "03:38", title: "旧车站月台", subtitle: "信号重新连接", tone: "bg-emerald-400", image: lightTrainRainPlatform },
+  { time: "03:32", title: "月亮不眠电台", subtitle: "有人留下了一段广播", tone: "bg-indigo-500", image: lightSkyCityBalcony },
+  { time: "03:21", title: "云上图书馆", subtitle: "新增书签《风的记忆》", tone: "bg-sky-400", image: lightLibrarySunlit },
+  { time: "03:17", title: "海街的尽头", subtitle: "连接不稳定", tone: "bg-rose-500", image: lightSeaLane },
+] as const
+
+const DISCOVER_LIGHT_RIGHT_QUOTES = [
+  "在这里，我第一次放下了过去。",
+  "如果你也在等一个人，就来这里吧。",
+  "这本书里藏着一个秘密，等你发现。",
+] as const
 
 function pct(value: number, total: number) {
   return `${(value / total) * 100}%`
@@ -438,8 +472,10 @@ function targetFor(id?: string) {
   return id ? `/tavern/${encodeURIComponent(id)}` : "/discover"
 }
 
-function lightCoordinateCardData(slice: HomeReferenceProps["featuredCitySlices"][number] | undefined, index: number) {
-  const fallback = LIGHT_FALLBACK_COORDINATE_CARDS[index % LIGHT_FALLBACK_COORDINATE_CARDS.length]
+function homeCoordinateCardData(slice: HomeReferenceProps["featuredCitySlices"][number] | undefined, index: number, variant: Variant) {
+  const fallback = variant === "black"
+    ? BLACK_FALLBACK_COORDINATE_CARDS[index % BLACK_FALLBACK_COORDINATE_CARDS.length]
+    : LIGHT_FALLBACK_COORDINATE_CARDS[index % LIGHT_FALLBACK_COORDINATE_CARDS.length]
   const visitCount = Number(slice?.visit_count || 0)
   return {
     id: slice?.id,
@@ -451,55 +487,47 @@ function lightCoordinateCardData(slice: HomeReferenceProps["featuredCitySlices"]
   }
 }
 
+function discoverLightCardData(tavern: Tavern | undefined, index: number) {
+  const fallback = LIGHT_FALLBACK_COORDINATE_CARDS[index % LIGHT_FALLBACK_COORDINATE_CARDS.length]
+  const visitCount = Number(tavern?.visit_count || 0)
+  const characterCount = tavern?.characters?.length || 0
+  const minutes = index < 4 ? (index + 1) * 3 + 2 : index * 7
+  return {
+    id: tavern?.id,
+    name: tavern?.name || fallback.name,
+    description: tavern?.description || fallback.description,
+    tag: tavern?.tags?.[0] || fallback.tag,
+    image: fallback.image,
+    visitLabel: visitCount > 0 ? `${visitCount} 人在这里` : "等待回响",
+    characterLabel: characterCount > 0 ? `${characterCount} 位 NPC` : "待配置 NPC",
+    timeLabel: minutes < 60 ? `${minutes} 分钟前` : "1 小时前",
+  }
+}
+
 function suppressMouseFocus(event: MouseEvent<HTMLElement>) {
   event.preventDefault()
 }
 
-const SIDEBAR_NAV_ICON_IMAGES: Record<string, string> = {
-  home: navHomeIcon,
-  discover: navDiscoverIcon,
-  echoes: navEchoesIcon,
-  memory: navMemoryIcon,
-  saved: navSavedIcon,
-  anchors: navAnchorsIcon,
-  create: navCreateIcon,
-}
-
 function SidebarNavIcon({ id, variant, className }: { id: string; variant: Variant; className?: string }) {
-  if (variant === "light") {
-    const src =
-      id === "home" ? lightHomeIcon
-      : id === "discover" ? lightCompassIcon
-      : id === "echoes" ? lightMessageIcon
-      : id === "memory" ? lightBookIcon
-      : id === "saved" ? lightBookmarkIcon
-      : id === "anchors" ? lightPinIcon
-      : lightPlaneIcon
-    return (
-      <img
-        src={src}
-        alt=""
-        aria-hidden="true"
-        draggable={false}
-        decoding="async"
-        className={cx("shrink-0 select-none object-contain", className)}
-      />
-    )
-  }
-  const src = SIDEBAR_NAV_ICON_IMAGES[id] || navCreateIcon
+  const Icon =
+    id === "home" ? HomeIcon
+    : id === "discover" ? Compass
+    : id === "echoes" ? MessageCircle
+    : id === "memory" ? BookOpen
+    : id === "saved" ? Bookmark
+    : id === "anchors" ? MapPin
+    : Send
+
   return (
-    <img
-      src={src}
-      alt=""
+    <Icon
       aria-hidden="true"
-      draggable={false}
-      decoding="async"
-      className={cx("select-none object-contain", className)}
+      strokeWidth={variant === "black" ? 2.15 : 2.25}
+      className={cx("shrink-0", className)}
     />
   )
 }
 
-function SidebarBottomIcon({ id, className }: { id: "theme" | "echoes" | "owner"; className?: string }) {
+function SidebarBottomIcon({ id, className }: { id: "theme" | "echoes"; className?: string }) {
   const common = {
     viewBox: "0 0 24 24",
     fill: "none",
@@ -546,9 +574,9 @@ function SoulLinkSidebar({
   active: "home" | "discover"
   onToggleTheme: () => void
 }) {
-  const panel = SIDEBAR_REFERENCE_PANELS[variant]
-  const blackPanel = SIDEBAR_REFERENCE_PANELS.black
-  const inviteCard = SIDEBAR_INVITE_CARDS[variant]
+  const sidebar = HOME_LAYOUT.sidebar
+  const panel = sidebar.panel
+  const inviteCard = SIDEBAR_MATERIALS[variant].inviteCard
   const isBlack = variant === "black"
   const panelClass = isBlack
     ? "border-cyan-300/20 bg-[#020710] shadow-[inset_-1px_0_0_rgba(34,211,238,0.2),0_0_34px_rgba(0,255,255,0.08)]"
@@ -567,46 +595,40 @@ function SoulLinkSidebar({
       className={cx("absolute z-30 overflow-hidden rounded-r-[1.45rem] border-r", panelClass)}
       style={boxStyle(artboard, panel.x, panel.y, panel.w, panel.h)}
     >
-      {isBlack ? (
-        <div aria-hidden="true" className="absolute overflow-hidden" style={panelBoxStyle(blackPanel, 0, 0, blackPanel.w, 126)}>
-          <img
-            src={blackPanel.src}
-            srcSet={`${blackPanel.src} 1x, ${blackPanel.src2x} 2x`}
-            alt=""
-            decoding="async"
-            draggable={false}
-            className="absolute left-0 top-0 w-full select-none object-fill"
-            style={{ height: `${(blackPanel.h / 126) * 100}%` }}
-          />
-        </div>
-      ) : (
-        <div aria-hidden="true" className="absolute inset-x-6 top-7 h-16 rounded-[1.45rem] bg-gradient-to-r from-violet-50 via-white to-sky-50" />
-      )}
-
       <Link
         to="/"
         aria-label="SoulLink"
         onMouseDown={suppressMouseFocus}
         className={cx(
           "absolute touch-manipulation rounded-2xl outline-none focus:ring-4 focus:ring-violet-400/45",
-          isBlack ? "" : "flex items-center gap-3 px-1",
+          "flex items-center gap-2",
         )}
-        style={panelBoxStyle(panel, 50, 48, 136, 52)}
+        style={panelBoxStyle(panel, sidebar.logo.x, sidebar.logo.y, sidebar.logo.w, sidebar.logo.h)}
       >
-        {!isBlack ? (
+        {isBlack ? (
+          <>
+            <span className="grid h-9 w-9 shrink-0 place-items-center rounded-2xl border border-cyan-300/18 bg-cyan-300/10 text-cyan-200">
+              <Compass size={20} strokeWidth={2.6} />
+            </span>
+            <span className="min-w-0">
+              <span className="block text-[1.02rem] font-black leading-tight text-cyan-50">SoulLink</span>
+              <span className="block truncate text-[10px] font-bold text-cyan-100/48">连接另一个数字世界</span>
+            </span>
+          </>
+        ) : (
           <>
             <UserCutImage src={lightPlaneIcon} className="h-8 w-8 rounded-xl" scale={2.2} loading="eager" />
             <span className="min-w-0">
-              <span className="block text-[1.02rem] font-black leading-tight text-slate-800">FableMap</span>
+              <span className="block text-[1.02rem] font-black leading-tight text-slate-800">SoulLink</span>
               <span className="block truncate text-[10px] font-bold text-slate-400">连接每一个真实坐标</span>
             </span>
           </>
-        ) : null}
+        )}
         <span className="sr-only">SoulLink 连接另一个灵魂坐标</span>
       </Link>
 
       <nav aria-label="SoulLink navigation" className="absolute inset-0">
-        {SHARED_SIDEBAR_NAV_ITEMS.map((item) => {
+        {sidebar.navItems.map((item) => {
           const selected = item.id === active
           return (
             <Link
@@ -645,7 +667,7 @@ function SoulLinkSidebar({
           "absolute touch-manipulation overflow-hidden rounded-[1.55rem] outline-none focus:ring-4 focus:ring-violet-400/45",
           isBlack ? "" : "shadow-[0_16px_36px_rgba(104,126,190,0.14)]",
         )}
-        style={panelBoxStyle(panel, SHARED_SIDEBAR_INVITE.x, SHARED_SIDEBAR_INVITE.y, SHARED_SIDEBAR_INVITE.w, SHARED_SIDEBAR_INVITE.h)}
+        style={panelBoxStyle(panel, sidebar.invite.x, sidebar.invite.y, sidebar.invite.w, sidebar.invite.h)}
       >
         <img
           data-soul-link-sidebar-invite="fixed-image"
@@ -660,7 +682,7 @@ function SoulLinkSidebar({
         <span className="sr-only">邀请朋友，一起探索更多坐标，立即邀请</span>
       </Link>
 
-      {SHARED_SIDEBAR_BOTTOM_ACTIONS.map((item) =>
+      {sidebar.bottomActions.map((item) =>
         "action" in item && item.action === "theme" ? (
           <button
             key={item.label}
@@ -688,7 +710,7 @@ function SoulLinkSidebar({
             )}
             style={panelBoxStyle(panel, item.x, item.y, item.w, item.h)}
           >
-            <SidebarBottomIcon id={"to" in item && item.to === "/owner" ? "owner" : "echoes"} className="h-[22px] w-[22px]" />
+            <SidebarBottomIcon id="echoes" className="h-[22px] w-[22px]" />
           </Link>
         ),
       )}
@@ -723,6 +745,9 @@ function SoulLinkNotificationBell({ variant }: { variant: Variant }) {
 
 function SoulLinkUserAvatar({ avatar, name, variant }: { avatar: string; name: string; variant: Variant }) {
   const isBlack = variant === "black"
+  const blackAvatarStyle: CSSProperties | undefined = isBlack
+    ? { backgroundImage: `url(${avatar})`, backgroundPosition: "center", backgroundSize: "cover" }
+    : undefined
   return (
     <span
       data-soul-link-user-avatar="real-image"
@@ -730,8 +755,9 @@ function SoulLinkUserAvatar({ avatar, name, variant }: { avatar: string; name: s
         "block h-full aspect-square shrink-0 overflow-hidden rounded-full border p-[2px]",
         isBlack ? "border-cyan-300/24 bg-cyan-300/10" : "border-violet-100 bg-violet-50",
       )}
+      style={blackAvatarStyle}
     >
-      <img src={avatar} alt={`${name} 头像`} className="h-full w-full rounded-full object-cover" loading="eager" decoding="async" />
+      <img src={avatar} alt={`${name} 头像`} className={cx("h-full w-full rounded-full object-cover", isBlack ? "sr-only" : "")} loading="eager" decoding="async" />
     </span>
   )
 }
@@ -758,6 +784,10 @@ function SoulLinkUserCluster({
   forceVisible?: boolean
 }) {
   const isBlack = variant === "black"
+  const box = HOME_LAYOUT.userCluster
+  const resolvedProfile = isBlack
+    ? { name: "USER_07", meta: "ID: 0x7A31...9F2C", avatar: homeBlackUserAvatar }
+    : profile
   return (
     <div
       data-soul-link-user-cluster="shared"
@@ -768,17 +798,17 @@ function SoulLinkUserCluster({
           ? "border-cyan-300/16 bg-[#020710]/96 shadow-[0_0_30px_rgba(0,255,255,0.1)]"
           : "border-white/80 bg-white/92 shadow-[0_14px_36px_rgba(83,103,166,0.13)] backdrop-blur-xl",
       )}
-      style={boxStyle(artboard, SHARED_USER_CLUSTER.x, SHARED_USER_CLUSTER.y, SHARED_USER_CLUSTER.w, SHARED_USER_CLUSTER.h)}
+      style={boxStyle(artboard, box.x, box.y, box.w, box.h)}
     >
       <SoulLinkNotificationBell variant={variant} />
       <Link
         to="/home-me"
-        aria-label={`${profile.name} 个人中心`}
+        aria-label={`${resolvedProfile.name} 个人中心`}
         onMouseDown={suppressMouseFocus}
         className="flex h-full min-w-0 flex-1 touch-manipulation items-center gap-[7%] rounded-[1.35rem] px-[2%] outline-none transition focus:ring-4 focus:ring-violet-400/45"
       >
-        <SoulLinkUserAvatar avatar={profile.avatar} name={profile.name} variant={variant} />
-        <SoulLinkUserIdentity name={profile.name} meta={profile.meta} variant={variant} />
+        <SoulLinkUserAvatar avatar={resolvedProfile.avatar} name={resolvedProfile.name} variant={variant} />
+        <SoulLinkUserIdentity name={resolvedProfile.name} meta={resolvedProfile.meta} variant={variant} />
         <ChevronDown size={14} strokeWidth={3} className={cx("shrink-0 opacity-60", isBlack ? "text-cyan-300" : "text-slate-500")} />
       </Link>
     </div>
@@ -860,9 +890,9 @@ function SoulLinkPanelShell({
     <section
       className={cx(
         "absolute z-30 rounded-[1.55rem] border p-[1.55%]",
-        forceVisible ? "opacity-100" : "opacity-0",
+        forceVisible ? "opacity-100" : "pointer-events-none opacity-0",
         isBlack
-          ? "border-cyan-300/16 bg-[#020710] text-cyan-50 shadow-[0_0_28px_rgba(0,255,255,0.08)]"
+          ? "rounded-[0.55rem] border-cyan-300/14 bg-[#020710]/96 text-cyan-50 shadow-[0_0_0_1px_rgba(34,211,238,0.04)]"
           : "border-white/80 bg-white text-slate-700 shadow-[0_18px_44px_rgba(85,103,160,0.13)]",
         className,
       )}
@@ -953,17 +983,17 @@ function SoulLinkOnlineEntitiesPanel({
   forceVisible?: boolean
 }) {
   const isBlack = variant === "black"
-  const isCompact = forceVisible && !isBlack
+  const isCompact = forceVisible
   const visibleEntities = entities.slice(0, 3)
   return (
     <SoulLinkPanelShell artboard={artboard} variant={variant} box={box} forceVisible={forceVisible} className={cx("flex flex-col p-4", isCompact ? "gap-2.5" : "gap-3")}>
       <header className="flex items-center justify-between gap-3">
-        <span className={cx("block text-sm font-black leading-none", isBlack ? "text-cyan-50" : "text-slate-800")}>在线的灵魂</span>
+        <span className={cx("block text-sm font-black leading-none", isBlack ? "text-cyan-50" : "text-slate-800")}>{isBlack ? "ONLINE ENTITIES" : "在线的灵魂"}</span>
         <Link to="/home-me" onMouseDown={suppressMouseFocus} className={cx("text-[10px] font-black leading-none outline-none transition focus:ring-4 focus:ring-violet-400/40", isBlack ? "text-cyan-300" : "text-violet-300")}>
-          查看全部 →
+          {isBlack ? "查看全部" : "查看全部"} →
         </Link>
       </header>
-      <div data-soul-link-online-panel="real-list" className="flex flex-col divide-y divide-slate-200/60 overflow-hidden">
+      <div data-soul-link-online-panel="real-list" className={cx("flex flex-col overflow-hidden", isBlack ? "divide-y divide-cyan-300/12" : "divide-y divide-slate-200/60")}>
         {visibleEntities.length ? (
           visibleEntities.map((entity) => <SoulLinkOnlineEntityRow key={entity.id} entity={entity} variant={variant} compact={isCompact} />)
         ) : (
@@ -1063,12 +1093,12 @@ function SoulLinkFeedPanel({
   forceVisible?: boolean
 }) {
   const isBlack = variant === "black"
-  const isCompact = forceVisible && !isBlack
+  const isCompact = forceVisible
   const visibleItems = items.slice(0, 3)
   return (
     <SoulLinkPanelShell artboard={artboard} variant={variant} box={box} forceVisible={forceVisible} className={cx("flex flex-col", isCompact ? "gap-3" : "gap-4")}>
       <SoulLinkPanelHeader title={title} eyebrow={eyebrow} variant={variant} />
-      <div data-soul-link-feed-panel="real-list" className="flex flex-col divide-y divide-slate-200/60 overflow-hidden">
+      <div data-soul-link-feed-panel="real-list" className={cx("flex flex-col overflow-hidden", isBlack ? "divide-y divide-cyan-300/12" : "divide-y divide-slate-200/60")}>
         {visibleItems.length ? (
           visibleItems.map((item) => <SoulLinkFeedItemRow key={item.id} item={item} variant={variant} compact={isCompact} />)
         ) : (
@@ -1100,17 +1130,14 @@ function SoulLinkDailyQuotePanel({
 }) {
   const isBlack = variant === "black"
   return (
-    <SoulLinkPanelShell artboard={artboard} variant={variant} box={box} forceVisible={forceVisible} className="overflow-hidden">
+    <SoulLinkPanelShell artboard={artboard} variant={variant} box={box} forceVisible={forceVisible} className={cx("overflow-hidden", !isBlack && "[padding:16px_20px]")}>
       <div data-soul-link-daily-quote="real-text" className="relative z-10">
-        <p className={cx("text-sm font-black", isBlack ? "text-cyan-50" : "text-slate-800")}>{quote.title}</p>
-        <blockquote className={cx("mt-4 text-[clamp(0.82rem,0.9vw,1rem)] font-bold leading-7", isBlack ? "text-cyan-100/62" : "text-slate-500")}>“{quote.quote}”</blockquote>
+        <p className={cx("text-sm font-black", isBlack ? "text-cyan-50" : "text-slate-800")}>{isBlack ? "RECENT ECHO" : quote.title}</p>
+        <blockquote className={cx("font-bold", isBlack ? "mt-4 max-w-[14rem] text-[clamp(0.82rem,0.9vw,1rem)] leading-7 text-cyan-100/62" : "mt-3 text-[clamp(0.68rem,0.76vw,0.82rem)] leading-5 text-slate-500")}>“{quote.quote}”</blockquote>
         {quote.source ? <p className={cx("mt-2 text-xs font-bold", isBlack ? "text-cyan-100/42" : "text-slate-400")}>— {quote.source}</p> : null}
       </div>
       {isBlack ? (
-        <svg aria-hidden="true" className="absolute bottom-2 right-3 h-16 w-16 text-cyan-300 opacity-30" viewBox="0 0 96 96" fill="none" stroke="currentColor" strokeWidth="2">
-          <path d="M10 51 82 18 60 82 44 57 10 51Z" />
-          <path d="M44 57 82 18" />
-        </svg>
+        <img src={homeBlackRecentEchoWaveform} alt="" aria-hidden="true" className="absolute bottom-2 right-2 h-16 w-28 object-contain opacity-70" loading="lazy" decoding="async" />
       ) : (
         <UserCutImage src={lightPlaneIcon} className="absolute bottom-2 right-3 h-16 w-16 rounded-full opacity-35" scale={2.2} />
       )}
@@ -1162,12 +1189,12 @@ function SoulLinkRecentMemoriesPanel({
   const isBlack = variant === "black"
   const visibleMemories = memories.slice(0, 2)
   return (
-    <SoulLinkPanelShell artboard={artboard} variant={variant} box={HOME_BOTTOM_RAIL.recentMemories} forceVisible={forceVisible} className="flex flex-col gap-1.5 !p-3">
+    <SoulLinkPanelShell artboard={artboard} variant={variant} box={HOME_LAYOUT.bottomRail.recentMemories} forceVisible={forceVisible} className="flex flex-col gap-1.5 !p-3">
       <header className="flex items-center justify-between gap-3">
-        <h2 className={cx("text-[0.82rem] font-black", isBlack ? "text-cyan-50" : "text-slate-800")}>最近的记忆</h2>
+        <h2 className={cx("text-[0.82rem] font-black", isBlack ? "text-cyan-50" : "text-slate-800")}>{isBlack ? "MEMORY STREAM" : "最近的记忆"}</h2>
         <Link to="/home-me" onMouseDown={suppressMouseFocus} className={cx("text-[0.62rem] font-black outline-none transition focus:ring-4 focus:ring-violet-400/40", isBlack ? "text-cyan-300" : "text-slate-400")}>查看全部 →</Link>
       </header>
-      <div data-soul-link-recent-memories="real-list" className="flex flex-col divide-y divide-slate-200/60 overflow-hidden">
+      <div data-soul-link-recent-memories="real-list" className={cx("flex flex-col overflow-hidden", isBlack ? "divide-y divide-cyan-300/12" : "divide-y divide-slate-200/60")}>
         {visibleMemories.length ? (
           visibleMemories.map((memory) => <SoulLinkRecentMemoryRow key={memory.id} memory={memory} variant={variant} />)
         ) : (
@@ -1255,12 +1282,12 @@ function SoulLinkGuidePanel({ artboard, variant, cards, forceVisible = false }: 
   const isBlack = variant === "black"
   const visibleCards = cards.slice(0, 3)
   const cardsWithLightBackgrounds = visibleCards.map((card, index) => (
-    isBlack ? card : { ...card, image: card.image || LIGHT_GUIDE_BACKGROUNDS[index] }
+    isBlack ? { ...card, image: card.image || BLACK_GUIDE_ICONS[index] } : { ...card, image: card.image || LIGHT_GUIDE_BACKGROUNDS[index] }
   ))
   return (
-    <SoulLinkPanelShell artboard={artboard} variant={variant} box={HOME_BOTTOM_RAIL.guideCards} forceVisible={forceVisible} className="flex flex-col gap-2 !p-3">
+    <SoulLinkPanelShell artboard={artboard} variant={variant} box={HOME_LAYOUT.bottomRail.guideCards} forceVisible={forceVisible} className="flex flex-col gap-2 !p-3">
       <header className="flex items-center justify-between gap-3">
-        <h2 className={cx("text-[0.82rem] font-black", isBlack ? "text-cyan-50" : "text-slate-800")}>探索指南</h2>
+        <h2 className={cx("text-[0.82rem] font-black", isBlack ? "text-cyan-50" : "text-slate-800")}>{isBlack ? "EXPLORATION GUIDE" : "探索指南"}</h2>
         <Link to="/quests" onMouseDown={suppressMouseFocus} className={cx("text-[0.62rem] font-black outline-none transition focus:ring-4 focus:ring-violet-400/40", isBlack ? "text-cyan-300" : "text-slate-400")}>查看全部 →</Link>
       </header>
       <div data-soul-link-guide-panel="real-cards" className="grid flex-1 grid-cols-3 gap-3 overflow-hidden">
@@ -1274,13 +1301,13 @@ function SoulLinkWorldStatsPanel({ artboard, variant, stats, forceVisible = fals
   const isBlack = variant === "black"
   const visibleStats = stats.length ? stats.slice(0, 4) : DEFAULT_WORLD_STATS
   return (
-    <SoulLinkPanelShell artboard={artboard} variant={variant} box={HOME_BOTTOM_RAIL.worldStats} forceVisible={forceVisible} className="overflow-hidden p-[1.25%]">
+    <SoulLinkPanelShell artboard={artboard} variant={variant} box={HOME_LAYOUT.bottomRail.worldStats} forceVisible={forceVisible} className="overflow-hidden p-[1.25%]">
       {!isBlack ? (
         <img data-soul-link-world-stats-deco="real-image" src={lightPaperPlaneSoft} alt="" aria-hidden="true" className="absolute inset-0 h-full w-full origin-center scale-[1.18] object-cover" loading="lazy" decoding="async" />
       ) : null}
       <div data-soul-link-world-stats="real-data" className="relative z-10 flex h-full flex-col">
         <header className="flex items-center gap-1.5">
-          <h2 className={cx("text-[0.9rem] font-black", isBlack ? "text-cyan-50" : "text-slate-800")}>今日世界统计</h2>
+          <h2 className={cx("text-[0.9rem] font-black", isBlack ? "text-cyan-50" : "text-slate-800")}>{isBlack ? "WORLD STATS" : "今日世界统计"}</h2>
           <Info size={12} strokeWidth={3} className={cx("shrink-0", isBlack ? "text-cyan-100/56" : "text-slate-400")} />
         </header>
         <div className="mt-auto grid grid-cols-4 divide-x divide-slate-200/70">
@@ -1293,18 +1320,15 @@ function SoulLinkWorldStatsPanel({ artboard, variant, stats, forceVisible = fals
         </div>
       </div>
       {isBlack ? (
-        <svg data-soul-link-world-stats-deco="real-svg" aria-hidden="true" className="absolute right-7 top-3 h-20 w-20 text-cyan-300 opacity-25" viewBox="0 0 96 96" fill="none" stroke="currentColor" strokeWidth="2">
-          <path d="M10 51 82 18 60 82 44 57 10 51Z" />
-          <path d="M44 57 82 18" />
-          <path d="M24 70c5-7 12-10 20-9" strokeDasharray="4 6" />
-        </svg>
+        <img data-soul-link-world-stats-deco="real-image" src={homeBlackWorldStatsSparkline} alt="" aria-hidden="true" className="absolute bottom-0 right-2 h-20 w-56 object-contain opacity-42" loading="lazy" decoding="async" />
       ) : null}
     </SoulLinkPanelShell>
   )
 }
 
 function ArtboardShell({ artboard, variant, kind, children }: { artboard: Artboard; variant: Variant; kind: "home" | "discover"; children: ReactNode }) {
-  const isHomeLight = variant === "light" && kind === "home"
+  const isHome = kind === "home"
+  const isLightDiscover = kind === "discover" && variant === "light"
   return (
     <main
       data-soul-link-real-dom="true"
@@ -1318,11 +1342,11 @@ function ArtboardShell({ artboard, variant, kind, children }: { artboard: Artboa
         data-soul-link-design-lock="owner-reference-1-to-1"
         className={cx(
           "relative mx-auto w-full select-none",
-          isHomeLight ? "min-h-screen overflow-visible md:min-h-0 md:overflow-hidden md:aspect-[1536/1024]" : "overflow-hidden",
+          isHome || isLightDiscover ? "min-h-screen overflow-visible md:min-h-0 md:overflow-hidden md:aspect-[1536/1024]" : "overflow-hidden",
         )}
         style={{
           maxWidth: `${artboard.width}px`,
-          ...(isHomeLight ? {} : { aspectRatio: `${artboard.width} / ${artboard.height}` }),
+          aspectRatio: `${artboard.width} / ${artboard.height}`,
           background: artboard.background,
         }}
       >
@@ -1380,10 +1404,6 @@ function OverlayText({ artboard, children, x, y, w, h }: { artboard: Artboard; c
       {children}
     </span>
   )
-}
-
-function OverlayMask({ artboard, className, x, y, w, h }: { artboard: Artboard; className: string; x: number; y: number; w: number; h: number }) {
-  return <span aria-hidden="true" className={cx("pointer-events-none absolute z-[12] opacity-0", className)} style={boxStyle(artboard, x, y, w, h)} />
 }
 
 function OverlayInput({
@@ -1444,7 +1464,7 @@ function OverlayInput({
       {variant === "black" ? (
         <Search size={18} strokeWidth={2.6} className="pointer-events-none absolute left-[7.5%] opacity-60" />
       ) : (
-        <UserCutImage src={lightSearchIcon} className="pointer-events-none absolute left-[7.5%] h-5 w-5 opacity-60" scale={2.5} />
+        <Search size={18} strokeWidth={2.75} className="pointer-events-none absolute left-[7.5%] text-[#90a5ff] opacity-72" />
       )}
       <input
         value={value}
@@ -1464,43 +1484,64 @@ function OverlayInput({
   )
 }
 
-function SoulLinkLightCoordinateCard({
+function SoulLinkHomeCoordinateCard({
   artboard,
   box,
   slice,
   index,
+  variant,
+  to,
 }: {
   artboard: Artboard
   box: readonly [number, number, number, number]
   slice?: HomeReferenceProps["featuredCitySlices"][number]
   index: number
+  variant: Variant
+  to?: string
 }) {
-  const card = lightCoordinateCardData(slice, index)
+  const isBlack = variant === "black"
+  const card = homeCoordinateCardData(slice, index, variant)
   const [x, y, w, h] = box
 
   return (
     <Link
-      to={targetFor(card.id)}
-      data-soul-link-home-light-card="real-card"
+      to={to || targetFor(card.id)}
+      data-soul-link-home-card="real-card"
+      data-soul-link-home-light-card={variant === "light" ? "real-card" : undefined}
       onMouseDown={suppressMouseFocus}
-      className="absolute z-20 min-h-11 touch-manipulation overflow-hidden rounded-[1.2rem] border border-white/90 bg-white shadow-[0_18px_42px_rgba(108,123,178,0.14)] outline-none transition hover:-translate-y-1 hover:shadow-[0_22px_48px_rgba(108,123,178,0.2)] focus:ring-4 focus:ring-violet-400/35"
+      className={cx(
+        "absolute z-20 min-h-11 touch-manipulation overflow-hidden rounded-[1.2rem] border outline-none transition hover:-translate-y-1 focus:ring-4",
+        isBlack
+          ? "border-cyan-300/16 bg-[#06111f]/94 text-cyan-50 shadow-[0_16px_36px_rgba(0,0,0,0.38),0_0_26px_rgba(34,211,238,0.08)] hover:border-cyan-300/28 hover:shadow-[0_22px_46px_rgba(0,0,0,0.48),0_0_34px_rgba(34,211,238,0.12)] focus:ring-cyan-300/35"
+          : "border-white/90 bg-white text-slate-800 shadow-[0_18px_42px_rgba(108,123,178,0.14)] hover:shadow-[0_22px_48px_rgba(108,123,178,0.2)] focus:ring-violet-400/35",
+      )}
       style={boxStyle(artboard, x, y, w, h)}
     >
       <div className="relative h-[45%] overflow-hidden">
-        <img src={card.image} alt={`${card.name} 坐标封面`} className="h-full w-full object-cover" loading="lazy" decoding="async" />
-        <span className="absolute left-3 top-3 rounded-full bg-violet-500/82 px-3 py-1 text-[clamp(0.46rem,0.68vw,0.72rem)] font-black text-white shadow-[0_8px_18px_rgba(118,91,255,0.22)]">
+        <img src={card.image} alt={`${card.name} 坐标封面`} className={cx("h-full w-full object-cover", isBlack ? "opacity-76 saturate-[1.08]" : "")} loading="lazy" decoding="async" />
+        {isBlack ? <span aria-hidden="true" className="absolute inset-0 bg-gradient-to-t from-[#06111f]/70 via-transparent to-transparent" /> : null}
+        <span
+          className={cx(
+            "absolute left-3 top-3 rounded-full px-3 py-1 text-[clamp(0.46rem,0.68vw,0.72rem)] font-black shadow-[0_8px_18px_rgba(118,91,255,0.22)]",
+            isBlack ? "border border-cyan-200/20 bg-cyan-300/14 text-cyan-50" : "bg-violet-500/82 text-white",
+          )}
+        >
           {card.tag}
         </span>
       </div>
       <div className="flex h-[55%] flex-col px-[7%] py-[5%]">
-        <h3 data-soul-link-home-card-title="real-text" className="truncate text-[clamp(0.68rem,0.9vw,1rem)] font-black leading-tight text-slate-800">{card.name}</h3>
-        <p className="mt-[5%] line-clamp-2 text-[clamp(0.5rem,0.74vw,0.82rem)] font-bold leading-5 text-slate-400">{card.description}</p>
-        <div className="mt-auto flex items-center justify-between gap-2 text-[clamp(0.48rem,0.68vw,0.72rem)] font-bold text-slate-400">
+        <h3 data-soul-link-home-card-title="real-text" className={cx("truncate text-[clamp(0.68rem,0.9vw,1rem)] font-black leading-tight", isBlack ? "text-cyan-50" : "text-slate-800")}>{card.name}</h3>
+        <p className={cx("mt-[5%] line-clamp-2 text-[clamp(0.5rem,0.74vw,0.82rem)] font-bold leading-5", isBlack ? "text-cyan-100/50" : "text-slate-400")}>{card.description}</p>
+        <div className={cx("mt-auto flex items-center justify-between gap-2 text-[clamp(0.48rem,0.68vw,0.72rem)] font-bold", isBlack ? "text-cyan-100/45" : "text-slate-400")}>
           <span className="flex min-w-0 items-center gap-1 truncate">
-            <UserCutImage src={lightMessageIcon} className="h-5 w-5 rounded-full" scale={2.2} />
+            {isBlack ? (
+              <MessageCircle size={14} strokeWidth={2.6} className="shrink-0 text-cyan-300/70" />
+            ) : (
+              <UserCutImage src={lightMessageIcon} className="h-5 w-5 rounded-full" scale={2.2} />
+            )}
             {card.visitLabel}
           </span>
-          <span aria-hidden="true" className="text-violet-300">♡</span>
+          <span aria-hidden="true" className={isBlack ? "text-cyan-300/58" : "text-violet-300"}>♡</span>
         </div>
       </div>
     </Link>
@@ -1518,12 +1559,8 @@ function SoulLinkLightDiscoverCard({
   tavern?: Tavern
   index: number
 }) {
-  const fallback = LIGHT_FALLBACK_COORDINATE_CARDS[index % LIGHT_FALLBACK_COORDINATE_CARDS.length]
   const [x, y, w, h] = box
-  const name = tavern?.name || fallback.name
-  const description = tavern?.description || fallback.description
-  const tag = tavern?.tags?.[0] || fallback.tag
-  const image = tavern?.characters?.[0]?.avatar || fallback.image
+  const card = discoverLightCardData(tavern, index)
 
   return (
     <Link
@@ -1534,130 +1571,258 @@ function SoulLinkLightDiscoverCard({
       style={boxStyle(artboard, x, y, w, h)}
     >
       <div className="relative h-[48%] overflow-hidden">
-        <img src={image} alt={`${name} 封面`} className="h-full w-full object-cover" loading="lazy" decoding="async" />
+        <img data-soul-link-discover-card-cover="real-image" src={card.image} alt={`${card.name} 封面`} className="h-full w-full object-cover" loading="lazy" decoding="async" />
         <span className="absolute left-2.5 top-2.5 rounded-full bg-violet-500/86 px-2 py-0.5 text-[9px] font-black text-white">
-          {tag}
+          {card.tag}
         </span>
       </div>
       <div className="flex h-[52%] flex-col px-[8%] py-[6%]">
-        <h3 className="truncate text-[13px] font-black leading-tight text-slate-800">{name}</h3>
-        <p className="mt-1.5 line-clamp-2 text-[10px] font-bold leading-4 text-slate-400">{description}</p>
+        <h3 data-soul-link-discover-card-title="real-text" className="truncate text-[13px] font-black leading-tight text-slate-800">{card.name}</h3>
+        <p className="mt-1.5 line-clamp-2 text-[10px] font-bold leading-4 text-slate-400">{card.description}</p>
         <div className="mt-auto flex items-center justify-between text-[9px] font-black text-slate-300">
           <span className="flex items-center gap-1">
             <UserCutImage src={lightPinIcon} className="h-4 w-4 rounded-full" scale={1.8} />
-            正在被探索
+            {card.visitLabel}
           </span>
-          <ArrowUpRight size={10} strokeWidth={4} />
+          <span className="flex items-center gap-1">
+            {card.characterLabel}
+            <ArrowUpRight size={10} strokeWidth={4} />
+          </span>
         </div>
       </div>
     </Link>
   )
 }
 
-function SoulLinkHomeLightMainSurface({
+function HomeCurrentCoordinateBadge({ artboard, variant }: { artboard: Artboard; variant: Variant }) {
+  const isBlack = variant === "black"
+  const box = HOME_LAYOUT.currentCoordinate
+  return (
+    <div
+      data-soul-link-current-coordinate="shared"
+      className={cx(
+        "absolute z-10 rounded-[1.25rem] border px-5 py-4",
+        isBlack
+          ? "border-cyan-300/18 bg-[#020710]/78 shadow-[0_0_28px_rgba(34,211,238,0.1)]"
+          : "border-white/90 bg-white/88 shadow-[0_18px_42px_rgba(118,133,190,0.16)]",
+      )}
+      style={boxStyle(artboard, box.x, box.y, box.w, box.h)}
+    >
+      <p className={cx("text-[clamp(0.44rem,0.62vw,0.66rem)] font-black", isBlack ? "text-cyan-100/48" : "text-slate-400")}>
+        {isBlack ? "CURRENT NODE" : "当前坐标"}
+      </p>
+      <p className={cx("mt-2 flex items-center justify-between gap-2 text-[clamp(0.66rem,0.9vw,1rem)] font-black", isBlack ? "text-cyan-50" : "text-slate-700")}>
+        {isBlack ? "NODE_07" : "云上图书馆"}
+        {isBlack ? (
+          <MapPin size={18} strokeWidth={2.6} className="shrink-0 text-cyan-300/80" />
+        ) : (
+          <UserCutImage src={lightPinIcon} className="h-5 w-5 shrink-0 rounded-full" scale={1.7} loading="eager" />
+        )}
+      </p>
+    </div>
+  )
+}
+
+function SoulLinkHomeMainSurface({
   artboard,
   featuredCitySlices,
+  variant,
 }: {
   artboard: Artboard
   featuredCitySlices: HomeReferenceProps["featuredCitySlices"]
+  variant: Variant
 }) {
+  const isBlack = variant === "black"
+  const heroBox = HOME_LAYOUT.hero
+  const titleBox = HOME_LAYOUT.title
+  const heroDecorations = HOME_LAYOUT.heroDecorations
+  const recommendedHeaderBox = HOME_LAYOUT.recommendedHeader
+  const cardBoxes = HOME_LAYOUT.cards
+  const rightRailSurface = HOME_LAYOUT.rightRailSurface
   return (
     <>
       <div aria-hidden="true" className="absolute inset-0 z-0 overflow-hidden">
-        <img src={lightPlaneWash} alt="" className="h-full w-full object-cover opacity-60" draggable={false} decoding="async" />
+        {isBlack ? (
+          <>
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_48%_26%,rgba(34,211,238,0.18),transparent_34%),linear-gradient(180deg,#06111f_0%,#020710_60%,#020710_100%)]" />
+            <div className="absolute left-[28%] top-0 h-[72%] w-[48%] rounded-full bg-cyan-300/10 blur-3xl" />
+          </>
+        ) : (
+          <img src={lightPlaneWash} alt="" className="h-full w-full object-cover opacity-60" draggable={false} decoding="async" />
+        )}
       </div>
-      <div aria-hidden="true" className="absolute z-0 overflow-hidden rounded-[2rem] bg-white shadow-[0_24px_80px_rgba(116,135,190,0.14)]" style={boxStyle(artboard, 220, 18, 1000, 530)}>
-        <img src={lightSkyCityBalcony} alt="" className="h-full w-full object-cover opacity-78" draggable={false} decoding="async" />
-        <div className="absolute inset-0 bg-gradient-to-r from-white/92 via-white/72 to-white/22" />
+      <div
+        aria-hidden="true"
+        className={cx(
+          "absolute z-0 overflow-hidden rounded-[2rem] border shadow-[0_24px_80px_rgba(116,135,190,0.14)]",
+          isBlack ? "rounded-[0.45rem] border-transparent bg-[#020710] shadow-[0_0_34px_rgba(34,211,238,0.08)]" : "border-transparent bg-white",
+        )}
+        style={boxStyle(artboard, heroBox.x, heroBox.y, heroBox.w, heroBox.h)}
+      >
+        {isBlack ? (
+          <>
+            <div className="absolute inset-0 bg-[#020710]" />
+            <img
+              src={homeBlackHeroVisual}
+              alt=""
+              className="absolute inset-0 h-full w-full object-cover object-center opacity-95"
+              draggable={false}
+              decoding="async"
+            />
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_68%_42%,rgba(34,211,238,0.12),transparent_32%)]" />
+          </>
+        ) : (
+          <img
+            src={lightSkyCityBalcony}
+            alt=""
+            className="h-full w-full object-cover opacity-78"
+            draggable={false}
+            decoding="async"
+          />
+        )}
+        <div className={cx("absolute inset-0", isBlack ? "bg-gradient-to-r from-[#020710]/96 via-[#020710]/44 to-[#020710]/6" : "bg-gradient-to-r from-white/92 via-white/72 to-white/22")} />
       </div>
-      <div aria-hidden="true" className="absolute z-0 overflow-hidden rounded-[1.75rem] bg-white/92" style={boxStyle(artboard, 1220, 0, 316, 1024)}>
-        <div className="absolute inset-0 bg-white/72" />
+      <div
+        aria-hidden="true"
+        className={cx("absolute z-0 overflow-hidden rounded-[1.75rem]", isBlack ? "bg-[#020710]" : "bg-white/92")}
+        style={boxStyle(artboard, rightRailSurface.x, rightRailSurface.y, rightRailSurface.w, rightRailSurface.h)}
+      >
+        <div className={cx("absolute inset-0", isBlack ? "bg-gradient-to-b from-cyan-300/8 via-[#020710]/70 to-[#020710]" : "bg-white/72")} />
       </div>
-      <UserCutImage src={lightPlaneIcon} className="absolute z-10 rounded-full opacity-85" style={boxStyle(artboard, 600, 70, 64, 64)} scale={2.2} loading="eager" />
-      <UserCutImage src={lightCompassIcon} className="absolute z-10 rounded-full opacity-50" style={boxStyle(artboard, 846, 126, 118, 118)} scale={2.0} loading="eager" />
-      <div className="absolute z-10" style={boxStyle(artboard, 280, 145, 520, 178)}>
-        <p className="text-[clamp(0.48rem,0.72vw,0.8rem)] font-black uppercase tracking-[0.24em] text-violet-400">REAL COORDINATES / AI NPC</p>
-        <h1 data-soul-link-home-light-title="real-text" className="mt-3 max-w-[12em] text-[clamp(1.45rem,2.35vw,2.45rem)] font-black leading-[1.25] tracking-[-0.04em] text-slate-800">
-          在每一个坐标里，
-          <br />
-          遇见另一种可能的自己。
+      {isBlack ? (
+        <>
+          <span aria-hidden="true" className="absolute z-10 rounded-full bg-cyan-300/18 blur-2xl" style={boxStyle(artboard, heroDecorations.primary.x, heroDecorations.primary.y, heroDecorations.primary.w, heroDecorations.primary.h)} />
+          <span aria-hidden="true" className="absolute z-10 rounded-full border border-cyan-200/15 bg-cyan-300/8" style={boxStyle(artboard, heroDecorations.secondary.x, heroDecorations.secondary.y, heroDecorations.secondary.w, heroDecorations.secondary.h)} />
+        </>
+      ) : (
+        <>
+          <UserCutImage src={lightPlaneIcon} className="absolute z-10 rounded-full opacity-85" style={boxStyle(artboard, heroDecorations.primary.x, heroDecorations.primary.y, heroDecorations.primary.w, heroDecorations.primary.h)} scale={2.2} loading="eager" />
+          <span aria-hidden="true" className="absolute z-10 text-violet-400/70" style={boxStyle(artboard, heroDecorations.secondary.x, heroDecorations.secondary.y, heroDecorations.secondary.w, heroDecorations.secondary.h)}>
+            ✦
+          </span>
+        </>
+      )}
+      <div className="absolute z-10" style={boxStyle(artboard, titleBox.x, titleBox.y, titleBox.w, titleBox.h)}>
+        <p className={cx("text-[clamp(0.48rem,0.72vw,0.8rem)] font-black uppercase tracking-[0.24em]", isBlack ? "text-cyan-300/80" : "text-violet-400")}>{isBlack ? "ONLINE COORDINATE NETWORK" : "REAL COORDINATES / AI NPC"}</p>
+        <h1
+          data-soul-link-home-title="real-text"
+          data-soul-link-home-light-title={variant === "light" ? "real-text" : undefined}
+          className={cx("mt-3 max-w-[12em] text-[clamp(1.45rem,2.35vw,2.45rem)] font-black leading-[1.25] tracking-[-0.04em]", isBlack ? "text-cyan-50" : "text-slate-800")}
+        >
+          {isBlack ? (
+            <>
+              接入仍在回应的
+              <br />
+              数字坐标网络
+            </>
+          ) : (
+            <>
+              在每一个坐标里，
+              <br />
+              遇见另一种可能的自己。
+            </>
+          )}
         </h1>
-        <p className="mt-4 max-w-[32em] text-[clamp(0.58rem,0.9vw,0.95rem)] font-bold leading-7 text-slate-500">
-          连接仍在回应的灵魂，探索属于你的故事。
+        <p className={cx("mt-4 max-w-[32em] text-[clamp(0.58rem,0.9vw,0.95rem)] font-bold leading-7", isBlack ? "text-cyan-100/62" : "text-slate-500")}>
+          {isBlack ? "在数据的海洋中，寻找仍在闪烁的信号。" : "连接仍在回应的灵魂，探索属于你的故事。"}
         </p>
       </div>
-      <div className="absolute z-10 rounded-[1.25rem] border border-white/90 bg-white/88 px-5 py-4 shadow-[0_18px_42px_rgba(118,133,190,0.16)]" style={boxStyle(artboard, 1042, 397, 170, 76)}>
-        <p className="text-[clamp(0.44rem,0.62vw,0.66rem)] font-black text-slate-400">当前坐标</p>
-        <p className="mt-2 flex items-center justify-between gap-2 text-[clamp(0.66rem,0.9vw,1rem)] font-black text-slate-700">
-          云上图书馆
-          <UserCutImage src={lightPinIcon} className="h-5 w-5 shrink-0 rounded-full" scale={1.7} loading="eager" />
-        </p>
-      </div>
-      <div className="absolute z-10 flex items-center justify-between" style={boxStyle(artboard, 252, 560, 936, 44)}>
-        <h2 className="text-[clamp(0.72rem,1vw,1rem)] font-black text-slate-800">为你推荐的坐标</h2>
-        <Link to="/discover" onMouseDown={suppressMouseFocus} className="inline-flex min-h-9 touch-manipulation items-center gap-2 rounded-full px-3 text-[clamp(0.52rem,0.68vw,0.72rem)] font-black text-slate-400 outline-none transition hover:bg-white/70 hover:text-violet-500 focus:ring-4 focus:ring-violet-400/35">
+      <HomeCurrentCoordinateBadge artboard={artboard} variant={variant} />
+      <div className="absolute z-10 flex items-center justify-between" style={boxStyle(artboard, recommendedHeaderBox.x, recommendedHeaderBox.y, recommendedHeaderBox.w, recommendedHeaderBox.h)}>
+        <h2 className={cx("text-[clamp(0.72rem,1vw,1rem)] font-black", isBlack ? "uppercase tracking-[0.16em] text-cyan-50" : "text-slate-800")}>{isBlack ? "ACTIVE NODES" : "为你推荐的坐标"}</h2>
+        <Link to="/discover" onMouseDown={suppressMouseFocus} className={cx("inline-flex min-h-9 touch-manipulation items-center gap-2 rounded-full px-3 text-[clamp(0.52rem,0.68vw,0.72rem)] font-black outline-none transition focus:ring-4", isBlack ? "text-cyan-300 hover:bg-cyan-300/8 focus:ring-cyan-300/35" : "text-slate-400 hover:bg-white/70 hover:text-violet-500 focus:ring-violet-400/35")}>
           查看全部 →
         </Link>
       </div>
-      {HOME_LAYOUT.cards.map((box, index) => (
-        <SoulLinkLightCoordinateCard
-          key={`home-light-real-card-${featuredCitySlices[index]?.id || index}`}
+      {cardBoxes.map((box, index) => (
+        <SoulLinkHomeCoordinateCard
+          key={`home-${variant}-real-card-${featuredCitySlices[index]?.id || index}`}
           artboard={artboard}
           box={box}
           slice={featuredCitySlices[index]}
           index={index}
+          variant={variant}
+          to={targetFor(featuredCitySlices[index]?.id)}
         />
       ))}
     </>
   )
 }
 
-function SoulLinkHomeLightMobile({
+function SoulLinkHomeMobile({
   featuredCitySlices,
   onToggleTheme,
+  variant,
 }: {
   featuredCitySlices: HomeReferenceProps["featuredCitySlices"]
   onToggleTheme: () => void
+  variant: Variant
 }) {
-  const cards = HOME_LAYOUT.cards.map((_, index) => lightCoordinateCardData(featuredCitySlices[index], index))
+  const isBlack = variant === "black"
+  const cards = HOME_LAYOUT.cards.map((_, index) => homeCoordinateCardData(featuredCitySlices[index], index, variant))
   return (
-    <div className="relative z-40 min-h-screen bg-[linear-gradient(180deg,#f4f8ff_0%,#eef4ff_46%,#fff_100%)] px-4 py-5 md:hidden">
-      <header className="flex items-center justify-between rounded-[1.5rem] border border-white/80 bg-white/86 p-3 shadow-[0_18px_42px_rgba(108,123,178,0.14)]">
+    <div className={cx("relative z-40 min-h-screen px-4 py-5 md:hidden", isBlack ? "bg-[#020710]" : "bg-[linear-gradient(180deg,#f4f8ff_0%,#eef4ff_46%,#fff_100%)]")}>
+      <header className={cx("flex items-center justify-between rounded-[1.5rem] border p-3", isBlack ? "border-cyan-300/16 bg-[#061226]/92 shadow-[0_0_30px_rgba(34,211,238,0.12)]" : "border-white/80 bg-white/86 shadow-[0_18px_42px_rgba(108,123,178,0.14)]")}>
         <Link to="/" className="flex min-h-11 touch-manipulation items-center gap-3 rounded-2xl outline-none focus:ring-4 focus:ring-violet-400/35">
-          <UserCutImage src={lightPlaneIcon} className="h-11 w-11 rounded-2xl" scale={2.4} loading="eager" />
+          {isBlack ? (
+            <span className="grid h-11 w-11 place-items-center rounded-2xl border border-cyan-300/18 bg-cyan-300/10 text-cyan-200">
+              <Send size={20} strokeWidth={2.6} />
+            </span>
+          ) : (
+            <UserCutImage src={lightPlaneIcon} className="h-11 w-11 rounded-2xl" scale={2.4} loading="eager" />
+          )}
           <span>
-            <span className="block text-base font-black text-slate-800">FableMap</span>
-            <span className="block text-xs font-bold text-slate-400">真实坐标里的 AI 空间</span>
+            <span className={cx("block text-base font-black", isBlack ? "text-cyan-50" : "text-slate-800")}>FableMap</span>
+            <span className={cx("block text-xs font-bold", isBlack ? "text-cyan-100/52" : "text-slate-400")}>真实坐标里的 AI 空间</span>
           </span>
         </Link>
-        <button type="button" onClick={onToggleTheme} className="grid h-11 w-11 touch-manipulation place-items-center rounded-2xl border border-violet-100 bg-violet-50 text-violet-500" aria-label="切换主题">
+        <button type="button" onClick={onToggleTheme} className={cx("grid h-11 w-11 touch-manipulation place-items-center rounded-2xl border", isBlack ? "border-cyan-300/16 bg-cyan-300/8 text-cyan-200" : "border-violet-100 bg-violet-50 text-violet-500")} aria-label="切换主题">
           ☼
         </button>
       </header>
-      <section className="relative mt-5 overflow-hidden rounded-[2rem] border border-white/80 bg-white/80 p-5 shadow-[0_22px_54px_rgba(108,123,178,0.16)]">
-        <img src={lightSkyCityBalcony} alt="" aria-hidden="true" className="absolute inset-0 h-full w-full object-cover opacity-34" loading="lazy" decoding="async" />
-        <div aria-hidden="true" className="absolute inset-0 bg-white/78" />
-        <p className="relative z-10 text-xs font-black uppercase tracking-[0.22em] text-violet-400">Real coordinates</p>
-        <h1 data-soul-link-home-light-title-mobile="real-text" className="relative z-10 mt-3 text-3xl font-black leading-tight tracking-[-0.04em] text-slate-800">在每一个坐标里，遇见另一种可能的自己。</h1>
-        <p className="relative z-10 mt-3 text-sm font-bold leading-7 text-slate-500">用真实地点打开一间空间，和主人配置的 AI NPC 对话、回访、留下记忆。</p>
+      <section className={cx("relative mt-5 overflow-hidden rounded-[2rem] border p-5", isBlack ? "border-cyan-300/16 bg-[#061226]/82 shadow-[0_0_36px_rgba(34,211,238,0.12)]" : "border-white/80 bg-white/80 shadow-[0_22px_54px_rgba(108,123,178,0.16)]")}>
+        {isBlack ? (
+          <>
+            <div aria-hidden="true" className="absolute inset-0 bg-[#020710]" />
+            <img src={homeBlackHeroVisual} alt="" aria-hidden="true" className="absolute inset-0 h-full w-full object-cover opacity-45" loading="lazy" decoding="async" />
+          </>
+        ) : (
+          <img src={lightSkyCityBalcony} alt="" aria-hidden="true" className="absolute inset-0 h-full w-full object-cover opacity-34" loading="lazy" decoding="async" />
+        )}
+        <div aria-hidden="true" className={cx("absolute inset-0", isBlack ? "bg-[#020710]/78" : "bg-white/78")} />
+        <p className={cx("relative z-10 text-xs font-black uppercase tracking-[0.22em]", isBlack ? "text-cyan-300/78" : "text-violet-400")}>Real coordinates</p>
+        <h1
+          data-soul-link-home-title-mobile="real-text"
+          data-soul-link-home-light-title-mobile={variant === "light" ? "real-text" : undefined}
+          className={cx("relative z-10 mt-3 text-3xl font-black leading-tight tracking-[-0.04em]", isBlack ? "text-cyan-50" : "text-slate-800")}
+        >
+          {isBlack ? "接入仍在回应的数字坐标网络。" : "在每一个坐标里，遇见另一种可能的自己。"}
+        </h1>
+        <p className={cx("relative z-10 mt-3 text-sm font-bold leading-7", isBlack ? "text-cyan-100/58" : "text-slate-500")}>用真实地点打开一间空间，和主人配置的 AI NPC 对话、回访、留下记忆。</p>
         <div className="relative z-10 mt-5 flex gap-3">
-          <Link to="/discover" className="inline-flex min-h-11 flex-1 touch-manipulation items-center justify-center rounded-2xl bg-violet-500 px-4 text-sm font-black text-white shadow-[0_16px_32px_rgba(118,91,255,0.25)]">开始探索</Link>
-          <Link to="/create" className="inline-flex min-h-11 flex-1 touch-manipulation items-center justify-center rounded-2xl border border-violet-100 bg-white px-4 text-sm font-black text-violet-500">创建空间</Link>
+          <Link to="/discover" className={cx("inline-flex min-h-11 flex-1 touch-manipulation items-center justify-center rounded-2xl px-4 text-sm font-black", isBlack ? "bg-cyan-300 text-slate-950 shadow-[0_0_26px_rgba(34,211,238,0.22)]" : "bg-violet-500 text-white shadow-[0_16px_32px_rgba(118,91,255,0.25)]")}>开始探索</Link>
+          <Link to="/create" className={cx("inline-flex min-h-11 flex-1 touch-manipulation items-center justify-center rounded-2xl border px-4 text-sm font-black", isBlack ? "border-cyan-300/20 bg-cyan-300/8 text-cyan-100" : "border-violet-100 bg-white text-violet-500")}>创建空间</Link>
         </div>
       </section>
       <section className="mt-5">
         <div className="mb-3 flex items-center justify-between">
-          <h2 className="font-black text-slate-800">推荐坐标</h2>
-          <Link to="/discover" className="text-sm font-black text-violet-400">全部 →</Link>
+          <h2 className={cx("font-black", isBlack ? "text-cyan-50" : "text-slate-800")}>推荐坐标</h2>
+          <Link to="/discover" className={cx("text-sm font-black", isBlack ? "text-cyan-300" : "text-violet-400")}>全部 →</Link>
         </div>
         <div className="grid gap-3">
           {cards.map((slice, index) => (
-            <Link key={slice.id || `fallback-${index}`} to={targetFor(slice.id)} data-soul-link-home-light-card="real-card" className="flex min-h-28 touch-manipulation gap-3 rounded-[1.5rem] border border-white/80 bg-white p-3 shadow-[0_14px_34px_rgba(108,123,178,0.12)]">
+            <Link
+              key={slice.id || `fallback-${index}`}
+              to={targetFor(slice.id)}
+              data-soul-link-home-card="real-card"
+              data-soul-link-home-light-card={variant === "light" ? "real-card" : undefined}
+              className={cx("flex min-h-28 touch-manipulation gap-3 rounded-[1.5rem] border p-3", isBlack ? "border-cyan-300/16 bg-[#061226]/90 shadow-[0_0_24px_rgba(34,211,238,0.08)]" : "border-white/80 bg-white shadow-[0_14px_34px_rgba(108,123,178,0.12)]")}
+            >
               <img src={slice.image} alt={`${slice.name} 封面`} className="h-24 w-28 rounded-[1.15rem] object-cover" loading="lazy" decoding="async" />
               <span className="min-w-0 flex-1 py-1">
-                <span data-soul-link-home-card-title="real-text" className="block truncate font-black text-slate-800">{slice.name}</span>
-                <span className="mt-2 line-clamp-2 block text-sm font-bold leading-6 text-slate-400">{slice.description}</span>
-                <span className="mt-2 block text-xs font-black text-violet-400">{slice.tag}</span>
+                <span data-soul-link-home-card-title="real-text" className={cx("block truncate font-black", isBlack ? "text-cyan-50" : "text-slate-800")}>{slice.name}</span>
+                <span className={cx("mt-2 line-clamp-2 block text-sm font-bold leading-6", isBlack ? "text-cyan-100/52" : "text-slate-400")}>{slice.description}</span>
+                <span className={cx("mt-2 block text-xs font-black", isBlack ? "text-cyan-300" : "text-violet-400")}>{slice.tag}</span>
               </span>
             </Link>
           ))}
@@ -1669,8 +1834,9 @@ function SoulLinkHomeLightMobile({
 
 function HomeHeroActions({ artboard, variant, forceVisible = false }: { artboard: Artboard; variant: Variant; forceVisible?: boolean }) {
   const isBlack = variant === "black"
-  const playIconSize = isBlack ? 12 : 16
-  const playIconStrokeWidth = isBlack ? 2 : 2.75
+  const playIconSize = 14
+  const playIconStrokeWidth = 2.75
+  const actions = HOME_LAYOUT.heroActions
   const primaryClass = isBlack
     ? "border-cyan-200/50 bg-cyan-300 text-slate-950 shadow-[0_0_28px_rgba(34,211,238,0.28)]"
     : "border-violet-300/45 bg-[#8e83ff] text-white shadow-[0_14px_28px_rgba(126,111,255,0.22)]"
@@ -1682,16 +1848,16 @@ function HomeHeroActions({ artboard, variant, forceVisible = false }: { artboard
     <>
       <Link
         to="/discover"
-        aria-label="开始探索"
+        aria-label={isBlack ? "连接网络" : "开始探索"}
         onMouseDown={suppressMouseFocus}
         className={cx(
           "absolute z-20 flex min-h-11 touch-manipulation items-center justify-center gap-2 rounded-[1.15rem] border text-sm font-black transition hover:-translate-y-0.5 focus:outline-none focus:ring-4",
           forceVisible ? "opacity-100" : "opacity-0 focus:opacity-100",
           primaryClass,
         )}
-        style={boxStyle(artboard, HOME_LAYOUT.heroActions.primary.x, HOME_LAYOUT.heroActions.primary.y, HOME_LAYOUT.heroActions.primary.w, HOME_LAYOUT.heroActions.primary.h)}
+        style={boxStyle(artboard, actions.primary.x, actions.primary.y, actions.primary.w, actions.primary.h)}
       >
-        <span>开始探索</span>
+        <span>{isBlack ? "连接网络" : "开始探索"}</span>
         {isBlack ? (
           <ArrowUpRight size={16} strokeWidth={3} className="opacity-70" />
         ) : (
@@ -1700,50 +1866,394 @@ function HomeHeroActions({ artboard, variant, forceVisible = false }: { artboard
       </Link>
       <Link
         to="/discover"
-        aria-label="观看世界介绍"
+        aria-label={isBlack ? "扫描信号" : "观看世界介绍"}
         onMouseDown={suppressMouseFocus}
         className={cx(
           "absolute z-20 flex min-h-11 touch-manipulation items-center justify-center gap-2 rounded-[1.15rem] border text-sm font-black transition hover:-translate-y-0.5 focus:outline-none focus:ring-4",
           forceVisible ? "opacity-100" : "opacity-0 focus:opacity-100",
           secondaryClass,
         )}
-        style={boxStyle(artboard, HOME_LAYOUT.heroActions.secondary.x, HOME_LAYOUT.heroActions.secondary.y, HOME_LAYOUT.heroActions.secondary.w, HOME_LAYOUT.heroActions.secondary.h)}
+        style={boxStyle(artboard, actions.secondary.x, actions.secondary.y, actions.secondary.w, actions.secondary.h)}
       >
         <span
           aria-hidden="true"
-          className={cx(
-            "grid h-7 w-7 shrink-0 place-items-center",
-            isBlack ? "rounded-full border border-current/30" : "",
-          )}
+          className="grid h-7 w-7 shrink-0 place-items-center"
         >
-          {isBlack ? (
-            <Play
-              size={playIconSize}
-              fill="currentColor"
-              strokeWidth={playIconStrokeWidth}
-              className="ml-0.5"
-            />
-          ) : (
-            <UserCutImage src={lightPlayIcon} className="h-5 w-5" scale={2.2} />
-          )}
+          <Play
+            size={playIconSize}
+            fill="currentColor"
+            strokeWidth={playIconStrokeWidth}
+            className="ml-0.5"
+          />
         </span>
-        <span>观看世界介绍</span>
+        <span>{isBlack ? "扫描信号" : "观看世界介绍"}</span>
       </Link>
     </>
   )
 }
 
-function HomeCardLinks({ artboard, featuredCitySlices }: { artboard: Artboard; featuredCitySlices: HomeReferenceProps["featuredCitySlices"] }) {
+function DiscoverLightFilterChip({
+  label,
+  onClick,
+  muted = false,
+}: {
+  label: string
+  onClick: () => void
+  muted?: boolean
+}) {
+  return (
+    <button
+      type="button"
+      data-soul-link-discover-filter="real-button"
+      onClick={onClick}
+      onMouseDown={suppressMouseFocus}
+      className={cx(
+        "inline-flex min-h-8 touch-manipulation items-center justify-center gap-1.5 rounded-xl border px-3 text-[11px] font-black outline-none transition focus:ring-4 focus:ring-violet-400/30",
+        muted
+          ? "border-slate-200 bg-white/50 text-slate-400 hover:border-violet-100 hover:text-violet-500"
+          : "border-white/90 bg-white/84 text-[#66719c] shadow-[0_10px_26px_rgba(92,110,170,0.08)] hover:-translate-y-0.5 hover:text-violet-500",
+      )}
+    >
+      <span aria-hidden="true" className="text-violet-400">✧</span>
+      {label}
+    </button>
+  )
+}
+
+function SoulLinkDiscoverLightFilterPanel({
+  artboard,
+  onClear,
+  onTogglePlaceType,
+  onToggleSpecialType,
+  onToggleCategory,
+  onPublicOnlyChange,
+  onOpenOnlyChange,
+}: {
+  artboard: Artboard
+  onClear: () => void
+  onTogglePlaceType: (placeTypeId: string) => void
+  onToggleSpecialType: (specialTypeId: string) => void
+  onToggleCategory: (label: string) => void
+  onPublicOnlyChange: (value: boolean) => void
+  onOpenOnlyChange: (value: boolean) => void
+}) {
+  function handleFilter(label: string) {
+    if (label === "任何状态") return onClear()
+    if (label === "稳定连接") return onOpenOnlyChange(true)
+    if (label === "信号波动") return onPublicOnlyChange(true)
+    if (label === "连接中断") return onToggleSpecialType("cultivation-retreat")
+    if (label === "城市" || label === "室内") return onTogglePlaceType("bookstore")
+    if (label === "自然") return onTogglePlaceType("cafe")
+    if (label === "奇幻" || label === "未来" || label === "其他") return onToggleSpecialType("cultivation-retreat")
+    return onToggleCategory(label)
+  }
+
   return (
     <>
-      {HOME_LAYOUT.cards.map(([x, y, w, h], index) => (
-        <OverlayLink
-          key={`home-card-${index}`}
-          artboard={artboard}
-          hotspot={{ label: `进入推荐坐标 ${featuredCitySlices[index]?.name || index + 1}`, to: targetFor(featuredCitySlices[index]?.id), x, y, w, h }}
-        />
-      ))}
+      <div className="absolute z-20 flex items-center gap-5" style={boxStyle(artboard, 226, 118, 970, 48)}>
+        <span className="mr-4 text-[15px] font-black text-slate-800">快速探索</span>
+        <DiscoverLightFilterChip label="全部" onClick={onClear} />
+        <DiscoverLightFilterChip label="正在被探索" onClick={() => onOpenOnlyChange(true)} />
+        <DiscoverLightFilterChip label="最近活跃" onClick={() => onPublicOnlyChange(true)} />
+        <DiscoverLightFilterChip label="低频空间" onClick={() => onToggleSpecialType("cultivation-retreat")} />
+        <DiscoverLightFilterChip label="回响最多" onClick={() => onToggleCategory("陪伴树洞")} />
+        <DiscoverLightFilterChip label="更多筛选" onClick={() => onTogglePlaceType("bookstore")} muted />
+      </div>
+      <section
+        data-soul-link-discover-filter-panel="real-dom"
+        className="absolute z-20 grid grid-cols-[1.65fr_1.05fr_1fr] gap-6 rounded-[1.45rem] border border-white/90 bg-white/86 p-5 text-slate-700 shadow-[0_18px_54px_rgba(87,107,166,0.12)] backdrop-blur-xl"
+        style={boxStyle(artboard, 222, 178, 796, 166)}
+      >
+        {DISCOVER_LIGHT_FILTER_GROUPS.map((group, groupIndex) => (
+          <div key={group.title} className={cx("min-w-0", groupIndex > 0 ? "border-l border-slate-200/70 pl-6" : "")}>
+            <h2 className="text-[12px] font-black text-slate-700">{group.title}</h2>
+            <div className="mt-4 grid grid-cols-2 gap-3">
+              {group.items.map((label) => (
+                <button
+                  key={label}
+                  type="button"
+                  onClick={() => handleFilter(label)}
+                  onMouseDown={suppressMouseFocus}
+                  className="inline-flex min-h-8 touch-manipulation items-center gap-2 rounded-xl bg-white/64 px-3 text-left text-[11px] font-black text-[#7f8aa9] outline-none transition hover:bg-violet-50 hover:text-violet-500 focus:ring-4 focus:ring-violet-400/30"
+                >
+                  <span aria-hidden="true" className={cx("grid h-4 w-4 place-items-center rounded-md text-[10px]", groupIndex === 0 ? "text-rose-400" : groupIndex === 1 ? "text-indigo-400" : "text-violet-400")}>
+                    {groupIndex === 0 ? "♡" : groupIndex === 1 ? "⌂" : "◎"}
+                  </span>
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
+        ))}
+      </section>
+      <aside
+        className="absolute z-20 overflow-hidden rounded-[1.45rem] border border-white/90 bg-white/72 shadow-[0_18px_46px_rgba(99,118,172,0.14)]"
+        style={boxStyle(artboard, 1024, 178, 180, 166)}
+      >
+        <img src={lightSkyCityBalcony} alt="" aria-hidden="true" className="absolute inset-0 h-full w-full object-cover opacity-44" loading="lazy" decoding="async" />
+        <div className="absolute inset-0 bg-gradient-to-t from-white/92 via-white/55 to-transparent" />
+        <div className="relative z-10 flex h-full flex-col justify-end p-5">
+          <p className="text-[12px] font-black text-slate-700">提示</p>
+          <p className="mt-2 text-[11px] font-bold leading-5 text-slate-500">试试组合筛选，发现更异侧的坐标。</p>
+        </div>
+      </aside>
     </>
+  )
+}
+
+function SoulLinkDiscoverLightTimeline({ artboard }: { artboard: Artboard }) {
+  return (
+    <section data-soul-link-discover-timeline="real-dom" className="absolute z-20" style={boxStyle(artboard, 226, 372, 980, 154)}>
+      <header className="flex items-center gap-5">
+        <h2 className="text-[15px] font-black text-slate-800">时间流</h2>
+        <p className="text-[11px] font-black text-slate-400">世界正在发生的事</p>
+      </header>
+      <div className="relative mt-6 flex items-start gap-4">
+        <span aria-hidden="true" className="absolute left-0 right-0 top-8 h-px bg-gradient-to-r from-violet-200 via-sky-100 to-transparent" />
+        <span aria-hidden="true" className="absolute left-5 top-8 h-20 w-px bg-violet-300" />
+        {DISCOVER_LIGHT_TIMELINE.map((item, index) => (
+          <Link
+            key={item.title}
+            to="/discover"
+            onMouseDown={suppressMouseFocus}
+            className="relative min-h-[80px] w-[17.9%] rounded-[1rem] border border-white/88 bg-white/92 p-4 shadow-[0_12px_32px_rgba(89,108,169,0.1)] outline-none transition hover:-translate-y-0.5 focus:ring-4 focus:ring-violet-400/30"
+          >
+            <span className="absolute -top-7 left-0 text-[11px] font-black text-slate-400">{item.time}</span>
+            <span aria-hidden="true" className={cx("absolute -top-[18px] left-0 h-3 w-3 rounded-full border-2 border-white shadow-[0_0_0_4px_rgba(124,112,255,0.12)]", item.tone)} />
+            <span className="flex items-center gap-3">
+              <img src={item.image} alt="" aria-hidden="true" className="h-9 w-9 shrink-0 rounded-xl object-cover" loading="lazy" decoding="async" />
+              <span className="min-w-0">
+                <span className="block truncate text-[12px] font-black text-slate-700">{item.title}</span>
+                <span className="mt-1 block truncate text-[10px] font-bold text-slate-400">{item.subtitle}</span>
+              </span>
+            </span>
+            <span aria-hidden="true" className="mt-3 block h-3 rounded-full bg-[repeating-linear-gradient(90deg,rgba(124,112,255,0.2)_0_3px,transparent_3px_7px)]" />
+          </Link>
+        ))}
+      </div>
+    </section>
+  )
+}
+
+function SoulLinkDiscoverLightRightRail({
+  artboard,
+  taverns,
+}: {
+  artboard: Artboard
+  taverns: Tavern[]
+}) {
+  const cards = DISCOVER_LAYOUT.cards.map((_, index) => discoverLightCardData(taverns[index], index))
+  const footprintCards = cards.slice(0, 4)
+  const railPanel = { w: 316, h: 1024 }
+  return (
+    <aside data-soul-link-discover-right-rail="real-dom" className="pointer-events-none absolute z-20" style={boxStyle(artboard, 1220, 0, 316, 1024)}>
+      <section className="pointer-events-auto absolute overflow-hidden rounded-[1.35rem] border border-white/90 bg-white/92 p-6 shadow-[0_18px_50px_rgba(86,105,166,0.13)]" style={panelBoxStyle(railPanel, 12, 28, 286, 268)}>
+        <header className="flex items-center gap-2">
+          <h2 className="text-[15px] font-black text-slate-800">世界状态</h2>
+          <span className="text-[10px] font-black text-slate-300">实时更新</span>
+        </header>
+        <div className="relative mt-6 h-24">
+          <svg data-soul-link-discover-world-orbit="real-svg" aria-hidden="true" className="absolute right-3 top-0 h-24 w-36 text-violet-300/45" viewBox="0 0 180 120" fill="none" stroke="currentColor">
+            <circle cx="92" cy="60" r="12" fill="currentColor" opacity=".16" />
+            <circle cx="92" cy="60" r="34" strokeDasharray="4 10" />
+            <circle cx="92" cy="60" r="58" strokeDasharray="3 12" />
+            <path d="M32 60h120M92 6v108" opacity=".28" />
+          </svg>
+          <p className="relative z-10 text-3xl font-black text-slate-800">1,298</p>
+          <p className="relative z-10 mt-2 text-[12px] font-bold text-slate-400">在线灵魂</p>
+        </div>
+        <div className="mt-2 grid grid-cols-2 gap-5">
+          <div>
+            <p className="text-xl font-black text-slate-700">56</p>
+            <p className="text-[11px] font-bold text-slate-400">信号波动</p>
+          </div>
+          <div>
+            <p className="text-xl font-black text-slate-700">12</p>
+            <p className="text-[11px] font-bold text-slate-400">坐标异常</p>
+          </div>
+        </div>
+      </section>
+
+      <section className="pointer-events-auto absolute rounded-[1.35rem] border border-white/90 bg-white/92 p-5 shadow-[0_18px_50px_rgba(86,105,166,0.12)]" style={panelBoxStyle(railPanel, 12, 310, 286, 240)}>
+        <header className="mb-4 flex items-center justify-between">
+          <h2 className="text-[14px] font-black text-slate-800">推荐回响</h2>
+          <Link to="/home-me" onMouseDown={suppressMouseFocus} className="text-[10px] font-black text-violet-300 outline-none focus:ring-4 focus:ring-violet-400/30">查看全部 →</Link>
+        </header>
+        <div className="space-y-4">
+          {DISCOVER_LIGHT_RIGHT_QUOTES.map((quote, index) => (
+            <Link key={quote} to={targetFor(cards[index]?.id)} onMouseDown={suppressMouseFocus} className="block rounded-xl outline-none transition hover:bg-violet-50/60 focus:ring-4 focus:ring-violet-400/30">
+              <p className="truncate text-[12px] font-black text-slate-600">“{quote}”</p>
+              <p className="mt-1 text-[10px] font-bold text-slate-400">来自 {cards[index]?.name || "某个坐标"} · {index * 5 + 2} 分钟前</p>
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      <section className="pointer-events-auto absolute rounded-[1.35rem] border border-white/90 bg-white/92 p-5 shadow-[0_18px_50px_rgba(86,105,166,0.12)]" style={panelBoxStyle(railPanel, 12, 566, 286, 270)}>
+        <header className="mb-4 flex items-center justify-between">
+          <h2 className="text-[14px] font-black text-slate-800">探索足迹</h2>
+          <Link to="/discover" onMouseDown={suppressMouseFocus} className="text-[10px] font-black text-violet-300 outline-none focus:ring-4 focus:ring-violet-400/30">查看全部 →</Link>
+        </header>
+        <div className="space-y-3">
+          {footprintCards.map((card, index) => (
+            <Link key={`${card.name}-${index}`} to={targetFor(card.id)} onMouseDown={suppressMouseFocus} className="flex min-h-11 touch-manipulation items-center gap-3 rounded-xl outline-none transition hover:bg-violet-50/60 focus:ring-4 focus:ring-violet-400/30">
+              <img src={card.image} alt={`${card.name} 缩略图`} className="h-10 w-10 rounded-xl object-cover" loading="lazy" decoding="async" />
+              <span className="min-w-0 flex-1">
+                <span className="block truncate text-[12px] font-black text-slate-700">{card.name}</span>
+                <span className="mt-1 block text-[10px] font-bold text-slate-400">{card.timeLabel}</span>
+              </span>
+              <span aria-hidden="true" className="text-slate-300">♡</span>
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      <Link
+        to="/create"
+        onMouseDown={suppressMouseFocus}
+        className="pointer-events-auto absolute overflow-hidden rounded-[1.35rem] border border-indigo-950/20 bg-indigo-950 text-white shadow-[0_20px_56px_rgba(26,30,80,0.24)] outline-none transition hover:-translate-y-0.5 focus:ring-4 focus:ring-violet-400/30"
+        style={panelBoxStyle(railPanel, 12, 852, 286, 140)}
+      >
+        <img src={lightTrainRainPlatform} alt="" aria-hidden="true" className="absolute inset-0 h-full w-full object-cover opacity-54" loading="lazy" decoding="async" />
+        <span className="absolute inset-0 bg-gradient-to-r from-indigo-950/92 via-indigo-950/70 to-violet-700/20" />
+        <span className="relative z-10 flex h-full flex-col justify-center p-6">
+          <span className="text-[16px] font-black">创建你的坐标</span>
+          <span className="mt-2 text-[11px] font-bold text-white/70">留下你的故事，等待另一个灵魂发现。</span>
+          <span className="mt-4 inline-flex w-max items-center gap-2 rounded-xl bg-[#8d82ff] px-5 py-2 text-[12px] font-black">
+            创建新坐标 <ArrowUpRight size={13} strokeWidth={3} />
+          </span>
+        </span>
+      </Link>
+    </aside>
+  )
+}
+
+function SoulLinkDiscoverLightSurface({
+  artboard,
+  search,
+  taverns,
+  onSearchChange,
+  onClear,
+  onTogglePlaceType,
+  onToggleSpecialType,
+  onToggleCategory,
+  onPublicOnlyChange,
+  onOpenOnlyChange,
+}: DiscoverReferenceProps & { artboard: Artboard }) {
+  return (
+    <>
+      <div aria-hidden="true" className="absolute inset-0 z-0 overflow-hidden bg-[linear-gradient(180deg,#f6f9ff_0%,#eef4ff_48%,#f7fbff_100%)]">
+        <img src={lightPlaneWash} alt="" className="absolute inset-0 h-full w-full object-cover opacity-46" draggable={false} decoding="async" />
+        <span className="absolute left-[20%] top-[6%] h-[38%] w-[52%] rounded-full bg-white/70 blur-3xl" />
+        <span className="absolute right-[8%] top-[16%] h-[42%] w-[26%] rounded-full bg-violet-200/30 blur-3xl" />
+      </div>
+      <div className="absolute z-10" style={boxStyle(artboard, 228, 34, 250, 66)}>
+        <h1 data-soul-link-discover-title="real-text" className="text-[28px] font-black leading-tight tracking-[-0.04em] text-slate-900">
+          探索 <span className="text-violet-500">✦</span>
+        </h1>
+        <p className="mt-2 text-[12px] font-bold text-slate-400">在无数坐标中，寻找与你产生共鸣的地方。</p>
+      </div>
+      <OverlayInput
+        artboard={artboard}
+        value={search}
+        onChange={onSearchChange}
+        placeholder="搜索地点、角色、记忆或关键词..."
+        variant="light"
+        forceVisible
+        {...DISCOVER_LAYOUT.search}
+      />
+      <SoulLinkDiscoverLightFilterPanel
+        artboard={artboard}
+        onClear={onClear}
+        onTogglePlaceType={onTogglePlaceType}
+        onToggleSpecialType={onToggleSpecialType}
+        onToggleCategory={onToggleCategory}
+        onPublicOnlyChange={onPublicOnlyChange}
+        onOpenOnlyChange={onOpenOnlyChange}
+      />
+      <SoulLinkDiscoverLightTimeline artboard={artboard} />
+      <div className="absolute z-20 flex items-center justify-between" style={boxStyle(artboard, 226, 548, 980, 38)}>
+        <h2 className="text-[18px] font-black text-slate-900">
+          探索结果 <span className="text-[12px] font-bold text-slate-400">{Math.max(taverns.length, DISCOVER_LAYOUT.cards.length)} 个坐标</span>
+        </h2>
+        <div className="flex items-center gap-4 text-[11px] font-black text-slate-400">
+          <span>排序：推荐⌄</span>
+          <span aria-hidden="true" className="grid h-7 w-7 place-items-center rounded-xl bg-violet-100 text-violet-500">▦</span>
+          <span aria-hidden="true">☰</span>
+        </div>
+      </div>
+    </>
+  )
+}
+
+function SoulLinkDiscoverLightMobile({
+  search,
+  taverns,
+  onSearchChange,
+  onClear,
+  onTogglePlaceType,
+  onToggleCategory,
+  onToggleTheme,
+}: DiscoverReferenceProps) {
+  const cards = DISCOVER_LAYOUT.cards.map((_, index) => discoverLightCardData(taverns[index], index)).slice(0, 6)
+  return (
+    <div className="relative z-40 min-h-screen bg-[linear-gradient(180deg,#f4f8ff_0%,#eef4ff_45%,#fff_100%)] px-4 py-5 md:hidden">
+      <header className="flex items-center justify-between rounded-[1.5rem] border border-white/80 bg-white/88 p-3 shadow-[0_18px_42px_rgba(108,123,178,0.14)]">
+        <Link to="/" className="flex min-h-11 touch-manipulation items-center gap-3 rounded-2xl outline-none focus:ring-4 focus:ring-violet-400/35">
+          <UserCutImage src={lightCompassIcon} className="h-11 w-11 rounded-2xl" scale={2.1} loading="eager" />
+          <span>
+            <span className="block text-base font-black text-slate-800">探索</span>
+            <span className="block text-xs font-bold text-slate-400">查找真实坐标里的 AI 空间</span>
+          </span>
+        </Link>
+        <button type="button" onClick={onToggleTheme} className="grid h-11 w-11 touch-manipulation place-items-center rounded-2xl border border-violet-100 bg-violet-50 text-violet-500" aria-label="切换主题">
+          ☼
+        </button>
+      </header>
+      <label data-soul-link-search={onSearchChange ? "real-input" : undefined} className="relative mt-5 flex min-h-12 items-center rounded-2xl border border-white/80 bg-white px-4 shadow-[0_16px_38px_rgba(108,123,178,0.14)]">
+        <span className="sr-only">搜索地点、角色、记忆或关键词</span>
+        <Search size={18} strokeWidth={2.8} className="text-violet-400" />
+        <input value={search} onChange={(event) => onSearchChange(event.target.value)} placeholder="搜索地点、角色、记忆或关键词..." className="min-h-12 flex-1 bg-transparent px-3 text-sm font-bold text-slate-800 outline-none placeholder:text-slate-400" />
+      </label>
+      <div className="mt-4 flex gap-2 overflow-x-auto pb-1">
+        <DiscoverLightFilterChip label="全部" onClick={onClear} />
+        <DiscoverLightFilterChip label="舒适空间" onClick={() => onTogglePlaceType("bookstore")} />
+        <DiscoverLightFilterChip label="回响最多" onClick={() => onToggleCategory("陪伴树洞")} />
+      </div>
+      <section className="mt-5 rounded-[1.75rem] border border-white/80 bg-white/88 p-4 shadow-[0_18px_42px_rgba(108,123,178,0.12)]">
+        <h2 className="text-sm font-black text-slate-800">时间流</h2>
+        <div className="mt-3 grid gap-3">
+          {DISCOVER_LIGHT_TIMELINE.slice(0, 3).map((item) => (
+            <Link key={item.title} to="/discover" className="flex min-h-14 touch-manipulation items-center gap-3 rounded-2xl bg-violet-50/50 p-3">
+              <img src={item.image} alt="" aria-hidden="true" className="h-11 w-11 rounded-xl object-cover" loading="lazy" decoding="async" />
+              <span className="min-w-0 flex-1">
+                <span className="block truncate text-sm font-black text-slate-800">{item.title}</span>
+                <span className="mt-1 block truncate text-xs font-bold text-slate-400">{item.subtitle}</span>
+              </span>
+              <span className="text-xs font-black text-violet-400">{item.time}</span>
+            </Link>
+          ))}
+        </div>
+      </section>
+      <section className="mt-5">
+        <div className="mb-3 flex items-center justify-between">
+          <h2 className="font-black text-slate-800">探索结果</h2>
+          <Link to="/create" className="text-sm font-black text-violet-500">创建坐标 →</Link>
+        </div>
+        <div className="grid gap-3">
+          {cards.map((card, index) => (
+            <Link key={`${card.name}-${index}`} to={targetFor(card.id)} className="flex min-h-32 touch-manipulation gap-3 rounded-[1.5rem] border border-white/80 bg-white p-3 shadow-[0_14px_34px_rgba(108,123,178,0.12)]">
+              <img src={card.image} alt={`${card.name} 封面`} className="h-28 w-28 rounded-[1.15rem] object-cover" loading="lazy" decoding="async" />
+              <span className="min-w-0 flex-1 py-1">
+                <span className="block truncate font-black text-slate-800">{card.name}</span>
+                <span className="mt-2 line-clamp-2 block text-sm font-bold leading-6 text-slate-400">{card.description}</span>
+                <span className="mt-2 block text-xs font-black text-violet-400">{card.visitLabel}</span>
+              </span>
+            </Link>
+          ))}
+        </div>
+      </section>
+    </div>
   )
 }
 
@@ -1812,47 +2322,41 @@ export function SoulLinkHomeReference({
   const resolvedWorldPulseItems = worldPulseItems?.length ? worldPulseItems : fallbackFeedItemsFromHome(featuredCitySlices)
   const resolvedOnlineEntities = onlineEntities?.length ? onlineEntities : fallbackOnlineEntitiesFromFeed(resolvedWorldPulseItems)
   const resolvedRecentMemories = recentMemories?.length ? recentMemories : fallbackRecentMemoriesFromHome(featuredCitySlices)
-  const forceRealHome = variant === "light"
+  const rightRail = HOME_LAYOUT.rightRail
+  const searchBox = HOME_LAYOUT.search
   return (
     <ArtboardShell artboard={artboard} variant={variant} kind="home">
-      {forceRealHome ? <SoulLinkHomeLightMobile featuredCitySlices={featuredCitySlices} onToggleTheme={onToggleTheme} /> : null}
-      <div className={forceRealHome ? "hidden md:block" : undefined}>
-        {forceRealHome ? <SoulLinkHomeLightMainSurface artboard={artboard} featuredCitySlices={featuredCitySlices} /> : null}
+      <SoulLinkHomeMobile featuredCitySlices={featuredCitySlices} onToggleTheme={onToggleTheme} variant={variant} />
+      <div className="relative hidden h-full md:block">
+        <SoulLinkHomeMainSurface artboard={artboard} featuredCitySlices={featuredCitySlices} variant={variant} />
         <SoulLinkSidebar artboard={artboard} variant={variant} active="home" onToggleTheme={onToggleTheme} />
-        <SoulLinkUserCluster artboard={artboard} variant={variant} forceVisible={forceRealHome} />
+        <SoulLinkUserCluster artboard={artboard} variant={variant} forceVisible />
         <SoulLinkFeedPanel
           artboard={artboard}
           variant={variant}
-          box={HOME_RIGHT_RAIL.worldPulse}
-          title="世界脉搏"
-          eyebrow="实时回响"
+          box={rightRail.worldPulse}
+          title={variant === "black" ? "SIGNAL ACTIVITY" : "世界脉搏"}
+          eyebrow={variant === "black" ? "信号活动" : "实时回响"}
           items={resolvedWorldPulseItems}
-          actionLabel="查看全部动态"
-          forceVisible={forceRealHome}
+          actionLabel={variant === "black" ? "查看全部活动" : "查看全部动态"}
+          forceVisible
         />
-        <SoulLinkDailyQuotePanel artboard={artboard} variant={variant} box={HOME_RIGHT_RAIL.dailyQuote} quote={dailyQuote} forceVisible={forceRealHome} />
-        <SoulLinkOnlineEntitiesPanel artboard={artboard} variant={variant} box={HOME_RIGHT_RAIL.onlineEntities} entities={resolvedOnlineEntities} forceVisible={forceRealHome} />
-        <SoulLinkRecentMemoriesPanel artboard={artboard} variant={variant} memories={resolvedRecentMemories} forceVisible={forceRealHome} />
-        <SoulLinkGuidePanel artboard={artboard} variant={variant} cards={guideCards} forceVisible={forceRealHome} />
-        <SoulLinkWorldStatsPanel artboard={artboard} variant={variant} stats={worldStats} forceVisible={forceRealHome} />
-        <OverlayText artboard={artboard} x={270} y={135} w={480} h={120}>
-          {variant === "black" ? "接入仍在回应的数字坐标网络" : "在每一个坐标里，遇见另一种可能的自己。"}
-        </OverlayText>
-        {variant === "black" ? <OverlayMask artboard={artboard} className="rounded-[1.4rem] bg-[#02070e] shadow-[0_0_34px_rgba(2,7,14,0.92)]" {...HOME_LAYOUT.blackSearchMask} /> : null}
+        <SoulLinkDailyQuotePanel artboard={artboard} variant={variant} box={rightRail.dailyQuote} quote={dailyQuote} forceVisible />
+        <SoulLinkOnlineEntitiesPanel artboard={artboard} variant={variant} box={rightRail.onlineEntities} entities={resolvedOnlineEntities} forceVisible />
+        <SoulLinkRecentMemoriesPanel artboard={artboard} variant={variant} memories={resolvedRecentMemories} forceVisible />
+        <SoulLinkGuidePanel artboard={artboard} variant={variant} cards={guideCards} forceVisible />
+        <SoulLinkWorldStatsPanel artboard={artboard} variant={variant} stats={worldStats} forceVisible />
         <OverlayInput
           artboard={artboard}
           value={search || ""}
           onChange={onSearchChange}
           onSubmit={onSearchSubmit}
-          placeholder="输入你想前往的地方..."
+          placeholder={variant === "black" ? "SCAN FOR ACTIVE SIGNALS... 扫描活跃信号..." : "输入你想前往的地方..."}
           variant={variant}
-          forceVisible={forceRealHome}
-          {...HOME_LAYOUT.search}
+          forceVisible
+          {...searchBox}
         />
-        {variant === "black" ? <OverlayMask artboard={artboard} className="rounded-[1.25rem] bg-[#08101a]/92" {...HOME_LAYOUT.heroActionsMask} /> : null}
-        <HomeHeroActions artboard={artboard} variant={variant} forceVisible={forceRealHome} />
-        {variant === "black" ? <HomeCardLinks artboard={artboard} featuredCitySlices={featuredCitySlices} /> : null}
-        <OverlayLink artboard={artboard} hotspot={HOME_LAYOUT.links.allCoordinates} />
+        <HomeHeroActions artboard={artboard} variant={variant} forceVisible />
       </div>
     </ArtboardShell>
   )
@@ -1863,6 +2367,35 @@ export function SoulLinkDiscoverReference(props: DiscoverReferenceProps) {
   const resolvedSideFeedItems = props.sideFeedItems?.length ? props.sideFeedItems : fallbackFeedItemsFromTaverns(props.taverns)
   const resolvedOnlineEntities = props.onlineEntities?.length ? props.onlineEntities : fallbackOnlineEntitiesFromFeed(resolvedSideFeedItems)
   const forceRealDiscover = props.variant === "light"
+  if (props.variant === "light") {
+    return (
+      <ArtboardShell artboard={artboard} variant={props.variant} kind="discover">
+        <SoulLinkDiscoverLightMobile {...props} />
+        <div className="relative hidden h-full md:block">
+          <SoulLinkDiscoverLightSurface artboard={artboard} {...props} />
+          <SoulLinkSidebar artboard={artboard} variant={props.variant} active="discover" onToggleTheme={props.onToggleTheme} />
+          <SoulLinkUserCluster artboard={artboard} variant={props.variant} />
+          <SoulLinkFeedPanel
+            artboard={artboard}
+            variant={props.variant}
+            box={DISCOVER_RIGHT_RAIL.signalFeed}
+            title="信号动态"
+            eyebrow="Signal Feed"
+            items={resolvedSideFeedItems}
+            actionLabel="查看全部"
+          />
+          <SoulLinkOnlineEntitiesPanel artboard={artboard} variant={props.variant} box={DISCOVER_RIGHT_RAIL.onlineEntities} entities={resolvedOnlineEntities} />
+          <SoulLinkDiscoverLightRightRail artboard={artboard} taverns={props.taverns} />
+          <DiscoverCardLinks
+            artboard={artboard}
+            taverns={props.taverns}
+            variant={props.variant}
+            forceVisible
+          />
+        </div>
+      </ArtboardShell>
+    )
+  }
   return (
     <ArtboardShell artboard={artboard} variant={props.variant} kind="discover">
       <SoulLinkSidebar artboard={artboard} variant={props.variant} active="discover" onToggleTheme={props.onToggleTheme} />

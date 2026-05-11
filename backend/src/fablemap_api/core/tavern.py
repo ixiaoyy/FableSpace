@@ -206,6 +206,7 @@ class NpcSimulationState:
     thirst: float = 100.0
     social: float = 100.0
     entertainment: float = 100.0
+    mood: float = 50.0          # 0=极度沮丧 50=中性 100=非常开心
     last_tick_at: str = ""
 
     def to_dict(self) -> dict[str, Any]:
@@ -215,6 +216,7 @@ class NpcSimulationState:
             "thirst": self.thirst,
             "social": self.social,
             "entertainment": self.entertainment,
+            "mood": self.mood,
             "last_tick_at": self.last_tick_at,
         }
 
@@ -228,6 +230,7 @@ class NpcSimulationState:
             thirst=float(d.get("thirst", 100.0)),
             social=float(d.get("social", 100.0)),
             entertainment=float(d.get("entertainment", 100.0)),
+            mood=float(d.get("mood", 50.0)),
             last_tick_at=d.get("last_tick_at", ""),
         )
 

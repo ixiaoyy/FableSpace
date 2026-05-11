@@ -125,3 +125,24 @@ Follow specs:
   - Playwright desktop screenshot: `.trellis/tasks/05-11-05-11-home-light-icon-reference-polish/evidence/home-light-sidebar-icons-clean-desktop.png`
   - Playwright mobile screenshot: `.trellis/tasks/05-11-05-11-home-light-icon-reference-polish/evidence/home-light-sidebar-icons-clean-mobile.png`
   - Report: `.trellis/tasks/05-11-05-11-home-light-icon-reference-polish/evidence/home-light-sidebar-icons-clean-check.md`
+
+
+- 2026-05-12 追加：根据用户反馈首页 light 搜索框位置需要“稍微左边一点”，将 `HOME_LAYOUT.search.x` 从 `878` 调整为 `846`；同时确认搜索框左侧奇怪图标来自 `user-cuts-light/icon-search-glow.png` 大画布切图被 `UserCutImage` 缩放裁切，已改为真实 lucide `Search` SVG，避免显示不全/像加号的问题。
+- 2026-05-12 追加：用户明确说“不需要 Playwright 验收”，本次仅做 build 验证，不跑 Playwright 截图验收。
+
+## Additional Validation Notes
+
+
+- Home search position/icon tweak check (2026-05-12):
+  - `npm --prefix .\frontend run build` → passed.
+  - `node .\frontend\scripts\soul-link-reference-artboards-test.mjs` → failed before build on unrelated modified runtime asset dimensions: `frontend/app/assets/soul-link-05-10/home-black/invite-card.png` actual `1182x1331`, expected `151x170`; this file was already modified in the worktree and is not part of this search-box tweak.
+  - Playwright was intentionally skipped because the user explicitly said no Playwright acceptance needed.
+
+- 2026-05-12 追加：用户反馈搜索框左移“太多了”，将 `HOME_LAYOUT.search.x` 从 `846` 回调到 `864`，相对原始 `878` 仅轻微左移 14px；继续使用真实 lucide `Search` 图标。
+
+- 2026-05-12 追加：按用户要求统一 light / black 首页素材目录规则，将原 `frontend/app/assets/soul-link-05-10/user-cuts-light/` 下的 light 首页运行时素材迁入 `frontend/app/assets/soul-link-05-10/home-light/`，与 `home-black/` 同级同规则；同步更新运行时代码 import、`manifest.json` 与资产 README。未运行 Playwright（用户已明确不需要）。
+  - Validation: `npm --prefix .\frontend run build` → passed.
+  - Asset manifest check: `home-light` png files = 27, manifest assets = 27, matched.
+
+- 2026-05-12 追加：用户反馈黑色首页 hero 按钮遮挡副标题，按“稍微移动一点点”要求将 `HOME_LAYOUT.heroActions` 两个按钮 y 从 `312` 下移到 `330`（+18px），不改其它布局。未运行 Playwright（用户已明确不需要）。
+  - Validation: `npm --prefix .\frontend run build` → passed.

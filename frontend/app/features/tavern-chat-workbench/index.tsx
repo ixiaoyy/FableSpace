@@ -10,8 +10,10 @@ import {
   UsersRound,
 } from "lucide-react"
 import { useEffect, useMemo, useRef, useState, type FormEvent, type KeyboardEvent, type ReactNode } from "react"
+import { useSearchParams } from "react-router"
 
 import { normalizePublicWelfareNpcAssetPath } from "../../lib/tavern-runtime-config.js"
+
 import { GENDER_OPTIONS, genderLabel, normalizeGender } from "../../lib/gender.js"
 import {
   enterTavern,
@@ -31,7 +33,18 @@ import {
   progressSignalsFromChatResult,
   findConversationIntent,
 } from "./conversation-beats.js"
+import {
+  getGameplays,
+  startGameplaySession,
+  advanceGameplaySession,
+  abandonGameplaySession,
+  listGameplaySessions,
+} from "../../lib/taverns"
+import { getMiniGameTemplates } from "../../product/tavernMiniGames"
+import OrphanSignalGameplayPanel from "../../product/OrphanSignalGameplayPanel"
+import GameplaySessionPanel from "../../product/GameplaySessionPanel"
 import { SpaceCapabilityHubPanel } from "../../components/SpaceCapabilityHubPanel"
+
 
 type ChatChannel = "public" | "private"
 
@@ -434,8 +447,16 @@ export function TavernChatWorkbench({
   const [busy, setBusy] = useState("")
   const [error, setError] = useState("")
   const chatLogRef = useRef<HTMLDivElement | null>(null)
+  const [searchParams] = useSearchParams()
+
+  const [gameplayDefinitions, setGameplayDefinitions] = useState<any[]>([])
+
+  const [activeSession, setActiveSession] = useState<any>(null)
+  const [gameplayScene, setGameplayScene] = useState<any>({})
+  const [isGameplayBusy, setIsGameplayBusy] = useState(false)
 
   const access = String(tavern.access || "public")
+
   const passwordLocked = access === "password" && !isOwner && !hasEnteredPasswordTavern
   const visibleMessages = activeChatChannel === "public"
     ? publicMessages
@@ -520,6 +541,39 @@ export function TavernChatWorkbench({
   }, [characters, passwordLocked, tavern.id, tavern.name, tavern.gameplay_definitions, visitorState])
 
   useEffect(() => {
+    if (passwordLocked) return
+
+    // Load gameplays and sessions
+    let cancelled = false
+    const loadGameplayData = async () => {
+      try {
+        const [defsRes, sessionsRes] = await Promise.all([
+          getGameplays(tavern.id, visitorId),
+          listGameplaySessions(tavern.id, { state: "active", visitor_id: visitorId }, visitorId),
+        ])
+        if (cancelled) return
+        setGameplayDefinitions(defsRes.gameplay_definitions || [])
+        if (sessionsRes.sessions?.length > 0) {
+          const session = sessionsRes.sessions[0]
+          setActiveSession(session)
+          // Initial scene from last event if possible
+          const lastEvent = Array.isArray(session.events) ? session.events[session.events.length - 1] : null
+          if (lastEvent?.scene) {
+            setGameplayScene(lastEvent.scene)
+          }
+        }
+      } catch (err) {
+        console.error("Failed to load gameplay data:", err)
+      }
+    }
+    void loadGameplayData()
+    return () => {
+      cancelled = true
+    }
+  }, [tavern.id, visitorId, passwordLocked])
+
+  useEffect(() => {
+
     chatLogRef.current?.scrollTo({ top: chatLogRef.current.scrollHeight, behavior: "smooth" })
   }, [visibleMessages.length, busy])
 
@@ -786,7 +840,79 @@ export function TavernChatWorkbench({
     setError("")
   }
 
+  async function handleStartGameplay(definition: any) {
+    setIsGameplayBusy(true)
+    setError("")
+    try {
+      const res = await startGameplaySession(tavern.id, {
+        definition_id: definition.id,
+        visitor_id: visitorId,
+        visitor_name: visitorName,
+      })
+      // The startGameplaySession usually returns a basic session object
+      // We might need to fetch the full session or it might be returned
+      const sessionsRes = await listGameplaySessions(tavern.id, { state: "active", visitor_id: visitorId }, visitorId)
+      const session = sessionsRes.sessions?.find((s: any) => s.id === res.session_id) || res
+      setActiveSession(session)
+      const lastEvent = Array.isArray(session.events) ? session.events[session.events.length - 1] : null
+      setGameplayScene(lastEvent?.scene || {})
+    } catch (err) {
+      setError(errorMessage(err))
+    } finally {
+      setIsGameplayBusy(false)
+    }
+  }
+
+  async function handleAdvanceGameplay(data: { choice_id?: string; message?: string }) {
+    if (!activeSession) return
+    setIsGameplayBusy(true)
+    setError("")
+    try {
+      const res = await advanceGameplaySession(tavern.id, activeSession.id, data, visitorId)
+      if (res.ok) {
+        // Fetch refreshed session to get all events
+        const sessionsRes = await listGameplaySessions(tavern.id, { state: "active", visitor_id: visitorId }, visitorId)
+        const session = sessionsRes.sessions?.find((s: any) => s.id === activeSession.id)
+        if (session) {
+          setActiveSession(session)
+          const lastEvent = Array.isArray(session.events) ? session.events[session.events.length - 1] : null
+          setGameplayScene(lastEvent?.scene || {})
+          
+          if (session.state === 'completed') {
+             // Optional: handle completion logic
+          }
+        }
+      }
+    } catch (err) {
+      setError(errorMessage(err))
+    } finally {
+      setIsGameplayBusy(false)
+    }
+  }
+
+  async function handleAbandonGameplay() {
+    if (!activeSession) return
+    if (!confirm("确定要放弃当前的玩法进度吗？")) return
+    setIsGameplayBusy(true)
+    setError("")
+    try {
+      await abandonGameplaySession(tavern.id, activeSession.id, visitorId)
+      setActiveSession(null)
+      setGameplayScene({})
+    } catch (err) {
+      setError(errorMessage(err))
+    } finally {
+      setIsGameplayBusy(false)
+    }
+  }
+
+  const isOrphanSignalMode = tavern.special_type === "divination" || searchParams.get("ui_style") === "orphan-signal"
+  const miniGameTemplates = getMiniGameTemplates()
+  const currentGameplay = gameplayDefinitions[0] // Default to first for now if session starts
+
+
   return (
+
     <section data-chat-workbench="sillytavern-style" data-active-chat-channel={activeChatChannel} className="space-y-6">
       <div className="overflow-hidden rounded-[2rem] border border-white/10 bg-slate-950/72 shadow-2xl shadow-cyan-950/20">
         <div className="border-b border-white/10 bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.18),transparent_36%),rgba(15,23,42,0.92)] p-4 sm:p-6">
@@ -955,7 +1081,36 @@ export function TavernChatWorkbench({
               </div>
             </div>
 
+            {isOrphanSignalMode ? (
+              <div className="p-4">
+                <OrphanSignalGameplayPanel
+                  session={activeSession}
+                  scene={gameplayScene}
+                  gameplay={currentGameplay}
+                  busy={isGameplayBusy}
+                  onChoice={(choice: any) => handleAdvanceGameplay({ choice_id: choice.id })}
+                  onSubmit={(text: string) => handleAdvanceGameplay({ message: text })}
+                  onAbandon={handleAbandonGameplay}
+                  onStart={handleStartGameplay}
+                  miniGameTemplates={miniGameTemplates}
+                />
+              </div>
+            ) : activeSession ? (
+              <div className="p-4">
+                <GameplaySessionPanel
+                  session={activeSession}
+                  scene={gameplayScene}
+                  gameplay={currentGameplay}
+                  busy={isGameplayBusy}
+                  onChoice={(choice: any) => handleAdvanceGameplay({ choice_id: choice.id })}
+                  onSubmit={(text: string) => handleAdvanceGameplay({ message: text })}
+                  onAbandon={handleAbandonGameplay}
+                />
+              </div>
+            ) : null}
+
             {passwordLocked ? (
+
               <form onSubmit={handlePasswordEnter} className="m-4 rounded-3xl border border-amber-300/25 bg-amber-300/10 p-4">
                 <div className="flex items-start gap-3">
                   <LockKeyhole className="mt-1 h-5 w-5 shrink-0 text-amber-100" />

@@ -1,0 +1,39 @@
+{
+  "id": "05-11-05-11-social-memory-debug-panel",
+  "name": "05-11-05-11-social-memory-debug-panel",
+  "title": "Add Social Memory Debug Panel for NPC Chat UX",
+  "description": "Build a frontend debug panel to visualize which social memories are retrieved and injected into NPC chat prompts. Show keyword match score, recency bonus, and top-k results to help owners understand NPC social awareness.",
+  "status": "planning",
+  "dev_type": "frontend",
+  "scope": null,
+  "package": null,
+  "priority": "P2",
+  "creator": "lijin",
+  "assignee": "lijin",
+  "createdAt": "2026-05-11",
+  "completedAt": null,
+  "branch": null,
+  "base_branch": "main",
+  "worktree_path": null,
+  "current_phase": 0,
+  "next_action": [
+    {"phase": 1, "action": "brainstorm"},
+    {"phase": 2, "action": "research"},
+    {"phase": 3, "action": "implement"},
+    {"phase": 4, "action": "check"},
+    {"phase": 5, "action": "update-spec"},
+    {"phase": 6, "action": "record-session"}
+  ],
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [],
+  "parent": null,
+  "relatedFiles": [
+    "backend/src/fablemap_api/application/services/runtime.py",
+    "backend/tests/test_social_memory_retrieval.py",
+    "frontend/app/features/tavern-chat-workbench/index.tsx"
+  ],
+  "notes": "Backend _filter_relevant_social_memories implemented (keyword match + recency bonus + top-k). test_social_memory_retrieval.py covers full logic. No frontend UI to visualize/inspect social memory retrieval. Build debug panel in chat workbench.",
+  "meta": {}
+}

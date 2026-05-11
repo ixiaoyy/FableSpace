@@ -1,13 +1,20 @@
 {
   "id": "05-11-05-11-board-game-taverns-asset-enrichment",
   "name": "Board Game Taverns Asset Enrichment",
-  "status": "in-progress",
+  "status": "completed",
   "owner": "Antigravity",
+  "assignee": "Antigravity",
   "priority": "high",
-  "tags": ["assets", "tavern", "board-game", "images"],
+  "tags": [
+    "assets",
+    "tavern",
+    "board-game",
+    "images"
+  ],
   "description": "Generate and integrate high-fidelity visual assets for the newly created Board Game tavern templates.",
   "created_at": "2026-05-11T16:18:00Z",
   "updated_at": "2026-05-11T16:18:00Z",
+  "completedAt": "2026-05-11",
   "prd_path": ".trellis/tasks/05-11-05-11-board-game-taverns-asset-enrichment/prd.md",
   "specs": [
     ".trellis/spec/frontend/image-asset-guidelines.md",
@@ -17,22 +24,22 @@
     {
       "id": "generate-scenes",
       "title": "Generate 4 scene backgrounds",
-      "status": "todo"
+      "status": "done"
     },
     {
       "id": "generate-characters",
       "title": "Generate 6 character portraits",
-      "status": "todo"
+      "status": "done"
     },
     {
       "id": "integrate-assets",
       "title": "Update tavernTemplates.js with asset paths",
-      "status": "todo"
+      "status": "done"
     },
     {
       "id": "verify-build",
       "title": "Verify frontend build and display",
-      "status": "todo"
+      "status": "done"
     }
   ]
 }

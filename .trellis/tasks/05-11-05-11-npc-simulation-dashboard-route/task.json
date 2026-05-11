@@ -1,0 +1,41 @@
+{
+  "id": "05-11-05-11-npc-simulation-dashboard-route",
+  "name": "05-11-05-11-npc-simulation-dashboard-route",
+  "title": "Connect NPC Simulation Status to Owner Management Route",
+  "description": "Wire NpcSimulationOverview (five-dimensional status: energy/hunger/thirst/social/entertainment, mood, traits, social memories, mobility) into /tavern/:id/manage route so tavern owners can view their NPCs' simulation state.",
+  "status": "planning",
+  "dev_type": "frontend",
+  "scope": null,
+  "package": null,
+  "priority": "P2",
+  "creator": "lijin",
+  "assignee": "lijin",
+  "createdAt": "2026-05-11",
+  "completedAt": null,
+  "branch": null,
+  "base_branch": "main",
+  "worktree_path": null,
+  "current_phase": 0,
+  "next_action": [
+    {"phase": 1, "action": "brainstorm"},
+    {"phase": 2, "action": "research"},
+    {"phase": 3, "action": "implement"},
+    {"phase": 4, "action": "check"},
+    {"phase": 5, "action": "update-spec"},
+    {"phase": 6, "action": "record-session"}
+  ],
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [],
+  "parent": null,
+  "relatedFiles": [
+    "frontend/app/features/npc-simulation-status/NpcSimulationStatusPanel.tsx",
+    "frontend/app/features/tavern-owner-management/index.tsx",
+    "frontend/app/routes/tavern-manage.tsx",
+    "backend/src/fablemap_api/application/simulation_worker.py",
+    "backend/src/fablemap_api/core/simulation.py"
+  ],
+  "notes": "NpcSimulationOverview exists in tavern-owner-management feature but is not imported in any route. Backend simulation_worker.py implements tick engine and state management.",
+  "meta": {}
+}

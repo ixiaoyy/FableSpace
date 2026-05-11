@@ -10,6 +10,38 @@ function latestNarration(session, scene) {
 function useTypewriter(text, speed = 25, active = true) {
   const [displayedText, setDisplayedText] = useState('')
   const [isTyping, setIsTyping] = useState(false)
+  const audioCtxRef = useRef(null)
+
+  const playTick = () => {
+    try {
+      // AudioContext must be resumed after user gesture, but here we just try-catch
+      if (!audioCtxRef.current) {
+        audioCtxRef.current = new (window.AudioContext || window.webkitAudioContext)()
+      }
+      const ctx = audioCtxRef.current
+      if (ctx.state === 'suspended') ctx.resume()
+
+      const osc = ctx.createOscillator()
+      const gain = ctx.createGain()
+
+      // Use 'square' or 'sawtooth' for a more mechanical/crunchy terminal feel
+      osc.type = 'square'
+      osc.frequency.setValueAtTime(120 + Math.random() * 40, ctx.currentTime)
+      osc.frequency.exponentialRampToValueAtTime(30, ctx.currentTime + 0.04)
+
+      // Keep it "weak" as requested
+      gain.gain.setValueAtTime(0.015, ctx.currentTime)
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.04)
+
+      osc.connect(gain)
+      gain.connect(ctx.destination)
+
+      osc.start()
+      osc.stop(ctx.currentTime + 0.04)
+    } catch (e) {
+      // Audio failures shouldn't break the UI
+    }
+  }
 
   useEffect(() => {
     if (!active || !text) {
@@ -21,7 +53,14 @@ function useTypewriter(text, speed = 25, active = true) {
     setIsTyping(true)
     let i = 0
     const timer = setInterval(() => {
-      setDisplayedText((prev) => text.slice(0, i + 1))
+      const char = text[i]
+      setDisplayedText(text.slice(0, i + 1))
+      
+      // Play tick for non-whitespace characters
+      if (char && char.trim()) {
+        playTick()
+      }
+      
       i++
       if (i >= text.length) {
         clearInterval(timer)
@@ -56,7 +95,14 @@ export default function OrphanSignalGameplayPanel({
 
   useEffect(() => {
     logEndRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }, [session?.events, localLogs, booting])
+    if (events.length > 0 && !booting) {
+      const lastType = events[events.length - 1]?.type
+      if (lastType === 'narration' || lastType === 'scene') {
+        addLocalLog(`DATA PACKET RECEIVED: ${events.length} BYTES`)
+        addLocalLog('DECRYPTING SIGNAL...')
+      }
+    }
+  }, [events.length, localLogs.length, booting])
 
   useEffect(() => {
     if (!session && !booting) {
@@ -109,11 +155,19 @@ export default function OrphanSignalGameplayPanel({
   return (
     <section className="os-terminal" aria-label="Orphan Signal Console">
       <div className="os-terminal-content">
-        <header className="os-footer" style={{ borderBottom: '1px solid var(--os-border)', background: 'rgba(34, 211, 238, 0.1)' }}>
-          <div className="os-label">FABLEMAP SIGNAL CONSOLE v1.0</div>
+        <header className="os-footer" style={{ borderBottom: '1px solid var(--os-border)', background: 'rgba(34, 211, 238, 0.08)', padding: '4px 12px' }}>
+          <div className="os-label" style={{ fontSize: '0.6rem' }}>
+            <span style={{ color: '#fff' }}>COORD:</span> {session?.tavern?.lat?.toFixed(4) || '??.????'}N / {session?.tavern?.lon?.toFixed(4) || '??.????'}E
+          </div>
+          <div className="os-label" style={{ fontSize: '0.6rem', marginLeft: '12px' }}>
+            <span style={{ color: '#fff' }}>SIGNAL:</span> STABLE 98%
+          </div>
           <div style={{ flex: 1 }} />
-          <button type="button" className="os-btn" style={{ padding: '2px 8px', fontSize: '0.7rem' }} onClick={onAbandon} disabled={busy}>
-            TERMINATE SESSION
+          <div className="os-label" style={{ fontSize: '0.6rem' }}>
+            <span style={{ color: '#fff' }}>OS:</span> FABLEMAP-SIG-v1
+          </div>
+          <button type="button" className="os-btn" style={{ padding: '0px 6px', fontSize: '0.6rem', marginLeft: '12px', borderStyle: 'dashed' }} onClick={onAbandon} disabled={busy}>
+            DISCONNECT
           </button>
         </header>
 
@@ -193,10 +247,12 @@ export default function OrphanSignalGameplayPanel({
             <div className="os-comms-display">
               {booting ? (
                 <div className="os-log-list" style={{ fontSize: '0.8rem' }}>
-                  <div>> MEMORY TEST: PASS</div>
-                  <div>> SIGNAL RANGE: 12.4ly</div>
-                  <div>> ENCRYPTION: ACTIVE</div>
-                  <div>> CONNECTION: SECURE</div>
+                  <div>&gt; MEMORY TEST: PASS</div>
+                  <div>&gt; SIGNAL RANGE: 12.4ly</div>
+                  <div>&gt; ENCRYPTION: ACTIVE</div>
+                  <div>&gt; CONNECTION: SECURE</div>
+                  <div>&gt; SYNCING COORDS...</div>
+                  <div>&gt; INJECTING NEURAL LINK...</div>
                 </div>
               ) : !session ? (
                 <div className="os-narration" style={{ opacity: 0.6 }}>

@@ -20,6 +20,19 @@ BASE_DECAY_RATES = {
     "entertainment": 2.0
 }
 
+# 心情均值回归速率（每 Tick 向 50 靠拢的点数）
+MOOD_REGRESSION_RATE = 1.0
+
+# 传闻情绪关键词
+_POSITIVE_KEYWORDS: set[str] = {
+    "不错", "挺好", "棒", "喜欢", "开心", "有趣", "温馨", "舒适",
+    "推荐", "赞", "精彩", "美味", "漂亮", "nice", "good", "great",
+}
+_NEGATIVE_KEYWORDS: set[str] = {
+    "无聊", "差", "糟", "讨厌", "难吃", "吵", "脏", "失望",
+    "糟糕", "难受", "无趣", "bad", "boring", "terrible",
+}
+
 # 状态回升速率（每 Tick 增加的点数）
 RECOVERY_RATES = {
     "energy": 15.0,        # 在 home 休息
@@ -97,8 +110,31 @@ def tick_npc_simulation(npc: TavernCharacter, current_tavern_type: str = "", cur
             new_val = min(100.0, current_val + rate)
             setattr(state, attr, new_val)
 
+    # 3. 心情均值回归（mood 向 50 靠拢）
+    if state.mood > 50.0:
+        state.mood = max(50.0, state.mood - MOOD_REGRESSION_RATE)
+    elif state.mood < 50.0:
+        state.mood = min(50.0, state.mood + MOOD_REGRESSION_RATE)
+
     state.last_tick_at = now.isoformat()
     return True
+
+
+def classify_rumor_sentiment(text: str) -> str:
+    """对传闻文本做简易情绪分类。
+
+    Returns:
+        "positive" | "negative" | "neutral"
+    """
+    lower = text.lower()
+    pos = sum(1 for kw in _POSITIVE_KEYWORDS if kw in lower)
+    neg = sum(1 for kw in _NEGATIVE_KEYWORDS if kw in lower)
+    if pos > neg:
+        return "positive"
+    if neg > pos:
+        return "negative"
+    return "neutral"
+
 
 def decide_npc_mobility(npc: TavernCharacter, all_taverns: List[Tavern]) -> str | None:
     """
@@ -189,7 +225,17 @@ def generate_npc_feeling(npc: TavernCharacter, tavern_type: str = "") -> str:
     if state.entertainment < 30:
         feelings.append("感觉生活枯燥乏味，无聊透顶，急需找点乐子发泄一下")
 
-    # 2. 环境反馈描述 (Recovery context)
+    # 2. 心情描述
+    if state.mood >= 80:
+        feelings.append("心情非常好，脸上洋溢着笑容，觉得世界格外美好")
+    elif state.mood >= 60:
+        feelings.append("心情不错，内心平静而满足")
+    elif state.mood <= 20:
+        feelings.append("心情极度低落，看什么都不顺眼，几乎不想说话")
+    elif state.mood <= 40:
+        feelings.append("心情有些沉重，隐约感到不开心")
+
+    # 3. 环境反馈描述 (Recovery context)
     from .simulation import PLACE_RECOVERY_MAP
     recovering_needs = PLACE_RECOVERY_MAP.get(tavern_type, [])
     
@@ -203,5 +249,5 @@ def generate_npc_feeling(npc: TavernCharacter, tavern_type: str = "") -> str:
     if not feelings:
         return "当前状态良好，心情平和。"
 
-    # 3. 组合
+    # 4. 组合
     return "；".join(feelings) + "。"

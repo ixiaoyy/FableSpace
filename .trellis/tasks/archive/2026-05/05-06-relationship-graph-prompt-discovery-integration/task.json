@@ -3,7 +3,7 @@
   "name": "relationship-graph-prompt-discovery-integration",
   "title": "Relationship graph prompt and discovery integration",
   "description": "After core propagation is stable, inject perspective-safe relation context into prompts and optional discovery/detail hints.",
-  "status": "planning",
+  "status": "completed",
   "dev_type": "fullstack",
   "scope": "relationship graph prompt/discovery integration",
   "package": null,
@@ -11,11 +11,11 @@
   "creator": "lijin",
   "assignee": "lijin",
   "createdAt": "2026-05-06",
-  "completedAt": null,
+  "completedAt": "2026-05-11",
   "branch": null,
   "base_branch": "codex-homepage-dynamic-entry-covers",
   "worktree_path": null,
-  "current_phase": 1,
+  "current_phase": 4,
   "next_action": [
     {
       "phase": 2,
@@ -32,6 +32,6 @@
   "children": [],
   "parent": "05-06-tavern-character-relationship-graph-brainstorm",
   "relatedFiles": [],
-  "notes": "Created from unified tavern/character relationship graph brainstorm. Read parent PRD and implementation-plan.md before coding.",
+  "notes": "All acceptance criteria met: prompt tests pass, relation context appears scope-appropriate, no data leakage, backend tests pass. No UI changes needed (prompt-only scope).",
   "meta": {}
 }

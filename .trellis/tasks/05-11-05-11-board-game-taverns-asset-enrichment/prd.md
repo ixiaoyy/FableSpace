@@ -33,7 +33,7 @@
 3. 更新 `tavernTemplates.js` 中的 `cover` 和 `avatar` 路径。
 
 ## 验收标准
-- [ ] 4 个空间的背景图生成并正确引用。
-- [ ] 6 名核心 NPC 的立绘生成并正确显示。
-- [ ] 所有生成图均附带 prompt sidecar 文件。
-- [ ] `npm run build` 无资源路径错误。
+- [x] 4 个空间的背景图生成并正确引用。
+- [x] 6 名核心 NPC 的立绘生成并正确显示。
+- [x] 所有生成图均附带 prompt sidecar 文件。
+- [x] `npm run build` 无资源路径错误。

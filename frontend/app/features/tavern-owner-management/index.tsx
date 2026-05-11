@@ -1,6 +1,7 @@
-import { CheckCircle2, Send, ShieldCheck, UserCheck, XCircle, Plus, Settings, Sparkles, BookOpen, UserPlus, PlayCircle, Info } from "lucide-react"
+import { CheckCircle2, Send, ShieldCheck, UserCheck, XCircle, Plus, Settings, Sparkles, BookOpen, UserPlus, PlayCircle, Info, Activity } from "lucide-react"
 import { useState } from "react"
 
+import { NpcSimulationStatusPanel } from "../npc-simulation-status/NpcSimulationStatusPanel"
 import { RelationshipGraphPanel } from "../relationship-graph"
 import { SpaceCapabilityHubPanel } from "../../components/SpaceCapabilityHubPanel"
 import TerritoryManagementPanel from "../../components/TerritoryManagementPanel"
@@ -810,6 +811,67 @@ function TerritoryOwnerPanel({ tavern }: { tavern: Tavern }) {
   )
 }
 
+function NpcSimulationOverview({ characters, tavernName }: { characters: TavernCharacter[]; tavernName?: string }) {
+  const charsNeedingAttention = characters.filter((c) => {
+    const s = c.simulation_state
+    if (!s) return false
+    return s.energy < 30 || s.hunger < 30 || s.thirst < 30 || s.social < 30 || s.entertainment < 30
+  })
+
+  return (
+    <Card className="min-w-0 overflow-hidden border-amber-300/18 bg-[radial-gradient(circle_at_top_right,rgba(251,191,36,0.12),transparent_34%),rgba(15,23,42,0.74)]">
+      <CardHeader>
+        <div className="flex items-center gap-2">
+          <Activity className="h-4 w-4 text-amber-300/80" />
+          <CardTitle className="text-base">NPC 仿真状态监控</CardTitle>
+        </div>
+        <CardDescription className="mt-1">
+          五维状态实时追踪 — 能量、饱腹、水分、社交、娱乐。NPC 会根据需求自主移动到匹配的空间。
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        {characters.length === 0 ? (
+          <p className="text-sm text-violet-100/50">当前空间暂无 NPC。添加角色后，仿真系统将自动追踪状态。</p>
+        ) : (
+          <div className="space-y-5">
+            {charsNeedingAttention.length > 0 && (
+              <div className="rounded-xl border border-amber-300/20 bg-amber-300/[0.06] p-3">
+                <p className="text-xs font-bold text-amber-100/80">
+                  ⚠️ {charsNeedingAttention.length} 位 NPC 状态偏低
+                </p>
+                <p className="mt-1 text-xs text-amber-100/60">
+                  {charsNeedingAttention.map((c) => c.name).join("、")} 可能正在寻找合适的场所补充需求。
+                </p>
+              </div>
+            )}
+            {characters.map((char) => (
+              <div key={char.id} className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+                <div className="mb-3 flex items-center gap-3">
+                  {char.avatar ? (
+                    <img src={char.avatar} alt={char.name} className="h-10 w-10 rounded-xl object-cover" />
+                  ) : (
+                    <span className="grid h-10 w-10 place-items-center rounded-xl bg-gradient-to-br from-cyan-300/20 to-fuchsia-300/20 text-sm font-black text-white">
+                      {char.name?.[0] || "?"}
+                    </span>
+                  )}
+                  <div>
+                    <p className="font-bold text-white">{char.name}</p>
+                    <p className="text-xs text-violet-100/50">
+                      {char.is_visitor ? "🚶 外来访客" : char.current_tavern_id !== char.home_tavern_id ? "🚶 外出中" : "🏠 驻场"}
+                      {char.traits?.length ? ` · ${char.traits.length} 个特质` : ""}
+                    </p>
+                  </div>
+                </div>
+                <NpcSimulationStatusPanel character={char} variant="full" tavernName={tavernName} />
+              </div>
+            ))}
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  )
+}
+
 export function TavernOwnerManagement({
   tavern,
   roleplay,
@@ -847,6 +909,10 @@ export function TavernOwnerManagement({
         roleplay={effectiveRoleplay}
         onRoleplayChange={setRoleplayState}
       />
+
+      {/* ── NPC 仿真状态监控 ─────────────────────────────────────────────── */}
+      <NpcSimulationOverview characters={characters} tavernName={tavern.name} />
+
       <PlayPackPanel tavern={tavern} />
       <PlaceHomePanel tavern={tavern} />
       <TerritoryOwnerPanel tavern={tavern} />

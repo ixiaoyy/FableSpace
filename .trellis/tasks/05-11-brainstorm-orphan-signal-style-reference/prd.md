@@ -1,5 +1,9 @@
 # brainstorm: Orphan Signal 风格参考落地
 
+- **Status**: COMPLETED
+- **Assignee**: Antigravity
+- **Last Updated**: 2026-05-11
+
 ## Goal
 
 基于用户提供的两张 `Orphan Signal / 孤信号` 参考图，梳理 FableMap 可以吸收的视觉语言、交互隐喻与 MVP 落地点，让后续实现既有“深空信号 / 终端面板 / 回响收件箱”的记忆点，又不偏离 FableMap 当前的真实坐标空间 UGC 主线。

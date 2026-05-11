@@ -10,7 +10,7 @@ import logging
 from datetime import datetime, UTC
 from typing import TYPE_CHECKING, Dict
 
-from ..core.simulation import tick_npc_simulation, decide_npc_mobility
+from ..core.simulation import tick_npc_simulation, decide_npc_mobility, classify_rumor_sentiment
 from ..core.tavern import Tavern, TavernCharacter
 
 if TYPE_CHECKING:
@@ -186,4 +186,30 @@ class SimulationWorker:
         target.social_memories.insert(0, new_memory)
         target.social_memories = target.social_memories[:5]
 
-        logger.info(f"NPC simulation tick completed. {len(moved_chars)} NPCs moved.")
+        # ── 情感影响 (Emotional Impact) ──────────────────────────
+        # 社交互动本身回升双方的 social 需求
+        SOCIAL_BOOST = 8.0
+        MOOD_SHIFT = 5.0
+
+        if source.simulation_state:
+            source.simulation_state.social = min(100.0, source.simulation_state.social + SOCIAL_BOOST)
+        if target.simulation_state:
+            target.simulation_state.social = min(100.0, target.simulation_state.social + SOCIAL_BOOST)
+
+        # 根据传闻内容的情绪色彩修正心情
+        sentiment = classify_rumor_sentiment(rumor_content)
+        if sentiment == "positive":
+            if target.simulation_state:
+                target.simulation_state.mood = min(100.0, target.simulation_state.mood + MOOD_SHIFT)
+            if source.simulation_state:
+                source.simulation_state.mood = min(100.0, source.simulation_state.mood + MOOD_SHIFT * 0.5)
+        elif sentiment == "negative":
+            if target.simulation_state:
+                target.simulation_state.mood = max(0.0, target.simulation_state.mood - MOOD_SHIFT)
+            if source.simulation_state:
+                source.simulation_state.mood = max(0.0, source.simulation_state.mood - MOOD_SHIFT * 0.5)
+
+        logger.debug(
+            "Rumor exchange: %s → %s | sentiment=%s | '%s'",
+            source.name, target.name, sentiment, rumor_content[:40],
+        )
