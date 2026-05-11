@@ -1232,3 +1232,34 @@ Completed the refinement of sidebar icons and styles to match the premium design
 ### Next Steps
 
 - None - task complete
+
+
+## Session 26: Optimize NPC Interaction: Greetings and Mentions
+
+**Date**: 2026-05-11
+**Task**: Optimize NPC Interaction: Greetings and Mentions
+**Branch**: `main`
+
+### Summary
+
+Enhanced tavern entrance greetings to summarize multiple NPCs and improved public chat mention UX by adding click-to-mention support in the sidebar.
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+(No commits - planning session)
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
