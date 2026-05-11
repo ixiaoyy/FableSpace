@@ -1,0 +1,79 @@
+{
+  "id": "05-11-soul-link-sidebar-1to1-restore",
+  "name": "05-11-soul-link-sidebar-1to1-restore",
+  "title": "Restore SoulLink sidebar to 1:1 reference",
+  "description": "",
+  "status": "completed",
+  "dev_type": "frontend",
+  "scope": null,
+  "package": null,
+  "priority": "P2",
+  "creator": "lijin",
+  "assignee": "lijin",
+  "createdAt": "2026-05-11",
+  "completedAt": "2026-05-11",
+  "branch": null,
+  "base_branch": "main",
+  "worktree_path": null,
+  "current_phase": 4,
+  "next_action": [
+    {
+      "phase": 1,
+      "action": "brainstorm"
+    },
+    {
+      "phase": 2,
+      "action": "research"
+    },
+    {
+      "phase": 3,
+      "action": "implement"
+    },
+    {
+      "phase": 4,
+      "action": "check"
+    },
+    {
+      "phase": 5,
+      "action": "update-spec"
+    },
+    {
+      "phase": 6,
+      "action": "record-session"
+    }
+  ],
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [],
+  "parent": null,
+  "relatedFiles": [
+    "frontend/app/components/soul-link-reference-artboards.tsx"
+  ],
+  "notes": "Sidebar no longer uses one whole image for navigation: header is clipped reference image; nav items, invite card, and bottom controls are DOM with inline SVG/text. Typecheck/build/contract/Playwright checks passed.",
+  "meta": {
+    "validation": [
+      {
+        "command": "npm --prefix .\\frontend run typecheck",
+        "result": "passed"
+      },
+      {
+        "command": "npm --prefix .\\frontend run build",
+        "result": "passed"
+      },
+      {
+        "command": "node .\\frontend\\scripts\\soul-link-reference-artboards-test.mjs",
+        "result": "passed"
+      },
+      {
+        "command": "npm --prefix .\\frontend run test:soul-link-reference-ux",
+        "result": "passed"
+      }
+    ],
+    "artifacts": [
+      ".trellis/tasks/05-11-05-11-soul-link-sidebar-1to1-restore/artifacts/playwright/home-light-desktop.png",
+      ".trellis/tasks/05-11-05-11-soul-link-sidebar-1to1-restore/artifacts/playwright/discover-light-desktop.png",
+      ".trellis/tasks/05-11-05-11-soul-link-sidebar-1to1-restore/artifacts/playwright/soul-link-reference-check.md"
+    ]
+  }
+}

@@ -1,0 +1,7 @@
+{"file": ".trellis/workflow.md", "reason": "Project workflow and conventions"}
+{"file": ".trellis/spec/frontend/index.md", "reason": "Frontend development guide"}
+{"file": ".trellis/spec/frontend/component-guidelines.md", "reason": "Frontend component standards"}
+{"file": ".trellis/spec/frontend/quality-guidelines.md", "reason": "UI quality and validation standards"}
+{"file": ".trellis/spec/frontend/image-asset-guidelines.md", "reason": "Image asset and reference handling"}
+{"file": ".trellis/spec/guides/code-reuse-thinking-guide.md", "reason": "Ensure reuse of existing gameplay logic"}
+{"file": ".trellis/spec/backend/special-tavern-types.md", "reason": "Reference for divination and special types"}

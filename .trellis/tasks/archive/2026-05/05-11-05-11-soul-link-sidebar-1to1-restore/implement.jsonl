@@ -1,0 +1,5 @@
+{"file": ".trellis/workflow.md", "reason": "Project workflow and conventions"}
+{"file": ".trellis/spec/frontend/index.md", "reason": "Frontend development guide"}
+{"file": ".trellis/spec/frontend/quality-guidelines.md", "reason": "visual change verification and reference acceptance"}
+{"file": ".trellis/spec/frontend/component-guidelines.md", "reason": "component overlay and accessibility"}
+{"file": ".trellis/spec/frontend/image-asset-guidelines.md", "reason": "locked project image assets as visual reference"}
