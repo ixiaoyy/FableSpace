@@ -46,7 +46,6 @@
   "pr_url": null,
   "subtasks": [],
   "children": [
-    "05-06-persistent-notification-auth",
     "05-06-home-route-productization",
     "05-06-quest-checklist-persistence",
     "05-06-preset-import-apply-flow",
