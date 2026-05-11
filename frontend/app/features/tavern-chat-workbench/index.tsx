@@ -111,16 +111,23 @@ function hasTavernTasks(tavern: Tavern) {
 function hostGuideMessage(tavern: Tavern, characters: TavernCharacter[]): ChatMessage {
   const timestamp = new Date().toISOString()
   const hasTasks = hasTavernTasks(tavern)
+  const otherNpcs = characters.length > 3 
+    ? `，目前 ${characters[0].name}、${characters[1].name} 等 ${characters.length} 位 NPC 都在场`
+    : characters.length > 0
+      ? `，目前 ${characters.map(c => c.name || c.id).join('、')} 都在场`
+      : ""
+
   const mentionHint = characters.length
-    ? `也可以在公共频道输入 @NPC名，比如 @${characters[0].name || characters[0].id}，我会把话递给对应的人。`
+    ? `也可以在公共频道输入 @NPC名，或者点击左侧头像，我会把话递给对应的人。`
     : "等店主添加 NPC 后，就可以直接找他们聊天。"
+
   return {
     id: `host-guide-${timestamp}`,
     role: "assistant",
     character_id: SHOPKEEPER_CHARACTER_ID,
     content: hasTasks
-      ? `我是店长，欢迎来到${tavern.name || "这间空间"}。可以先在公共频道和大家打招呼，${mentionHint} 这间空间现在有任务，想推进剧情或玩法时可以从任务入口开始。`
-      : `我是店长，欢迎来到${tavern.name || "这间空间"}。可以先在公共频道和大家打招呼，${mentionHint} 想单独聊，就点左侧某个 NPC 进入私聊。`,
+      ? `我是店长，欢迎来到${tavern.name || "这间空间"}${otherNpcs}。可以先在公共频道和大家打招呼，${mentionHint} 这间空间现在有任务，想推进剧情或玩法时可以从任务入口开始。`
+      : `我是店长，欢迎来到${tavern.name || "这间空间"}${otherNpcs}。可以先在公共频道和大家打招呼，${mentionHint} 想单独聊，就点左侧某个 NPC 进入私聊。`,
     timestamp,
   }
 }
@@ -739,10 +746,30 @@ export function TavernChatWorkbench({
   }
 
   function handleSelectNpcInPublic(characterId: string) {
+    const char = characters.find((c) => c.id === characterId)
+    if (!char) return
+
+    const name = char.name || char.id || ""
+    
+    // Toggle targeted state
     if (targetedCharacterId === characterId) {
       setTargetedCharacterId("")
     } else {
       setTargetedCharacterId(characterId)
+      
+      // Also insert @mention as per PRD requirements
+      const mentionText = `@${name} `
+      if (!message.includes(mentionText)) {
+        setMessage((prev) => {
+          const trimmed = prev.trim()
+          return trimmed ? `${trimmed} ${mentionText}` : mentionText
+        })
+      }
+      
+      // Focus textarea
+      setTimeout(() => {
+        textareaRef.current?.focus()
+      }, 0)
     }
   }
 

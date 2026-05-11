@@ -119,6 +119,7 @@ npm --prefix .\frontend test
 - 只改图片资源：检查目标图片文件路径、尺寸/格式、hash 或修改时间；如果前端会加载该资源，运行 `npm --prefix .\frontend run build`。
 - 改 Python：至少运行 `py -3 -m compileall -q backend/src`；涉及行为时运行相关 pytest 或全量 pytest。
 - 改前端：至少运行 `npm --prefix .\frontend run build`；涉及服务/规则脚本时运行 `npm --prefix .\frontend test`；涉及用户可见视觉/交互并需要浏览器人工验收时，先运行 Playwright 自验收并记录桌面/窄屏截图或报告路径。
+- **高风险/视觉验收 (Grill-Me)**：涉及 UI 还原度、用户提供素材映射、或 source-of-truth 存在争议时，必须在完成前使用 `$grill-me` 技能进行对抗式自审，对比原始参考图/Schema 并记录 Verdict (PASS/FAIL/BLOCKED) 与证据。
 - 改 API / 数据模型 / 协议：必须同步或补充测试，并更新对应文档。
 - 验证失败要如实报告失败命令、失败原因和下一步，不要包装成成功。
 

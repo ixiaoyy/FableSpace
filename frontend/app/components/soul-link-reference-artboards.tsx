@@ -42,22 +42,28 @@ import navHomeIcon from "../assets/soul-link-05-10/icons/nav-home.png"
 import navMemoryIcon from "../assets/soul-link-05-10/icons/nav-memory.png"
 import navSavedIcon from "../assets/soul-link-05-10/icons/nav-saved.png"
 import lightBellIcon from "../assets/soul-link-05-10/user-cuts-light/icon-bell-glow.png"
+import lightBookIcon from "../assets/soul-link-05-10/user-cuts-light/icon-book-glow.png"
+import lightBookmarkIcon from "../assets/soul-link-05-10/user-cuts-light/icon-bookmark-glow.png"
 import lightCompassIcon from "../assets/soul-link-05-10/user-cuts-light/icon-compass-glow.png"
-import lightGuideEnvelopeBg from "../assets/soul-link-05-10/user-cuts-light/card-envelope-soft.png"
-import lightGuideStarterBg from "../assets/soul-link-05-10/user-cuts-light/card-invite-soft.png"
-import lightLibraryCafeWide from "../assets/soul-link-05-10/user-cuts-light/scene-library-cafe-wide.png"
-import lightLibrarySunlit from "../assets/soul-link-05-10/user-cuts-light/scene-library-sunlit.png"
-import lightLibraryWide from "../assets/soul-link-05-10/user-cuts-light/scene-library-wide.png"
+import lightHomeIcon from "../assets/soul-link-05-10/user-cuts-light/icon-home-glow.png"
 import lightMessageIcon from "../assets/soul-link-05-10/user-cuts-light/icon-message-glow.png"
 import lightPinIcon from "../assets/soul-link-05-10/user-cuts-light/icon-map-pin-glow.png"
-import lightPlaneWash from "../assets/soul-link-05-10/user-cuts-light/bg-plane-wash.png"
 import lightPlaneIcon from "../assets/soul-link-05-10/user-cuts-light/icon-plane-glow.png"
 import lightPulseIcon from "../assets/soul-link-05-10/user-cuts-light/icon-pulse-bars-glow.png"
+import lightSearchIcon from "../assets/soul-link-05-10/user-cuts-light/icon-search-glow.png"
+import lightPlayIcon from "../assets/soul-link-05-10/user-cuts-light/icon-play-glow.png"
+import lightArrowIcon from "../assets/soul-link-05-10/user-cuts-light/icon-arrow-glow.png"
+import lightPlaneWash from "../assets/soul-link-05-10/user-cuts-light/bg-plane-wash.png"
 import lightPaperPlaneSoft from "../assets/soul-link-05-10/user-cuts-light/bg-paper-plane-soft.png"
 import lightSeaLane from "../assets/soul-link-05-10/user-cuts-light/scene-sea-lane.png"
-import lightGuideShieldBg from "../assets/soul-link-05-10/user-cuts-light/card-shield-soft.png"
 import lightSkyCityBalcony from "../assets/soul-link-05-10/user-cuts-light/scene-sky-city-balcony.png"
 import lightTrainRainPlatform from "../assets/soul-link-05-10/user-cuts-light/scene-train-platform-rain.png"
+import lightLibraryWide from "../assets/soul-link-05-10/user-cuts-light/scene-library-wide.png"
+import lightLibrarySunlit from "../assets/soul-link-05-10/user-cuts-light/scene-library-sunlit.png"
+import lightLibraryCafeWide from "../assets/soul-link-05-10/user-cuts-light/scene-library-cafe-wide.png"
+import lightGuideStarterBg from "../assets/soul-link-05-10/user-cuts-light/card-invite-soft.png"
+import lightGuideEnvelopeBg from "../assets/soul-link-05-10/user-cuts-light/card-envelope-soft.png"
+import lightGuideShieldBg from "../assets/soul-link-05-10/user-cuts-light/card-shield-soft.png"
 import soulLinkUserAvatar from "../assets/npc-style-cast/portraits-hd/commission-zhideng.png"
 import type { Tavern } from "../lib/taverns"
 
@@ -148,6 +154,15 @@ type SoulLinkOnlineEntity = {
   location: string
   status: string
   avatar: string
+  to?: string
+}
+
+type SoulLinkRecentMemory = {
+  id: string
+  title: string
+  source: string
+  meta: string
+  image: string
   to?: string
 }
 
@@ -452,15 +467,24 @@ const SIDEBAR_NAV_ICON_IMAGES: Record<string, string> = {
 
 function SidebarNavIcon({ id, variant, className }: { id: string; variant: Variant; className?: string }) {
   if (variant === "light") {
-    const Icon =
-      id === "home" ? HomeIcon
-      : id === "discover" ? Compass
-      : id === "echoes" ? MessageCircle
-      : id === "memory" ? BookOpen
-      : id === "saved" ? Bookmark
-      : id === "anchors" ? MapPin
-      : Send
-    return <Icon aria-hidden="true" strokeWidth={2.2} className={cx("shrink-0", className)} />
+    const src =
+      id === "home" ? lightHomeIcon
+      : id === "discover" ? lightCompassIcon
+      : id === "echoes" ? lightMessageIcon
+      : id === "memory" ? lightBookIcon
+      : id === "saved" ? lightBookmarkIcon
+      : id === "anchors" ? lightPinIcon
+      : lightPlaneIcon
+    return (
+      <img
+        src={src}
+        alt=""
+        aria-hidden="true"
+        draggable={false}
+        decoding="async"
+        className={cx("shrink-0 select-none object-contain", className)}
+      />
+    )
   }
   const src = SIDEBAR_NAV_ICON_IMAGES[id] || navCreateIcon
   return (
@@ -687,7 +711,11 @@ function SoulLinkNotificationBell({ variant }: { variant: Variant }) {
           : "border-slate-200/70 bg-white/82 text-slate-600 shadow-[0_10px_24px_rgba(88,106,160,0.1)] hover:text-violet-600",
       )}
     >
-      <Bell size={18} strokeWidth={2.4} />
+      {isBlack ? (
+        <Bell size={18} strokeWidth={2.4} />
+      ) : (
+        <UserCutImage src={lightBellIcon} className="h-5 w-5" scale={2.4} />
+      )}
       <span className={cx("absolute right-[18%] top-[18%] h-[22%] w-[22%] rounded-full", isBlack ? "bg-rose-400 shadow-[0_0_12px_rgba(251,113,133,0.75)]" : "bg-rose-500 shadow-[0_0_10px_rgba(244,63,94,0.5)]")} />
     </button>
   )
@@ -1413,7 +1441,11 @@ function OverlayInput({
       style={boxStyle(artboard, x, y, w, h)}
     >
       <span className="sr-only">搜索地点、角色、记忆或关键词</span>
-      <Search size={18} strokeWidth={2.6} className="pointer-events-none absolute left-[7.5%] opacity-60" />
+      {variant === "black" ? (
+        <Search size={18} strokeWidth={2.6} className="pointer-events-none absolute left-[7.5%] opacity-60" />
+      ) : (
+        <UserCutImage src={lightSearchIcon} className="pointer-events-none absolute left-[7.5%] h-5 w-5 opacity-60" scale={2.5} />
+      )}
       <input
         value={value}
         onChange={(event) => onChange?.(event.target.value)}
@@ -1469,6 +1501,53 @@ function SoulLinkLightCoordinateCard({
             {card.visitLabel}
           </span>
           <span aria-hidden="true" className="text-violet-300">♡</span>
+        </div>
+      </div>
+    </Link>
+  )
+}
+
+function SoulLinkLightDiscoverCard({
+  artboard,
+  box,
+  tavern,
+  index,
+}: {
+  artboard: Artboard
+  box: readonly [number, number, number, number]
+  tavern?: Tavern
+  index: number
+}) {
+  const fallback = LIGHT_FALLBACK_COORDINATE_CARDS[index % LIGHT_FALLBACK_COORDINATE_CARDS.length]
+  const [x, y, w, h] = box
+  const name = tavern?.name || fallback.name
+  const description = tavern?.description || fallback.description
+  const tag = tavern?.tags?.[0] || fallback.tag
+  const image = tavern?.characters?.[0]?.avatar || fallback.image
+
+  return (
+    <Link
+      to={targetFor(tavern?.id)}
+      data-soul-link-discover-light-card="real-card"
+      onMouseDown={suppressMouseFocus}
+      className="absolute z-20 flex touch-manipulation flex-col overflow-hidden rounded-[1.1rem] border border-white/90 bg-white/95 shadow-[0_12px_32px_rgba(108,123,178,0.12)] outline-none transition hover:-translate-y-0.5 hover:shadow-[0_16px_40px_rgba(108,123,178,0.18)] focus:ring-4 focus:ring-violet-400/35"
+      style={boxStyle(artboard, x, y, w, h)}
+    >
+      <div className="relative h-[48%] overflow-hidden">
+        <img src={image} alt={`${name} 封面`} className="h-full w-full object-cover" loading="lazy" decoding="async" />
+        <span className="absolute left-2.5 top-2.5 rounded-full bg-violet-500/86 px-2 py-0.5 text-[9px] font-black text-white">
+          {tag}
+        </span>
+      </div>
+      <div className="flex h-[52%] flex-col px-[8%] py-[6%]">
+        <h3 className="truncate text-[13px] font-black leading-tight text-slate-800">{name}</h3>
+        <p className="mt-1.5 line-clamp-2 text-[10px] font-bold leading-4 text-slate-400">{description}</p>
+        <div className="mt-auto flex items-center justify-between text-[9px] font-black text-slate-300">
+          <span className="flex items-center gap-1">
+            <UserCutImage src={lightPinIcon} className="h-4 w-4 rounded-full" scale={1.8} />
+            正在被探索
+          </span>
+          <ArrowUpRight size={10} strokeWidth={4} />
         </div>
       </div>
     </Link>
@@ -1613,7 +1692,11 @@ function HomeHeroActions({ artboard, variant, forceVisible = false }: { artboard
         style={boxStyle(artboard, HOME_LAYOUT.heroActions.primary.x, HOME_LAYOUT.heroActions.primary.y, HOME_LAYOUT.heroActions.primary.w, HOME_LAYOUT.heroActions.primary.h)}
       >
         <span>开始探索</span>
-        <ArrowUpRight size={16} strokeWidth={3} className="opacity-70" />
+        {isBlack ? (
+          <ArrowUpRight size={16} strokeWidth={3} className="opacity-70" />
+        ) : (
+          <UserCutImage src={lightArrowIcon} className="h-4 w-4" scale={2.8} />
+        )}
       </Link>
       <Link
         to="/discover"
@@ -1630,15 +1713,19 @@ function HomeHeroActions({ artboard, variant, forceVisible = false }: { artboard
           aria-hidden="true"
           className={cx(
             "grid h-7 w-7 shrink-0 place-items-center",
-            isBlack ? "rounded-full border border-current/30" : "text-[#8277ff]",
+            isBlack ? "rounded-full border border-current/30" : "",
           )}
         >
-          <Play
-            size={playIconSize}
-            fill="currentColor"
-            strokeWidth={playIconStrokeWidth}
-            className="ml-0.5"
-          />
+          {isBlack ? (
+            <Play
+              size={playIconSize}
+              fill="currentColor"
+              strokeWidth={playIconStrokeWidth}
+              className="ml-0.5"
+            />
+          ) : (
+            <UserCutImage src={lightPlayIcon} className="h-5 w-5" scale={2.2} />
+          )}
         </span>
         <span>观看世界介绍</span>
       </Link>
@@ -1660,16 +1747,49 @@ function HomeCardLinks({ artboard, featuredCitySlices }: { artboard: Artboard; f
   )
 }
 
-function DiscoverCardLinks({ artboard, taverns }: { artboard: Artboard; taverns: Tavern[] }) {
+function DiscoverCardLinks({
+  artboard,
+  taverns,
+  variant,
+  forceVisible = false,
+}: {
+  artboard: Artboard
+  taverns: Tavern[]
+  variant: Variant
+  forceVisible?: boolean
+}) {
+  const isBlack = variant === "black"
   return (
     <>
-      {DISCOVER_LAYOUT.cards.map(([x, y, w, h], index) => (
-        <OverlayLink
-          key={`discover-card-${index}`}
-          artboard={artboard}
-          hotspot={{ label: `进入探索坐标 ${taverns[index]?.name || index + 1}`, to: targetFor(taverns[index]?.id), x, y, w, h }}
-        />
-      ))}
+      {DISCOVER_LAYOUT.cards.map((box, index) => {
+        const [x, y, w, h] = box
+        const tavern = taverns[index]
+        if (!isBlack && forceVisible) {
+          return (
+            <SoulLinkLightDiscoverCard
+              key={`discover-light-card-${tavern?.id || index}`}
+              artboard={artboard}
+              box={box}
+              tavern={tavern}
+              index={index}
+            />
+          )
+        }
+        return (
+          <OverlayLink
+            key={`discover-card-${index}`}
+            artboard={artboard}
+            hotspot={{
+              label: `进入探索坐标 ${tavern?.name || index + 1}`,
+              to: targetFor(tavern?.id),
+              x,
+              y,
+              w,
+              h,
+            }}
+          />
+        )
+      })}
     </>
   )
 }
@@ -1742,10 +1862,11 @@ export function SoulLinkDiscoverReference(props: DiscoverReferenceProps) {
   const artboard = props.variant === "black" ? DISCOVER_BLACK : DISCOVER_LIGHT
   const resolvedSideFeedItems = props.sideFeedItems?.length ? props.sideFeedItems : fallbackFeedItemsFromTaverns(props.taverns)
   const resolvedOnlineEntities = props.onlineEntities?.length ? props.onlineEntities : fallbackOnlineEntitiesFromFeed(resolvedSideFeedItems)
+  const forceRealDiscover = props.variant === "light"
   return (
     <ArtboardShell artboard={artboard} variant={props.variant} kind="discover">
       <SoulLinkSidebar artboard={artboard} variant={props.variant} active="discover" onToggleTheme={props.onToggleTheme} />
-      <SoulLinkUserCluster artboard={artboard} variant={props.variant} />
+      <SoulLinkUserCluster artboard={artboard} variant={props.variant} forceVisible={forceRealDiscover} />
       <SoulLinkFeedPanel
         artboard={artboard}
         variant={props.variant}
@@ -1754,8 +1875,9 @@ export function SoulLinkDiscoverReference(props: DiscoverReferenceProps) {
         eyebrow="Signal Feed"
         items={resolvedSideFeedItems}
         actionLabel="查看全部"
+        forceVisible={forceRealDiscover}
       />
-      <SoulLinkOnlineEntitiesPanel artboard={artboard} variant={props.variant} box={DISCOVER_RIGHT_RAIL.onlineEntities} entities={resolvedOnlineEntities} />
+      <SoulLinkOnlineEntitiesPanel artboard={artboard} variant={props.variant} box={DISCOVER_RIGHT_RAIL.onlineEntities} entities={resolvedOnlineEntities} forceVisible={forceRealDiscover} />
       <OverlayText artboard={artboard} {...DISCOVER_LAYOUT.title}>
         探索
       </OverlayText>
@@ -1763,8 +1885,9 @@ export function SoulLinkDiscoverReference(props: DiscoverReferenceProps) {
         artboard={artboard}
         value={props.search}
         onChange={props.onSearchChange}
-        placeholder="搜索地点、角色、记忆或关键词..."
+        placeholder="搜索地点、角色、记忆 or 关键词..."
         variant={props.variant}
+        forceVisible={forceRealDiscover}
         {...DISCOVER_LAYOUT.search}
       />
       <OverlayButton artboard={artboard} label="全部筛选" onClick={props.onClear} {...DISCOVER_LAYOUT.filters.all} />
@@ -1773,10 +1896,13 @@ export function SoulLinkDiscoverReference(props: DiscoverReferenceProps) {
       <OverlayButton artboard={artboard} label="低信号" onClick={() => props.onToggleSpecialType("cultivation-retreat")} {...DISCOVER_LAYOUT.filters.lowSignal} />
       <OverlayButton artboard={artboard} label="舒适空间" onClick={() => props.onTogglePlaceType("bookstore")} {...DISCOVER_LAYOUT.filters.cozy} />
       <OverlayButton artboard={artboard} label="更多筛选" onClick={() => props.onToggleCategory("陪伴树洞")} {...DISCOVER_LAYOUT.filters.more} />
-      <DiscoverCardLinks artboard={artboard} taverns={props.taverns} />
+      <DiscoverCardLinks
+        artboard={artboard}
+        taverns={props.taverns}
+        variant={props.variant}
+        forceVisible={forceRealDiscover}
+      />
       <OverlayLink artboard={artboard} hotspot={DISCOVER_LAYOUT.create} />
     </ArtboardShell>
   )
 }
-
-
