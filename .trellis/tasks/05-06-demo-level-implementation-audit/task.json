@@ -45,9 +45,7 @@
   "commit": null,
   "pr_url": null,
   "subtasks": [],
-  "children": [
-    "05-06-preset-import-apply-flow"
-  ],
+  "children": [],
   "parent": null,
   "relatedFiles": [],
   "notes": "Completed full-repo demo-level signal audit. Created audit-report.md plus 9 validated Trellis child development tasks. No business code changes.",
