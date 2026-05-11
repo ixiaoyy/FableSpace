@@ -26,7 +26,6 @@
   "pr_url": null,
   "subtasks": [],
   "children": [
-    "05-06-relationship-graph-owner-ui",
     "05-06-relationship-graph-prompt-discovery-integration"
   ],
   "parent": null,
