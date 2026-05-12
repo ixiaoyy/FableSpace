@@ -191,10 +191,13 @@ py -3 -m fablemap_api.infrastructure.migrate --output-root .fablemap-api
 - [产品概述](docs/PRODUCT_BRIEF.md) — 一句话定位、用户角色、核心场景
 - [空间平台设计](docs/FABLEMAP_TAVERN_PLATFORM.md) — 完整产品设计文档（主线）
 - [系统架构](docs/ARCHITECTURE.md) — 系统分层、模块边界、API 端点
-- [当前任务清单](docs/CURRENT_TASKS.md) — 实施阶段与优先级
-- [共享任务清单](docs/AI_SHARED_TASKLIST.md) — 轻量空间体验壳、记忆系统与后续可认领待办
+- [世界数据结构](docs/WORLD_SCHEMA.md) — Tavern / TavernCharacter / WorldInfoEntry / VisitorState 等约束
+- [图像资源规范](docs/IMAGE_ASSETS_SPEC.md) — 图片资产落盘、prompt sidecar 与验证规则
+- [AI 协作协议](docs/AI参与开发协议.md) — Trellis 任务、认领、验证和变更说明规则
 - [明确不做清单](docs/WHAT_NOT_TO_BUILD.md) — 边界约束
 - [文档索引](docs/INDEX.md) — 文档总览
+
+当前任务、认领和验收记录统一进入 `.trellis/tasks/`；旧共享任务清单、claim/change 目录和一次性规划文档已从主线文档中移除。
 
 ## 一句话总结
 

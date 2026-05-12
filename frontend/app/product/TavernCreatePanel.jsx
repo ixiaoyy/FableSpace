@@ -424,10 +424,13 @@ export default function TavernCreatePanel({
 
             <div className="form-group">
               <label>一句话简介</label>
+              <p className="form-hint" data-first-minute-authoring-guide="legacy-create-panel">
+                先回答“为什么在这里”：这个坐标、街角或地址给访客什么独有线索，避免变成贴了 GPS 标签的普通聊天室。
+              </p>
               <textarea
                 value={form.description}
                 onChange={(e) => updateField('description', e.target.value)}
-                placeholder="让访客在进入前知道这里是什么样的地方..."
+                placeholder="让访客在进入前知道这里为什么必须开在这个真实坐标..."
                 rows={3}
                 maxLength={500}
               />
@@ -438,10 +441,10 @@ export default function TavernCreatePanel({
               <textarea
                 value={form.scene_prompt}
                 onChange={(e) => updateField('scene_prompt', e.target.value)}
-                placeholder="给 AI 的场景描述，例如：这是一个古朴的传达室，老式电话、搪瓷茶缸、堆积的报纸..."
+                placeholder="给 AI 的场景描述：游客第一分钟看见什么、问什么、被谁接待..."
                 rows={3}
               />
-              <p className="form-hint">不用写复杂指令，只要描述空间、气味、声音和第一眼能看到的东西。</p>
+              <p className="form-hint">不用写复杂指令，只要描述空间、气味、声音、第一眼能看到的东西，以及推荐访客先问的线索。</p>
             </div>
 
             <div className="form-group">

@@ -1,8 +1,0 @@
-{"file": ".trellis/workflow.md", "reason": "Project workflow and conventions"}
-{"file": ".trellis/spec/backend/index.md", "reason": "Backend development guide"}
-{"file": ".trellis/spec/frontend/index.md", "reason": "Frontend development guide"}
-{"file": "backend/src/fablemap_api/api/v1/notifications.py", "reason": "notification REST/WS endpoints"}
-{"file": "backend/src/fablemap_api/core/notifications.py", "reason": "current in-memory notification store"}
-{"file": "frontend/app/routes/notifications.tsx", "reason": "notification UI route"}
-{"file": ".trellis/spec/frontend/revisit-care-notification-boundary.md", "reason": "notification product boundary"}
-{"file": ".trellis\\tasks\\05-06-persistent-notification-auth\\prd.md", "reason": "task PRD requirements"}

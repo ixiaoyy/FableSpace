@@ -1,0 +1,67 @@
+{
+  "id": "05-12-zero-user-product-critique",
+  "name": "05-12-zero-user-product-critique",
+  "title": "brainstorm: brutal PM critique of zero-user FableMap",
+  "description": "Record a brutal PM critique of why current FableMap positioning could get zero users and negative reviews, then extract rescue directions.",
+  "status": "completed",
+  "dev_type": "product",
+  "scope": "product critique and follow-up PRD seed only; no code changes",
+  "package": null,
+  "priority": "P2",
+  "creator": "lijin",
+  "assignee": "lijin",
+  "createdAt": "2026-05-12",
+  "completedAt": "2026-05-12",
+  "branch": null,
+  "base_branch": "main",
+  "worktree_path": null,
+  "current_phase": 6,
+  "next_action": [
+    {
+      "phase": 1,
+      "action": "brainstorm"
+    },
+    {
+      "phase": 2,
+      "action": "research"
+    },
+    {
+      "phase": 3,
+      "action": "implement"
+    },
+    {
+      "phase": 4,
+      "action": "check"
+    },
+    {
+      "phase": 5,
+      "action": "update-spec"
+    },
+    {
+      "phase": 6,
+      "action": "record-session"
+    }
+  ],
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [],
+  "parent": null,
+  "relatedFiles": [
+    ".trellis/tasks/05-12-05-12-zero-user-product-critique/prd.md",
+    "docs/PRODUCT_BRIEF.md",
+    "docs/FABLEMAP_TAVERN_PLATFORM.md",
+    "docs/WHAT_NOT_TO_BUILD.md",
+    ".trellis/tasks/05-12-05-12-map-anchored-space-ugc-critique-brainstorm/prd.md"
+  ],
+  "notes": "Recorded brutal PM critique: current product risks reading as coordinate-tagged AI chat with excessive concept load, unclear owner ROI, weak visitor first minute, weak location proof, severe UGC cold start. Suggested rescue: official seed spaces, five-question owner flow, shareable hooks, token pain hidden from first visitor experience.",
+  "meta": {
+    "critique_verdict": "FAIL: product narrative failure, not merely implementation failure",
+    "recommended_followups": [
+      "Seed 5-10 official high-quality location-bound spaces",
+      "Owner five-question creation flow",
+      "First-60-second visitor success metric",
+      "Owner ROI/visitor leave-behind surfaces"
+    ]
+  }
+}

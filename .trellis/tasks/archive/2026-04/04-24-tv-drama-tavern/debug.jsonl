@@ -1,3 +1,0 @@
-{"file": ".trellis/spec/frontend/quality-guidelines.md", "reason": "Debug frontend validation failures with the required commands"}
-{"file": "frontend/app/product/personalityTemplates.js", "reason": "Debug template lookup, filtering, and apply behavior"}
-{"file": "frontend/scripts/personality-templates-test.mjs", "reason": "Debug template regression test failures"}

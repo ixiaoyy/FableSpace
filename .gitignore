@@ -9,8 +9,12 @@ frontend/.react-router/
 frontend/build/
 
 # Trellis local harness dependencies/caches
-.trellis/tmp/**/node_modules/
-.trellis/tmp/**/.vite/
+.trellis/tmp/
+.trellis/tasks/**/artifacts/
+.trellis/workspace/**/*.log
+.trellis/workspace/**/frontend-asset-check/
+.trellis/workspace/**/frontend-layout-unification-check/
+.trellis/workspace/**/light-layout-fix/
 
 # Python
 .pytest_cache/
@@ -21,9 +25,10 @@ artifacts/pytest-tmp/
 artifacts/pytest-*/
 artifacts/dev-server/
 
-# Artifacts
-artifacts/runlogs/
+# Artifacts / generated evidence
+artifacts/
 test-results/
+frontend/scripts/playwright-discover-visual-audit.mjs
 
 # Generated outputs
 .fablemap-api/

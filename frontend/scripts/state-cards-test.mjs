@@ -45,6 +45,12 @@ assert.ok(panelSource.includes('加入正史'))
 assert.ok(panelSource.includes('忽略本次'))
 assert.ok(panelSource.includes('contradiction_candidate'))
 
+const ownerManagementSource = readFileSync(join(here, '../app/features/tavern-owner-management/index.tsx'), 'utf8')
+assert.ok(ownerManagementSource.includes('OwnerStateCardPanel'))
+assert.ok(ownerManagementSource.includes('data-owner-state-card-entry="management-route"'))
+assert.ok(ownerManagementSource.includes('店主确认后才会写入结构化正史'))
+assert.ok(ownerManagementSource.includes('onClose={() => setOpen(false)}'))
+
 const styleSource = readFileSync(join(here, '../app/product/styles.css'), 'utf8')
 assert.ok(styleSource.includes('.state-card-review-panel'))
 

@@ -1,6 +1,0 @@
-{"file": ".trellis/spec/frontend/quality-guidelines.md", "reason": "Verify build/test requirements for frontend template changes"}
-{"file": ".trellis/spec/frontend/type-safety.md", "reason": "Check template data stays within existing frontend contracts"}
-{"file": ".trellis/spec/guides/code-reuse-thinking-guide.md", "reason": "Check constants and filter/apply behavior reuse existing code paths"}
-{"file": "docs/WHAT_NOT_TO_BUILD.md", "reason": "Check no forbidden platform-generated or copyrighted IP content is introduced"}
-{"file": "frontend/app/product/personalityTemplates.js", "reason": "Review template content and category integration"}
-{"file": "frontend/scripts/personality-templates-test.mjs", "reason": "Review regression coverage for new template category"}

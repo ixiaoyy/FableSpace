@@ -374,3 +374,10 @@ Decision: Approach B is selected. Use dedicated `_gacha_progress` for draw progr
 ## Implementation Plan
 
 * 2026-05-06: 实施计划已落盘到 `.trellis/tasks/05-05-character-gacha-gameplay-brainstorm/implementation-plan.md`。当前尚未改业务代码；后续实现将按 dedicated `_gacha_progress`、`Tavern.gacha_config`、`TavernCharacter.visibility/unlock_mode`、owner/visitor API 分层推进。
+
+## 2026-05-12 Closure Note
+
+This task is closed as `brainstorm_complete`. Closed as brainstorm/design complete: PRD contains user-approved MVP boundaries, data/API sketch, implementation plan, and explicit non-goals. No production code was implemented in this brainstorm task.
+
+Deferred / not done:
+- Backend/frontend gacha implementation remains a future dedicated task; no gacha API/schema/UI was added here.

@@ -1,8 +1,0 @@
-{"file": ".trellis/workflow.md", "reason": "Project workflow and conventions"}
-{"file": ".trellis/spec/frontend/index.md", "reason": "Frontend development guide"}
-{"file": ".trellis/spec/frontend/component-guidelines.md", "reason": "邀请链接卡片组件与移动端布局"}
-{"file": ".trellis/spec/frontend/directory-structure.md", "reason": "新增 app/lib helper 与 frontend/scripts 测试位置"}
-{"file": ".trellis/spec/frontend/type-safety.md", "reason": "分享文案从 Tavern payload 归一化"}
-{"file": ".trellis/spec/frontend/state-management.md", "reason": "复制状态保持组件局部"}
-{"file": ".trellis/spec/guides/code-reuse-thinking-guide.md", "reason": "新增 helper 前确认既有分享逻辑"}
-{"file": ".trellis/spec/guides/cross-layer-thinking-guide.md", "reason": "只用公开 Tavern payload 生成分享链接"}

@@ -1,6 +1,0 @@
-{"file": ".trellis/workflow.md", "reason": "Project workflow and conventions"}
-{"file": ".trellis/spec/backend/index.md", "reason": "Backend development guide"}
-{"file": ".trellis/spec/frontend/index.md", "reason": "Frontend development guide"}
-{"file": ".trellis/spec/backend/quality-guidelines.md", "reason": "Backend test placement, no new dependencies, validation commands"}
-{"file": "backend/src/fablemap_api/core/char_card_parser.py", "reason": "Target SillyTavern parser module under test"}
-{"file": "backend/tests/test_v1_character_assets.py", "reason": "Existing v1 character-card API tests to avoid duplicating route coverage"}

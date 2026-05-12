@@ -1,6 +1,0 @@
-{"file": ".claude/commands/trellis/finish-work.md", "reason": "Finish work checklist"}
-{"file": ".claude/commands/trellis/check.md", "reason": "Code quality check spec"}
-{"file": "backend/src/fablemap_api/core/default_taverns.py", "reason": "Review seeded content against product boundaries"}
-{"file": "tests/test_default_public_welfare_taverns.py", "reason": "Review focused regression tests"}
-{"file": "tests/test_default_public_welfare_gameplays.py", "reason": "Review gameplay id coverage"}
-{"file": "docs/superpowers/specs/2026-04-27-ai-npc-drafts-design.md", "reason": "AI draft product boundary design influencing default demo wording"}

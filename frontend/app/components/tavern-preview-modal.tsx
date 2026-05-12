@@ -2,6 +2,7 @@ import { DoorOpen, Eye, MapPinned, Users, X } from "lucide-react"
 import { Link } from "react-router"
 
 import { derivePlaceTypeDisplay } from "../lib/place-types.js"
+import { buildTavernFirstMinuteGuide } from "../lib/tavern-first-minute"
 import { type Tavern, type TavernCharacter } from "../lib/taverns"
 import { cn } from "../lib/utils"
 import { Button } from "../ui/button"
@@ -46,6 +47,7 @@ export function TavernPreviewModal({ tavern, onClose }: TavernPreviewModalProps)
   const worldInfoEntries = worldInfoPreview(tavern)
   const scenePrompt = tavern.scene_prompt || "店主还没有写下场景提示。"
   const placeType = derivePlaceTypeDisplay(tavern)
+  const firstMinute = buildTavernFirstMinuteGuide(tavern)
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -98,6 +100,27 @@ export function TavernPreviewModal({ tavern, onClose }: TavernPreviewModalProps)
               <span className="rounded-full border border-white/10 bg-white/5 px-2 py-0.5">
                 {tavern.status || "unknown"}
               </span>
+            </div>
+          </div>
+
+          {/* First-minute guide */}
+          <div data-first-minute-guide="preview-modal" className="rounded-3xl border border-cyan-300/18 bg-cyan-300/8 p-4">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+              <div>
+                <p className="text-xs font-black uppercase tracking-widest text-cyan-100/70">游客第一分钟</p>
+                <h3 className="mt-1 font-black text-white">为什么在这里 · {firstMinute.experienceType}</h3>
+              </div>
+              <span className="w-fit rounded-full border border-cyan-300/24 bg-cyan-300/10 px-2.5 py-1 text-xs font-black text-cyan-50">
+                {firstMinute.anchorLine}
+              </span>
+            </div>
+            <p className="mt-3 text-sm leading-6 text-violet-50/74">{firstMinute.whyHere}</p>
+            <div className="mt-3 grid gap-2 sm:grid-cols-3">
+              {firstMinute.tryThisFirst.map((prompt) => (
+                <p key={prompt} className="rounded-2xl border border-white/10 bg-white/[0.04] px-3 py-2 text-xs leading-5 text-violet-50/70">
+                  先试：{prompt}
+                </p>
+              ))}
             </div>
           </div>
 

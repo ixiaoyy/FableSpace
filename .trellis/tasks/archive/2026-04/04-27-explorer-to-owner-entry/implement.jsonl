@@ -1,8 +1,0 @@
-{"file": ".trellis/workflow.md", "reason": "Project workflow and conventions"}
-{"file": ".trellis/spec/frontend/index.md", "reason": "Frontend development guide"}
-{"file": ".trellis/spec/frontend/component-guidelines.md", "reason": "开店 CTA 与移动端布局"}
-{"file": ".trellis/spec/frontend/directory-structure.md", "reason": "新增 app/lib helper 与 frontend/scripts 测试位置"}
-{"file": ".trellis/spec/frontend/type-safety.md", "reason": "query 参数与 Tavern 坐标归一化"}
-{"file": ".trellis/spec/frontend/state-management.md", "reason": "create 页预填保持表单局部默认值"}
-{"file": ".trellis/spec/guides/code-reuse-thinking-guide.md", "reason": "复用 create 路由和 Tavern payload"}
-{"file": ".trellis/spec/guides/cross-layer-thinking-guide.md", "reason": "不新增后端字段，仅前端 query 传递坐标"}

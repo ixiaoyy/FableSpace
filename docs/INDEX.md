@@ -2,72 +2,47 @@
 
 ## 快速导航
 
-如果你是第一次进入这个项目，建议优先阅读以下文档：
+如果你是第一次进入这个项目，建议按以下顺序阅读：
 
-1. [README.md](../README.md) - 项目总览、当前原型状态、文档导航
-2. [docs/PRODUCT_BRIEF.md](PRODUCT_BRIEF.md) - 当前产品定义与目标体验
-3. [docs/FABLEMAP_TAVERN_PLATFORM.md](FABLEMAP_TAVERN_PLATFORM.md) - 空间平台完整设计文档（主线）
-4. [docs/ARCHITECTURE.md](ARCHITECTURE.md) - 系统分层、模块边界、API 端点
-5. [docs/CURRENT_TASKS.md](CURRENT_TASKS.md) - 当前实施阶段与优先级
-6. [docs/AI_SHARED_TASKLIST.md](AI_SHARED_TASKLIST.md) - 轻量空间体验壳、记忆系统与后续共享待办
-7. [docs/WHAT_NOT_TO_BUILD.md](WHAT_NOT_TO_BUILD.md) - 明确不做清单
+1. [README.md](../README.md) — 项目总览、启动方式、核心模块
+2. [docs/PRODUCT_BRIEF.md](PRODUCT_BRIEF.md) — 产品定义与目标体验
+3. [docs/FABLEMAP_TAVERN_PLATFORM.md](FABLEMAP_TAVERN_PLATFORM.md) — 空间平台主线设计
+4. [docs/ARCHITECTURE.md](ARCHITECTURE.md) — 系统分层、模块边界、API 端点
+5. [docs/WORLD_SCHEMA.md](WORLD_SCHEMA.md) — 数据模型与 Schema 约束
+6. [docs/WHAT_NOT_TO_BUILD.md](WHAT_NOT_TO_BUILD.md) — 明确不做清单
+7. [docs/AI参与开发协议.md](AI参与开发协议.md) — AI 协作、认领、验证和变更说明规则
+8. [.trellis/workflow.md](../.trellis/workflow.md) — Trellis 任务与会话流程
+9. [.trellis/spec/](../.trellis/spec/) — 按改动范围读取 backend / frontend / guides 规范
 
 ---
 
 ## P0 - 当前主线文档（必读）
 
-这些文档共同定义当前 FableMap 空间平台的产品方向、系统主链路与执行口径。
-
 | 文档 | 用途 | 状态 |
 |------|------|------|
-| [README.md](../README.md) | 项目总览、当前入口、文档导航 | ✅ 当前有效 |
+| [README.md](../README.md) | 项目总览、启动方式、核心模块 | ✅ 当前有效 |
 | [docs/PRODUCT_BRIEF.md](PRODUCT_BRIEF.md) | 产品定义、用户价值、目标体验 | ✅ 当前有效 |
-| [docs/FABLEMAP_TAVERN_PLATFORM.md](FABLEMAP_TAVERN_PLATFORM.md) | 空间平台完整设计文档 | ✅ **主线** |
+| [docs/FABLEMAP_TAVERN_PLATFORM.md](FABLEMAP_TAVERN_PLATFORM.md) | 空间平台完整设计文档 | ✅ 主线 |
 | [docs/ARCHITECTURE.md](ARCHITECTURE.md) | 系统分层、模块边界、API 端点 | ✅ 当前有效 |
-| [docs/CURRENT_TASKS.md](CURRENT_TASKS.md) | 当前实施阶段与优先级 | ✅ 当前有效 |
-| [docs/AI_SHARED_TASKLIST.md](AI_SHARED_TASKLIST.md) | VisionTale 参考后的共享任务清单：开店向导、预设、记忆、世界书、UGC 包 | ✅ 待实现 / 可认领 |
+| [docs/WORLD_SCHEMA.md](WORLD_SCHEMA.md) | Tavern / TavernCharacter / WorldInfoEntry / VisitorState 等数据结构 | ✅ 当前有效 |
 | [docs/WHAT_NOT_TO_BUILD.md](WHAT_NOT_TO_BUILD.md) | 明确不做清单、约束边界 | ✅ 当前有效 |
-| [docs/WORLD_SCHEMA.md](WORLD_SCHEMA.md) | 世界数据结构（含空间 / 玩法数据模型） | ✅ 当前有效 |
 
 ---
 
-## P1 - 核心参考文档
+## P1 - 资源与协作规范
 
 | 文档 | 用途 | 状态 |
 |------|------|------|
-| [docs/WORLD_SCHEMA.md](WORLD_SCHEMA.md) | 数据模型（Tavern/Character/LLMConfig/Gameplay） | ✅ 当前有效 |
-| [docs/IMAGE_ASSETS_SPEC.md](IMAGE_ASSETS_SPEC.md) | 图像资源规范 | ✅ 当前有效 |
+| [docs/IMAGE_ASSETS_SPEC.md](IMAGE_ASSETS_SPEC.md) | 图像资源、prompt sidecar 与资产落盘规范 | ✅ 当前有效 |
+| [docs/AI参与开发协议.md](AI参与开发协议.md) | AI 协作、任务认领、验证和交付协议 | ✅ 当前有效 |
 
 ---
 
-## P2 - 协作规范
+## 任务与历史记录
 
-| 文档 | 用途 | 状态 |
-|------|------|------|
-| [docs/AI参与开发协议.md](AI参与开发协议.md) | AI 协作规范 | ✅ 有效 |
-
----
-
-## 变更与认领记录
-
-| 目录 | 用途 |
-|------|------|
-| [docs/changes](changes) | 变更记录 |
-| [docs/claims](claims) | 认领记录 |
-
----
-
-## 当前阅读顺序建议
-
-### 面向新协作者
-
-1. [README.md](../README.md)
-2. [docs/PRODUCT_BRIEF.md](PRODUCT_BRIEF.md)
-3. [docs/FABLEMAP_TAVERN_PLATFORM.md](FABLEMAP_TAVERN_PLATFORM.md)
-4. [docs/ARCHITECTURE.md](ARCHITECTURE.md)
-5. [docs/CURRENT_TASKS.md](CURRENT_TASKS.md)
-6. [docs/AI_SHARED_TASKLIST.md](AI_SHARED_TASKLIST.md)
-7. [docs/WHAT_NOT_TO_BUILD.md](WHAT_NOT_TO_BUILD.md)
+- 当前任务、认领、验收记录统一使用 [.trellis/tasks/](../.trellis/tasks/)。
+- 开发规范统一使用 [.trellis/spec/](../.trellis/spec/)。
+- 旧 `docs/changes/`、`docs/claims/`、共享任务清单和一次性规划文档已在 2026-05-12 清理，不再作为仓库入口。
 
 ---
 

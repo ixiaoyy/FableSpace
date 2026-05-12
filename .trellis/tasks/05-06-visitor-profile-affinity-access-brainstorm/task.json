@@ -3,19 +3,19 @@
   "name": "visitor-profile-affinity-access-brainstorm",
   "title": "brainstorm: 游客身份画像驱动初始好感与空间可见性",
   "description": "",
-  "status": "planning",
+  "status": "completed",
   "dev_type": null,
-  "scope": null,
+  "scope": "Visitor profile driven initial affinity and tavern visibility brainstorm",
   "package": null,
   "priority": "P2",
   "creator": "lijin",
   "assignee": "lijin",
   "createdAt": "2026-05-06",
-  "completedAt": null,
+  "completedAt": "2026-05-12",
   "branch": null,
   "base_branch": "codex-homepage-dynamic-entry-covers",
   "worktree_path": null,
-  "current_phase": 0,
+  "current_phase": 6,
   "next_action": [
     {
       "phase": 1,
@@ -48,6 +48,14 @@
   "children": [],
   "parent": null,
   "relatedFiles": [],
-  "notes": "",
-  "meta": {}
+  "notes": "Closed as brainstorm/design complete: PRD captures requirements, privacy/visibility boundaries, and implementation considerations. No API/schema code was changed in this brainstorm slice.",
+  "meta": {
+    "closure_type": "brainstorm_complete",
+    "deferred_not_done": [
+      "Visitor profile affinity/visibility implementation requires a separate scoped backend/frontend task."
+    ],
+    "validation": [
+      "Planning/doc closure only unless noted; no new production code for this task."
+    ]
+  }
 }

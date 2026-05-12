@@ -11,6 +11,7 @@ services:
       FABLEMAP_OUTPUT_ROOT: /data
       FABLEMAP_SEED_DEFAULT_TAVERNS: ${FABLEMAP_SEED_DEFAULT_TAVERNS:-1}
       FABLEMAP_CORS_ORIGINS: ${FABLEMAP_CORS_ORIGINS:-http://localhost:3000,http://127.0.0.1:3000}
+      OPENCODE_API_KEY: ${OPENCODE_API_KEY:-}
       PYTHONPATH: /app/backend/src
     ports:
       - "${FABLEMAP_API_PORT:-8000}:8000"
@@ -35,6 +36,8 @@ services:
       dockerfile: frontend/Dockerfile
       args:
         VITE_API_BASE: ${VITE_API_BASE:-}
+        VITE_AMAP_KEY: ${VITE_AMAP_KEY:-}
+        VITE_AMAP_SECURITY_CODE: ${VITE_AMAP_SECURITY_CODE:-}
     image: fablemap-frontend:local
     depends_on:
       backend:

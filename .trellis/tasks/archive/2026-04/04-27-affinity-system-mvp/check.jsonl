@@ -1,8 +1,0 @@
-{"step": 1, "action": "compile", "command": "py -3 -m compileall -q backend/src", "description": "Compile backend Python code", "expected": "No syntax errors", "status": "pending"}
-{"step": 2, "action": "test", "command": "py -3 -m pytest -q backend/tests/test_affinity.py --tb=short", "description": "Run backend affinity unit tests", "expected": "All tests pass", "status": "pending"}
-{"step": 3, "action": "test", "command": "py -3 -m pytest -q backend/tests/test_mysql_infrastructure.py --tb=short", "description": "Run infrastructure tests to verify visitor state handling", "expected": "All tests pass", "status": "pending"}
-{"step": 4, "action": "test", "command": "npm --prefix .\\frontend test", "description": "Run frontend tests", "expected": "All tests pass", "status": "pending"}
-{"step": 5, "action": "test", "command": "npm --prefix .\\frontend run typecheck", "description": "Run TypeScript type checking", "expected": "No type errors", "status": "pending"}
-{"step": 6, "action": "test", "command": "npm --prefix .\\frontend run build", "description": "Build frontend", "expected": "Build successful", "status": "pending"}
-{"step": 7, "action": "test", "command": "node .\\frontend\\scripts\\affinity-test.mjs", "description": "Run affinity script test", "expected": "All assertions pass", "status": "pending"}
-{"step": 8, "action": "validate", "command": "py -3 .\\.trellis\\scripts\\task.py validate .\\.trellis\\tasks\\04-27-affinity-system-mvp", "description": "Validate Trellis task structure", "expected": "Validation passes", "status": "pending"}

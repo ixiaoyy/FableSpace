@@ -1,7 +1,0 @@
-{"file": ".agents/skills/finish-work/SKILL.md", "reason": "Finish work checklist"}
-{"file": ".agents/skills/check/SKILL.md", "reason": "Code quality check spec"}
-{"file": "docs\\WHAT_NOT_TO_BUILD.md", "reason": "Review product boundaries."}
-{"file": "docs\\WORLD_SCHEMA.md", "reason": "Review schema alignment/no new fields."}
-{"file": ".trellis\\spec\\frontend\\quality-guidelines.md", "reason": "Check frontend verification requirements."}
-{"file": "frontend\\scripts\\gameplay-test.mjs", "reason": "Run/update gameplay regression."}
-{"file": "frontend\\app\\product\\shortDramaGameplayTemplates.js", "reason": "Verify no schema additions and owner-confirmed draft defaults."}

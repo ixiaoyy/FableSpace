@@ -1,8 +1,0 @@
-{"file": ".trellis/workflow.md", "reason": "Project workflow and conventions"}
-{"file": ".trellis/spec/backend/index.md", "reason": "Backend development guide"}
-{"file": ".trellis/spec/frontend/index.md", "reason": "Frontend development guide"}
-{"file": ".trellis/spec/frontend/directory-structure.md", "reason": "Frontend source and asset layout conventions."}
-{"file": ".trellis/spec/frontend/image-asset-guidelines.md", "reason": "Project-local public/app asset placement rules."}
-{"file": ".trellis/spec/frontend/npc-art-guidelines.md", "reason": "NPC portrait asset contracts."}
-{"file": ".trellis/spec/backend/quality-guidelines.md", "reason": "Seed data and pytest verification."}
-{"file": ".trellis/spec/guides/cross-layer-thinking-guide.md", "reason": "Seed URL to frontend public asset flow."}

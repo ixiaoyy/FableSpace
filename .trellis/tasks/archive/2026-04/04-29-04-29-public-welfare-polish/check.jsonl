@@ -1,3 +1,0 @@
-{"file": ".trellis/spec/frontend/image-asset-guidelines.md", "reason": "Check project-local asset placement and generated-image leftovers."}
-{"file": ".trellis/spec/frontend/npc-art-guidelines.md", "reason": "Check NPC expression asset contract."}
-{"file": ".trellis/spec/backend/quality-guidelines.md", "reason": "Check pytest/build verification."}

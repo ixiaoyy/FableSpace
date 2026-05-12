@@ -15,12 +15,14 @@ import { useSearchParams } from "react-router"
 import { normalizePublicWelfareNpcAssetPath } from "../../lib/tavern-runtime-config.js"
 
 import { GENDER_OPTIONS, genderLabel, normalizeGender } from "../../lib/gender.js"
+import { buildTavernFirstMinuteGuide, type TavernFirstMinuteGuide } from "../../lib/tavern-first-minute"
 import {
   enterTavern,
   errorMessage,
   sendGroupChat,
   sendTavernChat,
   type ChatMessage,
+  type NpcSocialMemory,
   type RoleplayState,
   type Tavern,
   type TavernCharacter,
@@ -44,6 +46,7 @@ import { getMiniGameTemplates } from "../../product/tavernMiniGames"
 import OrphanSignalGameplayPanel from "../../product/OrphanSignalGameplayPanel"
 import GameplaySessionPanel from "../../product/GameplaySessionPanel"
 import { SpaceCapabilityHubPanel } from "../../components/SpaceCapabilityHubPanel"
+import { SocialMemoryCreationPanel } from "../social-memory-debug/SocialMemoryCreationPanel"
 
 
 type ChatChannel = "public" | "private"
@@ -262,6 +265,106 @@ function WorkbenchChip({ children }: { children: ReactNode }) {
   )
 }
 
+function doorwayHostCharacter(characters: TavernCharacter[], selectedCharacter?: TavernCharacter) {
+  if (selectedCharacter) return selectedCharacter
+  return characters.find((character) => character?.name?.trim()) || characters[0]
+}
+
+function doorwayOpeningPrompt(character: TavernCharacter | undefined, tavern: Tavern, firstMinute: TavernFirstMinuteGuide) {
+  if (character) {
+    const name = character.name || "NPC"
+    return `${name}，我刚推门进来，能先带我看看${tavern.name || "这里"}吗？`
+  }
+  return firstMinute.tryThisFirst[0] || `我刚到${tavern.name || "这里"}，现在可以从哪里开始？`
+}
+
+function TavernDoorwayRitual({
+  tavern,
+  characters,
+  selectedCharacter,
+  firstMinute,
+  onStartChat,
+}: {
+  tavern: Tavern
+  characters: TavernCharacter[]
+  selectedCharacter?: TavernCharacter
+  firstMinute: TavernFirstMinuteGuide
+  onStartChat: (character: TavernCharacter | undefined, prompt: string) => void
+}) {
+  const hostCharacter = doorwayHostCharacter(characters, selectedCharacter)
+  const hostName = hostCharacter?.name || "驻场 NPC"
+  const hostGreeting = hostCharacter
+    ? entranceReactionContent(hostCharacter, tavern.name)
+    : "门牌已经亮起，但店主还没有安排 NPC 接待。可以先收藏这间空间，等它真正开门。"
+  const openingPrompt = doorwayOpeningPrompt(hostCharacter, tavern, firstMinute)
+
+  return (
+    <section
+      data-tavern-doorway-ritual
+      aria-label="进店前的酒馆门口"
+      className="border-b border-white/10 bg-[radial-gradient(circle_at_top_right,rgba(245,158,11,0.13),transparent_34%),linear-gradient(135deg,rgba(15,23,42,0.88),rgba(30,41,59,0.48))] p-4 sm:p-5"
+    >
+      <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_17rem] lg:items-stretch">
+        <div className="relative overflow-hidden rounded-[1.75rem] border border-amber-200/16 bg-slate-950/45 p-4 shadow-xl shadow-black/18">
+          <div className="pointer-events-none absolute inset-y-0 right-0 w-1/2 bg-[radial-gradient(circle_at_center,rgba(34,211,238,0.12),transparent_48%)]" />
+          <div className="relative">
+            <p className="flex flex-wrap items-center gap-2 text-[0.68rem] font-black uppercase tracking-[0.18em] text-amber-100/72">
+              <DoorOpen className="h-3.5 w-3.5" />
+              推门进店 · 真实坐标门牌
+            </p>
+            <h2 className="mt-2 break-words text-2xl font-black text-white sm:text-3xl">
+              先在门口听一句，再和 NPC 开口
+            </h2>
+            <p className="mt-2 max-w-3xl text-sm leading-6 text-violet-50/72">
+              这不是一张冷冰冰的赛博海报；这间空间钉在
+              <span className="mx-1 font-black text-cyan-50">{firstMinute.anchorLine}</span>
+              ，今晚由 <span className="font-black text-white">{hostName}</span> 在吧台接待你。
+            </p>
+            <blockquote
+              data-doorway-host-greeting
+              className="mt-3 rounded-2xl border border-white/10 bg-white/[0.055] px-4 py-3 text-sm leading-6 text-violet-50/78"
+            >
+              “{hostGreeting}”
+            </blockquote>
+            <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+              <Button
+                type="button"
+                data-doorway-start-chat
+                disabled={!hostCharacter}
+                onClick={() => onStartChat(hostCharacter, openingPrompt)}
+                className="min-h-11"
+              >
+                <Sparkles className="h-4 w-4" />
+                {hostCharacter ? `和 ${hostName} 打招呼` : "等待 NPC 开门"}
+              </Button>
+              <button
+                type="button"
+                onClick={() => onStartChat(hostCharacter, openingPrompt)}
+                disabled={!hostCharacter}
+                className="min-h-11 rounded-2xl border border-white/12 bg-white/[0.04] px-4 text-sm font-bold text-violet-50/76 transition hover:border-cyan-300/35 hover:bg-cyan-300/10 disabled:cursor-not-allowed disabled:opacity-55"
+              >
+                推门进店，但由我自己发送
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div className="rounded-[1.75rem] border border-cyan-300/16 bg-cyan-300/8 p-4">
+          <p className="flex items-center gap-2 text-[0.68rem] font-black uppercase tracking-[0.18em] text-cyan-100/70">
+            <MapPin className="h-3.5 w-3.5" />
+            Tonight at the bar
+          </p>
+          <p data-doorway-host-status className="mt-2 text-sm font-black text-white">
+            {hostCharacter ? `${hostName} 正在接待你` : "今晚在吧台 · 暂无 NPC"}
+          </p>
+          <p className="mt-2 text-sm leading-6 text-violet-50/70">{firstMinute.whyHere}</p>
+          <p className="mt-2 text-xs leading-5 text-violet-100/52">{firstMinute.experienceHelper}</p>
+        </div>
+      </div>
+    </section>
+  )
+}
+
 function CharacterStagePortrait({ character }: { character?: TavernCharacter }) {
   const src = avatarSource(character)
   if (src && canRenderImage(src)) {
@@ -308,10 +411,14 @@ function NpcSeatGallery({
   characters,
   selectedCharacterId,
   onSelectCharacter,
+  activeChatChannel,
+  onSelectNpcInPublic,
 }: {
   characters: TavernCharacter[]
   selectedCharacterId: string
   onSelectCharacter: (characterId: string) => void
+  activeChatChannel: ChatChannel
+  onSelectNpcInPublic: (characterId: string) => void
 }) {
   if (!characters.length) return null
 
@@ -332,7 +439,7 @@ function NpcSeatGallery({
               aria-pressed={active}
               onClick={() => {
                 if (activeChatChannel === "public") {
-                  handleSelectNpcInPublic(character.id)
+                  onSelectNpcInPublic(character.id)
                 } else {
                   onSelectCharacter(character.id)
                 }
@@ -378,10 +485,16 @@ function ChatConversationSidecar({
   tavern,
   character,
   visitorName,
+  draftMessage,
+  isOwner,
+  createdMemories,
 }: {
   tavern: Tavern
   character?: TavernCharacter
   visitorName: string
+  draftMessage: string
+  isOwner: boolean
+  createdMemories: NpcSocialMemory[]
 }) {
   const starters = conversationStarters(character, tavern)
   return (
@@ -397,6 +510,12 @@ function ChatConversationSidecar({
         <p className="text-xs font-black uppercase tracking-[0.16em] text-violet-100/45">当前场景</p>
         <p className="mt-2 line-clamp-5 leading-6 text-violet-50/70">{conversationScene(tavern, character)}</p>
       </div>
+      <SocialMemoryCreationPanel
+        storedMemories={Array.isArray(character?.social_memories) ? character.social_memories : []}
+        createdMemories={createdMemories}
+        lastUserMessage={draftMessage}
+        visible={isOwner}
+      />
       <div className="rounded-2xl border border-white/10 bg-slate-950/35 p-3">
         <p className="text-xs font-black uppercase tracking-[0.16em] text-violet-100/45">可以这样开口</p>
         <div className="mt-2 space-y-2">
@@ -455,6 +574,9 @@ export function TavernChatWorkbench({
   const [gameplayScene, setGameplayScene] = useState<any>({})
   const [isGameplayBusy, setIsGameplayBusy] = useState(false)
 
+  const [createdMemories, setCreatedMemories] = useState<NpcSocialMemory[]>([])
+  const [draftMessage, setDraftMessage] = useState("")
+
   const access = String(tavern.access || "public")
 
   const passwordLocked = access === "password" && !isOwner && !hasEnteredPasswordTavern
@@ -463,6 +585,7 @@ export function TavernChatWorkbench({
     : privateMessagesByCharacterId[selectedCharacter?.id || ""] || []
   const roleplayMode = roleplay?.roleplay_mode || tavern.roleplay_mode || "ai_only"
   const responseMode = responseModeLabel(tavern)
+  const firstMinute = useMemo(() => buildTavernFirstMinuteGuide(tavern), [tavern])
 
   const mentionMatches = useMemo(() => {
     if (!mentionQuery) return characters
@@ -557,7 +680,8 @@ export function TavernChatWorkbench({
           const session = sessionsRes.sessions[0]
           setActiveSession(session)
           // Initial scene from last event if possible
-          const lastEvent = Array.isArray(session.events) ? session.events[session.events.length - 1] : null
+          const sessionRecord = session as Record<string, any>
+          const lastEvent = Array.isArray(sessionRecord.events) ? sessionRecord.events[sessionRecord.events.length - 1] : null
           if (lastEvent?.scene) {
             setGameplayScene(lastEvent.scene)
           }
@@ -682,6 +806,9 @@ export function TavernChatWorkbench({
     } else if (result.degradation?.message) {
       setError(result.degradation.message)
     }
+    if (Array.isArray(result.created_memories) && result.created_memories.length > 0) {
+      setCreatedMemories((prev) => [...prev, ...(result.created_memories as NpcSocialMemory[])])
+    }
   }
 
   async function sendPublicChat(cleanMessage: string, intentForTurn = selectedIntent) {
@@ -709,6 +836,9 @@ export function TavernChatWorkbench({
         setPublicMessages((current) => [...current, buildAssistantLine(responseText, targetCharacter.id, result)])
       } else if (result.degradation?.message) {
         setError(result.degradation.message)
+      }
+      if (Array.isArray(result.created_memories) && result.created_memories.length > 0) {
+        setCreatedMemories((prev) => [...prev, ...(result.created_memories as NpcSocialMemory[])])
       }
       return
     }
@@ -799,6 +929,28 @@ export function TavernChatWorkbench({
     textareaRef.current?.focus()
   }
 
+  function focusComposerAfterDraft() {
+    setTimeout(() => {
+      textareaRef.current?.scrollIntoView({ block: "center", behavior: "smooth" })
+      textareaRef.current?.focus()
+    }, 0)
+  }
+
+  function fillComposerDraft(prompt: string) {
+    setMessage(prompt)
+    setDraftMessage(prompt)
+    setMentionQuery("")
+    setMentionIndex(0)
+    focusComposerAfterDraft()
+  }
+
+  function handleDoorwayStartChat(character: TavernCharacter | undefined, prompt: string) {
+    if (character?.id) {
+      selectCharacter(character.id)
+    }
+    fillComposerDraft(prompt)
+  }
+
   function handleSelectNpcInPublic(characterId: string) {
     const char = characters.find((c) => c.id === characterId)
     if (!char) return
@@ -854,7 +1006,8 @@ export function TavernChatWorkbench({
       const sessionsRes = await listGameplaySessions(tavern.id, { state: "active", visitor_id: visitorId }, visitorId)
       const session = sessionsRes.sessions?.find((s: any) => s.id === res.session_id) || res
       setActiveSession(session)
-      const lastEvent = Array.isArray(session.events) ? session.events[session.events.length - 1] : null
+      const sessionRecord = session as Record<string, any>
+      const lastEvent = Array.isArray(sessionRecord.events) ? sessionRecord.events[sessionRecord.events.length - 1] : null
       setGameplayScene(lastEvent?.scene || {})
     } catch (err) {
       setError(errorMessage(err))
@@ -875,7 +1028,8 @@ export function TavernChatWorkbench({
         const session = sessionsRes.sessions?.find((s: any) => s.id === activeSession.id)
         if (session) {
           setActiveSession(session)
-          const lastEvent = Array.isArray(session.events) ? session.events[session.events.length - 1] : null
+          const sessionRecord = session as Record<string, any>
+          const lastEvent = Array.isArray(sessionRecord.events) ? sessionRecord.events[sessionRecord.events.length - 1] : null
           setGameplayScene(lastEvent?.scene || {})
           
           if (session.state === 'completed') {
@@ -906,7 +1060,7 @@ export function TavernChatWorkbench({
     }
   }
 
-  const isOrphanSignalMode = tavern.special_type === "divination" || searchParams.get("ui_style") === "orphan-signal"
+  const isOrphanSignalMode = (tavern as Record<string, unknown>).special_type === "divination" || searchParams.get("ui_style") === "orphan-signal"
   const miniGameTemplates = getMiniGameTemplates()
   const currentGameplay = gameplayDefinitions[0] // Default to first for now if session starts
 
@@ -952,6 +1106,14 @@ export function TavernChatWorkbench({
           </div>
         </div>
 
+        <TavernDoorwayRitual
+          tavern={tavern}
+          characters={characters}
+          selectedCharacter={selectedCharacter}
+          firstMinute={firstMinute}
+          onStartChat={handleDoorwayStartChat}
+        />
+
         <div className="grid grid-cols-1 lg:grid-cols-[18rem_minmax(0,1fr)] lg:items-start">
           <aside className="border-b border-white/10 bg-white/[0.035] p-4 lg:border-b-0 lg:border-r" aria-label="NPC 角色列表">
             <div className="mb-3 flex items-center justify-between gap-3">
@@ -986,6 +1148,8 @@ export function TavernChatWorkbench({
               characters={characters}
               selectedCharacterId={activeChatChannel === "private" ? selectedCharacter?.id || selectedCharacterId : ""}
               onSelectCharacter={selectCharacter}
+              activeChatChannel={activeChatChannel}
+              onSelectNpcInPublic={handleSelectNpcInPublic}
             />
             <div className="space-y-2">
               {characters.length ? (
@@ -1108,6 +1272,38 @@ export function TavernChatWorkbench({
                 />
               </div>
             ) : null}
+
+            <section
+              data-first-minute-guide="tavern-workbench"
+              aria-label="游客第一分钟"
+              className="mx-4 mb-4 rounded-3xl border border-cyan-300/18 bg-cyan-300/8 p-4"
+            >
+              <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+                <div className="min-w-0">
+                  <p className="flex items-center gap-2 text-[0.68rem] font-black uppercase tracking-[0.18em] text-cyan-100/72">
+                    <MapPin className="h-3.5 w-3.5" />
+                    Why here · {firstMinute.experienceType}
+                  </p>
+                  <p className="mt-2 text-sm leading-6 text-violet-50/74">{firstMinute.whyHere}</p>
+                  <p className="mt-1 text-xs leading-5 text-violet-100/50">{firstMinute.experienceHelper}</p>
+                </div>
+                <span className="w-fit shrink-0 rounded-full border border-cyan-300/24 bg-cyan-300/10 px-3 py-1 text-xs font-black text-cyan-50">
+                  {firstMinute.anchorLine}
+                </span>
+              </div>
+              <div className="mt-3 grid gap-2 md:grid-cols-3">
+                {firstMinute.tryThisFirst.map((prompt) => (
+                  <button
+                    key={prompt}
+                    type="button"
+                    onClick={() => fillComposerDraft(prompt)}
+                    className="min-h-11 rounded-2xl border border-white/10 bg-white/[0.04] px-3 py-2 text-left text-xs font-semibold leading-5 text-violet-50/72 transition hover:border-cyan-300/30 hover:bg-cyan-300/10 hover:text-cyan-50"
+                  >
+                    先试：{prompt}
+                  </button>
+                ))}
+              </div>
+            </section>
 
             {passwordLocked ? (
 
@@ -1300,7 +1496,9 @@ export function TavernChatWorkbench({
                     ref={textareaRef}
                     value={message}
                     onChange={(event) => {
-                      setMessage(event.target.value)
+                      const val = event.target.value
+                      setMessage(val)
+                      setDraftMessage(val)
                       // Detect @ mention
                       const value = event.target.value
                       const cursor = event.target.selectionStart ?? value.length
@@ -1350,7 +1548,7 @@ export function TavernChatWorkbench({
             <section data-chat-sidecar="conversation-context" data-secondary-tools="visitor-folded" className="border-t border-white/10 bg-white/[0.025] p-4">
               <div className="grid gap-3 xl:grid-cols-2">
                 <DetailSection title="聊天辅助" description="需要提示时再展开，不占用聊天主线">
-                  <ChatConversationSidecar tavern={tavern} character={selectedCharacter} visitorName={visitorName} />
+                  <ChatConversationSidecar tavern={tavern} character={selectedCharacter} visitorName={visitorName} draftMessage={message} isOwner={isOwner} createdMemories={createdMemories} />
                 </DetailSection>
 
                 <DetailSection title="更多空间功能" description="分享、公开扩展和回访入口折叠收纳">

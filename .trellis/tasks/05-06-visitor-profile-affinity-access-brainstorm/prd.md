@@ -330,3 +330,9 @@ Design/brainstorm only. No code or schema changes have been made.
 * 2026-05-06: User approved the recommended Phase 1 boundary: use existing `X-User-Id` as logged-in placeholder, add visitor profile entry rules, and keep guest users out of long-term memory.
 * User explicitly requested that follow-up iterations be written into the task plan. See `implementation-plan.md`, especially “Iteration map” and “Future iteration backlog to keep visible”.
 
+## 2026-05-12 Closure Note
+
+This task is closed as `brainstorm_complete`. Closed as brainstorm/design complete: PRD captures requirements, privacy/visibility boundaries, and implementation considerations. No API/schema code was changed in this brainstorm slice.
+
+Deferred / not done:
+- Visitor profile affinity/visibility implementation requires a separate scoped backend/frontend task.

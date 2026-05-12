@@ -1,4 +1,0 @@
-{"file": ".agents/skills/finish-work/SKILL.md", "reason": "Finish work checklist"}
-{"file": ".agents/skills/check/SKILL.md", "reason": "Code quality check spec"}
-{"file": "docs/WHAT_NOT_TO_BUILD.md", "reason": "Verify freeze list respects product boundaries"}
-{"file": ".trellis/spec/guides/cross-layer-thinking-guide.md", "reason": "Check mainline data-flow audit"}

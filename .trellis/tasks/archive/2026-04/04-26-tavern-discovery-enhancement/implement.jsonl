@@ -1,3 +1,0 @@
-{"file": "frontend/app/routes/discover.tsx", "reason": "main file modified — all filter logic lives here"}
-{"file": "frontend/app/lib/taverns.ts", "reason": "listTaverns API returns full tavern objects with characters[] and tags[]"}
-{"file": ".trellis/tasks/04-26-tavern-discovery-enhancement/prd.md", "reason": "original product requirements and acceptance criteria"}

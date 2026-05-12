@@ -221,3 +221,10 @@
 * 旧版 2048 fork 许可证页面（MIT 归类示例）：[mk314k/2048](https://github.com/mk314k/2048)
 * MDN `iframe` 与 sandbox 约束说明：[MDN iframe](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/iframe)
 * MDN CSP 指南：[CSP Guide](https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/CSP)
+
+## 2026-05-12 Closure Note
+
+This task is closed as `brainstorm_complete`. Closed as brainstorm complete: PRD captures approved priority order and follow-up split. Related lightweight mini-game/gameplay template tests now pass in the current frontend suite.
+
+Deferred / not done:
+- Additional game workshop/OSS embedding beyond the existing curated slice remains future scoped work.

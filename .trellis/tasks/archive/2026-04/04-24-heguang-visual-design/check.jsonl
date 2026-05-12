@@ -1,4 +1,0 @@
-{"file": ".trellis/workflow.md", "reason": "Trellis workflow and documentation-only verification rules"}
-{"file": "docs/IMAGE_ASSETS_SPEC.md", "reason": "verify no conflict with image asset spec"}
-{"file": ".trellis/spec/frontend/npc-art-guidelines.md", "reason": "verify tavern NPC art constraints"}
-{"file": "docs/WHAT_NOT_TO_BUILD.md", "reason": "verify design does not imply forbidden platform-generated content"}

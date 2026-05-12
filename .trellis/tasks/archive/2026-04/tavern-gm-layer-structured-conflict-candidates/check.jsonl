@@ -1,6 +1,0 @@
-{"file": "AGENTS.md", "reason": "Final hard-constraint review"}
-{"file": ".trellis/spec/backend/state-card-api-contract.md", "reason": "Check GM preview against StateCard no-mutation rules"}
-{"file": ".trellis/spec/frontend/state-card-ui-boundary.md", "reason": "Check frontend service boundary"}
-{"file": ".trellis/spec/guides/cross-layer-thinking-guide.md", "reason": "Check API/frontend shape alignment"}
-{"file": ".trellis/spec/backend/gm-layer-preview-contract.md", "reason": "Check no-persistence and permission contract"}
-{"file": ".trellis/spec/frontend/gm-layer-preview-boundary.md", "reason": "Check frontend service contract"}

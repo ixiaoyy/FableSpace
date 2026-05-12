@@ -597,7 +597,13 @@ export default function CreateRoute() {
                 <p className="text-xs font-black uppercase tracking-[0.2em] text-theme-primary">Step 02</p>
                 <h2 className="mt-1 text-xl font-black text-theme-primary">填写店主确认的空间内容</h2>
                 <p className="mt-1 text-xs leading-5 text-theme-muted">
-                  名称、简介和场景提示都是 owner-authored 内容；AI 只能作为可丢弃草稿。
+                  名称、简介和场景提示都是 owner-authored 内容；AI 只能作为可丢弃草稿。先写清楚“为什么在这里”，再写 NPC。
+                </p>
+              </div>
+              <div data-first-minute-authoring-guide="create-route" className="rounded-3xl border border-cyan-300/18 bg-cyan-300/8 p-3 text-sm leading-6 text-violet-50/72">
+                <p className="font-black text-cyan-50">反“地图聊天室”检查</p>
+                <p className="mt-1">
+                  简介负责回答访客的 <span className="font-bold text-cyan-100">Why here</span>：这个坐标、地址或街角给了什么线索？场景提示负责回答 <span className="font-bold text-cyan-100">Try this first</span>：游客第一分钟该问什么。
                 </p>
               </div>
               <label className="space-y-1.5 text-sm">
@@ -606,11 +612,11 @@ export default function CreateRoute() {
               </label>
               <label className="space-y-1.5 text-sm">
                 <span className="text-theme-muted">简介</span>
-                <textarea name="description" rows={3} placeholder="写下店主确认的空间氛围。" className="w-full rounded-2xl border border-theme-border bg-theme-card px-4 py-3 text-theme-primary outline-none focus:border-theme-accent-border" />
+                <textarea name="description" rows={3} placeholder="写下为什么这间空间必须开在这个真实坐标：门牌、街角、气味、人群或旧记忆。" className="w-full rounded-2xl border border-theme-border bg-theme-card px-4 py-3 text-theme-primary outline-none focus:border-theme-accent-border" />
               </label>
               <label className="space-y-1.5 text-sm">
                 <span className="text-theme-muted">场景提示</span>
-                <textarea name="scene_prompt" rows={3} placeholder="这个空间闻起来像雨后的霓虹和热红酒。" className="w-full rounded-2xl border border-theme-border bg-theme-card px-4 py-3 text-theme-primary outline-none focus:border-theme-accent-border" />
+                <textarea name="scene_prompt" rows={3} placeholder="游客第一分钟可以看见什么、问什么、被谁接待？例如：雨后霓虹、吧台旧钟、门口猫和第一句招呼。" className="w-full rounded-2xl border border-theme-border bg-theme-card px-4 py-3 text-theme-primary outline-none focus:border-theme-accent-border" />
               </label>
             </section>
 

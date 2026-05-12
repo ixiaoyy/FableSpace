@@ -15,7 +15,7 @@
 - 任何用于代码、默认 seed、文档验收或前端展示的 AI 生成图片，必须复制/转换到本仓库内的规范路径后才算完成。
 - `.codex/generated_images`、系统临时目录、浏览器下载目录和聊天预览只算生成来源，不算项目资源目录。
 - 替换既有图片时，必须覆盖实际被代码/文档引用的项目文件；如果只是生成了新图但引用路径仍指向旧图，视为未替换。
-- 允许保留废稿或参考图，但必须放入 `artifacts/` / 设计参考目录，或在交付说明里明确标记为“未采用/参考-only”。
+- 允许保留废稿或参考图，但必须放入明确的项目资源/参考目录，或在交付说明里明确标记为“未采用/参考-only”。`artifacts/` 默认作为本地生成证据忽略；只有需要长期保留且经确认的参考资产才应强制加入版本库。
 - 图片类任务完成前，要核对本轮 `.codex/generated_images` 输出与项目目标路径的对应关系；必要时用 hash、尺寸、修改时间或源→目标映射证明已落盘。
 - 生成的 NPC 图片资产必须在同目录保留 prompt sidecar。单张 NPC 头像 / 立绘 / 精灵图推荐命名为 `<image-stem>.prompt.md`；NPC 同一角色的一组表情图可共用一个 `expression-set.prompt.md`，避免为 `neutral` / `joy` / `anger` / `embarrassment` / `curiosity` 重复保存几乎相同的 prompt。组级 sidecar 的 `## Final prompt` 只保留自然/neutral 单图 prompt；不要把五个表情 prompt 都写进去，以免生图工具生成五表情同框或表情表。已有最终 prompt / prompt manifest 时使用 `prompt_type: original-final`；找不到原始 prompt 时必须反向解析当前图片并使用 `prompt_type: reverse-engineered`，正文明确说明“不是原始生成 prompt”；仅作证据或非生成式参考的 NPC 图片可使用 `reference-only`。非 NPC 图片不因缺少 `<image-stem>.prompt.md` 判定为未完成。
 
@@ -28,7 +28,7 @@ Sidecar 使用 Markdown + YAML frontmatter。单张 NPC 图片至少包含：
 asset: frontend/public/assets/npcs/public-welfare/char_pw_demo/neutral.png
 prompt_type: original-final
 source_type: prompt-manifest
-source_manifest: artifacts/<task>/prompt-manifest.json
+source_manifest: frontend/public/assets/<task>/prompt-manifest.json
 character_id: char_pw_demo
 expression: neutral
 width: 256
@@ -74,7 +74,7 @@ expressions: neutral, joy, anger, embarrassment, curiosity
 asset_count: 5
 prompt_type: original-final
 source_type: prompt-manifest
-source_manifest: artifacts/<task>/prompt-manifest.json
+source_manifest: frontend/public/assets/<task>/prompt-manifest.json
 character_id: char_pw_demo
 widths: neutral=256; joy=256; anger=256; embarrassment=256; curiosity=256
 heights: neutral=256; joy=256; anger=256; embarrassment=256; curiosity=256

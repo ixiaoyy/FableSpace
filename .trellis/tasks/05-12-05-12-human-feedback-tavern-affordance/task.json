@@ -1,0 +1,65 @@
+{
+  "id": "05-12-human-feedback-tavern-affordance",
+  "name": "05-12-human-feedback-tavern-affordance",
+  "title": "feedback: tavern communication affordance unclear",
+  "description": "Record real human first-impression feedback: current UI feels like a cyberpunk page, not a communicable tavern.",
+  "status": "completed",
+  "dev_type": "product",
+  "scope": "human UX feedback record only; no code changes",
+  "package": null,
+  "priority": "P2",
+  "creator": "lijin",
+  "assignee": "lijin",
+  "createdAt": "2026-05-12",
+  "completedAt": "2026-05-12",
+  "branch": null,
+  "base_branch": "main",
+  "worktree_path": null,
+  "current_phase": 6,
+  "next_action": [
+    {
+      "phase": 1,
+      "action": "brainstorm"
+    },
+    {
+      "phase": 2,
+      "action": "research"
+    },
+    {
+      "phase": 3,
+      "action": "implement"
+    },
+    {
+      "phase": 4,
+      "action": "check"
+    },
+    {
+      "phase": 5,
+      "action": "update-spec"
+    },
+    {
+      "phase": 6,
+      "action": "record-session"
+    }
+  ],
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [],
+  "parent": null,
+  "relatedFiles": [
+    ".trellis/tasks/05-12-05-12-human-feedback-tavern-affordance/prd.md",
+    ".trellis/tasks/05-12-05-12-zero-user-product-critique/prd.md",
+    ".trellis/tasks/05-12-05-12-map-anchored-space-ugc-critique-brainstorm/prd.md"
+  ],
+  "notes": "Recorded real human feedback: first impression does not foreground communicable tavern/NPC interaction; it reads more like a cyberpunk-styled page. Follow-up UX should make tavern doorway, NPC presence, and chat affordance primary within first 3 seconds.",
+  "meta": {
+    "feedback_quote": "第一感觉并没有突出这是个可以沟通的酒馆；一进来看感觉是一个赛博朋克风的页面",
+    "recommended_followups": [
+      "Rework first-screen hierarchy to foreground tavern doorway/chat affordance",
+      "Show NPC presence/greeting before abstract platform visuals",
+      "Make primary CTA use tavern/chat language",
+      "Validate desktop/mobile first 3-second comprehension"
+    ]
+  }
+}

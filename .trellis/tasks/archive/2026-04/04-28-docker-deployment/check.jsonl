@@ -1,7 +1,0 @@
-{"file": ".agents/skills/finish-work/SKILL.md", "reason": "Finish work checklist"}
-{"file": ".agents/skills/check/SKILL.md", "reason": "Code quality check spec"}
-{"file": ".trellis/spec/backend/quality-guidelines.md", "reason": "Review deployment config validation and no secret leakage"}
-{"file": ".trellis/spec/frontend/quality-guidelines.md", "reason": "Review frontend build/static serving expectations"}
-{"file": "docker-compose.yml", "reason": "Compose service contract and healthcheck"}
-{"file": "backend/Dockerfile", "reason": "Backend image contract"}
-{"file": "frontend/Dockerfile", "reason": "Frontend image contract"}

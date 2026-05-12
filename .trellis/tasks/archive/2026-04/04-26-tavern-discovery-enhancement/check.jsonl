@@ -1,3 +1,0 @@
-{"file": ".trellis/tasks/04-26-tavern-discovery-enhancement/prd.md", "reason": "acceptance criteria from original PRD"}
-{"file": ".trellis/spec/frontend/quality-guidelines.md", "reason": "frontend verification requirements"}
-{"file": "frontend/app/routes/discover.tsx", "reason": "implementation to verify against acceptance criteria"}

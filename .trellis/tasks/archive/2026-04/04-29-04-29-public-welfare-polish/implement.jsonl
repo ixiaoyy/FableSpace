@@ -1,6 +1,0 @@
-{"file": ".trellis/workflow.md", "reason": "Project workflow and conventions"}
-{"file": ".trellis/spec/backend/index.md", "reason": "Backend development guide"}
-{"file": ".trellis/spec/frontend/index.md", "reason": "Frontend development guide"}
-{"file": ".trellis/spec/frontend/image-asset-guidelines.md", "reason": "AI-generated NPC images must be copied into frontend/public asset paths and verified."}
-{"file": ".trellis/spec/frontend/npc-art-guidelines.md", "reason": "Formal public-welfare NPCs require direct portrait and expression assets."}
-{"file": ".trellis/spec/backend/quality-guidelines.md", "reason": "Default seed/content changes need focused backend tests."}

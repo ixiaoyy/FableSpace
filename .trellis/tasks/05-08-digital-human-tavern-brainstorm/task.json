@@ -3,19 +3,19 @@
   "name": "digital-human-tavern-brainstorm",
   "title": "brainstorm: 数字人制作酒馆",
   "description": "设计一个可在 NPC 辅助下制作自己数字人的特殊酒馆",
-  "status": "planning",
+  "status": "completed",
   "dev_type": null,
-  "scope": null,
+  "scope": "Digital human tavern / identity package brainstorm",
   "package": null,
   "priority": "P2",
   "creator": "lijin",
   "assignee": "lijin",
   "createdAt": "2026-05-08",
-  "completedAt": null,
+  "completedAt": "2026-05-12",
   "branch": null,
   "base_branch": "codex-homepage-dynamic-entry-covers",
   "worktree_path": null,
-  "current_phase": 0,
+  "current_phase": 6,
   "next_action": [
     {
       "phase": 1,
@@ -48,6 +48,14 @@
   "children": [],
   "parent": null,
   "relatedFiles": [],
-  "notes": "",
-  "meta": {}
+  "notes": "Closed as brainstorm/design complete: PRD records the approved digital-human-studio tavern direction, MVP boundaries, existing patterns, P1/P2/P3 roadmap, and out-of-scope areas. No production code was changed in this closure.",
+  "meta": {
+    "closure_type": "brainstorm_complete",
+    "deferred_not_done": [
+      "Structured digital human editor and export package are future dedicated implementation tasks."
+    ],
+    "validation": [
+      "Planning/doc closure only unless noted; no new production code for this task."
+    ]
+  }
 }

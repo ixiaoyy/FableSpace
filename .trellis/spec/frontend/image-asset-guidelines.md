@@ -10,7 +10,7 @@ Use this spec whenever a task generates, replaces, resizes, optimizes, or wires 
 - Homepage, discovery, tavern, or module illustration assets.
 - Public URL assets under `frontend/public/`.
 - Imported runtime assets under `frontend/app/assets/`.
-- Reference or audit images kept under `artifacts/` or a documented design-reference directory.
+- Reference or audit images kept under a documented design-reference directory. `artifacts/` is ignored by default after the 2026-05-12 cleanup; only force-add long-lived reference assets when the task explicitly requires versioned evidence.
 
 This spec covers asset placement and verification. It does not change product schema, backend API payload semantics, owner permissions, or SillyTavern compatibility.
 
@@ -34,7 +34,7 @@ Canonical project destinations:
 ```text
 frontend/public/assets/...              # stable public URL assets, referenced as /assets/...
 frontend/app/assets/...                 # imported frontend runtime assets
-artifacts/...                           # project-local review/audit/contact-sheet artifacts
+artifacts/...                           # local review/audit/contact-sheet artifacts; ignored unless intentionally force-added
 docs/...                                # documented reference images only when intentionally part of docs
 ```
 
@@ -86,7 +86,7 @@ Good:
 
 Base:
 
-- Generate a design reference, save a contact sheet under `artifacts/`, and state that it is reference-only with no runtime code reference.
+- Generate a design reference, save a contact sheet under a task-local or ignored evidence directory, and state that it is reference-only with no runtime code reference.
 
 Bad:
 
@@ -109,11 +109,7 @@ For assets loaded by frontend routes:
 npm --prefix .\frontend run build
 ```
 
-For generated NPC prompt sidecar inventory / schema validation:
-
-```powershell
-py -3 artifacts/04-30-image-asset-prompt-sidecars/validate_image_prompt_sidecars.py
-```
+For generated NPC prompt sidecar inventory / schema validation, use the current task's focused validation script when one exists; otherwise verify same-directory sidecars by checking file existence, dimensions, and SHA-256 hashes directly.
 
 For backend seed/public URL assets:
 
@@ -236,7 +232,7 @@ Good:
 
 Base:
 
-- Choose an existing recipe from `style-recipes.md`, adapt subject/tavern cues, and generate a reference-only artifact under `artifacts/...`.
+- Choose an existing recipe from `style-recipes.md`, adapt subject/tavern cues, and generate a reference-only artifact under an ignored task evidence path or an explicitly documented design-reference path.
 
 Bad:
 

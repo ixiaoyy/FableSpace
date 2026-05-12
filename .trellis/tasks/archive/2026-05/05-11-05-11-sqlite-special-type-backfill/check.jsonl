@@ -1,6 +1,0 @@
-{"file": ".claude/commands/trellis/finish-work.md", "reason": "Finish work checklist"}
-{"file": ".claude/commands/trellis/check.md", "reason": "Code quality check spec"}
-{"file": "AGENTS.md", "reason": "final compliance"}
-{"file": ".trellis/spec/backend/database-guidelines.md", "reason": "schema compatibility check"}
-{"file": ".trellis/spec/backend/special-tavern-types.md", "reason": "special_type contract check"}
-{"file": ".trellis/spec/backend/quality-guidelines.md", "reason": "verification expectations"}

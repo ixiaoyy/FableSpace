@@ -1,8 +1,0 @@
-{"file": ".trellis/workflow.md", "reason": "Project workflow and conventions"}
-{"file": ".trellis/spec/backend/index.md", "reason": "Backend development guide"}
-{"file": ".trellis/spec/frontend/index.md", "reason": "Frontend development guide"}
-{"file": ".trellis/spec/backend/quality-guidelines.md", "reason": "backend corrupted store read fallback and tests"}
-{"file": ".trellis/spec/backend/directory-structure.md", "reason": "TavernStore read behavior boundaries"}
-{"file": ".trellis/spec/frontend/component-guidelines.md", "reason": "homepage hero visual hierarchy"}
-{"file": ".trellis/spec/frontend/quality-guidelines.md", "reason": "frontend verification"}
-{"file": ".trellis/spec/guides/cross-layer-thinking-guide.md", "reason": "API seed data to homepage metrics/cards flow"}

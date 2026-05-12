@@ -154,3 +154,10 @@ Technically possible, but only clean if local Codex is wrapped behind a stable c
 * [x] 给出 2–3 个可行接入方案与权衡。
 * [x] 给出推荐 MVP 与明确 Out of Scope。
 * [ ] 用户确认“本地 Codex”的具体目标形态后，决定是否进入设计/实现。
+
+## 2026-05-12 Closure Note
+
+This task is closed as `evaluation_complete`. Closed as evaluation complete: PRD documents current chat/LLM chain, Codex CLI observations, viable approaches, recommendation, risks, and out-of-scope boundaries. No business code was changed by design.
+
+Deferred / not done:
+- Any real Codex bridge/adapter implementation requires a separate task and a stable local service/API decision.

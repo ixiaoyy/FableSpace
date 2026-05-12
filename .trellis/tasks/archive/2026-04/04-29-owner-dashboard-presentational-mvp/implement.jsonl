@@ -1,6 +1,0 @@
-{"file": ".trellis/workflow.md", "reason": "Project workflow and conventions"}
-{"file": ".trellis/spec/frontend/index.md", "reason": "Frontend development guide"}
-{"file": ".trellis/spec/frontend/component-guidelines.md", "reason": "Owner dashboard is a visible UI surface and must meet global high visual quality page standard."}
-{"file": ".trellis/spec/frontend/state-management.md", "reason": "Dashboard should aggregate existing route/service state without new global state."}
-{"file": ".trellis/spec/frontend/type-safety.md", "reason": "Dashboard route/service boundaries need typed normalization and no raw API leakage."}
-{"file": ".trellis/spec/frontend/quality-guidelines.md", "reason": "Frontend build/test and visual quality checks are required."}

@@ -1,0 +1,5 @@
+{"file": ".trellis/workflow.md", "reason": "Project workflow and conventions"}
+{"file": ".trellis/spec/frontend/index.md", "reason": "Frontend development guide"}
+{"file": ".trellis/spec/frontend/quality-guidelines.md", "reason": "frontend chat sidecar test/build requirements"}
+{"file": ".trellis/spec/frontend/type-safety.md", "reason": "dynamic social_memories payload safety"}
+{"file": ".trellis/spec/guides/cross-layer-thinking-guide.md", "reason": "mirror backend retrieval contract without API drift"}

@@ -44,3 +44,10 @@
 
 - 不做复杂叙事编辑器/可视化编排。
 - 不接入外部脚本型小游戏运行时。
+
+## 2026-05-12 Closure Note
+
+This task is closed as `mvp_verified_by_existing_templates`. Closed after verifying current gameplay and mini-game template catalogs support playable story/microgame entries with branching/fallback coverage; focused mini-games/gameplay tests and full frontend test/build passed in this session.
+
+Deferred / not done:
+- No new visual editor or external script-game runtime was added; owner custom editor improvements remain future work.

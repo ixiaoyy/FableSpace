@@ -1,5 +1,0 @@
-{"file":".agents/skills/finish-work/SKILL.md","reason":"Finish work checklist"}
-{"file":".agents/skills/check/SKILL.md","reason":"Code quality check spec"}
-{"file":"backend/tests/test_v1_place_home_mvp.py","reason":"Backend Place/Home acceptance tests"}
-{"file":"frontend/scripts/place-home-contract-test.mjs","reason":"Frontend Home payload contract tests"}
-{"file":"frontend/scripts/place-types-test.mjs","reason":"Discovery place_type fallback tests"}

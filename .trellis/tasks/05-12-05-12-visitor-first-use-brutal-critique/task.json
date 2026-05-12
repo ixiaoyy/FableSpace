@@ -1,0 +1,82 @@
+{
+  "id": "05-12-visitor-first-use-brutal-critique",
+  "name": "05-12-visitor-first-use-brutal-critique",
+  "title": "feedback: brutal visitor first-use experience critique",
+  "description": "Record brutal ordinary visitor first-use critique: map feels like graveyard, tavern entry lacks ritual, NPC chat feels slow, mobile cramped, discovery cards feel empty.",
+  "status": "completed",
+  "dev_type": "product+ux",
+  "scope": "visitor UX feedback record only; no code changes",
+  "package": null,
+  "priority": "P2",
+  "creator": "lijin",
+  "assignee": "lijin",
+  "createdAt": "2026-05-12",
+  "completedAt": "2026-05-12",
+  "branch": null,
+  "base_branch": "main",
+  "worktree_path": null,
+  "current_phase": 6,
+  "next_action": [
+    {
+      "phase": 1,
+      "action": "brainstorm"
+    },
+    {
+      "phase": 2,
+      "action": "research"
+    },
+    {
+      "phase": 3,
+      "action": "implement"
+    },
+    {
+      "phase": 4,
+      "action": "check"
+    },
+    {
+      "phase": 5,
+      "action": "update-spec"
+    },
+    {
+      "phase": 6,
+      "action": "record-session"
+    }
+  ],
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [],
+  "parent": null,
+  "relatedFiles": [
+    ".trellis/tasks/05-12-05-12-visitor-first-use-brutal-critique/prd.md",
+    ".trellis/tasks/05-12-05-12-human-feedback-tavern-affordance/prd.md",
+    ".trellis/tasks/05-12-05-12-promoter-growth-critique/prd.md",
+    ".trellis/tasks/05-12-05-12-product-staff-doa-critique/prd.md",
+    ".trellis/tasks/05-12-05-12-incoming-developer-codebase-critique/prd.md",
+    ".trellis/tasks/05-12-05-12-map-anchored-space-ugc-critique-brainstorm/prd.md"
+  ],
+  "notes": "Recorded brutal visitor first-use critique. Main risks: map markers lack meaning, tavern entry lacks doorway ritual, NPC chat waiting/memory affordance is weak, mobile layout may be broken, discovery cards look polished but content-empty, and creator/tool complexity does not match ordinary visitor expectations.",
+  "meta": {
+    "feedback_type": "ordinary visitor first-use critique",
+    "core_question": "第一个 aha moment 在哪里？",
+    "scorecard": {
+      "first_impression": "4/10",
+      "onboarding": "1/10",
+      "npc_chat": "3/10",
+      "mobile": "2/10",
+      "discovery": "3/10",
+      "retention": "2/10"
+    },
+    "recommended_followups": [
+      "Visitor First 3 Seconds / Map Marker Meaning Audit",
+      "Tavern Doorway Ritual MVP",
+      "Chat Waiting Experience MVP",
+      "Mobile Chat Keyboard Acceptance",
+      "Discovery Decision Signals",
+      "Visible Memory Proof"
+    ],
+    "caveats": [
+      "Feedback claims recorded as UX evidence; mobile/memory/latency details need dedicated reproduction before code decisions"
+    ]
+  }
+}

@@ -262,3 +262,10 @@ Recommended implementation order:
 3. Offline return loop.
 4. Text/image cards.
 5. Future type roadmap.
+
+## 2026-05-12 Closure Note
+
+This task is closed as `brainstorm_complete`. Closed as brainstorm parent complete after child implementation/planning slices were completed or explicitly deferred. Parent does not itself add production code.
+
+Deferred / not done:
+- Any remaining cultivation roadmap expansion should be handled as new child tasks.

@@ -21,3 +21,19 @@
 
 ## 4. 后续规划
 - **情感影响**: 社交互动可以回升 `social` 需求，并根据谈话内容的积极/消极程度修正心情。
+
+## 2026-05-12 Completion Update
+
+### Implemented evidence
+- `backend/src/fablemap_api/application/simulation_worker.py` contains NPC social handshake / information exchange through `_exchange_info`, duplicate prevention, social memory cap, sentiment classification, and social/mood impact.
+- `backend/src/fablemap_api/application/services/runtime.py` filters NPC `social_memories` with source-name match, n-gram overlap, recency bonus, and top-k prompt injection.
+- `backend/src/fablemap_api/core/prompt_builder.py` includes the selected social memories in the prompt context.
+- Owner-facing frontend debug support was added in `D:\work\ai-\.trellis\tasks\05-11-05-11-social-memory-debug-panel` to inspect estimated retrieval.
+
+### Validation
+- `py -3 -m pytest -q --tb=short backend/tests/test_emotional_impact.py backend/tests/test_social_memory_retrieval.py` — PASS (49 passed)
+- `npm --prefix .\frontend test` — PASS (from social-memory-debug-panel task validation)
+- `npm --prefix .\frontend run build` — PASS (from social-memory-debug-panel task validation)
+
+### Residual risk
+- This is an NPC/tavern scoped memory diffusion system, not a visitor-to-visitor social network. No public social feed or private messaging was added.

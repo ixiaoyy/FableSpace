@@ -8,7 +8,6 @@ FableMap Tavern — 空间 CRUD 核心
 from __future__ import annotations
 
 import json
-import logging
 import os
 import uuid
 import hashlib
@@ -74,7 +73,6 @@ SYSTEM_PUBLIC_WELFARE_MANAGED_FREE_MODELS = {
     "glm-4.7-flash",
     "kilo-auto/free",
 }
-logger = logging.getLogger(__name__)
 
 
 # ─────────────────────────────────────────
@@ -1302,7 +1300,6 @@ class TavernStore:
                 tavern_id=tavern_id,
                 token_used=config.token_used,
             ) or config
-            logger.error(f"DEBUG: get_llm_config(KV) tavern_id={tavern_id} backend={res.backend}")
             return res
 
         # Built-in/public demo taverns can use a non-secret local backend that is
@@ -1320,7 +1317,6 @@ class TavernStore:
             tavern_id=tavern_id,
             token_used=config.token_used,
         )
-        logger.error(f"DEBUG: get_llm_config(Fallback) tavern_id={tavern_id} backend={res.backend if res else 'None'} fallback={fallback}")
         return res
 
     # ── Voice Config ───────────────────────

@@ -1,7 +1,0 @@
-{"file": ".agents/skills/finish-work/SKILL.md", "reason": "Finish work checklist"}
-{"file": ".agents/skills/check/SKILL.md", "reason": "Code quality check spec"}
-{"file": "AGENTS.md", "reason": "Final compliance check"}
-{"file": "docs/PRODUCT_BRIEF.md", "reason": "Check product conclusion against current positioning"}
-{"file": "docs/FABLEMAP_TAVERN_PLATFORM.md", "reason": "Check product conclusion against mainline"}
-{"file": "docs/WHAT_NOT_TO_BUILD.md", "reason": "Check forbidden directions"}
-{"file": "docs/WORLD_SCHEMA.md", "reason": "Check no accidental schema commitment"}

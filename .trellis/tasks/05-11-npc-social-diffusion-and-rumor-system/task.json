@@ -1,10 +1,36 @@
 {
   "id": "05-11-npc-social-diffusion-and-rumor-system",
   "name": "NPC Social Diffusion & Rumor System",
-  "status": "in_progress",
-  "progress": 50,
+  "status": "completed",
+  "progress": 100,
   "owner": "Antigravity",
   "priority": "high",
-  "tags": ["social", "npc-agency", "memory", "mirror-world"],
-  "description": "实现 NPC 间的社交互动与八卦传递。当 NPC 在同一空间相遇时，交换访客记忆、地点评价或系统级传闻，形成动态的信息流。"
+  "tags": [
+    "social",
+    "npc-agency",
+    "memory",
+    "mirror-world"
+  ],
+  "description": "实现 NPC 间的社交互动与八卦传递。当 NPC 在同一空间相遇时，交换访客记忆、地点评价或系统级传闻，形成动态的信息流。",
+  "completedAt": "2026-05-12",
+  "dev_type": "backend/frontend",
+  "scope": "NPC social diffusion, social memory retrieval, prompt injection, and owner debug visibility",
+  "relatedFiles": [
+    "backend/src/fablemap_api/application/simulation_worker.py",
+    "backend/src/fablemap_api/application/services/runtime.py",
+    "backend/src/fablemap_api/core/prompt_builder.py",
+    "backend/src/fablemap_api/core/simulation.py",
+    "backend/tests/test_emotional_impact.py",
+    "backend/tests/test_social_memory_retrieval.py",
+    "frontend/app/features/tavern-chat-workbench/index.tsx",
+    "frontend/scripts/social-memory-debug-panel-test.mjs"
+  ],
+  "notes": "Marked complete after validating existing social diffusion implementation and new owner debug visibility: backend emotional impact + social memory retrieval tests passed (49 passed), and frontend test/build passed in the social-memory-debug-panel task. Scope remains NPC/tavern memory diffusion, not visitor social networking.",
+  "meta": {
+    "validation": [
+      "py -3 -m pytest -q --tb=short backend/tests/test_emotional_impact.py backend/tests/test_social_memory_retrieval.py PASS (49 passed)",
+      "npm --prefix .\\frontend test PASS (same session)",
+      "npm --prefix .\\frontend run build PASS (same session)"
+    ]
+  }
 }

@@ -5,6 +5,7 @@ import { dirname, join } from 'node:path'
 
 import { createTavernService } from '../app/product/services/tavernService.js'
 import {
+  OWNER_GAMEPLAY_TEMPLATE_CATEGORIES,
   OWNER_GAMEPLAY_TEMPLATES,
   createOwnerGameplayFromTemplate,
   filterOwnerGameplayTemplates,
@@ -44,7 +45,6 @@ assert.ok(captured[3].url.includes('/gameplay-sessions/gps_one/advance'))
 assert.ok(captured[4].url.includes('state=active'))
 assert.ok(captured[5].url.includes('/abandon'))
 
-assert.equal(OWNER_GAMEPLAY_TEMPLATES.length, 10)
 assert.deepEqual(OWNER_GAMEPLAY_TEMPLATES.map((template) => template.id), [
   'three-step-clue-ledger',
   'returning-note',
@@ -55,13 +55,20 @@ assert.deepEqual(OWNER_GAMEPLAY_TEMPLATES.map((template) => template.id), [
   'needs-counter-brief',
   'archive-study-lookup',
   'creation-workshop-outline',
+  'orphan-signal-echo',
+  'jubensha-case-solving',
+  'werewolf-logic-battle',
+  'mahjong-social-chat',
+  'poker-house-psychology',
   'companion-beacon-return-note',
 ])
+assert.equal(OWNER_GAMEPLAY_TEMPLATES.length, 15)
 
 for (const template of OWNER_GAMEPLAY_TEMPLATES) {
   assert.ok(template.title)
   assert.ok(template.summary)
   assert.ok(template.category)
+  assert.ok(OWNER_GAMEPLAY_TEMPLATE_CATEGORIES.includes(template.category), `${template.id} has unknown category ${template.category}`)
   assert.ok(template.bestFor)
   assert.ok(Array.isArray(template.nodes))
   assert.ok(template.nodes.length >= 3)
@@ -69,7 +76,7 @@ for (const template of OWNER_GAMEPLAY_TEMPLATES) {
 }
 
 for (const template of OWNER_GAMEPLAY_TEMPLATES.slice(4)) {
-  assert.ok(['流程', '行业', '需求', '资料', '创作', '陪伴'].includes(template.category))
+  assert.ok(['流程', '行业', '需求', '资料', '创作', '文游', '桌游', '陪伴'].includes(template.category))
   assert.ok(template.summary.includes('不') || template.goal.includes('不'), `${template.id} should include an explicit boundary`)
 }
 
@@ -86,6 +93,15 @@ const clueTemplates = filterOwnerGameplayTemplates({ category: '线索' }).map((
 assert.deepEqual(clueTemplates, ['three-step-clue-ledger'])
 const kindnessSearch = filterOwnerGameplayTemplates({ query: '医院' }).map((template) => template.id)
 assert.deepEqual(kindnessSearch, ['kindness-checklist', 'companion-beacon-return-note'])
+const tableTopTemplates = filterOwnerGameplayTemplates({ category: '桌游' }).map((template) => template.id)
+assert.deepEqual(tableTopTemplates, [
+  'jubensha-case-solving',
+  'werewolf-logic-battle',
+  'mahjong-social-chat',
+  'poker-house-psychology',
+])
+const textAdventureTemplates = filterOwnerGameplayTemplates({ category: '文游' }).map((template) => template.id)
+assert.deepEqual(textAdventureTemplates, ['orphan-signal-echo'])
 
 assert.equal(SHORT_DRAMA_GAMEPLAY_TEMPLATES.length, 4)
 assert.deepEqual(SHORT_DRAMA_GAMEPLAY_TEMPLATES.map((template) => template.id), [

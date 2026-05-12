@@ -1,0 +1,68 @@
+{
+  "id": "05-12-promoter-growth-critique",
+  "name": "05-12-promoter-growth-critique",
+  "title": "feedback: promoter growth critique of FableMap",
+  "description": "Record promoter/growth critique: FableMap has strong engineering process but weak real-user acquisition and first-use validation.",
+  "status": "completed",
+  "dev_type": "product",
+  "scope": "promoter/growth feedback record only; no code changes",
+  "package": null,
+  "priority": "P2",
+  "creator": "lijin",
+  "assignee": "lijin",
+  "createdAt": "2026-05-12",
+  "completedAt": "2026-05-12",
+  "branch": null,
+  "base_branch": "main",
+  "worktree_path": null,
+  "current_phase": 6,
+  "next_action": [
+    {
+      "phase": 1,
+      "action": "brainstorm"
+    },
+    {
+      "phase": 2,
+      "action": "research"
+    },
+    {
+      "phase": 3,
+      "action": "implement"
+    },
+    {
+      "phase": 4,
+      "action": "check"
+    },
+    {
+      "phase": 5,
+      "action": "update-spec"
+    },
+    {
+      "phase": 6,
+      "action": "record-session"
+    }
+  ],
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [],
+  "parent": null,
+  "relatedFiles": [
+    ".trellis/tasks/05-12-05-12-promoter-growth-critique/prd.md",
+    ".trellis/tasks/05-12-05-12-zero-user-product-critique/prd.md",
+    ".trellis/tasks/05-12-05-12-human-feedback-tavern-affordance/prd.md",
+    ".trellis/tasks/05-12-05-12-map-anchored-space-ugc-critique-brainstorm/prd.md",
+    "frontend/package.json"
+  ],
+  "notes": "Recorded promoter/growth feedback: project risks over-indexing on docs/tests/internal hardening while lacking real user validation, one-click demo tavern, wow moment, and growth metrics. Recommended immediate actions: 3-user live test, one-click public demo tavern, 10-second demo video, first-use complexity collapse.",
+  "meta": {
+    "feedback_type": "promoter/growth critique",
+    "recommended_followups": [
+      "One-click Demo Tavern MVP",
+      "First 3 Users Live Test Protocol",
+      "10-second Share Demo Asset",
+      "First-use Complexity Collapse",
+      "Growth funnel metrics for landing→chat→share"
+    ]
+  }
+}

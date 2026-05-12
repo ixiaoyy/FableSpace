@@ -1,7 +1,0 @@
-{"file": ".trellis/workflow.md", "reason": "Project workflow and conventions"}
-{"file": ".trellis/spec/backend/index.md", "reason": "Backend development guide"}
-{"file": "backend/src/fablemap_api/core/memory_graph.py", "reason": "graph placeholder implementation"}
-{"file": "backend/src/fablemap_api/core/vectors.py", "reason": "vector adapter stub"}
-{"file": "backend/src/fablemap_api/core/writeback.py", "reason": "writeback/memory integration"}
-{"file": "docs/PRODUCT_BRIEF.md", "reason": "memory/writeback product promise"}
-{"file": ".trellis\\tasks\\05-06-memory-search-adapter-productization\\prd.md", "reason": "task PRD requirements"}

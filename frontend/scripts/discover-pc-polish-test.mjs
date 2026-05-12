@@ -5,26 +5,36 @@ import { fileURLToPath } from "node:url"
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const discoverSource = readFileSync(resolve(__dirname, "../app/routes/discover.tsx"), "utf8")
+const referenceSource = readFileSync(resolve(__dirname, "../app/components/soul-link-reference-artboards.tsx"), "utf8")
+const combinedSource = `${discoverSource}\n${referenceSource}`
 
-assert.ok(discoverSource.includes("DesktopRadarTelemetry"), "discover PC radar should include a desktop telemetry strip")
-assert.ok(discoverSource.includes("lg:grid-cols-[0.62fr_1.38fr]"), "discover PC layout should give the radar board stronger width dominance")
-assert.ok(discoverSource.includes("lg:sticky lg:top-28"), "discover PC control column should stay stable while scanning results")
 assert.ok(
-  discoverSource.includes('lg:h-[min(960px,calc(100dvh-8rem))]'),
-  "discover PC boards should use a capped desktop height instead of stretching with long result lists",
+  discoverSource.includes("SoulLinkDiscoverReference"),
+  "discover route should delegate to the shared SoulLink reference DOM instead of keeping a stale duplicate layout",
 )
 assert.ok(
-  discoverSource.includes('data-discover-board-scroll="radar-results"') && discoverSource.includes('data-discover-board-scroll="card-results"'),
-  "discover PC boards should expose dedicated scroll containers for long result lists",
+  !discoverSource.includes('id="discover-mainline"'),
+  "discover route should not keep the retired mainline JSX fragment outside the route return",
 )
 assert.ok(
-  !discoverSource.includes("grid gap-3 xl:grid-cols-2"),
-  "discover radar signals should stay in a breathable single scan column instead of crowding two dense cards per row",
+  referenceSource.includes('data-soul-link-dom={kind}') && referenceSource.includes('kind === "discover"'),
+  "shared SoulLink surface should expose a discover DOM marker for visual auditing",
 )
-assert.ok(discoverSource.includes("CharacterAvatarBadge"), "discover character avatars should have a dedicated fallback badge")
 assert.ok(
-  discoverSource.includes("onError={() => setBroken(true)}"),
-  "discover character avatar images should fall back when a source fails to load",
+  referenceSource.includes('data-soul-link-discover-title="real-text"') &&
+    referenceSource.includes('data-soul-link-discover-filter-panel="real-dom"') &&
+    referenceSource.includes('data-soul-link-discover-timeline="real-dom"') &&
+    referenceSource.includes('data-soul-link-discover-right-rail="real-dom"'),
+  "discover desktop artboard should expose real DOM title, filter, timeline, and right rail regions",
+)
+assert.ok(
+  referenceSource.includes('data-soul-link-discover-card="real-card"') &&
+    referenceSource.includes('data-soul-link-discover-card-copy="real-text-layer"'),
+  "discover cards should remain real DOM cards with text layers instead of flat screenshots",
+)
+assert.ok(
+  referenceSource.includes('data-soul-link-discover-square-image="512x512"'),
+  "discover reference should use project square imagery for cards/feed rather than bare remote placeholders",
 )
 assert.ok(discoverSource.includes("RadarSignalSummary"), "discover radar cards should use a compact text summary instead of image-heavy rows")
 const previewTileSource = discoverSource.slice(
@@ -51,7 +61,10 @@ assert.ok(
   !radarCardSource.includes("ShortDramaTeaserCard"),
   "radar signal cards should not render nested teaser cards in the compact radar scan view",
 )
-assert.ok(discoverSource.includes("Live telemetry"), "discover telemetry should expose a visible cockpit label")
+assert.ok(
+  combinedSource.includes("时间流") && combinedSource.includes("探索") && combinedSource.includes("真实坐标"),
+  "discover UI copy should keep visible exploration/timeline/coordinate anchors",
+)
 assert.ok(discoverSource.includes('type DiscoverViewMode = "radar" | "cards"'), "discover view-mode contract must remain intact")
 
 console.log("discover-pc-polish-test: ok")

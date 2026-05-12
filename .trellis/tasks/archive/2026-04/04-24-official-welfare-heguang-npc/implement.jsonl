@@ -1,6 +1,0 @@
-{"file": ".trellis/workflow.md", "reason": "Project workflow and conventions"}
-{"file": ".trellis/spec/backend/index.md", "reason": "Backend development guide"}
-{"file": ".trellis/spec/backend/directory-structure.md", "reason": "default_taverns.py and tests placement"}
-{"file": ".trellis/spec/backend/database-guidelines.md", "reason": "seed data compatibility"}
-{"file": ".trellis/spec/backend/quality-guidelines.md", "reason": "verification requirements"}
-{"file": "backend/src/fablemap_api/core/tavern.py", "reason": "seed merge behavior for existing default taverns"}

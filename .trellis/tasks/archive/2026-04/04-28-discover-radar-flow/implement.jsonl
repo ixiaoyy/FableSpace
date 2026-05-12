@@ -1,5 +1,0 @@
-{"file": ".trellis/workflow.md", "reason": "Project workflow and conventions"}
-{"file": ".trellis/spec/frontend/index.md", "reason": "Frontend development guide"}
-{"file": ".trellis/spec/frontend/component-guidelines.md", "reason": "Discover route UI component patterns and mobile/accessibility conventions"}
-{"file": ".trellis/spec/frontend/quality-guidelines.md", "reason": "Frontend verification and forbidden patterns for visual route changes"}
-{"file": ".trellis/spec/guides/code-reuse-thinking-guide.md", "reason": "Search-before-changing and reuse thinking for route constants"}

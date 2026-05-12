@@ -1,6 +1,8 @@
 {"file": ".trellis/workflow.md", "reason": "Project workflow and conventions"}
 {"file": ".trellis/spec/frontend/index.md", "reason": "Frontend development guide"}
-{"file": ".trellis/spec/frontend/image-asset-guidelines.md", "reason": "Guidance for visual quality and design reproduction"}
-{"file": ".trellis/spec/frontend/discovery-liveliness-signals.md", "reason": "Specific signals and UI for discovery page"}
-{"file": ".trellis/spec/frontend/mobile-single-mainline.md", "reason": "Mobile layout requirements"}
-{"file": ".trellis/spec/frontend/quality-guidelines.md", "reason": "General frontend quality checks"}
+{"file": "frontend/app/routes/discover.tsx", "reason": "Search/discover route under review"}
+{"file": ".trellis/spec/frontend/directory-structure.md", "reason": "Route/module placement and frontend boundaries"}
+{"file": ".trellis/spec/frontend/component-guidelines.md", "reason": "Component structure and accessibility"}
+{"file": ".trellis/spec/frontend/quality-guidelines.md", "reason": "Build and visual self-acceptance requirements"}
+{"file": ".trellis/spec/frontend/type-safety.md", "reason": "Route TSX/runtime shape checks"}
+{"file": ".trellis/spec/guides/code-reuse-thinking-guide.md", "reason": "Search-first before route fixes"}

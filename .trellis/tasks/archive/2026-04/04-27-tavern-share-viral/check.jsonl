@@ -1,4 +1,0 @@
-{"file": ".agents/skills/finish-work/SKILL.md", "reason": "Finish work checklist"}
-{"file": ".agents/skills/check/SKILL.md", "reason": "Code quality check spec"}
-{"file": ".trellis/spec/backend/quality-guidelines.md", "reason": "后端 API pytest 与 compileall 验证"}
-{"file": ".trellis/spec/frontend/quality-guidelines.md", "reason": "前端服务/组件测试、typecheck、build 验证"}

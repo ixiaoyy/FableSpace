@@ -1,0 +1,76 @@
+{
+  "id": "05-12-incoming-developer-codebase-critique",
+  "name": "05-12-incoming-developer-codebase-critique",
+  "title": "feedback: incoming developer codebase critique",
+  "description": "Record incoming developer critique: Trellis/task/process complexity, giant frontend files, strategy sprawl, checkpoint-only history, and weak user-feedback loop.",
+  "status": "completed",
+  "dev_type": "product+engineering",
+  "scope": "developer critique record only; no code/refactor/deletion",
+  "package": null,
+  "priority": "P2",
+  "creator": "lijin",
+  "assignee": "lijin",
+  "createdAt": "2026-05-12",
+  "completedAt": "2026-05-12",
+  "branch": null,
+  "base_branch": "main",
+  "worktree_path": null,
+  "current_phase": 6,
+  "next_action": [
+    {
+      "phase": 1,
+      "action": "brainstorm"
+    },
+    {
+      "phase": 2,
+      "action": "research"
+    },
+    {
+      "phase": 3,
+      "action": "implement"
+    },
+    {
+      "phase": 4,
+      "action": "check"
+    },
+    {
+      "phase": 5,
+      "action": "update-spec"
+    },
+    {
+      "phase": 6,
+      "action": "record-session"
+    }
+  ],
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [],
+  "parent": null,
+  "relatedFiles": [
+    ".trellis/tasks/05-12-05-12-incoming-developer-codebase-critique/prd.md",
+    ".trellis/tasks/05-12-05-12-zero-user-product-critique/prd.md",
+    ".trellis/tasks/05-12-05-12-promoter-growth-critique/prd.md",
+    ".trellis/tasks/05-12-05-12-product-staff-doa-critique/prd.md",
+    ".trellis/tasks/05-12-05-12-human-feedback-tavern-affordance/prd.md",
+    "AGENTS.md",
+    ".trellis/workflow.md",
+    "docs/WHAT_NOT_TO_BUILD.md"
+  ],
+  "notes": "Recorded incoming developer critique. Main risks: workflow theater, giant frontend/product compatibility files, strategy sprawl, tests not aligned with user value, checkpoint-only history, and weak onboarding confidence. Claims are recorded as feedback and should be verified by a follow-up codebase intake audit before refactor/deletion.",
+  "meta": {
+    "feedback_type": "incoming developer codebase critique",
+    "core_quote": "任务比用户多",
+    "recommended_followups": [
+      "Codebase intake audit for largest/coupled files and test types",
+      "Temporary freeze on new brainstorm directions without user evidence",
+      "Choose one first-use tavern chat vertical slice",
+      "Scoped refactor after slice selection",
+      "Evidence-based change notes instead of checkpoint-only history"
+    ],
+    "caveats": [
+      "Specific counts/line numbers are recorded as feedback claims, not freshly verified facts",
+      "frontend has script-based tests, but may lack colocated component/user behavior tests"
+    ]
+  }
+}

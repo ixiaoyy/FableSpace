@@ -1,3 +1,0 @@
-{"file": ".trellis/spec/frontend/quality-guidelines.md", "reason": "build/test verification requirements"}
-{"file": ".trellis/spec/guides/code-reuse-thinking-guide.md", "reason": "ensure farm helpers are reused"}
-{"file": "frontend/scripts/tavern-farm-modes-test.mjs", "reason": "new helper regression coverage"}

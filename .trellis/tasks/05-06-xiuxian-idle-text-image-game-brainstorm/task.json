@@ -3,19 +3,19 @@
   "name": "xiuxian-idle-text-image-game-brainstorm",
   "title": "brainstorm: 修仙在线离线挂机文字加图片游戏",
   "description": "围绕 FableMap 内的修仙/在线离线挂机、文字加图片体验做 Trellis 头脑风暴，明确是否纳入空间主线、MVP 范围、视觉资产边界和后续实现路径。",
-  "status": "planning",
+  "status": "completed",
   "dev_type": null,
-  "scope": null,
+  "scope": "Cultivation idle text/image game brainstorm parent closure",
   "package": null,
   "priority": "P2",
   "creator": "lijin",
   "assignee": "lijin",
   "createdAt": "2026-05-06",
-  "completedAt": null,
+  "completedAt": "2026-05-12",
   "branch": null,
   "base_branch": "codex-homepage-dynamic-entry-covers",
   "worktree_path": null,
-  "current_phase": 0,
+  "current_phase": 6,
   "next_action": [
     {
       "phase": 1,
@@ -58,6 +58,14 @@
     ".trellis/tasks/05-06-cultivation-tavern-play-pack-mvp/prd.md",
     ".trellis/tasks/05-06-cultivation-offline-return-loop/prd.md"
   ],
-  "notes": "2026-05-08: Added user screenshot references for cultivation tavern: NPC wilderness-training receipt, private cultivation progress/reward clue, and trust-level-style requirement dashboard.",
-  "meta": {}
+  "notes": "2026-05-08: Added user screenshot references for cultivation tavern: NPC wilderness-training receipt, private cultivation progress/reward clue, and trust-level-style requirement dashboard. Closed as brainstorm parent complete after child implementation/planning slices were completed or explicitly deferred. Parent does not itself add production code.",
+  "meta": {
+    "closure_type": "brainstorm_complete",
+    "deferred_not_done": [
+      "Any remaining cultivation roadmap expansion should be handled as new child tasks."
+    ],
+    "validation": [
+      "Planning/doc closure only unless noted; no new production code for this task."
+    ]
+  }
 }

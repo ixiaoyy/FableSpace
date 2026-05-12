@@ -1,4 +1,0 @@
-{"file": ".trellis/workflow.md", "reason": "Project workflow and conventions"}
-{"file": ".trellis/spec/guides/cross-layer-thinking-guide.md", "reason": "主链路验收需要按数据流跨层追踪创建、进入、对话、记忆、回访展示"}
-{"file": ".trellis/spec/backend/quality-guidelines.md", "reason": "审计后端 API/存储/测试覆盖是否形成真实闭环"}
-{"file": ".trellis/spec/frontend/quality-guidelines.md", "reason": "审计前端主链路和展示/preview 任务的收敛边界"}

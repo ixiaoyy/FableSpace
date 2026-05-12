@@ -3,7 +3,7 @@
   "name": "tavern-soft-currency-gifts-design",
   "title": "brainstorm: 设计空间软货币与礼物系统",
   "description": "",
-  "status": "in_progress",
+  "status": "completed",
   "dev_type": "fullstack",
   "scope": "engagement wallet gifts vouchers mvp",
   "package": null,
@@ -11,11 +11,11 @@
   "creator": "lijin",
   "assignee": "lijin",
   "createdAt": "2026-05-06",
-  "completedAt": null,
+  "completedAt": "2026-05-12",
   "branch": null,
   "base_branch": "codex-homepage-dynamic-entry-covers",
   "worktree_path": null,
-  "current_phase": 5,
+  "current_phase": 6,
   "next_action": [
     {
       "phase": 1,
@@ -55,11 +55,17 @@
     ".trellis/spec/frontend/engagement-ui-boundary.md",
     "docs/WORLD_SCHEMA.md"
   ],
-  "notes": "2026-05-09: Codex claimed implementation. Added tavern-local engagement config + visitor private progress persistence, v1 engagement API/service/store wiring, gameplay-completion reward claim, gift send, voucher redeem, tavern-route visitor engagement panel, service normalization for backend gift icon fields, and Playwright self-acceptance report at .trellis/tasks/05-06-tavern-soft-currency-gifts-design/artifacts/playwright/report.md. Validation passed with backend compile + focused pytest, frontend typecheck + build, engagement-panel regression script, and desktop/mobile Playwright.",
+  "notes": "2026-05-09: Codex claimed implementation. Added tavern-local engagement config + visitor private progress persistence, v1 engagement API/service/store wiring, gameplay-completion reward claim, gift send, voucher redeem, tavern-route visitor engagement panel, service normalization for backend gift icon fields, and Playwright self-acceptance report at .trellis/tasks/05-06-tavern-soft-currency-gifts-design/artifacts/playwright/report.md. Validation passed with backend compile + focused pytest, frontend typecheck + build, engagement-panel regression script, and desktop/mobile Playwright. 2026-05-12 final validation: backend engagement unit/v1 tests passed (26 passed) and engagement-panel script passed; full frontend test/build also passed after unrelated regression blockers were fixed. Deferred items remain documented in meta.deferred_not_done.",
   "meta": {
     "deferred_not_done": [
       "Bonus-voucher consumption is not yet wired into the gacha draw pipeline; this slice stops at voucher issuance.",
       "Owner-side custom engagement config editor UI is not included in this slice."
+    ],
+    "validation_final": [
+      "py -3 -m pytest -q --tb=short backend/tests/test_engagement.py backend/tests/test_v1_engagement.py PASS (26 passed)",
+      "node .\\frontend\\scripts\\engagement-panel-test.mjs PASS",
+      "npm --prefix .\\frontend test PASS (from 05-12-mini-games-template-test-drift)",
+      "npm --prefix .\\frontend run build PASS (from 05-12-mini-games-template-test-drift)"
     ]
   }
 }

@@ -1,8 +1,0 @@
-{"file": ".trellis/workflow.md", "reason": "Project workflow and conventions"}
-{"file": ".trellis/spec/backend/index.md", "reason": "Backend development guide"}
-{"file": ".trellis/spec/frontend/index.md", "reason": "Frontend development guide"}
-{"file": "frontend/app/product/OwnerDialoguePreviewSimulator.jsx", "reason": "current local simulator UI"}
-{"file": "frontend/app/product/dialoguePreviewSimulator.js", "reason": "current simulator logic"}
-{"file": "backend/src/fablemap_api/core/web/service.py", "reason": "candidate prompt dry-run service layer"}
-{"file": "backend/src/fablemap_api/core/web/router.py", "reason": "candidate dry-run route layer"}
-{"file": ".trellis\\tasks\\05-06-owner-dialogue-preview-dryrun\\prd.md", "reason": "task PRD requirements"}

@@ -1,4 +1,0 @@
-{"file": ".claude/commands/trellis/finish-work.md", "reason": "Finish work checklist"}
-{"file": ".claude/commands/trellis/check.md", "reason": "Code quality check spec"}
-{"file": "frontend/app/routes/home.tsx", "reason": "Review landing page hierarchy and CTA wiring"}
-{"file": ".trellis/spec/frontend/quality-guidelines.md", "reason": "Check build/typecheck and mobile-safe UI"}

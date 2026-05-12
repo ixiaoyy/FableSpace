@@ -1,7 +1,0 @@
-{"file": ".trellis/workflow.md", "reason": "Project workflow and conventions"}
-{"file": ".trellis/spec/backend/index.md", "reason": "Backend development guide"}
-{"file": ".trellis/spec/frontend/index.md", "reason": "Frontend development guide"}
-{"file": "AGENTS.md", "reason": "Project AI collaboration and product boundary rules"}
-{"file": "docs/ARCHITECTURE.md", "reason": "Current architecture and API boundary reference"}
-{"file": "docs/WORLD_SCHEMA.md", "reason": "Canonical tavern/gameplay data contracts"}
-{"file": "docs/WHAT_NOT_TO_BUILD.md", "reason": "Product non-goals and constraints"}

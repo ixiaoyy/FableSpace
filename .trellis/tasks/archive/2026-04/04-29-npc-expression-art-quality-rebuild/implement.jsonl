@@ -1,4 +1,0 @@
-{"file": ".trellis/workflow.md", "reason": "Project workflow and conventions"}
-{"file": ".trellis/spec/frontend/index.md", "reason": "Frontend development guide"}
-{"file": ".trellis/spec/frontend/image-asset-guidelines.md", "reason": "Regenerated bitmap deliverables must be copied into project asset paths and verified."}
-{"file": ".trellis/spec/frontend/npc-art-guidelines.md", "reason": "NPC expression art must be real tavern-themed character art, not tint/icon placeholders."}

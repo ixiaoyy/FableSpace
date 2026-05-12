@@ -3,19 +3,19 @@
   "name": "05-07-story-microgame-template-mvp",
   "title": "Story microgame template MVP",
   "description": "",
-  "status": "planning",
+  "status": "completed",
   "dev_type": "frontend",
-  "scope": null,
+  "scope": "Story microgame template MVP verification against existing gameplay templates",
   "package": null,
   "priority": "P2",
   "creator": "lijin",
   "assignee": "lijin",
   "createdAt": "2026-05-07",
-  "completedAt": null,
+  "completedAt": "2026-05-12",
   "branch": null,
   "base_branch": "codex-homepage-dynamic-entry-covers",
   "worktree_path": null,
-  "current_phase": 0,
+  "current_phase": 6,
   "next_action": [
     {
       "phase": 1,
@@ -48,6 +48,17 @@
   "children": [],
   "parent": "05-07-05-07-embedded-story-minigames-game-workshop-brainstorm",
   "relatedFiles": [],
-  "notes": "承接 Approach A1/A2：先做轻量剧情微玩法模板（不改 schema）。",
-  "meta": {}
+  "notes": "承接 Approach A1/A2：先做轻量剧情微玩法模板（不改 schema）。 Closed after verifying current gameplay and mini-game template catalogs support playable story/microgame entries with branching/fallback coverage; focused mini-games/gameplay tests and full frontend test/build passed in this session.",
+  "meta": {
+    "closure_type": "mvp_verified_by_existing_templates",
+    "deferred_not_done": [
+      "No new visual editor or external script-game runtime was added; owner custom editor improvements remain future work."
+    ],
+    "validation": [
+      "node .\\frontend\\scripts\\mini-games-test.mjs PASS (current session)",
+      "node .\\frontend\\scripts\\gameplay-test.mjs PASS (current session)",
+      "npm --prefix .\\frontend test PASS (current session)",
+      "npm --prefix .\\frontend run build PASS (current session)"
+    ]
+  }
 }

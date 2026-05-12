@@ -1,5 +1,0 @@
-{"file": ".trellis/workflow.md", "reason": "Project workflow and conventions"}
-{"file": ".trellis/spec/frontend/index.md", "reason": "Frontend development guide"}
-{"file": ".trellis/spec/frontend/npc-art-guidelines.md", "reason": "NPC portrait fallback contract and generation constraints"}
-{"file": "docs/IMAGE_ASSETS_SPEC.md", "reason": "Legacy asset inventory and planned portrait archetypes/paths"}
-{"file": "frontend/app/features/tavern-npc-stage/index.tsx", "reason": "Current runtime fallback order and integration point"}

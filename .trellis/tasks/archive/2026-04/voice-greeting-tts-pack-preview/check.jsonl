@@ -1,4 +1,0 @@
-{"file": "AGENTS.md", "reason": "Final hard-constraint review"}
-{"file": ".trellis/spec/guides/cross-layer-thinking-guide.md", "reason": "Check API/frontend/data shape alignment"}
-{"file": ".trellis/spec/backend/voice-greeting-preview-contract.md", "reason": "Check no-audio/no-cloning contract"}
-{"file": ".trellis/spec/frontend/voice-greeting-preview-boundary.md", "reason": "Check frontend service contract"}

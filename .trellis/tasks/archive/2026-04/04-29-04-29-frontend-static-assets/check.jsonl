@@ -1,6 +1,0 @@
-{"file": ".claude/commands/trellis/finish-work.md", "reason": "Finish work checklist"}
-{"file": ".claude/commands/trellis/check.md", "reason": "Code quality check spec"}
-{"file": ".trellis/spec/frontend/quality-guidelines.md", "reason": "Frontend build/test verification."}
-{"file": ".trellis/spec/frontend/image-asset-guidelines.md", "reason": "Asset path verification."}
-{"file": ".trellis/spec/frontend/npc-art-guidelines.md", "reason": "NPC required sprites verification."}
-{"file": ".trellis/spec/backend/quality-guidelines.md", "reason": "Focused pytest and compileall."}

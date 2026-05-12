@@ -6,6 +6,7 @@ import { fileURLToPath } from "node:url"
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const shellSource = readFileSync(resolve(__dirname, "../app/shell/product-shell.tsx"), "utf8")
 const discoverSource = readFileSync(resolve(__dirname, "../app/routes/discover.tsx"), "utf8")
+const soulLinkReferenceSource = readFileSync(resolve(__dirname, "../app/components/soul-link-reference-artboards.tsx"), "utf8")
 const createSource = readFileSync(resolve(__dirname, "../app/routes/create.tsx"), "utf8")
 const tavernSource = readFileSync(resolve(__dirname, "../app/routes/tavern.tsx"), "utf8")
 const ownerSource = readFileSync(resolve(__dirname, "../app/routes/owner.tsx"), "utf8")
@@ -21,11 +22,12 @@ assert.ok(shellSource.includes("移动端优先完成坐标、名称、首个 NP
 assert.ok(shellSource.includes("不把高级管理挤进第一屏"), "tavern guide should keep advanced panels out of first screen")
 assert.ok(shellSource.includes("移动端先看经营摘要、通知和下一步建议"), "owner guide should focus first-screen owner tasks")
 
-assert.ok(discoverSource.includes('id="discover-mainline"'), "discover route should expose mobile mainline anchor")
+assert.ok(discoverSource.includes("SoulLinkDiscoverReference"), "discover route should delegate to the shared discover artboard")
+assert.ok(soulLinkReferenceSource.includes('id={isDiscover ? "discover-mainline" : undefined}'), "discover artboard should expose mobile mainline anchor")
 assert.ok(createSource.includes('id="create-mainline"'), "create route should expose mobile mainline anchor")
 assert.ok(tavernSource.includes('id="tavern-mainline"'), "tavern route should expose mobile mainline anchor")
 assert.ok(ownerSource.includes('id="owner-mainline"'), "owner route should expose mobile mainline anchor")
-assert.ok(discoverSource.includes("scroll-mt-28"), "discover anchor should account for sticky header")
+assert.ok(soulLinkReferenceSource.includes("scroll-mt-28"), "discover anchor should account for sticky header")
 assert.ok(createSource.includes("scroll-mt-28"), "create anchor should account for sticky header")
 assert.ok(tavernSource.includes("scroll-mt-28"), "tavern anchor should account for sticky header")
 assert.ok(ownerSource.includes("scroll-mt-28"), "owner anchor should account for sticky header")
@@ -34,7 +36,7 @@ for (const forbidden of ["@capacitor", "ionic", "react-native", "onsenui"]) {
   assert.ok(!packageSource.toLowerCase().includes(forbidden), `should not introduce mobile framework dependency: ${forbidden}`)
 }
 
-const combined = `${shellSource}\n${discoverSource}\n${createSource}\n${tavernSource}\n${ownerSource}`
+const combined = `${shellSource}\n${discoverSource}\n${soulLinkReferenceSource}\n${createSource}\n${tavernSource}\n${ownerSource}`
 for (const forbidden of ["排行榜", "装备系统", "充值", "抽成", "营销群发"]) {
   assert.ok(!combined.includes(forbidden), `mobile polish should not introduce forbidden product direction: ${forbidden}`)
 }

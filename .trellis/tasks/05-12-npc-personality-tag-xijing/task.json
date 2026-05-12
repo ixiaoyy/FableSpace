@@ -3,7 +3,7 @@
   "name": "npc-personality-tag-xijing",
   "title": "brainstorm: NPC 性格标签「戏精」",
   "description": "",
-  "status": "in_progress",
+  "status": "completed",
   "dev_type": "frontend",
   "scope": "Frontend-only NPC personality template: dramatic-performer / 戏精表演者; allowed files: frontend/app/product/personalityTemplates.js, frontend/scripts/personality-templates-test.mjs, task PRD/context files.",
   "package": null,
@@ -11,11 +11,11 @@
   "creator": "lijin",
   "assignee": "lijin",
   "createdAt": "2026-05-12",
-  "completedAt": null,
+  "completedAt": "2026-05-12",
   "branch": null,
   "base_branch": "main",
   "worktree_path": null,
-  "current_phase": 4,
+  "current_phase": 6,
   "next_action": [
     {
       "phase": 1,
@@ -51,7 +51,7 @@
     "frontend/app/product/personalityTemplates.js",
     "frontend/scripts/personality-templates-test.mjs"
   ],
-  "notes": "Implemented Approach B (dramatic-performer / 戏精表演者). Focused personality template test passes. Full frontend test is blocked by pre-existing mini-games assertion 9 !== 6; build is blocked by discover.tsx unexpected token outside this task scope.",
+  "notes": "Implemented Approach B (dramatic-performer / 戏精表演者). Focused personality template test passes. Full frontend test is blocked by pre-existing mini-games assertion 9 !== 6; build is blocked by discover.tsx unexpected token outside this task scope. Final validation on 2026-05-12: focused personality template test passed; previous full frontend test/build blockers were resolved in 05-12-mini-games-template-test-drift, and full frontend test/build now pass.",
   "meta": {
     "validation": {
       "passed": [
@@ -61,6 +61,11 @@
         "npm --prefix .\\frontend test -> frontend/scripts/mini-games-test.mjs assertion 9 !== 6",
         "npm --prefix .\\frontend run build -> frontend/app/routes/discover.tsx Unexpected token"
       ]
-    }
+    },
+    "validation_final": [
+      "node .\\frontend\\scripts\\personality-templates-test.mjs PASS",
+      "npm --prefix .\\frontend test PASS (after resolving unrelated blockers)",
+      "npm --prefix .\\frontend run build PASS"
+    ]
   }
 }

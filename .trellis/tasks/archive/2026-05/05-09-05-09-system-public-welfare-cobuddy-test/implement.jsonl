@@ -1,7 +1,0 @@
-{"file": ".trellis/workflow.md", "reason": "Project workflow and conventions"}
-{"file": ".trellis/spec/backend/index.md", "reason": "Backend development guide"}
-{"file": "AGENTS.md", "reason": "project hard constraints and LLM secret handling"}
-{"file": ".trellis/spec/backend/logging-guidelines.md", "reason": "avoid logging API keys/prompts"}
-{"file": ".trellis/spec/backend/error-handling.md", "reason": "LLM failures should be sanitized/degraded"}
-{"file": "backend/src/fablemap_api/core/llm_clients.py", "reason": "existing LLM client factory and custom backend behavior"}
-{"file": "backend/src/fablemap_api/core/tavern.py", "reason": "system public welfare config hydration"}

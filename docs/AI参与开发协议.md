@@ -45,12 +45,16 @@
 在更细分的协议文件落地前，AI 参与开发时至少必须遵守：
 
 - `README.md`
-- `CONTRIBUTING.md`
+- `docs/INDEX.md`
+- `docs/PRODUCT_BRIEF.md`
+- `docs/FABLEMAP_TAVERN_PLATFORM.md`
+- `docs/ARCHITECTURE.md`
 - `docs/WORLD_SCHEMA.md`
+- `docs/WHAT_NOT_TO_BUILD.md`
 - `.trellis/workflow.md`
 - `.trellis/spec/`
 - 当前 `.trellis/tasks/<task>/prd.md`、`task.json`、`implement.jsonl`、`check.jsonl`
-- 相关系统文档（如阵营、扰动、审美系统）
+- 与本次改动直接相关的 `.trellis/tasks/<task>/` 记录或规范文件
 
 如果 AI 输出与这些文档冲突，必须以文档为准，而不是以 AI 输出为准。
 
@@ -106,9 +110,7 @@ AI 不允许：
 - `.trellis/workspace/<developer>/`
 - `.trellis/spec/`
 
-`docs/AI_SHARED_TASKLIST.md` 仅作为历史全局记忆 / 辅助参考；如果任务已经进入 Trellis，任务卡、PR、提交说明必须优先引用 `.trellis/tasks/<task>/` 中的任务名、PRD、上下文文件或验收记录，而不是只引用聊天记录、旧共享清单或 `docs/claims/`。
-
-`docs/claims/` 已降级为历史 claim 归档，不再是活跃认领入口。新的任务领取、状态流转、验收记录必须写入 Trellis。
+旧共享任务清单、`docs/claims/` 与 `docs/changes/` 已于 2026-05-12 清理出主线仓库入口。新的任务领取、状态流转、验收记录必须写入 Trellis；不要再新增旧式 claim/change 文档。
 
 ### Trellis 技能使用要求
 
@@ -149,7 +151,7 @@ AI 不允许：
 - `.trellis/tasks/<task>/implementation-plan.md` 或同目录实现记录：执行计划、验证记录
 - `.trellis/tasks/<task>/implement.jsonl` / `check.jsonl`：需要注入给实现和检查阶段的上下文
 
-`docs/claims/*.md` 只能作为历史证据或迁移来源；不得作为新任务的唯一认领说明，也不得让 `docs/claims` 中的“认领中”状态覆盖 Trellis 状态。
+不要再使用旧式 `docs/claims/*.md` 作为认领说明；如需历史依据，写入当前 Trellis 任务的 `prd.md`、`implementation-plan.md` 或 `task.json.notes`。
 
 ### 强制适用场景
 
@@ -184,9 +186,9 @@ AI 不允许：
 
 ### 旧共享任务迁移规则
 
-- 旧 `docs/AI_SHARED_TASKLIST.md` 中已经完成的任务，不再需要创建新的 active Trellis 任务；可以只保留 done 状态索引。
-- 旧共享任务中仍未完成或预留的任务，必须创建 Trellis 任务并补 `prd.md`、`task.json` 状态。
-- 截至 2026-04-30，旧共享任务中唯一明确未闭环项为 `SC-03：状态卡 Prompt 注入`，已迁移到 `.trellis/tasks/04-30-state-card-prompt-injection-sc-03/`。
+- 旧共享任务清单不再保留在 `docs/` 中；任务权威状态以 `.trellis/tasks/` 为准。
+- 如果从旧聊天、旧提交或外部记录发现未闭环事项，必须先创建/更新 Trellis 任务并补 `prd.md`、`task.json` 状态。
+- 不要为了恢复旧索引而重新创建 `docs/AI_SHARED_TASKLIST.md`、`docs/claims/` 或 `docs/changes/`。
 
 ## 每次 AI 参与都必须带的输入声明
 

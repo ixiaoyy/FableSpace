@@ -6,6 +6,7 @@ import { RelationshipGraphPanel } from "../relationship-graph"
 import { SpaceCapabilityHubPanel } from "../../components/SpaceCapabilityHubPanel"
 import TerritoryManagementPanel from "../../components/TerritoryManagementPanel"
 import TerritoryClaimPanel from "../../components/TerritoryClaimPanel"
+import OwnerStateCardPanel from "../../product/OwnerStateCardPanel"
 import { PLACE_RELATIONSHIP_TYPES, normalizePlaceRelationshipDraft } from "../../lib/place-home.js"
 import { fallbackRoleplayState } from "../../lib/roleplay-state"
 import { CULTIVATION_PLAY_PACK } from "../../lib/cultivation-play-pack.js"
@@ -811,6 +812,45 @@ function TerritoryOwnerPanel({ tavern }: { tavern: Tavern }) {
   )
 }
 
+function StateCardOwnerPanel({ tavern }: { tavern: Tavern }) {
+  const [open, setOpen] = useState(false)
+  const ownerId = tavern.owner_id || DEFAULT_OWNER_ID
+
+  return (
+    <Card data-owner-state-card-entry="management-route" className="min-w-0 overflow-hidden border-violet-300/18 bg-violet-300/8">
+      <CardHeader>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <p className="text-xs font-black uppercase tracking-[0.22em] text-violet-100/62">Canon Ledger</p>
+            <CardTitle>状态卡正史审核</CardTitle>
+            <CardDescription className="mt-2">
+              AI 和访客对话只能提出候选变化；店主确认后才会写入结构化正史。这里复用状态卡服务，不在访客页公开展示。
+            </CardDescription>
+          </div>
+          <Button type="button" onClick={() => setOpen(true)}>
+            <BookOpen className="h-4 w-4" />
+            打开状态卡面板
+          </Button>
+        </div>
+      </CardHeader>
+      <CardContent>
+        <div className="grid gap-3 text-sm sm:grid-cols-3">
+          <span className="rounded-2xl border border-white/10 bg-white/[0.045] px-4 py-3 text-violet-50/70">
+            范围：<span className="font-bold text-white">本空间</span>
+          </span>
+          <span className="rounded-2xl border border-white/10 bg-white/[0.045] px-4 py-3 text-violet-50/70">
+            决策：<span className="font-bold text-white">加入正史 / 忽略</span>
+          </span>
+          <span className="rounded-2xl border border-white/10 bg-white/[0.045] px-4 py-3 text-violet-50/70">
+            Owner：<span className="font-bold text-white">{ownerId}</span>
+          </span>
+        </div>
+      </CardContent>
+      {open ? <OwnerStateCardPanel tavern={tavern} ownerId={ownerId} onClose={() => setOpen(false)} /> : null}
+    </Card>
+  )
+}
+
 function NpcSimulationOverview({ characters, tavernName }: { characters: TavernCharacter[]; tavernName?: string }) {
   const charsNeedingAttention = characters.filter((c) => {
     const s = c.simulation_state
@@ -916,6 +956,7 @@ export function TavernOwnerManagement({
       <PlayPackPanel tavern={tavern} />
       <PlaceHomePanel tavern={tavern} />
       <TerritoryOwnerPanel tavern={tavern} />
+      <StateCardOwnerPanel tavern={tavern} />
       <div className="rounded-3xl border border-white/10 bg-white/5 p-5">
         <SpaceCapabilityHubPanel tavern={tavern} />
       </div>

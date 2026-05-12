@@ -1,5 +1,0 @@
-{"file": "AGENTS.md", "reason": "Final hard-constraint review"}
-{"file": ".trellis/spec/frontend/image-asset-guidelines.md", "reason": "Verify no image deliverable/temp asset issue"}
-{"file": ".trellis/spec/guides/cross-layer-thinking-guide.md", "reason": "Check API/frontend/data shape alignment"}
-{"file": ".trellis/spec/backend/visual-souvenir-preview-contract.md", "reason": "Check no-image/no-persistence/privacy contract"}
-{"file": ".trellis/spec/frontend/visual-souvenir-preview-boundary.md", "reason": "Check frontend service and asset boundary"}

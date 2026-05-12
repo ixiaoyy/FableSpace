@@ -26,6 +26,7 @@ import {
   SPECIAL_TAVERN_TYPES,
   specialTavernTypeMatchesTavern,
 } from "../lib/special-tavern-types.js"
+import { buildTavernFirstMinuteGuide, getTavernFirstMinuteSearchText } from "../lib/tavern-first-minute"
 import { buildTavernIntentTags, getTavernIntentTagsSearchText } from "../lib/tavern-intent-tags.js"
 import { errorMessage, listTaverns, type Tavern, type TavernCharacter, type TavernListResponse } from "../lib/taverns"
 import { buildMapAnchorCardCopy, formatTavernAnchorLocation } from "../product/mapAnchorCopy.js"
@@ -224,6 +225,7 @@ function tavernSearchText(tavern: TavernListResponse["taverns"][number]) {
     tavern.description,
     tavern.address,
     tavern.scene_prompt,
+    getTavernFirstMinuteSearchText(tavern),
     getDiscoveryLivelinessSearchText(tavern),
     getShortDramaTeaserSearchText(tavern),
     getTavernIntentTagsSearchText(buildTavernIntentTags(tavern)),
@@ -718,6 +720,7 @@ function RadarSignalCard({ tavern, index, onPreview }: { tavern: Tavern; index: 
   const specialType = deriveSpecialTavernTypeDisplay(tavern)
   const entry = entryStatusDisplay(tavernWithTimeStatus)
   const strength = signalStrength(tavern, index)
+  const firstMinute = buildTavernFirstMinuteGuide(tavern)
 
   return (
     <article
@@ -775,6 +778,17 @@ function RadarSignalCard({ tavern, index, onPreview }: { tavern: Tavern; index: 
           <p className={`mt-2 line-clamp-2 text-sm leading-6 ${isClosed ? "text-theme-primary/25" : "text-theme-muted"}`}>
             {tavern.description || "这个区域还没有公开简介，但坐标已经亮起。"}
           </p>
+          <div
+            data-first-minute-guide="radar-compact"
+            className={`mt-3 rounded-2xl border px-3 py-2 text-xs leading-5 ${
+              isClosed
+                ? "border-theme-border bg-theme-card text-theme-primary/30"
+                : "border-cyan-300/18 bg-cyan-300/8 text-cyan-50/76"
+            }`}
+          >
+            <p className="font-black text-theme-accent-text">为什么在这里</p>
+            <p className="mt-1 line-clamp-2">{firstMinute.whyHere}</p>
+          </div>
           {specialType ? (
             <p className={`mt-2 text-xs leading-5 ${isClosed ? "text-theme-primary/28" : "text-amber-100/72"}`}>
               专题体验：{specialType.summary}
@@ -815,6 +829,7 @@ function ResultCard({
   const isClosed = tavernWithTimeStatus.is_open === false
   const shortDramaTeaser = buildShortDramaTeaser(tavern)
   const intentTags = buildTavernIntentTags(tavern)
+  const firstMinute = buildTavernFirstMinuteGuide(tavern)
 
   return (
     <article className="group overflow-hidden rounded-[1.75rem] border border-theme-border bg-theme-card transition hover:-translate-y-0.5 hover:border-cyan-300/45">
@@ -864,6 +879,28 @@ function ResultCard({
             </p>
           ) : null}
         </div>
+        <section
+          data-first-minute-guide="discover-card"
+          aria-label="游客第一分钟"
+          className="rounded-3xl border border-cyan-300/18 bg-cyan-300/8 p-3"
+        >
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+            <div className="min-w-0">
+              <p className="text-[0.66rem] font-black uppercase tracking-[0.18em] text-cyan-100/70">Why here?</p>
+              <p className="mt-1 line-clamp-2 text-xs leading-5 text-violet-50/76">{firstMinute.whyHere}</p>
+            </div>
+            <span className="w-fit shrink-0 rounded-full border border-cyan-300/24 bg-cyan-300/10 px-2.5 py-1 text-xs font-black text-cyan-50">
+              {firstMinute.experienceType}
+            </span>
+          </div>
+          <div className="mt-3 grid gap-2">
+            {firstMinute.tryThisFirst.slice(0, 2).map((prompt) => (
+              <p key={prompt} className="rounded-2xl border border-white/10 bg-white/[0.035] px-3 py-2 text-xs leading-5 text-violet-50/70">
+                先试：{prompt}
+              </p>
+            ))}
+          </div>
+        </section>
         <EntrySignalGrid tavern={tavernWithTimeStatus} placeType={placeType} muted={isClosed} />
         <DiscoveryLivelinessStrip tavern={tavernWithTimeStatus} muted={isClosed} />
         {intentTags.length ? (
@@ -1214,85 +1251,5 @@ export default function DiscoverRoute() {
       onOpenOnlyChange={(value) => setBooleanFilter(setOpenOnly, value)}
       onToggleTheme={toggleTheme}
     />
-  )
-}
-      <section id="discover-mainline" className="grid scroll-mt-28 gap-6 lg:grid-cols-[0.62fr_1.38fr] lg:items-start">
-        <aside className="space-y-5 lg:sticky lg:top-28">
-          <div className="rounded-[2rem] border border-theme-accent-border bg-[radial-gradient(circle_at_top_right,rgba(34,211,238,0.16),transparent_34%),linear-gradient(160deg,rgba(15,23,42,0.84),rgba(30,27,75,0.62))] p-6 shadow-[0_0_42px_rgba(34,211,238,0.08)] backdrop-blur-xl">
-            <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-theme-border bg-theme-bg px-3 py-1.5 text-xs font-black text-theme-primary">
-              <Compass className="h-3.5 w-3.5" />
-              Real coordinates. Live signals.
-            </div>
-            <h1 className="text-4xl font-black leading-tight text-theme-primary sm:text-5xl">
-              <span className="block">附近坐标</span>
-              <span className="block">正在发光</span>
-            </h1>
-            <p className="mt-4 text-sm leading-7 text-theme-muted">
-              默认用雷达扫过城市，感受哪里有区域正在亮起；开始搜索或筛选时，自动切到更方便浏览的卡片结果。
-            </p>
-            <div className="mt-6 grid gap-3 text-sm text-theme-muted">
-              <div className="flex items-center gap-3 rounded-2xl border border-theme-accent-border bg-theme-accent-bg p-3">
-                <MapPinned className="h-5 w-5 text-theme-accent-text" />
-                <span>{filteredTaverns.length} 个坐标{hasFilters ? "符合查找" : "接入发现流"}</span>
-              </div>
-              <div className="flex items-center gap-3 rounded-2xl border border-violet-300/14 bg-violet-300/[0.055] p-3">
-                <UsersRound className="h-5 w-5 text-theme-primary" />
-                <span>角色、传闻和店主可见回访反馈都汇入同一条信号流</span>
-              </div>
-            </div>
-            <div className="mt-6 space-y-3">
-              <ViewModeToggle activeViewMode={activeViewMode} onChange={setManualViewMode} />
-              <Button asChild className="w-full">
-                <Link to="/create">
-                  创建我的空间
-                  <ArrowRight className="h-4 w-4" />
-                </Link>
-              </Button>
-            </div>
-            {error ? (
-              <p className="mt-5 rounded-2xl border border-amber-300/30 bg-amber-300/10 p-3 text-sm text-amber-100">
-                API 暂不可用：{error}
-              </p>
-            ) : null}
-          </div>
-
-          <FilterPanel
-            search={search}
-            activePlaceTypes={activePlaceTypes}
-            activeSpecialTypes={activeSpecialTypes}
-            activeCategories={activeCategories}
-            publicOnly={publicOnly}
-            openOnly={openOnly}
-            hasFilters={hasFilters}
-            onSearchChange={switchToCardsForSearch}
-            onTogglePlaceType={togglePlaceType}
-            onToggleSpecialType={toggleSpecialType}
-            onToggleCategory={toggleCategory}
-            onPublicOnlyChange={(value) => setBooleanFilter(setPublicOnly, value)}
-            onOpenOnlyChange={(value) => setBooleanFilter(setOpenOnly, value)}
-            onClear={clearFilters}
-          />
-
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1">
-            {previewCards.map((card) => (
-              <PreviewTile key={card.title} {...card} />
-            ))}
-          </div>
-        </aside>
-
-        {activeViewMode === "radar" ? (
-          <RadarBoard taverns={filteredTaverns} hasFilters={hasFilters} onPreview={setPreviewTavern} />
-        ) : (
-          <CardsBoard taverns={filteredTaverns} hasFilters={hasFilters} onPreview={setPreviewTavern} />
-        )}
-      </section>
-
-      {previewTavern ? (
-        <TavernPreviewModal
-          tavern={previewTavern}
-          onClose={() => setPreviewTavern(null)}
-        />
-      ) : null}
-    </ProductShell>
   )
 }

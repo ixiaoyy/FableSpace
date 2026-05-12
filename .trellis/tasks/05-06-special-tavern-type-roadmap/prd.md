@@ -20,3 +20,10 @@ Record a lightweight roadmap for future special tavern types that can reuse the 
 
 * Implementing additional types now.
 * Plugin marketplace or user-installed arbitrary scripts.
+
+## 2026-05-12 Closure Note
+
+This task is closed as `roadmap_complete`. Closed as roadmap/planning complete: task artifacts define the special tavern type direction and follow-up implementation sequencing. No production code was required for this planning slice.
+
+Deferred / not done:
+- Future special tavern type implementation remains split into dedicated child tasks.

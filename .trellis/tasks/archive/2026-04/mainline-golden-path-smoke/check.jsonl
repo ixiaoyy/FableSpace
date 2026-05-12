@@ -1,5 +1,0 @@
-{"file": ".agents/skills/finish-work/SKILL.md", "reason": "Finish work checklist"}
-{"file": ".agents/skills/check/SKILL.md", "reason": "Code quality check spec"}
-{"file": ".trellis/tasks/archive/2026-04/mainline-golden-path-smoke/prd.md", "reason": "Task scope and verification plan"}
-{"file": "backend/tests/test_v1_mainline_golden_path_smoke.py", "reason": "Golden-path smoke test under review"}
-

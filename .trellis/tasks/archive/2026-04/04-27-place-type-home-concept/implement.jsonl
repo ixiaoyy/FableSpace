@@ -1,8 +1,0 @@
-{"file": ".trellis/workflow.md", "reason": "Project workflow and conventions"}
-{"file": "AGENTS.md", "reason": "Repository-wide hard constraints and reporting rules"}
-{"file": "README.md", "reason": "Current product positioning and main loop"}
-{"file": "docs/PRODUCT_BRIEF.md", "reason": "Product values and user roles"}
-{"file": "docs/FABLEMAP_TAVERN_PLATFORM.md", "reason": "Mainline tavern platform design"}
-{"file": "docs/WHAT_NOT_TO_BUILD.md", "reason": "Negative boundaries for product decision"}
-{"file": "docs/WORLD_SCHEMA.md", "reason": "Current schema boundary; no schema changes in this task"}
-{"file": ".trellis/spec/guides/cross-layer-thinking-guide.md", "reason": "Future cross-layer implications to note without implementation"}

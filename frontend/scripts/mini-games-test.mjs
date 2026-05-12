@@ -9,8 +9,6 @@ import {
   getMiniGameTemplates,
 } from '../app/product/tavernMiniGames.js'
 
-assert.equal(MINI_GAME_TEMPLATES.length, 6)
-
 const ids = MINI_GAME_TEMPLATES.map((template) => template.id)
 assert.equal(new Set(ids).size, ids.length)
 
@@ -30,15 +28,27 @@ assert.deepEqual(ids, [
   'card-reading',
   'twenty-questions',
   'tiny-quest',
+  'signal-decoder',
+  'spectral-scanner',
+  'constellation-map',
 ])
+assert.equal(MINI_GAME_TEMPLATES.length, ids.length)
 
 const clueFirst = getMiniGameTemplates({ playModeId: 'clue_game' }).map((template) => template.id)
-assert.equal(clueFirst[0], 'clue-trail')
-assert.equal(clueFirst.length, 6)
+assert.deepEqual(clueFirst.slice(0, 2), ['signal-decoder', 'clue-trail'])
+assert.equal(clueFirst.length, ids.length)
 
 const questFirst = getMiniGameTemplates({ playModeId: 'guild' }).map((template) => template.id)
 assert.equal(questFirst[0], 'tiny-quest')
-assert.equal(questFirst.length, 6)
+assert.equal(questFirst.length, ids.length)
+
+const textGameFirst = getMiniGameTemplates({ playModeId: 'text_game' }).map((template) => template.id)
+assert.deepEqual(textGameFirst.slice(0, 3), ['spectral-scanner', 'signal-decoder', 'tiny-quest'])
+assert.equal(textGameFirst.length, ids.length)
+
+const divinationFirst = getMiniGameTemplates({ playModeId: 'divination' }).map((template) => template.id)
+assert.deepEqual(divinationFirst.slice(0, 2), ['constellation-map', 'card-reading'])
+assert.equal(divinationFirst.length, ids.length)
 
 const defaultOrder = getMiniGameTemplates({ playModeId: 'chat' }).map((template) => template.id)
 assert.deepEqual(defaultOrder, ids)
@@ -65,6 +75,16 @@ const cardPrompt = buildMiniGameStartPrompt(cardTemplate, {
 assert.ok(cardPrompt.includes('《抽卡占卜》'))
 assert.ok(cardPrompt.includes('象征'))
 assert.ok(cardPrompt.includes('不做命运断言'))
+
+const constellationTemplate = MINI_GAME_TEMPLATES.find((template) => template.id === 'constellation-map')
+const constellationPrompt = buildMiniGameStartPrompt(constellationTemplate, {
+  tavernName: '星桥书店',
+  characterName: '星图店员',
+})
+assert.ok(constellationPrompt.includes('《星图测绘》'))
+assert.ok(constellationPrompt.includes('真实经纬度坐标'))
+assert.ok(constellationPrompt.includes('不做命运断言'))
+assert.ok(constellationPrompt.includes('不给医疗、法律或金融结论'))
 
 const here = dirname(fileURLToPath(import.meta.url))
 const panelSource = readFileSync(join(here, '../app/product/TavernMiniGamePanel.jsx'), 'utf8')

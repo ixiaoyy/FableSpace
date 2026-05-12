@@ -1,5 +1,0 @@
-{"file": ".trellis/workflow.md", "reason": "Project workflow and conventions"}
-{"file": "docs/WORLD_SCHEMA.md", "reason": "TavernCharacter fields, AI draft boundary, gender/PII constraints"}
-{"file": "docs/WHAT_NOT_TO_BUILD.md", "reason": "Product out-of-scope boundaries for platform-generated content and unsafe feature drift"}
-{"file": "docs/FABLEMAP_TAVERN_PLATFORM.md", "reason": "Cyber tavern product line and owner sovereignty constraints"}
-{"file": ".trellis/tasks/04-29-npc-role-prompt-safety-brainstorm/context-memory.md", "reason": "Condensed brainstorm handoff memory"}

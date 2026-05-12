@@ -1,4 +1,0 @@
-{"file": ".claude/commands/trellis/finish-work.md", "reason": "Finish work checklist"}
-{"file": ".claude/commands/trellis/check.md", "reason": "Code quality check spec"}
-{"file": ".trellis/spec/frontend/npc-art-guidelines.md", "reason": "Verify real tavern-themed art fallback and precedence order"}
-{"file": "frontend/app/features/tavern-npc-stage/index.tsx", "reason": "Check no-avatar runtime path after asset integration"}

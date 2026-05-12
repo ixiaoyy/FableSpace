@@ -1,7 +1,0 @@
-{"file": ".trellis/workflow.md", "reason": "Project workflow and conventions"}
-{"file": ".trellis/spec/backend/index.md", "reason": "Backend development guide"}
-{"file": ".trellis/spec/frontend/index.md", "reason": "Frontend development guide"}
-{"file": ".trellis/spec/frontend/quality-guidelines.md", "reason": "frontend verification"}
-{"file": ".trellis/spec/frontend/component-guidelines.md", "reason": "owner dashboard UI"}
-{"file": ".trellis/spec/frontend/state-management.md", "reason": "loader/local state rules"}
-{"file": ".trellis/spec/guides/cross-layer-thinking-guide.md", "reason": "existing API to frontend summary flow"}

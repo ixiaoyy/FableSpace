@@ -3,19 +3,19 @@
   "name": "local-codex-llm-chat-evaluation",
   "title": "brainstorm: 评估 LLM 层对接本地 Codex 聊天",
   "description": "",
-  "status": "planning",
+  "status": "completed",
   "dev_type": null,
-  "scope": null,
+  "scope": "LLM adapter feasibility evaluation for local Codex chat",
   "package": null,
   "priority": "P2",
   "creator": "lijin",
   "assignee": "lijin",
   "createdAt": "2026-05-06",
-  "completedAt": null,
+  "completedAt": "2026-05-12",
   "branch": null,
   "base_branch": "codex-homepage-dynamic-entry-covers",
   "worktree_path": null,
-  "current_phase": 0,
+  "current_phase": 6,
   "next_action": [
     {
       "phase": 1,
@@ -48,6 +48,14 @@
   "children": [],
   "parent": null,
   "relatedFiles": [],
-  "notes": "",
-  "meta": {}
+  "notes": "Closed as evaluation complete: PRD documents current chat/LLM chain, Codex CLI observations, viable approaches, recommendation, risks, and out-of-scope boundaries. No business code was changed by design.",
+  "meta": {
+    "closure_type": "evaluation_complete",
+    "deferred_not_done": [
+      "Any real Codex bridge/adapter implementation requires a separate task and a stable local service/API decision."
+    ],
+    "validation": [
+      "Planning/doc closure only unless noted; no new production code for this task."
+    ]
+  }
 }

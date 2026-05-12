@@ -1,5 +1,0 @@
-{"file": ".agents/skills/finish-work/SKILL.md", "reason": "Finish work checklist"}
-{"file": ".agents/skills/check/SKILL.md", "reason": "Code quality check spec"}
-{"file": ".trellis/spec/backend/quality-guidelines.md", "reason": "Review backend tests and verification scope"}
-{"file": "docs/WORLD_SCHEMA.md", "reason": "SillyTavern field mapping and TavernCharacter contract"}
-{"file": "backend/tests/test_v1_character_assets.py", "reason": "Compare low-level parser tests against existing route-level coverage"}

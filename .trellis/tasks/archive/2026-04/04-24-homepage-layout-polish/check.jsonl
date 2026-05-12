@@ -1,6 +1,0 @@
-{"file": ".claude/commands/trellis/finish-work.md", "reason": "Finish work checklist"}
-{"file": ".claude/commands/trellis/check.md", "reason": "Code quality check spec"}
-{"file": ".trellis/spec/frontend/quality-guidelines.md", "reason": "verify frontend build and avoid forbidden UI patterns"}
-{"file": ".trellis/spec/frontend/component-guidelines.md", "reason": "review component structure and mobile layout"}
-{"file": ".trellis/spec/frontend/directory-structure.md", "reason": "ensure source edits stay in route module/assets"}
-{"file": "docs/WHAT_NOT_TO_BUILD.md", "reason": "avoid old map/RPG visual direction and forbidden product scope"}

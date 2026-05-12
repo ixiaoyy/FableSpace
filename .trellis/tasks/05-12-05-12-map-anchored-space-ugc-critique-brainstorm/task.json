@@ -1,0 +1,85 @@
+{
+  "id": "05-12-map-anchored-space-ugc-critique-brainstorm",
+  "name": "05-12-map-anchored-space-ugc-critique-brainstorm",
+  "title": "brainstorm: map-anchored-space-UGC critique response",
+  "description": "Brainstorm response to a harsh visitor critique of map-anchored space UGC, owner-paid tokens, and AI NPC value proposition.",
+  "status": "completed",
+  "dev_type": "frontend",
+  "scope": "frontend MVP for visitor first-minute entry guidance and location-anchor proof; no schema/API/payment/social changes",
+  "package": null,
+  "priority": "P2",
+  "creator": "lijin",
+  "assignee": "lijin",
+  "createdAt": "2026-05-12",
+  "completedAt": "2026-05-12",
+  "branch": null,
+  "base_branch": "main",
+  "worktree_path": null,
+  "current_phase": 6,
+  "next_action": [
+    {
+      "phase": 1,
+      "action": "brainstorm"
+    },
+    {
+      "phase": 2,
+      "action": "research"
+    },
+    {
+      "phase": 3,
+      "action": "implement"
+    },
+    {
+      "phase": 4,
+      "action": "check"
+    },
+    {
+      "phase": 5,
+      "action": "update-spec"
+    },
+    {
+      "phase": 6,
+      "action": "record-session"
+    }
+  ],
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [],
+  "parent": null,
+  "relatedFiles": [
+    "frontend/app/lib/tavern-first-minute.ts",
+    "frontend/app/routes/discover.tsx",
+    "frontend/app/components/soul-link-reference-artboards.tsx",
+    "frontend/app/components/tavern-preview-modal.tsx",
+    "frontend/app/features/tavern-chat-workbench/index.tsx",
+    "frontend/app/routes/create.tsx",
+    "frontend/app/product/TavernCreatePanel.jsx",
+    "frontend/app/product/CharacterEditor.jsx",
+    "frontend/scripts/first-minute-guide-test.mjs",
+    "frontend/scripts/playwright-discover-visual-audit.mjs",
+    "frontend/package.json",
+    "artifacts/playwright/discover-visual-audit/report.md",
+    ".trellis/tasks/05-12-05-12-map-anchored-space-ugc-critique-brainstorm/prd.md",
+    ".trellis/tasks/05-12-05-12-map-anchored-space-ugc-critique-brainstorm/implementation-notes.md"
+  ],
+  "notes": "Implemented Visitor First Minute + Location Anchor Proof as a frontend-only MVP. Added centralized derived guide helper, discover/preview/workbench first-minute surfaces, create-side authoring nudges, regression script, and Playwright evidence. No schema/API/payment/social changes.",
+  "meta": {
+    "decision": "Visitor First Minute + Location Anchor Proof",
+    "validation": [
+      "node .\\frontend\\scripts\\first-minute-guide-test.mjs PASS",
+      "focused frontend scripts PASS",
+      "npm --prefix .\\frontend run typecheck PASS",
+      "npm --prefix .\\frontend test PASS",
+      "npm --prefix .\\frontend run build PASS",
+      "git diff --check PASS (CRLF warnings only)",
+      "Playwright discover visual audit PASS"
+    ],
+    "deferred_not_done": [
+      "No persisted first-minute fields or backend API/schema changes",
+      "No token recharge/payment/settlement",
+      "No visitor social graph/feed/DM/ranking/combat/traditional navigation",
+      "No platform auto-publication of tavern/NPC/story content"
+    ]
+  }
+}

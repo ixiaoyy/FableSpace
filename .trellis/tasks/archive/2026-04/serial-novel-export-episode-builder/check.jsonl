@@ -1,5 +1,0 @@
-{"file": "AGENTS.md", "reason": "Final hard-constraint review"}
-{"file": ".trellis/spec/backend/state-card-api-contract.md", "reason": "Check StateCard export visibility/default confirmed behavior"}
-{"file": ".trellis/spec/guides/cross-layer-thinking-guide.md", "reason": "Check API/frontend/data shape alignment"}
-{"file": ".trellis/spec/backend/episode-export-contract.md", "reason": "Check no-LLM/no-persistence/privacy contract"}
-{"file": ".trellis/spec/frontend/episode-export-boundary.md", "reason": "Check frontend service contract"}

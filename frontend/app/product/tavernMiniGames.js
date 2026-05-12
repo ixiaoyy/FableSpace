@@ -59,7 +59,7 @@ export const MINI_GAME_TEMPLATES = [
     icon: '📡',
     duration: '5-10 分钟',
     summary: '拦截并破译来自坐标深处的加密波段。',
-    tags: ['puzzle', 'terminal'],
+    tags: ['puzzle', 'terminal', 'family-friendly'],
     startInstruction: '请给出一个加密的“信号片段”（可以是乱码、诗句或谜语），要求访客通过【分析波段】【尝试破译】【比对数据库】等步骤解开背后的故事。',
   },
   {
@@ -68,8 +68,8 @@ export const MINI_GAME_TEMPLATES = [
     icon: '📻',
     duration: '3-5 分钟',
     summary: '扫描当前坐标的“历史回声”。',
-    tags: ['exploration', 'terminal'],
-    startInstruction: '请描述一段在这个坐标曾经发生过的、模糊的“视觉片段”，并给出 3 个【同步频率】的可选行动，让访客决定深入查看哪个片段。',
+    tags: ['exploration', 'terminal', 'family-friendly'],
+    startInstruction: '请描述一段在这个坐标曾经发生过的、温和且非恐怖的“视觉片段”，并给出 3 个【同步频率】的可选行动，让访客决定深入查看哪个片段。',
   },
   {
     id: 'constellation-map',
@@ -77,8 +77,8 @@ export const MINI_GAME_TEMPLATES = [
     icon: '🌌',
     duration: '5 分钟',
     summary: '根据当前坐标与星空的夹角，推演今日运势。',
-    tags: ['divination', 'astronomy'],
-    startInstruction: '请结合当前的真实经纬度坐标，模拟一次星象观测，给出【观测方位】【主星位】【相位影响】【今日指引】。',
+    tags: ['divination', 'astronomy', 'family-friendly'],
+    startInstruction: '请结合当前的真实经纬度坐标，模拟一次星象观测，给出【观测方位】【主星位】【相位影响】【今日指引】；用轻松象征语气，不做命运断言。',
   },
 ]
 

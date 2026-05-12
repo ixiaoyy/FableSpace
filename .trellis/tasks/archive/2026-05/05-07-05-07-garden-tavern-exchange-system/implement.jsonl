@@ -1,8 +1,0 @@
-{"file": ".trellis/workflow.md", "reason": "Project workflow and conventions"}
-{"file": ".trellis/spec/frontend/index.md", "reason": "Frontend development guide"}
-{"file": ".\\.trellis\\spec\\frontend\\directory-structure.md", "reason": "frontend module placement for product code"}
-{"file": ".\\.trellis\\spec\\frontend\\component-guidelines.md", "reason": "GardenFarmPanel UI and mobile-safe component rules"}
-{"file": ".\\.trellis\\spec\\frontend\\state-management.md", "reason": "local persisted farm progress boundary"}
-{"file": ".\\.trellis\\spec\\frontend\\type-safety.md", "reason": "normalize localStorage progress and dynamic values"}
-{"file": ".\\frontend\\app\\product\\tavernFarmModes.js", "reason": "existing farm helper to extend"}
-{"file": ".\\frontend\\app\\product\\GardenFarmPanel.jsx", "reason": "existing farm UI to extend"}

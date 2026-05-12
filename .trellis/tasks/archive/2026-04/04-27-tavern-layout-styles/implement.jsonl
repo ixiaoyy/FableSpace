@@ -1,6 +1,0 @@
-{"file": ".trellis/workflow.md", "reason": "Project workflow and conventions"}
-{"file": ".trellis/spec/frontend/index.md", "reason": "Frontend development guide"}
-{"file": ".trellis/spec/frontend/component-guidelines.md", "reason": "组件结构、样式与可访问性"}
-{"file": ".trellis/spec/frontend/quality-guidelines.md", "reason": "前端验证与禁止模式"}
-{"file": ".trellis/spec/frontend/type-safety.md", "reason": "payload 容错和 schema 对齐"}
-{"ts":"2026-04-27T00:00:00+08:00","phase":"implement","note":"User requested backend/API/schema alignment; promoted tavern layouts from UI-only switcher to persisted Tavern.layout_style contract with default lobby and allowed values lobby/npc-chat/quest-play/hybrid-room."}

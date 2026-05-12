@@ -1,0 +1,10 @@
+{"file": ".trellis/workflow.md", "reason": "Project workflow and conventions"}
+{"file": ".trellis/spec/frontend/index.md", "reason": "Frontend development guide"}
+{"file": ".trellis/tasks/05-12-05-12-tavern-doorway-ritual-mvp/prd.md", "reason": "本任务 PRD 与验收标准"}
+{"file": ".trellis/spec/frontend/component-guidelines.md", "reason": "前端组件边界与移动端/禁止事项"}
+{"file": ".trellis/spec/frontend/quality-guidelines.md", "reason": "前端验证命令与可见 UI 自验收"}
+{"file": ".trellis/spec/frontend/mobile-single-mainline.md", "reason": "移动端酒馆单主线约束"}
+{"file": ".trellis/spec/frontend/map-anchor-copy.md", "reason": "真实坐标门牌 copy 复用约束"}
+{"file": ".trellis/spec/guides/code-reuse-thinking-guide.md", "reason": "复用 first-minute guide / 入口反应逻辑"}
+{"file": "frontend/app/features/tavern-chat-workbench/index.tsx", "reason": "酒馆游客工作台主改动文件"}
+{"file": "frontend/app/lib/tavern-first-minute.ts", "reason": "已有第一分钟真实锚点/开场句 helper，必须复用"}

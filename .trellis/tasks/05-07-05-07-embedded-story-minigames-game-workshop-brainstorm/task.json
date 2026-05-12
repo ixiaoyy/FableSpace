@@ -3,19 +3,19 @@
   "name": "05-07-embedded-story-minigames-game-workshop-brainstorm",
   "title": "brainstorm: embedded story mini-games and game workshop tavern",
   "description": "",
-  "status": "planning",
+  "status": "completed",
   "dev_type": "frontend",
-  "scope": null,
+  "scope": "Embedded story mini-games and game workshop brainstorm parent closure",
   "package": null,
   "priority": "P2",
   "creator": "lijin",
   "assignee": "lijin",
   "createdAt": "2026-05-07",
-  "completedAt": null,
+  "completedAt": "2026-05-12",
   "branch": null,
   "base_branch": "codex-homepage-dynamic-entry-covers",
   "worktree_path": null,
-  "current_phase": 0,
+  "current_phase": 6,
   "next_action": [
     {
       "phase": 1,
@@ -52,7 +52,7 @@
   ],
   "parent": null,
   "relatedFiles": [],
-  "notes": "已在 PRD 确认：本轮只走轻量版方案D优先（空间能力聚合枢纽 + 通用链路），不做行业级深流程判定；次序为 D1/D2 -> A1/A2 -> B1/C1。已拆解为 3 个可执行子任务：space-capability-hub-mvp、story-microgame-template-mvp、game-workshop-curated-oss-minigames。",
+  "notes": "已在 PRD 确认：本轮只走轻量版方案D优先（空间能力聚合枢纽 + 通用链路），不做行业级深流程判定；次序为 D1/D2 -> A1/A2 -> B1/C1。已拆解为 3 个可执行子任务：space-capability-hub-mvp、story-microgame-template-mvp、game-workshop-curated-oss-minigames。 Closed as brainstorm complete: PRD captures approved priority order and follow-up split. Related lightweight mini-game/gameplay template tests now pass in the current frontend suite.",
   "meta": {
     "decision": "D-light",
     "priority_order": [
@@ -64,6 +64,16 @@
       "不改 schema",
       "以通用链路打底",
       "保持店主确认与 owner sovereign"
+    ],
+    "closure_type": "brainstorm_complete",
+    "deferred_not_done": [
+      "Additional game workshop/OSS embedding beyond the existing curated slice remains future scoped work."
+    ],
+    "validation": [
+      "node .\\frontend\\scripts\\mini-games-test.mjs PASS (current session)",
+      "node .\\frontend\\scripts\\gameplay-test.mjs PASS (current session)",
+      "npm --prefix .\\frontend test PASS (current session)",
+      "npm --prefix .\\frontend run build PASS (current session)"
     ]
   }
 }

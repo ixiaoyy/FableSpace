@@ -1,4 +1,0 @@
-{"file": ".trellis/workflow.md", "reason": "Project workflow and conventions"}
-{"file": ".trellis/spec/frontend/index.md", "reason": "Frontend development guide"}
-{"file": ".trellis/spec/frontend/quality-guidelines.md", "reason": "frontend test/build requirements"}
-{"file": ".trellis/spec/guides/code-reuse-thinking-guide.md", "reason": "reuse existing homepage preview data"}

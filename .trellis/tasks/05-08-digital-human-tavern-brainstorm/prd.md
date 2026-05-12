@@ -291,3 +291,10 @@
 ### Updated Next Action
 
 下一步建议先做 **P1-1 数字人档案结构化编辑器**：把当前 CharacterEditor 里的派生 prompt 区块升级成更明确的数字人档案工作台，同时继续复用现有 TavernCharacter 保存路径。
+
+## 2026-05-12 Closure Note
+
+This task is closed as `brainstorm_complete`. Closed as brainstorm/design complete: PRD records the approved digital-human-studio tavern direction, MVP boundaries, existing patterns, P1/P2/P3 roadmap, and out-of-scope areas. No production code was changed in this closure.
+
+Deferred / not done:
+- Structured digital human editor and export package are future dedicated implementation tasks.

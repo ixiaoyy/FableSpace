@@ -1,4 +1,0 @@
-{"file": ".trellis/workflow.md", "reason": "Project workflow and conventions"}
-{"file": ".trellis/spec/backend/index.md", "reason": "Backend development guide"}
-{"file": ".trellis/spec/backend/database-guidelines.md", "reason": "JSON seed and idempotent persistence rules"}
-{"file": ".trellis/spec/backend/directory-structure.md", "reason": "Default tavern source location and backend test layout"}

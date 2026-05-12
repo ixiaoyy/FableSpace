@@ -1,5 +1,0 @@
-{"file": ".claude/commands/trellis/finish-work.md", "reason": "Finish work checklist"}
-{"file": ".claude/commands/trellis/check.md", "reason": "Code quality check spec"}
-{"file": "AGENTS.md", "reason": "Scope and reporting checks"}
-{"file": ".trellis/spec/backend/quality-guidelines.md", "reason": "Backend verification rules"}
-{"file": ".trellis/spec/frontend/quality-guidelines.md", "reason": "Frontend verification rules"}

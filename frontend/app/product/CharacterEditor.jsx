@@ -801,6 +801,17 @@ export default function CharacterEditor({
         </label>
       </div>
 
+      <label>
+        <span>发言积极度</span>
+        <input
+          type="range"
+          min="0"
+          max="1"
+          step="0.05"
+          value={draft.talkativeness}
+          onChange={(event) => updateField('talkativeness', normalizeTalkativeness(event.target.value))}
+          disabled={disabled}
+        />
         <small>{Math.round(normalizeTalkativeness(draft.talkativeness) * 100)}% · 数值越高，群聊里越容易主动接话。</small>
       </label>
 

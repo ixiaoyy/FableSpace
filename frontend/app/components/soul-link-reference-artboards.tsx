@@ -55,6 +55,7 @@ import lightGuideStarterBg from "../assets/soul-link-05-10/home-light/card-invit
 import lightGuideEnvelopeBg from "../assets/soul-link-05-10/home-light/card-envelope-soft.png"
 import lightGuideShieldBg from "../assets/soul-link-05-10/home-light/card-shield-soft.png"
 import soulLinkUserAvatar from "../assets/npc-style-cast/portraits-hd/commission-zhideng.png"
+import { buildTavernFirstMinuteGuide } from "../lib/tavern-first-minute"
 import type { Tavern } from "../lib/taverns"
 
 type Variant = "light" | "black"
@@ -503,15 +504,19 @@ function discoverCardData(tavern: Tavern | undefined, index: number) {
   const visitCount = Number(tavern?.visit_count || 0)
   const characterCount = tavern?.characters?.length || 0
   const minutes = index < 4 ? (index + 1) * 3 + 2 : index * 7
+  const guide = tavern ? buildTavernFirstMinuteGuide(tavern) : null
   return {
     id: tavern?.id,
     name: tavern?.name || fallback.name,
     description: tavern?.description || fallback.description,
-    tag: tavern?.tags?.[0] || fallback.tag,
+    tag: (tavern as (Tavern & { tags?: string[] }) | undefined)?.tags?.[0] || fallback.tag,
     image: DISCOVER_CARD_IMAGES[index % DISCOVER_CARD_IMAGES.length],
     visitLabel: visitCount > 0 ? `${visitCount} 人在这里` : "等待回响",
     characterLabel: characterCount > 0 ? `${characterCount} 位 NPC` : "待配置 NPC",
     timeLabel: minutes < 60 ? `${minutes} 分钟前` : "1 小时前",
+    whyHere: guide?.whyHere || "真实坐标决定这间空间的门牌、氛围和第一段对话线索。",
+    tryPrompt: guide?.tryThisFirst?.[0] || "这里为什么必须开在这个坐标？",
+    experienceType: guide?.experienceType || "地点叙事",
   }
 }
 
@@ -1423,11 +1428,13 @@ function ArtboardShell({ artboard, variant, kind, children }: { artboard: Artboa
       style={{ background: artboard.background }}
     >
       <section
+        id={isDiscover ? "discover-mainline" : undefined}
         data-soul-link-reference={artboard.marker}
         data-soul-link-dom={kind}
         data-soul-link-design-lock="owner-reference-1-to-1"
         className={cx(
           "relative mx-auto w-full select-none",
+          isDiscover && "scroll-mt-28",
           isHome || isDiscover ? "min-h-screen overflow-visible md:min-h-0 md:overflow-hidden md:aspect-[1536/1024]" : "overflow-hidden",
         )}
         style={{
@@ -1689,6 +1696,11 @@ function SoulLinkDiscoverCard({
         </span>
         <h3 data-soul-link-discover-card-title="real-text" className={cx("truncate text-[15px] font-black leading-tight", isBlack ? "text-cyan-50" : "text-slate-800")}>{card.name}</h3>
         <p className={cx("mt-1.5 line-clamp-2 text-[12px] font-bold leading-[1.35rem]", isBlack ? "text-cyan-100/52" : "text-slate-400")}>{card.description}</p>
+        <div data-first-minute-guide="soul-link-discover-card" className={cx("mt-2 rounded-[0.85rem] border px-2 py-1.5", isBlack ? "border-cyan-300/14 bg-cyan-300/[0.055]" : "border-violet-100 bg-violet-50/55")}>
+          <p className={cx("truncate text-[10px] font-black", isBlack ? "text-cyan-200/80" : "text-violet-500")}>Why here · {card.experienceType}</p>
+          <p className={cx("mt-0.5 line-clamp-2 text-[10px] font-bold leading-4", isBlack ? "text-cyan-100/44" : "text-slate-400")}>{card.whyHere}</p>
+          <p className={cx("mt-1 truncate text-[10px] font-black", isBlack ? "text-cyan-300/72" : "text-violet-400")}>先试：{card.tryPrompt}</p>
+        </div>
         <div className={cx("mt-auto grid gap-1 text-[10px] font-black", isBlack ? "text-cyan-100/44" : "text-slate-300")}>
           <span className="flex min-w-0 items-center gap-1 truncate">
             <MapPin size={12} strokeWidth={3} className={cx("shrink-0", isBlack ? "text-cyan-300/70" : "text-violet-300")} />
@@ -2403,11 +2415,15 @@ function SoulLinkDiscoverMobile({
         </div>
         <div className="grid gap-3">
           {cards.map((card, index) => (
-            <Link key={`${card.name}-${index}`} to={targetFor(card.id)} className={cx("flex min-h-32 touch-manipulation gap-3 rounded-[1.5rem] border p-3", isBlack ? "border-cyan-300/14 bg-[#061226]/90 shadow-[0_14px_34px_rgba(0,0,0,0.32)]" : "border-white/80 bg-white shadow-[0_14px_34px_rgba(108,123,178,0.12)]")}>
+            <Link key={`${card.name}-${index}`} to={targetFor(card.id)} data-soul-link-discover-card="real-card" className={cx("flex min-h-32 touch-manipulation gap-3 rounded-[1.5rem] border p-3", isBlack ? "border-cyan-300/14 bg-[#061226]/90 shadow-[0_14px_34px_rgba(0,0,0,0.32)]" : "border-white/80 bg-white shadow-[0_14px_34px_rgba(108,123,178,0.12)]")}>
               <img data-soul-link-discover-square-image="512x512" src={card.image} alt={`${card.name} 封面`} className="h-28 w-28 rounded-[1.15rem] object-cover" loading="lazy" decoding="async" />
               <span className="min-w-0 flex-1 py-1">
                 <span className={cx("block truncate text-[17px] font-black", isBlack ? "text-cyan-50" : "text-slate-800")}>{card.name}</span>
                 <span className={cx("mt-2 line-clamp-2 block text-[15px] font-bold leading-6", isBlack ? "text-cyan-100/48" : "text-slate-400")}>{card.description}</span>
+                <span data-first-minute-guide="soul-link-mobile-card" className={cx("mt-2 block rounded-2xl border px-3 py-2 text-[12px] font-bold leading-5", isBlack ? "border-cyan-300/14 bg-cyan-300/[0.055] text-cyan-100/55" : "border-violet-100 bg-violet-50/60 text-slate-500")}>
+                  <span className={cx("block text-[11px] font-black", isBlack ? "text-cyan-300" : "text-violet-500")}>Why here · {card.experienceType}</span>
+                  <span className="line-clamp-2">{card.whyHere}</span>
+                </span>
                 <span className={cx("mt-2 block text-[13px] font-black", isBlack ? "text-cyan-300" : "text-violet-400")}>{card.visitLabel}</span>
               </span>
             </Link>
