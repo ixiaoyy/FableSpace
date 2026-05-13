@@ -229,6 +229,9 @@ def test_auto_memory_pipeline_extracts_scores_and_merges():
         assert {"preference", "event", "promise"}.issubset(dimensions)
         assert all(atom.visibility == "private" for atom in created)
         assert all(atom.visitor_id == visitor_id for atom in created)
+        created_by_dimension = {atom.dimension: atom for atom in created}
+        assert created_by_dimension["promise"].importance >= 0.75
+        assert created_by_dimension["preference"].importance >= 0.68
 
         auto_create_memories_from_chat(
             service.tavern_store,
@@ -249,7 +252,57 @@ def test_auto_memory_pipeline_extracts_scores_and_merges():
         assert preference.source_message_ids == ["msg_user_1", "msg_user_2"]
 
 
-def test_select_memory_atoms_for_prompt_prioritizes_pin_horizon_relevance_and_flags():
+def test_auto_memory_pipeline_promotes_repeated_memory_to_long_term():
+    from fablemap_api.core.web.config import ApiSettings
+    from fablemap_api.core.web.service import WebService
+
+    with TemporaryDirectory() as tmpdir:
+        service = WebService(
+            ApiSettings(output_root=Path(tmpdir), fixture_file=None, frontend_root=None)
+        )
+        owner_id = "owner_long_memory"
+        visitor_id = "visitor_long_memory"
+        tavern = service.create_tavern_payload(
+            {
+                "id": "tavern_long_memory",
+                "name": "Long Memory Tavern",
+                "description": "A tavern for long-term memory tests.",
+                "lat": 31.23,
+                "lon": 121.47,
+            },
+            owner_id=owner_id,
+        )
+        tavern_id = tavern["id"]
+        character = service.add_character_payload(
+            tavern_id,
+            {"id": "char_keeper", "name": "Keeper"},
+            owner_id,
+        )
+
+        for index in range(5):
+            auto_create_memories_from_chat(
+                service.tavern_store,
+                tavern_id,
+                visitor_id,
+                character["id"],
+                character["name"],
+                "我喜欢茉莉茶。",
+                "",
+                user_message_id=f"msg_user_{index}",
+                importance_threshold=0.5,
+            )
+
+        stored = service.tavern_store.list_memory_atoms(tavern_id)
+        assert len(stored) == 1
+        preference = stored[0]
+        assert preference.dimension == "preference"
+        assert preference.metadata["hit_count"] == 5
+        assert preference.horizon == "long"
+        assert preference.importance >= 0.75
+        assert preference.metadata["long_term_promoted"] is True
+
+
+def test_select_memory_atoms_for_prompt_prioritizes_pin_relevance_horizon_and_flags():
     atoms = [
         MemoryAtom(
             id="mem_short",
@@ -311,8 +364,124 @@ def test_select_memory_atoms_for_prompt_prioritizes_pin_horizon_relevance_and_fl
         budget_tokens=120,
     )
 
-    assert [atom.id for atom in selected][:3] == ["mem_pinned", "mem_long", "mem_short"]
+    assert [atom.id for atom in selected][:3] == ["mem_pinned", "mem_short", "mem_long"]
     assert "mem_wrong" not in [atom.id for atom in selected]
+
+
+def test_select_memory_atoms_for_prompt_ranks_topic_relevance_before_importance_and_recency():
+    atoms = [
+        MemoryAtom(
+            id="mem_recent_unrelated",
+            tavern_id="tavern_prompt_memory",
+            scope="visitor_character",
+            dimension="event",
+            horizon="long",
+            content="访客昨天收藏了一把蓝色雨伞。",
+            importance=1.0,
+            confidence=1.0,
+            updated_at="2100-01-01T00:00:00Z",
+            visitor_id="visitor_alpha",
+            character_id="char_keeper",
+        ),
+        MemoryAtom(
+            id="mem_old_relevant",
+            tavern_id="tavern_prompt_memory",
+            scope="visitor_character",
+            dimension="preference",
+            horizon="short",
+            content="访客喜欢焦糖布丁，也喜欢靠窗座位。",
+            importance=0.55,
+            confidence=0.8,
+            updated_at="2000-01-01T00:00:00Z",
+            visitor_id="visitor_alpha",
+            character_id="char_keeper",
+            metadata={"topic_tags": ["焦糖布丁", "靠窗座位"]},
+        ),
+    ]
+
+    selected = select_memory_atoms_for_prompt(
+        atoms,
+        visitor_id="visitor_alpha",
+        character_id="char_keeper",
+        current_message="今天还有焦糖布丁吗？我想坐靠窗。",
+        budget_tokens=120,
+    )
+
+    assert [atom.id for atom in selected[:2]] == ["mem_old_relevant", "mem_recent_unrelated"]
+
+
+def test_select_memory_atoms_for_prompt_uses_recency_then_reinforcement_as_tiebreakers():
+    fresh = MemoryAtom(
+        id="mem_fresh_tea",
+        tavern_id="tavern_prompt_memory",
+        scope="visitor_character",
+        dimension="preference",
+        horizon="mid",
+        content="访客喜欢茉莉茶。",
+        importance=0.7,
+        confidence=0.8,
+        updated_at="2100-01-01T00:00:00Z",
+        visitor_id="visitor_alpha",
+        character_id="char_keeper",
+    )
+    old = MemoryAtom(
+        id="mem_old_tea",
+        tavern_id="tavern_prompt_memory",
+        scope="visitor_character",
+        dimension="preference",
+        horizon="mid",
+        content="访客喜欢茉莉茶。",
+        importance=0.7,
+        confidence=0.8,
+        updated_at="2000-01-01T00:00:00Z",
+        visitor_id="visitor_alpha",
+        character_id="char_keeper",
+    )
+    reinforced = MemoryAtom(
+        id="mem_reinforced_window",
+        tavern_id="tavern_prompt_memory",
+        scope="visitor_character",
+        dimension="preference",
+        horizon="mid",
+        content="访客喜欢靠窗座位。",
+        importance=0.7,
+        confidence=0.8,
+        updated_at="2000-01-01T00:00:00Z",
+        visitor_id="visitor_alpha",
+        character_id="char_keeper",
+        metadata={"reinforcement_count": 4},
+    )
+    plain = MemoryAtom(
+        id="mem_plain_window",
+        tavern_id="tavern_prompt_memory",
+        scope="visitor_character",
+        dimension="preference",
+        horizon="mid",
+        content="访客喜欢靠窗座位。",
+        importance=0.7,
+        confidence=0.8,
+        updated_at="2000-01-01T00:00:00Z",
+        visitor_id="visitor_alpha",
+        character_id="char_keeper",
+    )
+
+    recency_selected = select_memory_atoms_for_prompt(
+        [old, fresh],
+        visitor_id="visitor_alpha",
+        character_id="char_keeper",
+        current_message="还记得茉莉茶吗？",
+        budget_tokens=120,
+    )
+    reinforcement_selected = select_memory_atoms_for_prompt(
+        [plain, reinforced],
+        visitor_id="visitor_alpha",
+        character_id="char_keeper",
+        current_message="我还想坐靠窗座位。",
+        budget_tokens=120,
+    )
+
+    assert [atom.id for atom in recency_selected[:2]] == ["mem_fresh_tea", "mem_old_tea"]
+    assert [atom.id for atom in reinforcement_selected[:2]] == ["mem_reinforced_window", "mem_plain_window"]
 
 
 def test_structured_memory_is_injected_into_chat_prompt(monkeypatch):

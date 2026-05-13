@@ -1,0 +1,5 @@
+{"file": ".agents/skills/finish-work/SKILL.md", "reason": "Finish work checklist"}
+{"file": ".agents/skills/check/SKILL.md", "reason": "Code quality check spec"}
+{"file": ".trellis/spec/backend/directory-structure.md", "reason": "MemoryAtom prompt injection and memory core contracts"}
+{"file": ".trellis/spec/backend/quality-guidelines.md", "reason": "Backend tests and scope discipline"}
+{"file": ".trellis/spec/guides/code-reuse-thinking-guide.md", "reason": "Check helper reuse and avoid duplicated scoring logic"}

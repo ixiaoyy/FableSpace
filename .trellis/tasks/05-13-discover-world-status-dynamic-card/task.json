@@ -1,0 +1,58 @@
+{
+  "id": "discover-world-status-dynamic-card",
+  "name": "discover-world-status-dynamic-card",
+  "title": "Discover world status dynamic card",
+  "description": "",
+  "status": "completed",
+  "dev_type": "frontend",
+  "scope": null,
+  "package": null,
+  "priority": "P2",
+  "creator": "lijin",
+  "assignee": "lijin",
+  "createdAt": "2026-05-13",
+  "completedAt": "2026-05-13",
+  "branch": null,
+  "base_branch": "main",
+  "worktree_path": null,
+  "current_phase": 6,
+  "next_action": [
+    {
+      "phase": 1,
+      "action": "brainstorm"
+    },
+    {
+      "phase": 2,
+      "action": "research"
+    },
+    {
+      "phase": 3,
+      "action": "implement"
+    },
+    {
+      "phase": 4,
+      "action": "check"
+    },
+    {
+      "phase": 5,
+      "action": "update-spec"
+    },
+    {
+      "phase": 6,
+      "action": "record-session"
+    }
+  ],
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [],
+  "parent": null,
+  "relatedFiles": [
+    "frontend/app/components/soul-link-reference-artboards.tsx",
+    "frontend/scripts/soul-link-reference-artboards-test.mjs",
+    "frontend/app/assets/soul-link-05-10/discover/world-status/bg-light.png",
+    "frontend/app/assets/soul-link-05-10/discover/world-status/bg-black.png"
+  ],
+  "notes": "World status card now computes visible metrics from taverns, renders real DOM dynamic text, and uses project-local transparent PNG background art. Verified dimensions/hash for both PNGs, focused SoulLink tests, home visual density test, frontend build, and npm test. No Playwright/screenshots per user constraint.",
+  "meta": {}
+}

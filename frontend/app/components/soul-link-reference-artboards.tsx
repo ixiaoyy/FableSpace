@@ -3,11 +3,13 @@ import { Link } from "react-router"
 import {
   Bell,
   Info,
+  ArrowRight,
   ArrowUpRight,
   BookOpen,
   Bookmark,
   ChevronDown,
   Compass,
+  Heart,
   Home as HomeIcon,
   MapPin,
   MessageCircle,
@@ -24,6 +26,8 @@ import discoverCardPlane from "../assets/soul-link-05-10/discover/cards/card-pla
 import discoverCardSeaLane from "../assets/soul-link-05-10/discover/cards/card-sea-lane-square.png"
 import discoverCardSkyCity from "../assets/soul-link-05-10/discover/cards/card-sky-city-square.png"
 import discoverCardTrainPlatform from "../assets/soul-link-05-10/discover/cards/card-train-platform-square.png"
+import discoverWorldStatusBgBlack from "../assets/soul-link-05-10/discover/world-status/bg-black.png"
+import discoverWorldStatusBgLight from "../assets/soul-link-05-10/discover/world-status/bg-light.png"
 import homeBlackInviteCard from "../assets/soul-link-05-10/home-black/invite-card.png"
 import homeBlackInviteCard2x from "../assets/soul-link-05-10/home-black/invite-card-2x.png"
 import homeBlackGuideDatabaseIcon from "../assets/soul-link-05-10/home-black/guide-database-icon.png"
@@ -35,15 +39,16 @@ import homeBlackNodeNeonRuins from "../assets/soul-link-05-10/home-black/node-ne
 import homeBlackNodeOldPlatform from "../assets/soul-link-05-10/home-black/node-old-platform.png"
 import homeBlackNodeWhiteTower from "../assets/soul-link-05-10/home-black/node-white-tower.png"
 import homeBlackRecentEchoWaveform from "../assets/soul-link-05-10/home-black/recent-echo-waveform.png"
+import homeBlackStarLogo from "../assets/soul-link-05-10/home-black/star.png"
 import homeBlackUserAvatar from "../assets/soul-link-05-10/home-black/user-avatar-node07.png"
 import homeBlackWorldStatsSparkline from "../assets/soul-link-05-10/home-black/world-stats-sparkline.png"
 import homeLightInviteCard from "../assets/soul-link-05-10/home-light/invite-card.png"
 import homeLightInviteCard2x from "../assets/soul-link-05-10/home-light/invite-card-2x.png"
+import homeLightStarLogo from "../assets/soul-link-05-10/home-light/star.png"
 import lightMessageIcon from "../assets/soul-link-05-10/home-light/icon-message-glow.png"
 import lightPinIcon from "../assets/soul-link-05-10/home-light/icon-map-pin-glow.png"
 import lightPlaneIcon from "../assets/soul-link-05-10/home-light/icon-plane-glow.png"
 import lightPulseIcon from "../assets/soul-link-05-10/home-light/icon-pulse-bars-glow.png"
-import lightArrowIcon from "../assets/soul-link-05-10/home-light/icon-arrow-glow.png"
 import lightPlaneWash from "../assets/soul-link-05-10/home-light/bg-plane-wash.png"
 import lightPaperPlaneSoft from "../assets/soul-link-05-10/home-light/bg-paper-plane-soft.png"
 import lightSeaLane from "../assets/soul-link-05-10/home-light/scene-sea-lane.png"
@@ -312,14 +317,14 @@ const homeSharedCardBoxes = [
 ] as const
 
 const discoverSharedCardBoxes = [
-  [228, 589, 224, 195],
-  [467, 589, 224, 195],
-  [706, 589, 224, 195],
-  [945, 589, 236, 195],
-  [228, 817, 224, 195],
-  [467, 817, 224, 195],
-  [706, 817, 224, 195],
-  [945, 817, 236, 195],
+  [228, 413, 224, 224],
+  [467, 413, 224, 224],
+  [706, 413, 224, 224],
+  [945, 413, 236, 224],
+  [228, 665, 224, 224],
+  [467, 665, 224, 224],
+  [706, 665, 224, 224],
+  [945, 665, 236, 224],
 ] as const
 
 // Light / black home variants intentionally share one geometry source.
@@ -327,7 +332,7 @@ const discoverSharedCardBoxes = [
 const HOME_LAYOUT = {
   sidebar: {
     panel: { x: 0, y: 0, w: 220, h: 1024 },
-    logo: { x: 50, y: 48, w: 136, h: 52 },
+    logo: { x: 48, y: 46, w: 164, h: 62 },
     navItems: [
       { id: "home", label: "首页", eyebrow: "HOME", to: "/", x: 42, y: 143, w: 158, h: 46 },
       { id: "discover", label: "探索", eyebrow: "EXPLORE", to: "/discover", x: 42, y: 207, w: 158, h: 46 },
@@ -384,6 +389,7 @@ const DISCOVER_LAYOUT = {
   cards: discoverSharedCardBoxes,
   title: { x: 228, y: 34, w: 240, h: 72 },
   search: { x: 540, y: 27, w: 426, h: 48 },
+  topStatus: { x: 984, y: 26, w: 536, h: 64 },
   filters: {
     all: { x: 413, y: 118, w: 72, h: 42 },
     openOnly: { x: 500, y: 118, w: 120, h: 42 },
@@ -408,14 +414,6 @@ const DISCOVER_FILTER_GROUPS = [
     title: "连接状态",
     items: ["任何状态", "稳定连接", "信号波动", "连接中断"],
   },
-] as const
-
-const DISCOVER_TIMELINE = [
-  { time: "03:41", title: "雨巷书店", subtitle: "新增 3 段回响", tone: "bg-violet-500", image: discoverCardLibraryWide },
-  { time: "03:38", title: "旧车站月台", subtitle: "信号重新连接", tone: "bg-emerald-400", image: discoverCardTrainPlatform },
-  { time: "03:32", title: "月亮不眠电台", subtitle: "有人留下了一段广播", tone: "bg-indigo-500", image: discoverCardSkyCity },
-  { time: "03:21", title: "云上图书馆", subtitle: "新增书签《风的记忆》", tone: "bg-sky-400", image: discoverCardLibrarySunlit },
-  { time: "03:17", title: "海街的尽头", subtitle: "连接不稳定", tone: "bg-rose-500", image: discoverCardSeaLane },
 ] as const
 
 const DISCOVER_RIGHT_QUOTES = [
@@ -513,10 +511,56 @@ function discoverCardData(tavern: Tavern | undefined, index: number) {
     image: DISCOVER_CARD_IMAGES[index % DISCOVER_CARD_IMAGES.length],
     visitLabel: visitCount > 0 ? `${visitCount} 人在这里` : "等待回响",
     characterLabel: characterCount > 0 ? `${characterCount} 位 NPC` : "待配置 NPC",
+    favoriteCount: visitCount > 0 ? Math.max(1, Math.round(visitCount * 0.28) + 8 - index) : [23, 17, 11, 9][index % 4],
     timeLabel: minutes < 60 ? `${minutes} 分钟前` : "1 小时前",
     whyHere: guide?.whyHere || "真实坐标决定这间空间的门牌、氛围和第一段对话线索。",
     tryPrompt: guide?.tryThisFirst?.[0] || "这里为什么必须开在这个坐标？",
     experienceType: guide?.experienceType || "地点叙事",
+  }
+}
+
+function safeMetricNumber(value: unknown): number {
+  const numberValue = Number(value || 0)
+  return Number.isFinite(numberValue) && numberValue > 0 ? numberValue : 0
+}
+
+function formatStatusNumber(value: number): string {
+  return Math.max(0, Math.round(value)).toLocaleString("en-US")
+}
+
+function formatWorldTime(date: Date): string {
+  return new Intl.DateTimeFormat("zh-CN", {
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false,
+  }).format(date)
+}
+
+function discoverWorldStatusFromTaverns(taverns: Tavern[]) {
+  const totalCoordinates = taverns.length
+  const totalVisits = taverns.reduce((sum, tavern) => sum + safeMetricNumber(tavern.visit_count), 0)
+  const npcCount = taverns.reduce((sum, tavern) => sum + (tavern.characters?.length || 0), 0)
+  const openCoordinates = taverns.filter((tavern) => {
+    const status = String(tavern.status || "open").toLowerCase()
+    return status === "open" && tavern.is_open !== false
+  }).length
+  const unstableCoordinates = taverns.filter((tavern) => {
+    const status = String(tavern.status || "").toLowerCase()
+    return status && status !== "open"
+  }).length
+  const missingAnchors = taverns.filter((tavern) => {
+    const lat = Number(tavern.lat)
+    const lon = Number(tavern.lon)
+    return !Number.isFinite(lat) || !Number.isFinite(lon)
+  }).length
+  const privateCoordinates = taverns.filter((tavern) => String(tavern.access || "").toLowerCase() === "private").length
+
+  return {
+    syncLabel: totalCoordinates ? `${formatStatusNumber(totalCoordinates)} 个坐标同步` : "实时更新",
+    onlineSouls: formatStatusNumber(totalVisits + openCoordinates * 8 + npcCount),
+    signalFluctuation: formatStatusNumber(unstableCoordinates + Math.ceil(npcCount / 3)),
+    coordinateAnomalies: formatStatusNumber(missingAnchors + privateCoordinates),
   }
 }
 
@@ -598,7 +642,6 @@ function SoulLinkSidebar({
   const panel = sidebar.panel
   const inviteCard = SIDEBAR_MATERIALS[variant].inviteCard
   const isBlack = variant === "black"
-  const useDiscoverDomInvite = active === "discover"
   const panelClass = isBlack
     ? "border-cyan-300/20 bg-[#020710] shadow-[inset_-1px_0_0_rgba(34,211,238,0.2),0_0_34px_rgba(0,255,255,0.08)]"
     : "border-white/70 bg-gradient-to-b from-white via-white to-white/95 shadow-[24px_0_70px_rgba(104,126,190,0.16),inset_-1px_0_0_rgba(148,163,184,0.16)] backdrop-blur-xl"
@@ -622,28 +665,38 @@ function SoulLinkSidebar({
         onMouseDown={suppressMouseFocus}
         className={cx(
           "absolute touch-manipulation rounded-2xl outline-none focus:ring-4 focus:ring-violet-400/45",
-          "flex items-center gap-2",
+          "flex items-center gap-3",
         )}
         style={panelBoxStyle(panel, sidebar.logo.x, sidebar.logo.y, sidebar.logo.w, sidebar.logo.h)}
       >
         {isBlack ? (
           <>
-            <span className="grid h-9 w-9 shrink-0 place-items-center rounded-2xl border border-cyan-300/18 bg-cyan-300/10 text-cyan-200">
-              <Compass size={20} strokeWidth={2.6} />
-            </span>
+            <img
+              src={homeBlackStarLogo}
+              alt=""
+              aria-hidden="true"
+              draggable={false}
+              decoding="async"
+              className="h-12 w-12 shrink-0 select-none object-contain"
+            />
             <span className="min-w-0">
-              <span className="block text-[1.02rem] font-black leading-tight text-cyan-50">SoulLink</span>
-              <span className="block truncate text-[10px] font-bold text-cyan-100/48">连接另一个数字世界</span>
+              <span className="block text-[1.36rem] font-black leading-none text-cyan-50">SoulLink</span>
+              <span className="mt-1.5 block truncate text-[11px] font-bold leading-none text-cyan-100/48">连接另一个数字世界</span>
             </span>
           </>
         ) : (
           <>
-            <span className="grid h-8 w-8 shrink-0 place-items-center rounded-xl bg-violet-50 text-violet-500 shadow-[inset_0_0_0_1px_rgba(139,92,246,0.12)]">
-              <Send size={18} strokeWidth={2.6} />
-            </span>
+            <img
+              src={homeLightStarLogo}
+              alt=""
+              aria-hidden="true"
+              draggable={false}
+              decoding="async"
+              className="h-12 w-12 shrink-0 select-none object-contain"
+            />
             <span className="min-w-0">
-              <span className="block text-[1.08rem] font-black leading-tight text-slate-800">SoulLink</span>
-              <span className="block truncate text-[11px] font-bold text-slate-400">连接每一个真实坐标</span>
+              <span className="block text-[1.42rem] font-black leading-none text-slate-800">SoulLink</span>
+              <span className="mt-1.5 block truncate text-[12px] font-bold leading-none text-slate-400">连接每一个真实坐标</span>
             </span>
           </>
         )}
@@ -682,66 +735,29 @@ function SoulLinkSidebar({
         })}
       </nav>
 
-      {useDiscoverDomInvite ? (
-        <Link
-          to="/create"
-          data-soul-link-sidebar-cta="shared"
-          data-soul-link-sidebar-invite="real-dom"
-          aria-label="邀请朋友"
-          onMouseDown={suppressMouseFocus}
-          className={cx(
-            "absolute flex touch-manipulation flex-col overflow-hidden rounded-[1.55rem] border p-3 outline-none focus:ring-4 focus:ring-violet-400/45",
-            isBlack
-              ? "border-cyan-300/18 bg-cyan-300/[0.055] shadow-[0_0_26px_rgba(34,211,238,0.1)]"
-              : "border-violet-100 bg-white/88 shadow-[0_16px_36px_rgba(104,126,190,0.14)]",
-          )}
-          style={panelBoxStyle(panel, sidebar.invite.x, sidebar.invite.y, sidebar.invite.w, sidebar.invite.h)}
-        >
-          <img
-            data-soul-link-discover-square-image="512x512"
-            src={discoverCardPlane}
-            alt=""
-            aria-hidden="true"
-            draggable={false}
-            decoding="async"
-            className={cx(
-              "h-16 w-16 shrink-0 rounded-[1.05rem] object-cover",
-              isBlack ? "border border-cyan-300/14 shadow-[0_12px_28px_rgba(0,0,0,0.32)]" : "shadow-[0_12px_28px_rgba(124,112,255,0.16)]",
-            )}
-          />
-            <span data-soul-link-sidebar-invite-copy="real-text" className="mt-3 min-w-0">
-              <span className={cx("block text-[13px] font-black", isBlack ? "text-cyan-50" : "text-slate-800")}>邀请朋友</span>
-              <span className={cx("mt-1 block line-clamp-2 text-[11px] font-bold leading-4", isBlack ? "text-cyan-100/48" : "text-slate-400")}>一起探索更多坐标</span>
-            </span>
-            <span className={cx("mt-auto inline-flex min-h-8 items-center justify-center rounded-xl px-3 text-[12px] font-black", isBlack ? "bg-cyan-300/16 text-cyan-100" : "bg-violet-500 text-white")}>
-              立即邀请 →
-            </span>
-        </Link>
-      ) : (
-        <Link
-          to="/create"
-          data-soul-link-sidebar-cta="shared"
-          aria-label="邀请朋友"
-          onMouseDown={suppressMouseFocus}
-          className={cx(
-            "absolute touch-manipulation overflow-hidden rounded-[1.55rem] outline-none focus:ring-4 focus:ring-violet-400/45",
-            isBlack ? "" : "shadow-[0_16px_36px_rgba(104,126,190,0.14)]",
-          )}
-          style={panelBoxStyle(panel, sidebar.invite.x, sidebar.invite.y, sidebar.invite.w, sidebar.invite.h)}
-        >
-          <img
-            data-soul-link-sidebar-invite="fixed-image"
-            src={inviteCard.src}
-            srcSet={`${inviteCard.src} 1x, ${inviteCard.src2x} 2x`}
-            alt=""
-            aria-hidden="true"
-            draggable={false}
-            decoding="async"
-            className={cx("h-full w-full select-none object-cover object-center", isBlack ? "opacity-85" : "opacity-100")}
-          />
-          <span className="sr-only">邀请朋友，一起探索更多坐标，立即邀请</span>
-        </Link>
-      )}
+      <Link
+        to="/create"
+        data-soul-link-sidebar-cta="shared"
+        aria-label="邀请朋友"
+        onMouseDown={suppressMouseFocus}
+        className={cx(
+          "absolute touch-manipulation overflow-hidden rounded-[1.55rem] outline-none focus:ring-4 focus:ring-violet-400/45",
+          isBlack ? "" : "shadow-[0_16px_36px_rgba(104,126,190,0.14)]",
+        )}
+        style={panelBoxStyle(panel, sidebar.invite.x, sidebar.invite.y, sidebar.invite.w, sidebar.invite.h)}
+      >
+        <img
+          data-soul-link-sidebar-invite="fixed-image"
+          src={inviteCard.src}
+          srcSet={`${inviteCard.src} 1x, ${inviteCard.src2x} 2x`}
+          alt=""
+          aria-hidden="true"
+          draggable={false}
+          decoding="async"
+          className={cx("h-full w-full select-none object-cover object-center", isBlack ? "opacity-85" : "opacity-100")}
+        />
+        <span className="sr-only">邀请朋友，一起探索更多坐标，立即邀请</span>
+      </Link>
 
       {sidebar.bottomActions.map((item) =>
         "action" in item && item.action === "theme" ? (
@@ -836,6 +852,90 @@ function SoulLinkUserIdentity({ name, meta, variant }: { name: string; meta: str
         <span className={cx("block truncate font-black leading-tight", isBlack ? "text-[clamp(0.72rem,0.9vw,1rem)] text-cyan-50" : "text-[clamp(0.82rem,1vw,1.08rem)] text-slate-700")}>{name}</span>
         <span className={cx("mt-1 block truncate font-black leading-none", isBlack ? "text-[clamp(0.6rem,0.72vw,0.84rem)] text-cyan-100/58" : "text-[clamp(0.68rem,0.8vw,0.9rem)] text-slate-400")}>{meta}</span>
       </span>
+  )
+}
+
+function SoulLinkWorldTimeCard({ variant }: { variant: Variant }) {
+  const isBlack = variant === "black"
+  const [time, setTime] = useState(() => formatWorldTime(new Date()))
+
+  useEffect(() => {
+    const timer = window.setInterval(() => setTime(formatWorldTime(new Date())), 1000)
+    return () => window.clearInterval(timer)
+  }, [])
+
+  return (
+    <button
+      type="button"
+      data-soul-link-world-time-card="dynamic-text"
+      aria-label={`世界时间 ${time}`}
+      onMouseDown={suppressMouseFocus}
+      className={cx(
+        "flex h-full min-w-0 touch-manipulation items-center gap-3 rounded-[1.15rem] border px-4 text-left outline-none transition focus:ring-4",
+        isBlack
+          ? "border-cyan-300/14 bg-[#061226]/72 text-cyan-50 shadow-[inset_0_1px_0_rgba(255,255,255,0.035),0_14px_32px_rgba(0,0,0,0.26)] focus:ring-cyan-300/30"
+          : "border-white/90 bg-white/86 text-slate-700 shadow-[0_14px_32px_rgba(86,105,166,0.12)] backdrop-blur-xl focus:ring-violet-400/30",
+      )}
+    >
+      <span className={cx("grid h-7 w-7 shrink-0 place-items-center rounded-full border", isBlack ? "border-violet-300/34 bg-violet-300/10 text-violet-200" : "border-violet-100 bg-violet-50 text-violet-500")}>
+        <Compass size={15} strokeWidth={2.5} />
+      </span>
+      <span className="min-w-0 flex-1">
+        <span className="flex min-w-0 items-center gap-2">
+          <span className={cx("truncate text-[11px] font-black leading-none", isBlack ? "text-cyan-100/62" : "text-slate-500")}>世界时间</span>
+          <span data-soul-link-world-time-english="real-text" className={cx("truncate text-[9px] font-black leading-none tracking-[0.08em]", isBlack ? "text-cyan-100/30" : "text-slate-300")}>WORLD TIME</span>
+        </span>
+        <span data-soul-link-world-time-value="dynamic-text" className={cx("mt-2 block text-[17px] font-black leading-none tabular-nums", isBlack ? "text-cyan-50" : "text-slate-800")}>{time}</span>
+      </span>
+      <ChevronDown size={16} strokeWidth={2.8} className={cx("shrink-0 opacity-65", isBlack ? "text-cyan-100" : "text-slate-400")} />
+    </button>
+  )
+}
+
+function SoulLinkTopStatusBar({
+  artboard,
+  variant,
+  profile = DEFAULT_SOUL_LINK_USER,
+}: {
+  artboard: Artboard
+  variant: Variant
+  profile?: SoulLinkUserProfile
+}) {
+  const isBlack = variant === "black"
+  const box = DISCOVER_LAYOUT.topStatus
+  const resolvedProfile = isBlack
+    ? { name: "USER_07", meta: "ID: 0x7A31...9F2C", avatar: homeBlackUserAvatar }
+    : profile
+  return (
+    <div
+      data-soul-link-top-status="real-dom"
+      className="absolute z-30 grid grid-cols-[220px_48px_minmax(0,1fr)] items-center gap-4"
+      style={boxStyle(artboard, box.x, box.y, box.w, box.h)}
+    >
+      <SoulLinkWorldTimeCard variant={variant} />
+      <div className="h-12 w-12">
+        <SoulLinkNotificationBell variant={variant} />
+      </div>
+      <Link
+        to="/home-me"
+        data-soul-link-top-user-card="real-dom"
+        aria-label={`${resolvedProfile.name} 个人中心`}
+        onMouseDown={suppressMouseFocus}
+        className={cx(
+          "flex h-full min-w-0 touch-manipulation items-center gap-4 rounded-[1.15rem] border px-4 outline-none transition focus:ring-4",
+          isBlack
+            ? "border-cyan-300/14 bg-[#061226]/76 shadow-[inset_0_1px_0_rgba(255,255,255,0.035),0_14px_34px_rgba(0,0,0,0.28)] focus:ring-cyan-300/30"
+            : "border-white/90 bg-white/88 shadow-[0_14px_34px_rgba(86,105,166,0.12)] backdrop-blur-xl focus:ring-violet-400/30",
+        )}
+      >
+        <span className="relative h-11 w-11 shrink-0">
+          <span className={cx("absolute left-[-0.35rem] top-1/2 h-2 w-2 -translate-y-1/2 rounded-full", isBlack ? "bg-violet-400 shadow-[0_0_12px_rgba(167,139,250,0.85)]" : "bg-violet-400 shadow-[0_0_10px_rgba(139,92,246,0.38)]")} />
+          <SoulLinkUserAvatar avatar={resolvedProfile.avatar} name={resolvedProfile.name} variant={variant} />
+        </span>
+        <SoulLinkUserIdentity name={resolvedProfile.name} meta={resolvedProfile.meta} variant={variant} />
+        <ChevronDown size={15} strokeWidth={3} className={cx("shrink-0 opacity-60", isBlack ? "text-cyan-100" : "text-slate-500")} />
+      </Link>
+    </div>
   )
 }
 
@@ -1285,7 +1385,7 @@ function SoulLinkRecentMemoriesPanel({
         <h2 className={cx("text-[0.82rem] font-black", isBlack ? "text-cyan-50" : "text-slate-800")}>{isBlack ? "MEMORY STREAM" : "最近的记忆"}</h2>
         <Link to="/home-me" onMouseDown={suppressMouseFocus} className={cx("text-[0.62rem] font-black outline-none transition focus:ring-4 focus:ring-violet-400/40", isBlack ? "text-cyan-300" : "text-slate-400")}>查看全部 →</Link>
       </header>
-      <div data-soul-link-recent-memories="real-list" className={cx("flex flex-col overflow-hidden", isBlack ? "divide-y divide-cyan-300/12" : "divide-y divide-slate-200/60")}>
+      <div data-soul-link-recent-memories="real-list" className={cx("flex flex-col gap-1.5 overflow-hidden", isBlack ? "divide-y divide-cyan-300/12" : "divide-y divide-slate-200/60")}>
         {visibleMemories.length ? (
           visibleMemories.map((memory) => <SoulLinkRecentMemoryRow key={memory.id} memory={memory} variant={variant} />)
         ) : (
@@ -1645,7 +1745,7 @@ function SoulLinkHomeCoordinateCard({
             {isBlack ? (
               <MessageCircle size={14} strokeWidth={2.6} className="shrink-0 text-cyan-300/70" />
             ) : (
-              <UserCutImage src={lightMessageIcon} className="h-5 w-5 rounded-full" scale={2.2} />
+              <UserCutImage src={lightMessageIcon} className="h-[18px] w-[18px] shrink-0 rounded-full" scale={1.6} />
             )}
             {card.visitLabel}
           </span>
@@ -1672,43 +1772,51 @@ function SoulLinkDiscoverCard({
   const [x, y, w, h] = box
   const card = discoverCardData(tavern, index)
   const isBlack = variant === "black"
+  const avatarImages = [
+    DISCOVER_CARD_IMAGES[(index + 1) % DISCOVER_CARD_IMAGES.length],
+    DISCOVER_CARD_IMAGES[(index + 2) % DISCOVER_CARD_IMAGES.length],
+    DISCOVER_CARD_IMAGES[(index + 3) % DISCOVER_CARD_IMAGES.length],
+  ]
 
   return (
     <Link
       to={targetFor(tavern?.id)}
       data-soul-link-discover-card="real-card"
+      data-soul-link-discover-card-layout="image-top"
       onMouseDown={suppressMouseFocus}
       className={cx(
-        "absolute z-20 flex touch-manipulation gap-3 overflow-hidden rounded-[1.1rem] border p-3 outline-none transition duration-300 hover:scale-[1.02] hover:-translate-y-0.5 focus:ring-4",
+        "absolute z-20 flex touch-manipulation flex-col overflow-hidden rounded-[1.28rem] border outline-none transition duration-300 hover:scale-[1.015] hover:-translate-y-0.5 focus:ring-4",
         isBlack
           ? "border-cyan-300/14 bg-[#061226]/92 text-cyan-50 shadow-[0_18px_38px_rgba(0,0,0,0.35),0_0_26px_rgba(34,211,238,0.08)] hover:border-cyan-300/26 hover:shadow-[0_22px_46px_rgba(0,0,0,0.42),0_0_40px_rgba(34,211,238,0.18)] focus:ring-cyan-300/35"
-          : "border-white/90 bg-white/95 text-slate-800 shadow-[0_12px_32px_rgba(108,123,178,0.12)] hover:shadow-[0_16px_48px_rgba(108,123,178,0.22)] focus:ring-violet-400/35",
+          : "border-white/90 bg-white/96 text-slate-800 shadow-[0_12px_32px_rgba(108,123,178,0.12)] hover:shadow-[0_16px_48px_rgba(108,123,178,0.22)] focus:ring-violet-400/35",
       )}
       style={boxStyle(artboard, x, y, w, h)}
     >
-      <div className={cx("relative mt-1 aspect-square w-[39%] shrink-0 overflow-hidden rounded-[0.95rem]", isBlack ? "bg-cyan-300/8" : "bg-violet-50")}>
+      <div className={cx("relative h-[43%] w-full shrink-0 overflow-hidden", isBlack ? "bg-cyan-300/8" : "bg-violet-50")}>
         <img data-soul-link-discover-card-cover="real-image" data-soul-link-discover-square-image="512x512" src={card.image} alt={`${card.name} 封面`} className={cx("h-full w-full object-cover", isBlack && "opacity-90 saturate-[1.05]")} loading="lazy" decoding="async" />
-      </div>
-      <div data-soul-link-discover-card-copy="real-text-layer" className="flex min-w-0 flex-1 flex-col py-1">
-        <span className={cx("mb-2 inline-flex w-max max-w-full items-center gap-1 truncate rounded-full px-2 py-0.5 text-[10px] font-black", isBlack ? "bg-cyan-300/12 text-cyan-200" : "bg-violet-50 text-violet-500")}>
+        <span className={cx("absolute left-3 top-3 inline-flex max-w-[72%] items-center gap-1 rounded-full px-3 py-1 text-[10px] font-black shadow-[0_8px_18px_rgba(118,91,255,0.22)]", isBlack ? "border border-cyan-200/20 bg-cyan-300/14 text-cyan-50" : "bg-violet-500/82 text-white")}>
           <span aria-hidden="true">✦</span>
           {card.tag}
         </span>
-        <h3 data-soul-link-discover-card-title="real-text" className={cx("truncate text-[15px] font-black leading-tight", isBlack ? "text-cyan-50" : "text-slate-800")}>{card.name}</h3>
-        <p className={cx("mt-1.5 line-clamp-2 text-[12px] font-bold leading-[1.35rem]", isBlack ? "text-cyan-100/52" : "text-slate-400")}>{card.description}</p>
-        <div data-first-minute-guide="soul-link-discover-card" className={cx("mt-2 rounded-[0.85rem] border px-2 py-1.5", isBlack ? "border-cyan-300/14 bg-cyan-300/[0.055]" : "border-violet-100 bg-violet-50/55")}>
-          <p className={cx("truncate text-[10px] font-black", isBlack ? "text-cyan-200/80" : "text-violet-500")}>Why here · {card.experienceType}</p>
-          <p className={cx("mt-0.5 line-clamp-2 text-[10px] font-bold leading-4", isBlack ? "text-cyan-100/44" : "text-slate-400")}>{card.whyHere}</p>
-          <p className={cx("mt-1 truncate text-[10px] font-black", isBlack ? "text-cyan-300/72" : "text-violet-400")}>先试：{card.tryPrompt}</p>
-        </div>
-        <div className={cx("mt-auto grid gap-1 text-[10px] font-black", isBlack ? "text-cyan-100/44" : "text-slate-300")}>
+      </div>
+      <div data-soul-link-discover-card-copy="real-text-layer" className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden px-4 py-3">
+        <h3 data-soul-link-discover-card-title="real-text" className={cx("truncate text-[16px] font-black leading-tight", isBlack ? "text-cyan-50" : "text-slate-800")}>{card.name}</h3>
+        <p className={cx("mt-2 line-clamp-2 text-[12px] font-bold leading-5", isBlack ? "text-cyan-100/52" : "text-slate-400")} title={card.description}>{card.description}</p>
+        <span data-first-minute-guide="soul-link-discover-card" className="sr-only">
+          Why here · {card.experienceType}：{card.whyHere}。先试：{card.tryPrompt}
+        </span>
+        <div className={cx("mt-auto flex min-w-0 items-center gap-2 text-[11px] font-black", isBlack ? "text-cyan-100/44" : "text-slate-400")}>
           <span className="flex min-w-0 items-center gap-1 truncate">
-            <MapPin size={12} strokeWidth={3} className={cx("shrink-0", isBlack ? "text-cyan-300/70" : "text-violet-300")} />
-            {card.visitLabel}
+            <MessageCircle size={13} strokeWidth={2.6} className={cx("shrink-0", isBlack ? "text-cyan-300/70" : "text-violet-300")} />
+            {card.timeLabel} · {card.visitLabel}
           </span>
-          <span className={cx("flex min-w-0 items-center gap-1 truncate", isBlack ? "text-cyan-300/72" : "text-violet-300")}>
-            {card.characterLabel}
-            <ArrowUpRight size={10} strokeWidth={4} />
+          <span aria-hidden="true" className="ml-auto flex shrink-0 -space-x-1.5">
+            {avatarImages.map((image, avatarIndex) => (
+              <img key={`${card.name}-avatar-${avatarIndex}`} src={image} alt="" className={cx("h-5 w-5 rounded-full border object-cover", isBlack ? "border-[#061226]" : "border-white")} loading="lazy" decoding="async" />
+            ))}
+          </span>
+          <span className={cx("inline-flex shrink-0 items-center", isBlack ? "text-cyan-300/72" : "text-violet-400")} aria-label={`收藏 ${card.favoriteCount}`}>
+            <Heart size={17} strokeWidth={2.6} />
           </span>
         </div>
       </div>
@@ -1983,7 +2091,7 @@ function HomeHeroActions({ artboard, variant, forceVisible = false }: { artboard
         {isBlack ? (
           <ArrowUpRight size={16} strokeWidth={3} className="opacity-70" />
         ) : (
-          <UserCutImage src={lightArrowIcon} className="h-4 w-4" scale={2.8} />
+          <ArrowRight size={16} strokeWidth={3} className="text-white" />
         )}
       </Link>
       <Link
@@ -2102,7 +2210,10 @@ function SoulLinkDiscoverFilterPanel({
         {DISCOVER_FILTER_GROUPS.map((group, groupIndex) => (
           <div key={group.title} className={cx("min-w-0", groupIndex > 0 ? (isBlack ? "border-l border-cyan-300/12 pl-6" : "border-l border-slate-200/70 pl-6") : "")}>
             <h2 className={cx("text-[13px] font-black", isBlack ? "text-cyan-50" : "text-slate-700")}>{group.title}</h2>
-            <div className={cx("mt-4 grid", groupIndex === 0 ? "grid-cols-4 gap-2" : "grid-cols-2 gap-2.5")}>
+            <div className={cx(
+              "mt-3 grid",
+              groupIndex === 0 ? "grid-cols-4 gap-2" : groupIndex === 1 ? "grid-cols-2 gap-x-2 gap-y-1.5" : "grid-cols-2 gap-2.5",
+            )}>
               {group.items.map((label) => (
                 <button
                   key={label}
@@ -2110,8 +2221,9 @@ function SoulLinkDiscoverFilterPanel({
                   onClick={() => handleFilter(label)}
                   onMouseDown={suppressMouseFocus}
                   className={cx(
-                    "inline-flex min-h-8 touch-manipulation items-center rounded-xl text-left text-[12px] font-black outline-none transition focus:ring-4 focus:ring-violet-400/30",
-                    groupIndex === 0 ? "gap-1.5 px-2" : "gap-2 px-3",
+                    "inline-flex touch-manipulation items-center whitespace-nowrap rounded-xl text-left text-[12px] font-black outline-none transition focus:ring-4 focus:ring-violet-400/30",
+                    groupIndex === 1 ? "min-h-6" : "min-h-8",
+                    groupIndex === 0 ? "gap-1.5 px-2" : groupIndex === 1 ? "gap-1.5 px-2" : "gap-2 px-3",
                     isBlack ? "bg-cyan-300/[0.045] text-cyan-100/58 hover:bg-cyan-300/10 hover:text-cyan-50" : "bg-white/64 text-[#7f8aa9] hover:bg-violet-50 hover:text-violet-500",
                   )}
                 >
@@ -2126,57 +2238,123 @@ function SoulLinkDiscoverFilterPanel({
         ))}
       </section>
       <aside
+        data-soul-link-discover-hint-card="background-image"
         className={cx(
-          "absolute z-20 flex items-center gap-3 overflow-hidden rounded-[1.45rem] border p-4 shadow-[0_18px_46px_rgba(99,118,172,0.14)]",
-          isBlack ? "border-cyan-300/14 bg-[#061226]/76" : "border-white/90 bg-white/82",
+          "absolute z-20 overflow-hidden rounded-[1.45rem] border shadow-[0_18px_46px_rgba(99,118,172,0.14)]",
+          isBlack ? "border-cyan-300/14 bg-[#061226]/76" : "border-white/90 bg-white/72",
         )}
         style={boxStyle(artboard, 1024, 178, 180, 166)}
       >
-        <img data-soul-link-discover-square-image="512x512" src={discoverCardSkyCity} alt="" aria-hidden="true" className={cx("h-16 w-16 shrink-0 rounded-[1.05rem] object-cover", isBlack ? "shadow-[0_12px_28px_rgba(0,0,0,0.34)]" : "shadow-[0_12px_28px_rgba(99,118,172,0.18)]")} loading="lazy" decoding="async" />
-        <div className="min-w-0">
-          <p className={cx("text-[13px] font-black", isBlack ? "text-cyan-50" : "text-slate-700")}>提示</p>
-          <p className={cx("mt-2 text-[12px] font-bold leading-5", isBlack ? "text-cyan-100/52" : "text-slate-500")}>试试组合筛选，发现更异侧的坐标。</p>
+        <img
+          data-soul-link-discover-hint-bg="real-image"
+          data-soul-link-discover-square-image="512x512"
+          src={discoverCardSkyCity}
+          alt=""
+          aria-hidden="true"
+          className={cx(
+            "absolute inset-0 h-full w-full select-none object-cover",
+            isBlack ? "opacity-[.42] mix-blend-screen" : "opacity-[.38]",
+          )}
+          loading="lazy"
+          decoding="async"
+          draggable={false}
+        />
+        <div
+          aria-hidden="true"
+          className={cx(
+            "absolute inset-0",
+            isBlack
+              ? "bg-[linear-gradient(180deg,rgba(6,18,38,0.14)_0%,rgba(6,18,38,0.52)_100%)]"
+              : "bg-[linear-gradient(180deg,rgba(255,255,255,0.18)_0%,rgba(248,251,255,0.64)_100%)]",
+          )}
+        />
+        <div className="relative z-10 flex h-full flex-col justify-end p-6">
+          <p className={cx("text-[13px] font-black", isBlack ? "text-cyan-50" : "text-slate-800")}>提示</p>
+          <p className={cx("mt-2 text-[12px] font-bold leading-5", isBlack ? "text-cyan-100/62" : "text-slate-600")}>试试组合筛选，发现更异侧的坐标。</p>
         </div>
       </aside>
     </>
   )
 }
 
-function SoulLinkDiscoverTimeline({ artboard, variant }: { artboard: Artboard; variant: Variant }) {
-  const isBlack = variant === "black"
-  return (
-    <section data-soul-link-discover-timeline="real-dom" className="absolute z-20" style={boxStyle(artboard, 226, 372, 980, 154)}>
-      <header className="flex items-center gap-5">
-        <h2 className={cx("text-[16px] font-black", isBlack ? "text-cyan-50" : "text-slate-800")}>时间流</h2>
-        <p className={cx("text-[12px] font-black", isBlack ? "text-cyan-100/45" : "text-slate-400")}>世界正在发生的事</p>
-      </header>
-      <div className="relative mt-6 flex items-start gap-4">
-        <span aria-hidden="true" className={cx("absolute left-0 right-0 top-8 h-px", isBlack ? "bg-gradient-to-r from-cyan-300/28 via-cyan-300/10 to-transparent" : "bg-gradient-to-r from-violet-200 via-sky-100 to-transparent")} />
-        <span aria-hidden="true" className={cx("absolute left-5 top-8 h-20 w-px", isBlack ? "bg-cyan-300/36" : "bg-violet-300")} />
-        {DISCOVER_TIMELINE.map((item, index) => (
-          <Link
-            key={item.title}
-            to="/discover"
-            onMouseDown={suppressMouseFocus}
-            className={cx(
-              "relative min-h-[80px] w-[17.9%] rounded-[1rem] border p-4 outline-none transition hover:-translate-y-0.5 focus:ring-4 focus:ring-violet-400/30",
-              isBlack ? "border-cyan-300/14 bg-[#061226]/86 shadow-[0_14px_34px_rgba(0,0,0,0.28)]" : "border-white/88 bg-white/92 shadow-[0_12px_32px_rgba(89,108,169,0.1)]",
-            )}
-          >
-            <span className={cx("absolute -top-7 left-0 text-[12px] font-black", isBlack ? "text-cyan-100/44" : "text-slate-400")}>{item.time}</span>
-            <span aria-hidden="true" className={cx("absolute -top-[18px] left-0 h-3 w-3 rounded-full border-2 shadow-[0_0_0_4px_rgba(124,112,255,0.12)]", isBlack ? "border-[#061226]" : "border-white", item.tone)} />
-            <span className="flex items-center gap-3">
-              <img data-soul-link-discover-square-image="512x512" src={item.image} alt="" aria-hidden="true" className="h-9 w-9 shrink-0 rounded-xl object-cover" loading="lazy" decoding="async" />
-              <span className="min-w-0">
-                <span className={cx("block truncate text-[13px] font-black", isBlack ? "text-cyan-50" : "text-slate-700")}>{item.title}</span>
-                <span className={cx("mt-1 block truncate text-[11px] font-bold", isBlack ? "text-cyan-100/45" : "text-slate-400")}>{item.subtitle}</span>
-              </span>
-            </span>
-            <span aria-hidden="true" className={cx("mt-3 block h-3 rounded-full", isBlack ? "bg-[repeating-linear-gradient(90deg,rgba(34,211,238,0.24)_0_3px,transparent_3px_7px)]" : "bg-[repeating-linear-gradient(90deg,rgba(124,112,255,0.2)_0_3px,transparent_3px_7px)]")} />
-          </Link>
+function DiscoverViewIcon({ type, className }: { type: "grid" | "list" | "map"; className?: string }) {
+  if (type === "grid") {
+    return (
+      <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" className={className}>
+        {[5, 10.5, 16].map((x) => (
+          [5, 10.5, 16].map((y) => (
+            <rect key={`${x}-${y}`} x={x} y={y} width="3" height="3" rx="0.6" fill="currentColor" />
+          ))
         ))}
+      </svg>
+    )
+  }
+  if (type === "map") {
+    return (
+      <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" className={className}>
+        <path d="M5 5.6 9.6 4l4.8 1.9L19 4.4v14l-4.6 1.6-4.8-1.9L5 19.6z" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M9.6 4v14.1M14.4 5.9V20" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      </svg>
+    )
+  }
+  return (
+    <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" className={className}>
+      <path d="M7 7h10M7 12h10M7 17h10" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" />
+    </svg>
+  )
+}
+
+function SoulLinkDiscoverSortControls({ variant }: { variant: Variant }) {
+  const isBlack = variant === "black"
+  const mutedText = isBlack ? "text-cyan-100/48" : "text-[#90a0bb]"
+  const activePill = isBlack
+    ? "bg-cyan-300/12 text-cyan-300 shadow-[0_0_18px_rgba(34,211,238,0.1)]"
+    : "bg-[#f0ecff] text-[#a36bff] shadow-[0_8px_22px_rgba(144,113,255,0.1)]"
+  return (
+    <div data-soul-link-discover-sort-controls="real-dom" className={cx("flex items-center gap-6 text-[13px] font-black leading-none", mutedText)}>
+      <button
+        type="button"
+        data-soul-link-discover-sort-label="real-text"
+        onMouseDown={suppressMouseFocus}
+        className={cx("inline-flex min-h-8 touch-manipulation items-center gap-1.5 rounded-xl px-1 outline-none transition focus:ring-4", isBlack ? "focus:ring-cyan-300/30" : "focus:ring-violet-400/30")}
+        aria-label="排序：推荐"
+      >
+        <span>排序：推荐</span>
+        <ChevronDown size={13} strokeWidth={3} className="mt-0.5 opacity-75" />
+      </button>
+      <div className="flex items-center gap-3" aria-label="视图切换">
+        <button
+          type="button"
+          data-soul-link-discover-view-button="grid-active"
+          onMouseDown={suppressMouseFocus}
+          className={cx("grid h-9 w-9 place-items-center rounded-full outline-none transition focus:ring-4", activePill, isBlack ? "focus:ring-cyan-300/30" : "focus:ring-violet-400/30")}
+          aria-label="网格视图"
+          aria-pressed="true"
+        >
+          <DiscoverViewIcon type="grid" className="h-4 w-4" />
+        </button>
+        <button
+          type="button"
+          data-soul-link-discover-view-button="list"
+          onMouseDown={suppressMouseFocus}
+          className={cx("grid h-9 w-9 place-items-center rounded-full outline-none transition focus:ring-4", isBlack ? "text-cyan-100/42 hover:bg-cyan-300/8 hover:text-cyan-200 focus:ring-cyan-300/30" : "text-[#90a0bb] hover:bg-white/70 hover:text-violet-400 focus:ring-violet-400/30")}
+          aria-label="列表视图"
+          aria-pressed="false"
+        >
+          <DiscoverViewIcon type="list" className="h-5 w-5" />
+        </button>
+        <button
+          type="button"
+          data-soul-link-discover-view-button="map"
+          onMouseDown={suppressMouseFocus}
+          className={cx("grid h-9 w-9 place-items-center rounded-full outline-none transition focus:ring-4", isBlack ? "text-cyan-100/42 hover:bg-cyan-300/8 hover:text-cyan-200 focus:ring-cyan-300/30" : "text-[#90a0bb] hover:bg-white/70 hover:text-violet-400 focus:ring-violet-400/30")}
+          aria-label="地图视图"
+          aria-pressed="false"
+        >
+          <DiscoverViewIcon type="map" className="h-5 w-5" />
+        </button>
       </div>
-    </section>
+    </div>
   )
 }
 
@@ -2193,6 +2371,8 @@ function SoulLinkDiscoverRightRail({
   const footprintCards = cards.slice(0, 4)
   const railPanel = { w: 316, h: 1024 }
   const isBlack = variant === "black"
+  const worldStatus = discoverWorldStatusFromTaverns(taverns)
+  const worldStatusBg = isBlack ? discoverWorldStatusBgBlack : discoverWorldStatusBgLight
   const panelClass = isBlack
     ? "border-cyan-300/14 bg-[#061226]/90 text-cyan-50 shadow-[0_18px_50px_rgba(0,0,0,0.34),0_0_28px_rgba(34,211,238,0.07)]"
     : "border-white/90 bg-white/92 text-slate-800 shadow-[0_18px_50px_rgba(86,105,166,0.12)]"
@@ -2201,28 +2381,50 @@ function SoulLinkDiscoverRightRail({
     : "text-violet-300 outline-none focus:ring-4 focus:ring-violet-400/30"
   return (
     <aside data-soul-link-discover-right-rail="real-dom" className="pointer-events-none absolute z-20" style={boxStyle(artboard, 1220, 0, 316, 1024)}>
-      <section className={cx("pointer-events-auto absolute overflow-hidden rounded-[1.35rem] border p-6", panelClass)} style={panelBoxStyle(railPanel, 12, 28, 286, 268)}>
-        <header className="flex items-center gap-2">
-          <h2 className={cx("text-[16px] font-black", isBlack ? "text-cyan-50" : "text-slate-800")}>世界状态</h2>
-          <span className={cx("text-[11px] font-black", isBlack ? "text-cyan-100/44" : "text-slate-300")}>实时更新</span>
+      <section data-soul-link-world-status-card="dynamic-dom" className={cx("pointer-events-auto absolute overflow-hidden rounded-[1.35rem] border p-6", panelClass)} style={panelBoxStyle(railPanel, 12, 28, 286, 268)}>
+        <img
+          data-soul-link-world-status-bg="real-image"
+          src={worldStatusBg}
+          alt=""
+          aria-hidden="true"
+          draggable={false}
+          decoding="async"
+          className={cx(
+            "pointer-events-none absolute right-[-30px] top-[58px] h-[214px] w-[196px] select-none object-contain",
+            isBlack ? "opacity-55 mix-blend-screen" : "opacity-72",
+          )}
+        />
+        <header
+          data-soul-link-world-status-header="dynamic-text"
+          aria-label={`世界状态 · ${worldStatus.syncLabel} · 实时更新`}
+          className="relative z-10 grid grid-cols-[auto_1fr_auto] items-center gap-3"
+        >
+          <h2 className={cx("whitespace-nowrap text-[16px] font-black leading-none", isBlack ? "text-cyan-50" : "text-slate-800")}>世界状态</h2>
+          <span
+            data-soul-link-world-status-english="real-text"
+            className={cx("min-w-0 truncate text-[10px] font-black uppercase tracking-[0.06em]", isBlack ? "text-cyan-100/44" : "text-[#b8c2d4]")}
+          >
+            WORLD STATUS
+          </span>
+          <span
+            data-soul-link-world-status-live="real-text"
+            className={cx("whitespace-nowrap text-[11px] font-black leading-none", isBlack ? "text-violet-300" : "text-[#c0a8ff]")}
+            title={worldStatus.syncLabel}
+          >
+            实时更新
+          </span>
         </header>
-        <div className="relative mt-6 h-24">
-          <svg data-soul-link-discover-world-orbit="real-svg" aria-hidden="true" className={cx("absolute right-3 top-0 h-24 w-36", isBlack ? "text-cyan-300/45" : "text-violet-300/45")} viewBox="0 0 180 120" fill="none" stroke="currentColor">
-            <circle cx="92" cy="60" r="12" fill="currentColor" opacity=".16" className="animate-pulse" />
-            <circle cx="92" cy="60" r="34" strokeDasharray="4 10" className="opacity-40" />
-            <circle cx="92" cy="60" r="58" strokeDasharray="3 12" className="opacity-20" />
-            <path d="M32 60h120M92 6v108" opacity=".28" />
-          </svg>
-          <p className={cx("relative z-10 text-3xl font-black", isBlack ? "text-cyan-50" : "text-slate-800")}>1,298</p>
+        <div className="relative z-10 mt-8 h-24">
+          <p data-soul-link-world-status-online="dynamic-text" className={cx("text-3xl font-black", isBlack ? "text-cyan-50" : "text-slate-800")}>{worldStatus.onlineSouls}</p>
           <p className={cx("relative z-10 mt-2 text-[13px] font-bold", isBlack ? "text-cyan-100/48" : "text-slate-400")}>在线灵魂</p>
         </div>
-        <div className="mt-2 grid grid-cols-2 gap-5">
+        <div className="relative z-10 mt-2 grid grid-cols-2 gap-5">
           <div>
-            <p className={cx("text-xl font-black", isBlack ? "text-cyan-100" : "text-slate-700")}>56</p>
+            <p data-soul-link-world-status-signal="dynamic-text" className={cx("text-xl font-black", isBlack ? "text-cyan-100" : "text-slate-700")}>{worldStatus.signalFluctuation}</p>
             <p className={cx("text-[12px] font-bold", isBlack ? "text-cyan-100/48" : "text-slate-400")}>信号波动</p>
           </div>
           <div>
-            <p className={cx("text-xl font-black", isBlack ? "text-cyan-100" : "text-slate-700")}>12</p>
+            <p data-soul-link-world-status-anomaly="dynamic-text" className={cx("text-xl font-black", isBlack ? "text-cyan-100" : "text-slate-700")}>{worldStatus.coordinateAnomalies}</p>
             <p className={cx("text-[12px] font-bold", isBlack ? "text-cyan-100/48" : "text-slate-400")}>坐标异常</p>
           </div>
         </div>
@@ -2235,9 +2437,27 @@ function SoulLinkDiscoverRightRail({
         </header>
         <div className="space-y-4">
           {DISCOVER_RIGHT_QUOTES.map((quote, index) => (
-            <Link key={quote} to={targetFor(cards[index]?.id)} onMouseDown={suppressMouseFocus} className={cx("block rounded-xl outline-none transition focus:ring-4", isBlack ? "hover:bg-cyan-300/8 focus:ring-cyan-300/30" : "hover:bg-violet-50/60 focus:ring-violet-400/30")}>
-              <p className={cx("truncate text-[13px] font-black", isBlack ? "text-cyan-100" : "text-slate-600")}>“{quote}”</p>
-              <p className={cx("mt-1 text-[11px] font-bold", isBlack ? "text-cyan-100/45" : "text-slate-400")}>来自 {cards[index]?.name || "某个坐标"} · {index * 5 + 2} 分钟前</p>
+            <Link
+              key={quote}
+              to={targetFor(cards[index]?.id)}
+              onMouseDown={suppressMouseFocus}
+              className={cx(
+                "grid min-h-[3.45rem] grid-cols-[minmax(0,1fr)_2.75rem] items-center gap-3 rounded-xl outline-none transition focus:ring-4",
+                isBlack ? "hover:bg-cyan-300/8 focus:ring-cyan-300/30" : "hover:bg-violet-50/60 focus:ring-violet-400/30",
+              )}
+            >
+              <span className="min-w-0">
+                <span className={cx("block truncate text-[13px] font-black", isBlack ? "text-cyan-100" : "text-slate-600")}>“{quote}”</span>
+                <span className={cx("mt-1 block truncate text-[11px] font-bold", isBlack ? "text-cyan-100/45" : "text-slate-400")}>来自 {cards[index]?.name || "某个坐标"} · {index * 5 + 2} 分钟前</span>
+              </span>
+              <span
+                data-soul-link-recommended-echo-favorite="real-dom"
+                className={cx("inline-flex items-center justify-end gap-1 text-[11px] font-black", isBlack ? "text-cyan-100/58" : "text-slate-400")}
+                aria-label={`收藏 ${cards[index]?.favoriteCount || 0}`}
+              >
+                <Heart size={13} strokeWidth={2.6} className={cx("shrink-0", isBlack ? "text-cyan-100/56" : "text-slate-400")} />
+                <span data-soul-link-recommended-echo-favorite-count="real-text">{cards[index]?.favoriteCount || 0}</span>
+              </span>
             </Link>
           ))}
         </div>
@@ -2340,16 +2560,11 @@ function SoulLinkDiscoverSurface({
         onOpenOnlyChange={onOpenOnlyChange}
         variant={variant}
       />
-      <SoulLinkDiscoverTimeline artboard={artboard} variant={variant} />
-      <div className="absolute z-20 flex items-center justify-between" style={boxStyle(artboard, 226, 548, 980, 38)}>
+      <div className="absolute z-20 flex items-center justify-between" style={boxStyle(artboard, 226, 372, 980, 38)}>
         <h2 className={cx("text-[20px] font-black", isBlack ? "text-cyan-50" : "text-slate-900")}>
           探索结果 <span className={cx("text-[13px] font-bold", isBlack ? "text-cyan-100/42" : "text-slate-400")}>{Math.max(taverns.length, DISCOVER_LAYOUT.cards.length)} 个坐标</span>
         </h2>
-        <div className={cx("flex items-center gap-4 text-[12px] font-black", isBlack ? "text-cyan-100/45" : "text-slate-400")}>
-          <span>排序：推荐⌄</span>
-          <span aria-hidden="true" className={cx("grid h-7 w-7 place-items-center rounded-xl", isBlack ? "bg-cyan-300/12 text-cyan-300" : "bg-violet-100 text-violet-500")}>▦</span>
-          <span aria-hidden="true">☰</span>
-        </div>
+        <SoulLinkDiscoverSortControls variant={variant} />
       </div>
     </>
   )
@@ -2393,21 +2608,6 @@ function SoulLinkDiscoverMobile({
         <DiscoverFilterChip variant={variant} label="舒适空间" onClick={() => onTogglePlaceType("bookstore")} />
         <DiscoverFilterChip variant={variant} label="回响最多" onClick={() => onToggleCategory("陪伴树洞")} />
       </div>
-      <section className={cx("mt-5 rounded-[1.75rem] border p-4", isBlack ? "border-cyan-300/14 bg-[#061226]/86 shadow-[0_18px_42px_rgba(0,0,0,0.28)]" : "border-white/80 bg-white/88 shadow-[0_18px_42px_rgba(108,123,178,0.12)]")}>
-        <h2 className={cx("text-base font-black", isBlack ? "text-cyan-50" : "text-slate-800")}>时间流</h2>
-        <div className="mt-3 grid gap-3">
-          {DISCOVER_TIMELINE.slice(0, 3).map((item) => (
-            <Link key={item.title} to="/discover" className={cx("flex min-h-14 touch-manipulation items-center gap-3 rounded-2xl p-3", isBlack ? "bg-cyan-300/[0.055]" : "bg-violet-50/50")}>
-              <img data-soul-link-discover-square-image="512x512" src={item.image} alt="" aria-hidden="true" className="h-11 w-11 rounded-xl object-cover" loading="lazy" decoding="async" />
-              <span className="min-w-0 flex-1">
-                <span className={cx("block truncate text-[15px] font-black", isBlack ? "text-cyan-50" : "text-slate-800")}>{item.title}</span>
-                <span className={cx("mt-1 block truncate text-[13px] font-bold", isBlack ? "text-cyan-100/45" : "text-slate-400")}>{item.subtitle}</span>
-              </span>
-              <span className={cx("text-[13px] font-black", isBlack ? "text-cyan-300" : "text-violet-400")}>{item.time}</span>
-            </Link>
-          ))}
-        </div>
-      </section>
       <section className="mt-5">
         <div className="mb-3 flex items-center justify-between">
           <h2 className={cx("text-lg font-black", isBlack ? "text-cyan-50" : "text-slate-800")}>探索结果</h2>
@@ -2551,7 +2751,7 @@ export function SoulLinkDiscoverReference(props: DiscoverReferenceProps) {
       <div className="relative hidden h-full md:block">
         <SoulLinkDiscoverSurface artboard={artboard} {...props} />
         <SoulLinkSidebar artboard={artboard} variant={props.variant} active="discover" onToggleTheme={props.onToggleTheme} />
-        <SoulLinkUserCluster artboard={artboard} variant={props.variant} />
+        <SoulLinkTopStatusBar artboard={artboard} variant={props.variant} />
         <SoulLinkFeedPanel
           artboard={artboard}
           variant={props.variant}

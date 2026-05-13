@@ -22,6 +22,11 @@ class MemoryAtomWriteRequest(FlexibleBody):
     metadata: dict[str, Any] | None = None
 
 
+class MemoryAtomFeedbackRequest(FlexibleBody):
+    correct: bool | None = None
+    content: str | None = None
+
+
 class MemorySummarizeRequest(FlexibleBody):
     messages: list[dict[str, Any]] | None = None
     strategy: str | None = None
@@ -38,6 +43,7 @@ class MemoryImportanceRequest(FlexibleBody):
 
 
 __all__ = [
+    "MemoryAtomFeedbackRequest",
     "MemoryAtomWriteRequest",
     "MemoryImportanceRequest",
     "MemorySummarizeRequest",

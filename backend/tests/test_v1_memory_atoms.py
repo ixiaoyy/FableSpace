@@ -138,3 +138,64 @@ def test_v1_memory_atoms_public_and_owner_visibility(tmp_path: Path) -> None:
     )
     assert owner_list.status_code == 200
     assert {atom["id"] for atom in owner_list.json()["memory_atoms"]} == {public_id, owner_id}
+
+
+def test_v1_memory_atom_feedback_reinforces_corrects_and_flags_private_memory(tmp_path: Path) -> None:
+    client = _client(tmp_path)
+    tavern_id = _create_tavern(client)
+
+    create_response = client.post(
+        f"/api/v1/taverns/{tavern_id}/memory-atoms",
+        headers={"X-User-Id": "visitor-1"},
+        json={
+            "scope": "visitor_tavern",
+            "dimension": "preference",
+            "horizon": "mid",
+            "content": "Visitor one likes quiet corners.",
+            "importance": 0.6,
+            "confidence": 0.7,
+            "visibility": "private",
+        },
+    )
+    assert create_response.status_code == 200
+    memory_id = create_response.json()["memory_atom"]["id"]
+
+    other_feedback = client.post(
+        f"/api/v1/taverns/{tavern_id}/memory-atoms/{memory_id}/feedback",
+        headers={"X-User-Id": "visitor-2"},
+        json={"correct": True},
+    )
+    assert other_feedback.status_code == 403
+
+    reinforce_response = client.post(
+        f"/api/v1/taverns/{tavern_id}/memory-atoms/{memory_id}/feedback",
+        headers={"X-User-Id": "visitor-1"},
+        json={"correct": True},
+    )
+    assert reinforce_response.status_code == 200
+    reinforced = reinforce_response.json()["memory_atom"]
+    assert reinforce_response.json()["feedback"]["status"] == "reinforced"
+    assert reinforced["metadata"]["reinforcement_count"] == 1
+    assert reinforced["importance"] > 0.6
+
+    correction_response = client.post(
+        f"/api/v1/taverns/{tavern_id}/memory-atoms/{memory_id}/feedback",
+        headers={"X-User-Id": "visitor-1"},
+        json={"correct": False, "content": "Visitor one likes the window seat, not quiet corners."},
+    )
+    assert correction_response.status_code == 200
+    corrected = correction_response.json()["memory_atom"]
+    assert correction_response.json()["feedback"]["status"] == "corrected"
+    assert corrected["content"] == "Visitor one likes the window seat, not quiet corners."
+    assert corrected["metadata"]["flagged_wrong"] is False
+
+    wrong_response = client.post(
+        f"/api/v1/taverns/{tavern_id}/memory-atoms/{memory_id}/feedback",
+        headers={"X-User-Id": "visitor-1"},
+        json={"correct": False},
+    )
+    assert wrong_response.status_code == 200
+    flagged = wrong_response.json()["memory_atom"]
+    assert wrong_response.json()["feedback"]["status"] == "flagged_wrong"
+    assert flagged["metadata"]["flagged_wrong"] is True
+    assert flagged["metadata"]["excluded_from_prompt"] is True

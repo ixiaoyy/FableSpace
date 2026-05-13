@@ -13,6 +13,7 @@ Features:
 from __future__ import annotations
 
 import logging
+import math
 import re
 import uuid
 from abc import ABC, abstractmethod
@@ -378,8 +379,94 @@ def _content_fingerprint(text: str) -> str:
 def _keyword_tokens(text: str) -> set[str]:
     content = str(text or "").lower()
     latin = set(re.findall(r"[a-z0-9]{3,}", content))
-    cjk = set(re.findall(r"[\u4e00-\u9fff]{2,6}", content))
+    cjk: set[str] = set()
+    for chunk in re.findall(r"[\u4e00-\u9fff]+", content):
+        for size in (2, 3, 4, 5, 6):
+            if len(chunk) < size:
+                continue
+            cjk.update(chunk[index : index + size] for index in range(0, len(chunk) - size + 1))
     return latin | cjk
+
+
+def _parse_iso_datetime(value: Any) -> datetime | None:
+    text = str(value or "").strip()
+    if not text:
+        return None
+    try:
+        parsed = datetime.fromisoformat(text.replace("Z", "+00:00"))
+    except ValueError:
+        return None
+    if parsed.tzinfo is None:
+        parsed = parsed.replace(tzinfo=timezone.utc)
+    return parsed.astimezone(timezone.utc)
+
+
+def _metadata_float(metadata: dict[str, Any], *keys: str, default: float = 0.0) -> float:
+    for key in keys:
+        if key not in metadata:
+            continue
+        try:
+            return float(metadata.get(key) or 0.0)
+        except (TypeError, ValueError):
+            continue
+    return default
+
+
+def _metadata_text(metadata: dict[str, Any], *keys: str) -> str:
+    values: list[str] = []
+    for key in keys:
+        raw = metadata.get(key)
+        if isinstance(raw, list):
+            values.extend(str(item) for item in raw if str(item).strip())
+        elif isinstance(raw, dict):
+            values.extend(str(item) for item in raw.values() if str(item).strip())
+        elif raw is not None and str(raw).strip():
+            values.append(str(raw))
+    return " ".join(values)
+
+
+def _memory_atom_topic_relevance(atom: MemoryAtom, query_tokens: set[str]) -> float:
+    if not query_tokens:
+        return 0.0
+    metadata = atom.metadata or {}
+    topic_text = _metadata_text(
+        metadata,
+        "topic_tags",
+        "topics",
+        "tags",
+        "keywords",
+        "entities",
+        "relevance_reason",
+    )
+    topic_tokens = _keyword_tokens(topic_text)
+    content_tokens = _keyword_tokens(f"{atom.subject} {atom.content} {' '.join(atom.source_message_ids)}")
+    topic_overlap = len(query_tokens & topic_tokens)
+    content_overlap = len(query_tokens & content_tokens)
+    subject_overlap = len(query_tokens & _keyword_tokens(atom.subject))
+    denominator = max(1, len(query_tokens))
+    score = (
+        min(1.0, topic_overlap / denominator) * 0.45
+        + min(1.0, content_overlap / denominator) * 0.45
+        + min(1.0, subject_overlap / denominator) * 0.10
+    )
+    return max(0.0, min(1.0, score))
+
+
+def _memory_atom_recency_score(atom: MemoryAtom, *, now: datetime) -> float:
+    timestamp = _parse_iso_datetime(atom.updated_at or atom.created_at)
+    if not timestamp:
+        return 0.0
+    age_days = max(0.0, (now - timestamp).total_seconds() / 86400.0)
+    return max(0.0, min(1.0, math.exp(-0.035 * age_days)))
+
+
+def _memory_atom_reinforcement_score(atom: MemoryAtom) -> float:
+    metadata = atom.metadata or {}
+    explicit = _metadata_float(metadata, "reinforcement_count", "referenced_count", default=-1.0)
+    if explicit >= 0:
+        return max(0.0, min(1.0, explicit / 5.0))
+    hit_count = _metadata_float(metadata, "hit_count", default=0.0)
+    return max(0.0, min(1.0, max(0.0, hit_count - 1.0) / 5.0))
 
 
 def _approx_token_count(text: str) -> int:
@@ -559,7 +646,8 @@ def _build_auto_memory_atom(
 
 def _merge_memory_atom(existing: MemoryAtom, candidate: MemoryAtom) -> MemoryAtom:
     metadata = dict(existing.metadata or {})
-    metadata["hit_count"] = int(metadata.get("hit_count") or 1) + 1
+    hit_count = int(metadata.get("hit_count") or 1) + 1
+    metadata["hit_count"] = hit_count
     metadata.setdefault("source", "auto_chat")
     metadata.setdefault("memory_fingerprint", _content_fingerprint(existing.content))
     source_roles = set(_string_list(metadata.get("source_roles")))
@@ -573,6 +661,11 @@ def _merge_memory_atom(existing: MemoryAtom, candidate: MemoryAtom) -> MemoryAto
     if _HORIZON_RANK.get(candidate.horizon, 0) > _HORIZON_RANK.get(existing.horizon, 0):
         existing.horizon = candidate.horizon
     existing.source_message_ids = sorted(set(existing.source_message_ids) | set(candidate.source_message_ids))
+    if hit_count >= 5 or len(existing.source_message_ids) >= 5:
+        existing.horizon = "long"
+        existing.importance = max(float(existing.importance or 0.0), 0.75)
+        metadata["long_term_promoted"] = True
+        metadata.setdefault("long_term_promoted_at", candidate.updated_at or _now_utc_iso())
     existing.updated_at = candidate.updated_at or _now_utc_iso()
     existing.metadata = metadata
     return existing
@@ -711,6 +804,7 @@ def select_memory_atoms_for_prompt(
         return []
 
     query_tokens = _keyword_tokens(current_message)
+    now = datetime.now(timezone.utc)
     candidates: list[MemoryAtom] = []
     for value in atoms:
         atom = _coerce_memory_atom(value)
@@ -728,8 +822,6 @@ def select_memory_atoms_for_prompt(
         candidates.append(atom)
 
     def score(atom: MemoryAtom) -> tuple[Any, ...]:
-        content_tokens = _keyword_tokens(atom.content)
-        overlap = len(query_tokens & content_tokens)
         character_weight = 2 if character_id and atom.character_id == character_id else 0
         scope_weight = {
             "visitor_character": 3,
@@ -739,11 +831,13 @@ def select_memory_atoms_for_prompt(
         }.get(atom.scope, 0)
         return (
             1 if atom.pinned else 0,
-            _HORIZON_RANK.get(atom.horizon, 0),
+            _memory_atom_topic_relevance(atom, query_tokens),
+            _memory_atom_recency_score(atom, now=now),
+            _memory_atom_reinforcement_score(atom),
             character_weight,
             scope_weight,
-            overlap,
             float(atom.importance or 0.0),
+            _HORIZON_RANK.get(atom.horizon, 0),
             float(atom.confidence or 0.0),
             atom.updated_at or atom.created_at or "",
             atom.id,

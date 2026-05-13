@@ -71,6 +71,9 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def main(argv: Sequence[str] | None = None) -> int:
+    from fablemap_api.infrastructure.env import load_env_file
+
+    load_env_file()
     parser = build_parser()
     args = parser.parse_args(argv)
     return run_api(args)

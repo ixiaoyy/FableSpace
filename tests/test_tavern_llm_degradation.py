@@ -149,6 +149,54 @@ def test_visitor_name_is_used_in_prompt_and_persisted(monkeypatch):
         assert [message.visitor_name for message in history] == ["Mina", "Mina"]
 
 
+def test_core_web_prompt_injects_npc_identity_and_voice_contract(monkeypatch):
+    with TemporaryDirectory() as tmpdir:
+        service = _service(tmpdir)
+        tavern = _create_open_tavern(service)
+        character = tavern.characters[0]
+        character.description = "雾港旧店的失物看守人，专门替回访者保管旧车票。"
+        character.personality = "慢热、低声、会先确认访客是否迷路。"
+        character.scenario = "Mira 正在柜台后整理雨夜失物。"
+        character.system_prompt = "只以失物看守人的身份回应。"
+        character.mes_example = "Mira把车票夹回本子：先别急，你要找哪一段路？"
+        character.tags = ["失物看守人", "旧车票"]
+        character.traits = ["慢热", "低声"]
+        service.tavern_store.update_tavern(tavern)
+        service.tavern_store.save_llm_config(
+            tavern.id,
+            LLMConfig(backend="openai", model="gpt-4o-mini", api_key="sk-test"),
+        )
+
+        captured = {}
+
+        class Response:
+            content = "我在，先说你要找哪张车票。"
+            usage = {"total_tokens": 8}
+
+        class CapturingClient:
+            def complete(self, messages):
+                captured["messages"] = messages
+                return Response()
+
+        monkeypatch.setattr("fablemap_api.core.web.service.create_client", lambda config: CapturingClient())
+
+        payload = service.tavern_chat_payload(
+            tavern_id=tavern.id,
+            character_id="char_degrade",
+            message="你是谁？",
+            visitor_id="visitor_voice",
+            visitor_name="Mina",
+        )
+
+        assert payload["degraded"] is False
+        system_text = "\n".join(m.get("content", "") for m in captured["messages"] if m.get("role") == "system")
+        assert "【NPC身份与口吻底线】" in system_text
+        assert "你现在只能作为「Mira」回应" in system_text
+        assert "失物看守人" in system_text
+        assert "慢热、低声" in system_text
+        assert "不要自称 AI" in system_text
+
+
 def test_display_message_is_persisted_while_full_prompt_reaches_llm(monkeypatch):
     with TemporaryDirectory() as tmpdir:
         service = _service(tmpdir)

@@ -163,9 +163,14 @@ async function checkCase(browser, testCase) {
   await expect(sidebar.locator('a[aria-label="探索"]')).toBeAttached()
   await expect(sidebar.locator(`a[aria-label="${testCase.kind === "home" ? "首页" : "探索"}"]`)).toHaveAttribute("aria-current", "page")
 
-  const userCluster = surface.locator('[data-soul-link-user-cluster="shared"]')
+  const userCluster = testCase.kind === "home"
+    ? surface.locator('[data-soul-link-user-cluster="shared"]')
+    : surface.locator('[data-soul-link-top-status="real-dom"]')
   await expect(userCluster).toBeAttached()
   await expect(userCluster.locator('[data-soul-link-notification="real-button"]')).toBeAttached()
+  if (testCase.kind === "discover") {
+    await expect(userCluster.locator('[data-soul-link-top-user-card="real-dom"]')).toBeAttached()
+  }
   const expectedUserName = testCase.variant === "black" ? "USER_07" : "星野奈奈"
   await expect(userCluster.locator('[data-soul-link-user-avatar="real-image"]')).toBeAttached()
   await expect(userCluster.locator('[data-soul-link-user-name="real-text"]')).toContainText(expectedUserName)

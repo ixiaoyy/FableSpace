@@ -84,7 +84,7 @@ http://127.0.0.1:8950/
 
 ## Docker 部署 / 本地容器运行
 
-仓库提供两服务 Docker Compose 配置：`backend` 运行 FastAPI v1 API，`frontend` 用 nginx 托管 React Router 静态构建并代理 `/api` 到后端。
+仓库提供两服务 Docker Compose 配置：`backend` 运行 FastAPI v1 API，`frontend` 用 nginx 托管 React Router 静态构建并代理 `/api` 到后端；数据库连接从 `.env` 的 `FABLEMAP_DATABASE_URL` 读取。
 
 ```powershell
 # 可选：复制环境变量模板并按需调整端口 / 数据库 URL
@@ -98,11 +98,26 @@ http://127.0.0.1:3000/
 http://127.0.0.1:8000/api/v1/health
 ```
 
-默认情况下后端使用真实数据库存储：未设置数据库 URL 时会在后端输出目录创建 `fablemap.sqlite3`；生产部署优先设置 `FABLEMAP_DATABASE_URL`（`FABLEMAP_MYSQL_URL` 仅作为旧别名）。如需本地兼容旧文件存储，可显式设置 `FABLEMAP_STORAGE_BACKEND=json`。店主 LLM API Key 仍应通过 FableMap 的店主配置写入，不要放入共享 `.env`。
+Docker Compose 不再硬编码数据库，也不内置启动 MySQL；它会把 `.env` 中的 `FABLEMAP_DATABASE_URL` 原样传给后端。生产 / 联调环境请在 `.env` 中设置完整 SQLAlchemy URL，例如 `mysql+pymysql://user:password@host:3306/fablemap?charset=utf8mb4`。后端生成文件仍保存在 Docker volume `fablemap_data`。
+
+直接在宿主机运行 Python API 入口（如 `py -3 -m fablemap_api api` 或 `uvicorn fablemap_api.main:app`）时，后端会自动读取项目根目录 `.env`；只有环境变量和 `.env` 都没有数据库 URL 时，才会在后端输出目录创建 `fablemap.sqlite3`。
+
+生产部署优先设置 `FABLEMAP_DATABASE_URL`（`FABLEMAP_MYSQL_URL` 仅作为旧别名）。如需本地兼容旧文件存储，可显式设置 `FABLEMAP_STORAGE_BACKEND=json`。店主 LLM API Key 仍应通过 FableMap 的店主配置写入，不要放入共享 `.env`。
 
 ### 旧文件数据迁移到 MySQL
 
 下一阶段正式运行时存储目标是 MySQL。旧 `.fablemap-api` 下的 JSON/file runtime 数据只作为迁移输入，不继续作为生产权威存储：
+
+如果当前已有本地 SQLite 数据库（默认路径 `.fablemap-api/fablemap.sqlite3`），优先用 `.env` 中的 `FABLEMAP_DATABASE_URL` 做非破坏性迁移：
+
+```powershell
+$env:PYTHONPATH = "$PWD\backend\src"
+py -3 -m fablemap_api.infrastructure.migrate_database
+```
+
+该命令按主键 upsert 到目标数据库，不删除目标库已有的额外记录，也不会删除本地 SQLite 文件。
+
+如需迁移更旧的 JSON/file runtime 数据，可使用：
 
 ```powershell
 $env:PYTHONPATH = "$PWD\backend\src"

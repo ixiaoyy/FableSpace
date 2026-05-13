@@ -23,14 +23,33 @@ assert.ok(
 assert.ok(
   referenceSource.includes('data-soul-link-discover-title="real-text"') &&
     referenceSource.includes('data-soul-link-discover-filter-panel="real-dom"') &&
-    referenceSource.includes('data-soul-link-discover-timeline="real-dom"') &&
     referenceSource.includes('data-soul-link-discover-right-rail="real-dom"'),
-  "discover desktop artboard should expose real DOM title, filter, timeline, and right rail regions",
+  "discover desktop artboard should expose real DOM title, filter, and right rail regions",
+)
+assert.ok(
+  referenceSource.includes("style={boxStyle(artboard, 222, 178, 796, 166)}") &&
+    referenceSource.includes('groupIndex === 1 ? "grid-cols-2 gap-x-2 gap-y-1.5"') &&
+    referenceSource.includes('groupIndex === 1 ? "min-h-6" : "min-h-8"') &&
+    referenceSource.includes("whitespace-nowrap"),
+  "discover filter panel should keep the space-type options compact without overflowing the fixed-height panel",
+)
+assert.ok(
+  referenceSource.includes('data-soul-link-discover-hint-card="background-image"') &&
+    referenceSource.includes('data-soul-link-discover-hint-bg="real-image"') &&
+    referenceSource.includes("absolute inset-0 h-full w-full select-none object-cover") &&
+    referenceSource.includes("justify-end p-6"),
+  "discover hint card should use the sky-city image as a background with overlaid copy, matching the design reference",
+)
+assert.ok(
+  !referenceSource.includes('data-soul-link-discover-timeline="real-dom"') &&
+    !combinedSource.includes("时间流"),
+  "discover UI should not render the retired low-value timeline section",
 )
 assert.ok(
   referenceSource.includes('data-soul-link-discover-card="real-card"') &&
+    referenceSource.includes('data-soul-link-discover-card-layout="image-top"') &&
     referenceSource.includes('data-soul-link-discover-card-copy="real-text-layer"'),
-  "discover cards should remain real DOM cards with text layers instead of flat screenshots",
+  "discover cards should remain real DOM image-top cards with text layers instead of flat screenshots",
 )
 assert.ok(
   referenceSource.includes('data-soul-link-discover-square-image="512x512"'),
@@ -62,8 +81,8 @@ assert.ok(
   "radar signal cards should not render nested teaser cards in the compact radar scan view",
 )
 assert.ok(
-  combinedSource.includes("时间流") && combinedSource.includes("探索") && combinedSource.includes("真实坐标"),
-  "discover UI copy should keep visible exploration/timeline/coordinate anchors",
+  combinedSource.includes("探索") && combinedSource.includes("真实坐标"),
+  "discover UI copy should keep visible exploration and coordinate anchors",
 )
 assert.ok(discoverSource.includes('type DiscoverViewMode = "radar" | "cards"'), "discover view-mode contract must remain intact")
 

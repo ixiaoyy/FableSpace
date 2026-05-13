@@ -23,7 +23,7 @@ from fablemap_api.core.gameplay import (
 from fablemap_api.core.group_chat import GroupChatManager, GroupMember
 from fablemap_api.core.llm_clients import LLMConfig as ClientLLMConfig
 from fablemap_api.core.llm_clients import LLMError, create_client
-from fablemap_api.core.memory import auto_create_memories_from_chat
+from fablemap_api.core.memory import auto_create_memories_from_chat, select_memory_atoms_for_prompt
 from fablemap_api.core.output_rules import apply_output_rules, default_output_rules, normalize_output_rules
 from fablemap_api.core.presets import (
     combine_runtime_presets,
@@ -71,6 +71,7 @@ from fablemap_api.core.prompt_builder import (
     ChatMessage as PromptChatMessage
 )
 from fablemap_api.core.hobbies import get_hobby_label, normalize_hobbies
+from fablemap_api.core.npc_voice import build_rules_identity_phrase
 
 from ...domain.group_chat_policy import (
     clamp_chat_history_limit,
@@ -235,11 +236,20 @@ class RuntimeApplicationMixin:
                 tavern=tavern,
                 character_name=character.name,
                 character_prompt=character.system_prompt or character.personality or character.description,
+                character_description=character.description,
+                character_personality=character.personality,
+                character_scenario=character.scenario,
+                character_system_prompt=character.system_prompt,
+                character_mes_example=character.mes_example,
+                character_gender=character.gender,
+                character_tags=character.tags,
+                character_traits=character.traits,
                 message=clean_message,
                 llm_config=llm_config,
                 extra_context=extra_context or [],
                 visitor_state=prompt_visitor_state,
                 visitor_name=visitor_name,
+                prompt_visitor_id=visitor_id,
                 character_id=character_id,
                 first_mes=character.first_mes,
                 hobbies=character.hobbies,
@@ -282,6 +292,16 @@ class RuntimeApplicationMixin:
         self.store.add_chat_message(assistant_message)
         if not _is_rules_backend(llm_config.backend):
             self.store.add_token_usage(tavern_id, max(1, (len(clean_message) + len(response_text)) // 4))
+        try:
+            self._reinforce_referenced_memory_atoms(
+                tavern,
+                visitor_id=visitor_id,
+                character_id=character_id,
+                current_message=clean_message,
+                response_text=response_text,
+            )
+        except Exception as exc:
+            logger.warning("Failed to reinforce referenced memory atoms: %s", exc.__class__.__name__)
 
         # Calculate and update visitor affinity based on chat interaction
         affinity_result = self._update_affinity_from_chat(
@@ -557,11 +577,20 @@ class RuntimeApplicationMixin:
                     tavern=tavern,
                     character_name=character.name,
                     character_prompt=character.system_prompt or character.personality or character.description,
+                    character_description=character.description,
+                    character_personality=character.personality,
+                    character_scenario=character.scenario,
+                    character_system_prompt=character.system_prompt,
+                    character_mes_example=character.mes_example,
+                    character_gender=character.gender,
+                    character_tags=character.tags,
+                    character_traits=character.traits,
                     message=prompt_message,
                     llm_config=llm_config,
                     extra_context=[self._group_history_prompt_item(item, tavern, visitor_display_name) for item in history],
                     visitor_state=prompt_visitor_state,
                     visitor_name=visitor_display_name,
+                    prompt_visitor_id=visitor_id,
                     character_id=character.id,
                     first_mes=character.first_mes,
                     hobbies=character.hobbies,
@@ -634,6 +663,16 @@ class RuntimeApplicationMixin:
             for response in responses
             if response.get("content")
         )
+        try:
+            self._reinforce_referenced_memory_atoms(
+                tavern,
+                visitor_id=visitor_id,
+                character_id="",
+                current_message=clean_message,
+                response_text=assistant_text,
+            )
+        except Exception as exc:
+            logger.warning("Failed to reinforce group memory atoms: %s", exc.__class__.__name__)
         if responses:
             affinity_result = self._update_affinity_from_chat(
                 tavern_id=tavern_id,
@@ -995,16 +1034,25 @@ class RuntimeApplicationMixin:
         tavern: Tavern,
         character_name: str,
         character_prompt: str,
+        character_description: str = "",
+        character_personality: str = "",
+        character_scenario: str = "",
+        character_system_prompt: str = "",
+        character_mes_example: str = "",
+        character_gender: str = "",
+        character_tags: list[str] | None = None,
+        character_traits: list[str] | None = None,
         message: str,
         llm_config: Any,
         extra_context: list[dict[str, Any]],
         visitor_state: VisitorState | None = None,
         visitor_name: str = "",
+        prompt_visitor_id: str = "",
         character_id: str = "",
         first_mes: str = "",
         hobbies: list[str] | None = None,
     ) -> str:
-        visitor_id = visitor_state.visitor_id if visitor_state else ""
+        visitor_id = str(prompt_visitor_id or (visitor_state.visitor_id if visitor_state else "") or "").strip()
         
         # 1. Fetch relevant state cards (needed for both rules and LLM backends)
         all_cards = self.store.list_state_cards(tavern_id=tavern.id)
@@ -1029,6 +1077,12 @@ class RuntimeApplicationMixin:
             # Fallback logic for rules backend with Hobbies and StateCards awareness
             hobbies = normalize_hobbies(hobbies)
             hobby_label = get_hobby_label(random.choice(hobbies)) if hobbies else ""
+            identity_phrase = build_rules_identity_phrase(
+                description=character_description,
+                personality=character_personality or character_prompt,
+                tags=character_tags or [],
+            )
+            identity_suffix = f"，{identity_phrase}" if identity_phrase else ""
             
             # Mention a recent state card if available
             state_mention = ""
@@ -1048,17 +1102,17 @@ class RuntimeApplicationMixin:
 
             if hobby_label:
                 fallbacks = [
-                    f"{character_name}点了点头{sim_feeling}，看起来正忙着摆弄他的{hobby_label}{state_mention}，但还是分心听你说话。",
-                    f"{character_name}微微一笑{sim_feeling}，似乎想到了和{hobby_label}相关的事{state_mention}，随后轻声回应了你。",
-                    f"{character_name}停下了手中关于{hobby_label}的动作{state_mention}，抬头看向你{sim_feeling}，等待你继续说下去。",
-                    f"{character_name}思考片刻{sim_feeling}，或许是在想如何把{hobby_label}的精髓分享给你{state_mention}，他耐心地听着。",
+                    f"{character_name}点了点头{identity_suffix}{sim_feeling}，看起来正忙着摆弄他的{hobby_label}{state_mention}，但还是分心听你说话。",
+                    f"{character_name}微微一笑{identity_suffix}{sim_feeling}，似乎想到了和{hobby_label}相关的事{state_mention}，随后轻声回应了你。",
+                    f"{character_name}停下了手中关于{hobby_label}的动作{state_mention}，抬头看向你{identity_suffix}{sim_feeling}，等待你继续说下去。",
+                    f"{character_name}思考片刻{identity_suffix}{sim_feeling}，或许是在想如何把{hobby_label}的精髓分享给你{state_mention}，他耐心地听着。",
                 ]
                 return random.choice(fallbacks)
             
             if state_mention or sim_feeling:
-                return f"{character_name}静静地听着{state_mention}{sim_feeling}，若有所思地看向你。"
+                return f"{character_name}静静地听着{identity_suffix}{state_mention}{sim_feeling}，若有所思地看向你。"
                 
-            return f"{character_name}点了点头，似乎在听你说话，但暂时没有更多回复。"
+            return f"{character_name}点了点头{identity_suffix}，似乎在听你说话，但暂时没有更多回复。"
 
         client = create_client(
             ClientLLMConfig(
@@ -1103,12 +1157,44 @@ class RuntimeApplicationMixin:
         # Relationship graph context (confirmed edges for this tavern/character)
         relationship_context = self._fetch_relationship_context(tavern.id, character_id)
 
+        # 4. Load structured memories for this visitor/character before prompt build.
+        memory_policy = safe_memory_policy(getattr(tavern, "memory_policy", {}))
+        prompt_memory_atoms = []
+        if memory_policy.get("mode") in {"structured", "balanced", "long_context"}:
+            try:
+                visible_atoms = [
+                    atom
+                    for atom in self.store.list_memory_atoms(tavern.id)
+                    if can_view_memory_atom(atom, tavern, visitor_id)
+                ]
+                prompt_memory_atoms = select_memory_atoms_for_prompt(
+                    visible_atoms,
+                    visitor_id=visitor_id,
+                    character_id=character_id,
+                    current_message=message,
+                    budget_tokens=memory_policy.get("budget_tokens", 1200),
+                    include_short=bool(memory_policy.get("short_term", True)),
+                    include_mid=bool(memory_policy.get("mid_term", True)),
+                    include_long=bool(memory_policy.get("long_term", True)),
+                )
+            except Exception as exc:
+                logger.warning("Failed to load memory atoms for prompt: %s", exc.__class__.__name__)
+                prompt_memory_atoms = []
+
         # 4. Initialize PromptBuilder
+        legacy_system_prompt = character_prompt if character_prompt.startswith("你是") else ""
+        legacy_personality = "" if legacy_system_prompt else character_prompt
         config = PromptBuildConfig(
             char_name=character_name,
-            char_personality=character_prompt if not character_prompt.startswith("你是") else "",
-            char_system_prompt=character_prompt if character_prompt.startswith("你是") else "",
+            char_description=character_description,
+            char_personality=character_personality or legacy_personality,
+            char_scenario=character_scenario,
+            char_system_prompt=character_system_prompt or legacy_system_prompt,
+            char_mes_example=character_mes_example,
+            char_gender=character_gender,
+            char_tags=character_tags or [],
             char_hobbies=hobbies or [],
+            char_traits=character_traits or [],
             char_first_mes=first_mes,
             tavern_name=tavern.name,
             tavern_lat=tavern.lat,
@@ -1117,6 +1203,8 @@ class RuntimeApplicationMixin:
             visitor_relationship_stage=visitor_state.relationship_stage if visitor_state else "",
             visitor_relationship_strength=visitor_state.relationship_strength if visitor_state else 0.0,
             visitor_visit_count=visitor_state.visit_count if visitor_state else 0,
+            memory_atoms=[atom.to_dict() if hasattr(atom, "to_dict") else atom for atom in prompt_memory_atoms],
+            memory_budget_tokens=int(memory_policy.get("budget_tokens", 0) or 0),
             state_cards=[c.to_dict() if hasattr(c, "to_dict") else c for c in confirmed_cards],
             skill_pack_prompt=skill_pack_prompt,
             npc_feeling=npc_feeling,
@@ -1132,6 +1220,67 @@ class RuntimeApplicationMixin:
         if not response_text:
             raise LLMError("LLM returned an empty response")
         return response_text
+
+    def _reinforce_referenced_memory_atoms(
+        self,
+        tavern: Tavern,
+        *,
+        visitor_id: str,
+        character_id: str,
+        current_message: str,
+        response_text: str,
+    ) -> list[dict[str, Any]]:
+        memory_policy = safe_memory_policy(getattr(tavern, "memory_policy", {}))
+        if memory_policy.get("mode") not in {"structured", "balanced", "long_context"}:
+            return []
+
+        visible_atoms = [
+            atom
+            for atom in self.store.list_memory_atoms(tavern.id)
+            if can_view_memory_atom(atom, tavern, visitor_id)
+        ]
+        prompt_atoms = select_memory_atoms_for_prompt(
+            visible_atoms,
+            visitor_id=visitor_id,
+            character_id=character_id,
+            current_message=current_message,
+            budget_tokens=memory_policy.get("budget_tokens", 1200),
+            include_short=bool(memory_policy.get("short_term", True)),
+            include_mid=bool(memory_policy.get("mid_term", True)),
+            include_long=bool(memory_policy.get("long_term", True)),
+        )
+        now = _utc_now_iso()
+        reinforced: list[dict[str, Any]] = []
+        for atom in prompt_atoms:
+            if not self._memory_atom_reply_references(atom, response_text):
+                continue
+            metadata = dict(atom.metadata or {})
+            metadata["reinforcement_count"] = int(metadata.get("reinforcement_count") or 0) + 1
+            metadata["last_reinforced_at"] = now
+            metadata["flagged_wrong"] = False
+            metadata.pop("excluded_from_prompt", None)
+            atom.metadata = metadata
+            atom.importance = min(1.0, float(atom.importance or 0.0) + 0.05)
+            atom.confidence = min(1.0, float(atom.confidence or 0.0) + 0.02)
+            atom.updated_at = now
+            saved = self.store.save_memory_atom(tavern.id, atom)
+            reinforced.append(saved.to_dict() if hasattr(saved, "to_dict") else dict(saved))
+        return reinforced
+
+    @classmethod
+    def _memory_atom_reply_references(cls, atom: Any, response_text: str) -> bool:
+        content = clean_text(getattr(atom, "content", ""), max_length=500).lower()
+        reply = clean_text(response_text, max_length=2400).lower()
+        if not content or not reply:
+            return False
+        if content in reply:
+            return True
+        content_grams = cls._extract_ngrams(content, 2)
+        reply_grams = cls._extract_ngrams(reply, 2)
+        overlap = content_grams & reply_grams
+        if len(overlap) < 3:
+            return False
+        return len(overlap) / max(1, min(len(content_grams), len(reply_grams))) >= 0.18
 
     @staticmethod
     def _recency_bonus(timestamp_str: str | None) -> float:

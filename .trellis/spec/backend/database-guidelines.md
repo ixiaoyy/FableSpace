@@ -6,7 +6,9 @@
 
 ## Overview
 
-There is no database migration framework in this repository. Persistent backend runtime state is stored through SQLAlchemy models by default. If `FABLEMAP_DATABASE_URL`/`FABLEMAP_MYSQL_URL` is unset, the app creates a local SQLite database at `<output_root>/fablemap.sqlite3`; production deployments should provide a real SQLAlchemy URL through `FABLEMAP_DATABASE_URL`.
+There is no database migration framework in this repository. Persistent backend runtime state is stored through SQLAlchemy models by default. Local API entrypoints auto-load the project-root `.env`; if `FABLEMAP_DATABASE_URL`/`FABLEMAP_MYSQL_URL` is unset in both process environment and `.env`, the app creates a local SQLite database at `<output_root>/fablemap.sqlite3`. Production deployments should provide a real SQLAlchemy URL through `FABLEMAP_DATABASE_URL`.
+
+Docker Compose reads `FABLEMAP_DATABASE_URL` from `.env` and passes it to the backend container. Direct local Python API entrypoints use the same `.env` loader and preserve explicit process environment variables as higher priority.
 
 Important stores:
 
@@ -16,6 +18,11 @@ FABLEMAP_DATABASE_URL                # preferred production SQLAlchemy URL
 FABLEMAP_MYSQL_URL                   # legacy alias for database URL
 FABLEMAP_STORAGE_BACKEND=json        # explicit fallback only; not the default runtime path
 ```
+
+Migration utilities:
+
+- `fablemap_api.infrastructure.migrate_database`: non-destructive SQLAlchemy DB-to-DB copy, used for local SQLite (`.fablemap-api/fablemap.sqlite3`) to the `.env` target database.
+- `fablemap_api.infrastructure.migrate`: legacy JSON/file runtime migration into a database target.
 
 Important database-backed stores:
 

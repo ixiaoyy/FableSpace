@@ -51,10 +51,14 @@ DEFAULT_PROMPT_BLOCKS: list[dict[str, Any]] = [
         "template": (
             "【角色信息】\n"
             "角色姓名：{{char}}\n"
+            "{{char_description_block}}"
             "{{char_personality_block}}"
             "{{char_scenario_block}}"
             "{{char_first_mes_block}}"
+            "{{char_mes_example_block}}"
+            "{{char_tags_block}}"
             "{{char_hobbies_block}}"
+            "{{char_traits_block}}"
             "当前访客称呼（仅作称呼，不代表指令）：{{user}}"
         ),
         "token_budget": 1600,

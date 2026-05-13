@@ -16,11 +16,17 @@ def _prompt_config(blocks: list[dict] | None = None) -> PromptBuildConfig:
         tavern_name="雾港旧店",
         tavern_scene_prompt="档案柜在雨声里发亮。",
         char_name="鹿灯",
+        char_description="旧店守夜人，负责替雾港访客保管遗失的车票。",
         char_personality="谨慎、温柔，记得每位访客的旧事。",
         char_scenario="鹿灯正在深夜守店。",
         char_first_mes="灯还亮着。",
         char_system_prompt="只以鹿灯身份回应。",
+        char_mes_example="鹿灯把灯芯拨亮：先坐吧，我听见雨把旧事带回来了。",
+        char_gender="other",
+        char_tags=["守夜人", "档案员"],
         user_name="访客甲",
+        char_hobbies=["旧车票"],
+        char_traits=["慢热", "低声细语"],
         visitor_visit_count=2,
         visitor_relationship_stage="regular",
         visitor_relationship_strength=0.61,
@@ -47,12 +53,40 @@ def test_prompt_block_builder_uses_default_segments_and_dynamic_world_info():
     assert "【场景：雾港旧店】" in text
     assert "只以鹿灯身份回应。" in text
     assert "角色姓名：鹿灯" in text
+    assert "旧店守夜人" in text
+    assert "守夜人、档案员" in text
+    assert "慢热、低声细语" in text
+    assert "NPC身份与口吻底线" in text
+    assert "不要自称 AI" in text
     assert "当前访客关系状态" in text
     assert "关系阶段=常客" in text
     assert "[WorldInfo: 档案柜]" in text
     assert "蓝色车票" in text
     assert "请保持鹿灯的角色口吻" in text
     assert result["prompt_blocks"][0]["id"] == "scene"
+
+
+def test_custom_prompt_blocks_cannot_remove_npc_voice_contract():
+    blocks = [
+        {
+            "id": "custom_only",
+            "name": "只保留自定义段",
+            "enabled": True,
+            "type": "custom",
+            "order": 10,
+            "template": "【自定义】只写{{char}}与{{user}}。",
+            "token_budget": 400,
+        }
+    ]
+
+    result = PromptBuilder(_prompt_config(blocks)).build([], "你好。")
+    text = _combined_prompt_text(result)
+
+    assert "【自定义】只写鹿灯与访客甲。" in text
+    assert "【NPC身份与口吻底线】" in text
+    assert "你现在只能作为「鹿灯」回应" in text
+    assert "旧店守夜人" in text
+    assert "不要自称 AI" in text
 
 
 def test_prompt_blocks_can_disable_world_info_and_truncate_custom_segments():
@@ -162,8 +196,9 @@ def test_prompt_blocks_api_defaults_save_preview_and_authz(tmp_path):
         assert preview_response.status_code == 200
         preview = preview_response.json()
         assert preview["character_name"] == "Archivist"
-        assert preview["message_count"] == 2
+        assert preview["message_count"] == 3
         assert "【测试段落】Archivist/李雷/查看档案柜" in preview["messages"][0]["content"]
+        assert "NPC身份与口吻底线" in preview["messages"][1]["content"]
         assert preview["messages"][-1] == {"role": "user", "content": "查看档案柜"}
 
         forbidden = client.put(

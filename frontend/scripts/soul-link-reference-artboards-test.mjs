@@ -59,6 +59,7 @@ assert.ok(existsSync(newAssetRoot), "new SoulLink 05-10 asset root should exist"
 assert.ok(!existsSync(resolve(repoRoot, "frontend/app/assets/homepage")), "old homepage design assets should be deleted from runtime assets")
 assert.ok(!existsSync(resolve(repoRoot, "frontend/app/assets/discover")), "old discover/search design assets should be deleted from runtime assets")
 assert.ok(existsSync(discoverCardsRoot), "discover atomic card materials should live under shared discover/cards")
+assert.ok(existsSync(resolve(discoverAssetRoot, "world-status")), "discover world status background assets should live under discover/world-status")
 assert.ok(!existsSync(resolve(newAssetRoot, "discover-light")), "light discover runtime folder must not contain screenshot/card variants; use shared discover/cards")
 assert.ok(!existsSync(resolve(newAssetRoot, "discover-black")), "black discover runtime folder must not contain screenshot/card variants; use shared discover/cards")
 assert.ok(!existsSync(resolve(discoverAssetRoot, "reference")), "discover runtime assets must not contain full-page screenshot reference folders")
@@ -86,8 +87,8 @@ for (const filename of [
 
 assert.deepEqual(
   readdirSync(discoverAssetRoot).sort(),
-  ["cards"],
-  "discover runtime root should only expose atomic card assets, not screenshot reference folders",
+  ["cards", "world-status"],
+  "discover runtime root should only expose atomic component assets, not screenshot reference folders",
 )
 
 for (const [file, dimensions, sha256] of archivedReferences) {
@@ -140,6 +141,8 @@ for (const [file, dimensions] of [
   ["frontend/app/assets/soul-link-05-10/discover/cards/card-library-wide-square.png", "512x512"],
   ["frontend/app/assets/soul-link-05-10/discover/cards/card-compass-square.png", "512x512"],
   ["frontend/app/assets/soul-link-05-10/discover/cards/card-plane-square.png", "512x512"],
+  ["frontend/app/assets/soul-link-05-10/discover/world-status/bg-light.png", "420x460"],
+  ["frontend/app/assets/soul-link-05-10/discover/world-status/bg-black.png", "420x460"],
 ]) {
   const info = readPngInfo(resolve(repoRoot, file))
   assert.equal(`${info.width}x${info.height}`, dimensions, `${file} should preserve locked crop dimensions`)
@@ -234,6 +237,13 @@ for (const marker of [
   "srcSet={`${inviteCard.src} 1x, ${inviteCard.src2x} 2x`}",
   "function SoulLinkUserCluster",
   'data-soul-link-user-cluster="shared"',
+  'data-soul-link-top-status="real-dom"',
+  'data-soul-link-world-time-card="dynamic-text"',
+  'data-soul-link-world-time-value="dynamic-text"',
+  'data-soul-link-world-time-english="real-text"',
+  'data-soul-link-top-user-card="real-dom"',
+  "function SoulLinkTopStatusBar",
+  "WORLD TIME",
   'data-soul-link-current-coordinate="shared"',
   'data-soul-link-notification="real-button"',
   'data-soul-link-user-avatar="real-image"',
@@ -258,14 +268,31 @@ for (const marker of [
   'data-soul-link-feed-thumb="real-image"',
   'data-soul-link-feed-title="real-text"',
   'data-soul-link-discover-filter-panel="real-dom"',
-  'data-soul-link-discover-timeline="real-dom"',
+  'data-soul-link-discover-hint-card="background-image"',
+  'data-soul-link-discover-hint-bg="real-image"',
   'data-soul-link-discover-right-rail="real-dom"',
+  'data-soul-link-world-status-card="dynamic-dom"',
+  'data-soul-link-world-status-bg="real-image"',
+  'data-soul-link-world-status-online="dynamic-text"',
+  'data-soul-link-world-status-signal="dynamic-text"',
+  'data-soul-link-world-status-anomaly="dynamic-text"',
+  'data-soul-link-world-status-english="real-text"',
+  'data-soul-link-world-status-live="real-text"',
+  "WORLD STATUS",
+  "function discoverWorldStatusFromTaverns",
+  "discover/world-status/bg-light.png",
+  'data-soul-link-recommended-echo-favorite="real-dom"',
+  'data-soul-link-recommended-echo-favorite-count="real-text"',
+  "favoriteCount:",
+  'data-soul-link-discover-sort-controls="real-dom"',
+  'data-soul-link-discover-sort-label="real-text"',
+  'data-soul-link-discover-view-button="grid-active"',
+  "function DiscoverViewIcon",
   'data-soul-link-discover-card-cover="real-image"',
+  'data-soul-link-discover-card-layout="image-top"',
   'data-soul-link-discover-card-title="real-text"',
   'data-soul-link-discover-card-copy="real-text-layer"',
   'data-soul-link-discover-square-image="512x512"',
-  'data-soul-link-sidebar-invite="real-dom"',
-  'data-soul-link-sidebar-invite-copy="real-text"',
   "const DISCOVER_CARD_IMAGES =",
   "function withDiscoverSquareFeedImages",
   "function withDiscoverSquareOnlineImages",
@@ -322,6 +349,11 @@ for (const forbidden of [
   "SIDEBAR_INVITE_CARDS",
   "homeBlackSidePanel",
   "home-black/sidebar.png",
+  "useDiscoverDomInvite",
+  'data-soul-link-sidebar-invite="real-dom"',
+  "data-soul-link-sidebar-invite-copy",
+  'data-soul-link-discover-world-orbit="real-svg"',
+  ">1,298<",
   "homeBlackCardBoxes",
   "slice(0, isBlack",
   "forceVisible && !isBlack",
@@ -341,6 +373,9 @@ for (const forbidden of [
   "Lv.28.png",
   "世界脉搏.png",
   "每日一句.png",
+  "▦",
+  "☰",
+  "推荐⌄",
 ]) {
   assert.ok(!componentSource.includes(forbidden), `runtime real-DOM component must not use full artboard/prototype pattern: ${forbidden}`)
 }

@@ -4,7 +4,13 @@ from typing import Any
 
 from fastapi import APIRouter, Request
 
-from ...contracts.memories import MemoryAtomWriteRequest, MemoryImportanceRequest, MemorySummarizeRequest, MemoryTruncateRequest
+from ...contracts.memories import (
+    MemoryAtomFeedbackRequest,
+    MemoryAtomWriteRequest,
+    MemoryImportanceRequest,
+    MemorySummarizeRequest,
+    MemoryTruncateRequest,
+)
 from .common import get_user_id, taverns_service
 
 router = APIRouter(prefix="/taverns", tags=["memories"])
@@ -98,6 +104,16 @@ def update_memory_atom(
     data: MemoryAtomWriteRequest,
 ) -> dict[str, Any]:
     return taverns_service(request).update_memory_atom(tavern_id, memory_id, data.to_payload(), get_user_id(request))
+
+
+@router.post("/{tavern_id}/memory-atoms/{memory_id}/feedback")
+def feedback_memory_atom(
+    request: Request,
+    tavern_id: str,
+    memory_id: str,
+    data: MemoryAtomFeedbackRequest,
+) -> dict[str, Any]:
+    return taverns_service(request).feedback_memory_atom(tavern_id, memory_id, data.to_payload(), get_user_id(request))
 
 
 @router.delete("/{tavern_id}/memory-atoms/{memory_id}")

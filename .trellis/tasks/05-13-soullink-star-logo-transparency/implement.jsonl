@@ -1,0 +1,4 @@
+{"file": ".trellis/workflow.md", "reason": "Project workflow and conventions"}
+{"file": ".trellis/spec/frontend/index.md", "reason": "Frontend development guide"}
+{"file": ".trellis/spec/frontend/image-asset-guidelines.md", "reason": "Project-local image asset replacement and verification"}
+{"file": ".trellis/spec/frontend/quality-guidelines.md", "reason": "Frontend build validation for imported assets"}

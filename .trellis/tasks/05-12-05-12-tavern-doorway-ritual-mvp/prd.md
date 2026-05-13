@@ -35,4 +35,17 @@
 
 ## 验证记录
 
-待实现后填写。
+2026-05-12 已完成：
+
+- `node frontend/scripts/tavern-doorway-ritual-test.mjs`：PASS，确认门口仪式 marker、真实坐标门牌 copy、接待 NPC 状态、CTA 不自动发送且只填 composer。
+- `npm --prefix .\frontend run typecheck`：PASS。
+- `npm --prefix .\frontend test`：PASS，新增 `tavern-doorway-ritual-test.mjs` 已纳入全量前端脚本链。
+- `npm --prefix .\frontend run build`：PASS。
+- `git diff --check`：PASS。
+- Playwright 自验收：PASS。开发服务器实际占用 `http://127.0.0.1:5175`（5173/5174 已被占用自动顺延），脚本 `node frontend/scripts/playwright-tavern-doorway-check.mjs` 完成桌面 + 窄屏验证。
+
+## Playwright 证据
+
+- Report：`artifacts/playwright/tavern-doorway-ritual/report.md`
+- Desktop screenshot：`artifacts/playwright/tavern-doorway-ritual/desktop-1440.png`
+- Mobile screenshot：`artifacts/playwright/tavern-doorway-ritual/mobile-390.png`

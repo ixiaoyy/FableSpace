@@ -1,0 +1,68 @@
+{
+  "id": "discover-layout-overflow-fix",
+  "name": "discover-layout-overflow-fix",
+  "title": "Fix discover page layout overflow",
+  "description": "",
+  "status": "completed",
+  "dev_type": "frontend",
+  "scope": null,
+  "package": null,
+  "priority": "P2",
+  "creator": "lijin",
+  "assignee": "lijin",
+  "createdAt": "2026-05-12",
+  "completedAt": "2026-05-12",
+  "branch": null,
+  "base_branch": "main",
+  "worktree_path": null,
+  "current_phase": 4,
+  "next_action": [
+    {
+      "phase": 1,
+      "action": "brainstorm"
+    },
+    {
+      "phase": 2,
+      "action": "research"
+    },
+    {
+      "phase": 3,
+      "action": "implement"
+    },
+    {
+      "phase": 4,
+      "action": "check"
+    },
+    {
+      "phase": 5,
+      "action": "update-spec"
+    },
+    {
+      "phase": 6,
+      "action": "record-session"
+    }
+  ],
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [],
+  "parent": null,
+  "relatedFiles": [
+    "frontend/app/components/soul-link-reference-artboards.tsx"
+  ],
+  "notes": "Fixed /discover SoulLink desktop card density/overflow; build and Playwright desktop+narrow checks passed. In-app Browser visual check timed out, standalone Playwright evidence recorded.",
+  "meta": {
+    "validation": [
+      "node .\\frontend\\scripts\\discover-pc-polish-test.mjs",
+      "node .\\frontend\\scripts\\first-minute-guide-test.mjs",
+      "node .\\frontend\\scripts\\soul-link-reference-artboards-test.mjs",
+      "npm --prefix .\\frontend run build",
+      "node .trellis/tasks/05-12-discover-layout-overflow-fix/artifacts/playwright/discover-layout-check.mjs"
+    ],
+    "screenshots": [
+      ".trellis/tasks/05-12-discover-layout-overflow-fix/artifacts/playwright/discover-light-desktop-fixed.png",
+      ".trellis/tasks/05-12-discover-layout-overflow-fix/artifacts/playwright/discover-light-narrow-fixed.png"
+    ],
+    "grill_me_verdict": "PASS"
+  }
+}

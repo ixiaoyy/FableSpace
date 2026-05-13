@@ -677,6 +677,477 @@ npm --prefix frontend run typecheck
 npm --prefix frontend run build
 ```
 
+## Scenario: runtime MemoryAtom prompt injection
+
+### 1. Scope / Trigger
+
+Use this contract when changing v1 chat runtime prompt assembly in
+`backend/src/fablemap_api/application/services/runtime.py`. Structured
+memories are useful only if the chat runtime both persists them after a turn
+and retrieves visible/relevant atoms before the next LLM call.
+
+### 2. Signatures
+
+Runtime call sites:
+
+```python
+send_chat(..., visitor_id: str, character_id: str, message: str, ...)
+send_group_chat(..., visitor_id: str, message: str, ...)
+_chat_response_text(..., prompt_visitor_id: str = "", character_id: str = "", ...)
+```
+
+Memory selection helper:
+
+```python
+select_memory_atoms_for_prompt(
+    atoms,
+    visitor_id,
+    character_id,
+    current_message,
+    budget_tokens=1200,
+    include_short=True,
+    include_mid=True,
+    include_long=True,
+    limit=24,
+) -> list[MemoryAtom]
+```
+
+Prompt carrier:
+
+```python
+PromptBuildConfig(memory_atoms=[...], memory_budget_tokens=int)
+```
+
+### 3. Contracts
+
+- `auto_create_memories_from_chat(...)` persists MemoryAtom records after a
+  successful chat turn; the next LLM prompt must load them back when
+  `safe_memory_policy(tavern.memory_policy).mode` is one of
+  `structured`, `balanced`, or `long_context`.
+- Runtime must use the actual request visitor identity (`prompt_visitor_id`)
+  even when `VisitorState` does not exist yet. Do not rely only on
+  `visitor_state.visitor_id`.
+- Runtime must filter loaded atoms with `can_view_memory_atom(atom, tavern,
+  visitor_id)` before prompt selection so other visitors' private memories and
+  owner-only notes cannot leak through generated replies.
+- Selection must reuse `select_memory_atoms_for_prompt(...)`, including horizon
+  toggles and `budget_tokens` from `safe_memory_policy(...)`.
+- The prompt must receive plain dicts via `PromptBuildConfig.memory_atoms`; the
+  rendered prompt section is produced by `PromptBuilder` /
+  `format_memory_atoms_for_prompt(...)`.
+- Errors while loading memories should degrade to no memory context and log only
+  the exception class, not memory contents.
+
+### 4. Validation & Error Matrix
+
+| Case | Expected |
+|------|----------|
+| Balanced/structured memory policy + current visitor private atom | Prompt contains `当前访客结构化记忆` and the atom content |
+| Other visitor private atom exists | Prompt does not contain that atom |
+| Owner-only atom exists | Visitor prompt does not contain that atom |
+| No `VisitorState` yet but request has `visitor_id` | Visitor's existing MemoryAtom can still be injected |
+| Memory policy mode `off` / `visitor_state` | No structured MemoryAtom prompt block |
+| Store memory loading raises | Chat continues without memory context; no memory content in logs |
+
+### 5. Good/Base/Bad Cases
+
+- Good: a visitor-specific `visibility="private"` atom about “茉莉茶/靠窗座位”
+  appears in the current visitor's prompt after policy allows structured memory.
+- Base: no atoms or zero budget yields no memory prompt but chat still completes.
+- Bad: reading all `self.store.list_memory_atoms(tavern.id)` directly into
+  `PromptBuildConfig` without `can_view_memory_atom(...)`; that can leak another
+  visitor's private memory through the NPC answer.
+
+### 6. Tests Required
+
+Focused tests must assert both positive injection and privacy filtering:
+
+```powershell
+py -3 -m pytest -q backend/tests/test_v1_dynamic_npc_responses.py::test_runtime_prompt_loads_visible_memory_atoms_for_current_visitor --tb=short
+py -3 -m pytest -q backend/tests/test_v1_dynamic_npc_responses.py tests/test_tavern_memory_atoms.py::test_structured_memory_is_injected_into_chat_prompt tests/test_group_chat.py::test_tavern_group_chat_uses_prompt_builder_context_and_output_rules --tb=short
+py -3 -m compileall -q backend/src
+```
+
+### 7. Wrong vs Correct
+
+#### Wrong
+
+```python
+config = PromptBuildConfig(
+    # ...
+    memory_atoms=[],  # silently drops persisted structured memories
+)
+```
+
+or:
+
+```python
+memory_atoms = self.store.list_memory_atoms(tavern.id)
+config = PromptBuildConfig(memory_atoms=[atom.to_dict() for atom in memory_atoms])
+```
+
+The second version leaks memories across visitor/owner visibility boundaries.
+
+#### Correct
+
+```python
+memory_policy = safe_memory_policy(tavern.memory_policy)
+visible_atoms = [
+    atom for atom in self.store.list_memory_atoms(tavern.id)
+    if can_view_memory_atom(atom, tavern, visitor_id)
+]
+prompt_memory_atoms = select_memory_atoms_for_prompt(
+    visible_atoms,
+    visitor_id=visitor_id,
+    character_id=character_id,
+    current_message=message,
+    budget_tokens=memory_policy.get("budget_tokens", 1200),
+)
+config = PromptBuildConfig(
+    memory_atoms=[atom.to_dict() for atom in prompt_memory_atoms],
+    memory_budget_tokens=int(memory_policy.get("budget_tokens", 0) or 0),
+)
+```
+
+## Scenario: MemoryAtom prompt retrieval ranking
+
+### 1. Scope / Trigger
+
+Use this contract when changing `select_memory_atoms_for_prompt(...)` in
+`backend/src/fablemap_api/core/memory/core.py`. This selector is the final
+budget gate before MemoryAtom content reaches `PromptBuildConfig.memory_atoms`,
+so ranking changes directly affect whether NPCs sound like they remember the
+current topic or merely dump stale high-importance facts.
+
+### 2. Signatures
+
+```python
+select_memory_atoms_for_prompt(
+    atoms,
+    visitor_id="",
+    character_id="",
+    place_id="",
+    current_message="",
+    budget_tokens=1200,
+    include_short=True,
+    include_mid=True,
+    include_long=True,
+    limit=24,
+) -> list[MemoryAtom]
+```
+
+Internal helpers in `core.py`:
+
+```python
+_keyword_tokens(text: str) -> set[str]
+_memory_atom_topic_relevance(atom: MemoryAtom, query_tokens: set[str]) -> float
+_memory_atom_recency_score(atom: MemoryAtom, now: datetime) -> float
+_memory_atom_reinforcement_score(atom: MemoryAtom) -> float
+```
+
+### 3. Contracts
+
+- Selection must still reject archived, flagged-wrong, and
+  `excluded_from_prompt` atoms before ranking.
+- Selection must still enforce visitor, character, place, horizon, token budget,
+  and `limit` filters; permission filtering remains the caller's job.
+- Pinned atoms rank above non-pinned atoms so owner/user-pinned memories survive
+  normal relevance competition.
+- For non-pinned atoms, ranking order is:
+  1. topic relevance to `current_message`;
+  2. recency from `updated_at` / `created_at`;
+  3. reinforcement metadata;
+  4. character/scope fit;
+  5. importance, horizon, confidence, timestamp, id as deterministic fallbacks.
+- Chinese query matching must use overlapping CJK n-grams, not only greedy
+  regex chunks; otherwise `茉莉茶` in the user message can fail to match
+  `访客喜欢茉莉茶`.
+- Do not add new `MemoryAtom` dataclass fields only to support ranking. Optional
+  ranking metadata belongs under `MemoryAtom.metadata`, e.g.
+  `topic_tags`, `topics`, `tags`, `keywords`, `entities`,
+  `reinforcement_count`, `referenced_count`, or existing `hit_count`.
+
+### 4. Validation & Error Matrix
+
+| Case | Expected |
+|------|----------|
+| Pinned low-importance memory plus relevant normal memory | Pinned memory is selected first |
+| Relevant old memory versus fresh/high-importance unrelated memory | Relevant memory ranks first |
+| Same relevant content with fresh vs old timestamps | Fresh memory ranks first |
+| Same relevant content with reinforcement metadata vs none | Reinforced memory ranks first |
+| Chinese short phrase appears in both message and memory | Overlapping CJK tokenization produces a relevance hit |
+| Atom metadata has invalid reinforcement value | Ranking degrades to default score, no exception |
+| Budget too small for first selected line | First selected atom may still be included so prompt is not empty |
+
+### 5. Good/Base/Bad Cases
+
+- Good: `current_message="今天还有焦糖布丁吗？"` selects a
+  `metadata.topic_tags=["焦糖布丁"]` preference before an unrelated but newer
+  long-term event.
+- Base: with no query tokens, selector falls back to recency/reinforcement and
+  deterministic atom fields.
+- Bad: sorting by `importance` or `horizon` before relevance; that makes a
+  high-importance stale fact crowd out the current visitor topic.
+- Bad: adding `topic_tags` / `reinforcement_count` as top-level dataclass fields
+  without updating `docs/WORLD_SCHEMA.md` and API contracts.
+
+### 6. Tests Required
+
+Focused tests in `tests/test_tavern_memory_atoms.py` must assert:
+
+- pinned atoms remain first;
+- topic relevance outranks importance/recency;
+- recency breaks otherwise equal relevant memories;
+- reinforcement metadata breaks otherwise equal relevant memories.
+
+Run:
+
+```powershell
+py -3 -m pytest -q tests/test_tavern_memory_atoms.py --tb=short
+py -3 -m pytest -q tests/test_memory_store_adapters.py --tb=short
+py -3 -m compileall -q backend/src
+```
+
+### 7. Wrong vs Correct
+
+#### Wrong
+
+```python
+return sorted(candidates, key=lambda atom: (atom.pinned, atom.importance, atom.horizon), reverse=True)
+```
+
+This makes stale/global memories beat the user's current topic.
+
+#### Correct
+
+```python
+return (
+    1 if atom.pinned else 0,
+    _memory_atom_topic_relevance(atom, query_tokens),
+    _memory_atom_recency_score(atom, now=now),
+    _memory_atom_reinforcement_score(atom),
+    character_weight,
+    scope_weight,
+    float(atom.importance or 0.0),
+    _HORIZON_RANK.get(atom.horizon, 0),
+)
+```
+
+## Scenario: MemoryAtom auto extraction and long-term promotion
+
+### 1. Scope / Trigger
+
+Use this contract when changing `auto_create_memories_from_chat(...)`,
+`_score_memory_candidate(...)`, `_build_auto_memory_atom(...)`, or
+`_merge_memory_atom(...)` in `backend/src/fablemap_api/core/memory/core.py`.
+
+### 2. Signatures
+
+```python
+auto_create_memories_from_chat(
+    tavern_store,
+    tavern_id,
+    visitor_id,
+    character_id,
+    character_name,
+    user_message,
+    assistant_message,
+    user_message_id="",
+    assistant_message_id="",
+    importance_threshold=0.5,
+) -> list[MemoryAtom]
+```
+
+Internal contracts:
+
+```python
+_score_memory_candidate(content: str, role="visitor") -> float
+_merge_memory_atom(existing: MemoryAtom, candidate: MemoryAtom) -> MemoryAtom
+```
+
+### 3. Contracts
+
+- Promise-like memories must score at least `0.75` and therefore become
+  long-term unless later explicitly corrected.
+- Preference-like memories must score at least `0.68`; repeated preference
+  mentions should merge by `metadata.memory_fingerprint` rather than creating
+  duplicate atoms.
+- Merge must increment `metadata.hit_count`, union `source_message_ids`, retain
+  the highest `importance` / `confidence`, and promote the higher horizon.
+- When a repeated memory reaches `hit_count >= 5` or at least 5 distinct source
+  messages, promote it to `horizon="long"`, ensure `importance >= 0.75`, and
+  record `metadata.long_term_promoted=true`.
+- Long-term promotion metadata stays in `MemoryAtom.metadata`; do not add
+  top-level fields such as `reinforcement_count` / `decay_score` without
+  schema/API documentation.
+
+### 4. Validation & Error Matrix
+
+| Case | Expected |
+|------|----------|
+| Visitor states a preference | generated atom dimension is `preference`, importance `>= 0.68` |
+| Assistant makes a promise | generated atom dimension is `promise`, importance `>= 0.75` |
+| Same preference appears twice | one stored atom, `hit_count == 2`, source ids merged |
+| Same preference appears five times | one stored atom, `horizon == "long"`, importance `>= 0.75` |
+| Store list/save raises | extraction degrades to no created memories, chat path continues |
+
+### 5. Good/Base/Bad Cases
+
+- Good: “我喜欢茉莉茶。” repeated across visits becomes one long-term
+  preference atom instead of five short duplicate atoms.
+- Base: one-off preference remains mid-term and can still be selected by topic
+  relevance.
+- Bad: creating new top-level dataclass fields for promotion counters; use
+  `metadata.hit_count` and `metadata.long_term_promoted`.
+
+### 6. Tests Required
+
+```powershell
+py -3 -m pytest -q tests/test_tavern_memory_atoms.py::test_auto_memory_pipeline_extracts_scores_and_merges tests/test_tavern_memory_atoms.py::test_auto_memory_pipeline_promotes_repeated_memory_to_long_term --tb=short
+py -3 -m compileall -q backend/src
+```
+
+### 7. Wrong vs Correct
+
+#### Wrong
+
+```python
+existing.source_message_ids.append(candidate.source_message_ids[0])
+# Leaves duplicate mid-term atoms and never creates an "old friend" long memory.
+```
+
+#### Correct
+
+```python
+metadata["hit_count"] = int(metadata.get("hit_count") or 1) + 1
+existing.source_message_ids = sorted(set(existing.source_message_ids) | set(candidate.source_message_ids))
+if metadata["hit_count"] >= 5:
+    existing.horizon = "long"
+    existing.importance = max(existing.importance, 0.75)
+    metadata["long_term_promoted"] = True
+```
+
+## Scenario: MemoryAtom feedback and reinforcement loop
+
+### 1. Scope / Trigger
+
+Use this contract when changing visitor feedback or automatic reinforcement for
+structured memories. The loop lives in the native v1 memory API plus v1 chat
+runtime, and must preserve private visitor memory boundaries.
+
+### 2. Signatures
+
+Route:
+
+```http
+POST /api/v1/taverns/{tavern_id}/memory-atoms/{memory_id}/feedback
+```
+
+Request body:
+
+```python
+MemoryAtomFeedbackRequest(correct: bool, content: str | None = None)
+```
+
+Application method:
+
+```python
+feedback_memory_atom(tavern_id, memory_id, data, user_id="") -> dict
+```
+
+Runtime helper:
+
+```python
+_reinforce_referenced_memory_atoms(
+    tavern,
+    visitor_id: str,
+    character_id: str,
+    current_message: str,
+    response_text: str,
+) -> list[dict]
+```
+
+### 3. Contracts
+
+- Feedback requires an authenticated `X-User-Id`; missing identity returns
+  `401`.
+- Feedback uses `can_edit_memory_atom(...)`, so private visitor memories remain
+  editable only by their subject and owner-only/public memories keep existing
+  owner/creator edit rules.
+- `correct=true` means “NPC remembered this correctly”: increment
+  `metadata.feedback_correct_count`, increment
+  `metadata.reinforcement_count`, set `metadata.last_reinforced_at`, clear
+  `metadata.flagged_wrong`, remove `excluded_from_prompt`, and slightly boost
+  `importance` / `confidence`.
+- `correct=false` with non-empty `content` means “replace the remembered
+  content with this correction”: update `content`, increment
+  `metadata.feedback_correction_count`, clear wrong/excluded flags, and keep the
+  atom prompt-eligible.
+- `correct=false` without `content` means “this memory is wrong”: set
+  `metadata.flagged_wrong=true` and `metadata.excluded_from_prompt=true`, then
+  lower `importance` / `confidence`.
+- Runtime reinforcement after an NPC reply should only inspect visible,
+  prompt-selected atoms and should update metadata when the reply substantially
+  overlaps the atom content. Do not inspect or log memories that were not
+  visible to the current visitor.
+- Feedback and reinforcement metadata remain under `MemoryAtom.metadata`; do not
+  add top-level schema fields without updating `docs/WORLD_SCHEMA.md`.
+
+### 4. Validation & Error Matrix
+
+| Case | Expected |
+|------|----------|
+| Missing user identity on feedback | `401 {"error": "反馈记忆需要明确用户身份"}` |
+| Other visitor corrects private memory | `403` |
+| `correct` key missing | `400 {"error": "correct is required"}` |
+| `correct=true` by subject | `reinforcement_count` increments and importance increases |
+| `correct=false` with content | atom content is replaced and wrong/excluded flags are cleared |
+| `correct=false` without content | atom is flagged wrong and excluded from future prompt selection |
+| NPC reply references a visible prompt atom | runtime increments `metadata.reinforcement_count` |
+| NPC reply does not reference a memory | no reinforcement metadata is written |
+
+### 5. Good/Base/Bad Cases
+
+- Good: visitor marks a private preference as correct, then future retrieval sees
+  higher reinforcement score without exposing that memory to other visitors.
+- Base: visitor corrects a typo in their own memory via `content`; the same atom
+  id is preserved.
+- Bad: owner “fixes” a visitor-private memory; private visitor memories are not
+  owner-readable/editable under the current policy.
+- Bad: runtime scans all tavern memories for reply overlap; this can leak or
+  mutate memories outside the visitor-visible set.
+
+### 6. Tests Required
+
+```powershell
+py -3 -m pytest -q backend/tests/test_v1_memory_atoms.py::test_v1_memory_atom_feedback_reinforces_corrects_and_flags_private_memory --tb=short
+py -3 -m pytest -q backend/tests/test_v1_dynamic_npc_responses.py::test_runtime_prompt_loads_visible_memory_atoms_for_current_visitor --tb=short
+py -3 -m compileall -q backend/src
+```
+
+### 7. Wrong vs Correct
+
+#### Wrong
+
+```python
+atom = self.store.get_memory_atom(tavern_id, memory_id)
+atom.metadata["reinforcement_count"] += 1
+self.store.save_memory_atom(tavern_id, atom)
+```
+
+This skips identity, visibility, editability, and default metadata handling.
+
+#### Correct
+
+```python
+if not can_edit_memory_atom(existing, tavern, user_id):
+    raise HTTPException(status_code=403, detail="不能修改这条记忆")
+metadata = dict(existing.metadata or {})
+metadata["reinforcement_count"] = int(metadata.get("reinforcement_count") or 0) + 1
+existing.metadata = metadata
+self.store.save_memory_atom(tavern_id, existing)
+```
+
 ## Scenario: native tokenizer / memory utility endpoints
 
 ### 1. Scope / Trigger

@@ -86,6 +86,7 @@ class InjectionContext:
     tavern_description: str = ""
     tavern_scene_prompt: str = ""
     character_name: str = ""
+    character_description: str = ""
     character_personality: str = ""
     character_scenario: str = ""
     character_system_prompt: str = ""
@@ -231,6 +232,7 @@ class WorldInfoInjector:
         parts = [
             context.current_message,
             context.character_name,
+            context.character_description,
             context.character_personality,
             context.character_scenario,
             context.tavern_name,

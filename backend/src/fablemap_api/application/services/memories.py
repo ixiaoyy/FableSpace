@@ -224,6 +224,70 @@ class MemoryApplicationMixin:
         saved = self.store.save_memory_atom(tavern_id, updated)
         return {"ok": True, "tavern_id": tavern_id, "memory_atom": saved.to_dict()}
 
+    def feedback_memory_atom(
+        self,
+        tavern_id: str,
+        memory_id: str,
+        data: dict[str, Any],
+        user_id: str = "",
+    ) -> dict[str, Any]:
+        if not user_id:
+            raise HTTPException(status_code=401, detail="反馈记忆需要明确用户身份")
+        tavern = self._get_tavern_or_404(tavern_id)
+        self._ensure_visible(tavern, user_id)
+        existing = self.store.get_memory_atom(tavern_id, memory_id)
+        if not existing:
+            raise HTTPException(status_code=404, detail="记忆不存在")
+        if not can_edit_memory_atom(existing, tavern, user_id):
+            raise HTTPException(status_code=403, detail="不能修改这条记忆")
+        if "correct" not in (data or {}):
+            raise HTTPException(status_code=400, detail="correct is required")
+
+        now = _utc_now_iso()
+        correct = bool((data or {}).get("correct"))
+        corrected_content = clean_text((data or {}).get("content", ""), max_length=500)
+        metadata = dict(existing.metadata or {})
+        metadata["feedback_updated_at"] = now
+        metadata["feedback_user_id"] = user_id
+
+        if correct:
+            metadata["feedback_correct_count"] = int(metadata.get("feedback_correct_count") or 0) + 1
+            metadata["reinforcement_count"] = int(metadata.get("reinforcement_count") or 0) + 1
+            metadata["last_reinforced_at"] = now
+            metadata["flagged_wrong"] = False
+            metadata.pop("excluded_from_prompt", None)
+            existing.importance = min(1.0, float(existing.importance or 0.0) + 0.05)
+            existing.confidence = min(1.0, float(existing.confidence or 0.0) + 0.03)
+            feedback_status = "reinforced"
+        elif corrected_content:
+            metadata["feedback_correction_count"] = int(metadata.get("feedback_correction_count") or 0) + 1
+            metadata["flagged_wrong"] = False
+            metadata.pop("excluded_from_prompt", None)
+            existing.content = corrected_content
+            existing.importance = max(float(existing.importance or 0.0), 0.6)
+            existing.confidence = max(float(existing.confidence or 0.0), 0.75)
+            feedback_status = "corrected"
+        else:
+            metadata["feedback_wrong_count"] = int(metadata.get("feedback_wrong_count") or 0) + 1
+            metadata["flagged_wrong"] = True
+            metadata["excluded_from_prompt"] = True
+            existing.importance = max(0.0, float(existing.importance or 0.0) - 0.15)
+            existing.confidence = max(0.0, float(existing.confidence or 0.0) - 0.25)
+            feedback_status = "flagged_wrong"
+
+        existing.updated_at = now
+        existing.metadata = metadata
+        saved = self.store.save_memory_atom(tavern_id, existing)
+        return {
+            "ok": True,
+            "tavern_id": tavern_id,
+            "memory_atom": saved.to_dict(),
+            "feedback": {
+                "status": feedback_status,
+                "correct": correct,
+            },
+        }
+
     def delete_memory_atom(self, tavern_id: str, memory_id: str, user_id: str = "") -> dict[str, Any]:
         tavern = self._get_tavern_or_404(tavern_id)
         self._ensure_visible(tavern, user_id)
