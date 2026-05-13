@@ -1,0 +1,15 @@
+{"file": ".trellis/workflow.md", "reason": "Project workflow and conventions"}
+{"file": ".trellis/spec/backend/index.md", "reason": "Backend development guide"}
+{"file": ".trellis/spec/frontend/index.md", "reason": "Frontend development guide"}
+{"file": ".trellis/tasks/05-13-backend-api-response-optimization/response-contract.md", "reason": "parent response contract and 1s SLA"}
+{"file": ".trellis/spec/backend/error-handling.md", "reason": "stable HTTPException response envelope and redaction"}
+{"file": ".trellis/spec/backend/quality-guidelines.md", "reason": "backend API tests and boundaries"}
+{"file": ".trellis/spec/frontend/type-safety.md", "reason": "frontend service boundary and payload types"}
+{"file": ".trellis/spec/frontend/quality-guidelines.md", "reason": "frontend validation commands"}
+{"file": ".trellis/spec/guides/cross-layer-thinking-guide.md", "reason": "backend/frontend API payload flow"}
+{"file": "backend/src/fablemap_api/api/v1/taverns.py", "reason": "v1 tavern detail route"}
+{"file": "backend/src/fablemap_api/core/tavern.py", "reason": "tavern public/private payload builders"}
+{"file": "frontend/app/lib/taverns.ts", "reason": "frontend tavern API client"}
+{"file": "frontend/app/routes/tavern.tsx", "reason": "tavern route loader uses entry payload"}
+{"file": ".trellis/spec/backend/tavern-api-response-contract.md", "reason": "Executable entry/list response contract"}
+{"file": ".trellis/spec/frontend/tavern-api-client-boundary.md", "reason": "Frontend entry client contract"}

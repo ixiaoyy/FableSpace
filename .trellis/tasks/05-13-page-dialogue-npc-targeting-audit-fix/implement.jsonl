@@ -1,0 +1,12 @@
+{"file": ".trellis/workflow.md", "reason": "Project workflow and conventions"}
+{"file": ".trellis/spec/backend/index.md", "reason": "Backend development guide"}
+{"file": ".trellis/spec/frontend/index.md", "reason": "Frontend development guide"}
+{"file": "docs/ARCHITECTURE.md", "reason": "Frontend/backend dialogue boundary"}
+{"file": "docs/WORLD_SCHEMA.md", "reason": "Tavern/character schema constraints"}
+{"file": ".trellis/spec/backend/error-handling.md", "reason": "Chat API error and degraded response behavior"}
+{"file": ".trellis/spec/backend/quality-guidelines.md", "reason": "Backend tests for chat/prompt change"}
+{"file": ".trellis/spec/backend/npc-dynamic-responses.md", "reason": "NPC response personality guidance"}
+{"file": ".trellis/spec/frontend/tavern-api-client-boundary.md", "reason": "Tavern route service boundary"}
+{"file": ".trellis/spec/frontend/type-safety.md", "reason": "Runtime response normalization"}
+{"file": ".trellis/spec/guides/cross-layer-thinking-guide.md", "reason": "Prompt change spans API and UI"}
+{"file": ".trellis/tasks/05-13-page-dialogue-npc-targeting-audit-fix/prd.md", "reason": "Task PRD and page/API findings"}

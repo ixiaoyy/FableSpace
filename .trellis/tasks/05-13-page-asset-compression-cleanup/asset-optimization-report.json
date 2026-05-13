@@ -1,0 +1,276 @@
+{
+  "task": "05-13-page-asset-compression-cleanup",
+  "mode": "lossless_png_optimize_and_scoped_delete",
+  "deleted": [
+    {
+      "path": "frontend/app/assets/soul-link-05-10/home-black/invite-card-2x.png",
+      "bytes_removed": 1999695,
+      "was_present_at_script_start": false
+    },
+    {
+      "path": "frontend/app/assets/soul-link-05-10/home-light/icon-arrow-glow.png",
+      "bytes_removed": 2048382,
+      "was_present_at_script_start": false
+    },
+    {
+      "path": "frontend/app/assets/soul-link-05-10/home-light/icon-bell-glow.png",
+      "bytes_removed": 2070978,
+      "was_present_at_script_start": false
+    },
+    {
+      "path": "frontend/app/assets/soul-link-05-10/home-light/icon-book-glow.png",
+      "bytes_removed": 8359,
+      "was_present_at_script_start": false
+    },
+    {
+      "path": "frontend/app/assets/soul-link-05-10/home-light/icon-bookmark-glow.png",
+      "bytes_removed": 6964,
+      "was_present_at_script_start": false
+    },
+    {
+      "path": "frontend/app/assets/soul-link-05-10/home-light/icon-drop-glow.png",
+      "bytes_removed": 2101034,
+      "was_present_at_script_start": false
+    },
+    {
+      "path": "frontend/app/assets/soul-link-05-10/home-light/icon-home-glow.png",
+      "bytes_removed": 13461,
+      "was_present_at_script_start": false
+    },
+    {
+      "path": "frontend/app/assets/soul-link-05-10/home-light/icon-pin-glow.png",
+      "bytes_removed": 2065732,
+      "was_present_at_script_start": false
+    },
+    {
+      "path": "frontend/app/assets/soul-link-05-10/home-light/icon-play-glow.png",
+      "bytes_removed": 5524,
+      "was_present_at_script_start": false
+    },
+    {
+      "path": "frontend/app/assets/soul-link-05-10/home-light/icon-search-glow.png",
+      "bytes_removed": 2053463,
+      "was_present_at_script_start": false
+    },
+    {
+      "path": "frontend/app/assets/soul-link-05-10/icons/nav-anchors.png",
+      "bytes_removed": 11612,
+      "was_present_at_script_start": false
+    },
+    {
+      "path": "frontend/app/assets/soul-link-05-10/icons/nav-create.png",
+      "bytes_removed": 11575,
+      "was_present_at_script_start": false
+    },
+    {
+      "path": "frontend/app/assets/soul-link-05-10/icons/nav-discover.png",
+      "bytes_removed": 12231,
+      "was_present_at_script_start": false
+    },
+    {
+      "path": "frontend/app/assets/soul-link-05-10/icons/nav-echoes.png",
+      "bytes_removed": 7232,
+      "was_present_at_script_start": false
+    },
+    {
+      "path": "frontend/app/assets/soul-link-05-10/icons/nav-home.png",
+      "bytes_removed": 9266,
+      "was_present_at_script_start": false
+    },
+    {
+      "path": "frontend/app/assets/soul-link-05-10/icons/nav-memory.png",
+      "bytes_removed": 12677,
+      "was_present_at_script_start": false
+    },
+    {
+      "path": "frontend/app/assets/soul-link-05-10/icons/nav-saved.png",
+      "bytes_removed": 8153,
+      "was_present_at_script_start": false
+    }
+  ],
+  "optimized": [
+    {
+      "path": "frontend/app/assets/soul-link-05-10/home-black/guide-database-icon.png",
+      "before": 1479138,
+      "after": 1364359,
+      "saved": 114779
+    },
+    {
+      "path": "frontend/app/assets/soul-link-05-10/home-black/guide-protocol-icon.png",
+      "before": 1542237,
+      "after": 1418659,
+      "saved": 123578
+    },
+    {
+      "path": "frontend/app/assets/soul-link-05-10/home-black/guide-security-icon.png",
+      "before": 1523859,
+      "after": 1392844,
+      "saved": 131015
+    },
+    {
+      "path": "frontend/app/assets/soul-link-05-10/home-black/hero-system-visual.png",
+      "before": 2472313,
+      "after": 2419515,
+      "saved": 52798
+    },
+    {
+      "path": "frontend/app/assets/soul-link-05-10/home-black/invite-card.png",
+      "before": 1999695,
+      "after": 1923479,
+      "saved": 76216
+    },
+    {
+      "path": "frontend/app/assets/soul-link-05-10/home-black/node-data-harbor.png",
+      "before": 2197543,
+      "after": 2137541,
+      "saved": 60002
+    },
+    {
+      "path": "frontend/app/assets/soul-link-05-10/home-black/node-neon-ruins.png",
+      "before": 2356231,
+      "after": 2301776,
+      "saved": 54455
+    },
+    {
+      "path": "frontend/app/assets/soul-link-05-10/home-black/node-old-platform.png",
+      "before": 2148931,
+      "after": 2082561,
+      "saved": 66370
+    },
+    {
+      "path": "frontend/app/assets/soul-link-05-10/home-black/node-white-tower.png",
+      "before": 2114819,
+      "after": 2039899,
+      "saved": 74920
+    },
+    {
+      "path": "frontend/app/assets/soul-link-05-10/home-black/recent-echo-waveform.png",
+      "before": 1161208,
+      "after": 1055291,
+      "saved": 105917
+    },
+    {
+      "path": "frontend/app/assets/soul-link-05-10/home-black/user-avatar-node07.png",
+      "before": 1914486,
+      "after": 1826652,
+      "saved": 87834
+    },
+    {
+      "path": "frontend/app/assets/soul-link-05-10/home-black/world-stats-sparkline.png",
+      "before": 1301514,
+      "after": 1188484,
+      "saved": 113030
+    },
+    {
+      "path": "frontend/app/assets/soul-link-05-10/home-light/bg-paper-plane-soft.png",
+      "before": 882984,
+      "after": 768764,
+      "saved": 114220
+    },
+    {
+      "path": "frontend/app/assets/soul-link-05-10/home-light/bg-plane-wash.png",
+      "before": 839879,
+      "after": 721293,
+      "saved": 118586
+    },
+    {
+      "path": "frontend/app/assets/soul-link-05-10/home-light/card-envelope-soft.png",
+      "before": 1000203,
+      "after": 891642,
+      "saved": 108561
+    },
+    {
+      "path": "frontend/app/assets/soul-link-05-10/home-light/card-invite-soft.png",
+      "before": 998477,
+      "after": 893866,
+      "saved": 104611
+    },
+    {
+      "path": "frontend/app/assets/soul-link-05-10/home-light/card-shield-soft.png",
+      "before": 995191,
+      "after": 892132,
+      "saved": 103059
+    },
+    {
+      "path": "frontend/app/assets/soul-link-05-10/home-light/icon-compass-glow.png",
+      "before": 19904,
+      "after": 19522,
+      "saved": 382
+    },
+    {
+      "path": "frontend/app/assets/soul-link-05-10/home-light/icon-map-pin-glow.png",
+      "before": 10847,
+      "after": 10727,
+      "saved": 120
+    },
+    {
+      "path": "frontend/app/assets/soul-link-05-10/home-light/icon-message-glow.png",
+      "before": 9798,
+      "after": 9502,
+      "saved": 296
+    },
+    {
+      "path": "frontend/app/assets/soul-link-05-10/home-light/icon-plane-glow.png",
+      "before": 7371,
+      "after": 7308,
+      "saved": 63
+    },
+    {
+      "path": "frontend/app/assets/soul-link-05-10/home-light/icon-pulse-bars-glow.png",
+      "before": 2369,
+      "after": 2284,
+      "saved": 85
+    },
+    {
+      "path": "frontend/app/assets/soul-link-05-10/home-light/invite-card-2x.png",
+      "before": 1835669,
+      "after": 1743761,
+      "saved": 91908
+    },
+    {
+      "path": "frontend/app/assets/soul-link-05-10/home-light/invite-card.png",
+      "before": 1723655,
+      "after": 1624650,
+      "saved": 99005
+    },
+    {
+      "path": "frontend/app/assets/soul-link-05-10/home-light/scene-library-cafe-wide.png",
+      "before": 179222,
+      "after": 177354,
+      "saved": 1868
+    },
+    {
+      "path": "frontend/app/assets/soul-link-05-10/home-light/scene-library-sunlit.png",
+      "before": 172936,
+      "after": 171314,
+      "saved": 1622
+    },
+    {
+      "path": "frontend/app/assets/soul-link-05-10/home-light/scene-library-wide.png",
+      "before": 2184976,
+      "after": 2125603,
+      "saved": 59373
+    },
+    {
+      "path": "frontend/app/assets/soul-link-05-10/home-light/scene-sea-lane.png",
+      "before": 191733,
+      "after": 189493,
+      "saved": 2240
+    },
+    {
+      "path": "frontend/app/assets/soul-link-05-10/home-light/scene-sky-city-balcony.png",
+      "before": 2788245,
+      "after": 2674402,
+      "saved": 113843
+    },
+    {
+      "path": "frontend/app/assets/soul-link-05-10/home-light/scene-train-platform-rain.png",
+      "before": 167352,
+      "after": 165319,
+      "saved": 2033
+    }
+  ],
+  "bytes_removed_by_delete": 12446338,
+  "bytes_saved_by_optimization": 1982789,
+  "total_bytes_saved": 14429127
+}

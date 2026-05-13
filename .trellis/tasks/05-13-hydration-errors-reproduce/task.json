@@ -1,0 +1,57 @@
+{
+  "id": "05-13-hydration-errors-reproduce",
+  "name": "05-13-hydration-errors-reproduce",
+  "title": "Hydration errors reproduce — fix React #418/#423 runtime errors",
+  "description": "Reproduce React hydration errors #418 and #423 in local browser. Find root cause (SSR/data mismatch in dynamic content). Fix or record root-cause blocker.",
+  "status": "planning",
+  "dev_type": "frontend",
+  "scope": "reproduce and fix, no new features",
+  "package": null,
+  "priority": "P1",
+  "creator": "claude",
+  "assignee": null,
+  "createdAt": "2026-05-13",
+  "completedAt": null,
+  "branch": null,
+  "base_branch": "main",
+  "worktree_path": null,
+  "current_phase": 0,
+  "next_action": [
+    {
+      "phase": 1,
+      "action": "brainstorm"
+    },
+    {
+      "phase": 2,
+      "action": "research"
+    },
+    {
+      "phase": 3,
+      "action": "implement"
+    },
+    {
+      "phase": 4,
+      "action": "check"
+    },
+    {
+      "phase": 5,
+      "action": "update-spec"
+    },
+    {
+      "phase": 6,
+      "action": "record-session"
+    }
+  ],
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [],
+  "parent": "05-12-onsite-visitor-brutal-audit-issues",
+  "relatedFiles": [
+    "frontend/app/routes/home.tsx",
+    "frontend/app/routes/discover.tsx",
+    "frontend/app/routes/tavern.tsx"
+  ],
+  "notes": "Child task of 05-12-onsite-visitor-brutal-audit-issues. Issue #8: React minified errors #418/#423 appear in browser console after reload on /, /discover, /tavern routes. Build passes, but runtime is broken.",
+  "meta": {}
+}

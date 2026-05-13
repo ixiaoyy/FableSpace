@@ -1,0 +1,55 @@
+{
+  "id": "global-api-envelope-legacy-migration",
+  "name": "global-api-envelope-legacy-migration",
+  "title": "Global API envelope and legacy API migration",
+  "description": "Plan and implement approved high-risk global API response envelope migration, legacy /api migration/removal, and any explicitly required schema/enum updates.",
+  "status": "in_progress",
+  "dev_type": "fullstack",
+  "scope": "fullstack",
+  "package": null,
+  "priority": "P0",
+  "creator": "lijin",
+  "assignee": "lijin",
+  "createdAt": "2026-05-13",
+  "completedAt": null,
+  "branch": null,
+  "base_branch": "main",
+  "worktree_path": null,
+  "current_phase": 4,
+  "next_action": [
+    {
+      "phase": 1,
+      "action": "brainstorm"
+    },
+    {
+      "phase": 2,
+      "action": "research"
+    },
+    {
+      "phase": 3,
+      "action": "implement"
+    },
+    {
+      "phase": 4,
+      "action": "check"
+    },
+    {
+      "phase": 5,
+      "action": "update-spec"
+    },
+    {
+      "phase": 6,
+      "action": "record-session"
+    }
+  ],
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [
+    "05-13-default-db-tavern-list-response-pending-optimization"
+  ],
+  "parent": null,
+  "relatedFiles": [],
+  "notes": "Phase 1 transitional global API envelope implemented; legacy /api migration map and schema/enum note recorded. Strict envelope-only cutover and legacy route deletion remain separate follow-up phases.",
+  "meta": {}
+}

@@ -1,0 +1,4 @@
+{"file": ".agents/skills/finish-work/SKILL.md", "reason": "Finish work checklist"}
+{"file": ".agents/skills/check/SKILL.md", "reason": "Code quality check spec"}
+{"file": ".trellis/spec/frontend/component-guidelines.md", "reason": "Chat UI component placement"}
+{"file": ".trellis/spec/frontend/quality-guidelines.md", "reason": "Frontend visual/build verification"}

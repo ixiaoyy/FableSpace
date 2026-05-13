@@ -1,0 +1,58 @@
+{
+  "id": "05-13-visitor-first-discovery-reduction",
+  "name": "05-13-visitor-first-discovery-reduction",
+  "title": "Visitor-first discovery page reduction — fewer panels, stronger signal",
+  "description": "Reduce discovery page decision overload. Keep map + top 3 taverns + one clear CTA per tavern. Remove world stats, online entities, echoes, footprints from visitor view. Visitor must pick one tavern in under 10 seconds.",
+  "status": "planning",
+  "dev_type": "frontend",
+  "scope": "discovery page visitor flow only",
+  "package": null,
+  "priority": "P2",
+  "creator": "claude",
+  "assignee": null,
+  "createdAt": "2026-05-13",
+  "completedAt": null,
+  "branch": null,
+  "base_branch": "main",
+  "worktree_path": null,
+  "current_phase": 0,
+  "next_action": [
+    {
+      "phase": 1,
+      "action": "brainstorm"
+    },
+    {
+      "phase": 2,
+      "action": "research"
+    },
+    {
+      "phase": 3,
+      "action": "implement"
+    },
+    {
+      "phase": 4,
+      "action": "check"
+    },
+    {
+      "phase": 5,
+      "action": "update-spec"
+    },
+    {
+      "phase": 6,
+      "action": "record-session"
+    }
+  ],
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [],
+  "parent": "05-12-onsite-visitor-brutal-audit-issues",
+  "relatedFiles": [
+    "frontend/app/routes/discover.tsx",
+    "frontend/app/components/discover-black-reference.tsx",
+    "frontend/app/components/discover-light-real-dom.tsx",
+    "frontend/app/lib/taverns.ts"
+  ],
+  "notes": "Child task of 05-12-onsite-visitor-brutal-audit-issues. Issue #3: filters, emotional tags, signal state, timeline, feed, online entities, echoes, footprint, world stats compete before visitor understands why any tavern is worth entering. P2 because tavern doorway work is higher priority.",
+  "meta": {}
+}

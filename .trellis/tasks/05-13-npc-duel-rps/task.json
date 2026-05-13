@@ -1,0 +1,130 @@
+{
+  "id": "npc-duel-rps",
+  "name": "npc-duel-rps",
+  "title": "npc duel v0 rock paper scissors",
+  "description": "",
+  "status": "review",
+  "dev_type": "frontend",
+  "scope": "frontend",
+  "package": null,
+  "priority": "P2",
+  "creator": "lijin",
+  "assignee": "lijin",
+  "createdAt": "2026-05-13",
+  "completedAt": null,
+  "branch": null,
+  "base_branch": "main",
+  "worktree_path": null,
+  "current_phase": 6,
+  "next_action": [
+    {
+      "phase": 1,
+      "action": "brainstorm"
+    },
+    {
+      "phase": 2,
+      "action": "research"
+    },
+    {
+      "phase": 3,
+      "action": "implement"
+    },
+    {
+      "phase": 4,
+      "action": "check"
+    },
+    {
+      "phase": 5,
+      "action": "update-spec"
+    },
+    {
+      "phase": 6,
+      "action": "record-session"
+    }
+  ],
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [],
+  "parent": "05-13-agent-tank-tavern",
+  "relatedFiles": [
+    "frontend/app/product/tavernMiniGames.js",
+    "frontend/app/product/TavernMiniGamePanel.jsx",
+    "frontend/app/product/tavernMiniGames.css",
+    "frontend/app/product/TavernChatRoom.jsx",
+    "frontend/app/features/tavern-chat-workbench/index.tsx",
+    "frontend/scripts/mini-games-test.mjs",
+    "frontend/scripts/playwright-npc-rps-check.mjs"
+  ],
+  "notes": "Claimed and developed via Trellis; frontend implementation and automated checks pass. Awaiting human visual review/commit/session record.",
+  "meta": {
+    "claim": {
+      "module": "frontend tavern mini-game surface",
+      "owner": "lijin",
+      "type": "frontend feature slice",
+      "allowed_scope": [
+        "frontend/app/product/tavernMiniGames.js",
+        "frontend/app/product/TavernMiniGamePanel.jsx",
+        "frontend/app/product/tavernMiniGames.css",
+        "frontend/app/product/TavernChatRoom.jsx",
+        "frontend/app/features/tavern-chat-workbench/index.tsx",
+        "frontend/scripts/mini-games-test.mjs",
+        "frontend/scripts/playwright-npc-rps-check.mjs",
+        ".trellis/tasks/05-13-npc-duel-rps/*"
+      ],
+      "non_scope": [
+        "backend",
+        "schema",
+        "ranking",
+        "matchmaking",
+        "pvp",
+        "economy",
+        "levels",
+        "equipment",
+        "cross-space social"
+      ],
+      "verification": [
+        "npm --prefix .\\frontend test",
+        "npm --prefix .\\frontend run typecheck",
+        "npm --prefix .\\frontend run build",
+        "node .\\frontend\\scripts\\playwright-npc-rps-check.mjs"
+      ]
+    },
+    "validation": {
+      "date": "2026-05-13",
+      "commands": [
+        {
+          "cmd": "py -3 .\\.trellis\\scripts\\task.py validate .trellis\\tasks\\05-13-npc-duel-rps",
+          "result": "PASS"
+        },
+        {
+          "cmd": "npm --prefix .\\frontend test",
+          "result": "PASS"
+        },
+        {
+          "cmd": "npm --prefix .\\frontend run typecheck",
+          "result": "PASS"
+        },
+        {
+          "cmd": "npm --prefix .\\frontend run build",
+          "result": "PASS"
+        },
+        {
+          "cmd": "FABLEMAP_PLAYWRIGHT_BASE_URL=http://127.0.0.1:5174 node .\\frontend\\scripts\\playwright-npc-rps-check.mjs",
+          "result": "PASS"
+        },
+        {
+          "cmd": "git diff --check",
+          "result": "PASS_WITH_LINE_ENDING_WARNINGS"
+        }
+      ],
+      "playwright_report": "artifacts/playwright/npc-duel-rps/report.md",
+      "screenshots": [
+        "artifacts/playwright/npc-duel-rps/desktop-1440.png",
+        "artifacts/playwright/npc-duel-rps/mobile-390.png"
+      ],
+      "grill_me_verdict": "PASS",
+      "note": "Port 5173 was already occupied and returned 502; browser self-acceptance used 5174."
+    }
+  }
+}

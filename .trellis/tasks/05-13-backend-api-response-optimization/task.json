@@ -1,0 +1,157 @@
+{
+  "id": "backend-api-response-optimization",
+  "name": "backend-api-response-optimization",
+  "title": "Backend API response optimization",
+  "description": "",
+  "status": "completed",
+  "dev_type": "fullstack",
+  "scope": "backend-api-contract",
+  "package": null,
+  "priority": "P0",
+  "creator": "lijin",
+  "assignee": "lijin",
+  "createdAt": "2026-05-13",
+  "completedAt": "2026-05-13",
+  "branch": null,
+  "base_branch": "main",
+  "worktree_path": null,
+  "current_phase": 6,
+  "next_action": [
+    {
+      "phase": 1,
+      "action": "brainstorm"
+    },
+    {
+      "phase": 2,
+      "action": "research"
+    },
+    {
+      "phase": 3,
+      "action": "implement"
+    },
+    {
+      "phase": 4,
+      "action": "check"
+    },
+    {
+      "phase": 5,
+      "action": "update-spec"
+    },
+    {
+      "phase": 6,
+      "action": "record-session"
+    }
+  ],
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [
+    "05-13-homepage-api-response-slice",
+    "05-13-discover-search-api-response-slice",
+    "05-13-tavern-entry-api-response-slice"
+  ],
+  "parent": null,
+  "relatedFiles": [
+    "backend/src/fablemap_api/core/web/app.py",
+    "backend/src/fablemap_api/core/web/router.py",
+    "backend/src/fablemap_api/api/v1/",
+    "backend/src/fablemap_api/application/",
+    "backend/src/fablemap_api/core/",
+    "frontend/app/lib/taverns.ts",
+    "frontend/app/product/services/tavernService.js",
+    "tests/",
+    "backend/tests/",
+    "frontend/scripts/",
+    "backend/src/fablemap_api/app_factory.py",
+    ".trellis/spec/backend/tavern-api-response-contract.md",
+    ".trellis/spec/frontend/tavern-api-client-boundary.md",
+    ".trellis/tasks/05-13-backend-api-response-optimization/cross-layer-check.md",
+    ".trellis/tasks/05-13-backend-api-response-optimization/validation.md",
+    "backend/src/fablemap_api/application/services/relationship_graph.py",
+    ".trellis/spec/backend/database-guidelines.md"
+  ],
+  "notes": "Backend API response optimization completed across page slices: homepage, discover/search, and tavern entry. Executable backend/frontend response specs were added; FastAPI on_event test warnings were resolved with lifespan cleanup. No global response envelope rewrite, legacy route migration, schema enum change, or database migration was performed. All measured child page-critical API endpoints are under the 1s local SLA.",
+  "meta": {
+    "priority_reason": "User requested highest priority; API response consistency affects all backend/frontend flows.",
+    "risk_level": "high",
+    "requires_contract_before_code": true,
+    "deferred_not_done": [
+      "No global response envelope rewrite.",
+      "No legacy /api route migration.",
+      "No schema enum change or database migration.",
+      "No public Home discovery, ranking, combat, social graph, or token billing work."
+    ],
+    "claim": {
+      "owner": "lijin",
+      "type": "backend-api-contract planning",
+      "date": "2026-05-13",
+      "allowed_scope": [
+        ".trellis/tasks/05-13-backend-api-response-optimization/*",
+        ".trellis/tasks/05-13-homepage-api-response-slice/*",
+        ".trellis/tasks/05-13-discover-search-api-response-slice/*",
+        ".trellis/tasks/05-13-tavern-entry-api-response-slice/*",
+        "backend/src/fablemap_api/api/v1/taverns.py",
+        "backend/src/fablemap_api/application/services/management.py",
+        "backend/src/fablemap_api/core/tavern.py",
+        "backend/tests/test_api_smoke.py",
+        "frontend/app/lib/taverns.ts",
+        "frontend/app/routes/tavern.tsx",
+        "frontend/scripts/tavern-chat-workbench-test.mjs"
+      ],
+      "non_scope_until_child_start": [
+        "global response envelope rewrite",
+        "database migration",
+        "schema enum changes",
+        "legacy /api removal",
+        "platform token billing",
+        "ranking/combat/social graph"
+      ],
+      "implementation_order": [
+        "05-13-homepage-api-response-slice",
+        "05-13-discover-search-api-response-slice",
+        "05-13-tavern-entry-api-response-slice"
+      ]
+    },
+    "child_status": {
+      "05-13-homepage-api-response-slice": "completed",
+      "05-13-discover-search-api-response-slice": "completed",
+      "05-13-tavern-entry-api-response-slice": "completed"
+    },
+    "response_time_sla": {
+      "target_seconds": 1,
+      "rule": "Page-critical API calls must be measured per child; if >1s, mark 待优化 / PENDING_OPTIMIZATION_OVER_1S.",
+      "homepage_status": "PASS_UNDER_1S",
+      "discover_search_status": "PASS_UNDER_1S",
+      "tavern_entry_status": "PASS_UNDER_1S",
+      "tavern_entry_max_seconds": 0.0439,
+      "tavern_entry_evidence": ".trellis/tasks/05-13-tavern-entry-api-response-slice/response-time.md",
+      "all_children_status": "PASS_UNDER_1S"
+    },
+    "closeout": {
+      "date": "2026-05-13",
+      "status": "completed",
+      "spec_updates": [
+        ".trellis/spec/backend/tavern-api-response-contract.md",
+        ".trellis/spec/frontend/tavern-api-client-boundary.md",
+        ".trellis/spec/backend/quality-guidelines.md#scenario-fastapi-app-lifecycle-hooks",
+        ".trellis/spec/backend/database-guidelines.md#scenario-database-backed-runtime-startup"
+      ],
+      "cross_layer_check": ".trellis/tasks/05-13-backend-api-response-optimization/cross-layer-check.md",
+      "validation": ".trellis/tasks/05-13-backend-api-response-optimization/validation.md",
+      "deferred_not_done": [
+        "No global {data, meta} response envelope rewrite.",
+        "No legacy /api route migration/removal.",
+        "No database migration, schema enum change, or persistent schema change.",
+        "No platform-generated content, ranking/combat/social graph, or token billing work."
+      ]
+    },
+    "validation": {
+      "status": "PASS",
+      "evidence": ".trellis/tasks/05-13-backend-api-response-optimization/validation.md",
+      "fastapi_on_event_warnings": "RESOLVED_WITH_LIFESPAN",
+      "startup_optional_mysql": "PASS",
+      "relationship_graph_regression": "PASS",
+      "lazy_sqlalchemy_import": "PASS"
+    }
+  }
+}

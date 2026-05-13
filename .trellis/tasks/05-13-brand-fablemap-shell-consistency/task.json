@@ -1,0 +1,62 @@
+{
+  "id": "05-13-brand-fablemap-shell-consistency",
+  "name": "05-13-brand-fablemap-shell-consistency",
+  "title": "Brand: FableMap shell consistency — replace SoulLink metaphor",
+  "description": "Replace SoulLink/node/network signal-themed shell UI with FableMap/map-anchored tavern metaphors. Audit and rename all visible SoulLink references in home, discover, and tavern routes.",
+  "status": "in_progress",
+  "dev_type": "frontend",
+  "scope": "Rename/replace, no feature changes",
+  "package": null,
+  "priority": "P1",
+  "creator": "claude",
+  "assignee": "claude",
+  "createdAt": "2026-05-13",
+  "completedAt": null,
+  "branch": null,
+  "base_branch": "main",
+  "worktree_path": null,
+  "current_phase": 3,
+  "next_action": [
+    {
+      "phase": 1,
+      "action": "brainstorm"
+    },
+    {
+      "phase": 2,
+      "action": "research"
+    },
+    {
+      "phase": 3,
+      "action": "implement"
+    },
+    {
+      "phase": 4,
+      "action": "check"
+    },
+    {
+      "phase": 5,
+      "action": "update-spec"
+    },
+    {
+      "phase": 6,
+      "action": "record-session"
+    }
+  ],
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [],
+  "parent": "05-12-onsite-visitor-brutal-audit-issues",
+  "relatedFiles": [
+    "frontend/app/routes/home.tsx",
+    "frontend/app/routes/discover.tsx",
+    "frontend/app/routes/tavern.tsx",
+    "frontend/app/components/soul-link-reference-artboards.tsx",
+    "frontend/app/components/home-black-reference.tsx",
+    "frontend/app/components/home-light-real-dom.tsx",
+    "frontend/app/components/discover-black-reference.tsx",
+    "frontend/app/components/discover-light-real-dom.tsx"
+  ],
+  "notes": "Child task of 05-12-onsite-visitor-brutal-audit-issues. Not a full rebrand — naming alignment only. Do NOT change functionality, add features, or modify backend API contracts.",
+  "meta": {}
+}

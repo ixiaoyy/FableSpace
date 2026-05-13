@@ -55,5 +55,11 @@ Record a fresh, evidence-backed visitor-path critique from an actual local brows
 
 ## Done / Not Done
 - Done: Issue recorded with fresh browser-path evidence and build result.
+- Done: 5 child tasks created (2026-05-13) covering all 5 follow-up slices:
+  - `05-13-brand-fablemap-shell-consistency` — P1: replace SoulLink shell with FableMap metaphors
+  - `05-13-tavern-doorway-ritual-mvp` — P1: one immersive beat before workbench controls
+  - `05-13-npc-fallback-memory-truthfulness` — P1: no progress badge on non-answer fallback
+  - `05-13-hydration-errors-reproduce` — P1: reproduce and fix React #418/#423
+  - `05-13-visitor-first-discovery-reduction` — P2: fewer panels, stronger tavern signal
 - Not done: No code, UI, API, schema, or asset changes in this task.
 - Risk: Mobile/narrow-screen behavior was not re-audited in this pass; needs separate evidence before mobile-specific fixes.

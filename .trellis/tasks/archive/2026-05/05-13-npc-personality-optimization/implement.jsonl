@@ -1,0 +1,5 @@
+{"file": ".trellis/workflow.md", "reason": "Project workflow and conventions"}
+{"file": ".trellis/spec/backend/index.md", "reason": "Backend development guide"}
+{"file": ".trellis/spec/backend/npc-dynamic-responses.md", "reason": "Core guidelines for NPC personality and vividness"}
+{"file": ".trellis/spec/backend/quality-guidelines.md", "reason": "Ensure tests and validation are handled correctly"}
+{"file": ".trellis/spec/guides/cross-layer-thinking-guide.md", "reason": "Help think through data flow from tavern config to LLM prompt"}

@@ -1,0 +1,20 @@
+{"file": ".agents/skills/finish-work/SKILL.md", "reason": "Finish work checklist"}
+{"file": ".agents/skills/check/SKILL.md", "reason": "Code quality check spec"}
+{"file": ".trellis/tasks/05-13-backend-api-response-optimization/response-contract.md", "reason": "check parent response contract and 1s SLA"}
+{"file": ".trellis/spec/backend/quality-guidelines.md", "reason": "check backend verification"}
+{"file": ".trellis/spec/backend/error-handling.md", "reason": "check backend errors"}
+{"file": ".trellis/spec/frontend/type-safety.md", "reason": "check frontend type safety"}
+{"file": "backend/tests/test_api_smoke.py", "reason": "backend v1 tavern route regression"}
+{"file": ".trellis/spec/frontend/quality-guidelines.md", "reason": "check frontend validation commands"}
+{"file": ".trellis/spec/guides/cross-layer-thinking-guide.md", "reason": "check cross-layer payload flow"}
+{"file": "backend/tests/test_v1_place_home_mvp.py", "reason": "place/home API regression"}
+{"file": "frontend/scripts/tavern-entry-surface-test.mjs", "reason": "tavern entry route regression"}
+{"file": "frontend/scripts/tavern-chat-workbench-test.mjs", "reason": "route should request explicit entry API view"}
+{"file": ".trellis/tasks/05-13-tavern-entry-api-response-slice/response-time.md", "reason": "1s response SLA evidence"}
+{"file": ".trellis/tasks/05-13-tavern-entry-api-response-slice/validation.md", "reason": "Validation command results"}
+{"file": ".trellis/spec/backend/tavern-api-response-contract.md", "reason": "Executable entry/list response contract"}
+{"file": ".trellis/spec/frontend/tavern-api-client-boundary.md", "reason": "Frontend entry client contract"}
+{"file": "backend/src/fablemap_api/app_factory.py", "reason": "FastAPI lifespan warning cleanup"}
+{"file": ".trellis/tasks/05-13-backend-api-response-optimization/validation.md", "reason": "Final parent validation evidence"}
+{"file": ".trellis/spec/backend/database-guidelines.md", "reason": "JSON startup optional SQLAlchemy lazy import contract"}
+{"file": "backend/src/fablemap_api/application/services/relationship_graph.py", "reason": "Lazy SQLAlchemy relationship graph store import for JSON startup"}

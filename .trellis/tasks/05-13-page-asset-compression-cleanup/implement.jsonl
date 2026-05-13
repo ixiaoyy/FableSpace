@@ -1,0 +1,7 @@
+{"file": ".trellis/workflow.md", "reason": "Project workflow and conventions"}
+{"file": ".trellis/spec/frontend/index.md", "reason": "Frontend development guide"}
+{"file": ".trellis/spec/frontend/image-asset-guidelines.md", "reason": "image asset placement, compression and verification rules"}
+{"file": ".trellis/spec/frontend/quality-guidelines.md", "reason": "frontend build/test and visual validation requirements"}
+{"file": ".trellis/spec/guides/code-reuse-thinking-guide.md", "reason": "search before changing/removing assets"}
+{"file": "frontend/app/assets/soul-link-05-10/", "type": "directory", "reason": "runtime page asset root optimized and cleaned"}
+{"file": "frontend/app/components/soul-link-reference-artboards.tsx", "reason": "black invite duplicate srcSet update"}

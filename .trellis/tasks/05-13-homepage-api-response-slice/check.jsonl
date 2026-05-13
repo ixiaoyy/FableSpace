@@ -1,0 +1,10 @@
+{"file": ".agents/skills/finish-work/SKILL.md", "reason": "Finish work checklist"}
+{"file": ".agents/skills/check/SKILL.md", "reason": "Code quality check spec"}
+{"file": ".trellis\\tasks\\05-13-backend-api-response-optimization\\response-contract.md", "reason": "Verify page slice stays within approved response contract"}
+{"file": "frontend\\app\\routes\\home.tsx", "reason": "Check homepage compatibility"}
+{"file": "frontend\\app\\lib\\taverns.ts", "reason": "Check frontend response typing/normalization"}
+{"file": "backend\\src\\fablemap_api\\api\\v1\\taverns.py", "reason": "Check backend route shape and tests"}
+{"file": ".trellis\\spec\\backend\\error-handling.md", "reason": "Check response/error envelope remains compatible"}
+{"file": ".trellis\\spec\\frontend\\type-safety.md", "reason": "Check frontend response parsing remains safe"}
+{"file": ".trellis\\spec\\guides\\cross-layer-thinking-guide.md", "reason": "Check cross-layer payload compatibility"}
+

@@ -1,0 +1,11 @@
+{
+  "id": "05-13-home-dynamic-enrichment",
+  "title": "Homepage Dynamic Enrichment",
+  "slug": "05-13-home-dynamic-enrichment",
+  "status": "todo",
+  "type": "feature",
+  "priority": "medium",
+  "created_at": "2026-05-13T14:20:00Z",
+  "tags": ["frontend", "backend", "api", "ux"],
+  "parent_id": null
+}
