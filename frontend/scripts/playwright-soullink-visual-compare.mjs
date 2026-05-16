@@ -15,6 +15,7 @@ const mobileScreenshotPath = path.join(evidenceDir, "current-home-mobile-390x844
 const diffPath = path.join(evidenceDir, "diff-home-1536x1024.png");
 const htmlPath = path.join(buildRoot, "index.html");
 const execFileAsync = promisify(execFile);
+const minSimilarity = 0.95;
 
 const mimeByExt = new Map([
   [".html", "text/html; charset=utf-8"],
@@ -59,6 +60,8 @@ if not same_size:
         "rms": None,
         "mismatchPixels": None,
         "mismatchRatio": None,
+        "similarity": 0,
+        "similarityPercent": 0,
     }
 else:
     diff = ImageChops.difference(design, current)
@@ -69,6 +72,8 @@ else:
     for pixel in diff.getdata():
         if pixel[0] > 2 or pixel[1] > 2 or pixel[2] > 2:
             mismatch += 1
+    mismatch_ratio = mismatch / total
+    similarity = 1 - mismatch_ratio
     result = {
         "designPath": design_path,
         "currentPath": current_path,
@@ -79,7 +84,9 @@ else:
         "mae": round(sum(stat.mean) / 3, 6),
         "rms": round((sum(v * v for v in stat.rms) / 3) ** 0.5, 6),
         "mismatchPixels": mismatch,
-        "mismatchRatio": round(mismatch / total, 8),
+        "mismatchRatio": round(mismatch_ratio, 8),
+        "similarity": round(similarity, 8),
+        "similarityPercent": round(similarity * 100, 4),
     }
 print(json.dumps(result, ensure_ascii=False))
 `;
@@ -130,4 +137,19 @@ const mobileSummary = await page.evaluate(() => ({
 }));
 await browser.close();
 const diffSummary = await compareWithDesign();
-console.log(JSON.stringify({ screenshotPath, mobileScreenshotPath, diffPath, errors: errors.slice(0, 20), summary, mobileSummary, diffSummary }, null, 2));
+const similarityPass = Boolean(diffSummary.sameSize && diffSummary.similarity >= minSimilarity);
+const result = {
+  screenshotPath,
+  mobileScreenshotPath,
+  diffPath,
+  minSimilarity,
+  similarityPass,
+  errors: errors.slice(0, 20),
+  summary,
+  mobileSummary,
+  diffSummary,
+};
+console.log(JSON.stringify(result, null, 2));
+if (!similarityPass || errors.length) {
+  process.exitCode = 1;
+}

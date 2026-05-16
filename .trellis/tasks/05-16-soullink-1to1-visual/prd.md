@@ -21,3 +21,5 @@ Restore the runtime shell to match `D:/work/ai-/设计问题/index.png` as close
 - No local port was started; Playwright served `frontend/build/client` by request interception at `http://soullink.local/`.
 - Mobile sanity screenshot: `.trellis/tasks/05-16-soullink-1to1-visual/evidence/current-home-mobile-390x844.png`; `390×844`, horizontal overflow `false`.
 - Source image hash check: `设计问题/index.png` and repo asset `frontend/app/assets/fable-map-05-10/reference/soullink-index-1536x1024.png` are both `1536×1024`, SHA-256 `1f33fa26a02f715a47d287d6e93e41dddaa062d35fa8843fb69b60e2758315ba`.
+- Added hard Playwright gate: `frontend/scripts/playwright-soullink-visual-compare.mjs` now calculates `similarity` / `similarityPercent` and exits non-zero when similarity is below `0.95`; never treat lower similarity as visually accepted.
+- Latest guard run: similarity `1.0` / `100%`, `similarityPass=true`, Playwright errors `[]`.
