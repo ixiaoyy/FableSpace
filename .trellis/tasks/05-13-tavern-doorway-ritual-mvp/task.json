@@ -3,19 +3,19 @@
   "name": "05-13-tavern-doorway-ritual-mvp",
   "title": "Tavern doorway ritual MVP — one immersive beat before workbench",
   "description": "Create one clear immersion beat (space hook + NPC greeting) before exposing chat workbench controls. Hide channels, Shift+Enter, intent chips, identity selector until after first immersion moment.",
-  "status": "planning",
+  "status": "completed",
   "dev_type": "frontend",
   "scope": "visitor-first tavern entry flow",
   "package": null,
   "priority": "P1",
   "creator": "claude",
-  "assignee": null,
+  "assignee": "codex",
   "createdAt": "2026-05-13",
-  "completedAt": null,
+  "completedAt": "2026-05-16",
   "branch": null,
   "base_branch": "main",
   "worktree_path": null,
-  "current_phase": 0,
+  "current_phase": 6,
   "next_action": [
     {
       "phase": 1,
@@ -48,10 +48,19 @@
   "children": [],
   "parent": "05-12-onsite-visitor-brutal-audit-issues",
   "relatedFiles": [
-    "frontend/app/routes/tavern.tsx",
+    "frontend/app/features/tavern-chat-workbench/index.tsx",
     "frontend/app/lib/tavern-first-minute.ts",
-    "frontend/app/product/services/tavernService.js"
+    "frontend/scripts/tavern-doorway-ritual-test.mjs",
+    ".trellis/spec/frontend/tavern-doorway-ritual-ui.md",
+    ".trellis/spec/frontend/mobile-single-mainline.md"
   ],
-  "notes": "Child task of 05-12-onsite-visitor-brutal-audit-issues. Combines issues #2 (weak map affordance), #3 (discovery overload), #4 (copy leaks), #5 (workbench exposure). Entry ritual is the first moment that must feel like 'real map → tavern → AI NPC', not workbench controls.",
-  "meta": {}
+  "notes": "Implemented current doorway requirement in TavernChatWorkbench: non-owner visitor sees real-coordinate doorway + NPC greeting before chat controls; CTA fills/focuses composer and does not auto-send.",
+  "meta": {
+    "validation": [
+      "node frontend/scripts/tavern-doorway-ritual-test.mjs PASS",
+      "npm --prefix .\\frontend run typecheck PASS",
+      "npm --prefix .\\frontend test PASS",
+      "npm --prefix .\\frontend run build PASS"
+    ]
+  }
 }

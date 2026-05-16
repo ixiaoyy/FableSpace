@@ -9,11 +9,13 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from .api.response_envelope import add_api_response_envelope_middleware
+from .application.clue_hunts import ClueHuntApplicationService
 from .application.taverns import TavernApplicationService
 from .application.territories import TerritoryApplicationService
 from .application.simulation_worker import SimulationWorker
 from .api.v1.router import api_router
 from .core.tavern import TavernStore
+from .core.clue_hunt import ClueHuntStore
 from .infrastructure.settings import ApiSettings
 from .infrastructure.storage import (
     configure_process_stores,
@@ -49,6 +51,10 @@ def create_app(settings: ApiSettings | None = None) -> FastAPI:
         create_visitor_note_store(resolved, store),
         territory_service=territory_service,
     )
+    clue_hunt_service = ClueHuntApplicationService(
+        ClueHuntStore(resolved.output_root / "clue_hunts.json"),
+        store,
+    )
 
     # ── 仿真引擎启动 (v0.9) ───────────
     simulation_worker = SimulationWorker(store, interval_seconds=resolved.simulation_interval_seconds)
@@ -65,6 +71,7 @@ def create_app(settings: ApiSettings | None = None) -> FastAPI:
     app.state.settings = resolved
     app.state.territory_service = territory_service
     app.state.taverns = taverns_service
+    app.state.clue_hunts = clue_hunt_service
     app.state.simulation_worker = simulation_worker
 
     app.add_middleware(

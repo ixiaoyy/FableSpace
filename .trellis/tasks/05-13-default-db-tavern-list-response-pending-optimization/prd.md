@@ -1,25 +1,19 @@
-# Default DB tavern list response pending optimization
+# Default DB Tavern List Response Optimization
 
-## Goal
+## Result
 
-Investigate and optimize `GET /api/v1/taverns?limit=12` in the current default database environment so it meets the user-stated 1s API response SLA.
+Implemented the default DB list-path optimization for `GET /api/v1/taverns?limit=12`.
 
-## Why this exists
+## Completed Scope
 
-During `05-13-global-api-envelope-legacy-migration`, envelope timing checks showed:
+- `list_taverns()` now eager-loads characters, world info entries, and LLM config.
+- `_to_tavern()` reads token usage from the already-loaded LLM config relationship instead of running a per-row token query.
+- Added a regression that seeds 12 DB taverns and asserts the tavern list endpoint stays under a small SQL statement budget.
 
-- JSON/local storage `/api/v1/taverns?limit=12`: max `0.0417s` over 5 samples — OK.
-- Current default database environment `/api/v1/taverns?limit=12`: repeated samples around `12.46s–14.11s` — exceeds 1s and is therefore marked **待优化**.
+## Validation
 
-The response body was about 318 KB for 12 items after the transitional envelope, so the slowness should be investigated in the database/list-query/service path rather than assumed to be caused by envelope JSON serialization.
+- `py -3 -m pytest backend/tests/test_default_db_tavern_list_performance.py -q --tb=short`: PASS.
 
-## Acceptance Criteria
+## Spec
 
-- [ ] Reproduce with an isolated timing script and identify whether the default environment is using a remote/global `FABLEMAP_DATABASE_URL` or local SQLite.
-- [ ] Attribute time to DB query, service enrichment, serialization, or middleware.
-- [ ] Bring max response time below 1s for `limit=12`, or document the blocking external dependency if not locally fixable.
-- [ ] Add/adjust a focused regression timing or contract note.
-
-## Status
-
-Pending follow-up; not implemented in the envelope migration patch.
+- `.trellis/spec/backend/default-db-tavern-list-performance.md`

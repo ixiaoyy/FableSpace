@@ -10,10 +10,10 @@ frontend/app/assets/
 │   └── reference/        # discover page cover/radar reference images
 ├── homepage/
 │   └── reference/        # homepage and conversion module illustrations
-├── soul-link-05-10/
-│   ├── home-light/       # SoulLink home light runtime materials
-│   ├── home-black/       # SoulLink home black runtime materials
-│   └── discover/cards/   # SoulLink discover/search shared 1:1 card materials
+├── fable-map-05-10/
+│   ├── brand/            # SoulLink brand raster lockups
+│   ├── home-black/       # SoulLink home runtime materials
+│   └── discover/cards/   # FableMap discover/search shared 1:1 card materials
 └── npc-style-cast/       # imported fallback NPC portraits and reference sheet
 ```
 
@@ -24,4 +24,4 @@ Product parity map packs currently remain under `frontend/app/product/assets/map
 - Use `frontend/app/assets/<feature>/...` for Vite-imported route/feature images.
 - Use `frontend/public/assets/...` instead when backend seed data or persisted payloads need stable public URLs.
 - Use `artifacts/assets/<YYYY-MM-DD-task>/...` for dated source, contact-sheet, or audit material.
-- For `soul-link-05-10`, accepted runtime assets stay in explicit page/material folders (for example `home-light/`, `home-black/`, and shared `discover/cards/`); avoid ad-hoc import folders for shipped page materials.
+- For `fable-map-05-10`, accepted runtime assets stay in explicit page/material folders (for example `brand/`, `home-black/`, and shared `discover/cards/`); avoid ad-hoc import folders for shipped page materials.

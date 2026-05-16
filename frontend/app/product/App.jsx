@@ -127,7 +127,7 @@ export default function App() {
   const [tavernAccessFilter, setTavernAccessFilter] = useState('all')
   const [tavernStatusFilter, setTavernStatusFilter] = useState('all')
   const [tavernSortMode, setTavernSortMode] = useState('distance')
-  const [ownerCreateSignal, setOwnerCreateSignal] = useState(0)
+  const [ownerCreateTrigger, setOwnerCreateTrigger] = useState(0)
   const [homeSettingsOpen, setHomeSettingsOpen] = useState(false)
   const [quickStartLoading, setQuickStartLoading] = useState(false)
   const [quickStartError, setQuickStartError] = useState('')
@@ -386,7 +386,7 @@ export default function App() {
     persistFirstRunChoice(nickname, mode)
     navigateTo(mode === 'owner' ? '/owner' : '/discover')
     if (mode === 'owner') {
-      setOwnerCreateSignal((signal) => signal + 1)
+      setOwnerCreateTrigger((trigger) => trigger + 1)
     }
   }
 
@@ -433,7 +433,7 @@ export default function App() {
   function openCreateTavern() {
     setEnteredTavern(null)
     navigateTo('/owner')
-    setOwnerCreateSignal((signal) => signal + 1)
+    setOwnerCreateTrigger((trigger) => trigger + 1)
   }
 
   function openOwnerView() {
@@ -750,7 +750,7 @@ export default function App() {
           element={(
             <TavernOwnerPanel
               ownerId={visitorId}
-              createSignal={ownerCreateSignal}
+              createTrigger={ownerCreateTrigger}
               createInitialLat={form.lat}
               createInitialLon={form.lon}
             />

@@ -2,13 +2,16 @@ import {
   ChevronDown,
   DoorOpen,
   LockKeyhole,
+  MapPin,
   Send,
+  Sparkles,
   UsersRound,
 } from "lucide-react"
 import { useEffect, useMemo, useRef, useState, type FormEvent, type KeyboardEvent, type ReactNode } from "react"
 import { useSearchParams } from "react-router"
 
 import { normalizePublicWelfareNpcAssetPath } from "../../lib/tavern-runtime-config.js"
+import { buildTavernFirstMinuteGuide } from "../../lib/tavern-first-minute"
 
 import {
   enterTavern,
@@ -21,7 +24,7 @@ import {
   type TavernCharacter,
 } from "../../lib/taverns"
 import { Button } from "../../ui/button"
-import { progressSignalsFromChatResult } from "./conversation-beats.js"
+import { progressEchoesFromChatResult } from "./conversation-beats.js"
 import {
   getGameplays,
   startGameplaySession,
@@ -30,7 +33,7 @@ import {
   listGameplaySessions,
 } from "../../lib/taverns"
 import { getMiniGameTemplates } from "../../product/tavernMiniGames"
-import OrphanSignalGameplayPanel from "../../product/OrphanSignalGameplayPanel"
+import OrphanEchoGameplayPanel from "../../product/OrphanEchoGameplayPanel"
 import GameplaySessionPanel from "../../product/GameplaySessionPanel"
 import { SpaceCapabilityHubPanel } from "../../components/SpaceCapabilityHubPanel"
 
@@ -233,10 +236,20 @@ export function TavernChatWorkbench({
 
   const [coinBalance, setCoinBalance] = useState<number | null>(null)
   const [lastGift, setLastGift] = useState<{ coins: number; items: string } | null>(null)
+  const [hasPassedDoorway, setHasPassedDoorway] = useState(Boolean(isOwner))
 
   const access = String(tavern.access || "public")
 
   const passwordLocked = access === "password" && !isOwner && !hasEnteredPasswordTavern
+  const firstMinuteGuide = useMemo(() => buildTavernFirstMinuteGuide(tavern), [tavern])
+  const doorwayHost = selectedCharacter || characters[0]
+  const doorwayGreeting = doorwayHost
+    ? entranceReactionContent(doorwayHost, tavern.name)
+    : "店主还没有安排驻场 NPC。你可以先进来，把第一条想了解的线索留给店主。"
+  const doorwayStarterLine = doorwayHost
+    ? `你好，${doorwayHost.name || "在场 NPC"}。我刚到这里，想从门口开始了解。`
+    : "我刚进门，想先听听这里最值得注意的线索。"
+  const shouldShowDoorway = !isOwner && !passwordLocked && !hasPassedDoorway
   const visibleMessages = activeChatChannel === "public"
     ? publicMessages
     : privateMessagesByCharacterId[selectedCharacter?.id || ""] || []
@@ -251,6 +264,10 @@ export function TavernChatWorkbench({
       setSelectedCharacterId(characters[0].id)
     }
   }, [characters, selectedCharacterId])
+
+  useEffect(() => {
+    if (isOwner) setHasPassedDoorway(true)
+  }, [isOwner])
 
   useEffect(() => {
     if (access === "password" && isOwner) {
@@ -414,7 +431,7 @@ export function TavernChatWorkbench({
   function buildAssistantLine(
     content: string,
     characterId: string | undefined,
-    result?: Parameters<typeof progressSignalsFromChatResult>[0],
+    result?: Parameters<typeof progressEchoesFromChatResult>[0],
   ): ChatMessage {
     const now = new Date().toISOString()
     return {
@@ -423,7 +440,7 @@ export function TavernChatWorkbench({
       content,
       character_id: characterId,
       visitor_id: visitorId,
-      progress_signals: result ? progressSignalsFromChatResult(result) : [],
+      progress_echoes: result ? progressEchoesFromChatResult(result) : [],
       fallback_notice: result?.is_fallback === true
         ? String(result.fallback_notice || "NPC 暂时无法给出有效回复，可以换个问法或稍后重试。")
         : "",
@@ -450,7 +467,7 @@ export function TavernChatWorkbench({
   }
 
   function mapGroupResponseMessages(result: Awaited<ReturnType<typeof sendGroupChat>>): ChatMessage[] {
-    const progress_signals = progressSignalsFromChatResult(result)
+    const progress_echoes = progressEchoesFromChatResult(result)
     const lines = (Array.isArray(result.messages) ? result.messages : [])
       .map((groupMessage, index) => ({
         id: groupMessage.id || `local-group-${Date.now()}-${index}`,
@@ -465,7 +482,7 @@ export function TavernChatWorkbench({
       }))
       .filter((groupMessage) => groupMessage.content)
     return lines.map((line, index) =>
-      index === lines.length - 1 ? { ...line, progress_signals } : line,
+      index === lines.length - 1 ? { ...line, progress_echoes } : line,
     )
   }
 
@@ -641,6 +658,25 @@ export function TavernChatWorkbench({
     setError("")
   }
 
+  function handleDoorwayStartChat() {
+    if (doorwayHost?.id) {
+      ensurePrivateEntranceMessage(doorwayHost)
+      setSelectedCharacterId(doorwayHost.id)
+      setActiveChatChannel("private")
+    } else {
+      setActiveChatChannel("public")
+    }
+    setMessage(doorwayStarterLine)
+    setMentionQuery(null)
+    setMentionIndex(0)
+    setError("")
+    setHasPassedDoorway(true)
+    window.requestAnimationFrame(() => {
+      textareaRef.current?.focus()
+      textareaRef.current?.scrollIntoView({ block: "center", behavior: "smooth" })
+    })
+  }
+
   async function handleStartGameplay(definition: any) {
     setIsGameplayBusy(true)
     setError("")
@@ -709,7 +745,7 @@ export function TavernChatWorkbench({
     }
   }
 
-  const isOrphanSignalMode = (tavern as Record<string, unknown>).special_type === "divination" || searchParams.get("ui_style") === "orphan-signal"
+  const isOrphanEchoMode = (tavern as Record<string, unknown>).special_type === "divination" || searchParams.get("ui_style") === "orphan-echo"
   const miniGameTemplates = getMiniGameTemplates()
   const currentGameplay = gameplayDefinitions[0] // Default to first for now if session starts
 
@@ -721,6 +757,58 @@ export function TavernChatWorkbench({
         <div className="border-b border-white/10 bg-slate-950/80 px-4 py-3 sm:px-6">
           <h1 className="break-words text-2xl font-black tracking-tight text-white sm:text-3xl">{tavern.name}</h1>
         </div>
+
+        {shouldShowDoorway ? (
+          <section
+            data-tavern-doorway-ritual
+            className="grid gap-5 p-4 sm:p-6 lg:grid-cols-[1.05fr_0.95fr] lg:items-stretch"
+          >
+            <div className="rounded-[1.75rem] border border-cyan-200/18 bg-cyan-300/[0.075] p-5 shadow-[0_18px_48px_rgba(8,145,178,0.08)]">
+              <div className="mb-4 inline-flex w-fit items-center gap-2 rounded-full border border-cyan-200/20 bg-slate-950/40 px-3 py-1.5 text-xs font-black uppercase tracking-[0.16em] text-cyan-100">
+                <MapPin className="h-3.5 w-3.5" />
+                Real coordinate doorway
+              </div>
+              <h2 className="text-3xl font-black leading-tight text-white">先推门，再聊天</h2>
+              <p data-doorway-map-anchor className="mt-3 rounded-2xl border border-white/10 bg-slate-950/35 p-3 text-sm font-bold leading-6 text-cyan-50/76">
+                {firstMinuteGuide.anchorLine}
+              </p>
+              <p className="mt-4 text-sm leading-7 text-violet-50/72">{firstMinuteGuide.whyHere}</p>
+              <div className="mt-4 grid gap-2 sm:grid-cols-2">
+                <span className="rounded-2xl border border-white/10 bg-white/[0.045] px-3 py-2 text-xs font-black text-cyan-100">
+                  {firstMinuteGuide.experienceType}
+                </span>
+                <span className="rounded-2xl border border-white/10 bg-white/[0.045] px-3 py-2 text-xs font-black text-violet-100/70">
+                  {characters.length} 位 NPC 在场
+                </span>
+              </div>
+            </div>
+
+            <div className="rounded-[1.75rem] border border-white/10 bg-white/[0.045] p-5">
+              <div className="mb-4 inline-flex w-fit items-center gap-2 rounded-full border border-violet-200/16 bg-violet-300/10 px-3 py-1.5 text-xs font-black text-violet-100">
+                <Sparkles className="h-3.5 w-3.5" />
+                正在接待
+              </div>
+              <div className="flex items-start gap-3">
+                <CharacterAvatar character={doorwayHost} active />
+                <div className="min-w-0">
+                  <p className="font-black text-white">{doorwayHost?.name || "驻场 NPC"}</p>
+                  <p data-doorway-host-greeting className="mt-2 rounded-3xl rounded-tl-sm border border-white/10 bg-slate-950/45 p-4 text-sm leading-7 text-violet-50/78">
+                    {doorwayGreeting}
+                  </p>
+                </div>
+              </div>
+              <Button type="button" data-doorway-start-chat className="mt-5 min-h-12 w-full" onClick={handleDoorwayStartChat}>
+                推门进店，和 NPC 打招呼 →
+              </Button>
+              <p className="mt-3 text-xs leading-5 text-violet-100/52">
+                点击只会切到私聊并填入开场白，不会替你自动发送消息。
+              </p>
+            </div>
+          </section>
+        ) : null}
+
+        {!shouldShowDoorway ? (
+          <>
 
         {/* ── 金币余额 & 收礼提示（作用域在 TavernChatWorkbench 内）── */}
         {coinBalance !== null && (
@@ -813,9 +901,9 @@ export function TavernChatWorkbench({
               </div>
             </div>
 
-            {isOrphanSignalMode ? (
+            {isOrphanEchoMode ? (
               <div className="p-4">
-                <OrphanSignalGameplayPanel
+                <OrphanEchoGameplayPanel
                   session={activeSession}
                   scene={gameplayScene}
                   gameplay={currentGameplay}
@@ -905,20 +993,20 @@ export function TavernChatWorkbench({
                       ) : null}
                       {isUser
                         ? null
-                        : Array.isArray(line.progress_signals) &&
-                          line.progress_signals.length > 0 && (
+                        : Array.isArray(line.progress_echoes) &&
+                          line.progress_echoes.length > 0 && (
                             <div
-                              data-conversation-progress-card
+                              data-conversation-progress-echo-card
                               className="mt-3 rounded-2xl border border-emerald-200/25 bg-emerald-200/6 px-3 py-2 text-[0.76rem] leading-5 text-emerald-100/85"
                             >
                               <p className="mb-2 text-xs font-black uppercase tracking-[0.16em] text-emerald-100/90">本轮有推进</p>
                               <div className="space-y-1">
-                                {line.progress_signals.map((signal, signalIndex) => (
+                                {line.progress_echoes.map((echo, echoIndex) => (
                                   <p
-                                    key={signal.message || `${signal.type}-${signalIndex}`}
+                                    key={echo.message || `${echo.type}-${echoIndex}`}
                                     className="text-violet-50/84"
                                   >
-                                    {signal.message || signal.label || ""}
+                                    {echo.message || echo.label || ""}
                                   </p>
                                 ))}
                               </div>
@@ -1012,6 +1100,8 @@ export function TavernChatWorkbench({
             </section>
           </main>
         </div>
+          </>
+        ) : null}
       </div>
     </section>
   )

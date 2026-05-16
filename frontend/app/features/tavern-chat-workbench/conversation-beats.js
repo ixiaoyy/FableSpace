@@ -61,17 +61,17 @@ function affinityStageLabel(affinity) {
   return String(affinity.stage_label_zh || affinity.new_stage || "").trim()
 }
 
-export function progressSignalsFromChatResult(result) {
+export function progressEchoesFromChatResult(result) {
   if (result?.is_fallback === true) return []
 
-  const signals = []
+  const echoes = []
   const memoryCount = countList(result?.created_memories)
   const stateCardCount = countList(result?.state_card_candidates)
   const affinity = result?.affinity && typeof result.affinity === "object" ? result.affinity : null
   const stageLabel = affinityStageLabel(affinity)
 
   if (memoryCount > 0) {
-    signals.push({
+    echoes.push({
       id: "memory",
       label: `记住了 ${memoryCount} 件事`,
       detail: "这轮对话留下了可用于回访的线索。",
@@ -80,14 +80,14 @@ export function progressSignalsFromChatResult(result) {
   }
 
   if (affinity?.stage_changed) {
-    signals.push({
+    echoes.push({
       id: "affinity-stage",
       label: stageLabel ? `关系进入「${stageLabel}」` : "关系阶段有变化",
       detail: "NPC 对你的熟悉感出现了新的阶段。",
       tone: "affinity",
     })
   } else if (affinity && Number.isFinite(Number(affinity.strength))) {
-    signals.push({
+    echoes.push({
       id: "affinity",
       label: stageLabel ? `当前关系：${stageLabel}` : "关系略有变化",
       detail: "这轮互动已计入当前空间的关系进度。",
@@ -96,7 +96,7 @@ export function progressSignalsFromChatResult(result) {
   }
 
   if (stateCardCount > 0) {
-    signals.push({
+    echoes.push({
       id: "state-card",
       label: `可整理 ${stateCardCount} 条连续性线索`,
       detail: "这轮内容可沉淀为后续对话的状态线索。",
@@ -104,5 +104,7 @@ export function progressSignalsFromChatResult(result) {
     })
   }
 
-  return signals
+  return echoes
 }
+
+export const progressSignalsFromChatResult = progressEchoesFromChatResult

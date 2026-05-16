@@ -3,19 +3,19 @@
   "name": "global-api-envelope-legacy-migration",
   "title": "Global API envelope and legacy API migration",
   "description": "Plan and implement approved high-risk global API response envelope migration, legacy /api migration/removal, and any explicitly required schema/enum updates.",
-  "status": "in_progress",
+  "status": "completed",
   "dev_type": "fullstack",
   "scope": "fullstack",
   "package": null,
   "priority": "P0",
   "creator": "lijin",
-  "assignee": "lijin",
+  "assignee": "codex",
   "createdAt": "2026-05-13",
-  "completedAt": null,
+  "completedAt": "2026-05-16",
   "branch": null,
   "base_branch": "main",
   "worktree_path": null,
-  "current_phase": 4,
+  "current_phase": 6,
   "next_action": [
     {
       "phase": 1,
@@ -50,6 +50,7 @@
   ],
   "parent": null,
   "relatedFiles": [],
-  "notes": "Phase 1 transitional global API envelope implemented; legacy /api migration map and schema/enum note recorded. Strict envelope-only cutover and legacy route deletion remain separate follow-up phases.",
-  "meta": {}
+  "notes": "Phase 1 transitional global API envelope completed and revalidated on 2026-05-16. Strict envelope-only cutover and legacy route deletion remain explicit follow-up phases, not hidden remaining work for this task.",
+  "meta": {},
+  "updatedAt": "2026-05-16"
 }

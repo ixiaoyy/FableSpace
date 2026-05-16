@@ -2,7 +2,7 @@
 
 > Compact pending-task summary. Verbose planning detail was removed to reduce AI context noise; re-expand from git history only if this task is resumed.
 
-- Status: review
+- Status: completed
 - Task dir: `05-13-npc-duel-rps`
 - Scope: frontend
 
@@ -19,3 +19,7 @@
 ## Resume policy
 - Before implementing, re-confirm scope with current product docs/code.
 - Do not treat this old planning note as a current approved contract.
+
+## Completion Note (2026-05-16)
+
+Closed after current Trellis sweep. Prior Playwright evidence remains in task metadata; current shared frontend test/typecheck/build validation passed with no additional NPC duel scope changes.

@@ -26,6 +26,10 @@ Current frontend principles:
 ## Read only when touched
 
 - API envelope/tavern page clients: `api-envelope-client-boundary.md`, `tavern-api-client-boundary.md`
+- Homepage dynamic data: `homepage-dynamic-data-boundary.md`
+- Clue hunt UI/API client boundary: `clue-hunt-ui-boundary.md`
+- Tavern doorway ritual UI: `tavern-doorway-ritual-ui.md`
+- Visitor-first discovery reduction: `visitor-first-discovery-reduction.md`
 - Images/NPC art: `image-asset-guidelines.md`, `npc-art-guidelines.md`
 - State cards / GM / episode / voice / souvenir / skill packs / preset import / risk linter / digital-human / map copy / discovery signals / mobile / revisit-care / engagement: corresponding focused files.
 

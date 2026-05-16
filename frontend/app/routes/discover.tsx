@@ -14,9 +14,9 @@ import {
 import { Link, useSearchParams } from "react-router"
 import { useEffect, useMemo, useState } from "react"
 
-import discoverRadarSurfaceImage from "../assets/soul-link-05-10/discover/cards/card-compass-square.png"
+import discoverRadarSurfaceImage from "../assets/fable-map-05-10/discover/cards/card-compass-square.png"
 import { DiscoveryLivelinessStrip } from "../components/DiscoveryLivelinessStrip"
-import { SoulLinkDiscoverReference } from "../components/soul-link-reference-artboards"
+import { FableMapDiscoverReference } from "../components/fable-map-reference-artboards"
 import { TavernPreviewModal } from "../components/tavern-preview-modal"
 import { buildDiscoveryLiveliness, getDiscoveryLivelinessSearchText } from "../lib/discovery-liveliness.js"
 import { resolveHomepageTavernCover, resolveUniqueHomepageTavernCovers } from "../lib/homepage-taverns"
@@ -62,7 +62,7 @@ type FilterState = {
   openOnly: boolean
 }
 
-type EntrySignal = {
+type EntryEcho = {
   label: string
   value: string
   helper: string
@@ -147,7 +147,7 @@ function coverForTavern(tavern: Tavern, index: number) {
   return resolveHomepageTavernCover(tavern, index)
 }
 
-function signalStrength(tavern: Tavern, index: number) {
+function echoStrength(tavern: Tavern, index: number) {
   const characterBoost = Math.min(tavern.characters?.length ?? 0, 5) * 4
   const openBoost = tavern.status === "open" || tavern.is_open ? 10 : 0
   const visitBoost = Math.min(Math.floor((tavern.visit_count ?? 0) / 10), 10)
@@ -205,7 +205,7 @@ function entryStatusDisplay(tavern: TavernWithTimeStatus | Tavern): EntryStatusD
   }
 }
 
-function buildEntrySignals(tavern: TavernWithTimeStatus | Tavern, placeType: ReturnType<typeof derivePlaceTypeDisplay>): EntrySignal[] {
+function buildEntryEchoes(tavern: TavernWithTimeStatus | Tavern, placeType: ReturnType<typeof derivePlaceTypeDisplay>): EntryEcho[] {
   const entry = entryStatusDisplay(tavern)
   const characterCount = Array.isArray(tavern.characters) ? tavern.characters.length : 0
   const visitCount = Number.isFinite(tavern.visit_count) ? Number(tavern.visit_count) : 0
@@ -232,7 +232,7 @@ function buildEntrySignals(tavern: TavernWithTimeStatus | Tavern, placeType: Ret
     {
       label: "回访",
       value: visitCount ? `${visitCount} 次到访` : "新入口",
-      helper: visitCount ? "聚合到访热度" : "等待第一位旅人",
+      helper: visitCount ? "聚合到访热度" : "等待第一位旅客",
       className: "border-emerald-300/22 bg-emerald-300/10 text-emerald-50",
     },
   ]
@@ -292,7 +292,7 @@ function tavernMatchesFilter(tavern: TavernListResponse["taverns"][number], filt
 
 function CharacterStack({ characters = [], muted = false }: { characters?: TavernCharacter[]; muted?: boolean }) {
   if (!characters.length) {
-    return <span className="text-xs text-theme-muted">暂无角色信号</span>
+    return <span className="text-xs text-theme-muted">暂无活跃角色</span>
   }
 
   return (
@@ -357,12 +357,12 @@ function compactCharacterNames(characters: TavernCharacter[]) {
   return characters.length > 3 ? `${names} · +${characters.length - 3}` : names
 }
 
-function visitSignalLabel(tavern: Tavern) {
+function visitEchoLabel(tavern: Tavern) {
   const visitCount = Number(tavern.visit_count)
-  return Number.isFinite(visitCount) && visitCount > 0 ? `${Math.round(visitCount)} 次到访` : "新入口"
+  return Number.isFinite(visitCount) && visitCount > 0 ? `${Math.round(visitCount)} 次回访` : "新坐标"
 }
 
-function RadarSignalSummary({
+function RadarEchoSummary({
   tavern,
   strength,
   muted = false,
@@ -381,19 +381,19 @@ function RadarSignalSummary({
       icon: UsersRound,
     },
     {
-      label: "活性",
+      label: "活跃",
       value: liveliness.headline,
       icon: RadioTower,
     },
     {
-      label: "信号",
-      value: `${visitSignalLabel(tavern)} · ${strength}%`,
+      label: "空间热度",
+      value: `${visitEchoLabel(tavern)} · ${strength}%`,
       icon: Waves,
     },
   ]
 
   return (
-    <div className="mt-4 grid gap-2 sm:grid-cols-3" aria-label="雷达信号摘要">
+    <div className="mt-4 grid gap-2 sm:grid-cols-3" aria-label="入口摘要">
       {summaryItems.map((item) => {
         const Icon = item.icon
         return (
@@ -419,7 +419,7 @@ function RadarSignalSummary({
   )
 }
 
-function EntrySignalGrid({
+function EntryEchoGrid({
   tavern,
   placeType,
   compact = false,
@@ -430,22 +430,22 @@ function EntrySignalGrid({
   compact?: boolean
   muted?: boolean
 }) {
-  const signals = buildEntrySignals(tavern, placeType)
+  const echoes = buildEntryEchoes(tavern, placeType)
 
   return (
     <div className={`grid gap-2 ${compact ? "grid-cols-2" : "grid-cols-2 sm:grid-cols-4"}`} aria-label="入店探索线索">
-      {signals.map((signal) => (
+      {echoes.map((echo) => (
         <div
-          key={signal.label}
+          key={echo.label}
           className={`min-w-0 rounded-2xl border px-3 py-2 ${
-            muted ? "border-theme-border bg-theme-card text-theme-primary/42" : signal.className
+            muted ? "border-theme-border bg-theme-card text-theme-primary/42" : echo.className
           }`}
         >
           <p className={`text-[0.62rem] font-black uppercase tracking-[0.18em] ${muted ? "text-theme-primary/24" : "text-theme-primary/45"}`}>
-            {signal.label}
+            {echo.label}
           </p>
-          <p className={`mt-1 truncate text-xs font-black ${muted ? "text-theme-primary/42" : "text-theme-primary"}`}>{signal.value}</p>
-          <p className={`mt-0.5 truncate text-[0.68rem] ${muted ? "text-theme-primary/26" : "text-theme-primary/55"}`}>{signal.helper}</p>
+          <p className={`mt-1 truncate text-xs font-black ${muted ? "text-theme-primary/42" : "text-theme-primary"}`}>{echo.value}</p>
+          <p className={`mt-0.5 truncate text-[0.68rem] ${muted ? "text-theme-primary/26" : "text-theme-primary/55"}`}>{echo.helper}</p>
         </div>
       ))}
     </div>
@@ -470,7 +470,7 @@ function ShortDramaTeaserCard({
           ? "border-theme-border bg-theme-card text-theme-primary/42"
           : "border-theme-border bg-theme-bg text-theme-primary"
       }`}
-      aria-label="短剧入口卡"
+      aria-label="短剧入口"
     >
       <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0">
@@ -572,7 +572,7 @@ function FilterPanel({
     activeCategories.size +
     (publicOnly ? 1 : 0) +
     (openOnly ? 1 : 0)
-  const advancedFiltersId = "discover-signal-tuning"
+  const advancedFiltersId = "discover-echo-tuning"
 
   return (
     <div
@@ -582,7 +582,7 @@ function FilterPanel({
       <div className="flex flex-wrap items-center justify-between gap-3">
         <span className="inline-flex items-center gap-2 text-xs font-black uppercase tracking-widest text-theme-accent-text">
           <Search className="h-3.5 w-3.5" />
-          查找信号
+          发现空间
         </span>
         <div className="flex items-center gap-2">
           <button
@@ -593,7 +593,7 @@ function FilterPanel({
             className="inline-flex min-h-11 touch-manipulation items-center gap-2 rounded-full border border-theme-accent-border bg-theme-accent-bg px-3 py-2 text-xs font-bold text-theme-accent-text transition hover:border-cyan-300/45 hover:bg-cyan-300/16 md:hidden"
           >
             <Radar className="h-3.5 w-3.5" />
-            {filtersOpen ? "收起调谐" : "展开调谐"}
+            {filtersOpen ? "收起筛选" : "展开筛选"}
           </button>
           {hasFilters ? (
             <button
@@ -613,7 +613,7 @@ function FilterPanel({
         <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-theme-muted" />
         <input
           type="text"
-          placeholder="搜索坐标、区域、角色或记忆线索…"
+          placeholder="搜索坐标、区域、角色或记忆线索"
           value={search}
           onChange={(event) => onSearchChange(event.target.value)}
           className="flex h-11 w-full rounded-2xl border border-theme-border bg-theme-card px-9 py-2 text-sm text-theme-primary placeholder:text-theme-muted focus:outline-none focus:ring-2 focus:ring-cyan-300/40"
@@ -621,7 +621,7 @@ function FilterPanel({
       </label>
 
       <div className="rounded-2xl border border-theme-accent-border bg-cyan-300/[0.085] px-3 py-2 text-xs leading-5 text-theme-accent-text/78 md:hidden">
-        {activeFilterCount ? `已锁定 ${activeFilterCount} 个高级信号条件；展开后可继续调谐。` : "移动端默认保留搜索入口；地点类型、标签与开灯状态可展开调谐。"}
+        {activeFilterCount ? `已锁定 ${activeFilterCount} 个高级筛选条件；展开后可继续调整。` : "移动端默认保留搜索入口；地点类型、标签与开灯状态可展开筛选。"}
       </div>
 
       <div id={advancedFiltersId} className={`${filtersOpen ? "space-y-4" : "hidden"} md:block md:space-y-4`}>
@@ -715,7 +715,7 @@ function FilterPanel({
               onChange={(event) => onOpenOnlyChange(event.target.checked)}
               className="accent-cyan-400"
             />
-            仅亮起
+            仅亮灯
           </label>
         </div>
       </div>
@@ -740,13 +740,13 @@ function PreviewTile({ image, title, text }: { image: string; title: string; tex
   )
 }
 
-function RadarSignalCard({ tavern, index, onPreview }: { tavern: Tavern; index: number; onPreview: (tavern: Tavern) => void }) {
+function RadarEchoCard({ tavern, index, onPreview }: { tavern: Tavern; index: number; onPreview: (tavern: Tavern) => void }) {
   const tavernWithTimeStatus = tavern as TavernWithTimeStatus
   const isClosed = tavernWithTimeStatus.is_open === false
   const placeType = derivePlaceTypeDisplay(tavern)
   const specialType = deriveSpecialTavernTypeDisplay(tavern)
   const entry = entryStatusDisplay(tavernWithTimeStatus)
-  const strength = signalStrength(tavern, index)
+  const strength = echoStrength(tavern, index)
   const firstMinute = buildTavernFirstMinuteGuide(tavern)
 
   return (
@@ -798,7 +798,7 @@ function RadarSignalCard({ tavern, index, onPreview }: { tavern: Tavern; index: 
                 {entry.label}
               </span>
               <span className={`w-fit rounded-full border px-2.5 py-1 text-xs font-bold ${isClosed ? "border-theme-border bg-theme-card text-theme-primary/40" : "border-theme-border bg-theme-bg text-theme-primary"}`}>
-                Signal {strength}%
+                强度 {strength}%
               </span>
             </div>
           </div>
@@ -821,11 +821,11 @@ function RadarSignalCard({ tavern, index, onPreview }: { tavern: Tavern; index: 
               专题体验：{specialType.summary}
             </p>
           ) : null}
-          <RadarSignalSummary tavern={tavernWithTimeStatus} placeType={placeType} strength={strength} muted={isClosed} />
+          <RadarEchoSummary tavern={tavernWithTimeStatus} placeType={placeType} strength={strength} muted={isClosed} />
           <div className={`mt-4 flex flex-wrap items-center gap-2 text-xs ${isClosed ? "text-theme-primary/24" : "text-theme-muted"}`}>
             <span>{locationLabel(tavern)}</span>
             {tavernWithTimeStatus.local_time_display ? (
-              <span>{isClosed ? "已熄灯" : "亮起中"} · {tavernWithTimeStatus.local_time_display}</span>
+              <span>{isClosed ? "已熄灯" : "亮灯中"} · {tavernWithTimeStatus.local_time_display}</span>
             ) : null}
             <Link to={`/tavern/${tavern.id}`} className="ml-auto inline-flex min-h-11 touch-manipulation items-center gap-1 rounded-full border border-theme-accent-border px-4 py-2 font-bold text-theme-accent-text transition hover:bg-theme-accent-bg">
               进入
@@ -928,7 +928,7 @@ function ResultCard({
             ))}
           </div>
         </section>
-        <EntrySignalGrid tavern={tavernWithTimeStatus} placeType={placeType} muted={isClosed} />
+        <EntryEchoGrid tavern={tavernWithTimeStatus} placeType={placeType} muted={isClosed} />
         <DiscoveryLivelinessStrip tavern={tavernWithTimeStatus} muted={isClosed} />
         {intentTags.length ? (
           <div className="flex flex-wrap gap-2" aria-label="经营意图">
@@ -943,11 +943,11 @@ function ResultCard({
           <ShortDramaTeaserCard teaser={shortDramaTeaser} muted={isClosed} />
         ) : null}
         <div className="flex flex-wrap items-center gap-2 text-xs font-bold">
-          <span className="rounded-full border border-theme-accent-border bg-theme-accent-bg px-2.5 py-1 text-theme-accent-text">Signal {signalStrength(tavern, index)}%</span>
+          <span className="rounded-full border border-theme-accent-border bg-theme-accent-bg px-2.5 py-1 text-theme-accent-text">热度 {echoStrength(tavern, index)}%</span>
           <span className={`rounded-full border px-2.5 py-1 ${isClosed ? "border-theme-border bg-theme-card text-theme-muted" : entry.className}`}>{entry.label}</span>
           {tavernWithTimeStatus.local_time_display ? (
             <span className="rounded-full border border-emerald-300/18 bg-emerald-300/10 px-2.5 py-1 text-emerald-100">
-              {isClosed ? "已熄灯" : "亮起中"} · {tavernWithTimeStatus.local_time_display}
+              {isClosed ? "已熄灯" : "亮灯中"} · {tavernWithTimeStatus.local_time_display}
             </span>
           ) : null}
         </div>
@@ -982,19 +982,19 @@ function EmptyState({ hasFilters }: { hasFilters: boolean }) {
 }
 
 function DesktopRadarTelemetry({ taverns }: { taverns: Tavern[] }) {
-  const openSignals = taverns.filter((tavern) => tavern.status === "open" || (tavern as TavernWithTimeStatus).is_open).length
+  const openEchoes = taverns.filter((tavern) => tavern.status === "open" || (tavern as TavernWithTimeStatus).is_open).length
   const activeOperationCount = taverns.filter((tavern) => buildDiscoveryLiveliness(tavern).headline === "附近有人经营").length
-  const averageSignal = taverns.length
-    ? Math.round(taverns.reduce((total, tavern, index) => total + signalStrength(tavern, index), 0) / taverns.length)
+  const averageEcho = taverns.length
+    ? Math.round(taverns.reduce((total, tavern, index) => total + echoStrength(tavern, index), 0) / taverns.length)
     : 0
 
   return (
     <div className="hidden gap-3 xl:grid xl:grid-cols-4" aria-label="Live telemetry">
       {[
-        { label: "Live telemetry", value: `${taverns.length}`, helper: "坐标信号" },
-        { label: "Open sectors", value: `${openSignals}`, helper: "正在亮起" },
+        { label: "Live telemetry", value: `${taverns.length}`, helper: "坐标入口" },
+        { label: "Open spaces", value: `${openEchoes}`, helper: "正在亮起" },
         { label: "Operated nearby", value: `${activeOperationCount}`, helper: "有人经营" },
-        { label: "Avg strength", value: `${averageSignal}%`, helper: "平均强度" },
+        { label: "Avg warmth", value: `${averageEcho}%`, helper: "平均热度" },
       ].map((item) => (
         <div key={item.label} className="rounded-3xl border border-theme-border bg-theme-card p-4 backdrop-blur-xl">
           <p className="text-[0.65rem] font-black uppercase tracking-[0.22em] text-theme-accent-text">{item.label}</p>
@@ -1029,8 +1029,8 @@ function RadarBoard({ taverns, hasFilters, onPreview }: { taverns: Tavern[]; has
         <div className="flex flex-col gap-4 rounded-[1.75rem] border border-theme-border bg-theme-card p-5 backdrop-blur-md sm:flex-row sm:items-center sm:justify-between">
           <div>
             <p className="text-xs font-black uppercase tracking-[0.24em] text-theme-accent-text">Live coordinate radar</p>
-            <h2 className="mt-2 text-3xl font-black text-theme-primary">发光坐标流</h2>
-            <p className="mt-1 text-sm text-theme-muted">用雷达视角感受附近的区域氛围；查找时可切成卡片结果。</p>
+            <h2 className="mt-2 text-3xl font-black text-theme-primary">发现视角</h2>
+            <p className="mt-1 text-sm text-theme-muted">感受附近的区域氛围；查找时可切成卡片结果。</p>
           </div>
           <span className="grid h-14 w-14 place-items-center rounded-full border border-cyan-300/28 bg-theme-accent-bg text-theme-accent-text">
             <Waves className="h-7 w-7" />
@@ -1042,7 +1042,7 @@ function RadarBoard({ taverns, hasFilters, onPreview }: { taverns: Tavern[]; has
         {taverns.length ? (
           <div data-discover-board-scroll="radar-results" className={`grid flex-1 content-start gap-4 ${DISCOVER_DESKTOP_BOARD_SCROLL}`}>
             {taverns.map((tavern, index) => (
-              <RadarSignalCard key={tavern.id} tavern={tavern} index={index} onPreview={onPreview} />
+              <RadarEchoCard key={tavern.id} tavern={tavern} index={index} onPreview={onPreview} />
             ))}
           </div>
         ) : (
@@ -1097,23 +1097,6 @@ function CardsBoard({ taverns, hasFilters, onPreview }: { taverns: Tavern[]; has
   )
 }
 
-function LightDiscoverReference(props: {
-  search: string
-  taverns: Tavern[]
-  onSearchChange: (value: string) => void
-  onClear: () => void
-  onTogglePlaceType: (placeTypeId: string) => void
-  onToggleSpecialType: (specialTypeId: string) => void
-  onToggleCategory: (label: string) => void
-  onPublicOnlyChange: (value: boolean) => void
-  onOpenOnlyChange: (value: boolean) => void
-  onToggleTheme: () => void
-}) {
-  return <SoulLinkDiscoverReference variant="light" {...props} />
-}
-
-
-
 export default function DiscoverRoute() {
   const [result, setResult] = useState<TavernListResponse>({ taverns: [], count: 0 })
   const [error, setError] = useState("")
@@ -1130,8 +1113,7 @@ export default function DiscoverRoute() {
     return () => { cancelled = true }
   }, [searchParams])
 
-  const { theme, toggleTheme } = useTheme()
-  const isDark = theme === "dark"
+  const { toggleTheme } = useTheme()
 
   const initialSearch = searchParams.get("search") ?? searchParams.get("q") ?? ""
   const [search, setSearch] = useState(initialSearch)
@@ -1163,6 +1145,8 @@ export default function DiscoverRoute() {
 
   const hasFilters = Boolean(search.trim()) || activePlaceTypes.size > 0 || activeSpecialTypes.size > 0 || activeCategories.size > 0 || publicOnly || openOnly
   const activeViewMode: DiscoverViewMode = manualViewMode ?? (hasFilters ? "cards" : "radar")
+  const expandedDiscovery = searchParams.get("view") === "expanded" || Boolean(searchParams.get("owner_id"))
+  const visitorReduced = !expandedDiscovery
 
   const filteredTaverns = useMemo(() => {
     return result.taverns.filter((tavern) =>
@@ -1187,7 +1171,7 @@ export default function DiscoverRoute() {
       .flatMap((tavern, tavernIndex) =>
         (Array.isArray(tavern.characters) ? tavern.characters : []).slice(0, 1).map((character, characterIndex) => ({
           id: `${tavern.id}-${character.id || characterIndex}`,
-          name: character.name || `灵魂 ${tavernIndex + 1}`,
+          name: character.name || `角色 ${tavernIndex + 1}`,
           location: `在 ${tavern.name || "某个坐标"}`,
           status: tavernIndex < 2 ? "在线" : `${tavernIndex * 5 + 5} 分钟前`,
           avatar: character.avatar || coversByTavernId[tavern.id] || resolveHomepageTavernCover(tavern, tavernIndex),
@@ -1249,33 +1233,13 @@ export default function DiscoverRoute() {
     if (value) setManualViewMode("cards")
   }
 
-  if (isDark) {
-    return (
-      <SoulLinkDiscoverReference
-        variant="black"
-        search={search}
-        taverns={filteredTaverns}
-        isLoading={loading}
-        sideFeedItems={sideFeedItems}
-        onlineEntities={onlineEntities}
-        onSearchChange={switchToCardsForSearch}
-        onClear={clearFilters}
-        onTogglePlaceType={togglePlaceType}
-        onToggleSpecialType={toggleSpecialType}
-        onToggleCategory={toggleCategory}
-        onPublicOnlyChange={(value) => setBooleanFilter(setPublicOnly, value)}
-        onOpenOnlyChange={(value) => setBooleanFilter(setOpenOnly, value)}
-        onToggleTheme={toggleTheme}
-      />
-    )
-  }
-
   return (
-    <SoulLinkDiscoverReference
-      variant="light"
+    <FableMapDiscoverReference
+      variant="black"
       search={search}
       taverns={filteredTaverns}
       isLoading={loading}
+      visitorReduced={visitorReduced}
       sideFeedItems={sideFeedItems}
       onlineEntities={onlineEntities}
       onSearchChange={switchToCardsForSearch}

@@ -6,7 +6,7 @@ import CharacterLookSummary from './CharacterLookSummary'
 import TavernMiniGamePanel from './TavernMiniGamePanel'
 import TavernGameplayLauncher from './TavernGameplayLauncher'
 import GameplaySessionPanel from './GameplaySessionPanel'
-import OrphanSignalGameplayPanel from './OrphanSignalGameplayPanel'
+import OrphanEchoGameplayPanel from './OrphanEchoGameplayPanel'
 import StateCardReviewPanel from './StateCardReviewPanel'
 import GardenFarmPanel from './GardenFarmPanel'
 import {
@@ -1968,7 +1968,7 @@ export default function TavernChatRoom({
               )}
 
               {playMode.id === 'divination' ? (
-                <OrphanSignalGameplayPanel
+                <OrphanEchoGameplayPanel
                   session={activeGameplaySession}
                   scene={gameplayScene}
                   gameplay={activeGameplayDefinition}

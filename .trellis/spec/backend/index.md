@@ -25,7 +25,11 @@ Current backend principles:
 ## Read only when touched
 
 - API envelope: [api-response-envelope-contract.md](./api-response-envelope-contract.md)
+- Platform homepage aggregates: [platform-home-api-contract.md](./platform-home-api-contract.md)
 - Tavern list/detail optimization: [tavern-api-response-contract.md](./tavern-api-response-contract.md)
+- Default DB tavern list performance: [default-db-tavern-list-performance.md](./default-db-tavern-list-performance.md)
+- Clue hunt routes/sessions/rewards: [clue-hunt-api-contract.md](./clue-hunt-api-contract.md)
+- NPC vividness prompt: [npc-vividness-prompt-contract.md](./npc-vividness-prompt-contract.md)
 - Share: [tavern-share-api-contract.md](./tavern-share-api-contract.md)
 - State cards / GM / episode / voice / souvenir / skill packs / preset import: corresponding `*-contract.md` files.
 - Territory / engagement / special tavern types / NPC dynamic responses: corresponding focused files.

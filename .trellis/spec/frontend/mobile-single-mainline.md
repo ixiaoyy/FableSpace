@@ -24,9 +24,9 @@ This guide does not introduce new API, schema, persistence, or mobile-framework 
 - Mobile dock `/create` label is `进店`, not `创建空间`; desktop top navigation keeps `创建空间` so owner creation remains discoverable but secondary on mobile.
 - Primary top navigation is hidden below `lg` so it does not duplicate the mobile dock or expose owner/create wording in the mobile first line.
 - Product shell content keeps enough bottom padding (`pb-28`) so fixed bottom dock does not cover key CTAs or footer actions.
-- Mobile tavern route renders `TavernChatWorkbench` as the default `/tavern/:id` mainline; the first screen must expose NPC roster, chat history, and the bottom composer before secondary panels.
+- Mobile tavern route renders `TavernChatWorkbench` as the default `/tavern/:id` mainline. Non-owner visitors may first see the doorway ritual beat; after its CTA, NPC roster, chat history, and the bottom composer must be reachable before secondary panels.
 - `TavernChatWorkbench` keeps the machine-checkable marker `data-chat-workbench="sillytavern-style"` and accessible regions for `NPC 角色列表` and `聊天记录`.
-- Secondary public tavern panels (`TavernShareCard`, `TavernActivitySignalsCard`, `NeighborhoodRumorBubble`, `CreatorConversionCard`) are passed through `publicPanel` and live behind the workbench `更多空间功能` details section.
+- Secondary public tavern panels (`TavernShareCard`, `TavernActivityEchoesCard`, `NeighborhoodRumorBubble`, `CreatorConversionCard`) are passed through `publicPanel` and live behind the workbench `更多空间功能` details section. `TavernActivityEchoesCard` uses historical helper names internally, but visible copy must describe space activity/visit summaries rather than signal-network metaphors.
 - Owner-only management panels (`RoleplayPanel`, `PlaceHomePanel`, `VisitorNotesPanel`) must not be passed into the visitor chat workbench. They live in the dedicated `/tavern/:id/manage` route, which renders `data-tavern-owner-management="dedicated-route"` and gates display on `currentUserId === tavern.owner_id`.
 - The tavern loader must derive the current viewer from `user_id` / `owner_id` / `visitor_id` query params and must not fall back from visitor reads to `DEFAULT_OWNER_ID`.
 - No new mobile framework or large route/UI dependency is required for this contract.
@@ -48,7 +48,7 @@ This guide does not introduce new API, schema, persistence, or mobile-framework 
 |------|----------|
 | Mobile shell | Fixed bottom dock has accessible label, touch-safe items, visitor-first labels, and no duplicate top nav |
 | 320px/narrow viewport | Key CTAs remain reachable above the dock; no horizontal overflow from this contract |
-| Mobile tavern | Chat workbench is the first mainline: NPC roster, chat history, and composer are reachable before secondary panels |
+| Mobile tavern | Chat workbench is the first mainline: doorway CTA leads into NPC roster, chat history, and composer before secondary panels |
 | Mobile tavern secondary | Public features are hidden by default behind `更多空间功能`; owner-only management features are absent from the chat workbench |
 | Owner tavern | `/tavern/:id/manage?owner_id=<owner>` renders `data-tavern-owner-management="dedicated-route"`; visitor route does not |
 | Desktop tavern | Workbench can use a richer chat layout, but management remains outside the chat page |
@@ -74,6 +74,6 @@ For user-facing visual changes, also run Playwright self-acceptance with at leas
 
 ## Good / Base / Bad
 
-- Good: `/tavern/:id` opens directly to a SillyTavern-style chat workbench; owner-only management exists only under `/tavern/:id/manage`.
+- Good: `/tavern/:id` opens to a SillyTavern-style chat workbench with a compact doorway beat for first-time visitors; owner-only management exists only under `/tavern/:id/manage`.
 - Base: mobile guide copy points users to the chat mainline anchor; desktop keeps richer chat affordances but routes non-chat owner work to the management page.
 - Bad: putting layout showcase, creator conversion, owner tools, or visitor feedback management above the chat composer; or restoring visitor-to-owner loader fallback.

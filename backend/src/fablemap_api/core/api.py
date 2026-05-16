@@ -149,6 +149,7 @@ def create_app(
         output_root=output_root,
         fixture_file=fixture_file,
         frontend_root=frontend_root,
+        storage_backend="json",
     )
     return create_web_app(settings)
 

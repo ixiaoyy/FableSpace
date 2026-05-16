@@ -145,7 +145,7 @@ export default function QuestsRoute() {
 
                 <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                   <p className="text-sm leading-6 text-theme-muted">
-                    {guide.signalLabel}：<strong className="text-violet-50">{guide.signalCount}</strong> · {guide.helperText}
+                    {guide.echoLabel}：<strong className="text-violet-50">{guide.echoCount}</strong> · {guide.helperText}
                   </p>
                   <Button asChild size="sm" variant="ghost">
                     <Link to={guide.ctaTo}>

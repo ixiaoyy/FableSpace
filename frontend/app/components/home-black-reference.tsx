@@ -1,4 +1,4 @@
-import { SoulLinkHomeReference } from "./soul-link-reference-artboards"
+import { FableMapHomeReference } from "./fable-map-reference-artboards"
 
 type HomeBlackReferenceProps = {
   featuredCitySlices: { id?: string; name?: string; description?: string; visit_count?: number }[]
@@ -6,5 +6,5 @@ type HomeBlackReferenceProps = {
 }
 
 export function HomeBlackReference(props: HomeBlackReferenceProps) {
-  return <SoulLinkHomeReference variant="black" {...props} />
+  return <FableMapHomeReference variant="black" {...props} />
 }

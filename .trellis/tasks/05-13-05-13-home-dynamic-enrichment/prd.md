@@ -23,10 +23,10 @@ Replace the current "hardcoded" (mock) data on the FableMap homepage with real-t
 
 ## Acceptance Criteria
 
-*   [ ] Homepage metrics match the total platform counts, not just the local fetch.
-*   [ ] "Recent Memories" displays actual text from recent database entries.
-*   [ ] Hero poster decorative text (coordinates/time) updates based on current state.
-*   [ ] All new API calls are non-blocking (async `useEffect`).
+*   [x] Homepage metrics match the total platform counts, not just the local fetch.
+*   [x] "Recent Memories" displays actual text from recent database entries.
+*   [x] Hero poster decorative text (coordinates/time) updates based on current state.
+*   [x] All new API calls are non-blocking (async `useEffect`).
 
 ## Out of Scope
 
@@ -43,3 +43,11 @@ Replace the current "hardcoded" (mock) data on the FableMap homepage with real-t
 1.  **Subtask 1: Backend Stats API** - Create global aggregation logic for taverns, characters, and visits.
 2.  **Subtask 2: Backend Memories API** - Fetch latest chat messages/summaries with safety filters.
 3.  **Subtask 3: Frontend Data Binding** - Update `home.tsx` and `lib/homepage-taverns.ts` to consume new APIs.
+
+
+## Implementation Notes (2026-05-16)
+
+- Added /api/v1/platform/stats and /api/v1/platform/recent-memories as public homepage aggregates.
+- Recent memories only expose assistant snippets from public non-Home taverns; visitor identifiers, user messages, private/Home records, LLM config, and hidden prompts are excluded.
+- Home route fetches tavern list, stats, and recent memories independently. Stats/memory failures fall back to existing local content and do not block primary rendering.
+- Added focused backend tests and backend/frontend Trellis specs for the cross-layer contract.

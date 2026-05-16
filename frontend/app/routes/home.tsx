@@ -17,12 +17,20 @@ import {
 import { Link, useNavigate } from "react-router"
 import { useState, useEffect } from "react"
 
-import discoverRadarSurfaceImage from "../assets/soul-link-05-10/discover/cards/card-compass-square.png"
-import lightRadarSurface from "../assets/soul-link-05-10/home-light/scene-sky-city-balcony.png"
-import { SoulLinkHomeReference } from "../components/soul-link-reference-artboards"
+import discoverRadarSurfaceImage from "../assets/fable-map-05-10/discover/cards/card-compass-square.png"
+import { FableMapHomeReference } from "../components/fable-map-reference-artboards"
 import { HOMEPAGE_NPC_PREVIEW_PORTRAITS } from "../features/tavern-npc-stage/portraitCatalogConfig"
 import { buildHomepageView, type HomepageMetric, type HomepageMetricId } from "../lib/homepage-taverns"
-import { errorMessage, listTaverns, type TavernListResponse } from "../lib/taverns"
+import {
+  errorMessage,
+  getPlatformRecentMemories,
+  getPlatformStats,
+  listTaverns,
+  type PlatformRecentMemory,
+  type PlatformStats,
+  type Tavern,
+  type TavernListResponse,
+} from "../lib/taverns"
 import { useTheme } from "../hooks/useTheme"
 import { Button } from "../ui/button"
 
@@ -66,7 +74,7 @@ const metricIcons: Record<HomepageMetricId, LucideIcon> = {
 
 const features: Feature[] = [
   { icon: MapPinned, title: "真实坐标", text: "每个入口都落在现实地图上，而不是漂浮空间。" },
-  { icon: Brain, title: "记忆回响", text: "角色和区域会保留回访上下文，让相遇不只是一次性对话。" },
+  { icon: Brain, title: "回访记忆", text: "角色和区域会保留回访上下文，让相遇不只是一次性对话。" },
   { icon: ShieldCheck, title: "主人边界", text: "内容、访问和记忆权限由空间主人控制，平台不越权发布。" },
 ]
 
@@ -77,6 +85,37 @@ function withMetricIcons(metrics: HomepageMetric[]): Metric[] {
     ...metric,
     icon: metricIcons[metric.id],
   }))
+}
+
+function compactHomeText(value: unknown, fallback: string, maxLength = 46) {
+  const text = typeof value === "string" ? value.trim() : ""
+  const display = text || fallback
+  return display.length > maxLength ? `${display.slice(0, maxLength).trimEnd()}…` : display
+}
+
+function formatRecentMemoryMeta(timestamp: unknown, fallbackIndex: number) {
+  const value = typeof timestamp === "string" ? Date.parse(timestamp) : Number.NaN
+  if (!Number.isFinite(value)) return `${fallbackIndex * 3 + 2} 小时前`
+
+  const diffMs = Math.max(0, Date.now() - value)
+  const minutes = Math.floor(diffMs / 60000)
+  if (minutes < 1) return "刚刚"
+  if (minutes < 60) return `${minutes} 分钟前`
+  const hours = Math.floor(minutes / 60)
+  if (hours < 24) return `${hours} 小时前`
+  const days = Math.floor(hours / 24)
+  return `${days} 天前`
+}
+
+function formatCurrentTimeLabel() {
+  return new Intl.DateTimeFormat("zh-CN", { hour: "2-digit", minute: "2-digit", hour12: false }).format(new Date())
+}
+
+function formatTavernCoordinate(tavern?: Tavern, fallback = "") {
+  if (tavern && Number.isFinite(Number(tavern.lat)) && Number.isFinite(Number(tavern.lon))) {
+    return `${Number(tavern.lat).toFixed(4)}, ${Number(tavern.lon).toFixed(4)}`
+  }
+  return fallback
 }
 
 function ThemeToggle() {
@@ -106,8 +145,8 @@ function HomeNav() {
             FM
           </span>
           <div className="hidden sm:block">
-            <p className={`font-black tracking-wide ${isDark ? "text-theme-primary" : "text-indigo-900"}`}>FableMap</p>
-            <p className={`text-[0.65rem] ${isDark ? "text-theme-muted" : "text-indigo-400"}`}>Cyber life on real coordinates</p>
+            <p className={`font-black tracking-wide ${isDark ? "text-theme-primary" : "text-indigo-900"}`}>SoulLink</p>
+            <p className={`text-[0.65rem] ${isDark ? "text-theme-muted" : "text-indigo-400"}`}>连接另一个数字世界</p>
           </div>
         </Link>
 
@@ -265,7 +304,7 @@ function HeroPosterPreview() {
   return (
     <div className={`relative min-h-[420px] overflow-hidden rounded-[1.75rem] border ${isDark ? "border-theme-accent-border bg-slate-950 shadow-[0_26px_80px_rgba(0,0,0,0.18)]" : "border-indigo-200 bg-white shadow-[0_20px_50px_rgba(59,130,246,0.08)]"} lg:min-h-[560px]`}>
       <img
-        src={isDark ? discoverRadarSurfaceImage : lightRadarSurface}
+        src={discoverRadarSurfaceImage}
         alt="FableMap 真实坐标雷达视觉"
         className={`absolute inset-0 h-full w-full object-cover object-center ${isDark ? "" : "opacity-90 contrast-[1.1]"}`}
         decoding="async"
@@ -273,7 +312,7 @@ function HeroPosterPreview() {
       <div className={`absolute inset-0 ${isDark ? "bg-[radial-gradient(circle_at_53%_51%,rgba(0,229,255,0.16),transparent_16rem),linear-gradient(90deg,rgba(3,5,18,0.82),rgba(3,5,18,0.24)_48%,rgba(3,5,18,0.62))]" : "bg-[radial-gradient(circle_at_53%_51%,rgba(59,130,246,0.1),transparent_20rem),linear-gradient(90deg,rgba(255,255,255,0.9),rgba(255,255,255,0.4)_48%,rgba(255,255,255,0.85))]"}`} />
       <div className={`absolute inset-4 rounded-[1.35rem] border ${isDark ? "border-cyan-200/18 bg-[linear-gradient(90deg,rgba(125,249,255,0.07)_1px,transparent_1px),linear-gradient(0deg,rgba(125,249,255,0.05)_1px,transparent_1px)]" : "border-blue-500/10 bg-[linear-gradient(90deg,rgba(59,130,246,0.04)_1px,transparent_1px),linear-gradient(0deg,rgba(59,130,246,0.03)_1px,transparent_1px)]"} bg-[size:42px_42px]`} />
       <div className={`absolute left-4 top-4 rounded-full border ${isDark ? "border-cyan-300/36 bg-cyan-300/12 text-cyan-100" : "border-blue-300/30 bg-blue-50 text-blue-600"} px-4 py-2 text-xs font-black uppercase tracking-[0.22em] backdrop-blur-md`}>
-        Signal detected
+        坐标已锚定
       </div>
       <div className={`absolute right-4 top-4 hidden rounded-2xl border ${isDark ? "border-white/14 bg-slate-950/56 text-white" : "border-blue-100 bg-white/80 text-blue-900"} p-3 text-right backdrop-blur-xl sm:block`}>
         <p className={`text-[0.65rem] font-black uppercase tracking-[0.18em] ${isDark ? "text-cyan-100/74" : "text-blue-500/74"}`}>Live radius</p>
@@ -282,7 +321,7 @@ function HeroPosterPreview() {
       <div className="absolute left-8 right-8 top-[5.8rem] hidden items-center gap-3 lg:flex">
         <span className={`h-px flex-1 ${isDark ? "bg-gradient-to-r from-transparent via-cyan-300/35 to-transparent" : "bg-gradient-to-r from-transparent via-blue-400/20 to-transparent"}`} />
         <span className={`rounded-full border ${isDark ? "border-white/12 bg-slate-950/46 text-violet-100/64" : "border-blue-100 bg-white/60 text-blue-500/70"} px-3 py-1 text-[0.65rem] font-black uppercase tracking-[0.22em] backdrop-blur-md`}>
-          Coordinate grid / Memory field / NPC signal
+          地理网格 / 记忆场域 / 活跃角色
         </span>
         <span className={`h-px flex-1 ${isDark ? "bg-gradient-to-r from-transparent via-fuchsia-300/28 to-transparent" : "bg-gradient-to-r from-transparent via-indigo-400/15 to-transparent"}`} />
       </div>
@@ -294,11 +333,11 @@ function HeroPosterPreview() {
         <p className={`mt-3 text-sm leading-6 ${isDark ? "text-violet-100/82" : "text-blue-900/70"}`}>不是普通地图标记。坐标、角色和记忆同时亮起，等待你进入。</p>
       </div>
       <div className={`absolute right-5 top-28 hidden w-44 rounded-3xl border ${isDark ? "border-cyan-300/18 bg-slate-950/50" : "border-blue-100 bg-white/70"} p-4 backdrop-blur-xl lg:block`}>
-        <p className={`text-[0.65rem] font-black uppercase tracking-[0.2em] ${isDark ? "text-cyan-100/64" : "text-blue-500/64"}`}>Active layers</p>
+        <p className={`text-[0.65rem] font-black uppercase tracking-[0.2em] ${isDark ? "text-cyan-100/64" : "text-blue-500/64"}`}>图层状态</p>
         <div className={`mt-3 space-y-2 text-xs font-bold ${isDark ? "text-violet-100/68" : "text-blue-900/50"}`}>
           <p className="flex items-center justify-between"><span>坐标入口</span><span className={`${isDark ? "text-cyan-100" : "text-blue-600"}`}>ON</span></p>
-          <p className="flex items-center justify-between"><span>角色信号</span><span className={`${isDark ? "text-fuchsia-100" : "text-indigo-600"}`}>356</span></p>
-          <p className="flex items-center justify-between"><span>记忆回响</span><span className={`${isDark ? "text-cyan-100" : "text-blue-600"}`}>LIVE</span></p>
+          <p className="flex items-center justify-between"><span>活跃角色</span><span className={`${isDark ? "text-fuchsia-100" : "text-indigo-600"}`}>356</span></p>
+          <p className="flex items-center justify-between"><span>回访记忆</span><span className={`${isDark ? "text-cyan-100" : "text-blue-600"}`}>LIVE</span></p>
         </div>
       </div>
       <div className={`absolute bottom-5 right-5 hidden rounded-full border ${isDark ? "border-fuchsia-300/28 bg-fuchsia-300/12 text-fuchsia-100" : "border-blue-300/30 bg-blue-50 text-blue-600"} px-4 py-2 text-xs font-black backdrop-blur-md md:block`}>
@@ -311,6 +350,9 @@ function HeroPosterPreview() {
 
 export default function HomeRoute() {
   const [result, setResult] = useState<TavernListResponse>(EMPTY_LIST_RESULT)
+  const [platformStats, setPlatformStats] = useState<PlatformStats | null>(null)
+  const [platformMemories, setPlatformMemories] = useState<PlatformRecentMemory[]>([])
+  const [clientTimeLabel, setClientTimeLabel] = useState("")
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(true)
 
@@ -318,28 +360,66 @@ export default function HomeRoute() {
     let cancelled = false
     setLoading(true)
     setError("")
+    setClientTimeLabel(formatCurrentTimeLabel())
+
     listTaverns({ limit: HOMEPAGE_TAVERN_LIST_LIMIT, offset: 0 })
       .then((data) => {
         if (!cancelled) {
           setResult(data)
-          setLoading(false)
         }
       })
       .catch((err) => {
         if (!cancelled) {
           setError(errorMessage(err))
+        }
+      })
+      .finally(() => {
+        if (!cancelled) {
           setLoading(false)
         }
       })
+
+    getPlatformStats()
+      .then((data) => {
+        if (!cancelled) {
+          setPlatformStats(data.stats)
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setPlatformStats(null)
+        }
+      })
+
+    getPlatformRecentMemories({ limit: 5 })
+      .then((data) => {
+        if (!cancelled) {
+          setPlatformMemories(Array.isArray(data.memories) ? data.memories : [])
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setPlatformMemories([])
+        }
+      })
+
     return () => { cancelled = true }
   }, [])
 
-  const homepage = buildHomepageView(result, error)
+  const homepage = buildHomepageView(result, error, { stats: platformStats })
   const metrics = withMetricIcons(homepage.metrics)
   const { theme, toggleTheme } = useTheme()
   const navigate = useNavigate()
   const [homeSearch, setHomeSearch] = useState("")
   const isDark = theme === "dark"
+  const tavernById = new Map(result.taverns.map((tavern) => [tavern.id, tavern]))
+  const heroSlice = homepage.featuredCitySlices[0]
+  const heroTavern = heroSlice?.id ? tavernById.get(heroSlice.id) : result.taverns[0]
+  const heroCoordinate = {
+    name: heroSlice?.name || heroTavern?.name || "正在同步坐标",
+    coordinateLabel: formatTavernCoordinate(heroTavern, heroSlice?.location || "等待真实坐标"),
+    timeLabel: heroTavern?.time_status?.local_time_display || heroTavern?.local_time_display || clientTimeLabel,
+  }
   const worldPulseItems = homepage.featuredCitySlices.slice(0, 4).map((slice, index) => ({
     id: slice.id,
     title: slice.name,
@@ -348,7 +428,18 @@ export default function HomeRoute() {
     image: slice.image,
     to: `/tavern/${encodeURIComponent(slice.id)}`,
   }))
-  const recentMemories = homepage.featuredCitySlices.slice(0, 3).map((slice, index) => ({
+  const sliceImageByTavernId = new Map(homepage.featuredCitySlices.map((slice) => [slice.id, slice.image]))
+  const apiRecentMemories = platformMemories.slice(0, 3).map((memory, index) => ({
+    id: memory.id || `platform-memory-${index}`,
+    title: `“${compactHomeText(memory.content || memory.title, "新的回访记忆正在形成。", 48)}”`,
+    source: memory.character_name
+      ? `来自 ${memory.source || "某个坐标"} · ${memory.character_name}`
+      : `来自 ${memory.source || "某个坐标"}`,
+    meta: formatRecentMemoryMeta(memory.timestamp, index),
+    image: sliceImageByTavernId.get(memory.tavern_id) || homepage.featuredCitySlices[index]?.image || portraits[index % portraits.length],
+    to: memory.tavern_id ? `/tavern/${encodeURIComponent(memory.tavern_id)}` : undefined,
+  }))
+  const recentMemories = apiRecentMemories.length ? apiRecentMemories : homepage.featuredCitySlices.slice(0, 3).map((slice, index) => ({
     id: `recent-memory-${slice.id}`,
     title: `“${index === 0 ? "在这里，我第一次不再害怕黑夜。" : "谢谢你，陪我等到了黎明。"}”`,
     source: `来自 ${slice.name}`,
@@ -364,19 +455,20 @@ export default function HomeRoute() {
   const metricValue = (id: HomepageMetricId, fallback = "0") => homepage.metrics.find((metric) => metric.id === id)?.value || fallback
   const worldStats = [
     { id: "coordinates", label: "新增坐标", value: metricValue("coordinates") },
-    { id: "characters", label: "在线灵魂", value: metricValue("characters") },
-    { id: "encounters", label: "回响记录", value: metricValue("encounters") },
+    { id: "characters", label: "活跃角色", value: metricValue("characters") },
+    { id: "encounters", label: "回访记录", value: metricValue("encounters") },
     { id: "open", label: "探索次数", value: metricValue("open") },
   ]
   const dailyQuote = {
     title: "每日一句",
-    quote: "世界很大，而我们在某个坐标相遇。",
+    quote: compactHomeText(platformMemories[0]?.content, "世界很大，而我们在某个坐标相遇。", 34),
+    source: platformMemories[0]?.source ? `来自 ${platformMemories[0].source}` : undefined,
   }
   const onlineEntities = result.taverns
     .flatMap((tavern, tavernIndex) =>
       (Array.isArray(tavern.characters) ? tavern.characters : []).slice(0, 1).map((character, characterIndex) => ({
         id: `${tavern.id}-${character.id || characterIndex}`,
-        name: character.name || `灵魂 ${tavernIndex + 1}`,
+        name: character.name || `角色 ${tavernIndex + 1}`,
         location: `在 ${tavern.name || "某个坐标"}`,
         status: tavernIndex < 2 ? "在线" : `${tavernIndex * 5 + 5} 分钟前`,
         avatar: character.avatar || portraits[(tavernIndex + characterIndex) % portraits.length],
@@ -393,6 +485,7 @@ export default function HomeRoute() {
   const referenceProps = {
     featuredCitySlices: homepage.featuredCitySlices,
     isLoading: loading,
+    heroCoordinate,
     worldPulseItems,
     dailyQuote,
     onlineEntities,
@@ -405,9 +498,5 @@ export default function HomeRoute() {
     onToggleTheme: toggleTheme,
   }
 
-  if (isDark) {
-    return <SoulLinkHomeReference variant="black" {...referenceProps} />
-  }
-
-  return <SoulLinkHomeReference variant="light" {...referenceProps} />
+  return <FableMapHomeReference variant="black" {...referenceProps} />
 }

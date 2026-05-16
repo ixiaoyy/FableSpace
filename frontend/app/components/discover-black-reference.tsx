@@ -1,4 +1,4 @@
-import { SoulLinkDiscoverReference } from "./soul-link-reference-artboards"
+import { FableMapDiscoverReference } from "./fable-map-reference-artboards"
 import type { Tavern } from "../lib/taverns"
 
 type DiscoverBlackReferenceProps = {
@@ -15,5 +15,5 @@ type DiscoverBlackReferenceProps = {
 }
 
 export function DiscoverBlackReference(props: DiscoverBlackReferenceProps) {
-  return <SoulLinkDiscoverReference variant="black" {...props} />
+  return <FableMapDiscoverReference variant="black" {...props} />
 }

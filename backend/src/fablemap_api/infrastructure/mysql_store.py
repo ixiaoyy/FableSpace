@@ -16,7 +16,7 @@ from pathlib import Path
 from typing import Any
 
 from sqlalchemy import inspect, text
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload, selectinload
 
 from fablemap_api.core.tavern import (
     Tavern,
@@ -99,6 +99,9 @@ class MySQLTavernStore:
         characters = [self._to_character(c) for c in model.characters]
         world_info = [self._to_world_info(w) for w in model.world_info_entries]
         llm_config = self._to_llm_config(model.llm_config) if model.llm_config else LLMConfig()
+        token_usage = max(int(llm_config.token_used or 0), self._token_usage_from_voice_config(model))
+        if token_usage:
+            llm_config.token_used = token_usage
         voice_config = self._to_voice_config(model.voice_config) if model.voice_config else VoiceConfig()
 
         return Tavern(
@@ -278,7 +281,11 @@ class MySQLTavernStore:
     def list_taverns(self, include_private: bool = False, owner_id: str = "") -> list[Tavern]:
         """列出所有空间"""
         with self.db.session_scope() as session:
-            query = session.query(TavernModel)
+            query = session.query(TavernModel).options(
+                selectinload(TavernModel.characters),
+                selectinload(TavernModel.world_info_entries),
+                joinedload(TavernModel.llm_config),
+            )
             if not include_private:
                 query = query.filter(TavernModel.access == "public")
             elif owner_id:
@@ -287,15 +294,7 @@ class MySQLTavernStore:
                 )
 
             models = query.all()
-            taverns = [self._to_tavern(m) for m in models]
-
-            # 填充 token_used
-            for tavern in taverns:
-                token_usage = self.get_token_usage(tavern.id)
-                if token_usage:
-                    tavern.llm_config.token_used = token_usage
-
-            return taverns
+            return [self._to_tavern(m) for m in models]
 
     def list_all_taverns(self) -> list[Tavern]:
         """Internal full scan including private Home records for relationship resolution."""

@@ -3,7 +3,7 @@
   "name": "agent-strategy-arena",
   "title": "future: agent strategy arena",
   "description": "",
-  "status": "planning",
+  "status": "completed",
   "dev_type": null,
   "scope": null,
   "package": null,
@@ -11,11 +11,11 @@
   "creator": "lijin",
   "assignee": "lijin",
   "createdAt": "2026-05-13",
-  "completedAt": null,
+  "completedAt": "2026-05-16",
   "branch": null,
   "base_branch": "main",
   "worktree_path": null,
-  "current_phase": 0,
+  "current_phase": 6,
   "next_action": [
     {
       "phase": 1,
@@ -47,7 +47,12 @@
   "subtasks": [],
   "children": [],
   "parent": "05-13-agent-tank-tavern",
-  "relatedFiles": [],
-  "notes": "",
-  "meta": {}
+  "relatedFiles": [
+    "docs/WHAT_NOT_TO_BUILD.md",
+    "docs/changes/2026-05-16-planning-future-task-closure.md"
+  ],
+  "notes": "Closed as a non-literal future/game governance item. Literal tank/arena/code-execution/ranking/game-center implementation is forbidden by AGENTS.md and docs/WHAT_NOT_TO_BUILD.md; safe successor is tavern-local owner-confirmed mini-game/NPC interaction only.",
+  "meta": {
+    "closure_type": "bounded_governance_no_literal_combat_or_arena"
+  }
 }

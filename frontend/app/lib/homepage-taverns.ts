@@ -1,7 +1,7 @@
 import { resolveTavernAtmosphereImage } from "../product/services/atmosphereAssets.js"
 import { FALLBACK_ATMOSPHERE_IMAGES, GENERIC_ATMOSPHERE_KEYS } from "./tavern-runtime-config.js"
 
-import type { Tavern, TavernListResponse } from "./taverns"
+import type { PlatformStats, Tavern, TavernListResponse } from "./taverns"
 
 export type HomepageMetricId = "coordinates" | "characters" | "encounters" | "open"
 
@@ -26,6 +26,10 @@ export type HomepageView = {
   error: string
 }
 
+export type HomepageViewOptions = {
+  stats?: PlatformStats | null
+}
+
 
 function safeTaverns(result?: Partial<TavernListResponse> | null): Tavern[] {
   return Array.isArray(result?.taverns) ? result.taverns.filter((tavern) => tavern && tavern.id) : []
@@ -38,6 +42,11 @@ function safeCharacters(tavern: Tavern) {
 function toPositiveNumber(value: unknown) {
   const parsed = Number(value)
   return Number.isFinite(parsed) && parsed > 0 ? parsed : 0
+}
+
+function toNonNegativeNumber(value: unknown) {
+  const parsed = Number(value)
+  return Number.isFinite(parsed) && parsed >= 0 ? parsed : null
 }
 
 function hasCoordinates(tavern: Tavern) {
@@ -116,17 +125,22 @@ export function resolveUniqueHomepageTavernCovers(taverns: Tavern[]) {
   return coversByTavernId
 }
 
-export function buildHomepageMetrics(taverns: Tavern[]): HomepageMetric[] {
+export function buildHomepageMetrics(taverns: Tavern[], stats?: PlatformStats | null): HomepageMetric[] {
   const coordinateCount = taverns.filter(hasCoordinates).length
   const characterCount = taverns.reduce((total, tavern) => total + safeCharacters(tavern).length, 0)
   const visitCount = taverns.reduce((total, tavern) => total + toPositiveNumber(tavern.visit_count), 0)
   const openCount = taverns.filter((tavern) => tavern.status === "open" || tavern.is_open === true).length
+  const platformCoordinateCount = toNonNegativeNumber(stats?.coordinates)
+  const platformCharacterCount = toNonNegativeNumber(stats?.characters)
+  const platformVisitCount = toNonNegativeNumber(stats?.visits ?? stats?.encounters)
+  const platformOpenCount = toNonNegativeNumber(stats?.open)
+  const resolvedCoordinateCount = platformCoordinateCount ?? (coordinateCount || taverns.length)
 
   return [
-    { id: "coordinates", value: formatInteger(coordinateCount || taverns.length), label: "真实坐标" },
-    { id: "characters", value: formatInteger(characterCount), label: "AI 角色" },
-    { id: "encounters", value: formatInteger(visitCount), label: "相遇记录" },
-    { id: "open", value: formatInteger(openCount), label: "亮起入口" },
+    { id: "coordinates", value: formatInteger(resolvedCoordinateCount), label: "真实坐标" },
+    { id: "characters", value: formatInteger(platformCharacterCount ?? characterCount), label: "AI 角色" },
+    { id: "encounters", value: formatInteger(platformVisitCount ?? visitCount), label: "相遇记录" },
+    { id: "open", value: formatInteger(platformOpenCount ?? openCount), label: "亮起入口" },
   ]
 }
 
@@ -176,11 +190,15 @@ export function buildFeaturedCitySlices(taverns: Tavern[], limit = 3): HomepageC
   }))
 }
 
-export function buildHomepageView(result?: Partial<TavernListResponse> | null, error = ""): HomepageView {
+export function buildHomepageView(
+  result?: Partial<TavernListResponse> | null,
+  error = "",
+  options: HomepageViewOptions = {},
+): HomepageView {
   const taverns = safeTaverns(result)
 
   return {
-    metrics: buildHomepageMetrics(taverns),
+    metrics: buildHomepageMetrics(taverns, options.stats),
     featuredCitySlices: buildFeaturedCitySlices(taverns, 4),
     error,
   }

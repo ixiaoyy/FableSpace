@@ -3,19 +3,19 @@
   "name": "05-13-visitor-first-discovery-reduction",
   "title": "Visitor-first discovery page reduction — fewer panels, stronger signal",
   "description": "Reduce discovery page decision overload. Keep map + top 3 taverns + one clear CTA per tavern. Remove world stats, online entities, echoes, footprints from visitor view. Visitor must pick one tavern in under 10 seconds.",
-  "status": "planning",
+  "status": "completed",
   "dev_type": "frontend",
   "scope": "discovery page visitor flow only",
   "package": null,
   "priority": "P2",
   "creator": "claude",
-  "assignee": null,
+  "assignee": "codex",
   "createdAt": "2026-05-13",
-  "completedAt": null,
+  "completedAt": "2026-05-16",
   "branch": null,
   "base_branch": "main",
   "worktree_path": null,
-  "current_phase": 0,
+  "current_phase": 6,
   "next_action": [
     {
       "phase": 1,
@@ -49,10 +49,17 @@
   "parent": "05-12-onsite-visitor-brutal-audit-issues",
   "relatedFiles": [
     "frontend/app/routes/discover.tsx",
-    "frontend/app/components/discover-black-reference.tsx",
-    "frontend/app/components/discover-light-real-dom.tsx",
-    "frontend/app/lib/taverns.ts"
+    "frontend/app/components/fable-map-reference-artboards.tsx",
+    "frontend/scripts/visitor-first-discovery-test.mjs",
+    ".trellis/spec/frontend/visitor-first-discovery-reduction.md"
   ],
-  "notes": "Child task of 05-12-onsite-visitor-brutal-audit-issues. Issue #3: filters, emotional tags, signal state, timeline, feed, online entities, echoes, footprint, world stats compete before visitor understands why any tavern is worth entering. P2 because tavern doorway work is higher priority.",
-  "meta": {}
+  "notes": "Implemented visitorReduced discovery mode: default /discover now shows map/search + top 3 tavern cards + one entry CTA, with world/feed/online side panels removed from visitor first screen.",
+  "meta": {
+    "validation": [
+      "node frontend/scripts/visitor-first-discovery-test.mjs PASS",
+      "npm --prefix .\\frontend run typecheck PASS",
+      "npm --prefix .\\frontend test PASS",
+      "npm --prefix .\\frontend run build PASS"
+    ]
+  }
 }

@@ -285,46 +285,46 @@ def evaluate_trigger(
     """Evaluate whether a capsule should be generated."""
 
     trust = inp.persona.trust_level if inp.persona else 0.0
-    has_revisit_signal = inp.visit_count >= 3 or inp.echo_count >= 2
-    has_event_signal = inp.writeback_count >= 1 or _contains_any(
+    has_revisit_echo = inp.visit_count >= 3 or inp.echo_count >= 2
+    has_event_echo = inp.writeback_count >= 1 or _contains_any(
         inp.event_types,
         ["echo", "memory_anchor", "anomaly_detected", "special_event", "spirit_spawn"],
     )
-    has_persona_signal = inp.persona is not None and trust >= min_trust
-    has_lens_signal = inp.lens is not None and inp.lens.lens_id in {"veil", "oracle", "hearth", "chronicle"}
-    has_dwell_signal = inp.dwell_seconds >= min_dwell
+    has_persona_echo = inp.persona is not None and trust >= min_trust
+    has_lens_echo = inp.lens is not None and inp.lens.lens_id in {"veil", "oracle", "hearth", "chronicle"}
+    has_dwell_echo = inp.dwell_seconds >= min_dwell
 
     if inp.persona is not None and inp.persona.response_bias == "drift" and inp.visit_count <= 1:
         return CapsuleTrigger(False, "drift_bias_first_visit", 0, "none")
 
-    if not any([has_revisit_signal, has_event_signal, has_persona_signal, has_lens_signal, has_dwell_signal]):
-        return CapsuleTrigger(False, "insufficient_signals", 0, "none")
+    if not any([has_revisit_echo, has_event_echo, has_persona_echo, has_lens_echo, has_dwell_echo]):
+        return CapsuleTrigger(False, "insufficient_echoes", 0, "none")
 
-    if has_revisit_signal:
+    if has_revisit_echo:
         priority = 4 + min(inp.visit_count, 3)
         if inp.echo_count:
             priority += 1
         return CapsuleTrigger(True, f"revisit:visits={inp.visit_count},echoes={inp.echo_count}", priority, "revisit_driven")
 
-    if has_dwell_signal:
-        priority = 2 + int(has_dwell_signal)
+    if has_dwell_echo:
+        priority = 2 + int(has_dwell_echo)
         parts = [f"dwell={inp.dwell_seconds:.0f}s"]
         if inp.lens is not None:
             parts.append(f"lens={inp.lens.lens_id}")
         return CapsuleTrigger(True, ",".join(parts), priority, "lens_driven")
 
-    if has_event_signal:
+    if has_event_echo:
         priority = 4 + min(inp.writeback_count, 2)
         return CapsuleTrigger(True, f"event:writeback={inp.writeback_count},events={len(inp.event_types)}", priority, "event_driven")
 
-    if has_lens_signal:
+    if has_lens_echo:
         return CapsuleTrigger(True, f"lens={inp.lens.lens_id}", 2, "lens_driven")
 
-    if has_persona_signal:
+    if has_persona_echo:
         priority = 3 + int(trust >= 0.6)
         return CapsuleTrigger(True, f"persona:trust={trust:.2f}", priority, "persona_driven")
 
-    return CapsuleTrigger(False, "no_trigger_signal", 0, "none")
+    return CapsuleTrigger(False, "no_trigger_echo", 0, "none")
 
 
 class SceneCapsuleGenerator:

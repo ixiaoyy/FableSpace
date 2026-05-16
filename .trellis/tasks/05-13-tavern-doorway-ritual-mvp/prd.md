@@ -1,21 +1,22 @@
 # Tavern Doorway Ritual MVP
 
-## Parent
-`05-12-onsite-visitor-brutal-audit-issues` — Issues #2, #4, #5
+## Result
 
-## Goal
-Deliver one clear immersion beat before exposing chat workbench controls. First visitor screen must feel like "map → tavern → AI NPC chat", not "channels + shift+enter + intent chips".
+Implemented one visitor immersion beat before chat workbench controls.
 
-## Requirements
-- First screen: space hook (scene description) + NPC greeting (first message) + one clear call-to-action
-- Hide "公共频道", "Channels", "Shift+Enter", intent chips, identity selector, NPC target chips, helper accordions until after first immersion moment
-- Show map anchor (mini-map or distance) in tavern entry card
-- Rewrite `tavern-first-minute.ts` `whyHere` text to visitor-facing invitation (no internal PRD language)
-- Add visible map element to tavern first screen
+## Completed Scope
 
-## Acceptance Criteria
-- [ ] Tavern first screen shows space hook + NPC greeting before workbench controls
-- [ ] Workbench controls (channels, Shift+Enter, intent chips) hidden until after first immersion beat
-- [ ] Map anchor visible on tavern first screen
-- [ ] `whyHere` / first-minute copy is visitor-facing invitation, not PRD text
-- [ ] `npm --prefix .\frontend run build` passes
+- Non-owner visitors see `data-tavern-doorway-ritual` before public/private channel controls and composer.
+- Doorway shows a real-coordinate anchor, visitor-facing `whyHere` copy, host NPC greeting, and one CTA.
+- CTA switches to the selected NPC private chat, fills/focuses the composer, and does not auto-send.
+- Owner view bypasses the ritual; password-gated spaces still require password first.
+
+## Validation
+
+- `node frontend/scripts/tavern-doorway-ritual-test.mjs`: PASS.
+- `npm --prefix .rontend run typecheck`: PASS.
+- `npm --prefix .\frontend test`: PASS; `npm --prefix .\frontend run build`: PASS.
+
+## Spec
+
+- `.trellis/spec/frontend/tavern-doorway-ritual-ui.md`

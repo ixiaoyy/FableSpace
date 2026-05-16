@@ -66,7 +66,7 @@ export function buildTavernFirstMinuteGuide(tavern: Tavern): TavernFirstMinuteGu
   const experienceType = specialType?.shortLabel || specialType?.label || placeExperience.label
   const experienceHelper = specialType?.summary || placeExperience.helper
   const sceneHint = compactText(tavern.scene_prompt, tavern.description || placeType?.tone || "店主还没有写下地点线索", 52)
-  const whyHere = `${anchor.label}把这间空间钉在 ${anchorShort}；这里的第一分钟要从「${sceneHint}」开始，而不是泛泛开聊。`
+  const whyHere = `${anchor.label}把入口带到 ${anchorShort}；进门先留意「${sceneHint}」，再让 NPC 带你看这处真实坐标的第一条线索。`
   const characterName = leadCharacter?.name?.trim() || "驻场 NPC"
   const placeLabel = placeType?.shortLabel || placeType?.label || "空间"
   const tryThisFirst = uniqueList([

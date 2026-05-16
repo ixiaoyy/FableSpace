@@ -230,6 +230,90 @@ export type TavernListResponse = {
   has_more?: boolean
 }
 
+export type PlatformStats = {
+  coordinates: number
+  characters: number
+  visits: number
+  encounters?: number
+  chat_messages?: number
+  open: number
+}
+
+export type PlatformStatsResponse = {
+  stats: PlatformStats
+  updated_at?: string
+}
+
+export type PlatformRecentMemory = {
+  id: string
+  content: string
+  title?: string
+  source: string
+  tavern_id: string
+  character_id?: string
+  character_name?: string
+  timestamp?: string
+}
+
+export type PlatformRecentMemoriesResponse = {
+  memories: PlatformRecentMemory[]
+  count: number
+  limit?: number
+  updated_at?: string
+}
+
+export type ClueHuntNodePayload = {
+  id: string
+  tavern_id?: string
+  tavern_name?: string
+  lat?: number
+  lon?: number
+  address?: string
+  clue?: string
+  hint?: string
+  unlocked_summary?: string
+  to?: string
+  locked?: boolean
+  answer_configured?: boolean
+}
+
+export type ClueHuntRoutePayload = {
+  id: string
+  owner_id?: string
+  title: string
+  description?: string
+  status?: string
+  reward_text?: string
+  reward_coin_amount?: number
+  node_count?: number
+  nodes?: ClueHuntNodePayload[]
+  first_node?: ClueHuntNodePayload | null
+}
+
+export type ClueHuntSessionPayload = {
+  id: string
+  route_id: string
+  visitor_id: string
+  status: "active" | "completed" | string
+  current_index: number
+  solved_node_ids: string[]
+  visible_nodes: ClueHuntNodePayload[]
+  current_node?: ClueHuntNodePayload | null
+  node_count: number
+  completed_at?: string
+  reward_claimed?: boolean
+  reward_claimed_at?: string
+}
+
+export type ClueHuntRewardPayload = {
+  source: string
+  text: string
+  coin_amount: number
+  balance: number
+  scope: string
+  tavern_id: string
+}
+
 export type TavernSharePayload = {
   tavern_id: string
   title: string
@@ -273,12 +357,12 @@ export type ChatMessage = {
   visitor_name?: string
   visitor_gender?: Gender | string
   timestamp?: string
-  progress_signals?: ConversationProgressSignal[]
+  progress_echoes?: ConversationProgressEcho[]
   fallback_notice?: string
   conflicts?: ConflictReport[]
 }
 
-export type ConversationProgressSignal = {
+export type ConversationProgressEcho = {
   type?: string
   message?: string
   details?: Record<string, unknown>
@@ -875,6 +959,65 @@ function queryString(params: Record<string, string | number | boolean | undefine
 
 export function listTaverns(filters: Record<string, string | number | undefined | null> = {}) {
   return readApiJson<TavernListResponse>(`/api/v1/taverns${queryString(filters)}`)
+}
+
+export function getPlatformStats() {
+  return readApiJson<PlatformStatsResponse>("/api/v1/platform/stats")
+}
+
+export function getPlatformRecentMemories(filters: { limit?: number } = {}) {
+  return readApiJson<PlatformRecentMemoriesResponse>(`/api/v1/platform/recent-memories${queryString(filters)}`)
+}
+
+export function listClueHuntRoutes(filters: { owner_id?: string } = {}, userId = DEFAULT_OWNER_ID) {
+  return readApiJson<{ routes: ClueHuntRoutePayload[]; count: number }>(
+    `/api/v1/clue-hunts/routes${queryString(filters)}`,
+    { userId },
+  )
+}
+
+export function createClueHuntRoute(data: Record<string, unknown>, userId = DEFAULT_OWNER_ID) {
+  return readApiJson<{ ok: boolean; route: ClueHuntRoutePayload }>(
+    "/api/v1/clue-hunts/routes",
+    jsonInit("POST", data, userId),
+  )
+}
+
+export function getClueHuntRoute(routeId: string) {
+  return readApiJson<{ route: ClueHuntRoutePayload }>(`/api/v1/clue-hunts/routes/${encodeURIComponent(routeId)}`)
+}
+
+export function startClueHuntSession(routeId: string, data: { visitor_id?: string } = {}, userId = DEFAULT_VISITOR_ID) {
+  return readApiJson<{ ok: boolean; route: ClueHuntRoutePayload; session: ClueHuntSessionPayload }>(
+    `/api/v1/clue-hunts/routes/${encodeURIComponent(routeId)}/sessions`,
+    jsonInit("POST", data, userId),
+  )
+}
+
+export function submitClueHuntAnswer(
+  routeId: string,
+  sessionId: string,
+  data: { answer: string; visitor_id?: string },
+  userId = DEFAULT_VISITOR_ID,
+) {
+  return readApiJson<{
+    ok: boolean
+    correct: boolean
+    completed: boolean
+    message?: string
+    hint?: string
+    session: ClueHuntSessionPayload
+  }>(
+    `/api/v1/clue-hunts/routes/${encodeURIComponent(routeId)}/sessions/${encodeURIComponent(sessionId)}/answer`,
+    jsonInit("POST", data, userId),
+  )
+}
+
+export function claimClueHuntReward(routeId: string, sessionId: string, userId = DEFAULT_VISITOR_ID) {
+  return readApiJson<{ ok: boolean; duplicate: boolean; reward: ClueHuntRewardPayload; session: ClueHuntSessionPayload }>(
+    `/api/v1/clue-hunts/routes/${encodeURIComponent(routeId)}/sessions/${encodeURIComponent(sessionId)}/reward`,
+    jsonInit("POST", {}, userId),
+  )
 }
 
 export function getAffinityStages() {

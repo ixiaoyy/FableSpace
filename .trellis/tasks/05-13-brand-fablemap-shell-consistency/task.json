@@ -3,45 +3,20 @@
   "name": "05-13-brand-fablemap-shell-consistency",
   "title": "Brand: FableMap shell consistency — replace SoulLink metaphor",
   "description": "Replace SoulLink/node/network signal-themed shell UI with FableMap/map-anchored tavern metaphors. Audit and rename all visible SoulLink references in home, discover, and tavern routes.",
-  "status": "in_progress",
+  "status": "completed",
   "dev_type": "frontend",
   "scope": "Rename/replace, no feature changes",
   "package": null,
   "priority": "P1",
   "creator": "claude",
-  "assignee": "claude",
+  "assignee": "codex",
   "createdAt": "2026-05-13",
-  "completedAt": null,
+  "completedAt": "2026-05-16",
   "branch": null,
   "base_branch": "main",
   "worktree_path": null,
-  "current_phase": 3,
-  "next_action": [
-    {
-      "phase": 1,
-      "action": "brainstorm"
-    },
-    {
-      "phase": 2,
-      "action": "research"
-    },
-    {
-      "phase": 3,
-      "action": "implement"
-    },
-    {
-      "phase": 4,
-      "action": "check"
-    },
-    {
-      "phase": 5,
-      "action": "update-spec"
-    },
-    {
-      "phase": 6,
-      "action": "record-session"
-    }
-  ],
+  "current_phase": 6,
+  "next_action": [],
   "commit": null,
   "pr_url": null,
   "subtasks": [],
@@ -51,12 +26,19 @@
     "frontend/app/routes/home.tsx",
     "frontend/app/routes/discover.tsx",
     "frontend/app/routes/tavern.tsx",
-    "frontend/app/components/soul-link-reference-artboards.tsx",
     "frontend/app/components/home-black-reference.tsx",
     "frontend/app/components/home-light-real-dom.tsx",
     "frontend/app/components/discover-black-reference.tsx",
-    "frontend/app/components/discover-light-real-dom.tsx"
+    "frontend/app/components/discover-light-real-dom.tsx",
+    "docs/changes/2026-05-14-fix-build-corruption.md",
+    "frontend/app/components/TavernActivityEchoesCard.tsx",
+    "frontend/app/components/fable-map-reference-artboards.tsx",
+    "frontend/app/lib/api-client.ts",
+    "frontend/app/lib/tavern-activity-echoes.js",
+    ".trellis/spec/frontend/discovery-liveliness-signals.md",
+    ".trellis/spec/frontend/mobile-single-mainline.md"
   ],
-  "notes": "Child task of 05-12-onsite-visitor-brutal-audit-issues. Not a full rebrand — naming alignment only. Do NOT change functionality, add features, or modify backend API contracts.",
-  "meta": {}
+  "notes": "Completed brand shell consistency pass. Visitor-facing home/discover/tavern-adjacent copy no longer exposes SoulLink/signal/online-entity wording; stable internal mini-game IDs retained for contract tests. Validation passed: frontend typecheck/test/build, backend compileall, focused scene capsule/orchestrator pytest. Current frontend specs synced for renamed activity summary helper/card.",
+  "meta": {},
+  "updatedAt": "2026-05-16"
 }

@@ -1,12 +1,12 @@
 import {
   TAVERN_ACTIVITY_FORBIDDEN_COPY,
-  buildTavernActivitySignals,
-} from './tavern-activity-signals.js'
+  buildTavernActivityEchoes,
+} from './tavern-activity-echoes.js'
 
 export const DISCOVERY_LIVELINESS_FORBIDDEN_COPY = TAVERN_ACTIVITY_FORBIDDEN_COPY
 
-function findSignal(view, id) {
-  return (Array.isArray(view?.signals) ? view.signals : []).find((signal) => signal?.id === id) || null
+function findEcho(view, id) {
+  return (Array.isArray(view?.echoes) ? view.echoes : []).find((echo) => echo?.id === id) || null
 }
 
 function toPositiveNumber(value) {
@@ -20,11 +20,11 @@ function formatCount(value, suffix) {
 }
 
 export function buildDiscoveryLiveliness(tavern = {}) {
-  const view = buildTavernActivitySignals(tavern)
+  const view = buildTavernActivityEchoes(tavern)
   const visitCount = toPositiveNumber(tavern?.visit_count)
-  const rumorSignal = findSignal(view, 'rumor')
-  const gameplaySignal = findSignal(view, 'gameplay')
-  const hasRumor = rumorSignal?.value === '可用'
+  const rumorEcho = findEcho(view, 'rumor')
+  const gameplayEcho = findEcho(view, 'gameplay')
+  const hasRumor = rumorEcho?.value === '可用'
   const levelLabel = view.level?.label || '等待第一束灯'
   const isQuiet = levelLabel === '等待第一束灯'
   const headline = isQuiet ? '等待第一束灯' : '附近有人经营'
@@ -71,11 +71,11 @@ export function buildDiscoveryLiveliness(tavern = {}) {
     },
   ]
 
-  if (gameplaySignal?.value && gameplaySignal.value !== '可后续添加') {
+  if (gameplayEcho?.value && gameplayEcho.value !== '可后续添加') {
     chips.push({
       id: 'gameplay',
       label: '店内玩法',
-      value: gameplaySignal.value,
+      value: gameplayEcho.value,
       helper: '只作为入店体验线索，不做跨空间竞争。',
       className: 'border-violet-300/24 bg-violet-300/10 text-violet-50',
     })

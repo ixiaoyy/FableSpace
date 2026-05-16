@@ -16,6 +16,7 @@ import {
   Zap,
   Compass,
 } from "lucide-react"
+import { useState } from "react"
 import { Link, useLoaderData } from "react-router"
 
 import { NotificationBell } from "../components/NotificationBell"
@@ -28,6 +29,7 @@ import {
 import { hasExplicitOwnerIdentity } from "../lib/tavern-runtime-config.js"
 import {
   DEFAULT_OWNER_ID,
+  createClueHuntRoute,
   errorMessage,
   getOwnerDefaultLLM,
   getTavernMetrics,
@@ -184,6 +186,112 @@ function MetricCard({ label, value, helper, icon: Icon }: MetricCardProps) {
           <Icon className="h-5 w-5" />
         </span>
       </div>
+    </Card>
+  )
+}
+
+function ClueHuntBuilderCard({ ownerId, taverns }: { ownerId: string; taverns: Tavern[] }) {
+  const publicTaverns = taverns.filter((tavern) => tavern.access === "public")
+  const [title, setTitle] = useState("两站线索小路")
+  const [firstTavernId, setFirstTavernId] = useState(publicTaverns[0]?.id || "")
+  const [secondTavernId, setSecondTavernId] = useState(publicTaverns[1]?.id || publicTaverns[0]?.id || "")
+  const [firstClue, setFirstClue] = useState("第一站灯牌上最显眼的词是什么？")
+  const [firstAnswer, setFirstAnswer] = useState("")
+  const [secondClue, setSecondClue] = useState("第二站入口旁的物件是什么？")
+  const [secondAnswer, setSecondAnswer] = useState("")
+  const [rewardText, setRewardText] = useState("你把这条真实坐标之间的小路记住了。")
+  const [coinAmount, setCoinAmount] = useState(3)
+  const [busy, setBusy] = useState(false)
+  const [message, setMessage] = useState("")
+  const [routeLink, setRouteLink] = useState("")
+
+  async function handleCreate() {
+    setBusy(true)
+    setMessage("")
+    setRouteLink("")
+    try {
+      const data = await createClueHuntRoute({
+        title,
+        description: "店主确认的半隐藏寻宝路线。后续站点和答案不会提前公开。",
+        status: "published",
+        reward_text: rewardText,
+        reward_coin_amount: coinAmount,
+        nodes: [
+          { id: "node_1", tavern_id: firstTavernId, clue: firstClue, answer: firstAnswer, hint: "回到当前空间公开内容里找线索。" },
+          { id: "node_2", tavern_id: secondTavernId, clue: secondClue, answer: secondAnswer, hint: "第二站会在第一题答对后显示。" },
+        ],
+      }, ownerId)
+      setRouteLink(`/clue-hunts/${encodeURIComponent(data.route.id)}`)
+      setMessage("寻宝路线已创建。访客只会看到第一站，不会拿到答案。")
+    } catch (error) {
+      setMessage(errorMessage(error))
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  return (
+    <Card className="overflow-hidden border-theme-accent-border bg-theme-accent-bg">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Compass className="h-5 w-5 text-theme-accent-text" />
+          寻宝路线 MVP
+        </CardTitle>
+        <CardDescription className="mt-2">
+          只能串联你名下的公开真实坐标；线索、答案和纪念文案都由店主确认，平台不自动生成发布。
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        <label className="space-y-1.5 text-sm">
+          <span className="text-theme-muted">路线标题</span>
+          <input value={title} onChange={(event) => setTitle(event.target.value)} className="w-full rounded-2xl border border-theme-border bg-theme-card px-4 py-3 text-theme-primary outline-none focus:border-theme-accent-border" />
+        </label>
+        <div className="grid gap-3 md:grid-cols-2">
+          <label className="space-y-1.5 text-sm">
+            <span className="text-theme-muted">第一站空间</span>
+            <select value={firstTavernId} onChange={(event) => setFirstTavernId(event.target.value)} className="w-full rounded-2xl border border-theme-border bg-theme-card px-4 py-3 text-theme-primary outline-none focus:border-theme-accent-border">
+              {publicTaverns.map((tavern) => <option key={tavern.id} value={tavern.id}>{tavern.name}</option>)}
+            </select>
+          </label>
+          <label className="space-y-1.5 text-sm">
+            <span className="text-theme-muted">第二站空间</span>
+            <select value={secondTavernId} onChange={(event) => setSecondTavernId(event.target.value)} className="w-full rounded-2xl border border-theme-border bg-theme-card px-4 py-3 text-theme-primary outline-none focus:border-theme-accent-border">
+              {publicTaverns.map((tavern) => <option key={tavern.id} value={tavern.id}>{tavern.name}</option>)}
+            </select>
+          </label>
+        </div>
+        <div className="grid gap-3 md:grid-cols-2">
+          <label className="space-y-1.5 text-sm">
+            <span className="text-theme-muted">第一站线索 / 答案</span>
+            <textarea value={firstClue} onChange={(event) => setFirstClue(event.target.value)} rows={2} className="w-full rounded-2xl border border-theme-border bg-theme-card px-4 py-3 text-theme-primary outline-none focus:border-theme-accent-border" />
+            <input value={firstAnswer} onChange={(event) => setFirstAnswer(event.target.value)} placeholder="答案只在后端 hash 保存" className="w-full rounded-2xl border border-theme-border bg-theme-card px-4 py-3 text-theme-primary outline-none focus:border-theme-accent-border" />
+          </label>
+          <label className="space-y-1.5 text-sm">
+            <span className="text-theme-muted">第二站线索 / 答案</span>
+            <textarea value={secondClue} onChange={(event) => setSecondClue(event.target.value)} rows={2} className="w-full rounded-2xl border border-theme-border bg-theme-card px-4 py-3 text-theme-primary outline-none focus:border-theme-accent-border" />
+            <input value={secondAnswer} onChange={(event) => setSecondAnswer(event.target.value)} placeholder="答案只在后端 hash 保存" className="w-full rounded-2xl border border-theme-border bg-theme-card px-4 py-3 text-theme-primary outline-none focus:border-theme-accent-border" />
+          </label>
+        </div>
+        <div className="grid gap-3 md:grid-cols-[1fr_10rem]">
+          <label className="space-y-1.5 text-sm">
+            <span className="text-theme-muted">完成纪念文案</span>
+            <input value={rewardText} onChange={(event) => setRewardText(event.target.value)} className="w-full rounded-2xl border border-theme-border bg-theme-card px-4 py-3 text-theme-primary outline-none focus:border-theme-accent-border" />
+          </label>
+          <label className="space-y-1.5 text-sm">
+            <span className="text-theme-muted">纪念币</span>
+            <input type="number" min={0} max={99} value={coinAmount} onChange={(event) => setCoinAmount(Number(event.target.value))} className="w-full rounded-2xl border border-theme-border bg-theme-card px-4 py-3 text-theme-primary outline-none focus:border-theme-accent-border" />
+          </label>
+        </div>
+        <Button type="button" className="w-full" disabled={busy || publicTaverns.length < 2 || firstTavernId === secondTavernId || !firstAnswer.trim() || !secondAnswer.trim()} onClick={handleCreate}>
+          创建半隐藏路线
+        </Button>
+        {message ? <p className="rounded-2xl border border-theme-border bg-theme-card p-3 text-sm text-theme-primary">{message}</p> : null}
+        {routeLink ? (
+          <Button asChild variant="secondary" className="w-full">
+            <Link to={routeLink}>打开访客寻宝页 →</Link>
+          </Button>
+        ) : null}
+      </CardContent>
     </Card>
   )
 }
@@ -393,6 +501,8 @@ export default function OwnerRoute() {
               icon={Zap}
             />
           </div>
+
+          <ClueHuntBuilderCard ownerId={ownerId} taverns={taverns} />
 
           {/* Token Usage and Peak Hours Charts */}
           {(Object.keys(tavernMetrics).length > 0) && (

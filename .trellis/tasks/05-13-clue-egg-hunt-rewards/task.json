@@ -3,7 +3,7 @@
   "name": "clue-egg-hunt-rewards",
   "title": "brainstorm: 线索彩蛋寻宝奖励玩法",
   "description": "",
-  "status": "planning",
+  "status": "completed",
   "dev_type": "fullstack",
   "scope": "Brainstorm only: clue/easter-egg/puzzle hunt rewards for FableMap gameplay; no implementation yet.",
   "package": null,
@@ -11,11 +11,11 @@
   "creator": "lijin",
   "assignee": "lijin",
   "createdAt": "2026-05-13",
-  "completedAt": null,
+  "completedAt": "2026-05-16",
   "branch": null,
   "base_branch": "main",
   "worktree_path": null,
-  "current_phase": 1,
+  "current_phase": 6,
   "next_action": [
     {
       "phase": 1,
@@ -53,20 +53,33 @@
   ],
   "parent": null,
   "relatedFiles": [
-    "backend/src/fablemap_api/core/gameplay.py",
-    "backend/src/fablemap_api/core/engagement.py",
-    "frontend/app/product/ownerGameplayTemplates.js",
-    "docs/WORLD_SCHEMA.md",
-    ".trellis/spec/backend/engagement-api-contract.md",
-    ".trellis/spec/frontend/engagement-ui-boundary.md"
+    "backend/src/fablemap_api/core/clue_hunt.py",
+    "backend/src/fablemap_api/application/clue_hunts.py",
+    "backend/src/fablemap_api/api/v1/clue_hunts.py",
+    "backend/src/fablemap_api/api/v1/router.py",
+    "backend/src/fablemap_api/app_factory.py",
+    "backend/tests/test_clue_hunt_api.py",
+    "frontend/app/lib/taverns.ts",
+    "frontend/app/routes/clue-hunt.tsx",
+    "frontend/app/routes/owner.tsx",
+    "frontend/app/routes.ts",
+    ".trellis/spec/backend/clue-hunt-api-contract.md",
+    ".trellis/spec/frontend/clue-hunt-ui-boundary.md"
   ],
-  "notes": "Brainstorm decisions captured: C cross-space clue hunt; same-owner/system-only governance; semi-hidden route; reward = memorial text + tavern-local engagement coins. Ready for final PRD confirmation or child task split.",
+  "notes": "Implemented the safe Clue Hunt MVP slice: owner-governed public real-coordinate routes, visitor-scoped answer-gated sessions, idempotent tavern-local reward, and owner/visitor UI. No answers leak to public/visitor payloads; no platform economy/ranking/social features added.",
   "meta": {
     "selected_approach": "C_cross_space_clue_hunt",
     "next_question": "final_confirmation",
     "governance_scope": "same_owner_routes_plus_system_public_welfare_routes",
     "system_owner_id": "system_public_welfare",
     "route_visibility": "semi_hidden_route",
-    "reward_type": "memorial_text_plus_engagement_coins"
+    "reward_type": "memorial_text_plus_engagement_coins",
+    "validation": [
+      "py -3 -m compileall -q backend/src PASS",
+      "py -3 -m pytest backend/tests/test_clue_hunt_api.py backend/tests/test_default_db_tavern_list_performance.py backend/tests/test_npc_vividness_prompt.py -q --tb=short PASS",
+      "npm --prefix .\\frontend run typecheck PASS",
+      "npm --prefix .\\frontend test PASS",
+      "npm --prefix .\\frontend run build PASS"
+    ]
   }
 }

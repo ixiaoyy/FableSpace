@@ -1,30 +1,22 @@
-# future: turn-based tank board game
+# Future Agent/Game Task Closure
 
-## Goal
+## Result
 
-在 FableMap 游戏库中设计回合制坦克棋，保留 AgentTank 味道但避免实时动作和任意代码执行。
+Closed this future/planning item as a bounded product-governance decision rather than a literal implementation.
 
-## Status
+## Decision
 
-Backlog / future evolution task, created from .trellis/tasks/05-13-agent-tank-tavern/prd.md after user confirmed simple MVP first.
+The literal tank/arena/game-library/replay direction is not implemented in this pass because it can drift into combat, arenas/rankings, arbitrary strategy-code execution, matchmaking, level/equipment, or game-center behavior. Those directions conflict with `AGENTS.md` and `docs/WHAT_NOT_TO_BUILD.md`.
 
-## Scope
+## Safe Successor
 
-未来任务；需要单独规则、UI、测试和安全边界。
+The acceptable successor is tavern-local, owner-confirmed interaction only:
 
-## Requirements (draft)
+- NPC Duel / simple tavern-local mini-game patterns may exist as local conversation affordances.
+- No platform ranking, wagering, settlement, recharge, matchmaking, visitor social graph, or combat progression.
+- No untrusted user-submitted code execution in the backend.
+- Outputs stay tavern-local and visitor-session scoped unless a future approved PRD changes that.
 
-* Preserve FableMap tavern mainline: real-coordinate tavern, owner-authored content, NPC interaction, memory/revisit.
-* Do not introduce platform-level ranking, matchmaking, level/equipment, wagering, or visitor social graph.
-* Do not execute untrusted user-submitted code in FableMap backend.
-* Keep outputs tavern-local and visitor-session scoped unless a later protocol explicitly expands them.
+## Trace
 
-## Acceptance Criteria (draft)
-
-* [ ] Has a dedicated PRD before implementation.
-* [ ] Lists allowed files, forbidden scope, and validation commands.
-* [ ] Updates docs/specs if API/Schema contracts change.
-
-## Out of Scope
-
-* Current MVP NPC Duel v0: 猜拳心理战.
+- `docs/changes/2026-05-16-planning-future-task-closure.md`

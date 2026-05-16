@@ -154,7 +154,7 @@ function downloadJsonFile(filename, payload) {
  *   onTavernCreated — (tavern) => void — 空间创建/更新后回调
  *   initialTab     — number — 初始标签页（0=列表，1=创建）
  *   editTavern     — object — 初始要编辑的空间数据
- *   createSignal   — number — 外部递增时直接打开创建向导
+ *   createTrigger  — number — 外部递增时直接打开创建向导
  */
 export default function TavernOwnerPanel({
   ownerId = '',
@@ -162,7 +162,7 @@ export default function TavernOwnerPanel({
   onTavernCreated,
   initialTab = 0,
   editTavern = null,
-  createSignal = 0,
+  createTrigger = 0,
   createInitialLat = 0,
   createInitialLon = 0,
 }) {
@@ -358,12 +358,12 @@ export default function TavernOwnerPanel({
   }, [editTavern])
 
   useEffect(() => {
-    if (createSignal > 0) {
+    if (createTrigger > 0) {
       setEditingTavern(null)
       setShowCreate(true)
       setOwnerSection('taverns')
     }
-  }, [createSignal])
+  }, [createTrigger])
 
   async function fetchMyTaverns() {
     setLoading(true)

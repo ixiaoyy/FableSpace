@@ -30,3 +30,7 @@ Build passes (`npm --prefix .\frontend run build`), but browser console reports 
 - [ ] Root cause fixed or recorded as blocker with evidence
 - [ ] No hydration errors on main routes after fix
 - [ ] `npm --prefix .\frontend run build` passes
+
+## Completion Note (2026-05-16)
+
+Closed as no-repro with evidence rather than code fix: erification.md records dev/backend-served/production-preview checks on /, /discover, and /tavern/pw_lantern_helpdesk; React #418/#423 was not reproduced. Current remaining blocker is the exact failing user browser/environment if the issue reappears.

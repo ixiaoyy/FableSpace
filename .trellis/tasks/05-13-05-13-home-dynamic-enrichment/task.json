@@ -2,10 +2,34 @@
   "id": "05-13-home-dynamic-enrichment",
   "title": "Homepage Dynamic Enrichment",
   "slug": "05-13-home-dynamic-enrichment",
-  "status": "todo",
+  "status": "completed",
   "type": "feature",
   "priority": "medium",
   "created_at": "2026-05-13T14:20:00Z",
-  "tags": ["frontend", "backend", "api", "ux"],
-  "parent_id": null
+  "tags": [
+    "frontend",
+    "backend",
+    "api",
+    "ux"
+  ],
+  "parent_id": null,
+  "completedAt": "2026-05-16",
+  "updatedAt": "2026-05-16",
+  "assignee": "codex",
+  "current_phase": 6,
+  "relatedFiles": [
+    "backend/src/fablemap_api/api/v1/platform.py",
+    "backend/src/fablemap_api/api/v1/router.py",
+    "backend/src/fablemap_api/application/taverns.py",
+    "backend/src/fablemap_api/application/services/platform.py",
+    "backend/tests/test_platform_home_api.py",
+    "frontend/app/lib/taverns.ts",
+    "frontend/app/lib/homepage-taverns.ts",
+    "frontend/app/routes/home.tsx",
+    "frontend/app/components/fable-map-reference-artboards.tsx",
+    ".trellis/spec/backend/platform-home-api-contract.md",
+    ".trellis/spec/frontend/homepage-dynamic-data-boundary.md",
+    "docs/changes/2026-05-16-homepage-dynamic-enrichment.md"
+  ],
+  "notes": "Implemented public platform stats and recent assistant-snippet APIs; homepage fetches stats/memories non-blockingly with fallback content; hero coordinate badge uses featured tavern coordinate/time. Private/Home/user-message/visitor identity fields are excluded from public recent memories."
 }

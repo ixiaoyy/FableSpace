@@ -14,7 +14,18 @@ VISITOR_ID = "visitor-vividness"
 
 
 def _client(tmp_path: Path) -> TestClient:
-    return TestClient(create_app(ApiSettings(output_root=tmp_path / "api", fixture_file=None, frontend_root=None)))
+    return TestClient(
+        create_app(
+            ApiSettings(
+                output_root=tmp_path / "api",
+                fixture_file=None,
+                frontend_root=None,
+                storage_backend="json",
+                database_url="",
+                mysql_url="",
+            )
+        )
+    )
 
 
 def test_runtime_prompt_contains_vividness_instructions(

@@ -4,6 +4,7 @@ export default [
   index("./routes/home.tsx"),
   route("discover", "./routes/discover.tsx"),
   route("quests", "./routes/quests.tsx"),
+  route("clue-hunts/:routeId", "./routes/clue-hunt.tsx"),
   route("create", "./routes/create.tsx"),
   route("owner", "./routes/owner.tsx"),
   route("territory", "./routes/territory.tsx"),

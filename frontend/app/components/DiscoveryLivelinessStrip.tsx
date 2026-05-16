@@ -16,7 +16,7 @@ export function DiscoveryLivelinessStrip({
   const chips = compact ? liveliness.chips.slice(0, 3) : liveliness.chips
 
   return (
-    <div className="flex flex-wrap gap-2" aria-label="发现页活性信号">
+    <div className="flex flex-wrap gap-2" aria-label="发现页空间活性">
       <span
         className={`inline-flex min-h-8 items-center rounded-full border px-2.5 py-1 text-xs font-black ${
           muted

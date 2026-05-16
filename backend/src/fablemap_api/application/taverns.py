@@ -14,6 +14,7 @@ from .services.management import TavernManagementApplicationMixin
 from .services.packages import PackageApplicationMixin
 from .services.worldinfo import WorldInfoApplicationMixin
 from .services.owner_config import OwnerConfigApplicationMixin
+from .services.platform import PlatformApplicationMixin
 from .services.memories import MemoryApplicationMixin
 from .services.gameplay import GameplayApplicationMixin
 from .services.runtime import RuntimeApplicationMixin
@@ -33,6 +34,7 @@ class TavernApplicationService(
     PackageApplicationMixin,
     WorldInfoApplicationMixin,
     OwnerConfigApplicationMixin,
+    PlatformApplicationMixin,
     MemoryApplicationMixin,
     GameplayApplicationMixin,
     RuntimeApplicationMixin,

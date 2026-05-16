@@ -36,15 +36,15 @@ The user explicitly approved continuing beyond the previous page-slice optimizat
 
 ## Acceptance Criteria
 
-- [ ] `/api/v1/health` returns JSON containing both legacy keys and `data`/`meta`.
-- [ ] A `/api/v1/*` HTTP error returns JSON containing legacy error key(s), `data: null`, and `meta.ok: false`.
-- [ ] Legacy web app JSON API responses also expose `data`/`meta` while retaining legacy keys.
-- [ ] Binary/file responses are not converted to JSON.
-- [ ] `frontend/app/lib/api-client.ts` unwraps enveloped success payloads and still accepts raw legacy responses.
-- [ ] Product legacy service readers (`frontend/app/product/services/*.js`) unwrap enveloped success payloads and still accept raw responses.
-- [ ] A Trellis migration map documents which legacy `/api/*` callers still exist and which need v1 replacements or deletion.
-- [ ] If no DB/schema/enum change is made, the task records why: transport envelope only, no persisted data/enum contract changed.
-- [ ] Focused backend/frontend tests pass.
+- [x] `/api/v1/health` returns JSON containing both legacy keys and `data`/`meta`.
+- [x] A `/api/v1/*` HTTP error returns JSON containing legacy error key(s), `data: null`, and `meta.ok: false`.
+- [x] Legacy web app JSON API responses also expose `data`/`meta` while retaining legacy keys.
+- [x] Binary/file responses are not converted to JSON.
+- [x] `frontend/app/lib/api-client.ts` unwraps enveloped success payloads and still accepts raw legacy responses.
+- [x] Product legacy service readers (`frontend/app/product/services/*.js`) unwrap enveloped success payloads and still accept raw responses.
+- [x] A Trellis migration map documents which legacy `/api/*` callers still exist and which need v1 replacements or deletion.
+- [x] If no DB/schema/enum change is made, the task records why: transport envelope only, no persisted data/enum contract changed.
+- [x] Focused backend/frontend tests pass.
 
 ## Technical Approach
 
@@ -87,3 +87,7 @@ The user explicitly approved continuing beyond the previous page-slice optimizat
 - Relevant frontend files: `frontend/app/lib/api-client.ts`, `frontend/app/product/services/apiClient.js`, `frontend/app/product/services/tavernService.js`.
 - Prior inventory: `.trellis/tasks/05-13-backend-api-response-optimization/endpoint-inventory.md`.
 - Specs read: backend error handling/quality/database, frontend type-safety/tavern boundary, cross-layer guide.
+
+## Completion Note (2026-05-16)
+
+Focused backend envelope tests, frontend service tests, typecheck, and build passed. Strict envelope-only cutover and legacy /api/* deletion remain later-phase work per the task decision and migration map.

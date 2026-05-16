@@ -3,7 +3,7 @@
   "name": "clue-hunt-owner-visitor-ui",
   "title": "Clue Hunt Owner and Visitor UI MVP",
   "description": "",
-  "status": "planning",
+  "status": "completed",
   "dev_type": "frontend",
   "scope": "Owner route builder and visitor semi-hidden clue hunt UI with desktop/mobile validation.",
   "package": null,
@@ -11,11 +11,11 @@
   "creator": "lijin",
   "assignee": "lijin",
   "createdAt": "2026-05-13",
-  "completedAt": null,
+  "completedAt": "2026-05-16",
   "branch": null,
   "base_branch": "main",
   "worktree_path": null,
-  "current_phase": 1,
+  "current_phase": 6,
   "next_action": [
     {
       "phase": 1,
@@ -47,9 +47,29 @@
   "subtasks": [],
   "children": [],
   "parent": "05-13-clue-egg-hunt-rewards",
-  "relatedFiles": [],
-  "notes": "Depends on backend domain/session/reward child tasks.",
+  "relatedFiles": [
+    "backend/src/fablemap_api/core/clue_hunt.py",
+    "backend/src/fablemap_api/application/clue_hunts.py",
+    "backend/src/fablemap_api/api/v1/clue_hunts.py",
+    "backend/src/fablemap_api/api/v1/router.py",
+    "backend/src/fablemap_api/app_factory.py",
+    "backend/tests/test_clue_hunt_api.py",
+    "frontend/app/lib/taverns.ts",
+    "frontend/app/routes/clue-hunt.tsx",
+    "frontend/app/routes/owner.tsx",
+    "frontend/app/routes.ts",
+    ".trellis/spec/backend/clue-hunt-api-contract.md",
+    ".trellis/spec/frontend/clue-hunt-ui-boundary.md"
+  ],
+  "notes": "Implemented the safe Clue Hunt MVP slice: owner-governed public real-coordinate routes, visitor-scoped answer-gated sessions, idempotent tavern-local reward, and owner/visitor UI. No answers leak to public/visitor payloads; no platform economy/ranking/social features added.",
   "meta": {
-    "parent_brainstorm": "05-13-clue-egg-hunt-rewards"
+    "parent_brainstorm": "05-13-clue-egg-hunt-rewards",
+    "validation": [
+      "py -3 -m compileall -q backend/src PASS",
+      "py -3 -m pytest backend/tests/test_clue_hunt_api.py backend/tests/test_default_db_tavern_list_performance.py backend/tests/test_npc_vividness_prompt.py -q --tb=short PASS",
+      "npm --prefix .\\frontend run typecheck PASS",
+      "npm --prefix .\\frontend test PASS",
+      "npm --prefix .\\frontend run build PASS"
+    ]
   }
 }
