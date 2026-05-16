@@ -1,0 +1,20 @@
+{
+  "id": "05-17-discover-card-reference-error",
+  "name": "05-17-discover-card-reference-error",
+  "title": "Fix FableMapDiscoverCard ReferenceError",
+  "description": "Restore missing discover card component referenced by DiscoverCardLinks after cleanup.",
+  "status": "completed",
+  "dev_type": "frontend",
+  "scope": "bugfix",
+  "priority": "P0",
+  "creator": "user",
+  "assignee": "codex",
+  "createdAt": "2026-05-17",
+  "completedAt": "2026-05-17",
+  "branch": "codex/soullink-1to1-restoration",
+  "relatedFiles": [
+    "frontend/app/components/fable-map-reference-artboards.tsx"
+  ],
+  "notes": "Bug caused by cleanup removing function definition while leaving DiscoverCardLinks reference. Build/typecheck and Playwright discover smoke pass.",
+  "updatedAt": "2026-05-17"
+}

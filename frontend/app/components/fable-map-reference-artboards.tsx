@@ -2023,6 +2023,119 @@ function FableMapDiscoverMobile({
   )
 }
 
+function FableMapDiscoverCard({
+  artboard,
+  box,
+  tavern,
+  index,
+  variant,
+  isLoading = false,
+}: {
+  artboard: Artboard
+  box: readonly [number, number, number, number]
+  tavern?: Tavern
+  index: number
+  variant: Variant
+  isLoading?: boolean
+}) {
+  const [x, y, w, h] = box
+  const card = discoverCardData(tavern, index)
+  const isBlack = variant === "black"
+  const isEnterable = Boolean(tavern?.id)
+  const avatarImages = [
+    DISCOVER_CARD_IMAGES[(index + 1) % DISCOVER_CARD_IMAGES.length],
+    DISCOVER_CARD_IMAGES[(index + 2) % DISCOVER_CARD_IMAGES.length],
+    DISCOVER_CARD_IMAGES[(index + 3) % DISCOVER_CARD_IMAGES.length],
+  ]
+  const className = cx(
+    "absolute z-20 flex flex-col overflow-hidden rounded-[1.28rem] border",
+    isEnterable
+      ? "touch-manipulation outline-none transition duration-300 hover:scale-[1.015] hover:-translate-y-0.5 focus:ring-4"
+      : "cursor-wait select-none opacity-86",
+    isBlack
+      ? "border-cyan-300/14 bg-[#061226]/92 text-cyan-50 shadow-[0_18px_38px_rgba(0,0,0,0.35),0_0_26px_rgba(34,211,238,0.08)]"
+      : "border-white/90 bg-white/96 text-slate-800 shadow-[0_12px_32px_rgba(108,123,178,0.12)]",
+    isEnterable && (isBlack
+      ? "hover:border-cyan-300/26 hover:shadow-[0_22px_46px_rgba(0,0,0,0.42),0_0_40px_rgba(34,211,238,0.18)] focus:ring-cyan-300/35"
+      : "hover:shadow-[0_16px_48px_rgba(108,123,178,0.22)] focus:ring-violet-400/35"),
+  )
+  const content = (
+    <>
+      {!isEnterable ? (
+        <span className={cx("absolute right-3 top-3 z-10 rounded-full px-2.5 py-1 text-[10px] font-black", isBlack ? "bg-cyan-300/12 text-cyan-100/70" : "bg-violet-50 text-violet-400")}>
+          {isLoading ? "加载中" : "待同步"}
+        </span>
+      ) : null}
+      <div className={cx("relative h-[43%] w-full shrink-0 overflow-hidden", isBlack ? "bg-cyan-300/8" : "bg-violet-50")}>
+        <img data-fable-map-discover-card-cover="real-image" data-fable-map-discover-square-image="512x512" src={card.image} alt={`${card.name} 封面`} className={cx("h-full w-full object-cover", isBlack && "opacity-90 saturate-[1.05]")} loading="lazy" decoding="async" />
+        <span className={cx("absolute left-3 top-3 inline-flex max-w-[72%] items-center gap-1 rounded-full px-3 py-1 text-[10px] font-black shadow-[0_8px_18px_rgba(118,91,255,0.22)]", isBlack ? "border border-cyan-200/20 bg-cyan-300/14 text-cyan-50" : "bg-violet-500/82 text-white")}>
+          <span aria-hidden="true">★</span>
+          {card.tag}
+        </span>
+      </div>
+      <div data-fable-map-discover-card-copy="real-text-layer" className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden px-4 py-3">
+        <h3 data-fable-map-discover-card-title="real-text" className={cx("truncate text-[16px] font-black leading-tight", isBlack ? "text-cyan-50" : "text-slate-800")}>{card.name}</h3>
+        <p className={cx("mt-2 line-clamp-2 text-[12px] font-bold leading-5", isBlack ? "text-cyan-100/52" : "text-slate-400")} title={card.description}>{card.description}</p>
+        <span data-first-minute-guide="fable-map-discover-card" className="sr-only">
+          Why here · {card.experienceType}：{card.whyHere}。先试：{card.tryPrompt}
+        </span>
+        <div className={cx("mt-auto flex min-w-0 items-center gap-2 text-[11px] font-black", isBlack ? "text-cyan-100/44" : "text-slate-400")}>
+          <span className="flex min-w-0 items-center gap-1 truncate">
+            <MessageCircle size={13} strokeWidth={2.6} className={cx("shrink-0", isBlack ? "text-cyan-300/70" : "text-violet-300")} />
+            {isEnterable ? `${card.timeLabel} · ${card.visitLabel}` : (isLoading ? "正在同步坐标" : "等待真实坐标")}
+          </span>
+          <span aria-hidden="true" className="ml-auto flex shrink-0 -space-x-1.5">
+            {avatarImages.map((image, avatarIndex) => (
+              <img key={`${card.name}-avatar-${avatarIndex}`} src={image} alt="" className={cx("h-5 w-5 rounded-full border object-cover", isBlack ? "border-[#061226]" : "border-white")} loading="lazy" decoding="async" />
+            ))}
+          </span>
+          <span className={cx("inline-flex shrink-0 items-center", isBlack ? "text-cyan-300/72" : "text-violet-400")} aria-label={`收藏 ${card.favoriteCount}`}>
+            <Heart size={17} strokeWidth={2.6} />
+          </span>
+        </div>
+        <span
+          data-fable-map-discover-entry-cta="visitor-primary"
+          className={cx(
+            "mt-2 inline-flex w-fit items-center rounded-full px-3 py-1 text-[11px] font-black",
+            isBlack ? "bg-cyan-300/12 text-cyan-200" : "bg-violet-50 text-violet-500",
+          )}
+        >
+          {isEnterable ? "进入这个空间 →" : "等待空间同步"}
+        </span>
+      </div>
+    </>
+  )
+
+  if (!isEnterable) {
+    return (
+      <div
+        data-fable-map-discover-card="real-card"
+        data-fable-map-discover-card-layout="image-top"
+        data-fable-map-discover-card-state={isLoading ? "loading" : "placeholder"}
+        aria-disabled="true"
+        className={className}
+        style={boxStyle(artboard, x, y, w, h)}
+      >
+        {content}
+      </div>
+    )
+  }
+
+  return (
+    <Link
+      to={targetFor(tavern.id)}
+      data-fable-map-discover-card="real-card"
+      data-fable-map-discover-card-layout="image-top"
+      data-fable-map-discover-card-state="enterable"
+      onMouseDown={suppressMouseFocus}
+      className={className}
+      style={boxStyle(artboard, x, y, w, h)}
+    >
+      {content}
+    </Link>
+  )
+}
+
 function DiscoverCardLinks({
   artboard,
   taverns,
