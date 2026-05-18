@@ -1,0 +1,6 @@
+{"file":"README.md","reason":"database URL/storage authority"}
+{"file":"docs/ARCHITECTURE.md","reason":"SQLAlchemy persistence layer table authority"}
+{"file":"docs/WORLD_SCHEMA.md","reason":"product schema and current table list authority"}
+{"file":"docs/WHAT_NOT_TO_BUILD.md","reason":"negative scope guard"}
+{"file":".trellis/spec/backend/database-guidelines.md","reason":"backend database schema change rules"}
+{"file":"backend/src/fablemap_api/infrastructure/models.py","reason":"current SQLAlchemy table/column definitions"}

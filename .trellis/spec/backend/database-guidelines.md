@@ -39,6 +39,9 @@ Before changing persistence schema:
 - Add migration/backfill behavior for existing JSON/SQLite/MySQL rows.
 - Update API contracts and tests in the same change.
 - Do not reinterpret existing enum values silently.
+- Every SQLAlchemy table and column must have a concise Chinese schema comment in `backend/src/fablemap_api/infrastructure/schema_comments.py`.
+- New tables/columns are not complete until `backend/tests/test_schema_comments.py` passes and the live MySQL metadata can be synced with `python -m fablemap_api.infrastructure.apply_schema_comments --apply`.
+- Database comments are metadata only; do not use a comment-only task to change field types, enum semantics, nullability, or row data.
 
 ## Database compatibility
 

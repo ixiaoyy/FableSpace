@@ -622,3 +622,9 @@ class TerritoryModel(Base):
         Index("idx_territory_status", "status"),
         Index("idx_territory_location", "center_lat", "center_lon"),
     )
+
+
+from .schema_comments import apply_schema_comments
+
+
+apply_schema_comments(Base.metadata)
