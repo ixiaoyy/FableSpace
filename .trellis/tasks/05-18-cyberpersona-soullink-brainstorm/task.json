@@ -1,0 +1,27 @@
+{
+  "id": "05-18-cyberpersona-soullink-brainstorm",
+  "name": "05-18-cyberpersona-soullink-brainstorm",
+  "title": "brainstorm: CyberPersona-inspired 1:1 NPC relationship loop",
+  "description": "Reference CyberPersona / love.yydes.ggff.net interaction ideas and adapt them into a FableMap-compatible, map-anchored NPC relationship MVP.",
+  "status": "completed",
+  "dev_type": "product",
+  "scope": "brainstorm",
+  "priority": "P2",
+  "creator": "user",
+  "assignee": "codex",
+  "createdAt": "2026-05-18",
+  "completedAt": "2026-05-18",
+  "branch": "codex/soullink-1to1-restoration",
+  "relatedFiles": [
+    "docs/PRODUCT_BRIEF.md",
+    "docs/FABLEMAP_TAVERN_PLATFORM.md",
+    "docs/WHAT_NOT_TO_BUILD.md",
+    "docs/WORLD_SCHEMA.md",
+    "frontend/app/lib/affinity.js",
+    "frontend/app/lib/publicBond.ts",
+    "frontend/app/lib/taverns.ts",
+    "backend/src/fablemap_api/application/services/runtime.py"
+  ],
+  "notes": "Brainstorm only. Added functional implementation analysis from CyberPersona: structured chat turn envelope, memory candidate pipeline, voice/media delivery manifest, scoped reset semantics, and mapping to existing FableMap VisitorState/MemoryAtom/PublicBond/runtime chat code. No production code changed.",
+  "updatedAt": "2026-05-18"
+}
