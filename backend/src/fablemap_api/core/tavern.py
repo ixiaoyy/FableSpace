@@ -1910,6 +1910,11 @@ class TavernService:
             tavern_dict["target_place_relationships"] = self._target_relationships(tavern_id)
             tavern_dict["pending_place_relationships"] = self._target_relationships(tavern_id, statuses={"pending"})
 
+        if user_id:
+            visitor_state = self.store.get_visitor_state(tavern_id, user_id)
+            if visitor_state:
+                tavern_dict["visitor_state"] = visitor_state.to_dict()
+
         return tavern_dict
 
     def create_tavern(self, data: dict[str, Any], owner_id: str = "") -> dict[str, Any]:

@@ -14,4 +14,5 @@ export default [
   route("tavern/:tavernId", "./routes/tavern.tsx"),
   route("home-me", "./routes/home-me-alias.tsx"),
   route("home/me", "./routes/home-me.tsx"),
+  route("npc/:tavernId/:characterId", "./routes/npc-detail.tsx"),
 ] satisfies RouteConfig

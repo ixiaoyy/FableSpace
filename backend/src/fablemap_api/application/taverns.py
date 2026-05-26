@@ -26,6 +26,7 @@ from .services.rumor import RumorApplicationMixin
 from .services.skill_packs import SkillPackApplicationMixin
 from .services.state_cards import StateCardApplicationMixin
 from .services.relationship_graph import RelationshipGraphApplicationMixin
+from .services.relationship_reset import RelationshipResetApplicationMixin
 from .services.neighborhood import NeighborhoodKnowledgeService
 
 
@@ -46,6 +47,7 @@ class TavernApplicationService(
     SkillPackApplicationMixin,
     StateCardApplicationMixin,
     RelationshipGraphApplicationMixin,
+    RelationshipResetApplicationMixin,
 ):
     """Application facade for native `/api/v1/taverns` use cases.
 

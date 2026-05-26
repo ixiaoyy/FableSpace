@@ -1,0 +1,28 @@
+{
+  "id": "05-26-npc-relationship-capsule-mvp",
+  "name": "05-26-npc-relationship-capsule-mvp",
+  "title": "NPC 关系胶囊 MVP",
+  "description": "基于 05-18-cyberpersona-soullink-brainstorm PRD，实现独立 NPC 详情页（/npc/:tavernId/:characterId）、访客关系重置后端、媒体草稿 stub、关系重置确认弹窗。",
+  "status": "in_progress",
+  "dev_type": "fullstack",
+  "scope": "frontend + backend",
+  "priority": "P1",
+  "creator": "user",
+  "assignee": "antigravity",
+  "createdAt": "2026-05-26",
+  "completedAt": null,
+  "branch": "main",
+  "relatedFiles": [
+    "backend/src/fablemap_api/api/v1/relationship_reset.py",
+    "backend/src/fablemap_api/application/services/relationship_reset.py",
+    "backend/src/fablemap_api/application/taverns.py",
+    "backend/src/fablemap_api/api/v1/router.py",
+    "frontend/app/routes/npc-detail.tsx",
+    "frontend/app/components/NpcRelationshipResetModal.tsx",
+    "frontend/app/lib/taverns.ts",
+    "frontend/app/routes.ts"
+  ],
+  "notes": "用户决策：Q1=独立路由(/npc/:tavernId/:characterId)，Q2=完整reset后端，Q3=owner草稿审批队列(MVP stub)。后端Python编译通过。",
+  "meta": {},
+  "updatedAt": "2026-05-26"
+}

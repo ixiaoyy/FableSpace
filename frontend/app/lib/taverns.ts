@@ -219,6 +219,7 @@ export type Tavern = {
   is_open?: boolean
   local_time_display?: string
   llm_config?: Record<string, unknown>
+  visitor_state?: VisitorStatePayload | null
 }
 
 export type TavernListResponse = {
@@ -2576,5 +2577,22 @@ export function chatWithHomeMember(
   return readApiJson<HomeChatResponse>(
     `/api/v1/homes/${encodeURIComponent(homeId)}/chat`,
     jsonInit("POST", { member_id: memberId, message, visitor_id: visitorId }, userId),
+  )
+}
+
+export type NpcRelationshipResetResponse = {
+  reset: boolean
+  bond_revoked: boolean
+}
+
+export function resetNpcRelationship(
+  tavernId: string,
+  characterId: string,
+  reason = "",
+  userId = DEFAULT_VISITOR_ID
+) {
+  return readApiJson<NpcRelationshipResetResponse>(
+    `/api/v1/taverns/${encodeURIComponent(tavernId)}/characters/${encodeURIComponent(characterId)}/relationship/reset`,
+    jsonInit("POST", { reason }, userId)
   )
 }
