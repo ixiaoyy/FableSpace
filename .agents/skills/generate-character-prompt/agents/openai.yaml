@@ -1,4 +1,0 @@
-interface:
-  display_name: "Generate Character Prompt"
-  short_description: "FableMap NPC prompt generator"
-  default_prompt: "Use $generate-character-prompt to create a FableMap NPC character-card prompt and visual asset prompt from this owner brief."

@@ -1,4 +1,0 @@
-interface:
-  display_name: "Image Style Prompt Extractor"
-  short_description: "Extract reusable image style prompts"
-  default_prompt: "Use $image-style-prompt-extractor to extract a reusable Chinese image style prompt from this reference image."
