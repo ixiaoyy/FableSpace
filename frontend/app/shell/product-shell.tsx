@@ -1,25 +1,26 @@
-import { ClipboardList, Compass, Home, MapPinned, PlusCircle, Sparkles, UserRound } from "lucide-react"
+import { ClipboardList, Compass, Home, MapPinned, Sparkles, Store, UserRound } from "lucide-react"
 import { NavLink } from "react-router"
 
 import { cn } from "../lib/utils"
 
-// Bottom dock order keeps the visitor's everyday actions within thumb reach.
-// Desktop navigation can expose creation/management without crowding the first mobile screen.
+// Bottom dock keeps the P0 explorer path within thumb reach.
+// Creation and management are supply-side actions, so mobile does not foreground them.
 const bottomDockOrder = [
-  { to: "/", label: "首页", icon: Home },
+  { to: "/", label: "镜像面", icon: Home },
   { to: "/discover", label: "发现", icon: Compass },
-  { to: "/create", label: "进店", icon: PlusCircle },
-  { to: "/quests", label: "指南", icon: ClipboardList },
-  { to: "/owner", label: "管理", icon: UserRound },
+  { to: "/quests", label: "游玩", icon: ClipboardList },
+  { to: "/home-me", label: "回访", icon: UserRound },
+  { to: "/discover?view=expanded", label: "更多", icon: MapPinned },
 ]
 
-// 顶部导航保留完整功能，不做降级
+// Desktop can expose owner supply-side tools without making them the visitor's main path.
 const topNavItems = [
-  { to: "/", label: "首页", icon: Home },
-  { to: "/discover", label: "发现", icon: Compass },
-  { to: "/quests", label: "指南", icon: ClipboardList },
-  { to: "/create", label: "创建空间", icon: PlusCircle },
-  { to: "/owner", label: "管理入口", icon: UserRound },
+  { to: "/", label: "镜像面", icon: Home },
+  { to: "/discover", label: "发现空间", icon: Compass },
+  { to: "/quests", label: "游玩指南", icon: ClipboardList },
+  { to: "/home-me", label: "我的回访", icon: UserRound },
+  { to: "/create", label: "店主开设", icon: Store },
+  { to: "/owner", label: "店主后台", icon: MapPinned },
 ]
 
 const MOBILE_CRITICAL_FLOW_GUIDES: Record<string, {
@@ -29,9 +30,9 @@ const MOBILE_CRITICAL_FLOW_GUIDES: Record<string, {
   href: string
 }> = {
   Discover: {
-    title: "先找到一个可进入的坐标",
-    helper: "先搜索、筛选，再选择一个想进入的坐标。更多推荐和回访内容可以继续往下看。",
-    primaryLabel: "查看推荐坐标",
+    title: "先找到一个想进入的镜像空间",
+    helper: "按地点、空间类型和心情筛选；每个空间都应该告诉你进去后怎么玩。",
+    primaryLabel: "查看推荐空间",
     href: "#discover-mainline",
   },
   Guide: {
@@ -41,15 +42,15 @@ const MOBILE_CRITICAL_FLOW_GUIDES: Record<string, {
     href: "#guide-mainline",
   },
   Create: {
-    title: "先钉真实坐标，再填内容",
-    helper: "移动端优先完成坐标、名称、首个 NPC；AI 草稿始终等店主确认。",
-    primaryLabel: "开始创建空间",
+    title: "店主后台：先定空间体验",
+    helper: "创建是供给侧能力：先确定地理位置背景、空间类型、NPC 职责和第一分钟玩法。",
+    primaryLabel: "配置空间体验",
     href: "#create-mainline",
   },
   Tavern: {
-    title: "先选 NPC，直接开聊",
-    helper: "先选择想聊天的角色，然后直接开始对话。空间资料、邀请和反馈入口都在下方。",
-    primaryLabel: "开始聊天",
+    title: "先看这个空间怎么玩",
+    helper: "NPC 会作为接待者、引导者或主持人带你开始；聊天只是推进空间体验的一种方式。",
+    primaryLabel: "开始游玩",
     href: "#tavern-mainline",
   },
   Owner: {
@@ -81,7 +82,7 @@ export function ProductShell({
               </span>
               <div>
                 <p className="font-black tracking-wide text-theme-primary">FableMap</p>
-                <p className="text-xs text-theme-muted">Cyber life on real coordinates</p>
+                <p className="text-xs text-theme-muted">世界的镜像面 · AI 私密空间</p>
               </div>
             </NavLink>
           </div>
@@ -160,7 +161,7 @@ export function ProductShell({
         {children}
         <footer className="mt-16 flex flex-col gap-2 border-t border-theme-border pt-6 text-sm text-theme-muted sm:flex-row sm:items-center">
           <MapPinned className="h-4 w-4 text-theme-accent-text opacity-60" />
-          <span>真实坐标锚定 · 内容由店主确认 · AI 负责接待体验</span>
+          <span>地理位置锚定 · 多类型 AI 空间 · 回访你的私密角落</span>
         </footer>
       </div>
     </main>

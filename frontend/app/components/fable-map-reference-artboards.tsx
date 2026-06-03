@@ -39,8 +39,6 @@ import homeBlackNodeWhiteTower from "../assets/fable-map-05-10/home-black/node-w
 import homeBlackRecentEchoWaveform from "../assets/fable-map-05-10/home-black/recent-echo-waveform.png"
 import homeBlackUserAvatar from "../assets/fable-map-05-10/home-black/user-avatar-node07.png"
 import homeBlackWorldStatsSparkline from "../assets/fable-map-05-10/home-black/world-stats-sparkline.png"
-import soulLinkStaticBase from "../assets/fable-map-05-10/reference/soullink-static-base-1536x1024.png"
-import soulLinkBrandLogo from "../assets/fable-map-05-10/brand/soullink-logo-low.png"
 import fableMapUserAvatarImage from "../assets/npc-style-cast/portraits-hd/commission-zhideng.png"
 import { buildTavernFirstMinuteGuide } from "../lib/tavern-first-minute"
 import type { Tavern } from "../lib/taverns"
@@ -254,36 +252,36 @@ const DISCOVER_CARD_IMAGES = [
 
 const BLACK_FALLBACK_COORDINATE_CARDS = [
   {
-    name: "数据港湾",
-    description: "巨大的数据枢纽，信息在这里流动不息。",
-    tag: "ACTIVE",
+    name: "深夜回声屋",
+    description: "适合把今天没说出口的话交给 NPC，下一次回来还能接着整理。",
+    tag: "陪伴",
     image: homeBlackNodeDataHarbor,
   },
   {
-    name: "霓虹废墟",
-    description: "被遗忘的商业区，仍有信号在闪烁。",
-    tag: "ACTIVE",
+    name: "街角委托铺",
+    description: "小任务、线索和选择会把你带进这个地点背后的另一层故事。",
+    tag: "任务",
     image: homeBlackNodeNeonRuins,
   },
   {
-    name: "旧地铁站",
-    description: "信号时有时无，可能存在未知干扰。",
-    tag: "UNSTABLE",
+    name: "旧站台谜室",
+    description: "站台 NPC 会给出第一条线索，适合喜欢调查和轻解谜的探索者。",
+    tag: "探索",
     image: homeBlackNodeOldPlatform,
   },
   {
-    name: "白塔图书馆",
-    description: "存储着大量知识，但连接需要权限。",
-    tag: "LOW SIGNAL",
+    name: "白塔创作间",
+    description: "把灵感、角色和世界书暂存在这里，慢慢形成自己的私密空间。",
+    tag: "创作",
     image: homeBlackNodeWhiteTower,
   },
 ] as const
 
 const BLACK_NODE_META = [
-  { nodeId: "NODE_07", entityLabel: "128 ENTITIES", tone: "active" },
-  { nodeId: "NODE_21", entityLabel: "93 ENTITIES", tone: "active" },
-  { nodeId: "NODE_19", entityLabel: "76 ENTITIES", tone: "unstable" },
-  { nodeId: "NODE_03", entityLabel: "55 ENTITIES", tone: "low" },
+  { nodeId: "SPACE_07", entityLabel: "陪伴空间", tone: "active" },
+  { nodeId: "SPACE_21", entityLabel: "任务空间", tone: "active" },
+  { nodeId: "SPACE_19", entityLabel: "探索空间", tone: "unstable" },
+  { nodeId: "SPACE_03", entityLabel: "创作空间", tone: "low" },
 ] as const
 
 const BLACK_GUIDE_ICONS = [homeBlackGuideProtocolIcon, homeBlackGuideDatabaseIcon, homeBlackGuideSecurityIcon] as const
@@ -334,13 +332,13 @@ const HOME_LAYOUT = {
     panel: { x: 0, y: 0, w: 236, h: 1024 },
     logo: { x: 30, y: 38, w: 194, h: 88 },
     navItems: [
-      { id: "home", label: "NETWORK", eyebrow: "网络", to: "/", x: 24, y: 154, w: 194, h: 62 },
-      { id: "discover", label: "SIGNALS", eyebrow: "信号", to: "/discover", x: 24, y: 225, w: 194, h: 62 },
-      { id: "echoes", label: "ECHOES", eyebrow: "回响", to: "/home-me", x: 24, y: 296, w: 194, h: 62, badge: "12" },
-      { id: "memory", label: "MEMORY LOG", eyebrow: "记忆流", to: "/home-me", x: 24, y: 367, w: 194, h: 62 },
-      { id: "saved", label: "SAVED NODES", eyebrow: "收藏节点", to: "/home-me", x: 24, y: 438, w: 194, h: 62 },
-      { id: "anchors", label: "ANCHORS", eyebrow: "我的锚点", to: "/home-me", x: 24, y: 509, w: 194, h: 62 },
-      { id: "create", label: "CREATE NODE", eyebrow: "创建节点", to: "/create", x: 24, y: 580, w: 194, h: 62 },
+      { id: "home", label: "MIRROR", eyebrow: "镜像面", to: "/", x: 24, y: 154, w: 194, h: 62 },
+      { id: "discover", label: "SPACES", eyebrow: "发现空间", to: "/discover", x: 24, y: 225, w: 194, h: 62 },
+      { id: "echoes", label: "REVISIT", eyebrow: "回访", to: "/home-me", x: 24, y: 296, w: 194, h: 62, badge: "12" },
+      { id: "memory", label: "MEMORY", eyebrow: "记忆", to: "/home-me", x: 24, y: 367, w: 194, h: 62 },
+      { id: "saved", label: "PRIVATE", eyebrow: "私密空间", to: "/home-me", x: 24, y: 438, w: 194, h: 62 },
+      { id: "anchors", label: "PLACES", eyebrow: "位置锚点", to: "/discover", x: 24, y: 509, w: 194, h: 62 },
+      { id: "create", label: "OWNER", eyebrow: "店主后台", to: "/owner", x: 24, y: 580, w: 194, h: 62 },
     ],
     status: { x: 38, y: 790, w: 190, h: 190 },
     bottomActions: [
@@ -398,7 +396,7 @@ const DISCOVER_LAYOUT = {
     cozy: { x: 916, y: 118, w: 120, h: 42 },
     more: { x: 1040, y: 118, w: 145, h: 42 },
   },
-  create: { label: "创建新的坐标", to: "/create", x: 1258, y: 854, w: 260, h: 138 },
+  create: { label: "店主开设空间", to: "/create", x: 1258, y: 854, w: 260, h: 138 },
 } as const
 
 const DISCOVER_FILTER_GROUPS = [
@@ -664,27 +662,20 @@ function FableMapSidebar({
     >
       <Link
         to="/"
-        aria-label="SoulLink"
+        aria-label="FableMap 世界的镜像面"
         onMouseDown={suppressMouseFocus}
         className={cx(
-          "absolute touch-manipulation rounded-2xl outline-none focus:ring-4 focus:ring-violet-400/45",
-          "flex items-center gap-3",
+          "absolute touch-manipulation rounded-2xl px-4 py-3 outline-none focus:ring-4 focus:ring-violet-400/45",
+          "flex flex-col justify-center",
+          isBlack ? "border border-cyan-300/14 bg-cyan-300/6" : "border border-violet-100 bg-white/82",
         )}
         style={panelBoxStyle(panel, sidebar.logo.x, sidebar.logo.y, sidebar.logo.w, sidebar.logo.h)}
       >
-        <img
-          data-soullink-brand-slice="placeholder-328x124"
-          src={soulLinkBrandLogo}
-          alt=""
-          aria-hidden="true"
-          draggable={false}
-          decoding="async"
-          className="h-full w-full select-none object-contain"
-        />
-        <span className="sr-only">SoulLink 连接另一个数字世界</span>
+        <span className={cx("text-2xl font-black leading-none tracking-tight", isBlack ? "text-cyan-50" : "text-slate-900")}>FableMap</span>
+        <span className={cx("mt-2 text-[11px] font-bold leading-none", isBlack ? "text-cyan-100/50" : "text-slate-500")}>世界的镜像面</span>
       </Link>
 
-      <nav aria-label="SoulLink navigation" className="absolute inset-0">
+      <nav aria-label="FableMap navigation" className="absolute inset-0">
         {sidebar.navItems.map((item) => {
           const selected = item.id === active
           return (
@@ -720,7 +711,7 @@ function FableMapSidebar({
       </nav>
 
       <section
-        data-soullink-sidebar-status="dom-text"
+        data-fable-map-sidebar-status="dom-text"
         className={cx(
           "absolute overflow-hidden rounded-[0.9rem] border px-4 py-4",
           isBlack
@@ -729,14 +720,14 @@ function FableMapSidebar({
         )}
         style={panelBoxStyle(panel, sidebar.status.x, sidebar.status.y, sidebar.status.w, sidebar.status.h)}
       >
-        <p className="text-[13px] font-black uppercase tracking-[0.13em] text-cyan-300">SYSTEM STATUS</p>
-        <p className="mt-1 text-[11px] font-bold text-cyan-100/48">系统状态</p>
+        <p className="text-[13px] font-black uppercase tracking-[0.13em] text-cyan-300">SPACE STATUS</p>
+        <p className="mt-1 text-[11px] font-bold text-cyan-100/48">空间状态</p>
         <div className="mt-4 h-px w-full bg-cyan-300/16" />
         <p className="mt-5 flex items-center gap-2 text-[12px] font-black text-cyan-300">
           <span aria-hidden="true" className="h-2 w-2 rounded-full bg-cyan-300 shadow-[0_0_10px_rgba(34,211,238,0.8)]" />
-          NETWORK STABLE
+          MIRROR READY
         </p>
-        <p className="mt-1 pl-4 text-[11px] font-bold text-cyan-100/48">网络稳定</p>
+        <p className="mt-1 pl-4 text-[11px] font-bold text-cyan-100/48">镜像空间可进入</p>
       </section>
 
       {sidebar.bottomActions.map((item) =>
@@ -1727,7 +1718,7 @@ function FableMapHomeCoordinateCard({
   const [x, y, w, h] = box
   const canEnter = Boolean(slice?.id || card.id || isBlack)
   const target = to || targetFor(slice?.id || card.id)
-  const badgeLabel = isBlack ? card.tag : (canEnter ? card.tag : (isLoading ? "加载中" : "待同步"))
+  const badgeLabel = isBlack ? card.tag : (canEnter ? card.tag : (isLoading ? "加载中" : "待开放"))
   const toneClass =
     card.tone === "unstable"
       ? "border-rose-400/45 bg-rose-500/14 text-rose-300 shadow-[0_0_16px_rgba(244,63,94,0.18)]"
@@ -1746,9 +1737,9 @@ function FableMapHomeCoordinateCard({
     <>
       <div className="relative h-[47%] shrink-0 overflow-hidden bg-cyan-300/8">
         <img
-          data-soullink-active-node-cover="replaceable-image"
+          data-fable-map-active-node-cover="replaceable-image"
           src={card.image}
-          alt={`${card.name} 节点封面`}
+          alt={`${card.name} 空间封面`}
           className={cx("h-full w-full object-cover", isBlack ? "opacity-86 saturate-[1.08]" : "")}
           loading="lazy"
           decoding="async"
@@ -1758,17 +1749,17 @@ function FableMapHomeCoordinateCard({
           {badgeLabel}
         </span>
       </div>
-      <div data-soullink-active-node-copy="dom-text" className="flex min-h-0 flex-1 flex-col px-4 pb-4 pt-3">
+      <div data-fable-map-active-node-copy="dom-text" className="flex min-h-0 flex-1 flex-col px-4 pb-4 pt-3">
         <div className="flex items-start justify-between gap-3">
           <span className="min-w-0">
             <h3 data-fable-map-home-card-title="real-text" className={cx("truncate text-[18px] font-black leading-none tracking-[0.02em]", isBlack ? "text-cyan-50" : "text-slate-800")}>{card.name}</h3>
             <p className={cx("mt-2 truncate text-[12px] font-black uppercase tracking-[0.12em]", isBlack ? "text-cyan-100/46" : "text-slate-400")}>{card.nodeId}</p>
           </span>
-          <span data-soullink-active-node-star="dom-icon" aria-hidden="true" className={cx("text-[28px] leading-none", isBlack ? "text-cyan-100/42" : "text-slate-300")}>☆</span>
+          <span data-fable-map-active-node-star="dom-icon" aria-hidden="true" className={cx("text-[28px] leading-none", isBlack ? "text-cyan-100/42" : "text-slate-300")}>☆</span>
         </div>
         <p className={cx("mt-5 line-clamp-2 text-[13px] font-bold leading-6", isBlack ? "text-cyan-100/48" : "text-slate-400")} title={card.description}>{card.description}</p>
         <div className="mt-auto flex items-center justify-between gap-3">
-          <span data-soullink-active-node-avatars="replaceable-images" className="flex -space-x-1.5">
+          <span data-fable-map-active-node-avatars="replaceable-images" className="flex -space-x-1.5">
             {avatarImages.map((image, avatarIndex) => (
               <img key={`${card.name}-node-avatar-${avatarIndex}`} src={image} alt="" aria-hidden="true" className={cx("h-5 w-5 rounded-full border object-cover", isBlack ? "border-[#06111f]" : "border-white")} loading="lazy" decoding="async" />
             ))}
@@ -1799,7 +1790,7 @@ function FableMapHomeCoordinateCard({
     <Link
       to={target}
       data-fable-map-home-card="real-card"
-      data-soullink-active-node-card="image-and-dom-separated"
+      data-fable-map-active-node-card="image-and-dom-separated"
       data-fable-map-home-card-state="enterable"
       onMouseDown={suppressMouseFocus}
       className={className}
@@ -1850,7 +1841,7 @@ function FableMapDiscoverCard({
     <>
       {!isEnterable ? (
         <span className={cx("absolute right-3 top-3 z-10 rounded-full px-2.5 py-1 text-[10px] font-black", isBlack ? "bg-cyan-300/12 text-cyan-100/70" : "bg-violet-50 text-violet-400")}>
-          {isLoading ? "加载中" : "待同步"}
+          {isLoading ? "加载中" : "待开放"}
         </span>
       ) : null}
       <div className={cx("relative h-[43%] w-full shrink-0 overflow-hidden", isBlack ? "bg-cyan-300/8" : "bg-violet-50")}>
@@ -2057,9 +2048,9 @@ function FableMapHomeMainSurface({
         >
           {isBlack ? (
             <>
-              接入仍在回应的
+              进入世界的
               <br />
-              数字坐标网络
+              镜像空间
             </>
           ) : (
             <>
@@ -2070,7 +2061,7 @@ function FableMapHomeMainSurface({
           )}
         </h1>
         <p className={cx("mt-5 max-w-[32em] text-[clamp(0.82rem,1.1vw,1rem)] font-bold leading-7", isBlack ? "text-cyan-100/66" : "text-slate-500")}>
-          {isBlack ? "在数据的海洋中，寻找仍在闪烁的信号。" : "走进仍在回应的空间，探索属于你的故事"}
+          {isBlack ? "在现实地点的另一面，寻找适合你的私密空间。" : "走进仍在回应的空间，探索属于你的故事"}
         </p>
       </div>
       {!isBlack ? <HomeCurrentCoordinateBadge artboard={artboard} variant={variant} coordinate={heroCoordinate} /> : null}
@@ -2078,8 +2069,8 @@ function FableMapHomeMainSurface({
         <span className="flex items-center gap-4">
           <span aria-hidden="true" className="h-10 w-[3px] rounded-full bg-cyan-300 shadow-[0_0_14px_rgba(34,211,238,0.72)]" />
           <span>
-            <h2 className={cx("text-[18px] font-black uppercase leading-none tracking-[0.14em]", isBlack ? "text-cyan-300" : "text-slate-800")}>{isBlack ? "ACTIVE NODES" : "为你推荐的坐标"}</h2>
-            <span className={cx("mt-1 block text-[12px] font-bold", isBlack ? "text-cyan-100/50" : "text-slate-400")}>{isBlack ? "活跃节点" : "真实地图空间"}</span>
+            <h2 className={cx("text-[18px] font-black uppercase leading-none tracking-[0.14em]", isBlack ? "text-cyan-300" : "text-slate-800")}>{isBlack ? "MIRROR SPACES" : "为你推荐的空间"}</h2>
+            <span className={cx("mt-1 block text-[12px] font-bold", isBlack ? "text-cyan-100/50" : "text-slate-400")}>{isBlack ? "不同类型的 AI 空间" : "基于地理位置的空间"}</span>
           </span>
         </span>
         <span className="flex items-center gap-4">
@@ -2122,17 +2113,9 @@ function FableMapHomeMobile({
   return (
     <div className={cx("relative z-40 min-h-screen px-4 py-5 md:hidden", isBlack ? "bg-[#020710]" : "bg-[linear-gradient(180deg,#f4f8ff_0%,#eef4ff_46%,#fff_100%)]")}>
       <header className={cx("flex items-center justify-between rounded-[1.5rem] border p-3", isBlack ? "border-cyan-300/16 bg-[#061226]/92 shadow-[0_0_30px_rgba(34,211,238,0.12)]" : "border-white/80 bg-white/86 shadow-[0_18px_42px_rgba(108,123,178,0.14)]")}>
-        <Link to="/" className="flex min-h-11 touch-manipulation items-center rounded-2xl outline-none focus:ring-4 focus:ring-violet-400/35">
-          <img
-            data-soullink-brand-slice="placeholder-328x124"
-            src={soulLinkBrandLogo}
-            alt=""
-            aria-hidden="true"
-            draggable={false}
-            decoding="async"
-            className="h-11 w-[116px] select-none object-contain"
-          />
-          <span className="sr-only">SoulLink 连接另一个数字世界</span>
+        <Link to="/" className="flex min-h-11 touch-manipulation flex-col justify-center rounded-2xl outline-none focus:ring-4 focus:ring-violet-400/35">
+          <span className={cx("text-xl font-black leading-none", isBlack ? "text-cyan-50" : "text-slate-900")}>FableMap</span>
+          <span className={cx("mt-1 text-xs font-bold", isBlack ? "text-cyan-100/48" : "text-slate-500")}>世界的镜像面</span>
         </Link>
         <button type="button" onClick={onToggleTheme} className={cx("grid h-11 w-11 touch-manipulation place-items-center rounded-2xl border", isBlack ? "border-cyan-300/16 bg-cyan-300/8 text-cyan-200" : "border-violet-100 bg-violet-50 text-violet-500")} aria-label="切换主题">
           ?        </button>
@@ -2147,22 +2130,22 @@ function FableMapHomeMobile({
           <img src={lightSkyCityBalcony} alt="" aria-hidden="true" className="absolute inset-0 h-full w-full object-cover opacity-34" loading="lazy" decoding="async" />
         )}
         <div aria-hidden="true" className={cx("absolute inset-0", isBlack ? "bg-[#020710]/78" : "bg-white/78")} />
-        <p className={cx("relative z-10 text-xs font-black uppercase tracking-[0.22em]", isBlack ? "text-cyan-300/78" : "text-violet-400")}>Real coordinates</p>
+        <p className={cx("relative z-10 text-xs font-black uppercase tracking-[0.22em]", isBlack ? "text-cyan-300/78" : "text-violet-400")}>Mirror spaces</p>
         <h1
           data-fable-map-home-title-mobile="real-text"
           className={cx("relative z-10 mt-3 text-3xl font-black leading-tight tracking-[-0.04em]", isBlack ? "text-cyan-50" : "text-slate-800")}
         >
-          {isBlack ? "接入仍在回应的真实地图锚点" : "在每一个坐标里，遇见另一种可能的自己"}
+          {isBlack ? "进入世界的镜像空间" : "在真实地点的另一面，找到私密空间"}
         </h1>
-        <p className={cx("relative z-10 mt-3 text-sm font-bold leading-7", isBlack ? "text-cyan-100/58" : "text-slate-500")}>用真实地点打开一间空间，和主人配置的 AI NPC 对话、回访、留下记忆。</p>
+        <p className={cx("relative z-10 mt-3 text-sm font-bold leading-7", isBlack ? "text-cyan-100/58" : "text-slate-500")}>在真实地点的另一面进入不同类型空间，跟随 NPC 游玩、探索、回访。</p>
         <div className="relative z-10 mt-5 flex gap-3">
-          <Link to="/discover" className={cx("inline-flex min-h-11 flex-1 touch-manipulation items-center justify-center rounded-2xl px-4 text-sm font-black", isBlack ? "bg-cyan-300 text-slate-950 shadow-[0_0_26px_rgba(34,211,238,0.22)]" : "bg-violet-500 text-white shadow-[0_16px_32px_rgba(118,91,255,0.25)]")}>开始探险</Link>
-          <Link to="/create" className={cx("inline-flex min-h-11 flex-1 touch-manipulation items-center justify-center rounded-2xl border px-4 text-sm font-black", isBlack ? "border-cyan-300/20 bg-cyan-300/8 text-cyan-100" : "border-violet-100 bg-white text-violet-500")}>创建空间</Link>
+          <Link to="/discover" className={cx("inline-flex min-h-11 flex-1 touch-manipulation items-center justify-center rounded-2xl px-4 text-sm font-black", isBlack ? "bg-cyan-300 text-slate-950 shadow-[0_0_26px_rgba(34,211,238,0.22)]" : "bg-violet-500 text-white shadow-[0_16px_32px_rgba(118,91,255,0.25)]")}>发现空间</Link>
+          <Link to="/home-me" className={cx("inline-flex min-h-11 flex-1 touch-manipulation items-center justify-center rounded-2xl border px-4 text-sm font-black", isBlack ? "border-cyan-300/20 bg-cyan-300/8 text-cyan-100" : "border-violet-100 bg-white text-violet-500")}>我的回访</Link>
         </div>
       </section>
       <section className="mt-5">
         <div className="mb-3 flex items-center justify-between">
-          <h2 className={cx("font-black", isBlack ? "text-cyan-50" : "text-slate-800")}>推荐坐标</h2>
+          <h2 className={cx("font-black", isBlack ? "text-cyan-50" : "text-slate-800")}>推荐空间</h2>
           <Link to="/discover" className={cx("text-sm font-black", isBlack ? "text-cyan-300" : "text-violet-400")}>全部 →</Link>
         </div>
         <div className="grid gap-3">
@@ -2180,7 +2163,7 @@ function FableMapHomeMobile({
                   <span data-fable-map-home-card-title="real-text" className={cx("block truncate font-black", isBlack ? "text-cyan-50" : "text-slate-800")}>{slice.name}</span>
                   <span className={cx("mt-2 line-clamp-2 block text-sm font-bold leading-6", isBlack ? "text-cyan-100/52" : "text-slate-400")}>{slice.description}</span>
                   <span className={cx("mt-2 block text-xs font-black", isBlack ? "text-cyan-300" : "text-violet-400")}>
-                    {isEnterable ? slice.tag : (isLoading ? "加载中" : "待同步")}
+                    {isEnterable ? slice.tag : (isLoading ? "加载中" : "待开放")}
                   </span>
                 </span>
               </>
@@ -2234,7 +2217,7 @@ function HomeHeroActions({ artboard, variant, forceVisible = false }: { artboard
     <>
       <Link
         to="/discover"
-        aria-label={isBlack ? "连接网络" : "开始探险"}
+        aria-label={isBlack ? "发现空间" : "开始探险"}
         onMouseDown={suppressMouseFocus}
         className={cx(
           "absolute z-20 flex min-h-11 touch-manipulation items-center justify-center gap-2 rounded-[1.15rem] border text-sm font-black transition hover:-translate-y-0.5 focus:outline-none focus:ring-4",
@@ -2243,7 +2226,7 @@ function HomeHeroActions({ artboard, variant, forceVisible = false }: { artboard
         )}
         style={boxStyle(artboard, actions.primary.x, actions.primary.y, actions.primary.w, actions.primary.h)}
       >
-        <span className="flex flex-col leading-tight"><span>{isBlack ? "连接网络" : "开始探险"}</span><span className={cx("text-[10px] uppercase tracking-[0.12em]", isBlack ? "text-slate-950/70" : "text-white/70")}>{isBlack ? "CONNECT" : "START"}</span></span>
+        <span className="flex flex-col leading-tight"><span>{isBlack ? "发现空间" : "开始探险"}</span><span className={cx("text-[10px] uppercase tracking-[0.12em]", isBlack ? "text-slate-950/70" : "text-white/70")}>{isBlack ? "EXPLORE" : "START"}</span></span>
         {isBlack ? (
           <ArrowUpRight size={16} strokeWidth={3} className="opacity-70" />
         ) : (
@@ -2252,7 +2235,7 @@ function HomeHeroActions({ artboard, variant, forceVisible = false }: { artboard
       </Link>
       <Link
         to="/discover"
-        aria-label={isBlack ? "扫描信号" : "观看世界介绍"}
+        aria-label={isBlack ? "查看玩法" : "观看世界介绍"}
         onMouseDown={suppressMouseFocus}
         className={cx(
           "absolute z-20 flex min-h-11 touch-manipulation items-center justify-center gap-2 rounded-[1.15rem] border text-sm font-black transition hover:-translate-y-0.5 focus:outline-none focus:ring-4",
@@ -2272,7 +2255,7 @@ function HomeHeroActions({ artboard, variant, forceVisible = false }: { artboard
             className="ml-0.5"
           />
         </span>
-        <span className="flex flex-col leading-tight"><span>{isBlack ? "扫描信号" : "观看世界介绍"}</span><span className={cx("text-[10px] uppercase tracking-[0.12em]", isBlack ? "text-cyan-100/56" : "text-slate-500")}>{isBlack ? "SCAN" : "WATCH"}</span></span>
+        <span className="flex flex-col leading-tight"><span>{isBlack ? "查看玩法" : "观看世界介绍"}</span><span className={cx("text-[10px] uppercase tracking-[0.12em]", isBlack ? "text-cyan-100/56" : "text-slate-500")}>{isBlack ? "PLAY" : "WATCH"}</span></span>
       </Link>
     </>
   )
@@ -2717,10 +2700,10 @@ function FableMapDiscoverRightRail({
         <span className="relative z-10 grid h-full grid-cols-[4.75rem_1fr] items-center gap-4">
           <img data-fable-map-discover-square-image="512x512" src={discoverCardTrainPlatform} alt="" aria-hidden="true" className="h-[4.75rem] w-[4.75rem] rounded-[1.1rem] object-cover shadow-[0_16px_32px_rgba(0,0,0,0.22)]" loading="lazy" decoding="async" />
           <span className="min-w-0">
-            <span className="block text-[17px] font-black">创建你的坐标</span>
-            <span className="mt-2 block truncate text-[12px] font-bold text-white/70">留下你的故事，等待下一位访客发现</span>
+            <span className="block text-[17px] font-black">店主开设空间</span>
+            <span className="mt-2 block truncate text-[12px] font-bold text-white/70">配置地理位置背景、NPC 与第一分钟玩法</span>
             <span className="mt-3 inline-flex w-max items-center gap-2 rounded-xl bg-[#8d82ff] px-4 py-1.5 text-[13px] font-black">
-              创建新坐标 <ArrowUpRight size={13} strokeWidth={3} />
+              进入店主开设 <ArrowUpRight size={13} strokeWidth={3} />
             </span>
           </span>
         </span>
@@ -2748,7 +2731,7 @@ function FableMapDiscoverSurface({
   const resultCountLabel = isLoading && taverns.length === 0
     ? "加载中"
     : visitorReduced
-      ? `${Math.min(taverns.length, 3)} 个推荐坐标`
+      ? `${Math.min(taverns.length, 3)} 个推荐空间`
       : `${Math.max(taverns.length, DISCOVER_LAYOUT.cards.length)} 个坐标`
   return (
     <>
@@ -2858,7 +2841,7 @@ function FableMapDiscoverMobile({
       <section className="mt-5">
         <div className="mb-3 flex items-center justify-between">
           <h2 className={cx("text-lg font-black", isBlack ? "text-cyan-50" : "text-slate-800")}>探索结果</h2>
-          <Link to="/create" className={cx("text-[15px] font-black", isBlack ? "text-cyan-300" : "text-violet-500")}>创建坐标 →</Link>
+          <Link to="/create" className={cx("text-[15px] font-black", isBlack ? "text-cyan-300" : "text-violet-500")}>店主入口 →</Link>
         </div>
         {visitorReduced ? (
           <p data-fable-map-visitor-first-discovery="top-three" className={cx("mb-3 rounded-2xl border px-3 py-2 text-sm font-bold", isBlack ? "border-cyan-300/14 bg-cyan-300/[0.055] text-cyan-100/62" : "border-violet-100 bg-white/70 text-slate-500")}>
@@ -2943,220 +2926,6 @@ function DiscoverCardLinks({
 }
 
 
-function SoulLinkText({
-  artboard,
-  x,
-  y,
-  w,
-  h,
-  children,
-  className,
-  style,
-  as = "span",
-}: {
-  artboard: Artboard
-  x: number
-  y: number
-  w: number
-  h: number
-  children: ReactNode
-  className?: string
-  style?: CSSProperties
-  as?: "span" | "div" | "p" | "h1" | "h2"
-}) {
-  const Tag = as
-  return (
-    <Tag
-      data-soullink-dynamic-text="dom"
-      className={cx("pointer-events-none absolute z-20 whitespace-pre-line", className)}
-      style={{
-        ...boxStyle(artboard, x, y, w, h),
-        fontFamily: '"Microsoft YaHei UI", "Microsoft YaHei", "PingFang SC", "Noto Sans SC", sans-serif',
-        ...style,
-      }}
-    >
-      {children}
-    </Tag>
-  )
-}
-
-function SoulLinkHybridHomeDesktop({
-  artboard,
-  featuredCitySlices,
-  onToggleTheme,
-}: {
-  artboard: Artboard
-  featuredCitySlices: HomeReferenceProps["featuredCitySlices"]
-  onToggleTheme: () => void
-}) {
-  const cards = HOME_LAYOUT.cards.map((_, index) => homeCoordinateCardData(featuredCitySlices[index], index, "black"))
-  const nav = HOME_LAYOUT.sidebar.navItems
-  const navCopy = nav.map((item) => ({ ...item, title: item.label, subtitle: item.eyebrow }))
-  const signalRows = [
-    ["NODE_07", "数据港湾", "RECONNECTED", "2 分钟前"],
-    ["NODE_21", "霓虹废墟", "NEW ECHO", "5 分钟前"],
-    ["NODE_19", "旧地铁站", "SIGNAL WEAK", "12 分钟前"],
-    ["NODE_03", "白塔图书馆", "NEW ENTITY", "18 分钟前"],
-  ] as const
-  const onlineRows = [
-    ["星野奈奈", "正在 云上图书馆", "在线›"],
-    ["安晴", "正在 月光电台", "在线›"],
-    ["朔夜", "正在 旧车站月台", "离开 5 分钟"],
-    ["Echo_01", "正在 数据港湾", "在线›"],
-  ] as const
-  const memoryRows = [
-    ["“我在这里，等第一次下雪。”", "来自 NODE_21 · 2 小时前"],
-    ["“谢谢你，陌生人。”", "来自 NODE_07 · 5 小时前"],
-    ["“今天的风，有点温柔。”", "来自 NODE_03 · 1 天前"],
-  ] as const
-
-  return (
-    <>
-      <img
-        src={soulLinkStaticBase}
-        alt=""
-        aria-hidden="true"
-        draggable={false}
-        decoding="async"
-        className="absolute inset-0 z-0 h-full w-full select-none object-fill"
-      />
-      <div className="sr-only">
-        <h1>SoulLink</h1>
-        <p>连接另一个数字世界。动态文字由 DOM 文本渲染，静态背景和卡片底图由图片承载。</p>
-      </div>
-
-      <SoulLinkText artboard={artboard} x={322} y={34} w={330} h={38} className="opacity-0 text-[14px] font-bold leading-[1.35] tracking-[0.04em] text-cyan-50/72">
-        {"SCAN FOR ACTIVE SIGNALS...\n扫描活跃信号..."}
-      </SoulLinkText>
-      <SoulLinkText artboard={artboard} x={1332} y={34} w={105} h={20} className="text-[14px] font-black leading-none text-cyan-50">USER_07</SoulLinkText>
-      <SoulLinkText artboard={artboard} x={1332} y={58} w={130} h={18} className="text-[12px] font-bold leading-none text-cyan-100/70">ID: 0x7A31...9F2C</SoulLinkText>
-
-      {navCopy.map((item) => (
-        <span key={item.id}>
-          <SoulLinkText artboard={artboard} x={80} y={item.y + 13} w={128} h={18} className={cx("opacity-0 text-[14px] font-black uppercase leading-none tracking-[0.08em]", item.id === "home" ? "text-cyan-50" : "text-cyan-50/58")}>{item.title}</SoulLinkText>
-          <SoulLinkText artboard={artboard} x={80} y={item.y + 35} w={100} h={15} className={cx("opacity-0 text-[11px] font-bold leading-none", item.id === "home" ? "text-cyan-100/70" : "text-cyan-100/40")}>{item.subtitle}</SoulLinkText>
-        </span>
-      ))}
-      <SoulLinkText artboard={artboard} x={36} y={744} w={130} h={18} className="opacity-0 text-[13px] font-black uppercase tracking-[0.08em] text-cyan-300">SYSTEM STATUS</SoulLinkText>
-      <SoulLinkText artboard={artboard} x={36} y={766} w={80} h={14} className="opacity-0 text-[11px] font-bold text-cyan-100/52">系统状态</SoulLinkText>
-      <SoulLinkText artboard={artboard} x={56} y={800} w={130} h={16} className="text-[12px] font-black uppercase text-cyan-300">NETWORK STABLE</SoulLinkText>
-      <SoulLinkText artboard={artboard} x={56} y={820} w={85} h={14} className="text-[11px] font-bold text-cyan-100/54">网络稳定</SoulLinkText>
-      <SoulLinkText artboard={artboard} x={36} y={858} w={130} h={16} className="text-[11px] font-bold uppercase tracking-[0.05em] text-cyan-100/50">UPTIME: 24:17:36</SoulLinkText>
-
-      <SoulLinkText artboard={artboard} x={270} y={128} w={330} h={112} as="h1" className="opacity-0 text-[43px] font-black leading-[1.28] tracking-[-0.045em] text-cyan-50 drop-shadow-[0_0_10px_rgba(255,255,255,0.18)]">
-        {"接入仍在回应的\n数字坐标网络"}
-      </SoulLinkText>
-      <SoulLinkText artboard={artboard} x={272} y={260} w={360} h={24} className="opacity-0 text-[16px] font-bold leading-none text-cyan-50/78">在数据的海洋中，寻找仍在闪烁的信号。</SoulLinkText>
-      <SoulLinkText artboard={artboard} x={294} y={328} w={82} h={38} className="opacity-0 text-center text-[14px] font-black leading-[1.3] text-slate-950">{"连接网络\nCONNECT"}</SoulLinkText>
-      <SoulLinkText artboard={artboard} x={451} y={328} w={78} h={38} className="opacity-0 text-center text-[14px] font-black leading-[1.3] text-cyan-50/78">{"扫描信号\nSCAN"}</SoulLinkText>
-      <SoulLinkText artboard={artboard} x={256} y={472} w={88} h={14} className="text-[11px] font-black uppercase text-cyan-300/85">ONLINE: 1,298</SoulLinkText>
-      <SoulLinkText artboard={artboard} x={402} y={472} w={88} h={14} className="text-[11px] font-black uppercase text-cyan-300/85">NODES: 4,831</SoulLinkText>
-      <SoulLinkText artboard={artboard} x={530} y={472} w={100} h={14} className="text-[11px] font-black uppercase text-cyan-300/85">ECHOES: 18,276</SoulLinkText>
-      <SoulLinkText artboard={artboard} x={1118} y={108} w={90} h={30} className="opacity-0 text-right text-[10px] font-black uppercase leading-[1.25] text-cyan-300/78">{"NETWORK MAP\n网络拓扑图"}</SoulLinkText>
-      <SoulLinkText artboard={artboard} x={938} y={150} w={75} h={34} className="text-[11px] font-black uppercase leading-[1.2] text-cyan-100">{"NODE_07\nACTIVE"}</SoulLinkText>
-      <SoulLinkText artboard={artboard} x={1126} y={250} w={85} h={34} className="text-[11px] font-black uppercase leading-[1.2] text-fuchsia-300">{"NODE_19\nUNSTABLE"}</SoulLinkText>
-      <SoulLinkText artboard={artboard} x={964} y={352} w={70} h={34} className="text-[11px] font-black uppercase leading-[1.2] text-cyan-200">{"NODE_03\nLOW SIGNAL"}</SoulLinkText>
-      <SoulLinkText artboard={artboard} x={1104} y={352} w={70} h={34} className="text-[11px] font-black uppercase leading-[1.2] text-cyan-100">{"NODE_11\nACTIVE"}</SoulLinkText>
-
-      <SoulLinkText artboard={artboard} x={270} y={520} w={180} h={30} as="h2" className="opacity-0 text-[20px] font-black uppercase leading-[1.05] tracking-[0.12em] text-cyan-300">{"ACTIVE NODES\n活跃节点"}</SoulLinkText>
-      <SoulLinkText artboard={artboard} x={1010} y={526} w={72} h={14} className="opacity-0 text-center text-[11px] font-black uppercase text-cyan-100/58">ALL 全部</SoulLinkText>
-      <SoulLinkText artboard={artboard} x={1110} y={526} w={82} h={14} className="opacity-0 text-center text-[11px] font-black uppercase text-cyan-100/58">FILTER 筛选</SoulLinkText>
-
-      {cards.map((card, index) => {
-        const [x, y] = HOME_LAYOUT.cards[index]
-        const badgeClass = card.tone === "unstable" ? "text-rose-300" : card.tone === "low" ? "text-amber-200" : "text-cyan-100"
-        return (
-          <span key={`soul-node-text-${card.nodeId}`}>
-            <SoulLinkText artboard={artboard} x={x + 21} y={y + 19} w={90} h={16} className={cx("text-center text-[11px] font-black uppercase leading-none", badgeClass)}>{card.tag}</SoulLinkText>
-            <SoulLinkText artboard={artboard} x={x + 16} y={y + 127} w={150} h={22} className="text-[18px] font-black leading-none text-cyan-50">{card.name}</SoulLinkText>
-            <SoulLinkText artboard={artboard} x={x + 16} y={y + 152} w={90} h={16} className="text-[12px] font-black uppercase tracking-[0.1em] text-cyan-100/56">{card.nodeId}</SoulLinkText>
-            <SoulLinkText artboard={artboard} x={x + 16} y={y + 180} w={166} h={44} className="text-[13px] font-bold leading-[1.5] text-cyan-50/58">{card.description}</SoulLinkText>
-            <SoulLinkText artboard={artboard} x={x + 138} y={y + 229} w={72} h={14} className="text-right text-[10px] font-black uppercase tracking-[0.05em] text-cyan-300/78">{card.entityLabel}</SoulLinkText>
-          </span>
-        )
-      })}
-
-      <SoulLinkText artboard={artboard} x={1248} y={118} w={160} h={31} as="h2" className="opacity-0 text-[15px] font-black uppercase leading-[1.25] tracking-[0.12em] text-cyan-300">{"SIGNAL ACTIVITY\n信号活动"}</SoulLinkText>
-      <SoulLinkText artboard={artboard} x={1440} y={124} w={36} h={13} className="text-center text-[10px] font-black uppercase text-rose-300">LIVE</SoulLinkText>
-      {signalRows.map((row, index) => {
-        const y = 170 + index * 57
-        return (
-          <span key={`signal-row-${row[0]}`}>
-            <SoulLinkText artboard={artboard} x={1292} y={y} w={70} h={16} className="text-[12px] font-black uppercase text-cyan-100/75">{row[0]}</SoulLinkText>
-            <SoulLinkText artboard={artboard} x={1292} y={y + 18} w={90} h={14} className="text-[11px] font-bold text-cyan-100/48">{row[1]}</SoulLinkText>
-            <SoulLinkText artboard={artboard} x={1415} y={y} w={70} h={14} className="text-right text-[10px] font-black uppercase text-cyan-300/72">{row[2]}</SoulLinkText>
-            <SoulLinkText artboard={artboard} x={1434} y={y + 18} w={48} h={14} className="text-right text-[10px] font-bold text-cyan-100/45">{row[3]}</SoulLinkText>
-          </span>
-        )
-      })}
-      <SoulLinkText artboard={artboard} x={1322} y={395} w={110} h={16} className="text-center text-[12px] font-black text-cyan-300/70">查看全部活动 →</SoulLinkText>
-
-      <SoulLinkText artboard={artboard} x={1248} y={452} w={120} h={31} as="h2" className="opacity-0 text-[14px] font-black uppercase leading-[1.25] tracking-[0.12em] text-cyan-300">{"RECENT ECHO\n最近回响"}</SoulLinkText>
-      <SoulLinkText artboard={artboard} x={1248} y={504} w={198} h={62} className="text-[13px] font-bold leading-[1.7] text-cyan-50/62">{"“有人在雨后的天台，\n留下了关于未来的猜想。”\n— NODE_07 · 3 分钟前"}</SoulLinkText>
-
-      <SoulLinkText artboard={artboard} x={1248} y={612} w={150} h={31} as="h2" className="opacity-0 text-[15px] font-black uppercase leading-[1.25] tracking-[0.11em] text-cyan-300">{"ONLINE ENTITIES\n在线实体"}</SoulLinkText>
-      <SoulLinkText artboard={artboard} x={1420} y={618} w={64} h={14} className="opacity-0 text-right text-[11px] font-black text-cyan-300/60">查看全部 →</SoulLinkText>
-      {onlineRows.map((row, index) => {
-        const y = 664 + index * 56
-        return (
-          <span key={`online-row-${row[0]}`}>
-            <SoulLinkText artboard={artboard} x={1296} y={y} w={90} h={16} className="text-[13px] font-black text-cyan-50/75">{row[0]}</SoulLinkText>
-            <SoulLinkText artboard={artboard} x={1296} y={y + 20} w={112} h={14} className="text-[11px] font-bold text-cyan-100/45">{row[1]}</SoulLinkText>
-            <SoulLinkText artboard={artboard} x={1450} y={y + 7} w={48} h={14} className="text-center text-[10px] font-black text-emerald-300">{row[2]}</SoulLinkText>
-          </span>
-        )
-      })}
-
-      <SoulLinkText artboard={artboard} x={270} y={842} w={140} h={30} as="h2" className="opacity-0 text-[16px] font-black uppercase leading-[1.2] tracking-[0.1em] text-fuchsia-300">{"MEMORY STREAM\n记忆流"}</SoulLinkText>
-      <SoulLinkText artboard={artboard} x={470} y={844} w={60} h={14} className="opacity-0 text-right text-[11px] font-bold text-cyan-100/55">查看全部 →</SoulLinkText>
-      {memoryRows.map((row, index) => (
-        <span key={`memory-${index}`}>
-          <SoulLinkText artboard={artboard} x={320} y={884 + index * 34} w={190} h={15} className="text-[12px] font-bold text-cyan-50/62">{row[0]}</SoulLinkText>
-          <SoulLinkText artboard={artboard} x={320} y={902 + index * 34} w={170} h={13} className="text-[10px] font-bold text-cyan-100/40">{row[1]}</SoulLinkText>
-        </span>
-      ))}
-
-      <SoulLinkText artboard={artboard} x={578} y={842} w={170} h={30} as="h2" className="opacity-0 text-[16px] font-black uppercase leading-[1.2] tracking-[0.11em] text-cyan-300">{"EXPLORATION GUIDE\n探索指南"}</SoulLinkText>
-      {[["新手协议", "如何开始\n连接网络", "PROTOCOL"], ["坐标百科", "了解这个\n世界的规则", "DATABASE"], ["安全手册", "保护你的\n数字身份", "SECURITY"]].map((row, index) => {
-        const x = 602 + index * 136
-        return (
-          <span key={`guide-${row[2]}`}>
-            <SoulLinkText artboard={artboard} x={x + 18} y={884} w={82} h={20} className="opacity-0 text-[13px] font-black text-cyan-50/72">{row[0]}</SoulLinkText>
-            <SoulLinkText artboard={artboard} x={x + 18} y={913} w={78} h={36} className="opacity-0 text-[12px] font-bold leading-[1.45] text-cyan-50/58">{row[1]}</SoulLinkText>
-            <SoulLinkText artboard={artboard} x={x + 18} y={974} w={72} h={12} className="opacity-0 text-[10px] font-black uppercase tracking-[0.08em] text-cyan-300/70">{row[2]}</SoulLinkText>
-          </span>
-        )
-      })}
-
-      <SoulLinkText artboard={artboard} x={1012} y={842} w={132} h={31} as="h2" className="opacity-0 text-[16px] font-black uppercase leading-[1.2] tracking-[0.12em] text-cyan-300">{"WORLD STATS\n世界统计"}</SoulLinkText>
-      {[["NODES", "节点总数", "4,831"], ["ENTITIES", "在线实体", "1,298"], ["ECHOES", "回响记录", "18,276"], ["EXPLORATIONS", "探索次数", "56,723"]].map((row, index) => {
-        const x = 1016 + index * 116
-        return (
-          <span key={`stats-${row[0]}`}>
-            <SoulLinkText artboard={artboard} x={x} y={912} w={86} h={30} className="opacity-0 text-[11px] font-black uppercase leading-[1.35] text-cyan-100/60">{`${row[0]}\n${row[1]}`}</SoulLinkText>
-            <SoulLinkText artboard={artboard} x={x} y={952} w={100} h={28} className="text-[24px] font-black leading-none text-violet-400">{row[2]}</SoulLinkText>
-          </span>
-        )
-      })}
-
-      {[
-        { label: "打开网络首页", to: "/", x: 24, y: 130, w: 194, h: 55 },
-        { label: "扫描信号", to: "/discover", x: 24, y: 194, w: 194, h: 55 },
-        { label: "查看回响", to: "/home-me", x: 24, y: 258, w: 194, h: 55 },
-        { label: "查看记忆流", to: "/home-me", x: 24, y: 322, w: 194, h: 55 },
-        { label: "查看收藏节点", to: "/home-me", x: 24, y: 386, w: 194, h: 55 },
-        { label: "查看我的锚点", to: "/home-me", x: 24, y: 450, w: 194, h: 55 },
-        { label: "创建节点", to: "/create", x: 24, y: 514, w: 194, h: 55 },
-        { label: "连接网络", to: "/discover", x: 272, y: 317, w: 144, h: 54 },
-        { label: "扫描信号", to: "/discover", x: 432, y: 317, w: 133, h: 54 },
-        { label: "查看全部节点", to: "/discover", x: 996, y: 520, w: 193, h: 28 },
-        { label: "打开个人中心", to: "/home-me", x: 1228, y: 16, w: 300, h: 68 },
-      ].map((hotspot) => <OverlayLink key={`${hotspot.label}-${hotspot.x}`} artboard={artboard} hotspot={hotspot} />)}
-      <OverlayButton artboard={artboard} label="切换主题" onClick={onToggleTheme} x={40} y={944} w={34} h={34} />
-    </>
-  )
-}
-
 export function FableMapHomeReference({
   variant,
   featuredCitySlices,
@@ -3183,7 +2952,30 @@ export function FableMapHomeReference({
     <ArtboardShell artboard={artboard} variant={variant} kind="home">
       <FableMapHomeMobile featuredCitySlices={featuredCitySlices} isLoading={isLoading} onToggleTheme={onToggleTheme} variant={variant} />
       <div className="relative hidden h-full md:block">
-        <SoulLinkHybridHomeDesktop artboard={artboard} featuredCitySlices={featuredCitySlices} onToggleTheme={onToggleTheme} />
+        <FableMapHomeMainSurface
+          artboard={artboard}
+          featuredCitySlices={featuredCitySlices}
+          variant={variant}
+          isLoading={isLoading}
+          heroCoordinate={heroCoordinate}
+        />
+        <FableMapSidebar artboard={artboard} variant={variant} active="home" onToggleTheme={onToggleTheme} />
+        <HomeHeroActions artboard={artboard} variant={variant} forceVisible />
+        <FableMapFeedPanel
+          artboard={artboard}
+          variant={variant}
+          box={rightRail.worldPulse}
+          title="空间回声"
+          eyebrow="Recent echoes"
+          items={resolvedWorldPulseItems}
+          actionLabel="查看空间"
+          forceVisible
+        />
+        <FableMapDailyQuotePanel artboard={artboard} variant={variant} box={rightRail.dailyQuote} quote={dailyQuote} forceVisible />
+        <FableMapOnlineEntitiesPanel artboard={artboard} variant={variant} box={rightRail.onlineEntities} entities={resolvedOnlineEntities} forceVisible />
+        <FableMapRecentMemoriesPanel artboard={artboard} variant={variant} memories={resolvedRecentMemories} forceVisible />
+        <FableMapGuidePanel artboard={artboard} variant={variant} cards={guideCards} forceVisible />
+        <FableMapWorldStatsPanel artboard={artboard} variant={variant} stats={worldStats} forceVisible />
       </div>
     </ArtboardShell>
   )

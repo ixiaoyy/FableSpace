@@ -1,34 +1,56 @@
 ---
 name: brainstorm
-description: "Collaborative requirements discovery session optimized for AI coding workflows. Creates task directories, seeds PRDs, runs codebase research, proposes concrete implementation approaches with trade-offs, and converges on MVP scope through structured Q&A. Use when requirements are unclear, multiple implementation paths exist, trade-offs need evaluation, or a complex feature needs scoping before development."
+description: "Scope unclear Trellis tasks: create/seed PRD, inspect repo first, propose options, ask one high-value question at a time."
 ---
 
 # Brainstorm
 
-Use only when requirements are unclear or the implementation path has real trade-offs.
+Use for vague, multi-path, or architectural work. Optimize for fast convergence.
 
-## Output
+## Rules
 
-Create/update one concise `.trellis/tasks/<task>/prd.md` with:
+- Create/ensure a task only for real work, not casual questions.
+- Inspect repo/docs before asking questions.
+- Ask one blocking/preference question at a time.
+- Offer 2-3 concrete options with trade-offs for decisions.
+- Keep `prd.md` current; do not let decisions live only in chat.
 
-- goal;
-- in scope / out of scope;
-- affected files/layers;
-- chosen approach;
-- validation plan;
-- open questions.
+## Flow
 
-## Process
+1. Ensure task directory exists:
+   ```bash
+   TASK_DIR=$(python ./.trellis/scripts/task.py create "brainstorm: <goal>" --slug <slug>)
+   ```
+2. Seed `prd.md` with:
+   - Goal
+   - Known facts
+   - Assumptions
+   - Open Questions
+   - Requirements
+   - Acceptance Criteria
+   - Out of Scope
+   - Technical Notes
+3. Auto-context before questions:
+   - likely files/modules
+   - similar patterns
+   - relevant specs/indexes
+   - constraints from configs/scripts
+4. Classify depth:
+   - trivial/simple -> stop brainstorming and implement
+   - moderate -> 1-3 questions
+   - complex -> options + explicit MVP boundary
+5. Converge to a final summary:
+   - Goal
+   - Requirements
+   - Acceptance Criteria
+   - Out of Scope
+   - Technical Approach
+   - Implementation Plan
 
-1. Restate the goal in 1-3 bullets.
-2. Inspect only relevant code/docs.
-3. Propose 1-3 viable approaches with trade-offs.
-4. Recommend the smallest MVP.
-5. Ask only blocking questions; otherwise proceed with reasonable assumptions.
+## Research-first triggers
 
-## Keep it small
+Research/inspect first when choosing a library, architecture, protocol, CLI/API UX, or when the user asks for best practices.
 
-- Do not write long research dumps.
-- Do not store screenshots/raw scans in task folders.
-- Move durable lessons to focused spec files, not giant PRDs.
-- Completed brainstorm tasks should be compact summaries.
+## Handoff
+
+After user approves scope, continue with normal task workflow: targeted specs -> context setup -> implement -> check.

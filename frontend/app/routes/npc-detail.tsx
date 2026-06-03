@@ -37,6 +37,7 @@ import {
   normalizeAffinityStrength,
 } from "../lib/affinity.js"
 import { ProductShell } from "../shell/product-shell"
+import { NpcSimulationStatusPanel } from "../features/npc-simulation-status/NpcSimulationStatusPanel"
 
 // ─── Loader ────────────────────────────────────────────────────────────────────
 
@@ -387,6 +388,16 @@ export default function NpcDetailRoute() {
                 ))}
               </div>
             )}
+          </div>
+        )}
+
+        {/* ── NPC 仿真状态 ────────────────────────────────────────────────── */}
+        {character.simulation_state && (
+          <div className="mx-4 mb-4 rounded-3xl border border-white/6 bg-white/3 p-5">
+            <h2 className="mb-3 text-xs font-semibold uppercase tracking-wider text-white/30">
+              数字居民状态
+            </h2>
+            <NpcSimulationStatusPanel character={character} variant="compact" tavernName={tavern.name} />
           </div>
         )}
 

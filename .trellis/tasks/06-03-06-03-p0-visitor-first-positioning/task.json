@@ -1,0 +1,60 @@
+{
+  "id": "06-03-p0-visitor-first-positioning",
+  "name": "06-03-p0-visitor-first-positioning",
+  "title": "P0 product positioning: visitor-first mirror spaces",
+  "description": "",
+  "status": "completed",
+  "dev_type": "product-frontend",
+  "scope": "docs+frontend-copy",
+  "package": null,
+  "priority": "P0",
+  "creator": "lijin",
+  "assignee": "lijin",
+  "createdAt": "2026-06-03",
+  "completedAt": "2026-06-03",
+  "branch": null,
+  "base_branch": "main",
+  "worktree_path": null,
+  "current_phase": 0,
+  "next_action": [
+    {
+      "phase": 1,
+      "action": "brainstorm"
+    },
+    {
+      "phase": 2,
+      "action": "research"
+    },
+    {
+      "phase": 3,
+      "action": "implement"
+    },
+    {
+      "phase": 4,
+      "action": "check"
+    },
+    {
+      "phase": 5,
+      "action": "update-spec"
+    },
+    {
+      "phase": 6,
+      "action": "record-session"
+    }
+  ],
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [],
+  "parent": null,
+  "relatedFiles": [
+    "README.md",
+    "docs/PRODUCT_BRIEF.md",
+    "docs/FABLEMAP_TAVERN_PLATFORM.md",
+    "frontend/app/root.tsx",
+    "frontend/app/shell/product-shell.tsx",
+    "frontend/app/components/fable-map-reference-artboards.tsx"
+  ],
+  "notes": "P0 positioning updated to visitor-first mirror spaces. Build passed via npm --prefix .\\frontend run build. Playwright smoke captured home/discover desktop+mobile screenshots under artifacts/validation/p0-visitor-first-positioning-2026-06-03; backend API proxy returned 502 because 127.0.0.1:8950 was not running during visual smoke.",
+  "meta": {}
+}

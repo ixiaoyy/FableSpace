@@ -1,22 +1,34 @@
 ---
 name: improve-ut
-description: "Adds or updates focused tests for changed behavior using existing project patterns. Use when code changes need real regression coverage; do not add brittle tests for incidental copy/layout changes."
+description: "Improve tests for changed code: choose unit/integration/regression scope, follow existing patterns, run targeted validation."
 ---
 
-# Improve Tests
+# Improve Unit Tests
 
-1. Inspect changed files and existing nearby tests.
-2. Add the smallest test that protects behavior/API/security/schema boundaries.
-3. Prefer existing test style and no new dependencies.
-4. Run focused validation only.
+Use after feature/bug changes or when coverage gaps are found.
 
-Common commands:
+## Steps
 
-```powershell
-py -3 -m pytest backend/tests/<file>.py -q --tb=short
-py -3 -m pytest tests/<file>.py -q --tb=short
-node .\frontend\scripts\<script>.mjs
-npm --prefix .\frontend test
-```
+1. Inspect changed files:
+   ```bash
+   git diff --name-only HEAD
+   ```
+2. Read relevant test/spec guidance if present:
+   ```bash
+   python ./.trellis/scripts/get_context.py --mode packages
+   ```
+3. Find existing nearby tests and patterns.
+4. Choose scope:
+   - unit for pure logic
+   - integration for API/service/db flow
+   - regression for fixed bugs
+5. Add/update tests with minimal fixtures/mocks.
+6. Run affected checks: `pnpm test:api`, web test command, lint/typecheck as applicable.
 
-Avoid adding tests that assert exact UI copy, CSS classes, or component source internals unless they guard a real contract.
+## Output
+
+- changed areas
+- test scope
+- tests added/updated
+- validation result
+- remaining gaps

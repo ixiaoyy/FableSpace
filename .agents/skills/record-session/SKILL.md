@@ -1,24 +1,34 @@
 ---
 name: record-session
-description: "Records completed work progress to .trellis/workspace/ after human testing and commit. Use only when the session is truly complete and a compact record is useful."
+description: "Record completed, human-tested work into Trellis workspace journals and archive genuinely done tasks."
 ---
 
-Use only after human testing/commit or explicit request.
+# Record Session
 
-Keep records short:
+Use after human testing and commit. Do not use as a substitute for validation.
 
-- title/date;
-- commit hash(es);
-- changed areas;
-- validation;
-- unresolved risks.
+## Steps
 
-Do not append long logs, screenshots, raw scans, or verbose implementation notes.
+1. Get record context:
+   ```bash
+   python ./.trellis/scripts/get_context.py --mode record
+   ```
+2. Archive tasks that are genuinely done:
+   ```bash
+   python ./.trellis/scripts/task.py archive <task-name>
+   ```
+   Judge by completed work/commit, not stale `task.json` status.
+3. Add session:
+   ```bash
+   python ./.trellis/scripts/add_session.py \
+     --title "Session Title" \
+     --commit "hash1,hash2" \
+     --summary "Brief summary"
+   ```
+   Or pass detailed notes with `--stdin`.
 
-Commands when needed:
+## Notes
 
-```powershell
-py -3 ./.trellis/scripts/get_context.py --mode record
-py -3 ./.trellis/scripts/add_session.py --title "..." --commit "..." --summary "..."
-py -3 ./.trellis/scripts/task.py archive <task-name>
-```
+`add_session.py` appends to journal, rotates over 2000 lines, updates indexes, and records branch context when available.
+
+Do not run application commits; only Trellis metadata scripts may commit their own metadata if designed to do so.

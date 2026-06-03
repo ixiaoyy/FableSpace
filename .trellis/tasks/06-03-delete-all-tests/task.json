@@ -1,0 +1,26 @@
+{
+  "id": "06-03-delete-all-tests",
+  "name": "06-03-delete-all-tests",
+  "title": "Delete all test cases at user request",
+  "description": "用户明确确认全部删除测试用例后，移除 tests、backend/tests、frontend/scripts 测试脚本、P0 验证脚本与直接测试配置入口。",
+  "status": "completed",
+  "dev_type": "cleanup",
+  "scope": "tests + test scripts + test command wiring",
+  "priority": "P0",
+  "creator": "user",
+  "assignee": "lijin",
+  "createdAt": "2026-06-03",
+  "branch": "main",
+  "relatedFiles": [
+    "tests/",
+    "backend/tests/",
+    "frontend/scripts/",
+    "scripts/",
+    "pytest.ini",
+    "frontend/package.json"
+  ],
+  "notes": "Completed destructive test cleanup per explicit user confirmation. Deleted tests/, backend/tests/, frontend/scripts/, root scripts/, pytest.ini; removed frontend package test script. Validation after deletion: backend compileall PASS, frontend build PASS. No test commands remain by design.",
+  "meta": {},
+  "completedAt": "2026-06-03",
+  "updatedAt": "2026-06-03"
+}

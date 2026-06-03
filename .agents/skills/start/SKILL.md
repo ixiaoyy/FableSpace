@@ -1,30 +1,71 @@
 ---
 name: start
-description: "Initializes an AI development session by reading workflow guides, developer identity, git status, active tasks, and project guidelines from .trellis/. Classifies incoming tasks and routes to brainstorm, direct edit, or task workflow. Use when beginning a new coding session, resuming work, starting a new task, or re-establishing project context."
+description: "Fast Trellis session init: get developer/git/task context, route requests, and defer spec reads until coding scope is known."
 ---
 
-# Start Session
+# Start (Fast Trellis)
 
-Use this skill to begin or resume a coding task without overloading context.
+Goal: restore project context quickly without loading the whole Trellis knowledge base.
 
-## Minimal startup
+## Fast init
 
-1. Read `AGENTS.md`.
-2. Check `git status --short`.
-3. Read `.trellis/workflow.md`.
-4. Read `.trellis/spec/<layer>/index.md` only for the layer touched.
-5. Read only specific spec files required by that index/checklist.
-6. Inspect the target code before editing.
+Run and summarize only the useful bits:
+
+```bash
+python ./.trellis/scripts/get_context.py
+python ./.trellis/scripts/get_context.py --mode packages
+```
+
+If a current task exists, also read only:
+
+```bash
+cat <task>/prd.md
+cat <task>/task.json
+```
+
+Read `.trellis/spec/guides/index.md` for available thinking guides. Do **not** read full `.trellis/workflow.md` unless the user asks about workflow/Trellis or the command output indicates setup problems.
 
 ## Routing
 
-- Unclear / multi-path feature: use `brainstorm` first.
-- Small bug or direct request: implement directly with a short task note if needed.
-- Cross-layer/API/schema change: use Trellis task + focused spec update.
+Classify the user request:
 
-## Context hygiene
+| Type | Default action |
+|---|---|
+| Question | Answer directly from repo/context. |
+| Trivial edit | Inspect target, edit directly; skip `$before-dev`; mention `$finish-work` if code changed. |
+| Trellis/skill/tooling edit | Inspect local workflow files; skip `$before-dev` unless app code is touched. |
+| Clear small task | Use `$before-dev` lite/full as needed, implement, `$check`. |
+| Vague/architectural task | Use `$brainstorm`. |
+| Existing task | Ask whether to continue it only if the user's request is ambiguous. |
 
-- Do not bulk-read completed `.trellis/tasks/**`.
-- Do not load old journals unless asked.
-- Prefer active task files and current specs.
-- Keep progress updates concise and executable.
+## Coding rule
+
+Before non-trivial app code changes, read task-relevant specs with `$before-dev` or equivalent targeted reads:
+
+1. Determine affected layer: frontend / backend / fullstack.
+2. Read that layer's `index.md`.
+3. Read only checklist files relevant to the change.
+4. Read shared guides only when their trigger applies.
+
+Avoid loading all specs or all journals.
+
+## Lightweight task flow
+
+For small but real development work:
+
+```bash
+TASK_DIR=$(python ./.trellis/scripts/task.py create "<title>" --slug <slug>)
+python ./.trellis/scripts/task.py init-context "$TASK_DIR" <frontend|backend|fullstack>
+python ./.trellis/scripts/task.py start "$TASK_DIR"
+```
+
+Create a short `prd.md` with Goal, Requirements, Acceptance Criteria, and Technical Notes. Skip long PRDs for one-line fixes.
+
+## Output
+
+Keep the start response short:
+
+- developer / branch / dirty state
+- current task, if any
+- relevant active-task warning, if any
+- next action or direct answer

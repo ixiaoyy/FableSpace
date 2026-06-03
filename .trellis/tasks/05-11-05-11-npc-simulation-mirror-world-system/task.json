@@ -32,7 +32,7 @@
     {
       "id": "ui-visualizer",
       "title": "Visualize NPC states in the frontend",
-      "status": "todo"
+      "status": "completed"
     }
   ]
 }

@@ -1,31 +1,47 @@
 ---
 name: update-spec
-description: "Captures executable contracts and coding knowledge into .trellis/spec/ documents after implementation, debugging, or design decisions. Enforces code-spec depth for infra and cross-layer changes with mandatory sections for signatures, contracts, validation matrices, and test points. Use when a feature is implemented, a bug is fixed, a design decision is made, a new pattern is discovered, or cross-layer contracts change."
+description: "Update Trellis code-specs with concrete contracts, decisions, validations, cases, tests, and gotchas learned from work."
 ---
 
 # Update Spec
 
-Use when a change creates or modifies a durable contract.
+Use when implementation/debugging/design reveals durable knowledge.
 
-## Update only when needed
+## Decide target
 
-Update specs for:
+- How to implement safely -> `.trellis/spec/backend` or `frontend`
+- What to think about/check -> `.trellis/spec/guides`
+- New navigation -> update relevant `index.md`
 
-- API/schema/envelope changes;
-- persistence/default semantics;
-- cross-layer data flow;
-- security/privacy boundary;
-- reusable implementation pattern.
+## Required depth for infra/cross-layer changes
 
-Do not update specs for one-off copy/layout tweaks.
+Specs must be executable, not principle-only. Include:
 
-## Format
+1. Scope / trigger
+2. Signatures: command/API/function/DB paths
+3. Contracts: request/response/env fields
+4. Validation & error matrix
+5. Good/base/bad cases
+6. Tests required with assertion points
+7. Wrong vs correct example when useful
 
-Keep additions short:
+## Process
 
-- contract/signature;
-- allowed/forbidden behavior;
-- validation points;
-- affected files/tests.
+1. State the learning/decision and why it matters.
+2. Read the target spec before editing.
+3. Add the smallest durable section:
+   - design decision
+   - convention
+   - pattern
+   - forbidden pattern
+   - common mistake/gotcha
+4. Avoid duplicating existing sections.
+5. Update index if a new section/doc should be discoverable.
 
-Prefer focused spec files. Do not append long scenario dumps to general guides.
+## Quality check
+
+- concrete paths/names/fields included
+- explains why
+- testable
+- in the right spec layer
+- concise enough for future context loading

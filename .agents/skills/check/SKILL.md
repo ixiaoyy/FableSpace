@@ -1,14 +1,38 @@
 ---
 name: check
-description: "Validates recently written code against project-specific guidelines from .trellis/spec/. Use after code changes or before commit when focused quality verification is needed."
+description: "Verify changed code against relevant Trellis specs plus lint/type/test commands for affected frontend/backend areas."
 ---
 
-Run a proportional check.
+# Check
 
-1. Inspect changed files: `git diff --name-only`.
-2. Read only relevant spec index/focused spec.
-3. Review for scope drift, owner/visitor boundary, schema/API alignment, and secret leakage.
-4. Run the smallest real validation:
-   - Backend: `py -3 -m compileall -q backend/src` plus focused pytest if behavior changed.
-   - Frontend: `npm --prefix .\frontend run build` for UI/build changes; focused script or `npm --prefix .\frontend test` for helper/service contracts.
-5. Use `$grill-me` only for contested visual/source-of-truth fidelity, not routine small copy/layout edits.
+Use after code changes or before handoff.
+
+## Steps
+
+1. Inspect changes:
+   ```bash
+   git diff --name-only HEAD
+   git status --short
+   ```
+2. Pick relevant specs from changed paths:
+   - `apps/web` -> `.trellis/spec/frontend/index.md`
+   - `apps/api` -> `.trellis/spec/backend/index.md`
+   - shared/API/schema -> also `.trellis/spec/guides/index.md`
+3. Read only index checklist files relevant to the changes.
+4. Run affected checks:
+   ```bash
+   pnpm lint:web
+   pnpm typecheck:web
+   pnpm lint:api
+   pnpm test:api
+   pnpm test:smoke
+   ```
+   Use only commands applicable to touched areas unless user asks for full validation.
+5. Fix violations directly when safe.
+
+## Output
+
+- changed areas
+- specs consulted
+- checks run + pass/fail
+- fixes made or remaining blockers

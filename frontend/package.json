@@ -7,8 +7,7 @@
     "dev": "react-router dev",
     "build": "react-router build",
     "start": "react-router-serve ./build/server/index.js",
-    "typecheck": "react-router typegen && tsc --noEmit",
-    "test": "node ./scripts/ai-character-drafts-test.mjs && node ./scripts/api-client-error-test.mjs && node ./scripts/character-prompt-risk-linter-test.mjs && node ./scripts/conversation-beats-test.mjs && node ./scripts/gameplay-test.mjs && node ./scripts/identity-boundary-test.mjs && node ./scripts/mini-games-test.mjs && node ./scripts/owner-dialogue-preview-test.mjs && node ./scripts/owner-token-status-test.mjs && node ./scripts/place-home-contract-test.mjs && node ./scripts/place-types-test.mjs && node ./scripts/play-modes-test.mjs && node ./scripts/relationship-graph-test.mjs && node ./scripts/service-contract-test.mjs && node ./scripts/tavern-doorway-ritual-test.mjs && node ./scripts/visitor-first-discovery-test.mjs && node ./scripts/tavern-create-readiness-test.mjs && node ./scripts/tavern-farm-modes-test.mjs && node ./scripts/tavern-share-test.mjs"
+    "typecheck": "react-router typegen && tsc --noEmit"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.15",

@@ -1,28 +1,43 @@
 ---
 name: finish-work
-description: "Pre-commit quality checklist covering lint, typecheck, tests, code-spec sync, API changes, database migrations, cross-layer verification, and manual testing. Blocks commit if infra or cross-layer specs lack executable depth. Use when code is written and tested but not yet committed, before submitting changes, or as a final review before git commit."
+description: "Final Trellis handoff check: run affected validation, review specs/docs/tests, and list blockers before commit."
 ---
 
 # Finish Work
 
-Run a proportional final check before reporting or committing.
+Use when implementation is done and ready for human review/commit.
 
-## Checklist
+## Fast checklist
 
-- Changed files match the requested scope.
-- No unrelated formatting/refactor/dependency changes.
-- API/schema/security changes have tests and spec/docs updates.
-- UI changes consider mobile/narrow screens.
-- Validation was run or skipped with a clear reason.
-- Risks and remaining work are explicit.
+1. Inspect changes:
+   ```bash
+   git status --short
+   git diff --name-only HEAD
+   ```
+2. Run affected validation:
+   - Web: `pnpm lint:web`, `pnpm typecheck:web`, `pnpm --dir apps/web build` when UI/build changed
+   - API: `pnpm lint:api`, `pnpm test:api`
+   - OpenAPI: `pnpm openapi:api:check`, `pnpm openapi:web:check` when API contract changed
+   - Smoke: `pnpm test:smoke` when user-facing web flows changed
+3. Code quality scan:
+   - no stray `console.log`
+   - no new `any` / non-null assertion unless justified
+   - no dead code or duplicated constants
+4. Spec/doc sync:
+   - update `.trellis/spec/backend` or `frontend` for new contracts/patterns
+   - update guides only for thinking/checklist lessons
+   - infra/cross-layer specs must include signatures, contracts, validation/errors, cases, tests
+5. Manual/browser verification if UI changed.
 
-## Validation
+## Output
 
-Use the smallest real command:
+```markdown
+## Finish Work
+- Changes:
+- Validation:
+- Spec/doc updates:
+- Manual testing:
+- Blockers:
+```
 
-- Backend syntax: `py -3 -m compileall -q backend/src`
-- Backend behavior: focused `pytest`
-- Frontend build/UI: `npm --prefix .\frontend run build`
-- Frontend helper/service rules: focused script or `npm --prefix .\frontend test`
-
-Do not run broad/browser validation for simple text/layout changes unless required.
+Do not commit unless explicitly asked.

@@ -1,29 +1,40 @@
 ---
 name: onboard
-description: "Interactive onboarding for new team members to the Trellis AI-assisted workflow system. Use when someone explicitly asks to understand the workflow or join the project."
+description: "Onboard a developer to Trellis concepts, repo structure, core skills, examples, and guideline customization status."
 ---
 
 # Onboard
 
-Explain the workflow briefly and adapt to the user's questions.
+Use for a new developer or someone learning the Trellis workflow.
 
-## Cover
+## Cover briefly
 
-1. Why Trellis exists: preserve project-specific AI context without bloating prompts.
-2. Key files:
-   - `AGENTS.md` hard rules;
-   - `.trellis/workflow.md` compact workflow;
-   - `.trellis/spec/` focused development contracts;
-   - `.trellis/tasks/` active task records;
-   - `.agents/skills/` local workflow skills.
-3. Daily flow:
-   - read relevant context;
-   - keep changes scoped;
-   - validate proportionally;
-   - record only concise durable outcomes.
-4. Hygiene:
-   - don't bulk-load historical completed tasks;
-   - don't store raw logs/screenshots/caches in Trellis;
-   - update focused specs only for durable contracts.
+1. Why Trellis exists:
+   - AI sessions lack memory -> `.trellis/workspace`
+   - AI needs project conventions -> `.trellis/spec`
+   - AI drifts over long context -> `$check` / `$finish-work`
+2. Structure:
+   - `.trellis/workflow.md`
+   - `.trellis/tasks/*/prd.md`
+   - `.trellis/spec/{frontend,backend,guides}`
+   - `.agents/skills/*`
+3. Core skills:
+   - `$start`: restore context
+   - `$before-dev`: load relevant specs
+   - `$brainstorm`: scope unclear work
+   - `$check`: verify changes
+   - `$finish-work`: final handoff
+   - `$record-session`: persist completed work
+4. Example flows:
+   - bug fix: start -> before-dev -> fix -> check -> finish -> record
+   - planning: start -> brainstorm/task -> record decisions
+   - refactor: start -> plan phases -> check each phase -> finish
+5. Guideline status:
+   ```bash
+   grep -R "To be filled by the team" .trellis/spec -n
+   ```
+   If placeholders exist, help fill them from real code patterns.
 
-Ask what role/task the new developer is starting with and point them to the smallest relevant docs.
+## Output
+
+Keep it teachable but concise. End by asking what first task they want to do.
