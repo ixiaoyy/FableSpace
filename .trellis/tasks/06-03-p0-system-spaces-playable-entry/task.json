@@ -1,0 +1,55 @@
+{
+  "id": "p0-system-spaces-playable-entry",
+  "name": "p0-system-spaces-playable-entry",
+  "title": "P0 make system-created spaces playable",
+  "description": "Expose built-in public welfare tavern gameplay definitions as visitor first-screen playable actions.",
+  "status": "completed",
+  "dev_type": "frontend",
+  "scope": "system-default-tavern-playability",
+  "package": null,
+  "priority": "P0",
+  "creator": "lijin",
+  "assignee": "lijin",
+  "createdAt": "2026-06-03",
+  "completedAt": "2026-06-03",
+  "branch": null,
+  "base_branch": "main",
+  "worktree_path": null,
+  "current_phase": 0,
+  "next_action": [
+    {
+      "phase": 1,
+      "action": "brainstorm"
+    },
+    {
+      "phase": 2,
+      "action": "research"
+    },
+    {
+      "phase": 3,
+      "action": "implement"
+    },
+    {
+      "phase": 4,
+      "action": "check"
+    },
+    {
+      "phase": 5,
+      "action": "update-spec"
+    },
+    {
+      "phase": 6,
+      "action": "record-session"
+    }
+  ],
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [],
+  "parent": null,
+  "relatedFiles": [
+    "frontend/app/features/tavern-chat-workbench/index.tsx"
+  ],
+  "notes": "System-created/public-welfare spaces already have published gameplay_definitions in backend default_taverns.py. This change exposes those definitions as doorway gameplay buttons on /tavern/:id for visitors, starts existing gameplay sessions on click, preserves no-chat auto-send behavior, and falls back to existing quick composer actions when no published gameplay exists. Validation passed: npm --prefix .\\frontend run typecheck; npm --prefix .\\frontend run build; Playwright mocked pw_midnight_commission_board desktop/mobile and verified 3 gameplay entries, gameplay session panel after click, 0 /chat calls. Screenshots/report under artifacts/validation/p0-system-spaces-playable-entry-2026-06-03.",
+  "meta": {}
+}

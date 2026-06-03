@@ -179,7 +179,8 @@ class GameplayApplicationMixin:
         session.current_node_id = str(result.get("next_node_id") or session.current_node_id)
         if result.get("completed") or is_complete_node(gameplay, session.current_node_id):
             session.state = "completed"
-            session.completion = completion_payload(gameplay, session, event.narration)
+            completion_scene = scene_for_node(gameplay, session.current_node_id)
+            session.completion = completion_payload(gameplay, session, completion_scene.get("narration") or event.narration)
         else:
             session.state = "in_progress"
         self.store.save_gameplay_session(tavern_id, session)

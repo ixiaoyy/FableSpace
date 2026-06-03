@@ -11,7 +11,7 @@ import { useEffect, useMemo, useRef, useState, type FormEvent, type KeyboardEven
 import { useSearchParams } from "react-router"
 
 import { normalizePublicWelfareNpcAssetPath } from "../../lib/tavern-runtime-config.js"
-import { buildTavernFirstMinuteGuide } from "../../lib/tavern-first-minute"
+import { buildTavernFirstMinuteGuide, type TavernFirstMinuteAction } from "../../lib/tavern-first-minute"
 
 import {
   enterTavern,
@@ -39,6 +39,14 @@ import { SpaceCapabilityHubPanel } from "../../components/SpaceCapabilityHubPane
 
 
 type ChatChannel = "public" | "private"
+
+type GameplayDefinitionRecord = Record<string, any> & {
+  id?: string
+  title?: string
+  entry_label?: string
+  summary?: string
+  status?: string
+}
 
 type TavernChatWorkbenchProps = {
   tavern: Tavern
@@ -74,6 +82,38 @@ function DetailSection({ title, description, defaultOpen = false, children }: De
 function textOrFallback(value: unknown, fallback = "未填写") {
   const text = String(value ?? "").trim()
   return text || fallback
+}
+
+/**
+ * Reads visitor-facing gameplay labels from existing published definitions
+ * without assuming every seed uses the same optional display fields.
+ */
+function gameplayDisplayText(definition: GameplayDefinitionRecord, key: "title" | "entry_label" | "summary", fallback: string) {
+  return textOrFallback(definition[key], fallback)
+}
+
+/**
+ * Reconstructs the current scene from a loaded gameplay definition so resumed
+ * sessions still show concrete narration and choices when the session list omits events.
+ */
+function sceneFromGameplayDefinition(definition: GameplayDefinitionRecord | undefined, nodeId: unknown) {
+  const nodes = Array.isArray(definition?.nodes) ? definition.nodes : []
+  const targetNodeId = String(nodeId || "")
+  const node = nodes.find((item: any) => String(item?.id || "") === targetNodeId) || nodes[0]
+  if (!node) return {}
+  const choices = Array.isArray(node.choices)
+    ? node.choices
+      .filter((choice: any) => choice?.id)
+      .map((choice: any) => ({
+        id: String(choice.id),
+        label: textOrFallback(choice.label, String(choice.id)),
+      }))
+    : []
+  return {
+    node_id: String(node.id || targetNodeId),
+    narration: textOrFallback(node.narration, "玩法正在进行。"),
+    choices,
+  }
 }
 
 function avatarSource(character: TavernCharacter | undefined) {
@@ -233,6 +273,7 @@ export function TavernChatWorkbench({
   const [activeSession, setActiveSession] = useState<any>(null)
   const [gameplayScene, setGameplayScene] = useState<any>({})
   const [isGameplayBusy, setIsGameplayBusy] = useState(false)
+  const [activeGameplayDefinitionId, setActiveGameplayDefinitionId] = useState("")
 
   const [coinBalance, setCoinBalance] = useState<number | null>(null)
   const [lastGift, setLastGift] = useState<{ coins: number; items: string } | null>(null)
@@ -250,6 +291,27 @@ export function TavernChatWorkbench({
     ? `你好，${doorwayHost.name || "在场 NPC"}。我刚到这里，想从门口开始了解。`
     : "我刚进门，想先听听这里最值得注意的线索。"
   const shouldShowDoorway = !isOwner && !passwordLocked && !hasPassedDoorway
+  const doorwayGameplayDefinitions = useMemo(
+    () => {
+      const publishedDefinitions = gameplayDefinitions
+        .filter((definition) => String(definition?.status || "published").toLowerCase() === "published")
+      if (String(tavern.id || "") === "pw_midnight_commission_board") {
+        return publishedDefinitions
+          .filter((definition) => String(definition?.id || "") === "gp_pw_commission_clue_case")
+          .slice(0, 1)
+      }
+      if (String(tavern.id || "") === "pw_community_repair") {
+        return publishedDefinitions
+          .filter((definition) => String(definition?.id || "") === "gp_pw_secret_flowerbed_seed_cycle")
+          .slice(0, 1)
+      }
+      return publishedDefinitions.slice(0, 3)
+    },
+    [gameplayDefinitions, tavern.id],
+  )
+  const doorwayQuickActions = doorwayGameplayDefinitions.length
+    ? firstMinuteGuide.quickActions.slice(0, 1)
+    : firstMinuteGuide.quickActions
   const visibleMessages = activeChatChannel === "public"
     ? publicMessages
     : privateMessagesByCharacterId[selectedCharacter?.id || ""] || []
@@ -361,16 +423,17 @@ export function TavernChatWorkbench({
           listGameplaySessions(tavern.id, { state: "active", visitor_id: visitorId }, visitorId),
         ])
         if (cancelled) return
-        setGameplayDefinitions(defsRes.gameplay_definitions || [])
+        const definitions = defsRes.gameplays || defsRes.gameplay_definitions || []
+        setGameplayDefinitions(definitions)
         if (sessionsRes.sessions?.length > 0) {
           const session = sessionsRes.sessions[0]
           setActiveSession(session)
-          // Initial scene from last event if possible
           const sessionRecord = session as Record<string, any>
+          const sessionGameplayId = String(sessionRecord.gameplay_id || sessionRecord.definition_id || "")
+          const definition = definitions.find((item: any) => String(item?.id || "") === sessionGameplayId)
           const lastEvent = Array.isArray(sessionRecord.events) ? sessionRecord.events[sessionRecord.events.length - 1] : null
-          if (lastEvent?.scene) {
-            setGameplayScene(lastEvent.scene)
-          }
+          setActiveGameplayDefinitionId(sessionGameplayId)
+          setGameplayScene(lastEvent?.scene || sceneFromGameplayDefinition(definition, sessionRecord.current_node_id))
         }
       } catch (err) {
         console.error("Failed to load gameplay data:", err)
@@ -659,6 +722,14 @@ export function TavernChatWorkbench({
   }
 
   function handleDoorwayStartChat() {
+    prepareDoorwayPrompt(doorwayStarterLine)
+  }
+
+  /**
+   * Opens the visitor workbench and pre-fills one selected first-minute action.
+   * It intentionally does not submit chat, so the visitor keeps agency.
+   */
+  function prepareDoorwayPrompt(prompt: string) {
     if (doorwayHost?.id) {
       ensurePrivateEntranceMessage(doorwayHost)
       setSelectedCharacterId(doorwayHost.id)
@@ -666,7 +737,7 @@ export function TavernChatWorkbench({
     } else {
       setActiveChatChannel("public")
     }
-    setMessage(doorwayStarterLine)
+    setMessage(prompt)
     setMentionQuery(null)
     setMentionIndex(0)
     setError("")
@@ -677,23 +748,42 @@ export function TavernChatWorkbench({
     })
   }
 
+  /**
+   * Turns a doorway quick action into a prepared chat prompt without making an
+   * API call; the user still has to press Send to commit the interaction.
+   */
+  function handleDoorwayQuickAction(action: TavernFirstMinuteAction) {
+    prepareDoorwayPrompt(action.prompt)
+  }
+
+  /**
+   * Starts one published doorway gameplay as an explicit visitor action. This
+   * uses the existing gameplay session API and never sends a chat message.
+   */
+  async function handleDoorwayStartGameplay(definition: GameplayDefinitionRecord) {
+    setHasPassedDoorway(true)
+    setMessage("")
+    setMentionQuery(null)
+    setMentionIndex(0)
+    await handleStartGameplay(definition)
+  }
+
   async function handleStartGameplay(definition: any) {
     setIsGameplayBusy(true)
     setError("")
+    setActiveGameplayDefinitionId(String(definition?.id || ""))
     try {
       const res = await startGameplaySession(tavern.id, {
-        definition_id: definition.id,
+        gameplay_id: definition.id,
         visitor_id: visitorId,
         visitor_name: visitorName,
       })
-      // The startGameplaySession usually returns a basic session object
-      // We might need to fetch the full session or it might be returned
-      const sessionsRes = await listGameplaySessions(tavern.id, { state: "active", visitor_id: visitorId }, visitorId)
-      const session = sessionsRes.sessions?.find((s: any) => s.id === res.session_id) || res
+      const responseSession = res.session as Record<string, any> | undefined
+      const session = responseSession || { ...res, id: res.session_id, gameplay_id: definition.id }
       setActiveSession(session)
       const sessionRecord = session as Record<string, any>
       const lastEvent = Array.isArray(sessionRecord.events) ? sessionRecord.events[sessionRecord.events.length - 1] : null
-      setGameplayScene(lastEvent?.scene || {})
+      setGameplayScene(res.scene || lastEvent?.scene || sceneFromGameplayDefinition(definition, sessionRecord.current_node_id))
     } catch (err) {
       setError(errorMessage(err))
     } finally {
@@ -708,19 +798,13 @@ export function TavernChatWorkbench({
     try {
       const res = await advanceGameplaySession(tavern.id, activeSession.id, data, visitorId)
       if (res.ok) {
-        // Fetch refreshed session to get all events
-        const sessionsRes = await listGameplaySessions(tavern.id, { state: "active", visitor_id: visitorId }, visitorId)
-        const session = sessionsRes.sessions?.find((s: any) => s.id === activeSession.id)
-        if (session) {
-          setActiveSession(session)
-          const sessionRecord = session as Record<string, any>
-          const lastEvent = Array.isArray(sessionRecord.events) ? sessionRecord.events[sessionRecord.events.length - 1] : null
-          setGameplayScene(lastEvent?.scene || {})
-          
-          if (session.state === 'completed') {
-             // Optional: handle completion logic
-          }
-        }
+        const session = (res.session as Record<string, any> | undefined) || activeSession
+        setActiveSession(session)
+        const sessionRecord = session as Record<string, any>
+        const gameplayId = String(sessionRecord.gameplay_id || sessionRecord.definition_id || activeGameplayDefinitionId || "")
+        const definition = gameplayDefinitions.find((item) => String(item?.id || "") === gameplayId)
+        const lastEvent = Array.isArray(sessionRecord.events) ? sessionRecord.events[sessionRecord.events.length - 1] : null
+        setGameplayScene(res.scene || lastEvent?.scene || sceneFromGameplayDefinition(definition, sessionRecord.current_node_id))
       }
     } catch (err) {
       setError(errorMessage(err))
@@ -745,9 +829,24 @@ export function TavernChatWorkbench({
     }
   }
 
+  /**
+   * Returns a completed visitor gameplay to the doorway task board without
+   * deleting the completed session, so the visitor can remember the receipt and start another visit.
+   */
+  function handleReturnToDoorway() {
+    setActiveSession(null)
+    setGameplayScene({})
+    setActiveGameplayDefinitionId("")
+    setError("")
+    setHasPassedDoorway(false)
+  }
+
   const isOrphanEchoMode = (tavern as Record<string, unknown>).special_type === "divination" || searchParams.get("ui_style") === "orphan-echo"
   const miniGameTemplates = getMiniGameTemplates()
-  const currentGameplay = gameplayDefinitions[0] // Default to first for now if session starts
+  const currentGameplay = useMemo(() => {
+    const sessionDefinitionId = String(activeSession?.gameplay_id || activeSession?.definition_id || activeGameplayDefinitionId || "")
+    return gameplayDefinitions.find((definition) => String(definition?.id || "") === sessionDefinitionId) || gameplayDefinitions[0]
+  }, [activeGameplayDefinitionId, activeSession, gameplayDefinitions])
 
 
   return (
@@ -761,24 +860,30 @@ export function TavernChatWorkbench({
         {shouldShowDoorway ? (
           <section
             data-tavern-doorway-ritual
+            data-first-minute-play-entry
             className="grid gap-5 p-4 sm:p-6 lg:grid-cols-[1.05fr_0.95fr] lg:items-stretch"
           >
             <div className="rounded-[1.75rem] border border-cyan-200/18 bg-cyan-300/[0.075] p-5 shadow-[0_18px_48px_rgba(8,145,178,0.08)]">
               <div className="mb-4 inline-flex w-fit items-center gap-2 rounded-full border border-cyan-200/20 bg-slate-950/40 px-3 py-1.5 text-xs font-black uppercase tracking-[0.16em] text-cyan-100">
                 <MapPin className="h-3.5 w-3.5" />
-                Real coordinate doorway
+                镜像空间入口
               </div>
-              <h2 className="text-3xl font-black leading-tight text-white">先推门，再聊天</h2>
+              <h2 className="text-3xl font-black leading-tight text-white">先知道怎么玩，再开始</h2>
               <p data-doorway-map-anchor className="mt-3 rounded-2xl border border-white/10 bg-slate-950/35 p-3 text-sm font-bold leading-6 text-cyan-50/76">
                 {firstMinuteGuide.anchorLine}
               </p>
+              <div className="mt-4 rounded-[1.35rem] border border-white/10 bg-slate-950/35 p-4">
+                <p className="text-xs font-black uppercase tracking-[0.18em] text-cyan-100/62">这个空间怎么玩</p>
+                <p data-first-minute-play-objective className="mt-2 text-base font-black leading-7 text-white">{firstMinuteGuide.playObjective}</p>
+                <p className="mt-2 text-sm leading-6 text-violet-50/64">{firstMinuteGuide.experienceHelper}</p>
+              </div>
               <p className="mt-4 text-sm leading-7 text-violet-50/72">{firstMinuteGuide.whyHere}</p>
               <div className="mt-4 grid gap-2 sm:grid-cols-2">
                 <span className="rounded-2xl border border-white/10 bg-white/[0.045] px-3 py-2 text-xs font-black text-cyan-100">
                   {firstMinuteGuide.experienceType}
                 </span>
                 <span className="rounded-2xl border border-white/10 bg-white/[0.045] px-3 py-2 text-xs font-black text-violet-100/70">
-                  {characters.length} 位 NPC 在场
+                  {firstMinuteGuide.hostRole}
                 </span>
               </div>
             </div>
@@ -792,16 +897,53 @@ export function TavernChatWorkbench({
                 <CharacterAvatar character={doorwayHost} active />
                 <div className="min-w-0">
                   <p className="font-black text-white">{doorwayHost?.name || "驻场 NPC"}</p>
+                  <p className="mt-1 text-xs font-bold text-cyan-100/54">{characters.length} 位 NPC 在场 · {firstMinuteGuide.hostRole}</p>
                   <p data-doorway-host-greeting className="mt-2 rounded-3xl rounded-tl-sm border border-white/10 bg-slate-950/45 p-4 text-sm leading-7 text-violet-50/78">
                     {doorwayGreeting}
                   </p>
                 </div>
               </div>
+              {doorwayGameplayDefinitions.length ? (
+                <div className="mt-5 space-y-2" data-doorway-gameplay-list>
+                  <p className="text-xs font-black uppercase tracking-[0.18em] text-cyan-100/58">可玩的空间任务</p>
+                  {doorwayGameplayDefinitions.map((definition, index) => (
+                    <button
+                      key={String(definition.id || index)}
+                      type="button"
+                      data-doorway-gameplay-entry={String(definition.id || index)}
+                      disabled={isGameplayBusy}
+                      onClick={() => void handleDoorwayStartGameplay(definition)}
+                      className="min-h-16 w-full rounded-2xl border border-cyan-200/16 bg-cyan-300/[0.085] px-4 py-3 text-left transition hover:border-cyan-200/38 hover:bg-cyan-300/[0.13] focus:outline-none focus:ring-4 focus:ring-cyan-300/20 disabled:cursor-wait disabled:opacity-60"
+                    >
+                      <span className="block text-sm font-black text-cyan-50">
+                        {gameplayDisplayText(definition, "entry_label", gameplayDisplayText(definition, "title", "开始这个玩法"))}
+                      </span>
+                      <span className="mt-1 block text-xs font-bold leading-5 text-violet-100/58">
+                        {gameplayDisplayText(definition, "summary", "进入一个由 NPC 主持的可完成小任务。")}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              ) : null}
+              <div className="mt-5 grid gap-2" data-first-minute-quick-actions>
+                {doorwayQuickActions.map((action) => (
+                  <button
+                    key={action.id}
+                    type="button"
+                    data-first-minute-action={action.id}
+                    onClick={() => handleDoorwayQuickAction(action)}
+                    className="min-h-14 rounded-2xl border border-cyan-200/16 bg-cyan-300/[0.075] px-4 py-3 text-left transition hover:border-cyan-200/38 hover:bg-cyan-300/[0.12] focus:outline-none focus:ring-4 focus:ring-cyan-300/20"
+                  >
+                    <span className="block text-sm font-black text-cyan-50">{action.label}</span>
+                    <span className="mt-1 block text-xs font-bold leading-5 text-violet-100/54">{action.helper}</span>
+                  </button>
+                ))}
+              </div>
               <Button type="button" data-doorway-start-chat className="mt-5 min-h-12 w-full" onClick={handleDoorwayStartChat}>
-                推门进店，和 NPC 打招呼 →
+                {doorwayGameplayDefinitions.length ? "先和 NPC 打招呼 →" : `${firstMinuteGuide.startLabel}，进入聊天准备 →`}
               </Button>
               <p className="mt-3 text-xs leading-5 text-violet-100/52">
-                点击只会切到私聊并填入开场白，不会替你自动发送消息。
+                任务按钮会启动空间内玩法；聊天行动只会切到 NPC 并填入输入框，不会替你自动发送消息。
               </p>
             </div>
           </section>
@@ -925,6 +1067,7 @@ export function TavernChatWorkbench({
                   onChoice={(choice: any) => handleAdvanceGameplay({ choice_id: choice.id })}
                   onSubmit={(text: string) => handleAdvanceGameplay({ message: text })}
                   onAbandon={handleAbandonGameplay}
+                  onReturnToDoorway={handleReturnToDoorway}
                 />
               </div>
             ) : null}
@@ -1069,6 +1212,9 @@ export function TavernChatWorkbench({
                   />
                   {mentionQuery !== null && mentionMatches.length > 0 && activeChatChannel === "public" && (
                     <div className="absolute bottom-full left-0 right-0 mb-2 max-h-60 overflow-y-auto rounded-2xl border border-white/15 bg-slate-950/98 shadow-xl shadow-black/40">
+                      <div className="px-4 py-2 text-xs text-violet-100/40 border-b border-white/10">
+                        输入 @NPC名 后等对应 NPC 回复
+                      </div>
                       {mentionMatches.map((char, index) => (
                         <button
                           key={char.id}

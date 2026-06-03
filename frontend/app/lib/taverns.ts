@@ -2030,7 +2030,7 @@ export function deleteCharacter(tavernId: string, characterId: string, userId = 
 }
 
 export function getGameplays(tavernId: string, userId = DEFAULT_VISITOR_ID) {
-  return readApiJson<{ gameplay_definitions: Record<string, unknown>[] }>(
+  return readApiJson<{ gameplays?: Record<string, unknown>[]; gameplay_definitions?: Record<string, unknown>[] }>(
     `/api/v1/taverns/${encodeURIComponent(tavernId)}/gameplays`,
     { userId },
   )
@@ -2046,7 +2046,9 @@ export function saveGameplays(tavernId: string, gameplays: Record<string, unknow
 export function startGameplaySession(
   tavernId: string,
   data: {
+    gameplay_id?: string
     definition_id?: string
+    character_id?: string
     name?: string
     visitor_id?: string
     visitor_name?: string
@@ -2054,13 +2056,17 @@ export function startGameplaySession(
   userId = DEFAULT_VISITOR_ID,
 ) {
   return readApiJson<{
-    session_id: string
-    state: string
-    definition_id: string
-    definition_name: string
+    ok?: boolean
+    resumed?: boolean
+    session?: Record<string, unknown>
+    scene?: Record<string, unknown>
+    session_id?: string
+    state?: string
+    definition_id?: string
+    definition_name?: string
   }>(
     `/api/v1/taverns/${encodeURIComponent(tavernId)}/gameplay-sessions`,
-    jsonInit("POST", data, userId),
+    jsonInit("POST", { ...data, gameplay_id: data.gameplay_id || data.definition_id }, userId),
   )
 }
 
@@ -2072,10 +2078,14 @@ export function advanceGameplaySession(
 ) {
   return readApiJson<{
     ok: boolean
-    session_id: string
-    state: string
-    events: Record<string, unknown>[]
-    updated_tavern: Tavern
+    session?: Record<string, unknown>
+    event?: Record<string, unknown>
+    scene?: Record<string, unknown>
+    completed?: boolean
+    session_id?: string
+    state?: string
+    events?: Record<string, unknown>[]
+    updated_tavern?: Tavern
   }>(
     `/api/v1/taverns/${encodeURIComponent(tavernId)}/gameplay-sessions/${encodeURIComponent(sessionId)}/advance`,
     jsonInit("POST", data, userId),

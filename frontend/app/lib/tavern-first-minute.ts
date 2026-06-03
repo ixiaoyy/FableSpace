@@ -7,8 +7,19 @@ export type TavernFirstMinuteGuide = {
   anchorLine: string
   experienceType: string
   experienceHelper: string
+  hostRole: string
+  playObjective: string
+  startLabel: string
   whyHere: string
   tryThisFirst: string[]
+  quickActions: TavernFirstMinuteAction[]
+}
+
+export type TavernFirstMinuteAction = {
+  id: string
+  label: string
+  helper: string
+  prompt: string
 }
 
 const EXPERIENCE_BY_PLACE_TYPE: Record<string, { label: string; helper: string }> = {
@@ -46,6 +57,68 @@ function uniqueList(values: string[], max = 3) {
   return result
 }
 
+/**
+ * Builds visitor-facing play copy from the existing tavern category without
+ * inventing new schema fields or publishing platform-authored story content.
+ */
+function buildPlayableEntryCopy(placeId: string, experienceType: string, contentText = "") {
+  const normalized = `${placeId} ${experienceType} ${contentText}`.toLowerCase()
+  if (normalized.includes("花圃") || normalized.includes("菜园") || normalized.includes("种植") || normalized.includes("浇水") || normalized.includes("收获")) {
+    return {
+      hostRole: "花圃园丁",
+      playObjective: "先领一包种子，清开一小垄地，再完成播种、浇水、施肥、成熟、收获和 NPC 小摊兑换。",
+      startLabel: "进入花圃",
+    }
+  }
+  if (normalized.includes("quest") || normalized.includes("探索") || normalized.includes("旧书") || normalized.includes("校园")) {
+    return {
+      hostRole: "线索主持",
+      playObjective: "先找到这处真实地点背后的第一条线索，再决定下一步问谁、看哪里。",
+      startLabel: "开始调查",
+    }
+  }
+  if (normalized.includes("home") || normalized.includes("陪伴") || normalized.includes("照护") || normalized.includes("私域")) {
+    return {
+      hostRole: "陪伴接待",
+      playObjective: "先把此刻的状态交给 NPC，让空间记住你这次回来想整理什么。",
+      startLabel: "开始回访",
+    }
+  }
+  if (normalized.includes("创作") || normalized.includes("bookstore")) {
+    return {
+      hostRole: "创作引导",
+      playObjective: "先让 NPC 帮你选一个切入口，把想法整理成能继续推进的一小步。",
+      startLabel: "开始创作",
+    }
+  }
+  return {
+    hostRole: "空间主持",
+    playObjective: "先确认这个空间为什么开在这里，再由 NPC 带你完成第一步互动。",
+    startLabel: "开始游玩",
+  }
+}
+
+/**
+ * Converts first-minute prompts into three explicit buttons; clicking them is
+ * handled by the UI as composer prefill only, so it has no network side effect.
+ */
+function buildQuickActions(prompts: string[], characterName: string, anchorShort: string): TavernFirstMinuteAction[] {
+  const fallbackPrompts = [
+    `请先告诉我：这里为什么必须开在 ${anchorShort}？`,
+    `请作为主持 NPC，给我一个现在能做的第一步。`,
+    `我想从入口开始观察，请带我看第一条线索。`,
+  ]
+  const normalizedPrompts = uniqueList([...prompts, ...fallbackPrompts], 3)
+  const labels = ["问为什么在这里", characterName ? `找 ${characterName}` : "找主持 NPC", "观察第一条线索"]
+  const helpers = ["地点锚点", "NPC 主持", "马上行动"]
+  return normalizedPrompts.map((prompt, index) => ({
+    id: `first-minute-action-${index + 1}`,
+    label: labels[index] || "开始一步",
+    helper: helpers[index] || "可执行动作",
+    prompt,
+  }))
+}
+
 function buildAnchorShortName(tavern: Tavern) {
   const anchor = formatTavernAnchorLocation(tavern)
   if (anchor.text && anchor.text !== "坐标待确认") return compactText(anchor.text, "这个坐标", 18)
@@ -63,8 +136,22 @@ export function buildTavernFirstMinuteGuide(tavern: Tavern): TavernFirstMinuteGu
   const characters = Array.isArray(tavern.characters) ? tavern.characters : []
   const leadCharacter = firstCharacter(characters)
   const placeExperience = EXPERIENCE_BY_PLACE_TYPE[String(placeType?.id || "tavern")] || EXPERIENCE_BY_PLACE_TYPE.tavern
-  const experienceType = specialType?.shortLabel || specialType?.label || placeExperience.label
-  const experienceHelper = specialType?.summary || placeExperience.helper
+  const gameplaySearchText = [
+    tavern.name,
+    tavern.description,
+    tavern.scene_prompt,
+    characters.flatMap((character) => character.tags || []).join(" "),
+  ].join(" ")
+  const isPlantingExperience = /花圃|菜园|种植|浇水|收获/.test(gameplaySearchText)
+  const experienceType = isPlantingExperience ? "种植照看" : specialType?.shortLabel || specialType?.label || placeExperience.label
+  const experienceHelper = isPlantingExperience
+    ? "适合从一垄地开始：领种子、清草、浇水、施肥、等待成熟、收获兑换。"
+    : specialType?.summary || placeExperience.helper
+  const playableCopy = buildPlayableEntryCopy(
+    String(placeType?.id || tavern.layout_style || "tavern"),
+    experienceType,
+    gameplaySearchText,
+  )
   const sceneHint = compactText(tavern.scene_prompt, tavern.description || placeType?.tone || "店主还没有写下地点线索", 52)
   const whyHere = `${anchor.label}把入口带到 ${anchorShort}；进门先留意「${sceneHint}」，再让 NPC 带你看这处真实坐标的第一条线索。`
   const characterName = leadCharacter?.name?.trim() || "驻场 NPC"
@@ -83,8 +170,12 @@ export function buildTavernFirstMinuteGuide(tavern: Tavern): TavernFirstMinuteGu
     anchorLine: anchor.line,
     experienceType,
     experienceHelper,
+    hostRole: playableCopy.hostRole,
+    playObjective: playableCopy.playObjective,
+    startLabel: playableCopy.startLabel,
     whyHere,
     tryThisFirst,
+    quickActions: buildQuickActions(tryThisFirst, characterName, anchorShort),
   }
 }
 

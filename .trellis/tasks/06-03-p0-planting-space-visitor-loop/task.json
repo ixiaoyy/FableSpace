@@ -1,0 +1,59 @@
+{
+  "id": "p0-planting-space-visitor-loop",
+  "name": "p0-planting-space-visitor-loop",
+  "title": "brainstorm: planting space visitor loop",
+  "description": "Convert one default public welfare tavern into Secret Flowerbed and add a visitor-first planting loop without platform economy or visitor social trading.",
+  "status": "done",
+  "dev_type": "feature",
+  "scope": "fullstack",
+  "package": "single-repo",
+  "priority": "P0",
+  "creator": "lijin",
+  "assignee": "lijin",
+  "createdAt": "2026-06-03",
+  "completedAt": null,
+  "branch": null,
+  "base_branch": "main",
+  "worktree_path": null,
+  "current_phase": 6,
+  "next_action": [
+    {
+      "phase": 1,
+      "action": "brainstorm"
+    },
+    {
+      "phase": 2,
+      "action": "research"
+    },
+    {
+      "phase": 3,
+      "action": "implement"
+    },
+    {
+      "phase": 4,
+      "action": "check"
+    },
+    {
+      "phase": 5,
+      "action": "update-spec"
+    },
+    {
+      "phase": 6,
+      "action": "record-session"
+    }
+  ],
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [],
+  "parent": null,
+  "relatedFiles": [
+    "backend/src/fablemap_api/core/default_taverns.py",
+    "backend/src/fablemap_api/core/tavern.py",
+    "frontend/app/features/tavern-chat-workbench/index.tsx",
+    "frontend/app/lib/tavern-first-minute.ts",
+    "frontend/app/product/GameplaySessionPanel.jsx"
+  ],
+  "notes": "Secret Flowerbed uses existing pw_community_repair with existing NPCs/assets. Added targeted seed refresh to remove stale repair gameplay ids from historical system JSON stores; doorway filters to the planting gameplay. Backend/frontend validation passed; browser entry verified.",
+  "meta": {}
+}

@@ -311,6 +311,429 @@ def _gameplay(
     }
 
 
+def _commission_board_clue_case_gameplay() -> dict[str, Any]:
+    """Build the polished first playable slice for the Midnight Commission Board.
+
+    This keeps the seed content schema unchanged while replacing the generic
+    "continue/finish" flow with concrete visitor choices and a medium-length
+    completion loop that can be played without external LLM calls.
+    """
+    reward = "你得到一枚“线索整理员”纸徽章。回访暗号：雨停以后，先看灯。未解尾巴：下一次委托板会翻出“便利店方向”的另一半纸角。"
+    return {
+        "id": "gp_pw_commission_clue_case",
+        "title": "线索调查：无名纸条",
+        "status": "published",
+        "summary": "5 步文字委托：从一张无名纸条开始，查线索、交叉验证、写判断、补边界、拿回执。",
+        "entry_label": "推荐先玩：接线索调查",
+        "mode": "ai_directed_branch",
+        "owner_brief": {
+            "goal": "让访客在 4-6 个选择内完成一次有中段推进的线索整理，而不是自由聊天或一键结算。",
+            "tone": "侦探感、克制、清楚、低风险",
+            "materials": ["无名纸条", "地图角标", "铅笔", "三栏线索表", "红蓝笔"],
+            "forbidden": ["定罪", "诱导真实跟踪", "索取敏感身份信息", "现实危险行动"],
+        },
+        "nodes": [
+            {
+                "id": "start",
+                "kind": "scene",
+                "narration": (
+                    "墨栈把一张无名纸条压在台灯下：纸上只有半句“别在雨停后开门”。"
+                    "这局分五段：先查一条线索，再交叉验证，写一个保守判断，补安全边界，最后拿回执。"
+                    "你先查哪一项？"
+                ),
+                "choices": [
+                    {"id": "check-position", "label": "查纸条出现的位置", "next_node_id": "position"},
+                    {"id": "check-writing", "label": "看纸上的字迹细节", "next_node_id": "writing"},
+                    {"id": "check-time", "label": "确认出现时间", "next_node_id": "time"},
+                ],
+                "fallback_events": [
+                    {
+                        "id": "opening-fallback",
+                        "text": "墨栈先替你圈出安全边界：只查公开线索，不跟踪、不闯入、不单独冒险。",
+                        "next_node_id": "position",
+                    }
+                ],
+            },
+            {
+                "id": "position",
+                "kind": "scene",
+                "narration": (
+                    "你查到纸条在委托板左下角，离门口两步，旁边有一枚湿掉的地图角标。"
+                    "墨栈把它写进三栏表：事实、可能解释、不要做的事。下一步怎么推进？"
+                ),
+                "choices": [
+                    {"id": "build-timeline", "label": "把雨停时间放进时间线", "next_node_id": "timeline"},
+                    {"id": "ask-public-witness", "label": "只询问公开目击，不追人", "next_node_id": "witness"},
+                    {"id": "check-second-clue", "label": "补第二条线索：看字迹", "next_node_id": "writing"},
+                ],
+                "fallback_events": [
+                    {
+                        "id": "position-fallback",
+                        "text": "地图角标背面写着“便利店方向”。墨栈提醒：它只能作为线索，不能变成现实追踪。",
+                        "next_node_id": "timeline",
+                    }
+                ],
+            },
+            {
+                "id": "writing",
+                "kind": "scene",
+                "narration": (
+                    "字迹很急，但“雨停”两个字压得很重；纸边没有姓名、电话或住址。"
+                    "墨栈把红笔放在隐私栏旁：不要猜身份，只处理能公开确认的细节。"
+                ),
+                "choices": [
+                    {"id": "compare-public-board", "label": "比对公告栏公开字迹", "next_node_id": "witness"},
+                    {"id": "build-timeline", "label": "把字迹和雨停时间合并", "next_node_id": "timeline"},
+                    {"id": "check-time", "label": "补确认出现时间", "next_node_id": "time"},
+                ],
+                "fallback_events": [
+                    {
+                        "id": "writing-fallback",
+                        "text": "墨栈抽出蓝色便签：先记录“急、未署名、无隐私字段”，不要把猜测当事实。",
+                        "next_node_id": "witness",
+                    }
+                ],
+            },
+            {
+                "id": "time",
+                "kind": "scene",
+                "narration": (
+                    "值夜钟显示：纸条被发现于雨停后五分钟，门口灯刚恢复常亮。"
+                    "这更像一条提醒，不像威胁。墨栈问：你要继续排线索，还是保守结案？"
+                ),
+                "choices": [
+                    {"id": "build-timeline", "label": "排一条三点时间线", "next_node_id": "timeline"},
+                    {"id": "ask-public-witness", "label": "记录公开目击范围", "next_node_id": "witness"},
+                    {"id": "check-position", "label": "回头确认纸条位置", "next_node_id": "position"},
+                ],
+                "fallback_events": [
+                    {
+                        "id": "time-fallback",
+                        "text": "凌晨时钟轻响一下：雨停、灯亮、纸条出现。墨栈把三点连成一条安全时间线。",
+                        "next_node_id": "timeline",
+                    }
+                ],
+            },
+            {
+                "id": "timeline",
+                "kind": "scene",
+                "narration": (
+                    "三点时间线完成：雨停 → 门灯恢复 → 纸条出现。"
+                    "墨栈把结论压低：它目前只能说明“有人想提醒门口行为”，不能说明是谁。"
+                    "还不能结案，先做一次交叉验证或写出保守判断。"
+                ),
+                "choices": [
+                    {"id": "ask-public-witness", "label": "去核对公开目击", "next_node_id": "witness"},
+                    {"id": "draft-hypothesis", "label": "把事实写成保守判断", "next_node_id": "hypothesis"},
+                ],
+                "fallback_events": [
+                    {
+                        "id": "timeline-fallback",
+                        "text": "墨栈把“未知身份”划掉，留下“纸条、时间、门灯”三项可确认事实。",
+                        "next_node_id": "hypothesis",
+                    }
+                ],
+            },
+            {
+                "id": "witness",
+                "kind": "scene",
+                "narration": (
+                    "你把目击范围限制在公开信息：谁最后看见委托板、门口灯何时恢复、有没有其他便签被移动。"
+                    "墨栈点头：这条路线安全，但不能追问私人身份。"
+                ),
+                "choices": [
+                    {"id": "draft-hypothesis", "label": "把公开线索纳入判断", "next_node_id": "hypothesis"},
+                    {"id": "build-timeline", "label": "回到时间线核对", "next_node_id": "timeline"},
+                ],
+                "fallback_events": [
+                    {
+                        "id": "witness-fallback",
+                        "text": "火眼从旁边递来红笔：公开目击可以记，私人身份不要猜。",
+                        "next_node_id": "hypothesis",
+                    }
+                ],
+            },
+            {
+                "id": "hypothesis",
+                "kind": "scene",
+                "narration": (
+                    "墨栈把三栏表摊开：事实是纸条、雨停、门灯；解释只能写“可能是提醒”；"
+                    "未知项全部留空，不猜身份、不定责任。现在还差最后一栏：这张回执不能鼓励什么行动？"
+                ),
+                "choices": [
+                    {"id": "add-boundary", "label": "补安全边界再结算", "next_node_id": "safe-boundary"},
+                    {"id": "recheck-public", "label": "不放心，再核对公开目击", "next_node_id": "witness"},
+                ],
+                "fallback_events": [
+                    {
+                        "id": "hypothesis-fallback",
+                        "text": "墨栈提醒：判断只能保守，不能把故事写成事实。先补安全边界。",
+                        "next_node_id": "safe-boundary",
+                    }
+                ],
+            },
+            {
+                "id": "safe-boundary",
+                "kind": "scene",
+                "narration": (
+                    "你补上安全边界：不跟踪、不闯入、不独自处理现实异常。"
+                    "墨栈把这条写在回执最上方：这才算一张能带走的委托。"
+                ),
+                "choices": [
+                    {"id": "complete-with-boundary", "label": "盖章结算", "next_node_id": "complete", "completes": True},
+                ],
+                "fallback_events": [
+                    {
+                        "id": "boundary-fallback",
+                        "text": "红笔盖章：危险行动已排除。委托可以结算。",
+                        "next_node_id": "complete",
+                    }
+                ],
+            },
+            {
+                "id": "complete",
+                "kind": "complete",
+                "narration": (
+                    "墨栈把委托回执推给你：无名纸条案暂结。"
+                    "已确认事实：雨停后纸条出现，门口灯恢复常亮；未确认部分不做猜测。"
+                    "他把回访暗号写在背面：雨停以后，先看灯。"
+                    "委托板左下角还压着一片写有“便利店方向”的纸角，下次回来可以继续查。"
+                ),
+                "choices": [],
+                "fallback_events": [
+                    {"id": "complete-fallback", "text": reward, "next_node_id": "complete"},
+                ],
+            },
+        ],
+        "completion": {
+            "complete_node_ids": ["complete"],
+            "reward_text": reward,
+            "memory_atom": {"enabled": False},
+        },
+    }
+
+
+def _secret_flowerbed_planting_gameplay() -> dict[str, Any]:
+    """Build a visitor-first planting loop for one public welfare space.
+
+    The loop stays inside a single tavern and uses only NPC exchange language:
+    no platform wallet, no visitor-to-visitor market, no stealing, and no
+    ranking system. It is a deterministic seed gameplay definition, not a new
+    persistence schema.
+    """
+    reward = (
+        "你收获一束“月光薄荷”，并从 NPC 小摊换到一张露水种子券。"
+        "回访提示：下次回来先看第一垄，阿槐会问你要不要试种雨铃豆。"
+    )
+    return {
+        "id": "gp_pw_secret_flowerbed_seed_cycle",
+        "title": "种植循环：月光薄荷",
+        "status": "published",
+        "summary": "7 步种植：领种子、割草、播种、浇水、施肥、等成熟、收获后向 NPC 小摊兑换。",
+        "entry_label": "推荐先玩：种一株月光薄荷",
+        "mode": "ai_directed_branch",
+        "owner_brief": {
+            "goal": "让访客完成一次完整但克制的私密种植循环，并留下下一次回访的作物钩子。",
+            "tone": "安静、植物感、轻经营、私密回访",
+            "materials": ["种子小票", "旧剪刀", "露水壶", "堆肥勺", "月光薄荷", "NPC 小摊"],
+            "forbidden": ["平台货币", "充值提现", "访客间交易", "偷菜", "排行榜", "战斗/等级/装备系统"],
+        },
+        "nodes": [
+            {
+                "id": "start",
+                "kind": "scene",
+                "narration": (
+                    "阿槐把秘密花圃的小木门推开：这里每位探索者先照看一垄私密小地。"
+                    "柜台上有三包种子，今日推荐“月光薄荷”。花圃小票只在本空间使用，不能转让，也不是平台货币。"
+                    "你要先领哪一包？"
+                ),
+                "choices": [
+                    {"id": "choose-moon-mint", "label": "领月光薄荷种子", "next_node_id": "clear-plot"},
+                    {"id": "choose-rain-bean", "label": "问问雨铃豆，但先种薄荷", "next_node_id": "clear-plot"},
+                    {"id": "choose-basil", "label": "比较香草包，再选薄荷", "next_node_id": "clear-plot"},
+                ],
+                "fallback_events": [
+                    {
+                        "id": "start-fallback",
+                        "text": "阿槐替你把月光薄荷放到掌心：先完成一株，别急着开整片农场。",
+                        "next_node_id": "clear-plot",
+                    }
+                ],
+            },
+            {
+                "id": "clear-plot",
+                "kind": "scene",
+                "narration": (
+                    "第一垄地边缘长出一圈细草。和光提醒：先割草，再松土，种子才不会被杂草抢走水分。"
+                    "你先处理哪一步？"
+                ),
+                "choices": [
+                    {"id": "cut-grass", "label": "用旧剪刀割草", "next_node_id": "loosen-soil"},
+                    {"id": "mark-weeds", "label": "先把杂草位置标出来", "next_node_id": "loosen-soil"},
+                ],
+                "fallback_events": [
+                    {
+                        "id": "clear-fallback",
+                        "text": "旧剪刀咔哒一声，第一圈杂草被清开，土面露出浅浅的月光色。",
+                        "next_node_id": "loosen-soil",
+                    }
+                ],
+            },
+            {
+                "id": "loosen-soil",
+                "kind": "scene",
+                "narration": (
+                    "草清完后，土还是有点结。巧手递来一把小耙子：松土不用深挖，三下就够。"
+                    "如果你挖太深，根会找不到稳定的位置。"
+                ),
+                "choices": [
+                    {"id": "rake-three", "label": "轻轻松土三下", "next_node_id": "plant-seed"},
+                    {"id": "check-moisture", "label": "先确认土壤湿度", "next_node_id": "plant-seed"},
+                ],
+                "fallback_events": [
+                    {
+                        "id": "soil-fallback",
+                        "text": "小耙子划过土面，第一垄刚好松开，适合下种。",
+                        "next_node_id": "plant-seed",
+                    }
+                ],
+            },
+            {
+                "id": "plant-seed",
+                "kind": "scene",
+                "narration": (
+                    "你把月光薄荷种子放进浅坑。阿槐说：薄荷喜欢半阴，不能埋太深。"
+                    "这一垄地会记住你的选择，作为下次回访的开场。"
+                ),
+                "choices": [
+                    {"id": "plant-half-shade", "label": "种在半阴的位置", "next_node_id": "water"},
+                    {"id": "plant-near-stone", "label": "靠近石牌种下", "next_node_id": "water"},
+                ],
+                "fallback_events": [
+                    {
+                        "id": "plant-fallback",
+                        "text": "种子落进浅坑，土面合上，只留下一枚小木牌写着“月光薄荷”。",
+                        "next_node_id": "water",
+                    }
+                ],
+            },
+            {
+                "id": "water",
+                "kind": "scene",
+                "narration": (
+                    "露水壶只剩半壶。和光让你别一次浇满：第一次浇到土面微亮就停。"
+                    "这一步决定发芽是否稳定。"
+                ),
+                "choices": [
+                    {"id": "water-light", "label": "少量浇水到土面微亮", "next_node_id": "fertilize"},
+                    {"id": "water-edge", "label": "沿着种子边缘浇一圈", "next_node_id": "fertilize"},
+                ],
+                "fallback_events": [
+                    {
+                        "id": "water-fallback",
+                        "text": "露水渗进土里，木牌旁亮起一粒很小的水光。",
+                        "next_node_id": "fertilize",
+                    }
+                ],
+            },
+            {
+                "id": "fertilize",
+                "kind": "scene",
+                "narration": (
+                    "巧手把堆肥勺递过来：施肥只要一小勺，多了会烧根。"
+                    "秘密花圃不比产量，只看你有没有照顾好这一株。"
+                ),
+                "choices": [
+                    {"id": "add-compost", "label": "加一小勺堆肥", "next_node_id": "wait-growth"},
+                    {"id": "ask-fertilizer", "label": "先问清楚施肥量", "next_node_id": "wait-growth"},
+                ],
+                "fallback_events": [
+                    {
+                        "id": "fertilize-fallback",
+                        "text": "一小勺堆肥落下，土面冒出一点暖味，刚好够。",
+                        "next_node_id": "wait-growth",
+                    }
+                ],
+            },
+            {
+                "id": "wait-growth",
+                "kind": "scene",
+                "narration": (
+                    "你等到花圃的第一盏小灯亮起。月光薄荷冒出两片叶子，叶尖像刚醒来的银色耳朵。"
+                    "阿槐说：成熟前要确认一次叶色，别急着拔。"
+                ),
+                "choices": [
+                    {"id": "check-leaf", "label": "确认叶色已经转银", "next_node_id": "harvest"},
+                    {"id": "wait-one-bell", "label": "再等一声花圃铃", "next_node_id": "harvest"},
+                ],
+                "fallback_events": [
+                    {
+                        "id": "growth-fallback",
+                        "text": "花圃铃轻轻响了一下，月光薄荷成熟了。",
+                        "next_node_id": "harvest",
+                    }
+                ],
+            },
+            {
+                "id": "harvest",
+                "kind": "scene",
+                "narration": (
+                    "月光薄荷已经成熟。你可以整束收下，也可以留一片叶子在地里，作为下次回来时的记号。"
+                    "收获后可以去 NPC 小摊兑换，不和其他访客交易。"
+                ),
+                "choices": [
+                    {"id": "harvest-all", "label": "收获一束月光薄荷", "next_node_id": "trade"},
+                    {"id": "leave-one-leaf", "label": "收获时留一片叶子作记号", "next_node_id": "trade"},
+                ],
+                "fallback_events": [
+                    {
+                        "id": "harvest-fallback",
+                        "text": "你收下月光薄荷，第一垄地留下淡淡的香气。",
+                        "next_node_id": "trade",
+                    }
+                ],
+            },
+            {
+                "id": "trade",
+                "kind": "scene",
+                "narration": (
+                    "NPC 小摊今天只收本花圃作物。阿槐把兑换牌翻过来：薄荷可以换露水种子券，"
+                    "也可以换一张写给下次回访的花圃便签。"
+                ),
+                "choices": [
+                    {"id": "trade-seed-ticket", "label": "兑换露水种子券", "next_node_id": "complete", "completes": True},
+                    {"id": "trade-garden-note", "label": "兑换花圃回访便签", "next_node_id": "complete", "completes": True},
+                ],
+                "fallback_events": [
+                    {
+                        "id": "trade-fallback",
+                        "text": "小摊收下薄荷，递给你一张只在秘密花圃有效的露水种子券。",
+                        "next_node_id": "complete",
+                    }
+                ],
+            },
+            {
+                "id": "complete",
+                "kind": "complete",
+                "narration": (
+                    "阿槐在花圃册上写下：第一株月光薄荷已完成。"
+                    "你经历了领种子、割草、松土、播种、浇水、施肥、等待成熟、收获和 NPC 小摊兑换。"
+                    "第一垄地还留着一片银色叶痕，下次回来可以继续种雨铃豆。"
+                ),
+                "choices": [],
+                "fallback_events": [
+                    {"id": "complete-fallback", "text": reward, "next_node_id": "complete"},
+                ],
+            },
+        ],
+        "completion": {
+            "complete_node_ids": ["complete"],
+            "reward_text": reward,
+            "memory_atom": {"enabled": False},
+        },
+    }
+
+
 def default_public_welfare_taverns() -> list[dict[str, Any]]:
     """Return built-in public welfare taverns that are safe to seed on first run.
 
@@ -458,30 +881,31 @@ def default_public_welfare_taverns() -> list[dict[str, Any]]:
         ),
         _tavern(
             tavern_id="pw_community_repair",
-            name="社区修补铺",
-            description="修伞、补包、调旧收音机，也帮人把琐碎问题拆成可做的小事。",
+            name="秘密花圃",
+            description="藏在真实街角背面的私密小花圃，游客可以领种子、清地、浇水、施肥、等成熟、收获并和 NPC 小摊兑换。",
             lat=35.65630,
             lon=139.70400,
-            address="FableMap 锚点 · Community Repair Corner",
+            address="FableMap 锚点 · Secret Flowerbed",
             scene_prompt=(
-                "这是社区修补铺。氛围有烟火气、动手感和邻里互助。角色可以提供生活整理建议、"
-                "物件修补思路和行动清单，但避免专业法律、医疗、金融判断。"
+                "这是秘密花圃。氛围有草叶、露水、木牌和只属于来访者的一垄小地。"
+                "NPC 可以主持领种子、割草、播种、浇水、施肥、等待成熟、收获和本空间小摊兑换；"
+                "所有奖励都只作为花圃内的回访纪念，不是平台货币，也不做访客间交易。"
             ),
             characters=[
                 _character(
                     tavern_id="pw_community_repair",
                     char_id="char_pw_ahuai",
                     name="阿槐",
-                    description="社区修补铺志愿师傅，爱把大问题拆成一颗螺丝、一段线和一个今天能做的动作。",
-                    personality="务实、爽快、有耐心；嘴上轻轻吐槽，手上一直在帮忙。",
-                    scenario="阿槐坐在铺子门口的小板凳上，桌面有螺丝盒、旧伞骨、针线和半开的工具箱。",
+                    description="秘密花圃的守园人，负责给探索者发种子、划出第一垄地，并提醒每一步别贪多。",
+                    personality="务实、爽快、有耐心；像会修理植物的人，每次只让访客照顾一株。",
+                    scenario="阿槐坐在花圃木门旁，桌面有种子小票、旧剪刀、露水壶和写着访客昵称的小木牌。",
                     system_prompt=(
-                        "你扮演社区修补铺志愿师傅阿槐。用生活化中文陪访客把问题拆小，给低风险、可执行的下一步。"
-                        "不要装作专业人士，不给高风险决策结论。"
+                        "你扮演秘密花圃守园人阿槐。用生活化中文主持种植体验：领种子、割草、播种、浇水、施肥、等待成熟、收获。"
+                        "所有兑换都限定在本空间 NPC 小摊，不引导平台充值、访客交易、偷菜、排行榜、战斗、等级或装备。"
                     ),
-                    first_mes="东西坏了先别急着扔。人也一样。拿来我看看，是伞骨歪了，还是心里那根线打结？",
-                    mes_example="<START>\n{{user}}: 我事情太多不知道先做哪件。\n{{char}}: 那就先像修伞一样：找最影响撑开的那根骨。今天只处理一根，别一上来拆整把。",
-                    tags=["免配置", "社区", "修补", "行动清单", "毒舌", "犀利"],
+                    first_mes="进门先别急着种满。秘密花圃今天只给你一垄地，一包月光薄荷。先清草，还是先看看种子？",
+                    mes_example="<START>\n{{user}}: 我想种很多。\n{{char}}: 先照顾一株。清草、松土、播种、浇水，做完这四步，它下次才认得你。",
+                    tags=["免配置", "花圃", "种植", "回访", "守园", "NPC小摊"],
                     appearance_id="cat-merchant",
                     talkativeness=0.68,
                 ),
@@ -489,70 +913,48 @@ def default_public_welfare_taverns() -> list[dict[str, Any]]:
                     tavern_id="pw_community_repair",
                     char_id="char_pw_heguang",
                     name="和光",
-                    description="社区修补铺后间的沟通调停师，专门陪访客修补难开口的关系和关键对话。",
-                    personality=(
-                        "温和、克制、真诚，极少批评、指责或抱怨。和光相信沟通不是为了赢，"
-                        "而是为了找回共同目标；他会先建立安全感，再陪访客区分事实、想法、情绪和行动。"
-                    ),
+                    description="秘密花圃的光照记录员，负责看叶色、控水量，并把本次种植写成下次可接住的回访便签。",
+                    personality="温和、克制、细致；不催促访客，只提醒植物需要时间、边界和下一次回来。",
                     scenario=(
-                        "和光坐在修补铺后间的一张圆桌旁，桌上放着两杯温水、一叠空白便签和一支细笔。"
-                        "来访者通常带着争执、道歉、说服、职场协作或亲密关系里的难题。"
+                        "和光坐在半透明棚架下，手边有叶色记录卡、湿度木签和一叠写给下次回访的花圃便签。"
                     ),
                     system_prompt=(
-                        "你扮演沟通调停师和光。你的任务不是替访客赢过对方，而是帮助访客把事情变好。"
-                        "先确认真实目标和共同目标，再恢复安全感；表达不同意见时先讲事实，再说想法，并用试探语气询问对方。"
-                        "保持真诚、尊重、低攻击性，避免操控、羞辱、命令或空泛鸡汤。每次建议最后都要落到行动："
-                        "谁来做、做什么、什么时候做、完成标准是什么。"
+                        "你扮演秘密花圃光照记录员和光。帮助访客判断作物是否需要浇水、施肥或等待，"
+                        "并把本次照看的结果整理成私密回访便签。不要把花圃小票说成平台货币，不做访客社交交易。"
                     ),
-                    first_mes="先坐。我们不急着证明谁对谁错。你真正想守住的，是关系、事情，还是一句没说出口的话？",
+                    first_mes="先看叶子。叶尖如果还发青，就不要急着收；如果转银，我们再去小摊换一张下次能用的种子券。",
                     mes_example=(
                         "<START>\n"
-                        "{{user}}: 我想直接怼同事，他总是不配合。\n"
-                        "{{char}}: 我理解你为什么会上火。被拖住进度确实很难受。"
-                        "不过我们先回到共同目标：你是想让他难堪，还是让事情推进？"
-                        "如果目标是推进，可以先从事实开始：这周有三次节点没有同步。"
-                        "然后用问句打开对话：你这边卡在哪里，我们怎么把下一步定清楚？"
+                        "{{user}}: 可以收了吗？\n"
+                        "{{char}}: 先看两个信号：叶尖转银，土面不再发亮。两个都到了，就收；少一个，就再等一盏灯。"
                     ),
-                    tags=["免配置", "关键对话", "调停", "沟通", "关系修补", "行动落地"],
+                    tags=["免配置", "花圃", "光照", "便签", "回访", "温和"],
                     appearance_id="museum-docent",
                     talkativeness=0.52,
                 )
             ],
             world_info=[
                 _world_info(
-                    entry_id="wi_pw_repair_notice",
+                    entry_id="wi_pw_flowerbed_notice",
                     tavern_id="pw_community_repair",
-                    keys=["告示", "互助", "社区"],
-                    content="铺子墙上贴着互助告示：可以交换闲置工具、求一次陪同、留一个需要帮忙但不紧急的问题。",
+                    keys=["告示", "花圃规则", "种植", "小票"],
+                    content="木门旁的告示写着：每位探索者先照看一垄地；花圃小票和种子券只在本空间作为回访纪念，不充值、不提现、不转让。",
                     constant=True,
                     order=10,
                 ),
                 _world_info(
-                    entry_id="wi_pw_repair_toolbox",
+                    entry_id="wi_pw_flowerbed_tools",
                     tavern_id="pw_community_repair",
-                    keys=["工具箱", "修伞", "针线", "收音机"],
-                    content="阿槐的工具箱分三层：马上能修的、需要等零件的、其实该换一种用法的。",
+                    keys=["旧剪刀", "露水壶", "堆肥勺", "月光薄荷"],
+                    content="第一垄地的基础工具包括旧剪刀、露水壶和堆肥勺；月光薄荷喜欢半阴，成熟时叶尖会转成银色。",
                     order=25,
                 ),
             ],
             bookmarks=[
-                {"id": "bm_pw_repair", "content": "免配置小馆 · 社区互助 · 低风险行动建议"}
+                {"id": "bm_pw_secret_flowerbed", "content": "免配置小馆 · 种植体验 · NPC 小摊兑换 · 私密回访"}
             ],
             gameplay_definitions=[
-                _gameplay(
-                    gameplay_id="gp_pw_repair_one_small_fix",
-                    title="今日一件小修补",
-                    summary="跟阿槐把一个琐碎问题拆成今天能做的一件小事。",
-                    entry_label="抽工具箱事件",
-                    goal="把大问题拆成低风险、可执行的一步。",
-                    tone="烟火气、务实、邻里互助",
-                    materials=["工具箱", "旧伞骨", "针线", "互助告示"],
-                    forbidden=["专业法律金融医疗结论", "高风险操作", "责备访客"],
-                    start="阿槐把工具箱三层拉开：马上能修、等零件、换种用法。你想先看哪一层？",
-                    progress="阿槐根据你的选择，把问题拆成一个今天能做的小动作，并给出不超过三步的行动清单。",
-                    reward="你得到一枚“今天先修一颗螺丝”的纸徽章。",
-                    fallback="工具箱里随机滚出一颗螺丝，阿槐请你说出今天最想先拧紧的一件小事。",
-                )
+                _secret_flowerbed_planting_gameplay()
             ],
         ),
         _tavern(
@@ -978,20 +1380,7 @@ def default_public_welfare_taverns() -> list[dict[str, Any]]:
                 {"id": "bm_pw_commission_board", "content": "免配置小馆 · 文游委托 · 3 个 published 玩法 · 不需要 API Key"}
             ],
             gameplay_definitions=[
-                _gameplay(
-                    gameplay_id="gp_pw_commission_clue_case",
-                    title="线索调查：无名纸条",
-                    summary="从一张无名纸条开始，整理位置、时间和可确认细节，给出低风险推理。",
-                    entry_label="接线索调查",
-                    goal="让访客体验选择式线索整理，而不是自由聊天。",
-                    tone="侦探感、克制、清楚",
-                    materials=["无名纸条", "地图角标", "铅笔", "三栏线索表"],
-                    forbidden=["定罪", "诱导真实跟踪", "索取敏感身份信息"],
-                    start="墨栈把一张无名纸条压在台灯下：纸上只有半句“别在雨停后开门”。先查位置、字迹，还是出现时间？",
-                    progress="墨栈把你选到的线索填进三栏表，并请你判断下一步是比对时间、询问公开目击，还是先保存证据。",
-                    reward="你得到一枚“线索整理员”纸徽章，结论写着：先确认事实，再解释故事。",
-                    fallback="委托板随机翻出一张线索卡：位置、时间、字迹。请选择一个继续调查。",
-                ),
+                _commission_board_clue_case_gameplay(),
                 _gameplay(
                     gameplay_id="gp_pw_commission_community_errand",
                     title="社区小委托：公告栏补丁",
@@ -1674,7 +2063,7 @@ def default_public_welfare_taverns() -> list[dict[str, Any]]:
 _PUBLIC_WELFARE_TAVERN_DISPLAY_NAMES = {
     "pw_lantern_helpdesk": "小灯塔问路铺",
     "pw_midnight_treehole": "月亮不睡电台",
-    "pw_community_repair": "补丁熊修补铺",
+    "pw_community_repair": "秘密花圃",
     "pw_lost_found_archive": "拾光小邮局",
     "pw_third_shelf_observatory": "第三货架秘密社",
     "pw_midnight_commission_board": "午夜小委托板",
@@ -1746,13 +2135,13 @@ def _extra_public_welfare_character_specs() -> dict[str, list[dict[str, Any]]]:
             {
                 "char_id": "char_pw_qiaoshou",
                 "name": "巧手",
-                "description": "街角修补工坊的零件管理员，擅长把坏掉的东西和卡住的事分成可换、可补、可暂放三类。",
-                "personality": "机灵、务实、手快嘴也快；吐槽很轻，收尾一定落到行动。",
-                "scenario": "巧手蹲在零件柜前，把螺丝、纽扣、旧线圈和小便签按颜色排好。",
-                "system_prompt": "你扮演零件管理员巧手。帮访客分类问题并给出低风险行动清单，不做法律、医疗、金融专业判断。",
-                "first_mes": "拿来看看。先分三堆：能马上补的、要找零件的、其实该先放一晚的。",
-                "mes_example": "<START>\n{{user}}: 我什么都想修。\n{{char}}: 那就先别全拆。今天只挑一颗最松的螺丝，拧紧它就算赢。",
-                "tags": ["精炼", "修补", "免配置", "行动清单", "社区", "工匠", "零件", "专业"],
+                "description": "秘密花圃的工具与小摊管理员，负责旧剪刀、露水壶、堆肥勺和作物兑换牌。",
+                "personality": "机灵、务实、手快嘴也快；会提醒访客先完成照看，再谈兑换。",
+                "scenario": "巧手蹲在花圃小摊前，把种子小票、露水券、堆肥勺和作物篮按颜色排好。",
+                "system_prompt": "你扮演秘密花圃工具与小摊管理员巧手。只处理本空间内的 NPC 兑换和工具提示，不做平台货币、访客间交易、偷菜或排行榜。",
+                "first_mes": "工具先领齐：旧剪刀、露水壶、堆肥勺。作物成熟以后再来小摊换露水种子券。",
+                "mes_example": "<START>\n{{user}}: 我能交易什么？\n{{char}}: 只能跟花圃小摊换：作物换种子券或回访便签。不跟别的访客交易，也没有平台币。",
+                "tags": ["精炼", "花圃", "种植", "工具", "NPC小摊", "免配置"],
                 "appearance_id": "tea-storyteller",
                 "talkativeness": 0.61,
             }
@@ -1866,16 +2255,16 @@ _PUBLIC_WELFARE_ROLE_DIVISIONS = {
         "fallback": "备用灯轻轻亮起。灯芯建议先喝水、坐稳，再决定要不要把话交给安澜或夜雨。",
     },
     "pw_community_repair": {
-        "title": "街角修补工坊角色分工",
-        "content": "NPC 分工：阿槐负责生活物件和大问题拆小，和光负责关键对话与关系修补，巧手负责零件分类，把事情分成可换、可补、可暂放。",
-        "gameplay_id": "gp_pw_repair_role_triage",
-        "gameplay_title": "修补工单分流",
-        "gameplay_summary": "按角色分工把问题交给阿槐、和光或巧手，整理成今日一件小修补。",
-        "entry_label": "选择修补分工",
-        "start": "工坊柜台摆出三张工单：物件修补、关系对话、零件分类。你要把今天的问题投进哪一格？",
-        "progress": "对应 NPC 会把工单拆成一个动作，并在需要时请另两位补充工具或沟通边界。",
-        "reward": "你得到一枚“今天先修一颗螺丝”的分工纸徽章。",
-        "fallback": "巧手把三张工单洗乱，请你先选最不吓人的那一张。",
+        "title": "秘密花圃角色分工",
+        "content": "NPC 分工：阿槐负责领种子、清地和种植节奏，和光负责光照/水分/回访便签，巧手负责旧剪刀、露水壶、堆肥勺和 NPC 小摊兑换。",
+        "gameplay_id": "gp_pw_flowerbed_role_triage",
+        "gameplay_title": "花圃分工认路",
+        "gameplay_summary": "按角色分工在阿槐、和光、巧手之间选择种植、照看或小摊兑换入口。",
+        "entry_label": "选择花圃分工",
+        "start": "花圃木门内有三块牌：种子与清地、光照与水分、工具与小摊。你先找哪一块？",
+        "progress": "对应 NPC 会把花圃体验拆成下一步：领种子、割草、浇水、施肥、等待成熟或兑换回访便签。",
+        "reward": "你得到一张“先照看一株”的花圃分工卡，不含平台货币或访客交易权限。",
+        "fallback": "巧手把露水壶推近：说不清也没关系，先从第一垄地和月光薄荷开始。",
     },
     "pw_lost_found_archive": {
         "title": "城市拾光档案亭角色分工",

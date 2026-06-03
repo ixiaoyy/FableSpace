@@ -1,0 +1,56 @@
+{
+  "id": "p0-tavern-first-minute-playable-entry",
+  "name": "p0-tavern-first-minute-playable-entry",
+  "title": "P0 tavern first-minute playable entry",
+  "description": "Make /tavern/:id first screen a playable doorway: how to play, host NPC, quick actions, then chat.",
+  "status": "completed",
+  "dev_type": "frontend",
+  "scope": "tavern-first-minute-entry",
+  "package": null,
+  "priority": "P0",
+  "creator": "lijin",
+  "assignee": "lijin",
+  "createdAt": "2026-06-03",
+  "completedAt": "2026-06-03",
+  "branch": null,
+  "base_branch": "main",
+  "worktree_path": null,
+  "current_phase": 0,
+  "next_action": [
+    {
+      "phase": 1,
+      "action": "brainstorm"
+    },
+    {
+      "phase": 2,
+      "action": "research"
+    },
+    {
+      "phase": 3,
+      "action": "implement"
+    },
+    {
+      "phase": 4,
+      "action": "check"
+    },
+    {
+      "phase": 5,
+      "action": "update-spec"
+    },
+    {
+      "phase": 6,
+      "action": "record-session"
+    }
+  ],
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [],
+  "parent": null,
+  "relatedFiles": [
+    "frontend/app/lib/tavern-first-minute.ts",
+    "frontend/app/features/tavern-chat-workbench/index.tsx"
+  ],
+  "notes": "Implemented playable first-minute doorway for /tavern/:id: guide now derives hostRole/playObjective/startLabel/quickActions; workbench renders data-first-minute-play-entry with how-to-play, host NPC, three quick actions, and CTA. Quick actions only prefill composer and do not call /chat. Validation: npm --prefix .\\frontend run build passed; npm --prefix .\\frontend run typecheck passed; Playwright mocked /tavern/demo desktop+mobile passed with screenshots under artifacts/validation/p0-tavern-first-minute-playable-entry-2026-06-03.",
+  "meta": {}
+}

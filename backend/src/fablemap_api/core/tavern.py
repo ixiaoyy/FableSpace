@@ -1130,6 +1130,30 @@ class TavernStore:
         return changed
 
     @staticmethod
+    def _deprecated_public_welfare_seed_item_ids(tavern_id: str, key: str) -> set[str]:
+        """Return stale built-in seed item ids that should be removed on refresh.
+
+        This is intentionally tavern-specific and only applies to system-owned
+        public-welfare records. It lets a renamed/repositioned built-in space
+        stop exposing old gameplay/world-info entries without deleting unknown
+        locally-added items from other taverns.
+        """
+        deprecated_by_tavern_and_key = {
+            ("pw_community_repair", "world_info"): {
+                "wi_pw_repair_notice",
+                "wi_pw_repair_toolbox",
+            },
+            ("pw_community_repair", "bookmarks"): {
+                "bm_pw_repair",
+            },
+            ("pw_community_repair", "gameplay_definitions"): {
+                "gp_pw_repair_one_small_fix",
+                "gp_pw_repair_role_triage",
+            },
+        }
+        return set(deprecated_by_tavern_and_key.get((tavern_id, key), set()))
+
+    @staticmethod
     def _refresh_public_welfare_seed_items(existing: dict[str, Any], default: dict[str, Any], key: str) -> bool:
         default_items = default.get(key)
         existing_items = existing.get(key)
@@ -1137,6 +1161,22 @@ class TavernStore:
             return False
 
         changed = False
+        tavern_id = str(existing.get("id") or default.get("id") or "").strip()
+        deprecated_ids = TavernStore._deprecated_public_welfare_seed_item_ids(tavern_id, key)
+        if deprecated_ids:
+            filtered_items = [
+                item
+                for item in existing_items
+                if not (
+                    isinstance(item, dict)
+                    and str(item.get("id") or "").strip() in deprecated_ids
+                )
+            ]
+            if len(filtered_items) != len(existing_items):
+                existing[key] = filtered_items
+                existing_items = filtered_items
+                changed = True
+
         default_by_id = {
             str(item.get("id") or "").strip(): item
             for item in default_items
