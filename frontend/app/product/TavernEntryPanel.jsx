@@ -4,6 +4,7 @@ import { DEFAULT_NPC_PREVIEW_PORTRAIT } from '../features/tavern-npc-stage/portr
 import { enterTavern, getTavern } from '../lib/taverns'
 import { buildShortDramaTeaser } from '../lib/short-drama-teasers.js'
 import { inferTavernPlayMode, getTavernPlayBadges } from './tavernPlayModes'
+import { buildTavernArrivalScene } from './sceneSettingProse'
 
 function characterAvatarUrl(character = {}) {
   const sprites = character.sprites || {}
@@ -93,6 +94,7 @@ export default function TavernEntryPanel({
   const playMode = inferTavernPlayMode(tavern)
   const playBadges = getTavernPlayBadges(tavern)
   const shortDramaTeaser = buildShortDramaTeaser(tavern)
+  const arrivalScene = buildTavernArrivalScene(tavern, playMode)
 
   return (
     <div className="panel tavern-entry-panel slide-up">
@@ -111,6 +113,18 @@ export default function TavernEntryPanel({
 
       <section className="tavern-entry-content">
         <p className="tavern-description">{tavern.description || '这里似乎是一个神秘的去处，没有任何公开的描述。'}</p>
+
+        {arrivalScene ? (
+          <div className="tavern-entry-arrival-scene" aria-label="入场前场景提示">
+            <span>{arrivalScene.kicker}</span>
+            <strong>{arrivalScene.title}</strong>
+            <p>{arrivalScene.text}</p>
+            <div className="tavern-entry-arrival-scene__cue">
+              {arrivalScene.anchor ? <small>{arrivalScene.anchor}</small> : null}
+              <em>{arrivalScene.action}</em>
+            </div>
+          </div>
+        ) : null}
 
         <div className="tavern-entry-play-card">
           <div className="tavern-entry-play-card__main">

@@ -1,0 +1,41 @@
+{
+  "id": "06-04-scene-setting-prose-mvp",
+  "name": "06-04-scene-setting-prose-mvp",
+  "title": "Scene-setting prose and opening reader MVP",
+  "description": "Implement a frontend-only MVP that helps visitors understand where they are, what is happening, and how to reply when entering a tavern or starting an NPC chat.",
+  "status": "completed",
+  "dev_type": "frontend",
+  "scope": "tavern-entry-chat-ux",
+  "package": "frontend",
+  "priority": "P1",
+  "creator": "lijin",
+  "assignee": "lijin",
+  "createdAt": "2026-06-04",
+  "branch": null,
+  "base_branch": "main",
+  "worktree_path": null,
+  "current_phase": 5,
+  "next_action": [
+    "Review visual screenshots with user/product owner.",
+    "If accepted, consider a follow-up owner-authored scene_digest contract instead of platform-authored summaries.",
+    "If long multi-NPC openings remain noisy, create a separate task to collapse non-selected NPC openers."
+  ],
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [],
+  "parent": "06-04-sillytavern-entry-experience-brainstorm",
+  "relatedFiles": [
+    "prd.md",
+    ".trellis/tasks/06-04-sillytavern-entry-experience-brainstorm/brainstorm.md",
+    "frontend/app/features/tavern-chat-workbench/index.tsx",
+    "frontend/app/product/sceneSettingProse.js",
+    "frontend/app/product/OpeningSceneReader.jsx",
+    "frontend/app/product/TavernEntryPanel.jsx",
+    "frontend/app/product/TavernChatRoom.jsx",
+    "frontend/app/product/styles.css",
+    "frontend/app/lib/tavern-first-minute.ts"
+  ],
+  "notes": "Implemented frontend-only scene-setting prose MVP across native TavernChatWorkbench and legacy product entry/chat panels. Follow-up polish changed starter chips to fill the composer for user editing instead of auto-sending and added visible no-auto-send draft notes. Validation passed: typecheck, build, Playwright visual acceptance, and native starter behavior check with no chat POST. react-doctor was attempted but blocked because npx download/execute escalation was rejected by auto_review.",
+  "updated_at": "2026-06-04"
+}

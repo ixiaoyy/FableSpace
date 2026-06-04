@@ -9,6 +9,8 @@ import GameplaySessionPanel from './GameplaySessionPanel'
 import OrphanEchoGameplayPanel from './OrphanEchoGameplayPanel'
 import StateCardReviewPanel from './StateCardReviewPanel'
 import GardenFarmPanel from './GardenFarmPanel'
+import OpeningSceneReader from './OpeningSceneReader'
+import { getRoleplayStarterPrompts } from './sceneSettingProse'
 import {
   buildFarmActionPrompt,
   buildFarmActionPromptExtended,
@@ -589,10 +591,45 @@ function ChatMessage({ message, character, sprites, visitorNickname, voiceConfig
 // Chat Input Area
 // ─────────────────────────────────────────
 
-function ChatInputArea({ onSend, sending, character, placeholder, voiceConfig, tavernId, quickPrompts = [] }) {
+function ChatInputArea({
+  onSend,
+  sending,
+  character,
+  placeholder,
+  voiceConfig,
+  tavernId,
+  quickPrompts = [],
+  preparedDraft = null,
+  onPreparedDraftConsumed,
+}) {
   const [text, setText] = useState('')
   const [recording, setRecording] = useState(false)
   const textareaRef = useRef(null)
+
+  /**
+   * Resizes and focuses the composer after a template is inserted.
+   * @returns {void} Only mutates the local textarea element.
+   */
+  function refreshTextareaLayout() {
+    setTimeout(() => {
+      if (!textareaRef.current) return
+      textareaRef.current.style.height = 'auto'
+      textareaRef.current.style.height = Math.min(textareaRef.current.scrollHeight, 150) + 'px'
+      textareaRef.current.focus()
+    }, 0)
+  }
+
+  /**
+   * Places a starter prompt into the composer for visitor editing.
+   * @param {string} prompt Visitor-side draft text; this never calls onSend.
+   * @returns {void} Updates only local input state and focus.
+   */
+  function preparePromptDraft(prompt) {
+    const nextText = String(prompt || '').trim()
+    if (!nextText || sending) return
+    setText(nextText)
+    refreshTextareaLayout()
+  }
 
   const handleSend = () => {
     if (!text.trim() || sending) return
@@ -613,6 +650,12 @@ function ChatInputArea({ onSend, sending, character, placeholder, voiceConfig, t
     e.target.style.height = 'auto'
     e.target.style.height = Math.min(e.target.scrollHeight, 150) + 'px'
   }
+
+  useEffect(() => {
+    if (!preparedDraft?.text) return
+    preparePromptDraft(preparedDraft.text)
+    onPreparedDraftConsumed?.(preparedDraft.id)
+  }, [preparedDraft?.id, preparedDraft?.text])
 
   // Speech-to-Text using Web Speech API or Backend STT
   const handleRecord = async () => {
@@ -717,14 +760,14 @@ function ChatInputArea({ onSend, sending, character, placeholder, voiceConfig, t
         <div className="chat-quick-actions" aria-label="快捷开始">
           <div className="chat-quick-actions__title">
             <strong>递一张小纸条</strong>
-            <span>不想打字太多，就从这里挑一句。</span>
+            <span>点一下先放进输入框，你可以改完再发送。</span>
           </div>
           <div className="chat-quick-actions__chips">
             {quickPrompts.slice(0, 5).map((prompt) => (
               <button
                 key={prompt}
                 type="button"
-                onClick={() => onSend(prompt)}
+                onClick={() => preparePromptDraft(prompt)}
                 disabled={sending}
               >
                 {prompt}
@@ -1085,6 +1128,7 @@ export default function TavernChatRoom({
   const [stateCards, setStateCards] = useState([])
   const [stateCardBusy, setStateCardBusy] = useState(false)
   const [stateCardError, setStateCardError] = useState('')
+  const [preparedInputDraft, setPreparedInputDraft] = useState(null)
   const messagesEndRef = useRef(null)
   const groupChatEnabled = Boolean(tavern?.group_chat_enabled && characters.length > 1)
   const groupChatConfig = tavern?.group_chat_config || {}
@@ -1106,6 +1150,14 @@ export default function TavernChatRoom({
   const [guildProgress, setGuildProgress] = useState(() => loadGuildProgress(roomId, visitorId))
   const [farmProgress, setFarmProgress] = useState(() => loadFarmProgress(roomId, visitorId))
   const quickPrompts = playMode.prompts || []
+  const hasVisitorSentMessage = useMemo(
+    () => messages.some((message) => message.role === 'user'),
+    [messages],
+  )
+  const roleplayStarterPrompts = useMemo(
+    () => getRoleplayStarterPrompts({ playMode, character: selectedChar, tavern }),
+    [playMode.id, playMode.label, playMode.summary, selectedChar?.id, tavern?.id, tavern?.scene_prompt],
+  )
   const miniGameTemplates = useMemo(
     () => getMiniGameTemplates({ playModeId: playMode.id, tavern, character: selectedChar }),
     [playMode.id, tavern, selectedChar],
@@ -1137,10 +1189,10 @@ export default function TavernChatRoom({
   }, [selectedChar?.id, selectedChar?.hobbies])
 
   const finalQuickPrompts = useMemo(() => {
-    // Combine playMode prompts with hobby icebreakers, limit total to 6
-    const combined = [...hobbyIcebreakers, ...quickPrompts]
-    return combined.slice(0, 6)
-  }, [hobbyIcebreakers, quickPrompts])
+    const firstTurnPrompts = hasVisitorSentMessage ? [] : roleplayStarterPrompts.map((starter) => starter.prompt)
+    const combined = [...firstTurnPrompts, ...hobbyIcebreakers, ...quickPrompts]
+    return Array.from(new Set(combined.map((prompt) => String(prompt || '').trim()).filter(Boolean))).slice(0, 6)
+  }, [hasVisitorSentMessage, roleplayStarterPrompts, hobbyIcebreakers, quickPrompts])
   const activeGameplayDefinition = useMemo(() => {
     if (!activeGameplaySession?.gameplay_id) return null
     return gameplays.find((gameplay) => gameplay?.id === activeGameplaySession.gameplay_id) || null
@@ -1668,6 +1720,20 @@ export default function TavernChatRoom({
     return savedProgress
   }
 
+  /**
+   * Queues an in-scene starter prompt for the composer without sending it.
+   * @param {string} prompt Visitor-side draft generated from roleplay starter templates.
+   * @returns {void} Updates transient UI state only; no API call or chat persistence.
+   */
+  function queuePreparedInputDraft(prompt) {
+    const nextText = String(prompt || '').trim()
+    if (!nextText || sending) return
+    setPreparedInputDraft({
+      id: `${Date.now()}-${nextText.slice(0, 12)}`,
+      text: nextText,
+    })
+  }
+
   function handleGuildAction(action, quest = null) {
     if (!guildEnabled || sending) return
 
@@ -1993,6 +2059,21 @@ export default function TavernChatRoom({
 
               {/* Messages */}
               <div className="chat-messages-area" data-entrance-reactions>
+                {!hasVisitorSentMessage ? (
+                  <OpeningSceneReader
+                    tavern={tavern}
+                    character={selectedChar}
+                    playMode={playMode}
+                    entryState={visitorMemoryState}
+                    starterPrompts={roleplayStarterPrompts}
+                    onStarterClick={queuePreparedInputDraft}
+                    sending={sending}
+                    fullOpenerVisible={visibleMessages.some((message) => (
+                      message.role === 'assistant' && message.character?.id === selectedChar?.id
+                    ))}
+                  />
+                ) : null}
+
                 {visibleMessages.length === 0 && (
                   <div className="chat-empty">
                     <div className="chat-empty__hero">
@@ -2067,6 +2148,12 @@ export default function TavernChatRoom({
                 voiceConfig={voiceConfig}
                 tavernId={roomId}
                 quickPrompts={finalQuickPrompts}
+                preparedDraft={preparedInputDraft}
+                onPreparedDraftConsumed={(draftId) => {
+                  setPreparedInputDraft((current) => (
+                    current?.id === draftId ? null : current
+                  ))
+                }}
               />
               <details className="tavern-mini-game-drawer">
                 <summary>桌边小玩法 · 不挡聊天输入</summary>

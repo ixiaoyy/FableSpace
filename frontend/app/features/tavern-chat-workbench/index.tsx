@@ -48,6 +48,108 @@ type GameplayDefinitionRecord = Record<string, any> & {
   status?: string
 }
 
+type RoleplayStarterPrompt = {
+  id: string
+  label: string
+  helper: string
+  prompt: string
+}
+
+const ROLEPLAY_STARTER_PROMPTS: RoleplayStarterPrompt[] = [
+  {
+    id: "outsider",
+    label: "失忆 / 外来者",
+    helper: "自然询问地点、处境和当前危机",
+    prompt: "*我揉了揉发痛的额角，环顾四周* 这里是哪里？刚刚发生了什么？",
+  },
+  {
+    id: "tension",
+    label: "突发危机",
+    helper: "快速让 NPC 推动下一幕",
+    prompt: "*我压低声音，拉住你的衣袖* 等等，周围好像不太对劲，我们接下来怎么办？",
+  },
+  {
+    id: "daily",
+    label: "日常闲聊",
+    helper: "适合陪伴、治愈、日常空间",
+    prompt: "*我在你身边坐下，放松地笑了笑* 你刚刚在想什么？接下来有什么安排？",
+  },
+  {
+    id: "quest",
+    label: "明确任务",
+    helper: "适合调查、委托、跑团式空间",
+    prompt: "*我检查好随身物品，认真看向你* 再确认一下，我们这次要完成什么目标？",
+  },
+]
+
+/**
+ * Compacts scene text for visitor UI without rewriting owner-authored content.
+ * Returns a short display string only; it has no persistence side effects.
+ */
+function compactSceneLine(value: unknown, fallback = "", maxLength = 72) {
+  const text = String(value ?? "").trim().replace(/\s+/g, " ") || fallback
+  return text.length > maxLength ? `${text.slice(0, maxLength)}…` : text
+}
+
+/**
+ * Builds opening-scene digest rows from existing tavern/NPC fields.
+ * The rows are UI scaffolding only and must not be treated as new canonical lore.
+ */
+function buildWorkbenchOpeningDigest(
+  tavern: Tavern,
+  character: TavernCharacter | undefined,
+  firstMinuteGuide: ReturnType<typeof buildTavernFirstMinuteGuide>,
+  visitorState: any,
+) {
+  const rows: { label: string; value: string }[] = []
+  const location = compactSceneLine(firstMinuteGuide.anchorLine || tavern.address || tavern.name, "", 54)
+  const mood = compactSceneLine(tavern.scene_prompt || tavern.description || firstMinuteGuide.experienceHelper, "", 76)
+  const npc = compactSceneLine(
+    [character?.name, character?.description || character?.personality].filter(Boolean).join(" · "),
+    "",
+    68,
+  )
+  const nextStep = compactSceneLine(firstMinuteGuide.tryThisFirst?.[0] || firstMinuteGuide.playObjective, "", 76)
+  const visitCount = Number.parseInt(String(visitorState?.visit_count || visitorState?.visitCount || ""), 10)
+
+  if (location) rows.push({ label: "地点", value: location })
+  if (mood) rows.push({ label: "氛围", value: mood })
+  if (npc) rows.push({ label: "眼前 NPC", value: npc })
+  if (Number.isFinite(visitCount) && visitCount > 1) {
+    rows.push({ label: "回访", value: `这是你第 ${visitCount} 次回来，可以继续上次的关系感。` })
+  }
+  if (nextStep) rows.push({ label: "下一步", value: nextStep })
+
+  return rows.slice(0, 5)
+}
+
+/**
+ * Sorts generic in-character starter prompts for the current tavern mode.
+ * These are visitor reply templates only; clicking one pre-fills text and does not auto-send.
+ */
+function getWorkbenchRoleplayStarters(tavern: Tavern, character: TavernCharacter | undefined, firstMinuteGuide: ReturnType<typeof buildTavernFirstMinuteGuide>) {
+  const searchText = [
+    tavern.layout_style,
+    tavern.place_type,
+    tavern.special_type,
+    tavern.description,
+    tavern.scene_prompt,
+    character?.scenario,
+    character?.tags?.join(" "),
+    firstMinuteGuide.experienceType,
+    firstMinuteGuide.playObjective,
+  ].filter(Boolean).join(" ").toLowerCase()
+  const priority = searchText.includes("quest") || searchText.includes("调查") || searchText.includes("委托") || searchText.includes("线索")
+    ? ["quest", "outsider", "tension", "daily"]
+    : searchText.includes("陪伴") || searchText.includes("日常") || searchText.includes("home")
+    ? ["daily", "outsider", "quest", "tension"]
+    : ["outsider", "tension", "daily", "quest"]
+
+  return priority
+    .map((id) => ROLEPLAY_STARTER_PROMPTS.find((prompt) => prompt.id === id))
+    .filter((prompt): prompt is RoleplayStarterPrompt => Boolean(prompt))
+}
+
 type TavernChatWorkbenchProps = {
   tavern: Tavern
   roleplay?: RoleplayState | null
@@ -315,6 +417,15 @@ export function TavernChatWorkbench({
   const visibleMessages = activeChatChannel === "public"
     ? publicMessages
     : privateMessagesByCharacterId[selectedCharacter?.id || ""] || []
+  const hasVisitorSentMessage = visibleMessages.some((line) => line.role === "user")
+  const openingDigestRows = useMemo(
+    () => buildWorkbenchOpeningDigest(tavern, selectedCharacter, firstMinuteGuide, visitorState),
+    [tavern, selectedCharacter, firstMinuteGuide, visitorState],
+  )
+  const roleplayStarterPrompts = useMemo(
+    () => getWorkbenchRoleplayStarters(tavern, selectedCharacter, firstMinuteGuide),
+    [tavern, selectedCharacter, firstMinuteGuide],
+  )
   const mentionMatches = useMemo(() => {
     if (mentionQuery === null) return []
     if (!mentionQuery) return characters
@@ -939,6 +1050,23 @@ export function TavernChatWorkbench({
                   </button>
                 ))}
               </div>
+              <div className="opening-scene-reader__starters mt-5 grid gap-2 sm:grid-cols-2" data-roleplay-starter-prompts>
+                <p className="sm:col-span-2 text-xs font-black uppercase tracking-[0.18em] text-amber-100/68">
+                  不知道怎么开口？选一个入戏回复
+                </p>
+                {roleplayStarterPrompts.map((starter) => (
+                  <button
+                    key={starter.id}
+                    type="button"
+                    data-roleplay-starter={starter.id}
+                    onClick={() => prepareDoorwayPrompt(starter.prompt)}
+                    className="min-h-16 rounded-2xl border border-amber-200/18 bg-amber-300/[0.075] px-4 py-3 text-left transition hover:border-amber-200/42 hover:bg-amber-300/[0.13] focus:outline-none focus:ring-4 focus:ring-amber-300/20"
+                  >
+                    <strong className="block text-sm font-black text-amber-50">{starter.label}</strong>
+                    <span className="mt-1 block text-xs font-bold leading-5 text-violet-100/58">{starter.helper}</span>
+                  </button>
+                ))}
+              </div>
               <Button type="button" data-doorway-start-chat className="mt-5 min-h-12 w-full" onClick={handleDoorwayStartChat}>
                 {doorwayGameplayDefinitions.length ? "先和 NPC 打招呼 →" : `${firstMinuteGuide.startLabel}，进入聊天准备 →`}
               </Button>
@@ -1105,6 +1233,71 @@ export function TavernChatWorkbench({
               aria-label="聊天记录"
               className="max-h-[min(52vh,34rem)] space-y-4 overflow-y-auto p-4 sm:p-5"
             >
+              {!hasVisitorSentMessage && !passwordLocked ? (
+                <section
+                  data-opening-scene-reader="chat"
+                  className="opening-scene-reader rounded-[1.65rem] border border-amber-200/20 bg-amber-200/[0.06] p-4 shadow-xl shadow-black/15"
+                >
+                  <div className="opening-scene-reader__header flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                    <div>
+                      <p className="text-xs font-black uppercase tracking-[0.18em] text-amber-100/68">开场阅读器</p>
+                      <h3 className="mt-1 text-xl font-black text-white">先读懂这一幕，再接续故事</h3>
+                      <p className="mt-2 text-sm leading-6 text-violet-50/68">
+                        酒馆聊天更像互动小说：先顺着场景写动作和台词，不要直接问 NPC“你会做什么”。
+                      </p>
+                    </div>
+                    <span className="opening-scene-reader__mode w-fit rounded-full border border-cyan-200/18 bg-cyan-300/10 px-3 py-1.5 text-xs font-black text-cyan-50">
+                      {firstMinuteGuide.experienceType}
+                    </span>
+                  </div>
+
+                  <p
+                    data-starter-draft-note
+                    className="opening-scene-reader__draft-note rounded-2xl border border-amber-200/16 bg-amber-300/[0.07] px-3 py-2 text-xs font-bold leading-5 text-amber-50/78"
+                  >
+                    点击下面模板只会填入输入框，不会自动发送；你可以改完再按“发送”。
+                  </p>
+
+                  <div className="opening-scene-reader__starters grid gap-2 sm:grid-cols-2" data-roleplay-starter-prompts>
+                    {roleplayStarterPrompts.map((starter) => (
+                      <button
+                        key={starter.id}
+                        type="button"
+                        data-roleplay-starter={starter.id}
+                        onClick={() => prepareDoorwayPrompt(starter.prompt)}
+                        className="rounded-2xl border border-amber-200/18 bg-amber-300/[0.075] px-4 py-3 text-left transition hover:border-amber-200/42 hover:bg-amber-300/[0.13] focus:outline-none focus:ring-4 focus:ring-amber-300/20"
+                      >
+                        <strong className="block text-sm font-black text-amber-50">{starter.label}</strong>
+                        <span className="mt-1 block text-xs font-bold leading-5 text-violet-100/58">{starter.helper}</span>
+                      </button>
+                    ))}
+                  </div>
+
+                  <div className="opening-scene-reader__digest grid gap-2 sm:grid-cols-2">
+                    {openingDigestRows.map((row) => (
+                      <article key={row.label} className="rounded-2xl border border-white/10 bg-slate-950/28 p-3">
+                        <span className="block text-xs font-black text-amber-100/70">{row.label}</span>
+                        <p className="mt-1 text-sm leading-6 text-violet-50/78">{row.value}</p>
+                      </article>
+                    ))}
+                  </div>
+
+                  <div className="opening-scene-reader__reply-rule rounded-2xl border border-rose-200/16 bg-rose-300/10 p-3 text-sm leading-6">
+                    <strong className="text-rose-100">避免出戏：</strong>
+                    <span className="text-violet-50/72">
+                      把问题包进剧情里，例如 <code className="rounded bg-black/25 px-1 py-0.5 text-amber-100">*我环顾四周*</code> “这里发生了什么？”
+                    </span>
+                  </div>
+
+                  {doorwayGreeting ? (
+                    <div className="opening-scene-reader__opener-note">
+                      <p className="rounded-2xl border border-white/10 bg-slate-950/28 p-3 text-sm leading-6 text-violet-50/78">
+                        {compactSceneLine(doorwayGreeting, "", 220)}
+                      </p>
+                    </div>
+                  ) : null}
+                </section>
+              ) : null}
               {visibleMessages.map((line, index) => {
                 const isUser = line.role === "user"
                 const targetName = characterNameById.get(line.character_id || "")

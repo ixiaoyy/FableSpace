@@ -1,0 +1,31 @@
+{
+  "id": "06-04-sillytavern-entry-experience-brainstorm",
+  "title": "Brainstorm: learn from SillyTavern-style entry and power-user experience",
+  "status": "in_progress",
+  "assignee": "lijin",
+  "priority": "P1",
+  "created_at": "2026-06-04",
+  "updated_at": "2026-06-04",
+  "description": "Use Trellis to capture a product brainstorm for FableMap entry/onboarding, newcomer roleplay literacy, scene-setting prose, long opening-scene reading, NPC-hosted first minute, character-card compatibility, and progressive power-user tooling inspired by SillyTavern and related public docs.",
+  "dev_type": "product-planning",
+  "scope": "brainstorm-research",
+  "package": null,
+  "base_branch": "main",
+  "branch": null,
+  "parent": null,
+  "children": [
+    "06-04-scene-setting-prose-mvp"
+  ],
+  "relatedFiles": [
+    "prd.md",
+    "brainstorm.md",
+    ".trellis/tasks/06-04-scene-setting-prose-mvp/"
+  ],
+  "next_action": [
+    "Review visual evidence from child task with product owner.",
+    "Decide whether owner-curated scene_digest / first_scene_opener fields are worth a separate Schema/API task.",
+    "Decide whether to collapse non-selected NPC long openers behind a visitor-controlled branch.",
+    "Keep future ideas constrained by real-coordinate anchoring, owner sovereignty, and SillyTavern-compatible data export."
+  ],
+  "notes": "Brainstorm plus first implementation child completed. Child 06-04-scene-setting-prose-mvp implemented frontend-only scene-setting prose, opening-scene reader, and in-character starter chips for native /tavern/:id plus legacy product panels; no Schema/API/database changes."
+}
