@@ -1612,12 +1612,12 @@ export function parseCharacterCard(card) {
 }
 
 /**
- * 从 PNG 文件提取 SillyTavern 角色卡
+ * 从 PNG 文件提取原始 SillyTavern 角色卡 JSON
  * 注意：此函数需要 FileReader API，在浏览器中运行
  * @param {File} file - PNG 文件
- * @returns {Promise<object>} 角色数据
+ * @returns {Promise<object>} 原始角色卡 JSON payload
  */
-export async function extractCharacterCardFromPng(file) {
+export async function extractCharacterCardPayloadFromPng(file) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader()
     reader.onload = (e) => {
@@ -1625,7 +1625,7 @@ export async function extractCharacterCardFromPng(file) {
         const buffer = e.target.result
         const cardData = _extractFromPngBuffer(buffer)
         if (cardData) {
-          resolve(parseCharacterCard(cardData))
+          resolve(cardData)
         } else {
           reject(new Error('PNG 中未找到角色卡数据'))
         }
@@ -1636,6 +1636,17 @@ export async function extractCharacterCardFromPng(file) {
     reader.onerror = () => reject(new Error('读取文件失败'))
     reader.readAsArrayBuffer(file)
   })
+}
+
+/**
+ * 从 PNG 文件提取并归一化 SillyTavern 角色卡
+ * 注意：此函数需要 FileReader API，在浏览器中运行
+ * @param {File} file - PNG 文件
+ * @returns {Promise<object>} FableMap 角色数据
+ */
+export async function extractCharacterCardFromPng(file) {
+  const cardData = await extractCharacterCardPayloadFromPng(file)
+  return parseCharacterCard(cardData)
 }
 
 /**

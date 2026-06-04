@@ -5,6 +5,7 @@ import { formatTavernAnchorLocation } from "../product/mapAnchorCopy.js"
 
 export type TavernFirstMinuteGuide = {
   anchorLine: string
+  sceneHint: string
   experienceType: string
   experienceHelper: string
   hostRole: string
@@ -23,16 +24,18 @@ export type TavernFirstMinuteAction = {
 }
 
 const EXPERIENCE_BY_PLACE_TYPE: Record<string, { label: string; helper: string }> = {
-  cafe: { label: "安静陪伴", helper: "适合从气味、座位、店员和回访记忆开始聊。" },
-  "milk-tea-shop": { label: "轻快打卡", helper: "适合校园、甜味、今日推荐和街角小事件。" },
-  restaurant: { label: "主厨故事", helper: "适合从菜单、纪念日、熟客和厨房传闻进入。" },
-  "convenience-store": { label: "夜班街角", helper: "适合从夜班、避雨、货架和路过的人开始。" },
-  bookstore: { label: "旧书资料馆", helper: "适合从书架、纸页气味、隐藏便签和低声交谈进入。" },
-  school: { label: "校园旧事", helper: "适合从门卫、铃声、校门口记忆和安全边界进入。" },
-  hospital: { label: "照护陪伴", helper: "适合温和陪伴与分诊便签；不替代现实医疗建议。" },
-  home: { label: "私域回访", helper: "适合熟人邀请、家庭物件和长期关系回访。" },
-  tavern: { label: "地点叙事", helper: "适合从门牌、吧台、驻场 NPC 和第一段传闻进入。" },
+  cafe: { label: "安静陪伴", helper: "气味 / 座位 / 店员" },
+  "milk-tea-shop": { label: "轻快打卡", helper: "甜味 / 今日推荐 / 街角小事" },
+  restaurant: { label: "主厨故事", helper: "菜单 / 熟客 / 厨房传闻" },
+  "convenience-store": { label: "夜班街角", helper: "夜班 / 避雨 / 货架" },
+  bookstore: { label: "旧书资料馆", helper: "书架 / 便签 / 低声交谈" },
+  school: { label: "校园旧事", helper: "校门 / 铃声 / 旧线索" },
+  hospital: { label: "照护陪伴", helper: "温和陪伴 / 分诊便签" },
+  home: { label: "私域回访", helper: "熟人邀请 / 家中物件" },
+  tavern: { label: "地点叙事", helper: "门牌 / NPC / 第一条传闻" },
 }
+
+const EXPLANATORY_SEED_COPY_PATTERN = /demo seed|AI 草稿|边界批准|默认示例空间|不代表平台|未经店主确认/i
 
 function compactText(value: unknown, fallback: string, maxLength = 46) {
   const text = typeof value === "string" ? value.trim().replace(/\s+/g, " ") : ""
@@ -93,7 +96,7 @@ function buildPlayableEntryCopy(placeId: string, experienceType: string, content
   }
   return {
     hostRole: "空间主持",
-    playObjective: "先确认这个空间为什么开在这里，再由 NPC 带你完成第一步互动。",
+    playObjective: "进门找驻场 NPC，拿第一条线索。",
     startLabel: "开始游玩",
   }
 }
@@ -145,15 +148,17 @@ export function buildTavernFirstMinuteGuide(tavern: Tavern): TavernFirstMinuteGu
   const isPlantingExperience = /花圃|菜园|种植|浇水|收获/.test(gameplaySearchText)
   const experienceType = isPlantingExperience ? "种植照看" : specialType?.shortLabel || specialType?.label || placeExperience.label
   const experienceHelper = isPlantingExperience
-    ? "适合从一垄地开始：领种子、清草、浇水、施肥、等待成熟、收获兑换。"
+    ? "领种子 / 清草 / 浇水 / 收获兑换"
     : specialType?.summary || placeExperience.helper
   const playableCopy = buildPlayableEntryCopy(
     String(placeType?.id || tavern.layout_style || "tavern"),
     experienceType,
     gameplaySearchText,
   )
-  const sceneHint = compactText(tavern.scene_prompt, tavern.description || placeType?.tone || "店主还没有写下地点线索", 52)
-  const whyHere = `${anchor.label}把入口带到 ${anchorShort}；进门先留意「${sceneHint}」，再让 NPC 带你看这处真实坐标的第一条线索。`
+  const scenePrompt = typeof tavern.scene_prompt === "string" ? tavern.scene_prompt : ""
+  const visitorSceneSource = EXPLANATORY_SEED_COPY_PATTERN.test(scenePrompt) ? tavern.description : tavern.scene_prompt
+  const sceneHint = compactText(visitorSceneSource, tavern.description || placeType?.tone || "门口的第一条线索", 34)
+  const whyHere = `${anchor.label} · ${anchorShort} · 进门先看「${sceneHint}」。`
   const characterName = leadCharacter?.name?.trim() || "驻场 NPC"
   const placeLabel = placeType?.shortLabel || placeType?.label || "空间"
   const tryThisFirst = uniqueList([
@@ -161,13 +166,14 @@ export function buildTavernFirstMinuteGuide(tavern: Tavern): TavernFirstMinuteGu
     characters.length
       ? `问 ${characterName}：你和这个${placeLabel}有什么关系？`
       : `先问：这个${placeLabel}第一眼最值得注意的是什么？`,
-    tavern.scene_prompt
-      ? `请带我看一眼这里：${compactText(tavern.scene_prompt, "从门口开始", 28)}`
+    visitorSceneSource
+      ? `请带我看一眼这里：${compactText(visitorSceneSource, "从门口开始", 28)}`
       : `今天进门，最适合先聊哪条线索？`,
   ])
 
   return {
     anchorLine: anchor.line,
+    sceneHint,
     experienceType,
     experienceHelper,
     hostRole: playableCopy.hostRole,
@@ -183,6 +189,7 @@ export function getTavernFirstMinuteSearchText(tavern: Tavern) {
   const guide = buildTavernFirstMinuteGuide(tavern)
   return [
     guide.anchorLine,
+    guide.sceneHint,
     guide.experienceType,
     guide.experienceHelper,
     guide.whyHere,

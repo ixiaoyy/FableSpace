@@ -3,12 +3,13 @@
  */
 
 import type { ClientLoaderFunctionArgs } from "react-router"
-import { ArrowRight, Coins, Compass, Gift, Home as HomeIcon, MapPinned, RefreshCcw, ShieldCheck, Ticket, UserRound } from "lucide-react"
-import { useEffect, useMemo, useState } from "react"
+import { ArrowRight, Clock3, Coins, Compass, DoorOpen, Gift, Home as HomeIcon, MapPinned, MessageCircle, PlayCircle, RefreshCcw, RotateCcw, ShieldCheck, Sparkles, Ticket, UserRound } from "lucide-react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { Link, useLoaderData } from "react-router"
 
 import { getVisitorEngagement, type VisitorEngagement } from "../lib/engagement"
-import { DEFAULT_VISITOR_ID, errorMessage, listTaverns, type Tavern } from "../lib/taverns"
+import { formatTavernAnchorLocation } from "../product/mapAnchorCopy.js"
+import { DEFAULT_VISITOR_ID, errorMessage, listMemories, listTaverns, type MemoryAtom, type Tavern } from "../lib/taverns"
 import { ProductShell } from "../shell/product-shell"
 import { Button } from "../ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card"
@@ -37,6 +38,294 @@ function buildHomePlaceHref(ownerId: string) {
 type VisitorEngagementRow = {
   tavern: Tavern
   progress: VisitorEngagement
+}
+
+type ReturnVisitMode = "continue" | "restart" | "trial"
+
+type ReturnVisitRow = {
+  tavern: Tavern
+  memory: MemoryAtom | null
+  memoryCount: number
+}
+
+/**
+ * Keeps visitor-facing home copy compact without changing owner-authored text.
+ * @param value Source text from tavern or visitor-private memory data.
+ * @param fallback Text to show when the source is empty.
+ * @param maxLength Maximum visible characters before truncation.
+ * @returns A short display string; has no persistence side effects.
+ */
+function compactHomeLine(value: unknown, fallback: string, maxLength = 54) {
+  const text = String(value ?? "").trim().replace(/\s+/g, " ") || fallback
+  return text.length > maxLength ? `${text.slice(0, maxLength)}…` : text
+}
+
+/**
+ * Formats a revisit timestamp for a small card chip.
+ * @param value ISO-like timestamp from visitor state or memory data.
+ * @returns A zh-CN date/time label, or a safe fallback when unavailable.
+ */
+function formatRevisitTime(value: unknown) {
+  const date = new Date(String(value || ""))
+  if (!Number.isFinite(date.getTime())) return "等你回来"
+  return date.toLocaleString("zh-CN", {
+    month: "numeric",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  })
+}
+
+/**
+ * Reads a visitor relationship label from the existing visitor-state payload.
+ * @param tavern Tavern entry that may include visitor_state from the current API response.
+ * @returns A compact relationship stage label; no private data is queried here.
+ */
+function relationshipLabel(tavern: Tavern) {
+  const relationship = tavern.visitor_state?.relationship as Record<string, unknown> | null | undefined
+  return String(relationship?.stage_label_zh || relationship?.stage || "关系待续")
+}
+
+/**
+ * Builds a deterministic temporary visitor id for trial mode.
+ * @param tavernId Target tavern id.
+ * @param visitorId Current visitor id used only as a local namespace.
+ * @returns A separate visitor id so trial chat does not write to the current revisit identity.
+ */
+function buildTrialVisitorId(tavernId: string, visitorId: string) {
+  const cleanTavern = tavernId.replace(/[^a-zA-Z0-9_-]/g, "_").slice(0, 42)
+  const cleanVisitor = visitorId.replace(/[^a-zA-Z0-9_-]/g, "_").slice(0, 42)
+  return `trial_${cleanVisitor}_${cleanTavern}`
+}
+
+/**
+ * Builds explicit revisit links for the tavern route.
+ * @param tavernId Target tavern id.
+ * @param visitorId Current visitor id.
+ * @param mode Continue, restart, or temporary trial mode.
+ * @returns A route href; it does not call APIs or mutate state.
+ */
+function buildReturnVisitHref(tavernId: string, visitorId: string, mode: ReturnVisitMode) {
+  const params = new URLSearchParams()
+  params.set("visitor_id", mode === "trial" ? buildTrialVisitorId(tavernId, visitorId) : visitorId)
+  params.set("revisit", mode)
+  if (mode === "trial") params.set("memory_mode", "trial")
+  return `/tavern/${encodeURIComponent(tavernId)}?${params.toString()}`
+}
+
+/**
+ * Creates one private revisit cue from visitor-owned memory when available.
+ * @param row Tavern plus the current visitor's latest readable memory.
+ * @returns Safe card copy scoped to the current visitor id.
+ */
+function buildReturnVisitCue(row: ReturnVisitRow) {
+  if (row.memory?.content) return compactHomeLine(row.memory.content, "上次的线索还在。", 70)
+  const visitCount = Number(row.tavern.visitor_state?.visit_count || 0)
+  if (visitCount > 1) return `这是你第 ${visitCount} 次回来，可以接住上次的关系感。`
+  return compactHomeLine(row.tavern.description, "从门口重新进入，让 NPC 接住第一条线索。", 70)
+}
+
+/**
+ * Shows current-visitor return entry cards on the personal center.
+ * @param viewerId Visitor id from route query; falls back to the local anonymous visitor id.
+ * @returns A visitor-scoped panel; it only reads tavern/memory data and never writes visit history.
+ */
+function ReturnVisitSurfacePanel({ viewerId }: { viewerId: string }) {
+  const visitorId = viewerId || DEFAULT_VISITOR_ID
+  const visitorLabel = compactHomeLine(visitorId, "旅人", 18)
+  const [rows, setRows] = useState<ReturnVisitRow[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState("")
+  const loadTokenRef = useRef(0)
+
+  /**
+   * Loads public tavern entries first, then hydrates visitor memory cues in the background.
+   * @returns void; updates local component state and never calls enter/chat/write APIs.
+   */
+  async function loadReturnVisits() {
+    const loadToken = loadTokenRef.current + 1
+    loadTokenRef.current = loadToken
+    setLoading(true)
+    setError("")
+    try {
+      const list = await listTaverns({ limit: 12, offset: 0, visitor_id: visitorId })
+      const taverns = Array.isArray(list.taverns) ? list.taverns : []
+      const baseRows: ReturnVisitRow[] = taverns.map((tavern) => ({ tavern, memory: null, memoryCount: 0 }))
+      if (loadTokenRef.current !== loadToken) return
+      setRows(baseRows)
+      setLoading(false)
+
+      const memoryResults = await Promise.allSettled(
+        baseRows.map(async (row) => {
+          const memories = await listMemories(row.tavern.id, { visitor_id: visitorId, visibility: "visitor", limit: 1 }, visitorId)
+          const memoryList = Array.isArray(memories.memories) ? memories.memories : []
+          return {
+            tavernId: row.tavern.id,
+            memory: memoryList[0] || null,
+            memoryCount: Number(memories.total ?? memories.count ?? memoryList.length ?? 0),
+          }
+        }),
+      )
+      if (loadTokenRef.current !== loadToken) return
+      const memoryByTavern = new Map(
+        memoryResults.flatMap((result) => result.status === "fulfilled" ? [[result.value.tavernId, result.value]] : []),
+      )
+      setRows((currentRows) => currentRows.map((row) => {
+        const memoryPatch = memoryByTavern.get(row.tavern.id)
+        return memoryPatch
+          ? { ...row, memory: memoryPatch.memory, memoryCount: memoryPatch.memoryCount }
+          : row
+      }))
+    } catch (err) {
+      if (loadTokenRef.current !== loadToken) return
+      setError(errorMessage(err))
+      setRows([])
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    void loadReturnVisits()
+    return () => {
+      loadTokenRef.current += 1
+    }
+  }, [visitorId])
+
+  const sortedRows = useMemo(() => [...rows]
+    .sort((a, b) => {
+      const memoryDiff = Number(b.memoryCount > 0) - Number(a.memoryCount > 0)
+      if (memoryDiff !== 0) return memoryDiff
+      const visitDiff = Number(b.tavern.visitor_state?.visit_count || 0) - Number(a.tavern.visitor_state?.visit_count || 0)
+      if (visitDiff !== 0) return visitDiff
+      return Number(b.tavern.visit_count || 0) - Number(a.tavern.visit_count || 0)
+    })
+    .slice(0, 4), [rows])
+
+  const memorySpaces = rows.filter((row) => row.memoryCount > 0).length
+  const returningSpaces = rows.filter((row) => Number(row.tavern.visitor_state?.visit_count || 0) > 1).length
+
+  return (
+    <Card data-return-visit-surface className="border-cyan-300/18 bg-cyan-300/8">
+      <CardHeader>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <CardTitle className="flex items-center gap-2">
+              <Sparkles className="h-5 w-5 text-cyan-200" />
+              继续你的私密回访
+            </CardTitle>
+            <CardDescription className="mt-2">
+              当前访客可见的空间、记忆与继续入口。
+            </CardDescription>
+          </div>
+          <Button type="button" variant="secondary" onClick={() => void loadReturnVisits()} disabled={loading}>
+            <RefreshCcw className="h-4 w-4" />
+            刷新
+          </Button>
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="grid gap-3 sm:grid-cols-3">
+          <div className="rounded-2xl border border-cyan-300/22 bg-cyan-300/10 p-4">
+            <p className="text-xs font-black uppercase tracking-[0.16em] text-cyan-100/72">可回访空间</p>
+            <p className="mt-2 text-3xl font-black text-cyan-100">{rows.length}</p>
+            <p className="mt-1 text-xs text-cyan-100/60">可进入</p>
+          </div>
+          <div className="rounded-2xl border border-lime-300/22 bg-lime-300/10 p-4">
+            <p className="text-xs font-black uppercase tracking-[0.16em] text-lime-100/72">记忆线索</p>
+            <p className="mt-2 text-3xl font-black text-lime-100">{memorySpaces}</p>
+            <p className="mt-1 text-xs text-lime-100/60">私密</p>
+          </div>
+          <div className="rounded-2xl border border-violet-300/22 bg-violet-300/10 p-4">
+            <p className="text-xs font-black uppercase tracking-[0.16em] text-violet-100/72">回访身份</p>
+            <p className="mt-2 truncate text-lg font-black text-violet-50">{visitorLabel}</p>
+            <p className="mt-1 text-xs text-violet-100/60">{returningSpaces ? `${returningSpaces} 个关系待续` : "新访客"}</p>
+          </div>
+        </div>
+
+        {error ? (
+          <div className="rounded-2xl border border-red-400/25 bg-red-400/8 p-4 text-sm text-red-100">
+            回访入口暂不可用：{error}
+          </div>
+        ) : null}
+
+        {loading ? (
+          <p className="rounded-2xl border border-theme-border bg-theme-card p-4 text-sm text-theme-muted">正在同步你的回访入口…</p>
+        ) : sortedRows.length ? (
+          <div className="grid gap-3" data-return-visit-card-list data-return-visit-loaded>
+            {sortedRows.map((row) => {
+              const anchor = formatTavernAnchorLocation(row.tavern)
+              const lastTime = formatRevisitTime(row.memory?.updated_at || row.tavern.visitor_state?.last_visit)
+              const npcCount = Array.isArray(row.tavern.characters) ? row.tavern.characters.length : 0
+              return (
+                <article key={row.tavern.id} data-return-visit-card className="rounded-[1.6rem] border border-white/10 bg-slate-950/42 p-4">
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                    <div className="min-w-0">
+                      <div className="flex flex-wrap items-center gap-2 text-xs font-black">
+                        <span className="inline-flex items-center gap-1 rounded-full border border-cyan-200/18 bg-cyan-300/10 px-2.5 py-1 text-cyan-100">
+                          <MapPinned className="h-3.5 w-3.5" />
+                          {anchor.label}
+                        </span>
+                        <span className="inline-flex items-center gap-1 rounded-full border border-white/10 bg-white/[0.045] px-2.5 py-1 text-violet-100/70">
+                          <Clock3 className="h-3.5 w-3.5" />
+                          {lastTime}
+                        </span>
+                      </div>
+                      <h3 className="mt-3 truncate text-lg font-black text-theme-primary">{row.tavern.name || row.tavern.id}</h3>
+                      <p className="mt-1 truncate text-xs font-bold text-theme-muted">{anchor.line}</p>
+                    </div>
+                    <div className="flex shrink-0 gap-2 text-xs font-bold text-theme-muted">
+                      <span className="rounded-xl border border-theme-border bg-theme-card px-2.5 py-1">{npcCount} 位 NPC</span>
+                      <span className="rounded-xl border border-theme-border bg-theme-card px-2.5 py-1">{relationshipLabel(row.tavern)}</span>
+                    </div>
+                  </div>
+                  <p className="mt-3 rounded-2xl border border-theme-border bg-theme-card p-3 text-sm leading-6 text-violet-50/72">
+                    {buildReturnVisitCue(row)}
+                  </p>
+                  <div className="mt-3 grid gap-2 sm:grid-cols-3">
+                    <Button asChild className="min-h-12">
+                      <Link to={buildReturnVisitHref(row.tavern.id, visitorId, "continue")}>
+                        <PlayCircle className="h-4 w-4" />
+                        继续回访
+                      </Link>
+                    </Button>
+                    <Button asChild variant="secondary" className="min-h-12">
+                      <Link to={buildReturnVisitHref(row.tavern.id, visitorId, "restart")}>
+                        <RotateCcw className="h-4 w-4" />
+                        从入口重开
+                      </Link>
+                    </Button>
+                    <Button asChild variant="ghost" className="min-h-12">
+                      <Link to={buildReturnVisitHref(row.tavern.id, visitorId, "trial")}>
+                        <DoorOpen className="h-4 w-4" />
+                        临时试游
+                      </Link>
+                    </Button>
+                  </div>
+                </article>
+              )
+            })}
+          </div>
+        ) : (
+          <div data-return-visit-empty data-return-visit-loaded className="rounded-2xl border border-theme-border bg-theme-card p-4 text-sm leading-6 text-theme-muted">
+            还没有可回访空间。先去发现公开空间。
+            <Button asChild variant="secondary" className="mt-3 w-full justify-start">
+              <Link to="/discover">
+                <Compass className="h-4 w-4" />
+                去发现公开空间
+              </Link>
+            </Button>
+          </div>
+        )}
+
+        <div className="rounded-2xl border border-white/10 bg-white/[0.035] p-3 text-xs leading-5 text-theme-muted">
+          <p className="flex items-center gap-2 font-bold text-theme-primary">
+            <MessageCircle className="h-4 w-4 text-cyan-200" />
+            手动回访 · 不发通知 · 不公开记忆
+          </p>
+        </div>
+      </CardContent>
+    </Card>
+  )
 }
 
 function VisitorEngagementSummaryPanel({ viewerId }: { viewerId: string }) {
@@ -104,7 +393,7 @@ function VisitorEngagementSummaryPanel({ viewerId }: { viewerId: string }) {
               游客资产汇总
             </CardTitle>
             <CardDescription className="mt-2">
-              这里汇总你在不同空间获得的纪念币和礼物券，方便回访时查看。
+              纪念币和礼物券按当前访客汇总。
             </CardDescription>
           </div>
           <Button type="button" variant="secondary" onClick={() => void loadSummary()} disabled={loading}>
@@ -135,10 +424,10 @@ function VisitorEngagementSummaryPanel({ viewerId }: { viewerId: string }) {
         <div className="rounded-2xl border border-theme-border bg-theme-card p-4 text-sm leading-6 text-theme-muted">
           <p className="flex items-center gap-2 font-bold text-theme-primary">
             <Gift className="h-4 w-4 text-amber-300" />
-            为什么放在个人中心？
+            资产跟随当前访客
           </p>
           <p className="mt-2">
-            这类资产跟随游客身份汇总，用来查看你在不同坐标里的收获、已花费与券数量；具体送礼对象仍会回到对应 NPC / 空间确认。
+            送礼和兑换仍回到对应空间确认。
           </p>
         </div>
 
@@ -229,7 +518,7 @@ export default function HomeMePage() {
               你的回访与空间入口
             </h1>
             <p className="mt-4 max-w-2xl text-base leading-8 text-theme-muted">
-              这里汇总你作为游客的探索资产，也提供创建和管理空间的快捷入口。想聊天时，请从具体空间进入。
+              先接回你和空间 / NPC 的关系线，再查看资产或进入店主入口。想聊天时，请从具体空间继续。
             </p>
 
             <div className="mt-7 flex flex-col gap-3 sm:flex-row">
@@ -279,6 +568,8 @@ export default function HomeMePage() {
         </div>
 
         <aside className="space-y-5">
+          <ReturnVisitSurfacePanel viewerId={viewerId} />
+
           <VisitorEngagementSummaryPanel viewerId={viewerId} />
 
           <Card className="border-theme-accent-border bg-theme-accent-bg">

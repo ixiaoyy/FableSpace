@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react'
 import { Link } from 'react-router'
-import { parseCharacterCard, extractCharacterCardFromPng } from './services/tavernService'
+import { parseCharacterCard, extractCharacterCardPayloadFromPng } from './services/tavernService'
 import { buildAiDraftLifecycle } from '../lib/ai-draft-lifecycle.js'
 import {
   DIGITAL_HUMAN_DRAFT_FORBIDDEN,
@@ -8,7 +8,7 @@ import {
   DIGITAL_HUMAN_STUDIO_TYPE_ID,
 } from '../lib/digital-human-studio.js'
 import { deriveSpecialTavernTypeDisplay } from '../lib/special-tavern-types.js'
-import { addCharacter, deleteCharacter, generateCharacterDraft, importCharacterCard, listCharacters, updateCharacter } from '../lib/taverns'
+import { addCharacter, deleteCharacter, exportCharacterCard, generateCharacterDraft, importCharacterCard, listCharacters, updateCharacter } from '../lib/taverns'
 import CharacterEditor, { createEmptyCharacterDraft, normalizeCharacterPayload } from './CharacterEditor'
 import CharacterAvatar from './CharacterAvatar'
 import CharacterLookSummary from './CharacterLookSummary'
@@ -27,9 +27,15 @@ import {
   parseNpcBatchInput,
 } from './npcBatchImport'
 import {
+  analyzeCharacterPromptRisk,
   assertCharacterPromptRiskCanSave,
   formatPromptRiskBlockMessage,
 } from './characterPromptRiskLinter.js'
+import {
+  buildCharacterCardImportPayload,
+  buildCharacterCardImportTrustReport,
+  createCharacterCardExportFilename,
+} from './characterCardImportTrust.js'
 
 /**
  * CharacterManagementModal — 空间角色管理面板
@@ -63,7 +69,14 @@ export default function CharacterManagementModal({ tavern, ownerId, onClose, onC
   // 导入状态
   const [importing, setImporting] = useState(false)
   const [importError, setImportError] = useState('')
+  const [importStatus, setImportStatus] = useState('')
+  const [pendingImport, setPendingImport] = useState(null)
   const fileInputRef = useRef(null)
+
+  // 导出状态
+  const [exportingCharId, setExportingCharId] = useState('')
+  const [exportError, setExportError] = useState('')
+  const [exportStatus, setExportStatus] = useState('')
 
   // AI 草稿状态（只生成编辑器草稿，保存仍走 addCharacter）
   const [drafting, setDrafting] = useState(false)
@@ -96,12 +109,16 @@ export default function CharacterManagementModal({ tavern, ownerId, onClose, onC
 
   // 点击「添加角色」→ 切换到新建模式
   function handleAddNew() {
+    setPendingImport(null)
+    setImportStatus('')
     setEditingChar('new')
     setEditorDraft(createEmptyCharacterDraft())
     setEditorError('')
   }
 
   function handleAddFromPreset(preset) {
+    setPendingImport(null)
+    setImportStatus('')
     setEditingChar('new')
     setEditorDraft({
       ...createEmptyCharacterDraft(),
@@ -194,6 +211,8 @@ export default function CharacterManagementModal({ tavern, ownerId, onClose, onC
 
   // 点击角色列表中的「编辑」
   function handleEdit(char) {
+    setPendingImport(null)
+    setImportStatus('')
     setEditingChar(char)
     setEditorDraft({
       ...createEmptyCharacterDraft(),
@@ -253,25 +272,83 @@ export default function CharacterManagementModal({ tavern, ownerId, onClose, onC
     }
   }
 
-  // 导入 SillyTavern 角色卡（PNG 或 JSON）
+  /**
+   * 解析 SillyTavern 角色卡并生成待确认导入预览，不直接写入空间。
+   * @param {File} file - 店主选择的 JSON 或 PNG 角色卡文件。
+   * @returns {Promise<void>} 仅更新本地 pendingImport/importError 状态。
+   */
   async function handleFileImport(file) {
     if (!file) return
     setImporting(true)
     setImportError('')
+    setImportStatus('')
     try {
-      let cardData
-      if (file.name.endsWith('.png') || file.type === 'image/png') {
-        cardData = await extractCharacterCardFromPng(file)
+      let rawCard
+      const filename = file.name || 'character-card'
+      if (filename.toLowerCase().endsWith('.png') || file.type === 'image/png') {
+        rawCard = await extractCharacterCardPayloadFromPng(file)
       } else {
         const text = await file.text()
-        cardData = parseCharacterCard(JSON.parse(text))
+        rawCard = JSON.parse(text)
       }
-      assertCharacterPromptRiskCanSave(cardData)
-      const saved = await importCharacterCard(tavern.id, cardData, ownerId)
+      const cardData = parseCharacterCard(rawCard)
+      const riskReport = analyzeCharacterPromptRisk(cardData)
+      const compatibilityReport = buildCharacterCardImportTrustReport({
+        rawCard,
+        normalizedCard: cardData,
+        sourceName: filename,
+      })
+      setPendingImport({
+        cardData,
+        compatibilityReport,
+        importPayload: buildCharacterCardImportPayload(rawCard, cardData),
+        riskReport,
+        sourceName: filename,
+      })
+      setEditingChar(null)
+      setEditorDraft(null)
+      setEditorError('')
+    } catch (err) {
+      setPendingImport(null)
+      setImportError(`导入失败：${err.message}`)
+    } finally {
+      setImporting(false)
+    }
+  }
+
+  /**
+   * 清空待确认导入预览，让店主可以重新选择文件或改为手动创建。
+   * @returns {void} 仅更新本地导入相关状态。
+   */
+  function clearPendingImport() {
+    setPendingImport(null)
+    setImportError('')
+    setImportStatus('')
+  }
+
+  /**
+   * 在店主确认后保存待导入角色，并保留 prompt-risk 阻断作为最终门禁。
+   * @returns {Promise<void>} 成功时更新角色列表；失败时展示导入错误。
+   */
+  async function handleConfirmImport() {
+    if (!pendingImport) return
+    if (pendingImport.riskReport && !pendingImport.riskReport.canSave) {
+      setImportError(`导入被阻断：${formatPromptRiskBlockMessage(pendingImport.riskReport)}`)
+      return
+    }
+    setImporting(true)
+    setImportError('')
+    setImportStatus('')
+    try {
+      assertCharacterPromptRiskCanSave(pendingImport.cardData)
+      const saved = await importCharacterCard(tavern.id, pendingImport.importPayload, ownerId)
       const updated = [...characters, saved]
       setCharacters(updated)
       if (onCharactersChanged) onCharactersChanged(updated)
       setEditingChar(null)
+      setPendingImport(null)
+      const worldInfoCount = pendingImport.compatibilityReport?.counts?.worldInfo || 0
+      setImportStatus(`已导入「${saved.name || pendingImport.compatibilityReport?.characterName || '未命名角色'}」；${worldInfoCount > 0 ? `同时带入 ${worldInfoCount} 条世界书，请稍后核对。` : '未检测到随卡世界书。'}`)
     } catch (err) {
       if (err.report) {
         setImportError(`导入被阻断：${formatPromptRiskBlockMessage(err.report)}`)
@@ -289,15 +366,33 @@ export default function CharacterManagementModal({ tavern, ownerId, onClose, onC
     e.target.value = ''
   }
 
-  function handleImportJson() {
-    const input = document.createElement('input')
-    input.type = 'file'
-    input.accept = '.json,.png'
-    input.onchange = (e) => {
-      const file = e.target.files?.[0]
-      if (file) handleFileImport(file)
+  /**
+   * 导出已保存角色为 SillyTavern V2 JSON，并触发浏览器下载。
+   * @param {object} char - 当前空间内已保存的角色。
+   * @returns {Promise<void>} 副作用：创建临时 Blob URL 并点击下载链接。
+   */
+  async function handleExportCharacter(char) {
+    if (!char) return
+    setExportingCharId(char.id || char.name || 'character')
+    setExportError('')
+    setExportStatus('')
+    try {
+      const payload = await exportCharacterCard({ character: char, format: 'v2' }, ownerId)
+      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json;charset=utf-8' })
+      const url = URL.createObjectURL(blob)
+      const anchor = document.createElement('a')
+      anchor.href = url
+      anchor.download = createCharacterCardExportFilename(char)
+      document.body.appendChild(anchor)
+      anchor.click()
+      anchor.remove()
+      URL.revokeObjectURL(url)
+      setExportStatus(`已准备下载「${char.name || '未命名角色'}」的 SillyTavern JSON 角色卡。`)
+    } catch (err) {
+      setExportError(`导出失败：${err.message}`)
+    } finally {
+      setExportingCharId('')
     }
-    input.click()
   }
 
   // 点击编辑器的保存/取消
@@ -315,6 +410,11 @@ export default function CharacterManagementModal({ tavern, ownerId, onClose, onC
   function triggerFileImport() {
     fileInputRef.current?.click()
   }
+
+  const pendingImportRisk = pendingImport?.riskReport
+  const pendingImportReport = pendingImport?.compatibilityReport
+  const pendingImportBlocked = Boolean(pendingImportRisk && !pendingImportRisk.canSave)
+  const pendingImportRiskItems = pendingImportRisk?.items || []
 
   return (
     <div className="modal-overlay char-mgmt-overlay" onClick={(e) => e.target === e.currentTarget && onClose()}>
@@ -363,6 +463,15 @@ export default function CharacterManagementModal({ tavern, ownerId, onClose, onC
             {importError && (
               <div className="char-mgmt-error">{importError}</div>
             )}
+            {exportError && (
+              <div className="char-mgmt-error">{exportError}</div>
+            )}
+            {importStatus && (
+              <div className="char-mgmt-status">{importStatus}</div>
+            )}
+            {exportStatus && (
+              <div className="char-mgmt-status">{exportStatus}</div>
+            )}
 
             {characters.length === 0 ? (
               <div className="char-mgmt-empty">
@@ -397,6 +506,15 @@ export default function CharacterManagementModal({ tavern, ownerId, onClose, onC
                       <button
                         type="button"
                         className="secondary btn-sm"
+                        onClick={() => handleExportCharacter(char)}
+                        disabled={!!editingChar || exportingCharId === char.id}
+                        aria-label={`导出 ${char.name || '未命名角色'} 的 SillyTavern JSON 角色卡`}
+                      >
+                        {exportingCharId === char.id ? '导出中...' : '导出 JSON'}
+                      </button>
+                      <button
+                        type="button"
+                        className="secondary btn-sm"
                         onClick={() => handleEdit(char)}
                         disabled={!!editingChar || deletingCharId === char.id}
                       >
@@ -421,6 +539,95 @@ export default function CharacterManagementModal({ tavern, ownerId, onClose, onC
           <div className="char-mgmt-editor-area">
             {!editingChar ? (
               <div className="char-mgmt-editor-placeholder char-mgmt-editor-placeholder--picker">
+                {pendingImport && pendingImportReport && (
+                  <section
+                    className={`char-card-import-preview ${pendingImportBlocked ? 'char-card-import-preview--blocked' : 'char-card-import-preview--ready'}`}
+                    data-character-card-import-preview
+                    aria-label="角色卡导入兼容预览"
+                  >
+                    <header className="char-card-import-preview__header">
+                      <div>
+                        <span className="mini-label">IMPORT PREVIEW</span>
+                        <h4>确认导入「{pendingImportReport.characterName}」？</h4>
+                        <p>
+                          {pendingImportReport.sourceName || '角色卡文件'} · {pendingImportReport.sourceFormat}
+                        </p>
+                      </div>
+                      <strong>{pendingImportBlocked ? '需要先修正风险' : '可确认导入'}</strong>
+                    </header>
+
+                    <div className="char-card-import-preview__summary">
+                      <span>映射字段 {pendingImportReport.counts.mapped}</span>
+                      <span>世界书 {pendingImportReport.counts.worldInfo}</span>
+                      <span>备用开场 {pendingImportReport.counts.alternateGreetings}</span>
+                      <span>待复核 {pendingImportReport.counts.review}</span>
+                    </div>
+
+                    <div className="char-card-import-preview__grid">
+                      <div>
+                        <strong>会保存到角色卡</strong>
+                        {pendingImportReport.mappedItems.length > 0 ? (
+                          <ul className="char-card-import-preview__chips">
+                            {pendingImportReport.mappedItems.map((item) => (
+                              <li key={item.id}>
+                                <span>{item.label}</span>
+                                <small>{item.detail}</small>
+                              </li>
+                            ))}
+                          </ul>
+                        ) : (
+                          <p className="form-hint">没有检测到可保存字段；请确认文件格式是否正确。</p>
+                        )}
+                      </div>
+                      <div>
+                        <strong>导入前请复核</strong>
+                        {pendingImportReport.reviewItems.length > 0 ? (
+                          <ul className="char-card-import-preview__notes">
+                            {pendingImportReport.reviewItems.map((item) => (
+                              <li key={item.id} className={`is-${item.level}`}>
+                                <span>{item.label}</span>
+                                <small>{item.detail}</small>
+                              </li>
+                            ))}
+                          </ul>
+                        ) : (
+                          <p className="form-hint">未检测到需要额外复核的兼容项。</p>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="char-card-import-preview__risk">
+                      <strong>Prompt 风险门禁</strong>
+                      {pendingImportRiskItems.length > 0 ? (
+                        <ul>
+                          {pendingImportRiskItems.slice(0, 4).map((item) => (
+                            <li key={item.id} className={`is-${item.level}`}>
+                              <span>{item.level === 'blocked' ? '阻断' : item.level === 'warning' ? '提醒' : '信息'}</span>
+                              {item.field_label}：{item.message}
+                            </li>
+                          ))}
+                        </ul>
+                      ) : (
+                        <p>未检测到阻断风险；确认导入前仍建议快速扫一遍角色指令。</p>
+                      )}
+                    </div>
+
+                    <div className="char-card-import-preview__actions">
+                      <button
+                        type="button"
+                        className="primary"
+                        onClick={handleConfirmImport}
+                        disabled={importing || pendingImportBlocked}
+                      >
+                        {importing ? '导入中...' : '确认导入这张角色卡'}
+                      </button>
+                      <button type="button" className="secondary" onClick={clearPendingImport} disabled={importing}>
+                        取消
+                      </button>
+                    </div>
+                  </section>
+                )}
+
                 <section className="char-mgmt-batch-panel" aria-label="批量创建背景 NPC">
                   <div className="character-editor-section-heading">
                     <span>批量创建背景 NPC</span>

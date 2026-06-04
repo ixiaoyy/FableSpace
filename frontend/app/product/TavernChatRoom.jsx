@@ -358,6 +358,84 @@ function parsePublicMentionTarget(message, characters = []) {
   }
 }
 
+/**
+ * Detects visitor-authored stage-direction cues in the composer draft.
+ * @param {string} text Current transient input value.
+ * @returns {boolean} True when the draft contains action/stage-direction style cues; no side effects.
+ */
+function hasReplyActionCue(text = '') {
+  return /[*＊][^*＊]{2,}[*＊]|（[^）]{2,}）|\([^)]{2,}\)|我(?:走|看|伸|拉|拿|递|环顾|坐|站|停|靠|皱|笑|点头|压低|深吸|检查|握|推|敲)|轻轻|慢慢|突然|低声/.test(String(text || ''))
+}
+
+/**
+ * Builds a local, non-blocking roleplay reply coach for legacy chat input.
+ * @param {string} draft Current visitor composer text; it is never overwritten automatically.
+ * @param {string} targetName NPC name used only in the selectable example.
+ * @returns {object} Coach copy, checklist, and example draft; does not call APIs or persist state.
+ */
+function buildReplyComposerCoach(draft = '', targetName = '眼前的 NPC') {
+  const text = String(draft || '').trim()
+  const target = String(targetName || '').trim() || '眼前的 NPC'
+  const example = `*我环顾四周，压低声音看向${target}* “先告诉我最紧要的一件事，我们从哪里开始？”`
+  const hasAction = hasReplyActionCue(text)
+  const hasScene = /这里|周围|门口|桌|窗|街|雨|夜|房间|站台|走廊|身边|眼前|空气|脚步|声音/.test(text)
+  const hasNextStep = /？|\?|怎么办|接下来|先|跟我|帮|看见|听见|找|确认|目标|线索|任务|等等|哪里|什么/.test(text)
+  const oocLike = /你会做什么|你能做什么|能干嘛|有什么功能|怎么玩|介绍一下自己|你的设定|角色卡|提示词|prompt|模型|AI|机器人/i.test(text)
+  const checks = [
+    { id: 'action', label: '动作/神态', done: hasAction },
+    { id: 'scene', label: '承接场景', done: hasScene },
+    { id: 'hook', label: '可被接话', done: hasNextStep },
+  ]
+
+  if (!text) {
+    return {
+      tone: 'idle',
+      eyebrow: '第一句公式',
+      title: '动作 + 台词 + 一个下一步',
+      body: '把想问的话包装进当前场景，NPC 会更容易顺着演下去。',
+      example,
+      showExample: true,
+      checks,
+    }
+  }
+
+  if (oocLike) {
+    return {
+      tone: 'warning',
+      eyebrow: '避免出戏',
+      title: '这句像在问工具能力',
+      body: '不要直接问 NPC 会做什么；改成你在场景里观察、靠近、求助或确认目标。',
+      example,
+      showExample: true,
+      checks,
+    }
+  }
+
+  if (hasAction && hasNextStep && text.length >= 18) {
+    return {
+      tone: 'ready',
+      eyebrow: '可以发送',
+      title: '这句已经像互动小说了',
+      body: '有动作或状态，也给了 NPC 能接住的方向。',
+      example,
+      showExample: false,
+      checks,
+    }
+  }
+
+  return {
+    tone: 'guide',
+    eyebrow: '补一笔就更稳',
+    title: hasAction ? '再给 NPC 一个可接的问题' : '先写一个动作或神态',
+    body: hasAction
+      ? '可以加一句“接下来怎么办？”或“我该先看哪里？”来交出剧情球。'
+      : '例如先写 *我环顾四周*、*我递上雨伞*，再把问题说出口。',
+    example,
+    showExample: true,
+    checks,
+  }
+}
+
 // ─────────────────────────────────────────
 // Simulation Status Bars (v0.9)
 // ─────────────────────────────────────────
@@ -605,6 +683,10 @@ function ChatInputArea({
   const [text, setText] = useState('')
   const [recording, setRecording] = useState(false)
   const textareaRef = useRef(null)
+  const replyCoach = useMemo(
+    () => buildReplyComposerCoach(text, character?.name || '眼前的 NPC'),
+    [text, character?.name],
+  )
 
   /**
    * Resizes and focuses the composer after a template is inserted.
@@ -813,6 +895,33 @@ function ChatInputArea({
             )}
           </button>
         </div>
+      </div>
+      <div
+        className={`roleplay-reply-coach roleplay-reply-coach--${replyCoach.tone}`}
+        data-roleplay-reply-coach
+      >
+        <div className="roleplay-reply-coach__header">
+          <span>{replyCoach.eyebrow}</span>
+          <strong>{replyCoach.title}</strong>
+        </div>
+        <p>{replyCoach.body}</p>
+        <div className="roleplay-reply-coach__checks">
+          {replyCoach.checks.map((check) => (
+            <span key={check.id} className={check.done ? 'is-done' : ''}>
+              {check.done ? '✓' : '·'} {check.label}
+            </span>
+          ))}
+        </div>
+        {replyCoach.showExample ? (
+          <button
+            type="button"
+            data-roleplay-reply-coach-example
+            onClick={() => preparePromptDraft(replyCoach.example)}
+            disabled={sending}
+          >
+            借用句式（只填入，不发送）：{replyCoach.example}
+          </button>
+        ) : null}
       </div>
       {voiceEnabled ? (
         <div className="input-hints muted">
@@ -1836,6 +1945,31 @@ export default function TavernChatRoom({
     setGroupSessionError('')
   }
 
+  /**
+   * Starts a fresh local story branch from the entrance scene.
+   * @returns {void} Only resets transient UI chat state; it does not delete memory, relationship, or saved gameplay data.
+   */
+  function handleStartFreshEntranceBranch() {
+    const firstCharacter = characters[0] || null
+    setSelectedChar(firstCharacter)
+    setActiveChatChannel('public')
+    setMessages(publicEntranceMessages(characters, tavern, roomName).map((message) => ({
+      ...message,
+      channel: 'public',
+    })))
+    setPreparedInputDraft(null)
+    setDegradationNotice(null)
+    setGroupSessionError('')
+    setGameplayError('')
+    setActiveGameplaySession(null)
+    setGameplayScene(null)
+    setShowDetail(false)
+    if (firstCharacter) {
+      resetExpressionForCharacter(firstCharacter)
+      onCharacterSwitch?.(firstCharacter)
+    }
+  }
+
   function handleAvatarClick(char) {
     setSelectedChar(char)
     setActiveChatChannel('private')
@@ -2155,6 +2289,21 @@ export default function TavernChatRoom({
                   ))
                 }}
               />
+              <section className="story-branch-controls" data-story-branch-controls aria-label="故事支线控制">
+                <div className="story-branch-controls__copy">
+                  <span>当前支线</span>
+                  <strong>{hasVisitorSentMessage ? '继续这条记忆支线' : '还在开场，可以放心试写第一句'}</strong>
+                  <p>开新支线只清空本屏草稿和气泡；回访记忆、关系、保存进度保留。</p>
+                </div>
+                <button
+                  type="button"
+                  data-start-fresh-branch
+                  onClick={handleStartFreshEntranceBranch}
+                  disabled={sending || gameplayBusy}
+                >
+                  从门口开新支线
+                </button>
+              </section>
               <details className="tavern-mini-game-drawer">
                 <summary>桌边小玩法 · 不挡聊天输入</summary>
                 <TavernMiniGamePanel

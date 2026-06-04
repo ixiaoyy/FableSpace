@@ -1,11 +1,12 @@
 {
   "id": "06-04-sillytavern-entry-experience-brainstorm",
   "title": "Brainstorm: learn from SillyTavern-style entry and power-user experience",
-  "status": "in_progress",
+  "status": "completed",
   "assignee": "lijin",
   "priority": "P1",
   "created_at": "2026-06-04",
-  "updated_at": "2026-06-04",
+  "updated_at": "2026-06-05",
+  "completed_at": "2026-06-05",
   "description": "Use Trellis to capture a product brainstorm for FableMap entry/onboarding, newcomer roleplay literacy, scene-setting prose, long opening-scene reading, NPC-hosted first minute, character-card compatibility, and progressive power-user tooling inspired by SillyTavern and related public docs.",
   "dev_type": "product-planning",
   "scope": "brainstorm-research",
@@ -14,18 +15,29 @@
   "branch": null,
   "parent": null,
   "children": [
-    "06-04-scene-setting-prose-mvp"
+    "06-04-scene-setting-prose-mvp",
+    "06-04-character-opening-scene-guidance",
+    "06-04-visitor-reply-composer-coach",
+    "06-04-new-chat-branching-language",
+    "06-04-character-card-import-export-trust-polish",
+    "06-04-doorway-copy-density-polish",
+    "06-05-return-visit-surface-mvp"
   ],
   "relatedFiles": [
     "prd.md",
     "brainstorm.md",
-    ".trellis/tasks/06-04-scene-setting-prose-mvp/"
+    ".trellis/tasks/06-04-scene-setting-prose-mvp/",
+    ".trellis/tasks/06-04-character-opening-scene-guidance/",
+    ".trellis/tasks/06-04-visitor-reply-composer-coach/",
+    ".trellis/tasks/06-04-new-chat-branching-language/",
+    ".trellis/tasks/06-04-character-card-import-export-trust-polish/",
+    ".trellis/tasks/06-04-doorway-copy-density-polish/",
+    ".trellis/tasks/06-05-return-visit-surface-mvp/"
   ],
   "next_action": [
-    "Review visual evidence from child task with product owner.",
-    "Decide whether owner-curated scene_digest / first_scene_opener fields are worth a separate Schema/API task.",
-    "Decide whether to collapse non-selected NPC long openers behind a visitor-controlled branch.",
+    "Open separate future tasks for owner-curated scene_digest / first_scene_opener only if Schema/API changes are approved.",
+    "Open a separate entry-screen IA task if the product owner wants a full first-screen redesign.",
     "Keep future ideas constrained by real-coordinate anchoring, owner sovereignty, and SillyTavern-compatible data export."
   ],
-  "notes": "Brainstorm plus first implementation child completed. Child 06-04-scene-setting-prose-mvp implemented frontend-only scene-setting prose, opening-scene reader, and in-character starter chips for native /tavern/:id plus legacy product panels; no Schema/API/database changes."
+  "notes": "Completed brainstorm plus frontend implementation children for scene-setting prose, owner opening guidance, visitor reply composer coaching, local story branch controls, character-card import/export trust polish, doorway copy-density polish, and the return-visit surface MVP. The return-visit child was validated with typecheck/build and Playwright desktop/mobile acceptance; it did not add notification delivery, social graph behavior, Schema/API/database changes, or platform-authored content. Remaining brainstorm ideas are parked as future standalone tasks."
 }

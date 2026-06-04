@@ -55,6 +55,24 @@ type RoleplayStarterPrompt = {
   prompt: string
 }
 
+type ReplyCoachTone = "idle" | "guide" | "warning" | "ready"
+
+type ReplyCoachCheck = {
+  id: string
+  label: string
+  done: boolean
+}
+
+type ReplyCoachView = {
+  tone: ReplyCoachTone
+  eyebrow: string
+  title: string
+  body: string
+  example: string
+  showExample: boolean
+  checks: ReplyCoachCheck[]
+}
+
 const ROLEPLAY_STARTER_PROMPTS: RoleplayStarterPrompt[] = [
   {
     id: "outsider",
@@ -92,6 +110,85 @@ function compactSceneLine(value: unknown, fallback = "", maxLength = 72) {
 }
 
 /**
+ * Detects whether a visitor draft contains an action or stage-direction cue.
+ * @param text Current composer text authored by the visitor.
+ * @returns True when the text looks like in-scene action/dialogue; has no side effects.
+ */
+function hasRoleplayActionCue(text: string) {
+  return /[*＊][^*＊]{2,}[*＊]|（[^）]{2,}）|\([^)]{2,}\)|我(?:走|看|伸|拉|拿|递|环顾|坐|站|停|靠|皱|笑|点头|压低|深吸|检查|握|推|敲)|轻轻|慢慢|突然|低声/.test(text)
+}
+
+/**
+ * Builds a local reply-coach view model for the chat composer.
+ * @param draft Current visitor composer text; this is never rewritten automatically.
+ * @param targetName NPC or space-facing target used only in the selectable example.
+ * @param hasVisitorSentMessage Whether the visitor has already sent a line in this visible chat.
+ * @returns Non-blocking guidance and checklist; does not call APIs or persist data.
+ */
+function buildWorkbenchReplyCoach(draft: string, targetName: string, hasVisitorSentMessage: boolean): ReplyCoachView {
+  const text = draft.trim()
+  const target = targetName.trim() || "眼前的 NPC"
+  const example = `*我环顾四周，压低声音看向${target}* “先告诉我最紧要的一件事，我们从哪里开始？”`
+  const hasAction = hasRoleplayActionCue(text)
+  const hasScene = /这里|周围|门口|桌|窗|街|雨|夜|房间|站台|走廊|身边|眼前|空气|脚步|声音/.test(text)
+  const hasNextStep = /？|\?|怎么办|接下来|先|跟我|帮|看见|听见|找|确认|目标|线索|任务|等等|哪里|什么/.test(text)
+  const oocLike = /你会做什么|你能做什么|能干嘛|有什么功能|怎么玩|介绍一下自己|你的设定|角色卡|提示词|prompt|模型|AI|机器人/i.test(text)
+  const checks = [
+    { id: "action", label: "动作/神态", done: hasAction },
+    { id: "scene", label: "承接场景", done: hasScene },
+    { id: "hook", label: "可被接话", done: hasNextStep },
+  ]
+
+  if (!text) {
+    return {
+      tone: "idle",
+      eyebrow: hasVisitorSentMessage ? "接戏提示" : "第一句公式",
+      title: "动作 + 台词 + 一个下一步",
+      body: "把想问的话包装进当前场景，NPC 会更容易顺着演下去。",
+      example,
+      showExample: true,
+      checks,
+    }
+  }
+
+  if (oocLike) {
+    return {
+      tone: "warning",
+      eyebrow: "避免出戏",
+      title: "这句像在问工具能力",
+      body: "不要直接问 NPC 会做什么；改成你在场景里观察、靠近、求助或确认目标。",
+      example,
+      showExample: true,
+      checks,
+    }
+  }
+
+  if (hasAction && hasNextStep && text.length >= 18) {
+    return {
+      tone: "ready",
+      eyebrow: "可以发送",
+      title: "这句已经像互动小说了",
+      body: "有动作或状态，也给了 NPC 能接住的方向。",
+      example,
+      showExample: false,
+      checks,
+    }
+  }
+
+  return {
+    tone: "guide",
+    eyebrow: "补一笔就更稳",
+    title: hasAction ? "再给 NPC 一个可接的问题" : "先写一个动作或神态",
+    body: hasAction
+      ? "可以加一句“接下来怎么办？”或“我该先看哪里？”来交出剧情球。"
+      : "例如先写 *我环顾四周*、*我递上雨伞*，再把问题说出口。",
+    example,
+    showExample: true,
+    checks,
+  }
+}
+
+/**
  * Builds opening-scene digest rows from existing tavern/NPC fields.
  * The rows are UI scaffolding only and must not be treated as new canonical lore.
  */
@@ -103,7 +200,7 @@ function buildWorkbenchOpeningDigest(
 ) {
   const rows: { label: string; value: string }[] = []
   const location = compactSceneLine(firstMinuteGuide.anchorLine || tavern.address || tavern.name, "", 54)
-  const mood = compactSceneLine(tavern.scene_prompt || tavern.description || firstMinuteGuide.experienceHelper, "", 76)
+  const mood = compactSceneLine(firstMinuteGuide.sceneHint || tavern.description || firstMinuteGuide.experienceHelper, "", 64)
   const npc = compactSceneLine(
     [character?.name, character?.description || character?.personality].filter(Boolean).join(" · "),
     "",
@@ -232,6 +329,18 @@ function canRenderImage(src: string) {
 }
 
 const SHOPKEEPER_CHARACTER_ID = "__shopkeeper__"
+
+/**
+ * Finds the public doorway host candidate from existing owner-authored NPCs.
+ * @param characters Published tavern characters already visible to the visitor.
+ * @returns The shopkeeper-like NPC when one exists; no side effects.
+ */
+function findWorkbenchShopkeeperNpc(characters: TavernCharacter[]) {
+  return characters.find((character) =>
+    character.name?.includes("店长") ||
+    character.tags?.some((tag) => tag.toLowerCase().includes("shopkeeper") || tag.includes("店长")),
+  )
+}
 
 function entranceReactionContent(character: TavernCharacter, tavernName: string) {
   const firstMessage = String(character.first_mes || "").trim()
@@ -379,7 +488,8 @@ export function TavernChatWorkbench({
 
   const [coinBalance, setCoinBalance] = useState<number | null>(null)
   const [lastGift, setLastGift] = useState<{ coins: number; items: string } | null>(null)
-  const [hasPassedDoorway, setHasPassedDoorway] = useState(Boolean(isOwner))
+  const revisitMode = String(searchParams.get("revisit") || "")
+  const [hasPassedDoorway, setHasPassedDoorway] = useState(() => Boolean(isOwner || revisitMode === "continue"))
 
   const access = String(tavern.access || "public")
 
@@ -411,9 +521,7 @@ export function TavernChatWorkbench({
     },
     [gameplayDefinitions, tavern.id],
   )
-  const doorwayQuickActions = doorwayGameplayDefinitions.length
-    ? firstMinuteGuide.quickActions.slice(0, 1)
-    : firstMinuteGuide.quickActions
+  const doorwayEntryActions = firstMinuteGuide.quickActions.slice(0, 3)
   const visibleMessages = activeChatChannel === "public"
     ? publicMessages
     : privateMessagesByCharacterId[selectedCharacter?.id || ""] || []
@@ -426,6 +534,18 @@ export function TavernChatWorkbench({
     () => getWorkbenchRoleplayStarters(tavern, selectedCharacter, firstMinuteGuide),
     [tavern, selectedCharacter, firstMinuteGuide],
   )
+  const replyCoachTargetName = activeChatChannel === "private"
+    ? selectedCharacter?.name || selectedCharacter?.id || "NPC"
+    : selectedCharacter?.name || doorwayHost?.name || doorwayHost?.id || "NPC"
+  const replyCoach = useMemo(
+    () => buildWorkbenchReplyCoach(message, replyCoachTargetName, hasVisitorSentMessage),
+    [message, replyCoachTargetName, hasVisitorSentMessage],
+  )
+  const replyCoachToneClass = replyCoach.tone === "warning"
+    ? "border-rose-200/22 bg-rose-300/[0.08]"
+    : replyCoach.tone === "ready"
+      ? "border-emerald-200/20 bg-emerald-300/[0.07]"
+      : "border-amber-200/18 bg-amber-300/[0.065]"
   const mentionMatches = useMemo(() => {
     if (mentionQuery === null) return []
     if (!mentionQuery) return characters
@@ -473,11 +593,7 @@ export function TavernChatWorkbench({
       return
     }
 
-    // Identify shopkeeper NPC
-    const shopkeeperNpc = characters.find(c => 
-      c.name?.includes("店长") || 
-      c.tags?.some(t => t.toLowerCase().includes("shopkeeper") || t.includes("店长"))
-    )
+    const shopkeeperNpc = findWorkbenchShopkeeperNpc(characters)
 
     const initKey = `${tavern.id}:${passwordLocked ? "locked" : "open"}`
     const shouldReplaceInitialMessages = chatInitializationKeyRef.current !== initKey
@@ -952,6 +1068,31 @@ export function TavernChatWorkbench({
     setHasPassedDoorway(false)
   }
 
+  /**
+   * Starts a fresh local story branch from the tavern entrance.
+   * This clears only transient UI chat state and never deletes visitor memory,
+   * relationship records, persisted messages, or gameplay sessions.
+   */
+  function handleStartFreshEntranceBranch() {
+    const shopkeeperNpc = findWorkbenchShopkeeperNpc(characters)
+    setPublicMessages(publicEntranceMessages(characters, tavern, shopkeeperNpc))
+    setPrivateMessagesByCharacterId({})
+    setActiveChatChannel("public")
+    setSelectedCharacterId(characters[0]?.id || "")
+    setMessage("")
+    setMentionQuery(null)
+    setMentionIndex(0)
+    setPendingReplyTargetName("")
+    setActiveSession(null)
+    setGameplayScene({})
+    setActiveGameplayDefinitionId("")
+    setError("")
+    setHasPassedDoorway(false)
+    window.requestAnimationFrame(() => {
+      chatLogRef.current?.scrollTo({ top: 0, behavior: "smooth" })
+    })
+  }
+
   const isOrphanEchoMode = (tavern as Record<string, unknown>).special_type === "divination" || searchParams.get("ui_style") === "orphan-echo"
   const miniGameTemplates = getMiniGameTemplates()
   const currentGameplay = useMemo(() => {
@@ -974,35 +1115,50 @@ export function TavernChatWorkbench({
             data-first-minute-play-entry
             className="grid gap-5 p-4 sm:p-6 lg:grid-cols-[1.05fr_0.95fr] lg:items-stretch"
           >
-            <div className="rounded-[1.75rem] border border-cyan-200/18 bg-cyan-300/[0.075] p-5 shadow-[0_18px_48px_rgba(8,145,178,0.08)]">
-              <div className="mb-4 inline-flex w-fit items-center gap-2 rounded-full border border-cyan-200/20 bg-slate-950/40 px-3 py-1.5 text-xs font-black uppercase tracking-[0.16em] text-cyan-100">
-                <MapPin className="h-3.5 w-3.5" />
-                镜像空间入口
-              </div>
-              <h2 className="text-3xl font-black leading-tight text-white">先知道怎么玩，再开始</h2>
-              <p data-doorway-map-anchor className="mt-3 rounded-2xl border border-white/10 bg-slate-950/35 p-3 text-sm font-bold leading-6 text-cyan-50/76">
-                {firstMinuteGuide.anchorLine}
-              </p>
-              <div className="mt-4 rounded-[1.35rem] border border-white/10 bg-slate-950/35 p-4">
-                <p className="text-xs font-black uppercase tracking-[0.18em] text-cyan-100/62">这个空间怎么玩</p>
-                <p data-first-minute-play-objective className="mt-2 text-base font-black leading-7 text-white">{firstMinuteGuide.playObjective}</p>
-                <p className="mt-2 text-sm leading-6 text-violet-50/64">{firstMinuteGuide.experienceHelper}</p>
-              </div>
-              <p className="mt-4 text-sm leading-7 text-violet-50/72">{firstMinuteGuide.whyHere}</p>
-              <div className="mt-4 grid gap-2 sm:grid-cols-2">
-                <span className="rounded-2xl border border-white/10 bg-white/[0.045] px-3 py-2 text-xs font-black text-cyan-100">
+            <div className="rounded-[1.75rem] border border-cyan-200/18 bg-cyan-300/[0.075] p-5 shadow-[0_18px_48px_rgba(8,145,178,0.08)] max-lg:mb-20">
+              <div className="mb-4 flex flex-wrap items-center gap-2">
+                <span className="inline-flex w-fit items-center gap-2 rounded-full border border-cyan-200/20 bg-slate-950/40 px-3 py-1.5 text-xs font-black text-cyan-100">
+                  <DoorOpen className="h-3.5 w-3.5" />
+                  入口
+                </span>
+                <span className="rounded-full border border-white/10 bg-white/[0.045] px-3 py-1.5 text-xs font-black text-violet-100/70">
                   {firstMinuteGuide.experienceType}
                 </span>
-                <span className="rounded-2xl border border-white/10 bg-white/[0.045] px-3 py-2 text-xs font-black text-violet-100/70">
-                  {firstMinuteGuide.hostRole}
-                </span>
+              </div>
+              <h2 className="text-3xl font-black leading-tight text-white">推门，找线索</h2>
+              <p data-doorway-map-anchor className="mt-3 flex items-start gap-2 rounded-2xl border border-white/10 bg-slate-950/35 p-3 text-sm font-bold leading-6 text-cyan-50/76">
+                <MapPin className="mt-0.5 h-4 w-4 shrink-0" />
+                <span>{firstMinuteGuide.anchorLine}</span>
+              </p>
+              <div data-first-minute-play-objective className="mt-4 rounded-[1.35rem] border border-white/10 bg-slate-950/35 p-4">
+                <p className="text-xs font-black uppercase tracking-[0.18em] text-cyan-100/62">现在做</p>
+                <p className="mt-2 text-base font-black leading-7 text-white">{firstMinuteGuide.playObjective}</p>
+              </div>
+              <div className="mt-4 grid gap-2" data-first-minute-action-deck>
+                {doorwayEntryActions.map((action, index) => (
+                  <button
+                    key={action.id}
+                    type="button"
+                    data-first-minute-action={action.id}
+                    onClick={() => handleDoorwayQuickAction(action)}
+                    className="grid min-h-14 grid-cols-[2rem_minmax(0,1fr)] items-center gap-3 rounded-2xl border border-cyan-200/16 bg-cyan-300/[0.075] px-3 py-3 text-left transition hover:border-cyan-200/38 hover:bg-cyan-300/[0.12] focus:outline-none focus:ring-4 focus:ring-cyan-300/20"
+                  >
+                    <span className="grid h-8 w-8 place-items-center rounded-xl bg-cyan-200/12 text-xs font-black text-cyan-50">
+                      {index + 1}
+                    </span>
+                    <span className="min-w-0">
+                      <span className="block text-sm font-black text-cyan-50">{action.label}</span>
+                      <span className="mt-0.5 block truncate text-xs font-bold text-violet-100/54">{action.helper}</span>
+                    </span>
+                  </button>
+                ))}
               </div>
             </div>
 
             <div className="rounded-[1.75rem] border border-white/10 bg-white/[0.045] p-5">
               <div className="mb-4 inline-flex w-fit items-center gap-2 rounded-full border border-violet-200/16 bg-violet-300/10 px-3 py-1.5 text-xs font-black text-violet-100">
                 <Sparkles className="h-3.5 w-3.5" />
-                正在接待
+                驻场 NPC
               </div>
               <div className="flex items-start gap-3">
                 <CharacterAvatar character={doorwayHost} active />
@@ -1016,7 +1172,7 @@ export function TavernChatWorkbench({
               </div>
               {doorwayGameplayDefinitions.length ? (
                 <div className="mt-5 space-y-2" data-doorway-gameplay-list>
-                  <p className="text-xs font-black uppercase tracking-[0.18em] text-cyan-100/58">可玩的空间任务</p>
+                  <p className="text-xs font-black uppercase tracking-[0.18em] text-cyan-100/58">可接任务</p>
                   {doorwayGameplayDefinitions.map((definition, index) => (
                     <button
                       key={String(definition.id || index)}
@@ -1036,23 +1192,9 @@ export function TavernChatWorkbench({
                   ))}
                 </div>
               ) : null}
-              <div className="mt-5 grid gap-2" data-first-minute-quick-actions>
-                {doorwayQuickActions.map((action) => (
-                  <button
-                    key={action.id}
-                    type="button"
-                    data-first-minute-action={action.id}
-                    onClick={() => handleDoorwayQuickAction(action)}
-                    className="min-h-14 rounded-2xl border border-cyan-200/16 bg-cyan-300/[0.075] px-4 py-3 text-left transition hover:border-cyan-200/38 hover:bg-cyan-300/[0.12] focus:outline-none focus:ring-4 focus:ring-cyan-300/20"
-                  >
-                    <span className="block text-sm font-black text-cyan-50">{action.label}</span>
-                    <span className="mt-1 block text-xs font-bold leading-5 text-violet-100/54">{action.helper}</span>
-                  </button>
-                ))}
-              </div>
               <div className="opening-scene-reader__starters mt-5 grid gap-2 sm:grid-cols-2" data-roleplay-starter-prompts>
                 <p className="sm:col-span-2 text-xs font-black uppercase tracking-[0.18em] text-amber-100/68">
-                  不知道怎么开口？选一个入戏回复
+                  选一句开口
                 </p>
                 {roleplayStarterPrompts.map((starter) => (
                   <button
@@ -1068,10 +1210,10 @@ export function TavernChatWorkbench({
                 ))}
               </div>
               <Button type="button" data-doorway-start-chat className="mt-5 min-h-12 w-full" onClick={handleDoorwayStartChat}>
-                {doorwayGameplayDefinitions.length ? "先和 NPC 打招呼 →" : `${firstMinuteGuide.startLabel}，进入聊天准备 →`}
+                {doorwayGameplayDefinitions.length ? "和 NPC 打招呼 →" : `${firstMinuteGuide.startLabel} →`}
               </Button>
               <p className="mt-3 text-xs leading-5 text-violet-100/52">
-                任务按钮会启动空间内玩法；聊天行动只会切到 NPC 并填入输入框，不会替你自动发送消息。
+                按钮只填草稿或启动任务，不会替你发送。
               </p>
             </div>
           </section>
@@ -1403,6 +1545,46 @@ export function TavernChatWorkbench({
                     placeholder={activeChatChannel === "public" ? "在这里说点什么…" : `对 ${selectedCharacter?.name || "NPC"} 说点什么…`}
                     className="min-h-14 w-full resize-none rounded-3xl border border-white/12 bg-white/[0.06] px-5 py-3 text-sm leading-6 text-white outline-none placeholder:text-violet-100/35 focus:border-cyan-300/60 disabled:cursor-not-allowed disabled:opacity-55"
                   />
+                  <div
+                    data-roleplay-reply-coach
+                    className={`mt-2 rounded-2xl border px-3 py-2.5 text-xs leading-5 shadow-sm shadow-black/10 ${replyCoachToneClass}`}
+                  >
+                    <div className="flex flex-col gap-1 sm:flex-row sm:items-baseline sm:justify-between">
+                      <span className="font-black uppercase tracking-[0.16em] text-amber-100/66">{replyCoach.eyebrow}</span>
+                      <strong className="text-sm font-black text-white">{replyCoach.title}</strong>
+                    </div>
+                    <p className="mt-1 text-violet-50/70">{replyCoach.body}</p>
+                    <div className="mt-2 flex flex-wrap gap-1.5">
+                      {replyCoach.checks.map((check) => (
+                        <span
+                          key={check.id}
+                          className={`rounded-full border px-2 py-0.5 font-black ${
+                            check.done
+                              ? "border-emerald-200/25 bg-emerald-300/[0.09] text-emerald-50"
+                              : "border-white/10 bg-white/[0.045] text-violet-100/58"
+                          }`}
+                        >
+                          {check.done ? "✓" : "·"} {check.label}
+                        </span>
+                      ))}
+                    </div>
+                    {replyCoach.showExample ? (
+                      <button
+                        type="button"
+                        data-roleplay-reply-coach-example
+                        onClick={() => {
+                          setMessage(replyCoach.example)
+                          setMentionQuery(null)
+                          setMentionIndex(0)
+                          setTimeout(() => textareaRef.current?.focus(), 0)
+                        }}
+                        disabled={busy === "send" || passwordLocked}
+                        className="mt-2 w-full rounded-2xl border border-amber-200/18 bg-slate-950/28 px-3 py-2 text-left font-bold text-amber-50/86 transition hover:border-amber-200/38 hover:bg-amber-300/[0.08] disabled:cursor-not-allowed disabled:opacity-50"
+                      >
+                        借用句式（只填入，不发送）：{replyCoach.example}
+                      </button>
+                    ) : null}
+                  </div>
                   {mentionQuery !== null && mentionMatches.length > 0 && activeChatChannel === "public" && (
                     <div className="absolute bottom-full left-0 right-0 mb-2 max-h-60 overflow-y-auto rounded-2xl border border-white/15 bg-slate-950/98 shadow-xl shadow-black/40">
                       <div className="px-4 py-2 text-xs text-violet-100/40 border-b border-white/10">
@@ -1429,6 +1611,35 @@ export function TavernChatWorkbench({
                 </Button>
               </div>
             </form>
+
+            {!isOwner && !passwordLocked ? (
+              <section
+                data-story-branch-controls
+                className="border-t border-white/10 bg-slate-950/70 px-4 py-3 sm:px-5"
+                aria-label="故事支线控制"
+              >
+                <div className="flex flex-col gap-3 rounded-3xl border border-cyan-200/14 bg-cyan-300/[0.055] p-3 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="min-w-0">
+                    <p className="text-xs font-black uppercase tracking-[0.16em] text-cyan-100/58">当前支线</p>
+                    <p className="mt-1 text-sm font-black text-white">
+                      {hasVisitorSentMessage ? "继续这条记忆支线" : "还在开场，可以放心试写第一句"}
+                    </p>
+                    <p className="mt-1 text-xs font-bold leading-5 text-violet-50/62">
+                      开新支线只清空本屏草稿和气泡；回访记忆、关系、保存进度保留。
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    data-start-fresh-branch
+                    onClick={handleStartFreshEntranceBranch}
+                    disabled={busy === "send" || isGameplayBusy}
+                    className="min-h-11 shrink-0 rounded-2xl border border-cyan-200/25 bg-slate-950/34 px-4 py-2 text-sm font-black text-cyan-50 transition hover:border-cyan-200/48 hover:bg-cyan-300/[0.10] disabled:cursor-not-allowed disabled:opacity-55"
+                  >
+                    从门口开新支线
+                  </button>
+                </div>
+              </section>
+            ) : null}
 
             <section data-chat-sidecar="conversation-context" data-secondary-tools="visitor-folded" className="border-t border-white/10 bg-white/[0.025] p-4">
               <div className="grid gap-3 xl:grid-cols-2">

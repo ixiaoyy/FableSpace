@@ -1,0 +1,29 @@
+{
+  "id": "06-05-return-visit-surface-mvp",
+  "title": "Return visit surface MVP",
+  "status": "completed",
+  "assignee": "lijin",
+  "priority": "P1",
+  "created_at": "2026-06-05",
+  "updated_at": "2026-06-05",
+  "completed_at": "2026-06-05",
+  "description": "Turn the remaining SillyTavern brainstorm return-visit direction into a frontend MVP on the personal center.",
+  "dev_type": "frontend",
+  "scope": "home-me-return-visit",
+  "package": "frontend",
+  "base_branch": "main",
+  "branch": null,
+  "parent": "06-04-sillytavern-entry-experience-brainstorm",
+  "children": [],
+  "relatedFiles": [
+    "frontend/app/routes/home-me.tsx",
+    "frontend/app/features/tavern-chat-workbench/index.tsx",
+    ".trellis/tasks/06-04-sillytavern-entry-experience-brainstorm/task.json",
+    ".trellis/tasks/06-04-sillytavern-entry-experience-brainstorm/prd.md"
+  ],
+  "next_action": [
+    "Review desktop/mobile evidence with product owner.",
+    "Open a separate backend/API task if true recent-visit sorting is required later."
+  ],
+  "notes": "Completed as a frontend-only return-visit MVP on home-me. It adds current-visitor return cards, continue/restart/trial links, and revisit=continue doorway skipping. The panel reads taverns first and hydrates private memory cues in the background so card rendering is not blocked by slow memory endpoints. No API, Schema, notification delivery, social graph, or persistence change. Validation: typecheck/build passed; Playwright desktop/mobile visual acceptance passed with 4 cards and continue revisit doorwayVisible=0."
+}

@@ -31,7 +31,7 @@ const MOBILE_CRITICAL_FLOW_GUIDES: Record<string, {
 }> = {
   Discover: {
     title: "先找到一个想进入的镜像空间",
-    helper: "按地点、空间类型和心情筛选；每个空间都应该告诉你进去后怎么玩。",
+    helper: "按地点、空间类型和心情筛选；优先进入有坐标、NPC 和第一步动作的空间。",
     primaryLabel: "查看推荐空间",
     href: "#discover-mainline",
   },
@@ -46,12 +46,6 @@ const MOBILE_CRITICAL_FLOW_GUIDES: Record<string, {
     helper: "创建是供给侧能力：先确定地理位置背景、空间类型、NPC 职责和第一分钟玩法。",
     primaryLabel: "配置空间体验",
     href: "#create-mainline",
-  },
-  Tavern: {
-    title: "先看这个空间怎么玩",
-    helper: "NPC 会作为接待者、引导者或主持人带你开始；聊天只是推进空间体验的一种方式。",
-    primaryLabel: "开始游玩",
-    href: "#tavern-mainline",
   },
   Owner: {
     title: "先处理一个店主待办",

@@ -106,6 +106,71 @@ function normalizeTalkativeness(value) {
   return Math.max(0, Math.min(1, parsed))
 }
 
+/**
+ * Checks whether text contains one of the supplied cue patterns.
+ * @param {string} text Source text from owner-authored draft fields.
+ * @param {Array<RegExp>} patterns Local cue patterns to evaluate.
+ * @returns {boolean} True when any cue pattern matches; has no side effects.
+ */
+function hasOpeningCue(text, patterns) {
+  return patterns.some((pattern) => pattern.test(text))
+}
+
+/**
+ * Builds an owner-only first-message quality view model from draft text.
+ * @param {object} draft Current character draft; only reads public owner-editable fields.
+ * @returns {object} Checklist, score, suggestions, and a selectable starter example; does not save or call AI.
+ */
+function analyzeOpeningSceneQuality(draft = {}) {
+  const firstMes = toText(draft.first_mes).trim()
+  const combined = [draft.scenario, draft.description, draft.first_mes].map(toText).join('\n')
+  const name = toText(draft.name).trim() || '角色'
+  const placeHint = toText(draft.scenario).trim().split(/[。；;\n]/).find(Boolean) || '你的空间入口'
+  const length = firstMes.length
+  const checks = [
+    {
+      id: 'where',
+      label: '地点 / 处境',
+      done: Boolean(toText(draft.scenario).trim()) || hasOpeningCue(combined, [/门口|街|雨|夜|房间|店|站台|窗|走廊|地图|这里|此刻/]),
+      hint: '让访客知道自己站在哪里、发生了什么。',
+    },
+    {
+      id: 'action',
+      label: '动作 + 台词',
+      done: hasOpeningCue(firstMes, [/\*[^*]{2,}\*/, /（[^）]{2,}）/, /\([^)]{2,}\)/, /“[^”]{2,}”/, /"[^"]{2,}"/]),
+      hint: '用动作或神态承接场景，不只是打招呼。',
+    },
+    {
+      id: 'mood',
+      label: '氛围 / 情绪',
+      done: hasOpeningCue(combined, [/冷|热|雨|风|安静|嘈杂|紧张|疲惫|温柔|危险|昏暗|霓虹|潮湿|沉默|笑|皱眉|害怕|开心/]),
+      hint: '给大模型一个可延续的情绪和感官方向。',
+    },
+    {
+      id: 'hook',
+      label: '下一步钩子',
+      done: hasOpeningCue(firstMes, [/？|\?|怎么办|接下来|先|跟我|帮|看见|听见|找|确认|目标|线索|任务|别动|等等/]),
+      hint: '给访客一个自然可接的动作或问题。',
+    },
+    {
+      id: 'pace',
+      label: '信息量',
+      done: length >= 40 && length <= 800,
+      hint: length > 800 ? '开场过长时建议配摘要或拆成首幕。' : '太短会像普通问答，建议至少写出一幕。',
+    },
+  ]
+  const done = checks.filter((item) => item.done).length
+  const example = `*${name}在${placeHint}抬头看向来访者，声音压低了一些* “你来得正好。先别急着问我是谁，看看周围——你觉得我们现在最该处理哪件事？”`
+
+  return {
+    done,
+    total: checks.length,
+    checks,
+    suggestions: checks.filter((item) => !item.done).map((item) => item.hint),
+    example,
+  }
+}
+
 function normalizeCharacterDraft(character = {}) {
   const sprites = cleanSpriteMap(character.sprites)
   return {
@@ -223,6 +288,7 @@ export default function CharacterEditor({
   const styleDialLines = useMemo(() => compilePromptStyleDialLines(styleDials), [styleDials])
   const promptLayerPreview = useMemo(() => buildPromptLayerPreview(draft, styleDials), [draft, styleDials])
   const digitalHumanPack = useMemo(() => buildDigitalHumanIdentityPack(draft), [draft])
+  const openingSceneQuality = useMemo(() => analyzeOpeningSceneQuality(draft), [draft])
   const completion = useMemo(() => {
     const checks = [
       { label: '名称', done: Boolean(draft.name.trim()) },
@@ -949,15 +1015,50 @@ export default function CharacterEditor({
       </label>
 
       <div className="character-editor-grid">
-        <label>
+        <label className="character-editor-opening-field">
           <span>开场白</span>
           <textarea
             value={draft.first_mes}
             onChange={(event) => updateField('first_mes', event.target.value)}
             disabled={disabled}
             rows={3}
-            placeholder="角色第一次对访客说的话"
+            placeholder="建议写成一幕：*动作 / 神态* + “台词”，并给访客一个下一步钩子"
           />
+          <section
+            className="character-opening-quality"
+            data-character-opening-quality
+            aria-label="开场白场景质量提示"
+          >
+            <header>
+              <div>
+                <span className="mini-label">开场读感</span>
+                <strong>{openingSceneQuality.done}/{openingSceneQuality.total}</strong>
+              </div>
+              <p>
+                {openingSceneQuality.done >= 4
+                  ? '这一幕已经比较容易接戏。'
+                  : '访客第一眼会先读这里，尽量让 TA 不用问“你会做什么”。'}
+              </p>
+            </header>
+            <div className="character-opening-quality__checks">
+              {openingSceneQuality.checks.map((check) => (
+                <span key={check.id} className={check.done ? 'is-done' : ''} title={check.hint}>
+                  {check.done ? '✓' : '·'} {check.label}
+                </span>
+              ))}
+            </div>
+            {openingSceneQuality.suggestions.length > 0 ? (
+              <ul className="character-opening-quality__suggestions">
+                {openingSceneQuality.suggestions.slice(0, 2).map((suggestion) => (
+                  <li key={suggestion}>{suggestion}</li>
+                ))}
+              </ul>
+            ) : null}
+            <div className="character-opening-quality__example">
+              <span>可选参考句式（不会自动写入，复制后按你的空间改）：</span>
+              <p>{openingSceneQuality.example}</p>
+            </div>
+          </section>
         </label>
         <label>
           <span>示例对话</span>

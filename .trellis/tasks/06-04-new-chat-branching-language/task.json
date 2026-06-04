@@ -1,0 +1,23 @@
+{
+  "id": "06-04-new-chat-branching-language",
+  "name": "06-04-new-chat-branching-language",
+  "title": "Reframe new chat and reset as story branch controls",
+  "description": "Add visitor-facing branch language and local restart controls so users understand they can continue the current memory-backed run or start a fresh entrance branch without deleting long-term memory.",
+  "status": "completed",
+  "dev_type": "frontend",
+  "scope": "visitor-chat-branching-ux",
+  "package": "frontend",
+  "priority": "P1",
+  "creator": "lijin",
+  "assignee": "lijin",
+  "createdAt": "2026-06-04",
+  "updated_at": "2026-06-04",
+  "parent": "06-04-sillytavern-entry-experience-brainstorm",
+  "relatedFiles": [
+    "frontend/app/features/tavern-chat-workbench/index.tsx",
+    "frontend/app/product/TavernChatRoom.jsx",
+    "frontend/app/product/styles.css",
+    ".trellis/tasks/06-04-new-chat-branching-language/prd.md"
+  ],
+  "notes": "Completed frontend-only story branch controls for native /tavern/:id and legacy product chat. Validation passed: typecheck, build, diff --check, Playwright desktop/mobile visual acceptance. react-doctor was attempted but blocked: sandbox npm cache EPERM, escalated unpinned npm execution rejected for supply-chain risk. Restart action only resets transient UI chat state and returns to doorway; no API/Schema/database change and no memory deletion."
+}
