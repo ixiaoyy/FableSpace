@@ -27,7 +27,7 @@
 按改动范围选择最小真实验证：
 
 - Python：`py -3 -m compileall -q backend/src`，行为变化跑 focused pytest。
-- Frontend：UI/build 变化跑 `npm --prefix .\frontend run build`；helper/service 变化跑 focused script 或 `npm --prefix .\frontend test`。
+- Frontend：UI/build 变化跑 `npm --prefix .\frontend run build`；类型或 API client 变化跑 `npm --prefix .\frontend run typecheck`；只有 package scripts 中存在对应测试脚本时才运行 focused test。
 - 视觉验收/Playwright：仅在视觉还原、用户指定验收或高风险 UI 时使用。
 - 不要为简单文案/布局增加大量 brittle 断言。
 

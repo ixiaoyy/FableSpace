@@ -1,29 +1,19 @@
 # Frontend Public Assets
 
-Runtime files in this directory are served by Vite/React Router as stable public URLs.
+`frontend/public/assets/` 放需要稳定公开 URL 的运行时资源，例如默认 NPC seed、地图快照和后端 payload 中引用的图片。
 
-## Canonical layout
+## 目录约定
 
 ```text
 frontend/public/assets/
-├── npcs/
-│   └── public-welfare/
-│       └── <char_id>/
-│           ├── neutral.png
-│           ├── joy.png
-│           ├── anger.png
-│           ├── embarrassment.png
-│           └── curiosity.png
-└── map-snapshots/
-    └── <snapshot_id>/
-        ├── manifest.json
-        └── tile-*.png
+├── npcs/public-welfare/<char_id>/<expression>.png
+└── map-snapshots/<snapshot_id>/tile-*.png
 ```
 
-## Rules
+## 规则
 
-- Public URLs must start with `/assets/...`.
-- Default NPC seed assets use `/assets/npcs/public-welfare/<char_id>/<expression>.png`.
-- Do not place deliverable runtime images only in `.codex/generated_images`, temp folders, or chat previews.
-- Date-based folders belong under `artifacts/assets/<YYYY-MM-DD-task>/`, not inside runtime public assets.
-- Keep generated build output out of this directory.
+- Public URL 必须以 `/assets/...` 开头。
+- 默认公益 NPC 使用 `/assets/npcs/public-welfare/<char_id>/<expression>.png`。
+- 需要前端 import 的素材放 `frontend/app/assets/`，不要混入 public runtime URL 目录。
+- 生成图必须先落到项目资源目录并更新引用；临时目录、`.codex/generated_images` 和聊天预览不算交付。
+- NPC 图片必须保留同目录 prompt sidecar；完整规则见 [docs/IMAGE_ASSETS_SPEC.md](../../../docs/IMAGE_ASSETS_SPEC.md)。
