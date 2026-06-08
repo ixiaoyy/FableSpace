@@ -1,0 +1,30 @@
+{
+  "id": "06-08-mobile-home-copy-reduction",
+  "name": "06-08-mobile-home-copy-reduction",
+  "title": "Mobile Home Copy Reduction",
+  "description": "Reduce mobile home page copy density so the first screen acts as a compact entry surface instead of a text-heavy introduction.",
+  "status": "completed",
+  "dev_type": "frontend",
+  "scope": "mobile home",
+  "package": null,
+  "priority": "P2",
+  "creator": "codex",
+  "assignee": "codex",
+  "createdAt": "2026-06-08",
+  "completedAt": "2026-06-08",
+  "branch": null,
+  "base_branch": "main",
+  "worktree_path": null,
+  "current_phase": 6,
+  "next_action": [],
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [],
+  "parent": null,
+  "relatedFiles": [
+    "frontend/app/components/fable-map-reference-artboards.tsx"
+  ],
+  "notes": "Mobile home hero copy was shortened and recommendation cards now show name plus compact type/status metadata instead of descriptions. Build passed; Playwright screenshots saved under artifacts/mobile-compact-20260608-final/.",
+  "meta": {}
+}

@@ -2111,59 +2111,63 @@ function FableMapHomeMobile({
   const isBlack = variant === "black"
   const cards = HOME_LAYOUT.cards.map((_, index) => homeCoordinateCardData(featuredCitySlices[index], index, variant))
   return (
-    <div className={cx("relative z-40 min-h-screen px-4 py-5 md:hidden", isBlack ? "bg-[#020710]" : "bg-[linear-gradient(180deg,#f4f8ff_0%,#eef4ff_46%,#fff_100%)]")}>
-      <header className={cx("flex items-center justify-between rounded-[1.5rem] border p-3", isBlack ? "border-cyan-300/16 bg-[#061226]/92 shadow-[0_0_30px_rgba(34,211,238,0.12)]" : "border-white/80 bg-white/86 shadow-[0_18px_42px_rgba(108,123,178,0.14)]")}>
+    <div className={cx("relative z-40 min-h-screen px-4 py-5 md:hidden", isBlack ? "bg-[radial-gradient(circle_at_16%_-8%,rgba(14,165,233,0.22),transparent_32%),radial-gradient(circle_at_88%_0%,rgba(217,70,239,0.24),transparent_30%),linear-gradient(180deg,#07162c_0%,#030918_54%,#01030a_100%)]" : "bg-[linear-gradient(180deg,#f4f8ff_0%,#eef4ff_46%,#fff_100%)]")}>
+      <header className={cx("flex items-center justify-between rounded-[1.5rem] border p-3", isBlack ? "border-cyan-300/24 bg-[#061126]/88 shadow-[0_0_24px_rgba(14,165,233,0.16),0_0_32px_rgba(168,85,247,0.12),0_18px_42px_rgba(1,3,10,0.38)]" : "border-white/80 bg-white/86 shadow-[0_18px_42px_rgba(108,123,178,0.14)]")}>
         <Link to="/" className="flex min-h-11 touch-manipulation flex-col justify-center rounded-2xl outline-none focus:ring-4 focus:ring-violet-400/35">
-          <span className={cx("text-xl font-black leading-none", isBlack ? "text-cyan-50" : "text-slate-900")}>FableMap</span>
-          <span className={cx("mt-1 text-xs font-bold", isBlack ? "text-cyan-100/48" : "text-slate-500")}>世界的镜像面</span>
+          <span className={cx("text-xl font-black leading-none", isBlack ? "text-white" : "text-slate-900")}>FableMap</span>
+          <span className={cx("mt-1 text-xs font-bold", isBlack ? "text-cyan-100/62" : "text-slate-500")}>世界的镜像面</span>
         </Link>
-        <button type="button" onClick={onToggleTheme} className={cx("grid h-11 w-11 touch-manipulation place-items-center rounded-2xl border", isBlack ? "border-cyan-300/16 bg-cyan-300/8 text-cyan-200" : "border-violet-100 bg-violet-50 text-violet-500")} aria-label="切换主题">
+        <button type="button" onClick={onToggleTheme} className={cx("grid h-11 w-11 touch-manipulation place-items-center rounded-2xl border", isBlack ? "border-cyan-300/28 bg-cyan-400/10 text-cyan-100 shadow-[0_0_18px_rgba(14,165,233,0.18)]" : "border-violet-100 bg-violet-50 text-violet-500")} aria-label="切换主题">
           ?        </button>
       </header>
-      <section className={cx("relative mt-5 overflow-hidden rounded-[2rem] border p-5", isBlack ? "border-cyan-300/16 bg-[#061226]/82 shadow-[0_0_36px_rgba(34,211,238,0.12)]" : "border-white/80 bg-white/80 shadow-[0_22px_54px_rgba(108,123,178,0.16)]")}>
+      <section className={cx("relative mt-4 overflow-hidden rounded-[1.5rem] border p-4", isBlack ? "border-cyan-300/24 bg-[#061126]/82 shadow-[0_0_28px_rgba(14,165,233,0.16),0_0_34px_rgba(217,70,239,0.10),0_18px_42px_rgba(1,3,10,0.34)]" : "border-white/80 bg-white/80 shadow-[0_18px_44px_rgba(108,123,178,0.14)]")}>
         {isBlack ? (
           <>
-            <div aria-hidden="true" className="absolute inset-0 bg-[#020710]" />
-            <img src={homeBlackHeroVisual} alt="" aria-hidden="true" className="absolute inset-0 h-full w-full object-cover opacity-45" loading="lazy" decoding="async" />
+            <div aria-hidden="true" className="absolute inset-0 bg-[#020817]" />
+            <img src={homeBlackHeroVisual} alt="" aria-hidden="true" className="absolute inset-0 h-full w-full object-cover opacity-54 saturate-150" loading="lazy" decoding="async" />
           </>
         ) : (
           <img src={lightSkyCityBalcony} alt="" aria-hidden="true" className="absolute inset-0 h-full w-full object-cover opacity-34" loading="lazy" decoding="async" />
         )}
-        <div aria-hidden="true" className={cx("absolute inset-0", isBlack ? "bg-[#020710]/78" : "bg-white/78")} />
-        <p className={cx("relative z-10 text-xs font-black uppercase tracking-[0.22em]", isBlack ? "text-cyan-300/78" : "text-violet-400")}>Mirror spaces</p>
+        <div aria-hidden="true" className={cx("absolute inset-0", isBlack ? "bg-[linear-gradient(135deg,rgba(3,15,34,0.72),rgba(2,3,12,0.62))]" : "bg-white/78")} />
+        <p className={cx("relative z-10 text-[11px] font-black uppercase tracking-[0.22em]", isBlack ? "text-cyan-200" : "text-violet-400")}>Mirror</p>
         <h1
           data-fable-map-home-title-mobile="real-text"
-          className={cx("relative z-10 mt-3 text-3xl font-black leading-tight tracking-[-0.04em]", isBlack ? "text-cyan-50" : "text-slate-800")}
+          className={cx("relative z-10 mt-2 text-2xl font-black leading-tight tracking-[-0.03em]", isBlack ? "text-white drop-shadow-[0_0_14px_rgba(14,165,233,0.34)]" : "text-slate-800")}
         >
-          {isBlack ? "进入世界的镜像空间" : "在真实地点的另一面，找到私密空间"}
+          {isBlack ? "进入镜像空间" : "找到私密空间"}
         </h1>
-        <p className={cx("relative z-10 mt-3 text-sm font-bold leading-7", isBlack ? "text-cyan-100/58" : "text-slate-500")}>在真实地点的另一面进入不同类型空间，跟随 NPC 游玩、探索、回访。</p>
-        <div className="relative z-10 mt-5 flex gap-3">
-          <Link to="/discover" className={cx("inline-flex min-h-11 flex-1 touch-manipulation items-center justify-center rounded-2xl px-4 text-sm font-black", isBlack ? "bg-cyan-300 text-slate-950 shadow-[0_0_26px_rgba(34,211,238,0.22)]" : "bg-violet-500 text-white shadow-[0_16px_32px_rgba(118,91,255,0.25)]")}>发现空间</Link>
-          <Link to="/home-me" className={cx("inline-flex min-h-11 flex-1 touch-manipulation items-center justify-center rounded-2xl border px-4 text-sm font-black", isBlack ? "border-cyan-300/20 bg-cyan-300/8 text-cyan-100" : "border-violet-100 bg-white text-violet-500")}>我的回访</Link>
+        <div className="relative z-10 mt-4 flex gap-3">
+          <Link to="/discover" className={cx("inline-flex min-h-11 flex-1 touch-manipulation items-center justify-center rounded-[1.15rem] px-4 text-sm font-black", isBlack ? "bg-[linear-gradient(135deg,#06b6d4_0%,#7c3aed_58%,#d946ef_100%)] text-white shadow-[0_0_24px_rgba(14,165,233,0.28),0_0_28px_rgba(217,70,239,0.22)]" : "bg-violet-500 text-white shadow-[0_14px_28px_rgba(118,91,255,0.22)]")}>发现空间</Link>
+          <Link to="/home-me" className={cx("inline-flex min-h-11 flex-1 touch-manipulation items-center justify-center rounded-[1.15rem] border px-4 text-sm font-black", isBlack ? "border-cyan-300/26 bg-cyan-400/8 text-cyan-100 shadow-[inset_0_0_16px_rgba(14,165,233,0.08)]" : "border-violet-100 bg-white text-violet-500")}>我的回访</Link>
         </div>
       </section>
-      <section className="mt-5">
-        <div className="mb-3 flex items-center justify-between">
-          <h2 className={cx("font-black", isBlack ? "text-cyan-50" : "text-slate-800")}>推荐空间</h2>
-          <Link to="/discover" className={cx("text-sm font-black", isBlack ? "text-cyan-300" : "text-violet-400")}>全部 →</Link>
+      <section className="mt-4">
+        <div className="mb-2 flex items-center justify-between">
+          <h2 className={cx("font-black", isBlack ? "text-white" : "text-slate-800")}>推荐</h2>
+          <Link to="/discover" className={cx("inline-flex min-h-11 touch-manipulation items-center rounded-xl px-3 text-sm font-black", isBlack ? "text-cyan-200" : "text-violet-400")}>全部</Link>
         </div>
-        <div className="grid gap-3">
+        <div className="grid gap-2.5">
           {cards.map((slice, index) => {
             const isEnterable = Boolean(slice.id)
+            const statusLabel = isEnterable ? slice.entityLabel : (isLoading ? "加载中" : "待开放")
             const cardClassName = cx(
-              "flex min-h-28 gap-3 rounded-[1.5rem] border p-3",
+              "flex min-h-24 gap-3 rounded-[1.25rem] border p-2.5",
               isEnterable ? "touch-manipulation" : "cursor-wait select-none opacity-86",
-              isBlack ? "border-cyan-300/16 bg-[#061226]/90 shadow-[0_0_24px_rgba(34,211,238,0.08)]" : "border-white/80 bg-white shadow-[0_14px_34px_rgba(108,123,178,0.12)]",
+              isBlack ? "border-cyan-300/20 bg-[#061126]/84 shadow-[0_0_22px_rgba(14,165,233,0.12),0_0_26px_rgba(168,85,247,0.10),0_14px_30px_rgba(1,3,10,0.3)]" : "border-white/80 bg-white shadow-[0_14px_34px_rgba(108,123,178,0.12)]",
             )
             const content = (
               <>
-                <img src={slice.image} alt={`${slice.name} 封面`} className="h-24 w-28 rounded-[1.15rem] object-cover" loading="lazy" decoding="async" />
-                <span className="min-w-0 flex-1 py-1">
-                  <span data-fable-map-home-card-title="real-text" className={cx("block truncate font-black", isBlack ? "text-cyan-50" : "text-slate-800")}>{slice.name}</span>
-                  <span className={cx("mt-2 line-clamp-2 block text-sm font-bold leading-6", isBlack ? "text-cyan-100/52" : "text-slate-400")}>{slice.description}</span>
-                  <span className={cx("mt-2 block text-xs font-black", isBlack ? "text-cyan-300" : "text-violet-400")}>
-                    {isEnterable ? slice.tag : (isLoading ? "加载中" : "待开放")}
+                <img src={slice.image} alt={`${slice.name} 封面`} className="h-20 w-20 shrink-0 rounded-[1rem] object-cover" loading="lazy" decoding="async" />
+                <span className="flex min-w-0 flex-1 flex-col justify-center py-0.5">
+                  <span data-fable-map-home-card-title="real-text" className={cx("block truncate font-black", isBlack ? "text-white" : "text-slate-800")}>{slice.name}</span>
+                  <span className="mt-2 flex min-w-0 flex-wrap items-center gap-2">
+                    <span className={cx("rounded-full px-2.5 py-1 text-[11px] font-black", isBlack ? "bg-cyan-400/12 text-cyan-100" : "bg-violet-50 text-violet-500")}>
+                      {slice.tag}
+                    </span>
+                    <span className={cx("truncate text-xs font-black", isBlack ? "text-violet-200/62" : "text-slate-400")}>
+                      {statusLabel}
+                    </span>
                   </span>
                 </span>
               </>
@@ -2280,17 +2284,17 @@ function DiscoverFilterChip({
       onClick={onClick}
       onMouseDown={suppressMouseFocus}
       className={cx(
-        "inline-flex min-h-9 touch-manipulation items-center justify-center gap-1.5 rounded-xl border px-3 text-[12px] font-black outline-none transition focus:ring-4 focus:ring-violet-400/30",
+        "inline-flex min-h-11 touch-manipulation items-center justify-center gap-1.5 rounded-xl border px-3 text-[12px] font-black outline-none transition focus:ring-4 focus:ring-violet-400/30",
         isBlack
           ? muted
-            ? "border-cyan-300/12 bg-cyan-300/[0.035] text-cyan-100/42 hover:border-cyan-300/24 hover:text-cyan-100"
-            : "border-cyan-300/16 bg-cyan-300/[0.075] text-cyan-100 shadow-[0_10px_26px_rgba(0,0,0,0.22)] hover:-translate-y-0.5 hover:border-cyan-300/28 hover:text-cyan-50"
+            ? "border-cyan-300/18 bg-cyan-400/[0.055] text-cyan-100/58 hover:border-cyan-300/32 hover:text-cyan-50"
+            : "border-cyan-300/30 bg-cyan-400/[0.095] text-white shadow-[0_0_20px_rgba(14,165,233,0.16),0_0_24px_rgba(168,85,247,0.10),0_10px_26px_rgba(1,3,10,0.24)] hover:-translate-y-0.5 hover:border-cyan-200/52 hover:text-white"
           : muted
             ? "border-slate-200 bg-white/50 text-slate-400 hover:border-violet-100 hover:text-violet-500"
             : "border-white/90 bg-white/84 text-[#66719c] shadow-[0_10px_26px_rgba(92,110,170,0.08)] hover:-translate-y-0.5 hover:text-violet-500",
       )}
     >
-      <span aria-hidden="true" className={isBlack ? "text-cyan-300" : "text-violet-400"}>●</span>
+      <span aria-hidden="true" className={isBlack ? "text-cyan-200" : "text-violet-400"}>●</span>
       {label}
     </button>
   )
@@ -2813,25 +2817,25 @@ function FableMapDiscoverMobile({
   const cards = DISCOVER_LAYOUT.cards.map((_, index) => discoverCardData(taverns[index], index)).slice(0, cardCount)
   const isBlack = variant === "black"
   return (
-    <div className={cx("relative z-40 min-h-screen px-4 py-5 md:hidden", isBlack ? "bg-[linear-gradient(180deg,#061226_0%,#030712_48%,#020710_100%)]" : "bg-[linear-gradient(180deg,#f4f8ff_0%,#eef4ff_45%,#fff_100%)]")}>
-      <header className={cx("flex items-center justify-between rounded-[1.5rem] border p-3", isBlack ? "border-cyan-300/14 bg-[#061226]/86 shadow-[0_18px_42px_rgba(0,0,0,0.32)]" : "border-white/80 bg-white/88 shadow-[0_18px_42px_rgba(108,123,178,0.14)]")}>
+    <div className={cx("relative z-40 min-h-screen px-4 py-5 md:hidden", isBlack ? "bg-[radial-gradient(circle_at_16%_-8%,rgba(14,165,233,0.22),transparent_32%),radial-gradient(circle_at_88%_0%,rgba(217,70,239,0.24),transparent_30%),linear-gradient(180deg,#07162c_0%,#030918_54%,#01030a_100%)]" : "bg-[linear-gradient(180deg,#f4f8ff_0%,#eef4ff_45%,#fff_100%)]")}>
+      <header className={cx("flex items-center justify-between rounded-[1.5rem] border p-3", isBlack ? "border-cyan-300/24 bg-[#061126]/88 shadow-[0_0_24px_rgba(14,165,233,0.16),0_0_32px_rgba(168,85,247,0.12),0_18px_42px_rgba(1,3,10,0.38)]" : "border-white/80 bg-white/88 shadow-[0_18px_42px_rgba(108,123,178,0.14)]")}>
         <Link to="/" className="flex min-h-11 touch-manipulation items-center gap-3 rounded-2xl outline-none focus:ring-4 focus:ring-violet-400/35">
-          <span className={cx("grid h-11 w-11 shrink-0 place-items-center rounded-2xl shadow-[inset_0_0_0_1px_rgba(139,92,246,0.12)]", isBlack ? "bg-cyan-300/10 text-cyan-300" : "bg-violet-50 text-violet-500")}>
+          <span className={cx("grid h-11 w-11 shrink-0 place-items-center rounded-2xl", isBlack ? "bg-cyan-400/10 text-cyan-100 shadow-[0_0_18px_rgba(14,165,233,0.16)]" : "bg-violet-50 text-violet-500")}>
             <Compass size={22} strokeWidth={2.6} />
           </span>
           <span>
-            <span data-fable-map-discover-title="real-text" className={cx("block text-lg font-black", isBlack ? "text-cyan-50" : "text-slate-800")}>探索</span>
-            <span className={cx("block text-[13px] font-bold", isBlack ? "text-cyan-100/48" : "text-slate-400")}>查找真实坐标里的 AI 空间</span>
+            <span data-fable-map-discover-title="real-text" className={cx("block text-lg font-black", isBlack ? "text-white" : "text-slate-800")}>探索</span>
+            <span className={cx("block text-[13px] font-bold", isBlack ? "text-cyan-100/62" : "text-slate-400")}>查找真实坐标里的 AI 空间</span>
           </span>
         </Link>
-        <button type="button" onClick={onToggleTheme} className={cx("grid h-11 w-11 touch-manipulation place-items-center rounded-2xl border", isBlack ? "border-cyan-300/18 bg-cyan-300/10 text-cyan-200" : "border-violet-100 bg-violet-50 text-violet-500")} aria-label="切换主题">
+        <button type="button" onClick={onToggleTheme} className={cx("grid h-11 w-11 touch-manipulation place-items-center rounded-2xl border", isBlack ? "border-cyan-300/28 bg-cyan-400/10 text-cyan-100 shadow-[0_0_18px_rgba(14,165,233,0.18)]" : "border-violet-100 bg-violet-50 text-violet-500")} aria-label="切换主题">
           🌓
         </button>
       </header>
-      <label data-fable-map-search={onSearchChange ? "real-input" : undefined} className={cx("relative mt-5 flex min-h-12 items-center rounded-2xl border px-4", isBlack ? "border-cyan-300/16 bg-[#061226] shadow-[0_16px_38px_rgba(0,0,0,0.3)]" : "border-white/80 bg-white shadow-[0_16px_38px_rgba(108,123,178,0.14)]")}>
+      <label data-fable-map-search={onSearchChange ? "real-input" : undefined} className={cx("relative mt-5 flex min-h-12 items-center rounded-2xl border px-4", isBlack ? "border-cyan-300/22 bg-[#061126]/84 shadow-[0_0_22px_rgba(14,165,233,0.14),0_16px_38px_rgba(1,3,10,0.3)]" : "border-white/80 bg-white shadow-[0_16px_38px_rgba(108,123,178,0.14)]")}>
         <span className="sr-only">搜索地点、角色、记忆或关键字</span>
-        <Search size={18} strokeWidth={2.8} className={isBlack ? "text-cyan-300" : "text-violet-400"} />
-        <input value={search} onChange={(event) => onSearchChange(event.target.value)} placeholder="搜索地点、角色、记忆或关键字..." className={cx("min-h-12 flex-1 bg-transparent px-3 text-base font-bold outline-none", isBlack ? "text-cyan-50 placeholder:text-cyan-100/42" : "text-slate-800 placeholder:text-slate-400")} />
+        <Search size={18} strokeWidth={2.8} className={isBlack ? "text-cyan-200" : "text-violet-400"} />
+        <input value={search} onChange={(event) => onSearchChange(event.target.value)} placeholder="搜索地点、角色、记忆或关键字..." className={cx("min-h-12 flex-1 bg-transparent px-3 text-base font-bold outline-none", isBlack ? "text-white placeholder:text-cyan-100/48" : "text-slate-800 placeholder:text-slate-400")} />
       </label>
       <div className="mt-4 flex gap-2 overflow-x-auto pb-1">
         <DiscoverFilterChip variant={variant} label="全部" onClick={onClear} />
@@ -2840,28 +2844,25 @@ function FableMapDiscoverMobile({
       </div>
       <section className="mt-5">
         <div className="mb-3 flex items-center justify-between">
-          <h2 className={cx("text-lg font-black", isBlack ? "text-cyan-50" : "text-slate-800")}>探索结果</h2>
-          <Link to="/create" className={cx("text-[15px] font-black", isBlack ? "text-cyan-300" : "text-violet-500")}>店主入口 →</Link>
+          <h2 className={cx("text-lg font-black", isBlack ? "text-white" : "text-slate-800")}>探索结果</h2>
+          <Link to="/create" className={cx("inline-flex min-h-11 touch-manipulation items-center rounded-xl px-2 text-[15px] font-black", isBlack ? "text-cyan-200" : "text-violet-500")}>店主入口 →</Link>
         </div>
-        {visitorReduced ? (
-          <p data-fable-map-visitor-first-discovery="top-three" className={cx("mb-3 rounded-2xl border px-3 py-2 text-sm font-bold", isBlack ? "border-cyan-300/14 bg-cyan-300/[0.055] text-cyan-100/62" : "border-violet-100 bg-white/70 text-slate-500")}>
-            先看 3 个最容易进入的空间，每张卡只有一个主动作。
-          </p>
-        ) : null}
         <div className="grid gap-3">
           {cards.map((card, index) => (
-            <Link key={`${card.name}-${index}`} to={targetFor(card.id)} data-fable-map-discover-card="real-card" className={cx("flex min-h-32 touch-manipulation gap-3 rounded-[1.5rem] border p-3", isBlack ? "border-cyan-300/14 bg-[#061226]/90 shadow-[0_14px_34px_rgba(0,0,0,0.32)]" : "border-white/80 bg-white shadow-[0_14px_34px_rgba(108,123,178,0.12)]")}>
-              <img data-fable-map-discover-square-image="512x512" src={card.image} alt={`${card.name} 封面`} className="h-28 w-28 rounded-[1.15rem] object-cover" loading="lazy" decoding="async" />
-              <span className="min-w-0 flex-1 py-1">
-                <span className={cx("block truncate text-[17px] font-black", isBlack ? "text-cyan-50" : "text-slate-800")}>{card.name}</span>
-                <span className={cx("mt-2 line-clamp-2 block text-[15px] font-bold leading-6", isBlack ? "text-cyan-100/48" : "text-slate-400")}>{card.description}</span>
-                <span data-first-minute-guide="fable-map-mobile-card" className={cx("mt-2 block rounded-2xl border px-3 py-2 text-[12px] font-bold leading-5", isBlack ? "border-cyan-300/14 bg-cyan-300/[0.055] text-cyan-100/55" : "border-violet-100 bg-violet-50/60 text-slate-500")}>
-                  <span className={cx("block text-[11px] font-black", isBlack ? "text-cyan-300" : "text-violet-500")}>Why here · {card.experienceType}</span>
-                  <span className="line-clamp-2">{card.whyHere}</span>
+            <Link key={`${card.name}-${index}`} to={targetFor(card.id)} data-fable-map-discover-card="real-card" className={cx("flex min-h-28 touch-manipulation gap-3 rounded-[1.25rem] border p-2.5", isBlack ? "border-cyan-300/20 bg-[#061126]/84 shadow-[0_0_22px_rgba(14,165,233,0.12),0_0_26px_rgba(168,85,247,0.10),0_14px_30px_rgba(1,3,10,0.3)]" : "border-white/80 bg-white shadow-[0_14px_30px_rgba(108,123,178,0.12)]")}>
+              <img data-fable-map-discover-square-image="512x512" src={card.image} alt={`${card.name} 封面`} className="h-24 w-24 shrink-0 rounded-[1rem] object-cover" loading="lazy" decoding="async" />
+              <span className="flex min-w-0 flex-1 flex-col justify-center py-0.5">
+                <span className={cx("block truncate text-[17px] font-black", isBlack ? "text-white" : "text-slate-800")}>{card.name}</span>
+                <span className="mt-2 flex min-w-0 flex-wrap items-center gap-2">
+                  <span className={cx("rounded-full px-2.5 py-1 text-[11px] font-black", isBlack ? "bg-cyan-400/12 text-cyan-100" : "bg-violet-50 text-violet-500")}>
+                    {card.experienceType}
+                  </span>
+                  <span className={cx("truncate text-xs font-black", isBlack ? "text-violet-200/62" : "text-slate-400")}>
+                    {card.visitLabel}
+                  </span>
                 </span>
-                <span className={cx("mt-2 block text-[13px] font-black", isBlack ? "text-cyan-300" : "text-violet-400")}>{card.visitLabel}</span>
-                <span data-fable-map-discover-entry-cta="visitor-primary" className={cx("mt-2 inline-flex w-fit rounded-full px-3 py-1 text-[13px] font-black", isBlack ? "bg-cyan-300/12 text-cyan-200" : "bg-violet-50 text-violet-500")}>
-                  进入这个空间 →
+                <span data-fable-map-discover-entry-cta="visitor-primary" className={cx("mt-2 inline-flex min-h-8 w-fit items-center rounded-full px-3 text-[13px] font-black", isBlack ? "bg-[linear-gradient(135deg,#06b6d4_0%,#7c3aed_58%,#d946ef_100%)] text-white shadow-[0_0_20px_rgba(14,165,233,0.22),0_0_22px_rgba(217,70,239,0.18)]" : "bg-violet-50 text-violet-500")}>
+                  进入 →
                 </span>
               </span>
             </Link>
