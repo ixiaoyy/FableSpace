@@ -110,6 +110,17 @@
     color: inherit;
   }
 
+  .amap-container {
+    contain: layout paint;
+  }
+
+  @media (max-width: 720px) {
+    .amap-container {
+      --fablemap-map-height: clamp(280px, 50dvh, 420px);
+      --fablemap-map-min-height: clamp(280px, 50dvh, 420px);
+    }
+  }
+
   /* Ornate Anime Styles */
   .ornate-frame {
     @apply relative rounded-2xl border-2 border-[var(--theme-accent-border)] bg-[var(--theme-card)] shadow-[0_8px_32px_rgba(99,102,241,0.12)];
@@ -156,5 +167,37 @@
     mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
     -webkit-mask-composite: destination-out;
     mask-composite: exclude;
+  }
+}
+
+@layer utilities {
+  :where([class~="overflow-y-auto"], [data-discover-board-scroll]) {
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+    scrollbar-gutter: stable;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    :where(
+      [data-discover-board] article,
+      [data-fable-map-discover-card="real-card"],
+      [data-fable-map-home-card="real-card"],
+      [data-chat-workbench="sillytavern-style"] button,
+      [data-create-wizard-step] button
+    ):is(:hover, :focus-visible, :focus-within) {
+      backface-visibility: hidden;
+      will-change: transform;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      scroll-behavior: auto !important;
+      transition-duration: 0.01ms !important;
+    }
   }
 }

@@ -14,6 +14,7 @@ export const meta: MetaFunction = () => [
 
 export const links: LinksFunction = () => [
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
+  { rel: "dns-prefetch", href: "https://webapi.amap.com" },
 ]
 
 export function Layout({ children }: { children: React.ReactNode }) {

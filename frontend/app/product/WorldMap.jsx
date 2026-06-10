@@ -419,8 +419,8 @@ export default function WorldMap({
         className="amap-container"
         style={{
           width: '100%',
-          minHeight: '600px',
-          height: 'min(72vh, 720px)',
+          minHeight: 'var(--fablemap-map-min-height, 600px)',
+          height: 'var(--fablemap-map-height, min(72vh, 720px))',
           opacity: usingSnapshot ? 0.01 : 1,
           pointerEvents: usingSnapshot ? 'none' : 'auto',
         }}

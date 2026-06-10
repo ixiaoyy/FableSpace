@@ -1,0 +1,32 @@
+{
+  "id": "06-10-frontend-fluidity-optimization",
+  "name": "06-10-frontend-fluidity-optimization",
+  "title": "Frontend Fluidity Optimization",
+  "description": "Tighten confirmed frontend fluidity issues without changing product behavior.",
+  "status": "completed",
+  "dev_type": "frontend",
+  "scope": "map rendering and shared UI performance",
+  "package": null,
+  "priority": "P1",
+  "creator": "codex",
+  "assignee": "codex",
+  "createdAt": "2026-06-10",
+  "completedAt": "2026-06-10",
+  "branch": null,
+  "base_branch": "main",
+  "worktree_path": null,
+  "current_phase": 6,
+  "next_action": [],
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [],
+  "parent": null,
+  "relatedFiles": [
+    "frontend/app/product/WorldMap.jsx",
+    "frontend/app/root.tsx",
+    "frontend/app/styles.css"
+  ],
+  "notes": "Added responsive map height variables, AMap DNS prefetch, touch scroll stabilization, reduced-motion guard, and scoped hover/focus will-change hints. product/App.jsx was already dirty and was not edited. Build passed outside sandbox after sandbox EPERM; Playwright screenshots/report saved under artifacts/frontend-fluidity-20260610/.",
+  "meta": {}
+}
