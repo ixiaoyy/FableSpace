@@ -1524,6 +1524,56 @@ function FableMapWorldStatsPanel({ artboard, variant, stats, forceVisible = fals
 function ArtboardShell({ artboard, variant, kind, children }: { artboard: Artboard; variant: Variant; kind: "home" | "discover"; children: ReactNode }) {
   const isHome = kind === "home"
   const isDiscover = kind === "discover"
+  const sectionRef = useRef<HTMLElement | null>(null)
+  const [desktopScale, setDesktopScale] = useState(1)
+  const [isDesktopArtboard, setIsDesktopArtboard] = useState(false)
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia("(min-width: 768px)")
+
+    function updateScale() {
+      const availableWidth = sectionRef.current?.parentElement?.clientWidth || window.innerWidth || artboard.width
+      const availableHeight = window.innerHeight || artboard.height
+      const nextIsDesktop = mediaQuery.matches
+      setIsDesktopArtboard(nextIsDesktop)
+      setDesktopScale(nextIsDesktop ? Math.min(1, availableWidth / artboard.width, availableHeight / artboard.height) : 1)
+    }
+
+    updateScale()
+    mediaQuery.addEventListener("change", updateScale)
+    window.addEventListener("resize", updateScale)
+
+    const observer = typeof ResizeObserver !== "undefined" ? new ResizeObserver(updateScale) : null
+    if (observer && sectionRef.current) observer.observe(sectionRef.current)
+
+    return () => {
+      mediaQuery.removeEventListener("change", updateScale)
+      window.removeEventListener("resize", updateScale)
+      observer?.disconnect()
+    }
+  }, [artboard.width])
+
+  const sectionStyle: CSSProperties = {
+    background: artboard.background,
+  }
+
+  if (isDesktopArtboard) {
+    sectionStyle.width = `${artboard.width * desktopScale}px`
+    sectionStyle.height = `${artboard.height * desktopScale}px`
+    sectionStyle.maxWidth = "100vw"
+  }
+
+  const canvasStyle: CSSProperties = isDesktopArtboard
+    ? {
+        width: `${artboard.width}px`,
+        height: `${artboard.height}px`,
+        background: artboard.background,
+        transform: `scale(${desktopScale}) translateX(-50%)`,
+      }
+    : {
+        background: artboard.background,
+      }
+
   return (
     <main
       data-fable-map-real-dom="true"
@@ -1532,6 +1582,7 @@ function ArtboardShell({ artboard, variant, kind, children }: { artboard: Artboa
       style={{ background: artboard.background }}
     >
       <section
+        ref={sectionRef}
         id={isDiscover ? "discover-mainline" : undefined}
         data-fable-map-reference={artboard.marker}
         data-fable-map-dom={kind}
@@ -1541,25 +1592,31 @@ function ArtboardShell({ artboard, variant, kind, children }: { artboard: Artboa
           isDiscover && "scroll-mt-28",
           isHome || isDiscover ? "min-h-screen overflow-visible md:min-h-0 md:overflow-hidden md:aspect-[1536/1024]" : "overflow-hidden",
         )}
-        style={{
-          maxWidth: `${artboard.width}px`,
-          aspectRatio: `${artboard.width} / ${artboard.height}`,
-          background: artboard.background,
-        }}
+        style={sectionStyle}
       >
-        {artboard.slices.map((slice) => (
-          <img
-            key={slice.alt}
-            src={slice.src}
-            srcSet={`${slice.src} 1x, ${slice.src2x} 2x`}
-            alt=""
-            aria-hidden="true"
-            draggable={false}
-            className="absolute block h-full w-full object-fill"
-            style={boxStyle(artboard, slice.x, slice.y, slice.w, slice.h)}
-          />
-        ))}
-        {children}
+        <div
+          data-fable-map-artboard-canvas={isDesktopArtboard ? "scaled-desktop" : "mobile-flow"}
+          className={cx(
+            isDesktopArtboard
+              ? "absolute left-1/2 top-0 origin-top-left overflow-visible"
+              : "relative min-h-screen w-full",
+          )}
+          style={canvasStyle}
+        >
+          {artboard.slices.map((slice) => (
+            <img
+              key={slice.alt}
+              src={slice.src}
+              srcSet={`${slice.src} 1x, ${slice.src2x} 2x`}
+              alt=""
+              aria-hidden="true"
+              draggable={false}
+              className="absolute hidden h-full w-full object-fill md:block"
+              style={boxStyle(artboard, slice.x, slice.y, slice.w, slice.h)}
+            />
+          ))}
+          {children}
+        </div>
       </section>
     </main>
   )
