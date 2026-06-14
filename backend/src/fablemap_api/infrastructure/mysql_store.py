@@ -717,6 +717,68 @@ class MySQLTavernStore:
             ).order_by(VisitorModel.last_visit.desc()).all()
             return [self._to_visitor_state(m) for m in models]
 
+    def batch_list_visitor_states(self, tavern_ids: list[str]) -> dict[str, list[VisitorState]]:
+        """批量加载多个 tavern 的访客状态，一次查询完成"""
+        result: dict[str, list[VisitorState]] = {tid: [] for tid in tavern_ids}
+        if not tavern_ids:
+            return result
+
+        with self.db.session_scope() as session:
+            models = session.query(VisitorModel).filter(
+                VisitorModel.tavern_id.in_(tavern_ids)
+            ).all()
+            for model in models:
+                result[model.tavern_id].append(self._to_visitor_state(model))
+        return result
+
+    def batch_list_chat_sessions(
+        self,
+        tavern_ids: list[str],
+        visitor_id: str = "",
+        character_id: str = "",
+    ) -> dict[str, list[dict[str, Any]]]:
+        """批量加载多个 tavern 的聊天会话元数据，一次查询完成并支持访客/角色过滤"""
+        result: dict[str, list[dict[str, Any]]] = {tid: [] for tid in tavern_ids}
+        if not tavern_ids:
+            return result
+
+        with self.db.session_scope() as session:
+            query = session.query(ChatMessageModel).filter(
+                ChatMessageModel.tavern_id.in_(tavern_ids)
+            )
+            if visitor_id:
+                query = query.filter(ChatMessageModel.visitor_id == visitor_id)
+            if character_id:
+                query = query.filter(ChatMessageModel.character_id == character_id)
+
+            models = query.order_by(ChatMessageModel.timestamp.desc()).all()
+
+            sessions_map: dict[tuple[str, str, str], dict[str, Any]] = {}
+            for model in models:
+                key = (model.tavern_id, model.visitor_id, model.character_id)
+                if key not in sessions_map:
+                    last_message = self._to_chat_message(model)
+                    sessions_map[key] = {
+                        "tavern_id": model.tavern_id,
+                        "visitor_id": model.visitor_id,
+                        "visitor_name": model.visitor_name or "",
+                        "character_id": model.character_id,
+                        "message_count": 0,
+                        "last_message": last_message,
+                        "updated_at": last_message.timestamp,
+                    }
+                if not sessions_map[key]["visitor_name"] and model.visitor_name:
+                    sessions_map[key]["visitor_name"] = model.visitor_name
+                sessions_map[key]["message_count"] += 1
+
+            for item in sessions_map.values():
+                result[item["tavern_id"]].append(item)
+
+            for sessions in result.values():
+                sessions.sort(key=lambda item: item.get("updated_at", ""), reverse=True)
+
+        return result
+
     def update_visitor_state(self, tavern_id: str, state: VisitorState) -> None:
         """更新访客状态"""
         with self.db.session_scope() as session:
@@ -993,6 +1055,57 @@ class MySQLTavernStore:
             if limit:
                 sessions = sessions[:limit]
             return sessions
+
+    def batch_get_recent_public_messages(
+        self,
+        tavern_ids: list[str],
+        limit_per_tavern: int = 10,
+    ) -> dict[str, list[dict[str, Any]]]:
+        """Batch load recent public messages (assistant role, content >= 8 chars) for multiple taverns.
+
+        Optimized for platform recent memories - avoids loading all messages.
+        """
+        result: dict[str, list[dict[str, Any]]] = {tid: [] for tid in tavern_ids}
+        if not tavern_ids:
+            return result
+
+        with self.db.session_scope() as session:
+            # Query only assistant messages with sufficient content length
+            messages = (
+                session.query(ChatMessageModel)
+                .filter(
+                    ChatMessageModel.tavern_id.in_(tavern_ids),
+                    ChatMessageModel.role == "assistant",
+                    # Only messages with actual content (will filter more precisely in Python)
+                )
+                .order_by(ChatMessageModel.timestamp.desc())
+                .all()
+            )
+
+            # Group by tavern_id and limit
+            tavern_message_count: dict[str, int] = {tid: 0 for tid in tavern_ids}
+            for msg in messages:
+                if tavern_message_count.get(msg.tavern_id, 0) >= limit_per_tavern:
+                    continue
+
+                content = (msg.content or "").strip()
+                # Only include messages with >= 8 chars of actual content
+                if len(content) < 8:
+                    continue
+
+                result[msg.tavern_id].append({
+                    "id": msg.id,
+                    "tavern_id": msg.tavern_id,
+                    "character_id": msg.character_id,
+                    "visitor_id": msg.visitor_id,
+                    "visitor_name": msg.visitor_name or "",
+                    "role": msg.role,
+                    "content": content,
+                    "timestamp": msg.timestamp.strftime("%Y-%m-%dT%H:%M:%SZ") if msg.timestamp else "",
+                })
+                tavern_message_count[msg.tavern_id] = tavern_message_count.get(msg.tavern_id, 0) + 1
+
+        return result
 
     def add_chat_message(self, msg: ChatMessage) -> ChatMessage:
         """添加聊天消息"""

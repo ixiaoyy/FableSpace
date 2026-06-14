@@ -75,6 +75,44 @@
     --btn-ghost-hover: rgba(99, 102, 241, 0.05);
   }
 
+  /* ── dvh / svh CSS Custom Properties with Fallback ──
+   * Safari < 16 不支持 dvh，Safari < 15 不支持 svh
+   * 通过 CSS 变量提供统一的回退方案
+   */
+  :root {
+    --dvh: 100dvh;
+    --svh: 100svh;
+    --dvh-50: 50dvh;
+    --dvh-78: 78dvh;
+    --dvh-76: 76dvh;
+    --dvh-82: 82dvh;
+    --dvh-88: 88dvh;
+    --dvh-90: 90dvh;
+    --dvh-92: 92dvh;
+    --dvh-96: 96dvh;
+    --dvh-44: 44dvh;
+    --dvh-34: 34dvh;
+    --dvh-30: 30dvh;
+  }
+
+  /* Fallback for browsers without dvh support (Safari < 16) */
+  @supports not (height: 100dvh) {
+    :root {
+      --dvh: 100vh;
+      --dvh-50: 50vh;
+      --dvh-78: 78vh;
+      --dvh-76: 76vh;
+      --dvh-82: 82vh;
+      --dvh-88: 88vh;
+      --dvh-90: 90vh;
+      --dvh-92: 92vh;
+      --dvh-96: 96vh;
+      --dvh-44: 44vh;
+      --dvh-34: 34vh;
+      --dvh-30: 30vh;
+    }
+  }
+
   * {
     box-sizing: border-box;
   }
@@ -165,12 +203,32 @@
     @apply absolute -inset-[2px] rounded-[1.2rem] border-2 border-transparent pointer-events-none;
     background: linear-gradient(135deg, rgba(129, 140, 248, 0.4), rgba(244, 114, 182, 0.2)) border-box;
     mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
-    -webkit-mask-composite: destination-out;
     mask-composite: exclude;
+    /* Safari < 17 fallback */
+    -webkit-mask-composite: destination-out;
   }
 }
 
 @layer utilities {
+  /* ── backdrop-filter with -webkit prefix for Safari compatibility ── */
+  :where([style*="backdrop-filter"]) {
+    -webkit-backdrop-filter: var(--webkit-backdrop-filter, inherit);
+  }
+
+  /* Global backdrop-filter with webkit prefix */
+  .backdrop-blur-xl {
+    -webkit-backdrop-filter: blur(24px);
+  }
+  .backdrop-blur-lg {
+    -webkit-backdrop-filter: blur(16px);
+  }
+  .backdrop-blur-md {
+    -webkit-backdrop-filter: blur(12px);
+  }
+  .backdrop-blur-sm {
+    -webkit-backdrop-filter: blur(8px);
+  }
+
   :where([class~="overflow-y-auto"], [data-discover-board-scroll]) {
     -webkit-overflow-scrolling: touch;
     overscroll-behavior: contain;

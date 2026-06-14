@@ -135,28 +135,27 @@ export default function App() {
   const [routeTavernError, setRouteTavernError] = useState('')
 
   // Visitor ID — persisted across sessions
-  const [visitorId] = useState(() => {
-    const stored = localStorage.getItem('fablemap_visitor_id')
-    if (stored) return stored
-    const newId = `visitor_${Date.now()}_${Math.random().toString(36).slice(2)}`
-    localStorage.setItem('fablemap_visitor_id', newId)
-    return newId
-  })
+  const [visitorId, setVisitorId] = useState('')
 
   // Visitor nickname — persisted across sessions, prompts on first use
-  const [visitorNickname, setVisitorNickname] = useState(() =>
-    localStorage.getItem('fablemap_visitor_nickname') || ''
-  )
-  const [firstRunMode, setFirstRunMode] = useState(() =>
-    localStorage.getItem(FIRST_RUN_MODE_STORAGE_KEY) || ''
-  )
+  const [visitorNickname, setVisitorNickname] = useState('')
+  const [firstRunMode, setFirstRunMode] = useState('')
 
   useEffect(() => {
-    // Sync visitor ID to localStorage on mount
-    if (!localStorage.getItem('fablemap_visitor_id')) {
-      const newId = `visitor_${Date.now()}_${Math.random().toString(36).slice(2)}`
-      localStorage.setItem('fablemap_visitor_id', newId)
+    // Read from localStorage on mount (client-only)
+    let vid = localStorage.getItem('fablemap_visitor_id')
+    if (!vid) {
+      vid = `visitor_${Date.now()}_${Math.random().toString(36).slice(2)}`
+      localStorage.setItem('fablemap_visitor_id', vid)
     }
+    setVisitorId(vid)
+
+    const nickname = localStorage.getItem('fablemap_visitor_nickname') || ''
+    setVisitorNickname(nickname)
+
+    const mode = localStorage.getItem(FIRST_RUN_MODE_STORAGE_KEY) || ''
+    setFirstRunMode(mode)
+
     // Apply saved theme on mount
     const savedTheme = localStorage.getItem('fablemap_theme') || 'dark'
     document.documentElement.setAttribute('data-theme', savedTheme)

@@ -11,6 +11,8 @@ import json
 import os
 import uuid
 import hashlib
+import threading
+import time
 from copy import deepcopy
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
@@ -947,6 +949,57 @@ def _default_public_welfare_seeding_enabled() -> bool:
 # 存储层
 # ─────────────────────────────────────────
 
+
+class _TavernCache:
+    """Thread-safe in-memory cache with TTL for tavern data."""
+
+    def __init__(self, ttl: float = 5.0):
+        """Create an empty cache with a per-entry TTL in seconds."""
+        self._lock = threading.Lock()
+        self._ttl = ttl
+        self._data: dict[str, tuple[Any, float]] = {}
+
+    def get(self, key: str) -> Any | None:
+        """Return a cached value when it exists and is still fresh."""
+        with self._lock:
+            entry = self._data.get(key)
+            if entry is None:
+                return None
+            data, timestamp = entry
+            if time.time() - timestamp > self._ttl:
+                del self._data[key]
+                return None
+            return data
+
+    def set(self, key: str, data: Any) -> None:
+        """Store a value under a cache key using the cache TTL."""
+        with self._lock:
+            self._data[key] = (data, time.time())
+
+    def invalidate(self, key: str) -> None:
+        """Remove one exact cache key if it exists."""
+        with self._lock:
+            self._data.pop(key, None)
+
+    def invalidate_prefix(self, prefix: str) -> None:
+        """Remove all cache entries whose keys start with the given prefix."""
+        with self._lock:
+            for key in [key for key in self._data if key.startswith(prefix)]:
+                del self._data[key]
+
+    def clear(self) -> None:
+        """Remove all cached values."""
+        with self._lock:
+            self._data.clear()
+
+
+# Global cache instance (shared across all TavernStore instances)
+_tavern_cache = _TavernCache(ttl=5.0)
+
+# Separate cache for chat session metadata (shorter TTL for freshness)
+_chat_sessions_cache = _TavernCache(ttl=3.0)
+
+
 class TavernStore:
     """空间数据存储 — JSON 文件持久化"""
 
@@ -1263,23 +1316,36 @@ class TavernStore:
         return changed
 
     def _load_taverns(self, *, include_seed_fallback: bool = False) -> dict[str, Any]:
+        cache_key = f"taverns:{include_seed_fallback}"
+        cached = _tavern_cache.get(cache_key)
+        if cached is not None:
+            return cached
         try:
             loaded = json.loads(self.taverns_file.read_text(encoding="utf-8"))
         except (json.JSONDecodeError, OSError):
             if include_seed_fallback:
-                return self._default_public_welfare_seed_data()
+                result = self._default_public_welfare_seed_data()
+                _tavern_cache.set(cache_key, result)
+                return result
+            _tavern_cache.set(cache_key, {})
             return {}
         if not isinstance(loaded, dict):
+            _tavern_cache.set(cache_key, {})
             return {}
         if include_seed_fallback:
-            return self._apply_public_welfare_seed_read_fallbacks(loaded)
-        return loaded
+            result = self._apply_public_welfare_seed_read_fallbacks(loaded)
+        else:
+            result = loaded
+        _tavern_cache.set(cache_key, result)
+        return result
 
     def _save_taverns(self, data: dict[str, Any]) -> None:
         self.taverns_file.write_text(
             json.dumps(data, ensure_ascii=False, indent=2, sort_keys=True),
             encoding="utf-8",
         )
+        # Invalidate cache when data changes
+        _tavern_cache.clear()
 
     def _is_seed_fallback_tavern(self, tavern_id: str) -> bool:
         return tavern_id in self._default_public_welfare_seed_data()
@@ -1301,12 +1367,16 @@ class TavernStore:
     def list_taverns(self, include_private: bool = False, owner_id: str = "") -> list[Tavern]:
         """列出所有空间"""
         data = self._load_taverns(include_seed_fallback=True)
+        # Pre-load keyvault once to avoid N+1 file reads in get_token_usage
+        keyvault = self._load_keyvault()
         result = []
         for d in data.values():
             tavern = Tavern.from_dict(d)
-            token_usage = self.get_token_usage(tavern.id)
-            if token_usage:
-                tavern.llm_config.token_used = token_usage
+            # Inline token usage lookup with pre-loaded data
+            kv_usage = int(keyvault.get(tavern.id, {}).get("token_used", 0) or 0)
+            tavern_usage = int(d.get("llm_config", {}).get("token_used", 0) or 0)
+            if max(kv_usage, tavern_usage):
+                tavern.llm_config.token_used = max(kv_usage, tavern_usage)
             if tavern.access == "private":
                 if include_private and tavern.owner_id == owner_id:
                     result.append(tavern)
@@ -1317,12 +1387,20 @@ class TavernStore:
     def list_all_taverns(self) -> list[Tavern]:
         """Internal full scan including private Home records for relationship resolution."""
         data = self._load_taverns(include_seed_fallback=True)
+        # Pre-load keyvault once to avoid N+1 file reads
+        keyvault = self._load_keyvault()
         result: list[Tavern] = []
         for value in data.values():
             if not isinstance(value, dict):
                 continue
             try:
-                result.append(Tavern.from_dict(value))
+                tavern = Tavern.from_dict(value)
+                # Inline token usage lookup
+                kv_usage = int(keyvault.get(tavern.id, {}).get("token_used", 0) or 0)
+                tavern_usage = int(value.get("llm_config", {}).get("token_used", 0) or 0)
+                if max(kv_usage, tavern_usage):
+                    tavern.llm_config.token_used = max(kv_usage, tavern_usage)
+                result.append(tavern)
             except (KeyError, TypeError, ValueError):
                 continue
         return result
@@ -1333,9 +1411,12 @@ class TavernStore:
         if not d:
             return None
         tavern = Tavern.from_dict(d)
-        token_usage = self.get_token_usage(tavern_id)
-        if token_usage:
-            tavern.llm_config.token_used = token_usage
+        # Inline token usage lookup (avoid another _load_taverns call)
+        kv = self._load_keyvault()
+        kv_usage = int(kv.get(tavern_id, {}).get("token_used", 0) or 0)
+        tavern_usage = int(d.get("llm_config", {}).get("token_used", 0) or 0)
+        if max(kv_usage, tavern_usage):
+            tavern.llm_config.token_used = max(kv_usage, tavern_usage)
         return tavern
 
     def create_tavern(self, tavern: Tavern) -> Tavern:
@@ -1481,6 +1562,86 @@ class TavernStore:
         visitors = tavern_data.setdefault("_visitors", {})
         visitors[state.visitor_id] = state.to_dict()
         self._save_taverns(data)
+
+    # ── 批量加载方法（优化 N+1 查询）─────────────────────────────
+
+    def batch_list_visitor_states(self, tavern_ids: list[str]) -> dict[str, list[VisitorState]]:
+        """批量加载多个 tavern 的访客状态，一次文件读取完成"""
+        result: dict[str, list[VisitorState]] = {tid: [] for tid in tavern_ids}
+        if not tavern_ids:
+            return result
+
+        data = self._load_taverns()
+        for tavern_id in tavern_ids:
+            tavern_data = data.get(tavern_id, {})
+            visitors = tavern_data.get("_visitors", {})
+            if not isinstance(visitors, dict):
+                continue
+            states = []
+            for value in visitors.values():
+                if not isinstance(value, dict):
+                    continue
+                try:
+                    states.append(VisitorState.from_dict(value))
+                except (KeyError, TypeError, ValueError):
+                    continue
+            states.sort(key=lambda state: state.last_visit or "", reverse=True)
+            result[tavern_id] = states
+        return result
+
+    def batch_list_chat_sessions(
+        self,
+        tavern_ids: list[str],
+        visitor_id: str = "",
+        character_id: str = "",
+    ) -> dict[str, list[dict[str, Any]]]:
+        """批量加载多个 tavern 的聊天会话元数据，一次文件读取完成"""
+        result: dict[str, list[dict[str, Any]]] = {tid: [] for tid in tavern_ids}
+        if not tavern_ids:
+            return result
+
+        # 预加载所有 tavern 的访客名称
+        tavern_data_map = self._load_taverns()
+
+        for tavern_id in tavern_ids:
+            chat_dir = self.root / "chat_history" / tavern_id
+            if not chat_dir.exists():
+                continue
+
+            tavern_visitors = tavern_data_map.get(tavern_id, {}).get("_visitors", {})
+            sessions = []
+            for file_path in sorted(chat_dir.glob("*.jsonl")):
+                messages = self._read_chat_file(file_path)
+                if not messages:
+                    continue
+                last_message = messages[-1]
+                session_visitor_id = last_message.visitor_id or messages[0].visitor_id
+                session_visitor_name = last_message.visitor_name or messages[0].visitor_name
+
+                # 从 tavern 数据中获取访客名称（如果文件没有）
+                if not session_visitor_name and session_visitor_id:
+                    visitor_data = tavern_visitors.get(session_visitor_id, {})
+                    session_visitor_name = visitor_data.get("display_name", "")
+
+                session_character_id = last_message.character_id or messages[0].character_id
+                if visitor_id and session_visitor_id != visitor_id:
+                    continue
+                if character_id and session_character_id != character_id:
+                    continue
+                sessions.append({
+                    "tavern_id": tavern_id,
+                    "visitor_id": session_visitor_id,
+                    "visitor_name": session_visitor_name,
+                    "character_id": session_character_id,
+                    "message_count": len(messages),
+                    "last_message": last_message,
+                    "updated_at": last_message.timestamp,
+                })
+
+            sessions.sort(key=lambda session: session.get("updated_at", ""), reverse=True)
+            result[tavern_id] = sessions
+
+        return result
 
     # ── 结构化记忆 ────────────────────────
 
@@ -1686,6 +1847,13 @@ class TavernStore:
         character_id: str = "",
         limit: int | None = 50,
     ) -> list[dict[str, Any]]:
+        # Try cache first (only for unfiltered queries)
+        cache_key = f"sessions:{tavern_id}:{visitor_id}:{character_id}"
+        if not visitor_id and not character_id:
+            cached = _chat_sessions_cache.get(cache_key)
+            if cached is not None:
+                return cached
+
         chat_dir = self.root / "chat_history" / tavern_id
         if not chat_dir.exists():
             return []
@@ -1716,6 +1884,11 @@ class TavernStore:
             })
 
         sessions.sort(key=lambda session: session.get("updated_at", ""), reverse=True)
+
+        # Cache unfiltered results
+        if not visitor_id and not character_id:
+            _chat_sessions_cache.set(cache_key, sessions)
+
         return sessions
 
     def delete_chat_history(self, tavern_id: str, visitor_id: str = "", character_id: str = "") -> int:
@@ -1740,6 +1913,8 @@ class TavernStore:
                 deleted += 1
             except OSError:
                 continue
+        if deleted:
+            _chat_sessions_cache.invalidate_prefix(f"sessions:{tavern_id}:")
         return deleted
 
     def replace_chat_history(
@@ -1756,6 +1931,7 @@ class TavernStore:
         if not messages:
             if file_path.exists():
                 file_path.unlink()
+            _chat_sessions_cache.invalidate_prefix(f"sessions:{tavern_id}:")
             return 0
 
         normalized_messages = []
@@ -1768,6 +1944,7 @@ class TavernStore:
         with file_path.open("w", encoding="utf-8") as fh:
             for message in normalized_messages:
                 fh.write(json.dumps(message.to_dict(), ensure_ascii=False) + "\n")
+        _chat_sessions_cache.invalidate_prefix(f"sessions:{tavern_id}:")
         return len(normalized_messages)
 
     def _read_chat_file(self, file_path: Path) -> list[ChatMessage]:
@@ -1787,6 +1964,7 @@ class TavernStore:
         file_path = chat_dir / f"{msg.visitor_id}_{msg.character_id}.jsonl"
         with file_path.open("a", encoding="utf-8") as fh:
             fh.write(json.dumps(msg.to_dict(), ensure_ascii=False) + "\n")
+        _chat_sessions_cache.invalidate_prefix(f"sessions:{msg.tavern_id}:")
         return msg
 
     # ── Token 统计 ──────────────────────

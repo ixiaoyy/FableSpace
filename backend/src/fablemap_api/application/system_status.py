@@ -1,12 +1,13 @@
 from __future__ import annotations
 
 from ..contracts.health import HealthResponse
-from ..domain.platform import PLATFORM_MAINLINE
 from ..infrastructure.settings import ApiSettings
 
 
 def build_system_status(settings: ApiSettings) -> HealthResponse:
     """Return a stable health payload for deployment and frontend smoke checks."""
+    # 使用延迟导入避免触发整个 fablemap_api 包的导入
+    from ..domain.platform import PLATFORM_MAINLINE
 
     return HealthResponse(
         ok=True,

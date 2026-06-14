@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import threading
+import time
 import uuid
 from datetime import UTC, datetime
 from pathlib import Path
@@ -10,6 +12,11 @@ from .service import WebService
 
 # Lazy-loaded async HTTP client for proxying to SillyTavern
 _httpx_client = None
+
+# Chat list cache (short TTL since it changes frequently)
+_CHAT_CACHE_TTL = 5  # seconds
+_chat_cache: dict[str, tuple[dict, float]] = {}
+_chat_cache_lock = threading.Lock()
 
 
 def _get_httpx():
@@ -22,6 +29,20 @@ def _get_httpx():
             headers={"user-agent": "FableMap/1.0"},
         )
     return _httpx_client
+
+
+def _invalidate_chat_cache(tavern_id: str = "", user_id: str = ""):
+    """Invalidate chat cache entries matching the given tavern or user."""
+    with _chat_cache_lock:
+        keys_to_delete = []
+        for key in _chat_cache:
+            # Key format: "chats:{tavern_id}:{character_id}:{visitor_id}:{user_id}"
+            if tavern_id and tavern_id in key:
+                keys_to_delete.append(key)
+            elif user_id and user_id in key:
+                keys_to_delete.append(key)
+        for key in keys_to_delete:
+            del _chat_cache[key]
 
 
 async def _proxy_to_sillytavern(request: Request, path: str) -> JSONResponse:
@@ -777,9 +798,35 @@ Do not explain. Just output the single emotion word."""
 
     # ─── Chats API ──────────────────────────────────────────────────────────
     @router.get("/api/chats")
-    def list_chats(request: Request, tavern_id: str = "", character_id: str = "", visitor_id: str = "") -> dict:
-        """List all chat sessions."""
+    def list_chats(
+        request: Request,
+        tavern_id: str = "",
+        character_id: str = "",
+        visitor_id: str = "",
+        limit: int = 50,
+        offset: int = 0,
+    ) -> dict:
+        """List chat sessions with caching and pagination."""
         user_id = _get_user_id(request)
+        now = time.time()
+
+        # Build cache key based on query params
+        cache_key = f"chats:{tavern_id}:{character_id}:{visitor_id}:{user_id}"
+        with _chat_cache_lock:
+            entry = _chat_cache.get(cache_key)
+            if entry is not None:
+                cached_result, expires_at = entry
+                if now < expires_at:
+                    # Apply pagination to cached result
+                    all_chats = cached_result.get("chats", [])
+                    return {
+                        "chats": all_chats[offset:offset + limit],
+                        "count": len(all_chats),
+                        "limit": limit,
+                        "offset": offset,
+                        "total": len(all_chats),
+                        "cached": True,
+                    }
 
         def _chat_row(session: dict, tavern_data: dict) -> dict:
             character = next(
@@ -797,7 +844,7 @@ Do not explain. Just output the single emotion word."""
                 "character_id": session.get("character_id", ""),
                 "character_name": character.get("name", ""),
                 "message_count": session.get("message_count", 0),
-                "last_message": str(last_payload.get("content", ""))[:100],
+                "last_message": str(last_payload.get("content", "") or "")[:100],
                 "last_role": last_payload.get("role", ""),
                 "updated_at": last_payload.get("timestamp", ""),
             }
@@ -811,32 +858,61 @@ Do not explain. Just output the single emotion word."""
             return user_id or "__anonymous_without_visitor_id__"
 
         if tavern_id:
-            tavern = service.get_tavern(tavern_id, user_id)
+            tavern_data = service.get_tavern(tavern_id, user_id)
+            tavern_dict = tavern_data.to_dict() if hasattr(tavern_data, "to_dict") else tavern_data
             sessions = service.tavern_store.list_chat_sessions(
                 tavern_id,
-                visitor_id=_visitor_filter_for(tavern),
+                visitor_id=_visitor_filter_for(tavern_dict),
                 character_id=character_id,
             )
-            chats = [_chat_row(session, tavern) for session in sessions]
-            return {"chats": chats}
-
-        all_taverns = service.list_taverns(user_id)
-        all_chats = []
-        for t in all_taverns:
-            t_data = service.get_tavern(t["id"], user_id)
-            if visitor_id:
-                # Owner global filter should only scan owned taverns; visitors can scan their own sessions.
-                if visitor_id != user_id and t_data.get("owner_id") != user_id:
+            all_chats = [_chat_row(session, tavern_dict) for session in sessions]
+        else:
+            # No tavern_id: list all chats across user's taverns
+            # Use batch loading to avoid N+1 queries
+            all_taverns = service.list_taverns(user_id)
+            # Filter taverns first
+            filtered_taverns = []
+            for t in all_taverns:
+                if visitor_id:
+                    if visitor_id != user_id and t.get("owner_id") != user_id:
+                        continue
+                elif t.get("owner_id") != user_id:
                     continue
-            elif t_data.get("owner_id") != user_id:
-                continue
-            sessions = service.tavern_store.list_chat_sessions(
-                t["id"],
-                visitor_id=_visitor_filter_for(t_data),
-                character_id=character_id,
-            )
-            all_chats.extend(_chat_row(session, t_data) for session in sessions)
-        return {"chats": all_chats}
+                filtered_taverns.append(t)
+
+            if filtered_taverns:
+                tavern_ids = [t["id"] for t in filtered_taverns]
+                tavern_dict_map = {t["id"]: t for t in filtered_taverns}
+
+                # Batch load all sessions at once
+                all_sessions_by_tavern = service.tavern_store.batch_list_chat_sessions(
+                    tavern_ids,
+                    visitor_id=visitor_id,
+                    character_id=character_id,
+                )
+
+                all_chats = []
+                for tavern_id_batch in tavern_ids:
+                    tavern_dict = tavern_dict_map[tavern_id_batch]
+                    sessions = all_sessions_by_tavern.get(tavern_id_batch, [])
+                    all_chats.extend(_chat_row(session, tavern_dict) for session in sessions)
+            else:
+                all_chats = []
+
+        # Cache the full result
+        result = {"chats": all_chats, "count": len(all_chats)}
+        with _chat_cache_lock:
+            _chat_cache[cache_key] = (result, now + _CHAT_CACHE_TTL)
+
+        # Apply pagination
+        return {
+            "chats": all_chats[offset:offset + limit],
+            "count": len(all_chats[offset:offset + limit]),
+            "limit": limit,
+            "offset": offset,
+            "total": len(all_chats),
+            "cached": False,
+        }
 
     @router.post("/api/chats")
     def save_chat(request: Request, data: dict = Body(...)) -> dict:
@@ -879,6 +955,8 @@ Do not explain. Just output the single emotion word."""
             })
             service.tavern_store.add_chat_message(msg)
 
+        # Invalidate chat cache
+        _invalidate_chat_cache(tavern_id=tavern_id, user_id=user_id)
         return {"ok": True, "saved": len(messages)}
 
     @router.get("/api/chats/{tavern_id}/{character_id}")
@@ -911,6 +989,8 @@ Do not explain. Just output the single emotion word."""
             visitor_id=resolved_visitor_id,
             character_id=character_id,
         )
+        # Invalidate chat cache
+        _invalidate_chat_cache(tavern_id=tavern_id, user_id=user_id)
         return {"ok": True, "deleted": deleted}
 
     # ─── Character Card Routes ──────────────────────────────────────────────
@@ -983,19 +1063,70 @@ Do not explain. Just output the single emotion word."""
             return JSONResponse(status_code=400, content={"error": str(e)})
 
     # ===== WorldInfo API =====
+    # WorldInfo cache
+    _WORLDINFO_CACHE_TTL = 30
+    _worldinfo_cache: dict[str, tuple[dict, float]] = {}
+    _worldinfo_cache_lock = threading.Lock()
+
+    def _invalidate_worldinfo_cache(user_id: str = "") -> None:
+        """Invalidate cached WorldInfo lists, optionally scoped to one user."""
+        with _worldinfo_cache_lock:
+            keys_to_delete = [k for k in _worldinfo_cache if not user_id or user_id in k]
+            for key in keys_to_delete:
+                del _worldinfo_cache[key]
+
     @router.get("/api/worldinfo")
-    def list_worldinfos(request: Request) -> dict:
-        """List all WorldInfo entries."""
+    def list_worldinfos(
+        request: Request,
+        tavern_id: str = "",
+        limit: int = 100,
+        offset: int = 0,
+    ) -> dict:
+        """List WorldInfo entries with caching and pagination."""
         user_id = _get_user_id(request)
+        now = time.time()
+
+        cache_key = f"worldinfo:{user_id}:{tavern_id}"
+        with _worldinfo_cache_lock:
+            entry = _worldinfo_cache.get(cache_key)
+            if entry is not None:
+                cached_entries, expires_at = entry
+                if now < expires_at:
+                    all_entries = cached_entries
+                    return {
+                        "world_info": all_entries[offset:offset + limit],
+                        "count": len(all_entries[offset:offset + limit]),
+                        "total": len(all_entries),
+                        "limit": limit,
+                        "offset": offset,
+                        "cached": True,
+                    }
+
+        # Build all entries (from list_taverns which already includes world_info)
         taverns = service.list_taverns(user_id)
         all_entries = []
         for tavern in taverns:
-            tavern_data = service.get_tavern(tavern["id"], user_id)
-            world_info = tavern_data.get("world_info", [])
+            if tavern_id and tavern["id"] != tavern_id:
+                continue
+            world_info = tavern.get("world_info", [])
             for entry in world_info:
-                entry["tavern_id"] = tavern["id"]
-                all_entries.append(entry)
-        return {"world_info": all_entries}
+                entry_copy = dict(entry)
+                entry_copy["tavern_id"] = tavern["id"]
+                entry_copy["tavern_name"] = tavern.get("name", "")
+                all_entries.append(entry_copy)
+
+        # Cache the full result
+        with _worldinfo_cache_lock:
+            _worldinfo_cache[cache_key] = (all_entries, now + _WORLDINFO_CACHE_TTL)
+
+        return {
+            "world_info": all_entries[offset:offset + limit],
+            "count": len(all_entries[offset:offset + limit]),
+            "total": len(all_entries),
+            "limit": limit,
+            "offset": offset,
+            "cached": False,
+        }
 
     @router.post("/api/worldinfo")
     def create_worldinfo(request: Request, data: dict = Body(...)) -> dict:
@@ -1021,6 +1152,7 @@ Do not explain. Just output the single emotion word."""
         world_info = tavern_data.get("world_info", [])
         world_info.append(entry_data)
         service.update_tavern(tavern_id, {"world_info": world_info}, user_id)
+        _invalidate_worldinfo_cache(user_id)
         return {"ok": True, "entry": entry_data}
 
     @router.put("/api/worldinfo/{entry_id}")
@@ -1038,6 +1170,7 @@ Do not explain. Just output the single emotion word."""
                 world_info[i].update(data)
                 break
         service.update_tavern(tavern_id, {"world_info": world_info}, user_id)
+        _invalidate_worldinfo_cache(user_id)
         return {"ok": True}
 
     @router.delete("/api/worldinfo/{entry_id}")
@@ -1052,6 +1185,7 @@ Do not explain. Just output the single emotion word."""
         world_info = tavern_data.get("world_info", [])
         world_info = [e for e in world_info if e.get("id") != entry_id]
         service.update_tavern(tavern_id, {"world_info": world_info}, user_id)
+        _invalidate_worldinfo_cache(user_id)
         return {"ok": True}
 
     @router.post("/api/worldinfo/test")

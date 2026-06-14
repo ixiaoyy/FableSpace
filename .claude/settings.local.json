@@ -55,7 +55,12 @@
       "Bash(node frontend/scripts/mobile-shell-layout-test.mjs)",
       "Bash(python3 scripts/task.py list)",
       "Bash(python3 scripts/task.py start 04-29-state-cards-for-tavern-continuity)",
-      "Bash(python3 scripts/task.py init-context tasks/04-29-state-cards-for-tavern-continuity fullstack)"
+      "Bash(python3 scripts/task.py init-context tasks/04-29-state-cards-for-tavern-continuity fullstack)",
+      "Bash(PYTHONPATH=. python -m fablemap_api api --no-open)",
+      "Bash(curl -s http://127.0.0.1:8950/api/health)",
+      "Bash(curl -s http://127.0.0.1:8950/api/meta)",
+      "Bash(curl -s \"http://127.0.0.1:8950/api/taverns?lat=39.9042&lon=116.4074&radius=50000\")",
+      "Bash(python3 -c ' *)"
     ],
     "additionalDirectories": [
       "d:\\work\\ai-\\.trellis\\tasks\\04-28-owner-dashboard",
