@@ -1105,9 +1105,7 @@ export function TavernChatWorkbench({
 
     <section data-chat-workbench="sillytavern-style" data-active-chat-channel={activeChatChannel} className="space-y-6">
       <div className="overflow-hidden rounded-[2rem] border border-white/10 bg-slate-950/72 shadow-2xl shadow-cyan-950/20">
-        <div className="border-b border-white/10 bg-slate-950/80 px-4 py-3 sm:px-6">
-          <h1 className="break-words text-2xl font-black tracking-tight text-white sm:text-3xl">{tavern.name}</h1>
-        </div>
+        {/* 移除了冗余的 tavern.name header bar - 标题已在 Hero Panel 展示 */}
 
         {shouldShowDoorway ? (
           <section
@@ -1115,50 +1113,39 @@ export function TavernChatWorkbench({
             data-first-minute-play-entry
             className="grid gap-5 p-4 sm:p-6 lg:grid-cols-[1.05fr_0.95fr] lg:items-stretch"
           >
+            {/* 左侧：场景 + 动作入口 */}
             <div className="rounded-[1.75rem] border border-cyan-200/18 bg-cyan-300/[0.075] p-5 shadow-[0_18px_48px_rgba(8,145,178,0.08)] max-lg:mb-20">
-              <div className="mb-4 flex flex-wrap items-center gap-2">
-                <span className="inline-flex w-fit items-center gap-2 rounded-full border border-cyan-200/20 bg-slate-950/40 px-3 py-1.5 text-xs font-black text-cyan-100">
-                  <DoorOpen className="h-3.5 w-3.5" />
-                  入口
-                </span>
-                <span className="rounded-full border border-white/10 bg-white/[0.045] px-3 py-1.5 text-xs font-black text-violet-100/70">
-                  {firstMinuteGuide.experienceType}
-                </span>
-              </div>
-              <h2 className="text-3xl font-black leading-tight text-white">推门，找线索</h2>
+              {/* 场景提示作为主标题 */}
+              <h2 className="text-3xl font-black leading-tight text-white">{firstMinuteGuide.sceneHint}</h2>
+              {/* 锚点信息 */}
               <p data-doorway-map-anchor className="mt-3 flex items-start gap-2 rounded-2xl border border-white/10 bg-slate-950/35 p-3 text-sm font-bold leading-6 text-cyan-50/76">
                 <MapPin className="mt-0.5 h-4 w-4 shrink-0" />
                 <span>{firstMinuteGuide.anchorLine}</span>
               </p>
-              <div data-first-minute-play-objective className="mt-4 rounded-[1.35rem] border border-white/10 bg-slate-950/35 p-4">
-                <p className="text-xs font-black uppercase tracking-[0.18em] text-cyan-100/62">现在做</p>
-                <p className="mt-2 text-base font-black leading-7 text-white">{firstMinuteGuide.playObjective}</p>
-              </div>
-              <div className="mt-4 grid gap-2" data-first-minute-action-deck>
+              {/* 动作入口按钮 */}
+              <div className="mt-5 grid gap-2" data-first-minute-action-deck>
                 {doorwayEntryActions.map((action, index) => (
                   <button
                     key={action.id}
                     type="button"
                     data-first-minute-action={action.id}
                     onClick={() => handleDoorwayQuickAction(action)}
-                    className="grid min-h-14 grid-cols-[2rem_minmax(0,1fr)] items-center gap-3 rounded-2xl border border-cyan-200/16 bg-cyan-300/[0.075] px-3 py-3 text-left transition hover:border-cyan-200/38 hover:bg-cyan-300/[0.12] focus:outline-none focus:ring-4 focus:ring-cyan-300/20"
+                    className="flex items-center gap-3 rounded-2xl border border-cyan-200/16 bg-cyan-300/[0.075] px-4 py-3 text-left transition hover:border-cyan-200/38 hover:bg-cyan-300/[0.12] focus:outline-none focus:ring-4 focus:ring-cyan-300/20"
                   >
-                    <span className="grid h-8 w-8 place-items-center rounded-xl bg-cyan-200/12 text-xs font-black text-cyan-50">
+                    <span className="grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-cyan-200/12 text-xs font-black text-cyan-50">
                       {index + 1}
                     </span>
-                    <span className="min-w-0">
-                      <span className="block text-sm font-black text-cyan-50">{action.label}</span>
-                      <span className="mt-0.5 block truncate text-xs font-bold text-violet-100/54">{action.helper}</span>
-                    </span>
+                    <span className="text-sm font-bold text-cyan-50">{action.label}</span>
                   </button>
                 ))}
               </div>
             </div>
 
+            {/* 右侧：NPC 接待 + 任务 */}
             <div className="rounded-[1.75rem] border border-white/10 bg-white/[0.045] p-5">
               <div className="mb-4 inline-flex w-fit items-center gap-2 rounded-full border border-violet-200/16 bg-violet-300/10 px-3 py-1.5 text-xs font-black text-violet-100">
                 <Sparkles className="h-3.5 w-3.5" />
-                驻场 NPC
+                {firstMinuteGuide.hostRole}
               </div>
               <div className="flex items-start gap-3">
                 <CharacterAvatar character={doorwayHost} active />

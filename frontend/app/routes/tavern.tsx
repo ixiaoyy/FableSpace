@@ -1,10 +1,35 @@
 import type { ClientLoaderFunctionArgs } from "react-router"
-import { Copy, Share2 } from "lucide-react"
-import { useEffect, useMemo, useState } from "react"
-import { useLoaderData } from "react-router"
+import {
+  Activity,
+  ArrowLeft,
+  ArrowRight,
+  BookOpen,
+  Bookmark,
+  Clock3,
+  Compass,
+  Copy,
+  DoorOpen,
+  Home,
+  MapPin,
+  MessageCircle,
+  RadioTower,
+  Share2,
+  Sparkles,
+  Star,
+  UsersRound,
+} from "lucide-react"
+import { useEffect, useMemo, useState, type MouseEvent } from "react"
+import { Link, useLoaderData } from "react-router"
 
+import homeBlackHeroVisual from "../assets/fable-map-05-10/home-black/hero-system-visual.png"
+import homeBlackRecentEchoWaveform from "../assets/fable-map-05-10/home-black/recent-echo-waveform.png"
+import homeBlackWorldStatsSparkline from "../assets/fable-map-05-10/home-black/world-stats-sparkline.png"
 import { TavernChatWorkbench } from "../features/tavern-chat-workbench"
+import { resolveHomepageTavernCover } from "../lib/homepage-taverns"
+import { derivePlaceTypeDisplay } from "../lib/place-types.js"
 import { fallbackRoleplayState } from "../lib/roleplay-state"
+import { buildTavernFirstMinuteGuide } from "../lib/tavern-first-minute"
+import { normalizePublicWelfareNpcAssetPath } from "../lib/tavern-runtime-config.js"
 import { buildTavernShareDisplay, buildTavernSharePayload } from "../lib/tavern-share.js"
 import {
   createVisitorNote,
@@ -15,9 +40,10 @@ import {
   getTavernShare,
   type RoleplayState,
   type Tavern,
+  type TavernCharacter,
   type TavernSharePayload,
 } from "../lib/taverns"
-import { ProductShell } from "../shell/product-shell"
+import { formatTavernAnchorLocation } from "../product/mapAnchorCopy.js"
 import { Button } from "../ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card"
 
@@ -57,6 +83,488 @@ export async function clientLoader({ params, request }: ClientLoaderFunctionArgs
   } catch (error) {
     return { tavernId, currentUserId, tavern: null, roleplay: null, error: errorMessage(error) }
   }
+}
+
+function cx(...classes: Array<string | false | undefined | null>) {
+  return classes.filter(Boolean).join(" ")
+}
+
+function compactText(value: unknown, fallback: string, maxLength = 84) {
+  const text = typeof value === "string" ? value.trim().replace(/\s+/g, " ") : ""
+  const display = text || fallback
+  return display.length > maxLength ? `${display.slice(0, maxLength)}…` : display
+}
+
+function formatMetricNumber(value: unknown) {
+  const numberValue = Number(value || 0)
+  if (!Number.isFinite(numberValue) || numberValue <= 0) return "0"
+  return Math.round(numberValue).toLocaleString("zh-CN")
+}
+
+function canRenderImage(src: string) {
+  return /^(https?:)?\/\//.test(src) || src.startsWith("/") || src.startsWith("data:")
+}
+
+function characterAvatarSource(character: TavernCharacter | undefined) {
+  if (!character) return ""
+  const sprites = character.sprites || {}
+  return normalizePublicWelfareNpcAssetPath(
+    character.avatar || character.image_url || sprites.neutral || sprites.default || Object.values(sprites)[0] || "",
+  )
+}
+
+function entryStatusDisplay(tavern: Tavern) {
+  const access = String(tavern.access || "public").toLowerCase()
+  const status = String(tavern.status || "open").toLowerCase()
+  const isClosed = tavern.is_open === false || status === "closed"
+
+  if (isClosed) {
+    return {
+      label: "今日熄灯",
+      helper: "可预览，稍后再进入",
+      className: "border-slate-400/20 bg-slate-400/10 text-slate-100",
+    }
+  }
+
+  if (access === "password") {
+    return {
+      label: "口令门扉",
+      helper: "带口令进入，不公开扩散",
+      className: "border-amber-200/28 bg-amber-300/12 text-amber-50",
+    }
+  }
+
+  if (access === "private") {
+    return {
+      label: "主人私域",
+      helper: "仅主人或授权访客可见",
+      className: "border-violet-200/28 bg-violet-300/12 text-violet-50",
+    }
+  }
+
+  return {
+    label: "公开入口",
+    helper: "可直接进入和 NPC 对话",
+    className: "border-cyan-200/30 bg-cyan-300/14 text-cyan-50",
+  }
+}
+
+function handleMainlineAnchorClick(event: MouseEvent<HTMLAnchorElement>) {
+  event.preventDefault()
+  const target = document.getElementById("tavern-mainline")
+  if (!target) return
+  target.scrollIntoView({ behavior: "smooth", block: "start" })
+  window.history.replaceState(null, "", "#tavern-mainline")
+}
+
+const desktopNavItems = [
+  { to: "/", label: "镜像面", meta: "Mirror", icon: Home },
+  { to: "/discover", label: "发现空间", meta: "Spaces", icon: Compass },
+  { to: "/quests", label: "游玩指南", meta: "Guide", icon: BookOpen },
+  { to: "/home-me", label: "回访记忆", meta: "Memory", icon: MessageCircle },
+  { to: "/owner", label: "店主后台", meta: "Owner", icon: Bookmark },
+]
+
+const mobileNavItems = [
+  { to: "/", label: "镜像面", icon: Home },
+  { to: "/discover", label: "发现", icon: Compass },
+  { to: "/quests", label: "指南", icon: BookOpen },
+  { to: "/home-me", label: "回访", icon: MessageCircle },
+]
+
+function TavernMobileDock() {
+  return (
+    <nav
+      className="fixed inset-x-3 bottom-3 z-50 grid grid-cols-4 gap-1 rounded-[1.45rem] border border-cyan-200/16 bg-[#061126]/92 p-1.5 shadow-2xl shadow-black/30 backdrop-blur-xl lg:hidden"
+      aria-label="Mobile navigation"
+    >
+      {mobileNavItems.map((item) => (
+        <Link
+          key={item.to}
+          to={item.to}
+          className="flex min-h-14 touch-manipulation flex-col items-center justify-center gap-1 rounded-[1.05rem] px-2 text-[0.68rem] font-bold text-cyan-100/62 transition hover:bg-cyan-300/10 hover:text-cyan-50"
+        >
+          <item.icon className="h-5 w-5" />
+          <span className="max-w-full truncate">{item.label}</span>
+        </Link>
+      ))}
+    </nav>
+  )
+}
+
+function TavernDesktopSidebar({ tavern }: { tavern: Tavern }) {
+  const status = entryStatusDisplay(tavern)
+  return (
+    <aside className="sticky top-0 hidden h-screen min-h-[760px] w-[236px] shrink-0 flex-col border-r border-cyan-200/14 bg-[#030914]/92 px-5 py-7 shadow-[inset_-1px_0_0_rgba(34,211,238,0.12),24px_0_70px_rgba(0,0,0,0.28)] lg:flex">
+      <Link
+        to="/"
+        className="rounded-[1.55rem] border border-cyan-200/18 bg-cyan-300/8 px-5 py-4 text-left shadow-[0_0_38px_rgba(34,211,238,0.08)]"
+      >
+        <p className="text-3xl font-black leading-none text-white">FableMap</p>
+        <p className="mt-2 text-sm font-bold text-cyan-100/58">世界的镜像面</p>
+      </Link>
+
+      <nav className="mt-8 space-y-2" aria-label="Space page navigation">
+        {desktopNavItems.map((item) => (
+          <Link
+            key={item.to}
+            to={item.to}
+            className="group grid min-h-16 grid-cols-[2.8rem_minmax(0,1fr)] items-center gap-3 rounded-[1.35rem] px-3 text-cyan-100/56 transition hover:bg-cyan-300/9 hover:text-cyan-50"
+          >
+            <span className="grid h-11 w-11 place-items-center rounded-2xl border border-cyan-200/12 bg-white/[0.025] text-cyan-100/70 transition group-hover:border-cyan-200/28 group-hover:bg-cyan-300/10 group-hover:text-cyan-50">
+              <item.icon className="h-6 w-6" />
+            </span>
+            <span className="min-w-0">
+              <span className="block truncate text-base font-black uppercase text-white/86">{item.meta}</span>
+              <span className="block truncate text-xs font-bold">{item.label}</span>
+            </span>
+          </Link>
+        ))}
+      </nav>
+
+      <div className="mt-auto rounded-[1.55rem] border border-cyan-200/18 bg-cyan-300/8 p-5 shadow-[0_0_34px_rgba(34,211,238,0.08)]">
+        <p className="text-xl font-black uppercase tracking-[0.12em] text-cyan-50">Space Status</p>
+        <p className="mt-3 text-sm font-bold text-cyan-100/58">{status.label}</p>
+        <div className="mt-4 grid grid-cols-2 gap-2">
+          <span className="rounded-2xl border border-white/10 bg-slate-950/40 px-3 py-2">
+            <span className="block text-lg font-black text-cyan-50">{formatMetricNumber(tavern.visit_count)}</span>
+            <span className="text-xs font-bold text-cyan-100/46">到访</span>
+          </span>
+          <span className="rounded-2xl border border-white/10 bg-slate-950/40 px-3 py-2">
+            <span className="block text-lg font-black text-cyan-50">{tavern.characters?.length || 0}</span>
+            <span className="text-xs font-bold text-cyan-100/46">NPC</span>
+          </span>
+        </div>
+      </div>
+    </aside>
+  )
+}
+
+function TavernCharacterAvatar({ character, className = "" }: { character?: TavernCharacter; className?: string }) {
+  const src = characterAvatarSource(character)
+  if (src && canRenderImage(src)) {
+    return (
+      <img
+        src={src}
+        alt={character?.name || "NPC avatar"}
+        className={cx("shrink-0 rounded-2xl object-cover ring-1 ring-cyan-200/20", className)}
+        loading="lazy"
+        decoding="async"
+      />
+    )
+  }
+
+  return (
+    <span className={cx("grid shrink-0 place-items-center rounded-2xl bg-cyan-300/12 text-lg font-black text-cyan-50 ring-1 ring-cyan-200/20", className)}>
+      {(character?.name || "?").slice(0, 1)}
+    </span>
+  )
+}
+
+function TavernMetricPanel({ icon: Icon, label, value, helper }: { icon: typeof Activity; label: string; value: string; helper: string }) {
+  return (
+    <div className="min-w-0 rounded-[1.35rem] border border-cyan-200/14 bg-[#061126]/76 px-4 py-3 shadow-[0_18px_42px_rgba(0,0,0,0.20)]">
+      <p className="flex items-center gap-2 text-xs font-black uppercase text-cyan-100/56">
+        <Icon className="h-3.5 w-3.5" />
+        {label}
+      </p>
+      <p className="mt-2 truncate text-2xl font-black text-white">{value}</p>
+      <p className="mt-1 truncate text-xs font-bold text-cyan-100/42">{helper}</p>
+    </div>
+  )
+}
+
+function TavernHeroPanel({ tavern, isOwner }: { tavern: Tavern; isOwner: boolean }) {
+  const coverImage = resolveHomepageTavernCover(tavern, 0) || homeBlackHeroVisual
+  const firstMinute = buildTavernFirstMinuteGuide(tavern)
+  const placeType = derivePlaceTypeDisplay(tavern)
+  const anchor = formatTavernAnchorLocation(tavern)
+  const status = entryStatusDisplay(tavern)
+  const characters = Array.isArray(tavern.characters) ? tavern.characters : []
+  const leadCharacter = characters[0]
+  const localTime = tavern.local_time_display || tavern.time_status?.local_time_display || ""
+
+  return (
+    <section className="relative min-h-[430px] overflow-hidden rounded-[2rem] border border-cyan-200/16 bg-[#061126] shadow-[0_34px_90px_rgba(0,0,0,0.35)]">
+      {/* 右侧背景图 */}
+      <div className="absolute inset-0">
+        <img src={coverImage} alt="" className="h-full w-full object-cover opacity-80" loading="eager" decoding="async" />
+        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(2,7,16,0.95)_0%,rgba(2,7,16,0.68)_38%,rgba(2,7,16,0.40)_100%)]" />
+        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(2,7,16,0.18)_0%,rgba(2,7,16,0.50)_70%,rgba(2,7,16,0.92)_100%)]" />
+      </div>
+      <div className="absolute inset-x-0 bottom-0 h-px bg-cyan-200/50" />
+
+      {/* 左侧信息内容 */}
+      <div className="relative z-10 flex min-h-[430px] flex-col justify-between p-6 md:p-8">
+        {/* 顶部状态标签 */}
+        <div className="flex flex-wrap items-center gap-2">
+          <span className={cx("inline-flex min-h-10 items-center gap-2 rounded-full border px-4 text-sm font-black", status.className)}>
+            <DoorOpen className="h-4 w-4" />
+            {status.label}
+          </span>
+          <span className="inline-flex min-h-10 items-center gap-2 rounded-full border border-white/12 bg-white/[0.06] px-4 text-sm font-black text-violet-50/78">
+            <Sparkles className="h-4 w-4 text-cyan-100" />
+            {placeType.shortLabel || placeType.label || firstMinute.experienceType}
+          </span>
+          {isOwner ? (
+            <span className="inline-flex min-h-10 items-center rounded-full border border-amber-200/20 bg-amber-300/12 px-4 text-sm font-black text-amber-50">
+              店主视角
+            </span>
+          ) : null}
+        </div>
+
+        {/* 主要信息 */}
+        <div className="max-w-3xl space-y-4">
+          {/* 锚点信息 */}
+          <p className="flex max-w-xl items-start gap-2 rounded-2xl border border-cyan-200/16 bg-slate-950/42 px-4 py-3 text-sm font-bold leading-6 text-cyan-50/78 backdrop-blur">
+            <MapPin className="mt-0.5 h-4 w-4 shrink-0" />
+            <span>{anchor.line}</span>
+          </p>
+
+          {/* 标题和描述 */}
+          <h1 className="max-w-2xl text-5xl font-black leading-tight text-white md:text-6xl">
+            {tavern.name || "未命名空间"}
+          </h1>
+          <p className="max-w-2xl text-base font-bold leading-8 text-violet-50/74">
+            {compactText(tavern.description || tavern.scene_prompt, firstMinute.sceneHint, 132)}
+          </p>
+
+          {/* 操作按钮 */}
+          <div className="flex flex-wrap gap-3">
+            <a
+              href="#tavern-mainline"
+              onClick={handleMainlineAnchorClick}
+              className="inline-flex min-h-14 touch-manipulation items-center justify-center gap-2 rounded-[1.15rem] border border-cyan-100/50 bg-cyan-300 px-6 text-base font-black text-slate-950 shadow-[0_0_34px_rgba(103,232,249,0.26)] transition hover:-translate-y-0.5"
+            >
+              <DoorOpen className="h-5 w-5" />
+              进入空间
+              <ArrowRight className="h-5 w-5" />
+            </a>
+            <Link
+              to="/discover"
+              className="inline-flex min-h-14 touch-manipulation items-center justify-center gap-2 rounded-[1.15rem] border border-cyan-200/20 bg-slate-950/42 px-6 text-base font-black text-cyan-50 backdrop-blur transition hover:border-cyan-200/42 hover:bg-cyan-300/10"
+            >
+              <ArrowLeft className="h-5 w-5" />
+              返回发现
+            </Link>
+          </div>
+        </div>
+
+        {/* 底部指标面板 */}
+        <div className="grid gap-3 md:grid-cols-3">
+          <TavernMetricPanel
+            icon={UsersRound}
+            label="Active NPC"
+            value={characters.length ? `${characters.length}` : "0"}
+            helper={leadCharacter?.name || "等待店主配置角色"}
+          />
+          <TavernMetricPanel
+            icon={RadioTower}
+            label="First Minute"
+            value={firstMinute.playObjective}
+            helper={firstMinute.hostRole}
+          />
+          <TavernMetricPanel
+            icon={Clock3}
+            label="Local Signal"
+            value={localTime || (tavern.is_open === false ? "Closed" : "Open")}
+            helper={status.helper}
+          />
+        </div>
+      </div>
+    </section>
+  )
+}
+
+function TavernRightRail({ tavern }: { tavern: Tavern }) {
+  const firstMinute = buildTavernFirstMinuteGuide(tavern)
+  const characters = Array.isArray(tavern.characters) ? tavern.characters : []
+  const anchor = formatTavernAnchorLocation(tavern)
+  const status = entryStatusDisplay(tavern)
+
+  return (
+    <aside className="hidden min-w-0 space-y-4 xl:flex xl:w-[300px] xl:flex-col xl:shrink-0 xl:gap-4">
+      {/* 空间回声卡片 */}
+      <section className="overflow-hidden rounded-[1.8rem] border border-cyan-200/16 bg-[#061126]/86 p-6 shadow-[0_28px_70px_rgba(0,0,0,0.30)]">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <h2 className="text-2xl font-black text-white">空间回声</h2>
+            <p className="mt-1 text-xs font-black uppercase tracking-wider text-cyan-100/48">Recent Echoes</p>
+          </div>
+          <span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-cyan-300/10 text-cyan-100">
+            <Activity className="h-6 w-6" />
+          </span>
+        </div>
+        <div className="mt-5 rounded-[1.35rem] border border-white/10 bg-slate-950/38 p-4">
+          <p className="text-sm font-bold leading-6 text-violet-50/76">{firstMinute.sceneHint}</p>
+          <p className="mt-3 text-xs font-bold text-cyan-100/54">{anchor.text}</p>
+        </div>
+        <a href="#tavern-mainline" onClick={handleMainlineAnchorClick} className="mt-5 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl border border-cyan-200/24 bg-cyan-300/12 text-sm font-black text-cyan-50 transition hover:bg-cyan-300/18">
+          查看入口
+          <ArrowRight className="h-4 w-4" />
+        </a>
+      </section>
+
+      {/* 驻场角色卡片 */}
+      <section className="relative overflow-hidden rounded-[1.8rem] border border-cyan-200/16 bg-[#061126]/86 p-6 shadow-[0_28px_70px_rgba(0,0,0,0.26)]">
+        <img src={homeBlackRecentEchoWaveform} alt="" className="absolute bottom-0 right-0 h-24 w-40 object-cover opacity-20" loading="lazy" decoding="async" />
+        <div className="relative">
+          <h2 className="text-2xl font-black text-white">驻场角色</h2>
+          <p className="mt-1 text-sm font-bold text-cyan-100/48">{characters.length} 位 NPC 在场</p>
+          <div className="mt-5 space-y-3">
+            {characters.slice(0, 4).map((character) => (
+              <div key={character.id || character.name} className="flex min-w-0 items-center gap-3 rounded-2xl border border-white/10 bg-slate-950/30 p-3">
+                <TavernCharacterAvatar character={character} className="h-12 w-12" />
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-black text-white">{character.name || "未命名 NPC"}</p>
+                  <p className="mt-1 truncate text-xs font-bold text-cyan-100/46">
+                    {compactText(character.description || character.personality || character.scenario, "等待访客打招呼", 42)}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* World Stats 卡片 */}
+      <section className="relative overflow-hidden rounded-[1.8rem] border border-cyan-200/16 bg-[#061126]/86 p-6 shadow-[0_28px_70px_rgba(0,0,0,0.26)]">
+        <img src={homeBlackWorldStatsSparkline} alt="" className="absolute bottom-0 right-0 h-24 w-48 object-cover opacity-24" loading="lazy" decoding="async" />
+        <div className="relative">
+          <h2 className="text-2xl font-black text-white">World Stats</h2>
+          <div className="mt-5 grid grid-cols-2 gap-3">
+            {[
+              { label: "状态", value: status.label },
+              { label: "到访", value: formatMetricNumber(tavern.visit_count) },
+              { label: "NPC", value: String(characters.length) },
+              { label: "坐标", value: Number.isFinite(Number(tavern.lat)) && Number.isFinite(Number(tavern.lon)) ? "已锚定" : "待确认" },
+            ].map((item) => (
+              <div key={item.label} className="rounded-2xl border border-white/10 bg-slate-950/34 px-3 py-3">
+                <p className="text-xs font-bold text-cyan-100/44">{item.label}</p>
+                <p className="mt-1 truncate text-xl font-black text-cyan-50">{item.value}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+    </aside>
+  )
+}
+
+function TavernMobileHeader({ tavern }: { tavern: Tavern }) {
+  const status = entryStatusDisplay(tavern)
+  return (
+    <header className="lg:hidden">
+      <div className="flex items-center justify-between gap-3 rounded-[1.45rem] border border-cyan-200/16 bg-[#061126]/86 p-3 shadow-[0_18px_42px_rgba(0,0,0,0.28)]">
+        <Link to="/discover" className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl border border-cyan-200/18 bg-cyan-300/10 text-cyan-50" aria-label="返回发现">
+          <ArrowLeft className="h-5 w-5" />
+        </Link>
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-base font-black text-white">{tavern.name || "空间入口"}</p>
+          <p className="truncate text-xs font-bold text-cyan-100/54">{status.label} · {tavern.characters?.length || 0} 位 NPC</p>
+        </div>
+        <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-cyan-300/10 text-cyan-100">
+          <Star className="h-5 w-5" />
+        </span>
+      </div>
+    </header>
+  )
+}
+
+function TavernSpacePage({
+  tavern,
+  roleplay,
+  currentUserId,
+  isOwner,
+}: {
+  tavern: Tavern
+  roleplay: RoleplayState | null
+  currentUserId: string
+  isOwner: boolean
+}) {
+  return (
+    <main className="relative min-h-screen overflow-x-hidden bg-[#020710] text-white">
+      <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(135deg,#061226_0%,#030712_48%,#020710_100%)]" />
+      <div className="pointer-events-none absolute inset-0 opacity-45 [background-image:linear-gradient(rgba(103,232,249,0.06)_1px,transparent_1px),linear-gradient(90deg,rgba(103,232,249,0.04)_1px,transparent_1px)] [background-size:56px_56px]" />
+      <div className="relative mx-auto w-full max-w-[1536px]">
+        {/* 三栏布局：sidebar(236px) | main | right-rail(300px) */}
+        <div className="hidden lg:grid lg:grid-cols-[236px_minmax(0,1fr)_300px] lg:items-start">
+          <TavernDesktopSidebar tavern={tavern} />
+          <div className="min-w-0 px-4 py-4 sm:px-6 lg:px-6 lg:py-8 xl:px-8">
+            <TavernMobileHeader tavern={tavern} />
+            <div className="xl:grid xl:grid-cols-[minmax(0,1fr)_300px]">
+              <TavernHeroPanel tavern={tavern} isOwner={isOwner} />
+              <TavernRightRail tavern={tavern} />
+            </div>
+            <section id="tavern-mainline" className="mt-4 scroll-mt-6 lg:mt-6">
+              <TavernChatWorkbench
+                tavern={tavern}
+                roleplay={roleplay}
+                currentUserId={currentUserId}
+                isOwner={isOwner}
+                publicPanel={
+                  <div className="space-y-4">
+                    <TavernShareCard tavern={tavern} />
+                    <VisitorFeedbackCard tavern={tavern} />
+                  </div>
+                }
+              />
+            </section>
+          </div>
+        </div>
+        {/* 移动端：保持原有堆叠布局 */}
+        <div className="lg:hidden">
+          <TavernMobileHeader tavern={tavern} />
+          <div className="min-w-0 px-4 py-4 pb-28 sm:px-6">
+            <TavernHeroPanel tavern={tavern} isOwner={isOwner} />
+            <TavernRightRail tavern={tavern} />
+            <section id="tavern-mainline" className="mt-4 scroll-mt-6">
+              <TavernChatWorkbench
+                tavern={tavern}
+                roleplay={roleplay}
+                currentUserId={currentUserId}
+                isOwner={isOwner}
+                publicPanel={
+                  <div className="space-y-4">
+                    <TavernShareCard tavern={tavern} />
+                    <VisitorFeedbackCard tavern={tavern} />
+                  </div>
+                }
+              />
+            </section>
+          </div>
+        </div>
+      </div>
+      <TavernMobileDock />
+    </main>
+  )
+}
+
+function TavernErrorPage({ tavernId, error }: { tavernId: string; error: string }) {
+  return (
+    <main className="relative min-h-screen overflow-hidden bg-[#020710] px-4 py-8 text-white">
+      <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(135deg,#061226_0%,#030712_48%,#020710_100%)]" />
+      <div className="relative mx-auto max-w-3xl">
+        <Link to="/discover" className="inline-flex min-h-11 items-center gap-2 rounded-2xl border border-cyan-200/18 bg-cyan-300/10 px-4 text-sm font-black text-cyan-50">
+          <ArrowLeft className="h-4 w-4" />
+          返回发现
+        </Link>
+        <Card className="mt-8 min-w-0 overflow-hidden">
+          <CardHeader>
+            <CardTitle>无法进入空间</CardTitle>
+            <CardDescription className="mt-2">
+              {error || `未找到空间 ${tavernId}`}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <p className="rounded-2xl border border-theme-border bg-theme-card p-4 text-sm leading-6 text-violet-50/70">
+              请确认空间链接是否正确，或让店主重新分享入口。
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    </main>
+  )
 }
 
 function TavernShareCard({ tavern }: { tavern: Tavern }) {
@@ -214,38 +722,14 @@ export default function TavernRoute() {
   const effectiveRoleplay = tavern ? roleplay || fallbackRoleplayState(tavern, characters) : null
   const isOwner = Boolean(tavern?.owner_id && tavern.owner_id === currentUserId)
 
+  if (!tavern) return <TavernErrorPage tavernId={tavernId} error={error} />
+
   return (
-    <ProductShell eyebrow="Tavern">
-      <div id="tavern-mainline" className="scroll-mt-28">
-        {tavern ? (
-          <TavernChatWorkbench
-            tavern={tavern}
-            roleplay={effectiveRoleplay}
-            currentUserId={currentUserId}
-            isOwner={isOwner}
-            publicPanel={
-              <div className="space-y-4">
-                <TavernShareCard tavern={tavern} />
-                <VisitorFeedbackCard tavern={tavern} />
-              </div>
-            }
-          />
-        ) : (
-          <Card className="min-w-0 overflow-hidden">
-            <CardHeader>
-              <CardTitle>无法进入空间</CardTitle>
-              <CardDescription className="mt-2">
-                {error || `未找到空间 ${tavernId}`}
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="rounded-2xl border border-theme-border bg-theme-card p-4 text-sm leading-6 text-violet-50/70">
-                请确认空间链接是否正确，或让店主重新分享入口。
-              </p>
-            </CardContent>
-          </Card>
-        )}
-      </div>
-    </ProductShell>
+    <TavernSpacePage
+      tavern={tavern}
+      roleplay={effectiveRoleplay}
+      currentUserId={currentUserId}
+      isOwner={isOwner}
+    />
   )
 }
