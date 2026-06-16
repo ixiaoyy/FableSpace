@@ -1,0 +1,13 @@
+{
+  "id": "06-15-third-shelf-space-page-design",
+  "title": "Third shelf observatory tavern page design",
+  "status": "in_progress",
+  "created_at": "2026-06-15",
+  "scope": "frontend",
+  "target_route": "/tavern/pw_third_shelf_observatory",
+  "validation": [
+    "npm --prefix .\\frontend run build",
+    "node frontend/scripts/tavern-doorway-ritual-test.mjs",
+    "Playwright desktop and mobile screenshots"
+  ]
+}

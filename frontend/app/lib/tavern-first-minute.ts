@@ -103,23 +103,43 @@ function buildPlayableEntryCopy(placeId: string, experienceType: string, content
 /**
  * Generates three natural conversation-starting prompts.
  * The label is what the user sees on the button (short, action-oriented).
+ * The helper is the category tag shown below (地点锚点 / NPC 主持 / 马上行动).
  * The prompt is what gets sent to the composer (full question).
- *
- * Uses playful, immersive action verbs instead of explanatory phrases.
  */
-function buildQuickActions(prompts: string[], characterName: string, anchorText: string): TavernFirstMinuteAction[] {
-  // Action-oriented fallback labels — short, direct, immersive
-  const actionLabels = [
-    "推门进去看看",
+function buildQuickActions(
+  prompts: string[],
+  characterName: string,
+  anchorText: string
+): TavernFirstMinuteAction[] {
+  // Action categories based on position
+  const categoryLabels = ["地点锚点", "NPC 主持", "马上行动"]
+
+  // Fallback action labels — short, direct, immersive
+  const fallbackActions = [
+    `问 ${anchorText || "这里"} 是什么地方`,
     `找 ${characterName || "驻场 NPC"} 聊聊`,
-    "先看看有什么线索",
+    "看第一条线索是什么",
   ]
-  const normalizedPrompts = uniqueList([...prompts, ...actionLabels], 3)
-  return normalizedPrompts.map((prompt, index) => ({
+
+  const combined = [
+    ...prompts.map((p, i) => ({ label: p, category: categoryLabels[i] || categoryLabels[categoryLabels.length - 1] })),
+    ...fallbackActions.map((label, i) => ({ label, category: categoryLabels[i] || categoryLabels[categoryLabels.length - 1] })),
+  ]
+
+  const seen = new Set<string>()
+  const result: Array<{ label: string; category: string }> = []
+  for (const item of combined) {
+    if (!item.label?.trim() || seen.has(item.label)) continue
+    seen.add(item.label)
+    result.push(item)
+    if (result.length >= 3) break
+  }
+
+  return result.map((item, index) => ({
     id: `first-minute-action-${index + 1}`,
-    label: prompt,
-    helper: "",
-    prompt,
+    label: item.label,
+    helper: item.category,
+    prompt: item.label,
   }))
 }
 

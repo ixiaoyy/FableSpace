@@ -813,8 +813,8 @@ function RadarEchoCard({ tavern, index, onPreview }: { tavern: Tavern; index: nu
                 : "border-cyan-300/18 bg-cyan-300/8 text-cyan-50/76"
             }`}
           >
-            <p className="font-black text-theme-accent-text">为什么在这里</p>
-            <p className="mt-1 line-clamp-2">{firstMinute.whyHere}</p>
+            <p className="font-black text-theme-accent-text">这里有什么</p>
+            <p className="mt-1 line-clamp-2">{firstMinute.sceneHint}</p>
           </div>
           {specialType ? (
             <p className={`mt-2 text-xs leading-5 ${isClosed ? "text-theme-primary/28" : "text-amber-100/72"}`}>
@@ -908,13 +908,12 @@ function ResultCard({
         </div>
         <section
           data-first-minute-guide="discover-card"
-          aria-label="游客第一分钟"
+          aria-label="这里有什么"
           className="rounded-3xl border border-cyan-300/18 bg-cyan-300/8 p-3"
         >
           <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
             <div className="min-w-0">
-              <p className="text-[0.66rem] font-black uppercase tracking-[0.18em] text-cyan-100/70">Why here?</p>
-              <p className="mt-1 line-clamp-2 text-xs leading-5 text-violet-50/76">{firstMinute.whyHere}</p>
+              <p className="mt-1 line-clamp-2 text-xs leading-5 text-violet-50/76">{firstMinute.sceneHint}</p>
             </div>
             <span className="w-fit shrink-0 rounded-full border border-cyan-300/24 bg-cyan-300/10 px-2.5 py-1 text-xs font-black text-cyan-50">
               {firstMinute.experienceType}
@@ -923,7 +922,7 @@ function ResultCard({
           <div className="mt-3 grid gap-2">
             {firstMinute.tryThisFirst.slice(0, 2).map((prompt) => (
               <p key={prompt} className="rounded-2xl border border-white/10 bg-white/[0.035] px-3 py-2 text-xs leading-5 text-violet-50/70">
-                先试：{prompt}
+                {prompt}
               </p>
             ))}
           </div>

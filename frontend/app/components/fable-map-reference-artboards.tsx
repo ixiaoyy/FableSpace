@@ -515,8 +515,8 @@ function discoverCardData(tavern: Tavern | undefined, index: number) {
     characterLabel: characterCount > 0 ? `${characterCount} 位 NPC` : "待配置 NPC",
     favoriteCount: visitCount > 0 ? Math.max(1, Math.round(visitCount * 0.28) + 8 - index) : [23, 17, 11, 9][index % 4],
     timeLabel: minutes < 60 ? `${minutes} 分钟前` : "1 小时前",
-    whyHere: guide?.whyHere || "真实坐标决定这间空间的门牌、氛围和第一段对话线索。",
-    tryPrompt: guide?.tryThisFirst?.[0] || "这里为什么必须开在这个坐标？",
+    sceneHint: guide?.sceneHint || "真实坐标上的空间。",
+    tryPrompt: guide?.tryThisFirst?.[0] || "这里为什么偏偏开在这里？",
     experienceType: guide?.experienceType || "地点叙事",
   }
 }
@@ -1533,10 +1533,12 @@ function ArtboardShell({ artboard, variant, kind, children }: { artboard: Artboa
 
     function updateScale() {
       const availableWidth = sectionRef.current?.parentElement?.clientWidth || window.innerWidth || artboard.width
-      const availableHeight = window.innerHeight || artboard.height
       const nextIsDesktop = mediaQuery.matches
       setIsDesktopArtboard(nextIsDesktop)
-      setDesktopScale(nextIsDesktop ? Math.min(1, availableWidth / artboard.width, availableHeight / artboard.height) : 1)
+      // Fill width, scale down only if aspect ratio is taller than artboard
+      const widthScale = availableWidth / artboard.width
+      const heightScale = (sectionRef.current?.parentElement?.clientHeight || window.innerHeight) / artboard.height
+      setDesktopScale(nextIsDesktop ? Math.min(widthScale, heightScale) : 1)
     }
 
     updateScale()
@@ -1551,16 +1553,15 @@ function ArtboardShell({ artboard, variant, kind, children }: { artboard: Artboa
       window.removeEventListener("resize", updateScale)
       observer?.disconnect()
     }
-  }, [artboard.width])
+  }, [artboard.width, artboard.height])
 
   const sectionStyle: CSSProperties = {
     background: artboard.background,
   }
 
   if (isDesktopArtboard) {
-    sectionStyle.width = `${artboard.width * desktopScale}px`
-    sectionStyle.height = `${artboard.height * desktopScale}px`
-    sectionStyle.maxWidth = "100vw"
+    sectionStyle.width = "100%"
+    sectionStyle.maxWidth = `${artboard.width}px`
   }
 
   const canvasStyle: CSSProperties = isDesktopArtboard
@@ -1568,7 +1569,8 @@ function ArtboardShell({ artboard, variant, kind, children }: { artboard: Artboa
         width: `${artboard.width}px`,
         height: `${artboard.height}px`,
         background: artboard.background,
-        transform: `scale(${desktopScale}) translateX(-50%)`,
+        transform: `scale(${desktopScale})`,
+        transformOrigin: "top left",
       }
     : {
         background: artboard.background,
@@ -1590,16 +1592,14 @@ function ArtboardShell({ artboard, variant, kind, children }: { artboard: Artboa
         className={cx(
           "relative mx-auto w-full select-none",
           isDiscover && "scroll-mt-28",
-          isHome || isDiscover ? "min-h-screen overflow-visible md:min-h-0 md:overflow-hidden md:aspect-[1536/1024]" : "overflow-hidden",
+          isHome || isDiscover ? "min-h-screen overflow-auto md:min-h-0" : "overflow-hidden",
         )}
         style={sectionStyle}
       >
         <div
           data-fable-map-artboard-canvas={isDesktopArtboard ? "scaled-desktop" : "mobile-flow"}
           className={cx(
-            isDesktopArtboard
-              ? "absolute left-1/2 top-0 origin-top-left overflow-visible"
-              : "relative min-h-screen w-full",
+            isDesktopArtboard ? "relative overflow-visible" : "relative min-h-screen w-full",
           )}
           style={canvasStyle}
         >
@@ -1912,7 +1912,7 @@ function FableMapDiscoverCard({
         <h3 data-fable-map-discover-card-title="real-text" className={cx("truncate text-[16px] font-black leading-tight", isBlack ? "text-cyan-50" : "text-slate-800")}>{card.name}</h3>
         <p className={cx("mt-2 line-clamp-2 text-[12px] font-bold leading-5", isBlack ? "text-cyan-100/52" : "text-slate-400")} title={card.description}>{card.description}</p>
         <span data-first-minute-guide="fable-map-discover-card" className="sr-only">
-          Why here · {card.experienceType}：{card.whyHere}。先试：{card.tryPrompt}
+          {card.sceneHint}：{card.tryPrompt}
         </span>
         <div className={cx("mt-auto flex min-w-0 items-center gap-2 text-[11px] font-black", isBlack ? "text-cyan-100/44" : "text-slate-400")}>
           <span className="flex min-w-0 items-center gap-1 truncate">

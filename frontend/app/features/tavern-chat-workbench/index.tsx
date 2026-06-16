@@ -1,4 +1,5 @@
 import {
+  ArrowRight,
   ChevronDown,
   DoorOpen,
   LockKeyhole,
@@ -1122,7 +1123,14 @@ export function TavernChatWorkbench({
                 <MapPin className="mt-0.5 h-4 w-4 shrink-0" />
                 <span>{firstMinuteGuide.anchorLine}</span>
               </p>
-              {/* 动作入口按钮 */}
+              {/* 「现在做」区块 */}
+              {firstMinuteGuide.playObjective && (
+                <div className="mt-4">
+                  <p className="text-xs font-black uppercase tracking-[0.18em] text-cyan-100/58">现在做</p>
+                  <p className="mt-1 text-sm font-bold text-cyan-50/88">{firstMinuteGuide.playObjective}</p>
+                </div>
+              )}
+              {/* 动作入口按钮（带分类标签） */}
               <div className="mt-5 grid gap-2" data-first-minute-action-deck>
                 {doorwayEntryActions.map((action, index) => (
                   <button
@@ -1130,35 +1138,45 @@ export function TavernChatWorkbench({
                     type="button"
                     data-first-minute-action={action.id}
                     onClick={() => handleDoorwayQuickAction(action)}
-                    className="flex items-center gap-3 rounded-2xl border border-cyan-200/16 bg-cyan-300/[0.075] px-4 py-3 text-left transition hover:border-cyan-200/38 hover:bg-cyan-300/[0.12] focus:outline-none focus:ring-4 focus:ring-cyan-300/20"
+                    className="flex flex-col gap-1 rounded-2xl border border-cyan-200/16 bg-cyan-300/[0.075] px-4 py-3 text-left transition hover:border-cyan-200/38 hover:bg-cyan-300/[0.12] focus:outline-none focus:ring-4 focus:ring-cyan-300/20 sm:flex-row sm:items-center sm:gap-3"
                   >
                     <span className="grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-cyan-200/12 text-xs font-black text-cyan-50">
                       {index + 1}
                     </span>
-                    <span className="text-sm font-bold text-cyan-50">{action.label}</span>
+                    <div className="flex min-w-0 flex-1 flex-col gap-0.5 sm:flex-row sm:items-center sm:gap-3">
+                      <span className="text-sm font-bold text-cyan-50">{action.label}</span>
+                      {action.helper && (
+                        <span className="text-xs font-bold text-cyan-100/50">{action.helper}</span>
+                      )}
+                    </div>
                   </button>
                 ))}
               </div>
             </div>
 
             {/* 右侧：NPC 接待 + 任务 */}
-            <div className="rounded-[1.75rem] border border-white/10 bg-white/[0.045] p-5">
-              <div className="mb-4 inline-flex w-fit items-center gap-2 rounded-full border border-violet-200/16 bg-violet-300/10 px-3 py-1.5 text-xs font-black text-violet-100">
+            <div className="flex flex-col gap-4 rounded-[1.75rem] border border-violet-200/18 bg-slate-950/65 p-5">
+              {/* Host Role 标签 */}
+              <div className="inline-flex w-fit items-center gap-2 rounded-full border border-violet-200/16 bg-violet-300/10 px-3 py-1.5 text-xs font-black text-violet-100">
                 <Sparkles className="h-3.5 w-3.5" />
                 {firstMinuteGuide.hostRole}
               </div>
-              <div className="flex items-start gap-3">
+
+              {/* NPC 接待区域 */}
+              <div className="flex items-start gap-3 rounded-2xl border border-white/10 bg-white/[0.035] p-4">
                 <CharacterAvatar character={doorwayHost} active />
-                <div className="min-w-0">
+                <div className="min-w-0 flex-1">
                   <p className="font-black text-white">{doorwayHost?.name || "驻场 NPC"}</p>
-                  <p className="mt-1 text-xs font-bold text-cyan-100/54">{characters.length} 位 NPC 在场 · {firstMinuteGuide.hostRole}</p>
-                  <p data-doorway-host-greeting className="mt-2 rounded-3xl rounded-tl-sm border border-white/10 bg-slate-950/45 p-4 text-sm leading-7 text-violet-50/78">
+                  <p className="mt-1 text-xs font-bold text-cyan-100/54">{characters.length} 位 NPC 在场</p>
+                  <p data-doorway-host-greeting className="mt-2 text-sm leading-6 text-violet-50/78">
                     {doorwayGreeting}
                   </p>
                 </div>
               </div>
+
+              {/* 可接任务 */}
               {doorwayGameplayDefinitions.length ? (
-                <div className="mt-5 space-y-2" data-doorway-gameplay-list>
+                <div className="space-y-2" data-doorway-gameplay-list>
                   <p className="text-xs font-black uppercase tracking-[0.18em] text-cyan-100/58">可接任务</p>
                   {doorwayGameplayDefinitions.map((definition, index) => (
                     <button
@@ -1167,40 +1185,50 @@ export function TavernChatWorkbench({
                       data-doorway-gameplay-entry={String(definition.id || index)}
                       disabled={isGameplayBusy}
                       onClick={() => void handleDoorwayStartGameplay(definition)}
-                      className="min-h-16 w-full rounded-2xl border border-cyan-200/16 bg-cyan-300/[0.085] px-4 py-3 text-left transition hover:border-cyan-200/38 hover:bg-cyan-300/[0.13] focus:outline-none focus:ring-4 focus:ring-cyan-300/20 disabled:cursor-wait disabled:opacity-60"
+                      className="flex w-full items-center justify-between gap-3 rounded-xl border border-cyan-200/16 bg-cyan-300/[0.065] px-4 py-3 text-left transition hover:border-cyan-200/38 hover:bg-cyan-300/[0.12] focus:outline-none focus:ring-2 focus:ring-cyan-300/20 disabled:cursor-wait disabled:opacity-60"
                     >
-                      <span className="block text-sm font-black text-cyan-50">
-                        {gameplayDisplayText(definition, "entry_label", gameplayDisplayText(definition, "title", "开始这个玩法"))}
-                      </span>
-                      <span className="mt-1 block text-xs font-bold leading-5 text-violet-100/58">
-                        {gameplayDisplayText(definition, "summary", "进入一个由 NPC 主持的可完成小任务。")}
-                      </span>
+                      <div className="min-w-0 flex-1">
+                        <span className="block truncate text-sm font-black text-cyan-50">
+                          {gameplayDisplayText(definition, "entry_label", gameplayDisplayText(definition, "title", "开始这个玩法"))}
+                        </span>
+                        <span className="mt-0.5 block truncate text-xs font-bold text-violet-100/58">
+                          {gameplayDisplayText(definition, "summary", "")}
+                        </span>
+                      </div>
+                      <ArrowRight className="h-4 w-4 shrink-0 text-cyan-100/50" />
                     </button>
                   ))}
                 </div>
               ) : null}
-              <div className="opening-scene-reader__starters mt-5 grid gap-2 sm:grid-cols-2" data-roleplay-starter-prompts>
-                <p className="sm:col-span-2 text-xs font-black uppercase tracking-[0.18em] text-amber-100/68">
-                  选一句开口
-                </p>
-                {roleplayStarterPrompts.map((starter) => (
-                  <button
-                    key={starter.id}
-                    type="button"
-                    data-roleplay-starter={starter.id}
-                    onClick={() => prepareDoorwayPrompt(starter.prompt)}
-                    className="min-h-16 rounded-2xl border border-amber-200/18 bg-amber-300/[0.075] px-4 py-3 text-left transition hover:border-amber-200/42 hover:bg-amber-300/[0.13] focus:outline-none focus:ring-4 focus:ring-amber-300/20"
-                  >
-                    <strong className="block text-sm font-black text-amber-50">{starter.label}</strong>
-                    <span className="mt-1 block text-xs font-bold leading-5 text-violet-100/58">{starter.helper}</span>
-                  </button>
-                ))}
-              </div>
-              <Button type="button" data-doorway-start-chat className="mt-5 min-h-12 w-full" onClick={handleDoorwayStartChat}>
+
+              {/* 选一句开口 */}
+              {roleplayStarterPrompts.length ? (
+                <div className="space-y-2" data-roleplay-starter-prompts>
+                  <p className="text-xs font-black uppercase tracking-[0.18em] text-amber-100/68">
+                    选一句开口
+                  </p>
+                  <div className="grid gap-2">
+                    {roleplayStarterPrompts.map((starter) => (
+                      <button
+                        key={starter.id}
+                        type="button"
+                        data-roleplay-starter={starter.id}
+                        onClick={() => prepareDoorwayPrompt(starter.prompt)}
+                        className="flex items-center gap-3 rounded-xl border border-amber-200/18 bg-amber-300/[0.065] px-4 py-3 text-left transition hover:border-amber-200/42 hover:bg-amber-300/[0.12] focus:outline-none focus:ring-2 focus:ring-amber-300/20"
+                      >
+                        <span className="text-sm font-black text-amber-50">{starter.label}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
+
+              {/* 主按钮 */}
+              <Button type="button" data-doorway-start-chat className="min-h-12 w-full" onClick={handleDoorwayStartChat}>
                 {doorwayGameplayDefinitions.length ? "和 NPC 打招呼 →" : `${firstMinuteGuide.startLabel} →`}
               </Button>
-              <p className="mt-3 text-xs leading-5 text-violet-100/52">
-                按钮只填草稿或启动任务，不会替你发送。
+              <p className="text-center text-xs leading-5 text-violet-100/42">
+                按钮只填草稿，不会替你发送
               </p>
             </div>
           </section>

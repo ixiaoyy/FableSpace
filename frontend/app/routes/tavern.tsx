@@ -6,6 +6,7 @@ import {
   BookOpen,
   Bookmark,
   Clock3,
+  Clock,
   Compass,
   Copy,
   DoorOpen,
@@ -20,7 +21,6 @@ import {
 } from "lucide-react"
 import { useEffect, useMemo, useState, type MouseEvent } from "react"
 import { Link, useLoaderData } from "react-router"
-
 import homeBlackHeroVisual from "../assets/fable-map-05-10/home-black/hero-system-visual.png"
 import homeBlackRecentEchoWaveform from "../assets/fable-map-05-10/home-black/recent-echo-waveform.png"
 import homeBlackWorldStatsSparkline from "../assets/fable-map-05-10/home-black/world-stats-sparkline.png"
@@ -46,6 +46,13 @@ import {
 import { formatTavernAnchorLocation } from "../product/mapAnchorCopy.js"
 import { Button } from "../ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card"
+
+// Atmosphere tag definitions for Hero panel
+const ATMOSPHERE_TAGS = [
+  { label: "3D沉浸", icon: "🎮", color: "violet" },
+  { label: "NPC扮演", icon: "🎭", color: "cyan" },
+  { label: "氛围营造", icon: "✨", color: "amber" },
+]
 
 type TavernLoaderData = {
   tavernId: string
@@ -263,13 +270,13 @@ function TavernCharacterAvatar({ character, className = "" }: { character?: Tave
 
 function TavernMetricPanel({ icon: Icon, label, value, helper }: { icon: typeof Activity; label: string; value: string; helper: string }) {
   return (
-    <div className="min-w-0 rounded-[1.35rem] border border-cyan-200/14 bg-[#061126]/76 px-4 py-3 shadow-[0_18px_42px_rgba(0,0,0,0.20)]">
-      <p className="flex items-center gap-2 text-xs font-black uppercase text-cyan-100/56">
+    <div className="min-w-0 rounded-xl border border-cyan-200/14 bg-cyan-300/[0.06] px-4 py-3">
+      <p className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-cyan-100/56">
         <Icon className="h-3.5 w-3.5" />
         {label}
       </p>
-      <p className="mt-2 truncate text-2xl font-black text-white">{value}</p>
-      <p className="mt-1 truncate text-xs font-bold text-cyan-100/42">{helper}</p>
+      <p className="mt-1.5 truncate text-xl font-black text-white">{value}</p>
+      <p className="mt-0.5 truncate text-xs font-bold text-cyan-100/44">{helper}</p>
     </div>
   )
 }
@@ -284,9 +291,23 @@ function TavernHeroPanel({ tavern, isOwner }: { tavern: Tavern; isOwner: boolean
   const leadCharacter = characters[0]
   const localTime = tavern.local_time_display || tavern.time_status?.local_time_display || ""
 
+  // Clock display state
+  const [currentTime, setCurrentTime] = useState(() => {
+    const now = new Date()
+    return now.toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit" })
+  })
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const now = new Date()
+      setCurrentTime(now.toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit" }))
+    }, 60000)
+    return () => clearInterval(interval)
+  }, [])
+
   return (
-    <section className="relative min-h-[430px] overflow-hidden rounded-[2rem] border border-cyan-200/16 bg-[#061126] shadow-[0_34px_90px_rgba(0,0,0,0.35)]">
-      {/* 右侧背景图 */}
+    <section className="relative min-h-[420px] overflow-hidden rounded-[2rem] border border-cyan-200/16 bg-[#061126] shadow-[0_34px_90px_rgba(0,0,0,0.35)]">
+      {/* 背景图 */}
       <div className="absolute inset-0">
         <img src={coverImage} alt="" className="h-full w-full object-cover opacity-80" loading="eager" decoding="async" />
         <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(2,7,16,0.95)_0%,rgba(2,7,16,0.68)_38%,rgba(2,7,16,0.40)_100%)]" />
@@ -294,82 +315,131 @@ function TavernHeroPanel({ tavern, isOwner }: { tavern: Tavern; isOwner: boolean
       </div>
       <div className="absolute inset-x-0 bottom-0 h-px bg-cyan-200/50" />
 
-      {/* 左侧信息内容 */}
-      <div className="relative z-10 flex min-h-[430px] flex-col justify-between p-6 md:p-8">
-        {/* 顶部状态标签 */}
-        <div className="flex flex-wrap items-center gap-2">
-          <span className={cx("inline-flex min-h-10 items-center gap-2 rounded-full border px-4 text-sm font-black", status.className)}>
-            <DoorOpen className="h-4 w-4" />
-            {status.label}
-          </span>
-          <span className="inline-flex min-h-10 items-center gap-2 rounded-full border border-white/12 bg-white/[0.06] px-4 text-sm font-black text-violet-50/78">
-            <Sparkles className="h-4 w-4 text-cyan-100" />
-            {placeType.shortLabel || placeType.label || firstMinute.experienceType}
-          </span>
-          {isOwner ? (
-            <span className="inline-flex min-h-10 items-center rounded-full border border-amber-200/20 bg-amber-300/12 px-4 text-sm font-black text-amber-50">
-              店主视角
-            </span>
-          ) : null}
-        </div>
+      {/* 右上角时钟 */}
+      <div className="absolute right-6 top-6 z-20 flex items-center gap-2 rounded-2xl border border-white/10 bg-slate-950/45 px-4 py-2 backdrop-blur">
+        <Clock className="h-4 w-4 text-cyan-100" />
+        <span className="text-sm font-black text-cyan-50">{currentTime}</span>
+      </div>
 
-        {/* 主要信息 */}
-        <div className="max-w-3xl space-y-4">
-          {/* 锚点信息 */}
-          <p className="flex max-w-xl items-start gap-2 rounded-2xl border border-cyan-200/16 bg-slate-950/42 px-4 py-3 text-sm font-bold leading-6 text-cyan-50/78 backdrop-blur">
-            <MapPin className="mt-0.5 h-4 w-4 shrink-0" />
-            <span>{anchor.line}</span>
-          </p>
+      {/* 主内容区域：左侧信息 + 右侧竖栏 */}
+      <div className="relative z-10 flex min-h-[420px] justify-between p-6 md:p-8 lg:gap-8">
+        {/* 左侧信息内容 */}
+        <div className="flex min-w-0 flex-1 flex-col justify-between">
+          {/* 顶部状态标签 + 锚点标签 */}
+          <div className="space-y-3">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className={cx("inline-flex min-h-10 items-center gap-2 rounded-full border px-4 text-sm font-black", status.className)}>
+                <DoorOpen className="h-4 w-4" />
+                {status.label}
+              </span>
+              {isOwner ? (
+                <span className="inline-flex min-h-10 items-center rounded-full border border-amber-200/20 bg-amber-300/12 px-4 text-sm font-black text-amber-50">
+                  店主视角
+                </span>
+              ) : null}
+            </div>
+            {/* 锚点标签 (天文台 · 普通空间) */}
+            <div className="inline-flex items-center gap-2 rounded-full border border-white/12 bg-white/[0.06] px-4 py-2 text-sm font-black text-white/70">
+              <MapPin className="h-4 w-4 text-cyan-100" />
+              {anchor.text !== "坐标待确认" ? anchor.text : `${Number(tavern.lat).toFixed(4)}, ${Number(tavern.lon).toFixed(4)}`}
+              <span className="text-white/30">·</span>
+              {placeType.shortLabel || placeType.label || firstMinute.experienceType}
+            </div>
+          </div>
 
-          {/* 标题和描述 */}
-          <h1 className="max-w-2xl text-5xl font-black leading-tight text-white md:text-6xl">
-            {tavern.name || "未命名空间"}
-          </h1>
-          <p className="max-w-2xl text-base font-bold leading-8 text-violet-50/74">
-            {compactText(tavern.description || tavern.scene_prompt, firstMinute.sceneHint, 132)}
-          </p>
+          {/* 主要信息 */}
+          <div className="max-w-3xl space-y-4">
+            {/* 标题和描述 */}
+            <h1 className="max-w-2xl text-5xl font-black leading-tight text-white md:text-6xl">
+              {tavern.name || "未命名空间"}
+            </h1>
+            <p className="max-w-2xl text-base font-bold leading-8 text-violet-50/74">
+              {compactText(tavern.description || tavern.scene_prompt, firstMinute.sceneHint, 132)}
+            </p>
 
-          {/* 操作按钮 */}
-          <div className="flex flex-wrap gap-3">
-            <a
-              href="#tavern-mainline"
-              onClick={handleMainlineAnchorClick}
-              className="inline-flex min-h-14 touch-manipulation items-center justify-center gap-2 rounded-[1.15rem] border border-cyan-100/50 bg-cyan-300 px-6 text-base font-black text-slate-950 shadow-[0_0_34px_rgba(103,232,249,0.26)] transition hover:-translate-y-0.5"
-            >
-              <DoorOpen className="h-5 w-5" />
-              进入空间
-              <ArrowRight className="h-5 w-5" />
-            </a>
-            <Link
-              to="/discover"
-              className="inline-flex min-h-14 touch-manipulation items-center justify-center gap-2 rounded-[1.15rem] border border-cyan-200/20 bg-slate-950/42 px-6 text-base font-black text-cyan-50 backdrop-blur transition hover:border-cyan-200/42 hover:bg-cyan-300/10"
-            >
-              <ArrowLeft className="h-5 w-5" />
-              返回发现
-            </Link>
+            {/* 操作按钮 */}
+            <div className="flex flex-wrap gap-3">
+              <a
+                href="#tavern-mainline"
+                onClick={handleMainlineAnchorClick}
+                className="inline-flex min-h-14 touch-manipulation items-center justify-center gap-2 rounded-[1.15rem] border border-cyan-100/50 bg-cyan-300 px-6 text-base font-black text-slate-950 shadow-[0_0_34px_rgba(103,232,249,0.26)] transition hover:-translate-y-0.5"
+              >
+                <DoorOpen className="h-5 w-5" />
+                进入空间
+                <ArrowRight className="h-5 w-5" />
+              </a>
+              <Link
+                to="/discover"
+                className="inline-flex min-h-14 touch-manipulation items-center justify-center gap-2 rounded-[1.15rem] border border-cyan-200/20 bg-slate-950/42 px-6 text-base font-black text-cyan-50 backdrop-blur transition hover:border-cyan-200/42 hover:bg-cyan-300/10"
+              >
+                <ArrowLeft className="h-5 w-5" />
+                返回发现
+              </Link>
+            </div>
+          </div>
+
+          {/* 底部指标面板 */}
+          <div className="grid gap-3 md:grid-cols-3">
+            <TavernMetricPanel
+              icon={UsersRound}
+              label="Active NPC"
+              value={characters.length ? `${characters.length}` : "0"}
+              helper={leadCharacter?.name || "等待店主配置角色"}
+            />
+            <TavernMetricPanel
+              icon={RadioTower}
+              label="First Minute"
+              value={firstMinute.playObjective}
+              helper={firstMinute.hostRole}
+            />
+            <TavernMetricPanel
+              icon={Clock3}
+              label="Local Signal"
+              value={localTime || (tavern.is_open === false ? "Closed" : "Open")}
+              helper={status.helper}
+            />
           </div>
         </div>
 
-        {/* 底部指标面板 */}
-        <div className="grid gap-3 md:grid-cols-3">
-          <TavernMetricPanel
-            icon={UsersRound}
-            label="Active NPC"
-            value={characters.length ? `${characters.length}` : "0"}
-            helper={leadCharacter?.name || "等待店主配置角色"}
-          />
-          <TavernMetricPanel
-            icon={RadioTower}
-            label="First Minute"
-            value={firstMinute.playObjective}
-            helper={firstMinute.hostRole}
-          />
-          <TavernMetricPanel
-            icon={Clock3}
-            label="Local Signal"
-            value={localTime || (tavern.is_open === false ? "Closed" : "Open")}
-            helper={status.helper}
-          />
+        {/* 右侧竖栏：游戏世界指数 + 氛围标签卡片 */}
+        <div className="hidden w-[220px] shrink-0 flex-col gap-4 lg:flex">
+          {/* 游戏世界指数 */}
+          <div className="overflow-hidden rounded-[1.5rem] border border-cyan-200/16 bg-slate-950/55 p-4 shadow-[0_12px_40px_rgba(0,0,0,0.25)]">
+            <div className="flex items-center justify-between">
+              <p className="text-xs font-black uppercase tracking-wider text-cyan-100/68">游戏世界指数</p>
+              <RadioTower className="h-4 w-4 text-cyan-100/50" />
+            </div>
+            <div className="mt-3 flex items-end justify-between">
+              <div>
+                <p className="text-3xl font-black text-white">{characters.length + 12}</p>
+                <p className="mt-1 text-xs font-bold text-cyan-100/50">探索者</p>
+              </div>
+              <img src={homeBlackWorldStatsSparkline} alt="" className="h-12 w-20 object-contain" loading="lazy" />
+            </div>
+          </div>
+
+          {/* 氛围标签卡片 */}
+          <div className="space-y-2">
+            {ATMOSPHERE_TAGS.map((tag) => (
+              <div
+                key={tag.label}
+                className={cx(
+                  "flex items-center gap-3 rounded-2xl border px-4 py-3",
+                  tag.color === "violet" && "border-violet-200/16 bg-violet-300/[0.075]",
+                  tag.color === "cyan" && "border-cyan-200/16 bg-cyan-300/[0.075]",
+                  tag.color === "amber" && "border-amber-200/16 bg-amber-300/[0.075]",
+                )}
+              >
+                <span className="text-lg">{tag.icon}</span>
+                <span className={cx(
+                  "text-sm font-black",
+                  tag.color === "violet" && "text-violet-50",
+                  tag.color === "cyan" && "text-cyan-50",
+                  tag.color === "amber" && "text-amber-50",
+                )}>{tag.label}</span>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </section>
@@ -385,66 +455,95 @@ function TavernRightRail({ tavern }: { tavern: Tavern }) {
   return (
     <aside className="hidden min-w-0 space-y-4 xl:flex xl:w-[300px] xl:flex-col xl:shrink-0 xl:gap-4">
       {/* 空间回声卡片 */}
-      <section className="overflow-hidden rounded-[1.8rem] border border-cyan-200/16 bg-[#061126]/86 p-6 shadow-[0_28px_70px_rgba(0,0,0,0.30)]">
+      <section className="overflow-hidden rounded-[1.8rem] border border-cyan-200/16 bg-[#061126]/86 p-5 shadow-[0_28px_70px_rgba(0,0,0,0.30)]">
         <div className="flex items-start justify-between gap-4">
           <div>
-            <h2 className="text-2xl font-black text-white">空间回声</h2>
-            <p className="mt-1 text-xs font-black uppercase tracking-wider text-cyan-100/48">Recent Echoes</p>
+            <h2 className="text-lg font-black text-white">空间回声</h2>
+            <p className="mt-0.5 text-xs font-black uppercase tracking-wider text-cyan-100/48">Recent Echoes</p>
           </div>
-          <span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-cyan-300/10 text-cyan-100">
-            <Activity className="h-6 w-6" />
+          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-cyan-200/16 bg-cyan-300/10 text-cyan-100">
+            <Activity className="h-5 w-5" />
           </span>
         </div>
-        <div className="mt-5 rounded-[1.35rem] border border-white/10 bg-slate-950/38 p-4">
-          <p className="text-sm font-bold leading-6 text-violet-50/76">{firstMinute.sceneHint}</p>
-          <p className="mt-3 text-xs font-bold text-cyan-100/54">{anchor.text}</p>
+        <div className="mt-4 rounded-xl border border-white/10 bg-slate-950/45 p-4">
+          <p className="text-sm font-bold leading-5 text-violet-50/76">{firstMinute.sceneHint}</p>
+          <p className="mt-2 flex items-center gap-1.5 text-xs font-bold text-cyan-100/54">
+            <MapPin className="h-3 w-3" />
+            {anchor.text !== "坐标待确认" ? anchor.text : `${Number(tavern.lat).toFixed(3)}, ${Number(tavern.lon).toFixed(3)}`}
+          </p>
         </div>
-        <a href="#tavern-mainline" onClick={handleMainlineAnchorClick} className="mt-5 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl border border-cyan-200/24 bg-cyan-300/12 text-sm font-black text-cyan-50 transition hover:bg-cyan-300/18">
+        <a href="#tavern-mainline" onClick={handleMainlineAnchorClick} className="mt-4 flex min-h-11 items-center justify-center gap-2 rounded-xl border border-cyan-200/24 bg-cyan-300/12 text-sm font-black text-cyan-50 transition hover:bg-cyan-300/18">
           查看入口
           <ArrowRight className="h-4 w-4" />
         </a>
       </section>
 
       {/* 驻场角色卡片 */}
-      <section className="relative overflow-hidden rounded-[1.8rem] border border-cyan-200/16 bg-[#061126]/86 p-6 shadow-[0_28px_70px_rgba(0,0,0,0.26)]">
-        <img src={homeBlackRecentEchoWaveform} alt="" className="absolute bottom-0 right-0 h-24 w-40 object-cover opacity-20" loading="lazy" decoding="async" />
-        <div className="relative">
-          <h2 className="text-2xl font-black text-white">驻场角色</h2>
-          <p className="mt-1 text-sm font-bold text-cyan-100/48">{characters.length} 位 NPC 在场</p>
-          <div className="mt-5 space-y-3">
-            {characters.slice(0, 4).map((character) => (
-              <div key={character.id || character.name} className="flex min-w-0 items-center gap-3 rounded-2xl border border-white/10 bg-slate-950/30 p-3">
-                <TavernCharacterAvatar character={character} className="h-12 w-12" />
-                <div className="min-w-0">
-                  <p className="truncate text-sm font-black text-white">{character.name || "未命名 NPC"}</p>
-                  <p className="mt-1 truncate text-xs font-bold text-cyan-100/46">
-                    {compactText(character.description || character.personality || character.scenario, "等待访客打招呼", 42)}
-                  </p>
-                </div>
-              </div>
-            ))}
+      <section className="relative overflow-hidden rounded-[1.8rem] border border-violet-200/18 bg-[#061126]/86 p-5 shadow-[0_28px_70px_rgba(0,0,0,0.26)]">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-lg font-black text-white">驻场角色</h2>
+            <p className="mt-0.5 text-xs font-bold text-violet-100/48">{characters.length} 位 NPC 在场</p>
           </div>
+          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-violet-200/16 bg-violet-300/10 text-violet-100">
+            <Sparkles className="h-5 w-5" />
+          </span>
+        </div>
+        <div className="mt-4 space-y-2">
+          {characters.slice(0, 3).map((character) => (
+            <div
+              key={character.id || character.name}
+              className="flex min-w-0 items-center gap-3 rounded-xl border border-white/10 bg-white/[0.035] p-3"
+            >
+              <TavernCharacterAvatar character={character} className="h-11 w-11" />
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-black text-white">{character.name || "NPC"}</p>
+                <p className="mt-0.5 truncate text-xs font-bold text-violet-100/50">
+                  {compactText(character.description || character.personality || "", "等待访客", 28)}
+                </p>
+              </div>
+            </div>
+          ))}
+          {characters.length === 0 && (
+            <p className="rounded-xl border border-dashed border-white/10 bg-white/[0.02] p-4 text-center text-xs font-bold text-violet-100/50">
+              暂无驻场角色
+            </p>
+          )}
         </div>
       </section>
 
       {/* World Stats 卡片 */}
-      <section className="relative overflow-hidden rounded-[1.8rem] border border-cyan-200/16 bg-[#061126]/86 p-6 shadow-[0_28px_70px_rgba(0,0,0,0.26)]">
-        <img src={homeBlackWorldStatsSparkline} alt="" className="absolute bottom-0 right-0 h-24 w-48 object-cover opacity-24" loading="lazy" decoding="async" />
-        <div className="relative">
-          <h2 className="text-2xl font-black text-white">World Stats</h2>
-          <div className="mt-5 grid grid-cols-2 gap-3">
-            {[
-              { label: "状态", value: status.label },
-              { label: "到访", value: formatMetricNumber(tavern.visit_count) },
-              { label: "NPC", value: String(characters.length) },
-              { label: "坐标", value: Number.isFinite(Number(tavern.lat)) && Number.isFinite(Number(tavern.lon)) ? "已锚定" : "待确认" },
-            ].map((item) => (
-              <div key={item.label} className="rounded-2xl border border-white/10 bg-slate-950/34 px-3 py-3">
-                <p className="text-xs font-bold text-cyan-100/44">{item.label}</p>
-                <p className="mt-1 truncate text-xl font-black text-cyan-50">{item.value}</p>
-              </div>
-            ))}
+      <section className="relative overflow-hidden rounded-[1.8rem] border border-cyan-200/16 bg-[#061126]/86 p-5 shadow-[0_28px_70px_rgba(0,0,0,0.26)]">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-lg font-black text-white">World Stats</h2>
+            <p className="mt-0.5 text-xs font-bold text-cyan-100/48">世界动态</p>
           </div>
+          <RadioTower className="h-5 w-5 text-cyan-100/50" />
+        </div>
+        <div className="mt-4 grid grid-cols-2 gap-2">
+          {[
+            { label: "开放状态", value: status.label, color: "cyan" },
+            { label: "累计到访", value: formatMetricNumber(tavern.visit_count), color: "violet" },
+            { label: "驻场 NPC", value: String(characters.length), color: "cyan" },
+            { label: "坐标锚定", value: Number.isFinite(Number(tavern.lat)) && Number.isFinite(Number(tavern.lon)) ? "已锚定" : "待确认", color: "violet" },
+          ].map((item) => (
+            <div
+              key={item.label}
+              className={cx(
+                "rounded-xl border px-3 py-2.5",
+                item.color === "cyan" && "border-cyan-200/16 bg-cyan-300/[0.06]",
+                item.color === "violet" && "border-violet-200/16 bg-violet-300/[0.06]",
+              )}
+            >
+              <p className={cx(
+                "text-xs font-bold",
+                item.color === "cyan" && "text-cyan-100/44",
+                item.color === "violet" && "text-violet-100/44",
+              )}>{item.label}</p>
+              <p className="mt-1 truncate text-lg font-black text-white">{item.value}</p>
+            </div>
+          ))}
         </div>
       </section>
     </aside>

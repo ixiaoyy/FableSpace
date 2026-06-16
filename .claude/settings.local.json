@@ -60,7 +60,10 @@
       "Bash(curl -s http://127.0.0.1:8950/api/health)",
       "Bash(curl -s http://127.0.0.1:8950/api/meta)",
       "Bash(curl -s \"http://127.0.0.1:8950/api/taverns?lat=39.9042&lon=116.4074&radius=50000\")",
-      "Bash(python3 -c ' *)"
+      "Bash(python3 -c ' *)",
+      "Bash(npm --prefix ./frontend run typecheck)",
+      "Bash(git commit -m 'refactor: streamline tavern doorway UX — remove explanatory copy, action-oriented entry buttons *)",
+      "Bash(git -C \"d:/work/FableMap\" log --oneline --all -20)"
     ],
     "additionalDirectories": [
       "d:\\work\\ai-\\.trellis\\tasks\\04-28-owner-dashboard",
