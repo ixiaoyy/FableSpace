@@ -129,7 +129,7 @@ function hasRoleplayActionCue(text: string) {
 function buildWorkbenchReplyCoach(draft: string, targetName: string, hasVisitorSentMessage: boolean): ReplyCoachView {
   const text = draft.trim()
   const target = targetName.trim() || "眼前的 NPC"
-  const example = `*我环顾四周，压低声音看向${target}* “先告诉我最紧要的一件事，我们从哪里开始？”`
+  const example = `*我环顾四周，压低声音看向${target}* "先告诉我最紧要的一件事，我们从哪里开始？"`
   const hasAction = hasRoleplayActionCue(text)
   const hasScene = /这里|周围|门口|桌|窗|街|雨|夜|房间|站台|走廊|身边|眼前|空气|脚步|声音/.test(text)
   const hasNextStep = /？|\?|怎么办|接下来|先|跟我|帮|看见|听见|找|确认|目标|线索|任务|等等|哪里|什么/.test(text)
@@ -181,7 +181,7 @@ function buildWorkbenchReplyCoach(draft: string, targetName: string, hasVisitorS
     eyebrow: "补一笔就更稳",
     title: hasAction ? "再给 NPC 一个可接的问题" : "先写一个动作或神态",
     body: hasAction
-      ? "可以加一句“接下来怎么办？”或“我该先看哪里？”来交出剧情球。"
+      ? "可以加一句「接下来怎么办？」或「我该先看哪里？」来交出剧情球。"
       : "例如先写 *我环顾四周*、*我递上雨伞*，再把问题说出口。",
     example,
     showExample: true,
@@ -469,7 +469,7 @@ export function TavernChatWorkbench({
   const [visitorState, setVisitorState] = useState<any>(null)
   const mentionRef = useRef<HTMLDivElement | null>(null)
   const textareaRef = useRef<HTMLTextAreaElement | null>(null)
-  const [activeChatChannel, setActiveChatChannel] = useState<ChatChannel>("public")
+  const [activeChatChannel, setActiveChatChannel] = useState<ChatChannel>(() => characters[0]?.id ? "private" : "public")
   const [publicMessages, setPublicMessages] = useState<ChatMessage[]>([])
   const [privateMessagesByCharacterId, setPrivateMessagesByCharacterId] = useState<Record<string, ChatMessage[]>>({})
   const [password, setPassword] = useState("")
@@ -503,7 +503,7 @@ export function TavernChatWorkbench({
   const doorwayStarterLine = doorwayHost
     ? `你好，${doorwayHost.name || "在场 NPC"}。我刚到这里，想从门口开始了解。`
     : "我刚进门，想先听听这里最值得注意的线索。"
-  const shouldShowDoorway = !isOwner && !passwordLocked && !hasPassedDoorway
+  const shouldShowDoorway = false
   const doorwayGameplayDefinitions = useMemo(
     () => {
       const publishedDefinitions = gameplayDefinitions
@@ -607,7 +607,7 @@ export function TavernChatWorkbench({
     })
 
     if (shouldReplaceInitialMessages) {
-      setActiveChatChannel("public")
+      setActiveChatChannel(characters[0]?.id ? "private" : "public")
     }
     
     // Public greetings: Shopkeeper only. Do not overwrite an in-flight/first user message
@@ -617,8 +617,19 @@ export function TavernChatWorkbench({
       shouldReplaceInitialMessages || current.length === 0 ? publicGreetings : current,
     )
 
-    // Private greetings: Friendly NPCs only
+    // Private greetings: the first selected NPC should be immediately readable;
+    // familiar NPCs can still add relationship-aware private greetings.
     const privateGreetings: Record<string, ChatMessage[]> = {}
+    const primaryNpc = characters[0]
+    if (primaryNpc?.id) {
+      privateGreetings[primaryNpc.id] = [{
+        id: `entrance-private-${primaryNpc.id}-${Date.now()}`,
+        role: "assistant",
+        character_id: primaryNpc.id,
+        content: entranceReactionContent(primaryNpc, tavern.name),
+        timestamp: new Date().toISOString(),
+      }]
+    }
     friendlyNpcs.forEach(npc => {
       privateGreetings[npc.id] = [{
         id: `entrance-private-${npc.id}-${Date.now()}`,
@@ -1078,7 +1089,7 @@ export function TavernChatWorkbench({
     const shopkeeperNpc = findWorkbenchShopkeeperNpc(characters)
     setPublicMessages(publicEntranceMessages(characters, tavern, shopkeeperNpc))
     setPrivateMessagesByCharacterId({})
-    setActiveChatChannel("public")
+    setActiveChatChannel(characters[0]?.id ? "private" : "public")
     setSelectedCharacterId(characters[0]?.id || "")
     setMessage("")
     setMentionQuery(null)
@@ -1104,8 +1115,8 @@ export function TavernChatWorkbench({
 
   return (
 
-    <section data-chat-workbench="sillytavern-style" data-active-chat-channel={activeChatChannel} className="space-y-6">
-      <div className="overflow-hidden rounded-[2rem] border border-white/10 bg-slate-950/72 shadow-2xl shadow-cyan-950/20">
+    <section data-chat-workbench="sillytavern-style" data-active-chat-channel={activeChatChannel} className="h-full">
+      <div className="flex h-full min-h-[30rem] overflow-hidden rounded-[1.15rem] border border-cyan-200/12 bg-[linear-gradient(180deg,rgba(7,19,38,0.92)_0%,rgba(5,12,28,0.96)_100%)] shadow-[0_18px_56px_rgba(0,0,0,0.22)]">
         {/* 移除了冗余的 tavern.name header bar - 标题已在 Hero Panel 展示 */}
 
         {shouldShowDoorway ? (
@@ -1255,76 +1266,144 @@ export function TavernChatWorkbench({
           </div>
         )}
 
-        <div className="grid grid-cols-1 lg:grid-cols-[18rem_minmax(0,1fr)] lg:items-start">
-          <aside className="border-b border-white/10 bg-white/[0.035] p-4 lg:border-b-0 lg:border-r" aria-label="NPC 角色列表">
-            <div className="mb-3 flex items-center justify-between gap-3">
-              <h2 className="text-base font-black text-white">在场</h2>
-              <span className="rounded-full border border-cyan-300/20 bg-cyan-300/10 px-2.5 py-1 text-xs font-bold text-cyan-100">
-                {characters.length}
-              </span>
+        <div className="grid h-full min-h-0 w-full grid-cols-1 lg:grid-cols-[16rem_minmax(0,1fr)] lg:items-stretch">
+          <aside className="flex min-h-[18rem] flex-col border-b border-white/10 bg-slate-950/28 lg:min-h-0 lg:overflow-hidden lg:border-b-0 lg:border-r lg:border-cyan-200/10" aria-label="NPC 角色与任务">
+            <div className="shrink-0 p-3 pb-2">
+              <div className="flex items-center justify-between gap-3">
+                <h2 className="text-base font-black text-white">驻场角色</h2>
+                <span className="rounded-full border border-cyan-300/20 bg-cyan-300/10 px-2.5 py-1 text-xs font-bold text-cyan-100">
+                  {characters.length}
+                </span>
+              </div>
             </div>
-            <button
-              type="button"
-              data-public-chat-channel
-              aria-pressed={activeChatChannel === "public"}
-              onClick={selectPublicChannel}
-              className={`mb-3 flex min-h-16 w-full min-w-0 items-center gap-3 rounded-3xl border p-3 text-left transition hover:border-cyan-300/35 hover:bg-cyan-300/8 ${
-                activeChatChannel === "public" ? "border-cyan-300/55 bg-cyan-300/14" : "border-white/10 bg-slate-950/30"
-              }`}
-            >
-              <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-cyan-300/12 text-cyan-50 ring-1 ring-cyan-200/35">
-                <UsersRound className="h-5 w-5" />
-              </span>
-              <span className="min-w-0">
-                <span className="block truncate text-sm font-black text-white">公共聊天</span>
-              </span>
-            </button>
-            <div className="space-y-2">
+            <div className="min-h-0 flex-1 space-y-2 overflow-y-auto px-3 pb-3">
               {characters.length ? (
                 characters.map((character) => {
                   const active = activeChatChannel === "private" && character.id === selectedCharacter?.id
+                  const intro = compactSceneLine(character.description || character.personality || character.scenario || character.first_mes, "等待你开口。", 70)
                   return (
                     <button
                       key={character.id}
                       type="button"
                       data-private-chat-channel
+                      aria-pressed={active}
                       onClick={() => selectCharacter(character.id)}
-                      className={`flex min-h-16 w-full min-w-0 items-center gap-3 rounded-3xl border p-3 text-left transition hover:border-cyan-300/35 hover:bg-cyan-300/8 ${
-                        active ? "border-cyan-300/45 bg-cyan-300/12" : "border-white/10 bg-slate-950/30"
+                      className={`flex w-full min-w-0 items-start gap-3 rounded-2xl border p-3 text-left transition hover:border-cyan-300/35 hover:bg-cyan-300/8 ${
+                        active ? "border-cyan-300/45 bg-cyan-300/12 shadow-[0_14px_34px_rgba(8,145,178,0.16)]" : "border-white/10 bg-slate-950/30"
                       }`}
                     >
                       <CharacterAvatar character={character} active={active} />
-                      <span className="min-w-0">
+                      <span className="min-w-0 flex-1">
                         <span className="block truncate text-sm font-black text-white">{character.name || character.id}</span>
+                        <span className="mt-1 line-clamp-2 block text-xs font-semibold leading-5 text-cyan-50/58">{intro}</span>
                       </span>
                     </button>
                   )
                 })
               ) : (
-                <div className="rounded-3xl border border-dashed border-white/15 bg-slate-950/35 p-4 text-sm leading-6 text-violet-50/62">
+                <div className="rounded-2xl border border-dashed border-white/15 bg-slate-950/35 p-4 text-sm leading-6 text-violet-50/62">
                   这间空间还没有 NPC。店主可以在管理入口导入 SillyTavern 兼容角色卡。
                 </div>
               )}
             </div>
+            <div className="shrink-0 space-y-3 border-t border-cyan-200/10 bg-slate-950/30 p-3">
+              {doorwayGameplayDefinitions.length ? (
+                <div className="space-y-2" data-doorway-gameplay-list>
+                  <p className="text-xs font-black uppercase tracking-[0.16em] text-cyan-100/54">可接任务</p>
+                  {doorwayGameplayDefinitions.slice(0, 2).map((definition, index) => (
+                    <button
+                      key={String(definition.id || index)}
+                      type="button"
+                      data-doorway-gameplay-entry={String(definition.id || index)}
+                      disabled={isGameplayBusy}
+                      onClick={() => void handleDoorwayStartGameplay(definition)}
+                      className="flex w-full items-center justify-between gap-3 rounded-xl border border-cyan-200/16 bg-cyan-300/[0.065] px-3 py-2.5 text-left transition hover:border-cyan-200/38 hover:bg-cyan-300/[0.12] focus:outline-none focus:ring-2 focus:ring-cyan-300/20 disabled:cursor-wait disabled:opacity-60"
+                    >
+                      <span className="min-w-0 flex-1">
+                        <span className="block truncate text-xs font-black text-cyan-50">
+                          {gameplayDisplayText(definition, "entry_label", gameplayDisplayText(definition, "title", "开始任务"))}
+                        </span>
+                        <span className="mt-0.5 block truncate text-[0.68rem] font-bold text-violet-100/52">
+                          {gameplayDisplayText(definition, "summary", "")}
+                        </span>
+                      </span>
+                      <ArrowRight className="h-4 w-4 shrink-0 text-cyan-100/50" />
+                    </button>
+                  ))}
+                </div>
+              ) : null}
+              {roleplayStarterPrompts.length ? (
+                <div className="space-y-2" data-roleplay-starter-prompts>
+                  <p className="text-xs font-black uppercase tracking-[0.16em] text-amber-100/58">开口模板</p>
+                  {roleplayStarterPrompts.slice(0, 2).map((starter) => (
+                    <button
+                      key={starter.id}
+                      type="button"
+                      data-roleplay-starter={starter.id}
+                      onClick={() => prepareDoorwayPrompt(starter.prompt)}
+                      className="w-full rounded-xl border border-amber-200/16 bg-amber-300/[0.055] px-3 py-2 text-left text-xs font-black text-amber-50/82 transition hover:border-amber-200/38 hover:bg-amber-300/[0.10]"
+                    >
+                      {starter.label}
+                    </button>
+                  ))}
+                </div>
+              ) : null}
+              <button
+                type="button"
+                data-public-chat-channel
+                aria-pressed={activeChatChannel === "public"}
+                onClick={selectPublicChannel}
+                className={`flex min-h-11 w-full min-w-0 items-center gap-2.5 rounded-xl border px-3 py-2 text-left transition hover:border-cyan-300/35 hover:bg-cyan-300/8 ${
+                  activeChatChannel === "public" ? "border-cyan-300/45 bg-cyan-300/12" : "border-white/10 bg-slate-950/30"
+                }`}
+              >
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-cyan-300/12 text-cyan-50 ring-1 ring-cyan-200/25">
+                  <UsersRound className="h-4 w-4" />
+                </span>
+                <span className="block truncate text-xs font-black text-white">公共聊天</span>
+              </button>
+            </div>
           </aside>
 
-          <main className="flex min-w-0 flex-col bg-slate-950/35">
-            <div className="border-b border-white/10 px-3 py-2 sm:px-4">
+          <main className="flex min-h-0 min-w-0 flex-col overflow-hidden bg-[#071326]/68">
+            <div className="border-b border-cyan-200/10 px-3 py-3 sm:px-4">
               <div
                 data-current-npc-stage-card
                 aria-label={activeChatChannel === "public" ? "公共聊天" : "当前 NPC"}
-                className="flex min-w-0 items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.04] px-3 py-2"
+                className="rounded-xl border border-cyan-200/10 bg-white/[0.035] p-3"
               >
-                {activeChatChannel === "public" ? (
-                  <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-cyan-100/16 bg-cyan-300/12 text-cyan-50">
-                    <UsersRound className="h-5 w-5" />
-                  </span>
-                ) : (
-                  <CharacterAvatar character={selectedCharacter} active />
-                )}
-                <h2 className="min-w-0 truncate text-base font-black text-white sm:text-lg">
-                  {activeChatChannel === "public" ? "公共聊天" : selectedCharacter?.name || "暂无 NPC"}
-                </h2>
+                <div className="flex min-w-0 items-start gap-3">
+                  {activeChatChannel === "public" ? (
+                    <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-cyan-100/16 bg-cyan-300/12 text-cyan-50">
+                      <UsersRound className="h-5 w-5" />
+                    </span>
+                  ) : (
+                    <CharacterAvatar character={selectedCharacter} active />
+                  )}
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xs font-black uppercase tracking-[0.16em] text-cyan-100/45">
+                      {activeChatChannel === "public" ? "公共频道" : "当前角色"}
+                    </p>
+                    <h2 className="mt-0.5 truncate text-base font-black text-white sm:text-lg">
+                      {activeChatChannel === "public" ? "公共聊天" : selectedCharacter?.name || "暂无 NPC"}
+                    </h2>
+                    <p className="mt-1 line-clamp-2 text-xs font-semibold leading-5 text-cyan-50/62">
+                      {activeChatChannel === "public"
+                        ? characters.length + " 位 NPC 在场，可以用 @名字 指定回应。"
+                        : compactSceneLine(selectedCharacter?.description || selectedCharacter?.personality || selectedCharacter?.scenario || selectedCharacter?.first_mes, doorwayGreeting, 118)}
+                    </p>
+                  </div>
+                </div>
+                {openingDigestRows.length ? (
+                  <div className="mt-3 grid gap-2 sm:grid-cols-3">
+                    {openingDigestRows.slice(0, 3).map((row) => (
+                      <div key={row.label} className="min-w-0 rounded-xl border border-white/10 bg-slate-950/24 px-3 py-2">
+                        <p className="text-[0.66rem] font-black uppercase tracking-[0.14em] text-violet-100/42">{row.label}</p>
+                        <p className="mt-1 truncate text-xs font-bold text-cyan-50/70">{row.value}</p>
+                      </div>
+                    ))}
+                  </div>
+                ) : null}
               </div>
             </div>
 
@@ -1370,6 +1449,7 @@ export function TavernChatWorkbench({
                         value={password}
                         onChange={(event) => setPassword(event.target.value)}
                         type="password"
+                        aria-label="空间密码"
                         className="min-h-12 flex-1 rounded-2xl border border-white/12 bg-slate-950/55 px-4 text-white outline-none focus:border-amber-200/70"
                         placeholder="空间密码"
                       />
@@ -1387,74 +1467,9 @@ export function TavernChatWorkbench({
               ref={chatLogRef}
               data-entrance-reactions
               data-chat-log-compact
-              aria-label="聊天记录"
-              className="max-h-[min(52vh,34rem)] space-y-4 overflow-y-auto p-4 sm:p-5"
+              aria-label="chat log"
+              className="min-h-[10rem] flex-1 space-y-4 overflow-y-auto p-4 sm:p-5"
             >
-              {!hasVisitorSentMessage && !passwordLocked ? (
-                <section
-                  data-opening-scene-reader="chat"
-                  className="opening-scene-reader rounded-[1.65rem] border border-amber-200/20 bg-amber-200/[0.06] p-4 shadow-xl shadow-black/15"
-                >
-                  <div className="opening-scene-reader__header flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                    <div>
-                      <p className="text-xs font-black uppercase tracking-[0.18em] text-amber-100/68">开场阅读器</p>
-                      <h3 className="mt-1 text-xl font-black text-white">先读懂这一幕，再接续故事</h3>
-                      <p className="mt-2 text-sm leading-6 text-violet-50/68">
-                        酒馆聊天更像互动小说：先顺着场景写动作和台词，不要直接问 NPC“你会做什么”。
-                      </p>
-                    </div>
-                    <span className="opening-scene-reader__mode w-fit rounded-full border border-cyan-200/18 bg-cyan-300/10 px-3 py-1.5 text-xs font-black text-cyan-50">
-                      {firstMinuteGuide.experienceType}
-                    </span>
-                  </div>
-
-                  <p
-                    data-starter-draft-note
-                    className="opening-scene-reader__draft-note rounded-2xl border border-amber-200/16 bg-amber-300/[0.07] px-3 py-2 text-xs font-bold leading-5 text-amber-50/78"
-                  >
-                    点击下面模板只会填入输入框，不会自动发送；你可以改完再按“发送”。
-                  </p>
-
-                  <div className="opening-scene-reader__starters grid gap-2 sm:grid-cols-2" data-roleplay-starter-prompts>
-                    {roleplayStarterPrompts.map((starter) => (
-                      <button
-                        key={starter.id}
-                        type="button"
-                        data-roleplay-starter={starter.id}
-                        onClick={() => prepareDoorwayPrompt(starter.prompt)}
-                        className="rounded-2xl border border-amber-200/18 bg-amber-300/[0.075] px-4 py-3 text-left transition hover:border-amber-200/42 hover:bg-amber-300/[0.13] focus:outline-none focus:ring-4 focus:ring-amber-300/20"
-                      >
-                        <strong className="block text-sm font-black text-amber-50">{starter.label}</strong>
-                        <span className="mt-1 block text-xs font-bold leading-5 text-violet-100/58">{starter.helper}</span>
-                      </button>
-                    ))}
-                  </div>
-
-                  <div className="opening-scene-reader__digest grid gap-2 sm:grid-cols-2">
-                    {openingDigestRows.map((row) => (
-                      <article key={row.label} className="rounded-2xl border border-white/10 bg-slate-950/28 p-3">
-                        <span className="block text-xs font-black text-amber-100/70">{row.label}</span>
-                        <p className="mt-1 text-sm leading-6 text-violet-50/78">{row.value}</p>
-                      </article>
-                    ))}
-                  </div>
-
-                  <div className="opening-scene-reader__reply-rule rounded-2xl border border-rose-200/16 bg-rose-300/10 p-3 text-sm leading-6">
-                    <strong className="text-rose-100">避免出戏：</strong>
-                    <span className="text-violet-50/72">
-                      把问题包进剧情里，例如 <code className="rounded bg-black/25 px-1 py-0.5 text-amber-100">*我环顾四周*</code> “这里发生了什么？”
-                    </span>
-                  </div>
-
-                  {doorwayGreeting ? (
-                    <div className="opening-scene-reader__opener-note">
-                      <p className="rounded-2xl border border-white/10 bg-slate-950/28 p-3 text-sm leading-6 text-violet-50/78">
-                        {compactSceneLine(doorwayGreeting, "", 220)}
-                      </p>
-                    </div>
-                  ) : null}
-                </section>
-              ) : null}
               {visibleMessages.map((line, index) => {
                 const isUser = line.role === "user"
                 const targetName = characterNameById.get(line.character_id || "")
@@ -1528,7 +1543,7 @@ export function TavernChatWorkbench({
               </div>
             ) : null}
 
-            <form onSubmit={handleSubmit} data-chat-composer="fast-entry" className="border-t border-white/10 bg-slate-950/80 p-3 sm:p-4">
+            <form onSubmit={handleSubmit} data-chat-composer="fast-entry" className="border-t border-cyan-200/10 bg-slate-950/64 p-3 sm:p-4">
               <div className="flex min-w-0 flex-col gap-3 sm:flex-row">
                 <div ref={mentionRef} className="relative min-w-0 flex-1">
                   <textarea
@@ -1555,14 +1570,15 @@ export function TavernChatWorkbench({
                     }}
                     onKeyDown={handleComposerKeyDown}
                     disabled={(activeChatChannel === "private" && !selectedCharacter) || characters.length === 0 || busy === "send" || passwordLocked}
+                    aria-label={activeChatChannel === "public" ? "公共聊天输入" : "当前角色聊天输入"}
                     rows={2}
                     maxLength={1600}
                     placeholder={activeChatChannel === "public" ? "在这里说点什么…" : `对 ${selectedCharacter?.name || "NPC"} 说点什么…`}
-                    className="min-h-14 w-full resize-none rounded-3xl border border-white/12 bg-white/[0.06] px-5 py-3 text-sm leading-6 text-white outline-none placeholder:text-violet-100/35 focus:border-cyan-300/60 disabled:cursor-not-allowed disabled:opacity-55"
+                    className="min-h-14 w-full resize-none rounded-2xl border border-cyan-200/14 bg-white/[0.055] px-4 py-3 text-sm leading-6 text-white outline-none placeholder:text-violet-100/35 focus:border-cyan-300/60 disabled:cursor-not-allowed disabled:opacity-55"
                   />
                   <div
                     data-roleplay-reply-coach
-                    className={`mt-2 rounded-2xl border px-3 py-2.5 text-xs leading-5 shadow-sm shadow-black/10 ${replyCoachToneClass}`}
+                    className={`mt-2 rounded-xl border px-3 py-2 text-xs leading-5 shadow-sm shadow-black/10 ${replyCoachToneClass}`}
                   >
                     <div className="flex flex-col gap-1 sm:flex-row sm:items-baseline sm:justify-between">
                       <span className="font-black uppercase tracking-[0.16em] text-amber-100/66">{replyCoach.eyebrow}</span>
@@ -1594,7 +1610,7 @@ export function TavernChatWorkbench({
                           setTimeout(() => textareaRef.current?.focus(), 0)
                         }}
                         disabled={busy === "send" || passwordLocked}
-                        className="mt-2 w-full rounded-2xl border border-amber-200/18 bg-slate-950/28 px-3 py-2 text-left font-bold text-amber-50/86 transition hover:border-amber-200/38 hover:bg-amber-300/[0.08] disabled:cursor-not-allowed disabled:opacity-50"
+                        className="mt-2 w-full rounded-xl border border-amber-200/16 bg-slate-950/18 px-3 py-2 text-left font-bold text-amber-50/78 transition hover:border-amber-200/38 hover:bg-amber-300/[0.08] disabled:cursor-not-allowed disabled:opacity-50"
                       >
                         借用句式（只填入，不发送）：{replyCoach.example}
                       </button>
@@ -1655,14 +1671,6 @@ export function TavernChatWorkbench({
                 </div>
               </section>
             ) : null}
-
-            <section data-chat-sidecar="conversation-context" data-secondary-tools="visitor-folded" className="border-t border-white/10 bg-white/[0.025] p-4">
-              <div className="grid gap-3 xl:grid-cols-2">
-                <DetailSection title={publicPanel ? "邀请与反馈" : "更多空间功能"}>
-                  {publicPanel || <SpaceCapabilityHubPanel tavern={tavern} />}
-                </DetailSection>
-              </div>
-            </section>
           </main>
         </div>
           </>
