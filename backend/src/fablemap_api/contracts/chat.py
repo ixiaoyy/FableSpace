@@ -8,7 +8,8 @@ from .common import FlexibleBody
 
 
 class ChatRequest(BaseModel):
-    character_id: str = Field(min_length=1)
+    # character_id 为空时由后端自动路由到合适的 NPC
+    character_id: str = Field(default="")
     message: str = Field(min_length=1)
     visitor_id: str = ""
     visitor_name: str = ""

@@ -179,17 +179,36 @@ def _normalize_fallback_candidate(value: str) -> str:
 
 
 def _is_non_answer_fallback_response(response_text: str) -> bool:
-    """Detect generic/non-answer fallback text that must not create progress claims."""
+    """Detect generic/non-answer fallback text that must not create progress claims.
+
+    Only triggers on very short/empty responses or responses that are EXACTLY
+    these phrases. Longer responses with these phrases embedded are accepted as
+    valid NPC replies (they may be part of character personality/scenario).
+    """
 
     text = str(response_text or "").strip()
     if not text:
         return True
-    if any(phrase in text for phrase in NON_ANSWER_FALLBACK_PHRASES):
-        return True
 
+    # Only flag as fallback if the response is EXACTLY or VERY SHORT with these phrases.
+    # Full sentence containing these phrases as part of character dialogue is valid.
     normalized = _normalize_fallback_candidate(text)
     if normalized in GENERIC_NON_ANSWER_FALLBACKS:
         return True
+
+    # Very short responses (under 30 chars) with these exact phrases are fallback
+    short_exact_matches = {"似乎在听你说话", "暂时没有更多回复"}
+    for phrase in short_exact_matches:
+        if text == phrase or (len(text) < 30 and phrase in text):
+            return True
+
+    # Allow longer responses even if they contain these phrases
+    if len(text) > 30:
+        return False
+
+    if any(phrase in text for phrase in NON_ANSWER_FALLBACK_PHRASES):
+        return True
+
     if normalized.startswith("i understand") and len(normalized) <= 32:
         return True
     if normalized.startswith("i hear you") and len(normalized) <= 32:
@@ -241,6 +260,27 @@ class RuntimeApplicationMixin:
         if user_id and user_id != visitor_id and not self._is_owner(tavern, user_id):
             raise HTTPException(status_code=403, detail="不能代替其他访客发送消息")
         self._ensure_visible(tavern, user_id)
+
+        # ── Auto-route: 如果未指定 character_id，自动选择 NPC ──
+        if not character_id:
+            # 1. 尝试从聊天历史中找到该访客上一次对话的 NPC
+            try:
+                history = self.store.get_chat_history(tavern_id, visitor_id, limit=1)
+                if history:
+                    last_char_id = history[-1].character_id
+                    last_char = next((c for c in tavern.characters if c.id == last_char_id), None)
+                    if last_char:
+                        character_id = last_char_id
+            except Exception:
+                pass
+
+            # 2. 如果没有历史记录，选择第一个可用的 NPC
+            if not character_id and tavern.characters:
+                character_id = tavern.characters[0].id
+
+            # 3. 如果空间没有 NPC，抛出错误
+            if not character_id:
+                raise HTTPException(status_code=404, detail="该空间没有可用的角色")
 
         character = next((item for item in tavern.characters if item.id == character_id), None)
         if not character:

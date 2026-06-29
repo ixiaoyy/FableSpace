@@ -45,6 +45,15 @@ class LLMConfig:
     extra: dict[str, Any] = field(default_factory=dict)
 
     def is_configured(self) -> bool:
+        """Check if the LLM config has actual credentials or is a rules-based backend.
+
+        Rules-based backends (rules, rule_based, public_welfare) don't need credentials
+        as they use built-in response rules instead of calling an external LLM API.
+        """
+        backend = str(self.backend or "").strip().lower()
+        rules_backends = {"rules", "rule_based", "public_welfare"}
+        if backend in rules_backends:
+            return True
         return bool(self.api_key or self.base_url)
 
     def to_dict(self) -> dict[str, Any]:

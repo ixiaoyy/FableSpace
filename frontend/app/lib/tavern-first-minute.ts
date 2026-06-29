@@ -28,10 +28,10 @@ const EXPERIENCE_BY_PLACE_TYPE: Record<string, { label: string; helper: string }
   restaurant: { label: "主厨故事", helper: "菜单 / 熟客 / 厨房传闻" },
   "convenience-store": { label: "夜班街角", helper: "夜班 / 避雨 / 货架" },
   bookstore: { label: "旧书资料馆", helper: "书架 / 便签 / 低声交谈" },
-  school: { label: "校园旧事", helper: "校门 / 铃声 / 旧线索" },
+  school: { label: "校园旧事", helper: "校门 / 铃声 / 往事" },
   hospital: { label: "照护陪伴", helper: "温和陪伴 / 分诊便签" },
   home: { label: "私域回访", helper: "熟人邀请 / 家中物件" },
-  tavern: { label: "地点叙事", helper: "门牌 / NPC / 第一条传闻" },
+  tavern: { label: "地点叙事", helper: "门牌 / NPC / 闲聊" },
 }
 
 const EXPLANATORY_SEED_COPY_PATTERN = /demo seed|AI 草稿|边界批准|默认示例空间|不代表平台|未经店主确认/i
@@ -72,13 +72,6 @@ function buildPlayableEntryCopy(placeId: string, experienceType: string, content
       startLabel: "进入花圃",
     }
   }
-  if (normalized.includes("quest") || normalized.includes("探索") || normalized.includes("旧书") || normalized.includes("校园")) {
-    return {
-      hostRole: "线索主持",
-      playObjective: "线索待解",
-      startLabel: "开始调查",
-    }
-  }
   if (normalized.includes("home") || normalized.includes("陪伴") || normalized.includes("照护") || normalized.includes("私域")) {
     return {
       hostRole: "陪伴接待",
@@ -95,7 +88,7 @@ function buildPlayableEntryCopy(placeId: string, experienceType: string, content
   }
   return {
     hostRole: "空间主持",
-    playObjective: "线索已备好",
+    playObjective: "开放中",
     startLabel: "开始游玩",
   }
 }
@@ -118,7 +111,7 @@ function buildQuickActions(
   const fallbackActions = [
     `问 ${anchorText || "这里"} 是什么地方`,
     `找 ${characterName || "驻场 NPC"} 聊聊`,
-    "看第一条线索是什么",
+    "看看这里有什么",
   ]
 
   const combined = [
@@ -168,7 +161,7 @@ export function buildTavernFirstMinuteGuide(tavern: Tavern): TavernFirstMinuteGu
   )
   const scenePrompt = typeof tavern.scene_prompt === "string" ? tavern.scene_prompt : ""
   const visitorSceneSource = EXPLANATORY_SEED_COPY_PATTERN.test(scenePrompt) ? tavern.description : tavern.scene_prompt
-  const sceneHint = compactText(visitorSceneSource, tavern.description || placeType?.tone || "门口的第一条线索", 34)
+  const sceneHint = compactText(visitorSceneSource, tavern.description || placeType?.tone || "门口等着你", 34)
   const characterName = leadCharacter?.name?.trim() || "驻场 NPC"
   const anchorText = anchor.text !== "坐标待确认" ? anchor.text : `${Number(tavern.lat).toFixed(4)}, ${Number(tavern.lon).toFixed(4)}`
   const tryThisFirst = uniqueList([
@@ -178,7 +171,7 @@ export function buildTavernFirstMinuteGuide(tavern: Tavern): TavernFirstMinuteGu
       : `第一眼看去，这地方最值得关注的是什么？`,
     visitorSceneSource
       ? `先带我看看这里：${compactText(visitorSceneSource, "从门口开始", 28)}`
-      : `进门之后，最适合先聊哪条线索？`,
+      : `进门之后，最适合先聊什么？`,
   ])
 
   return {

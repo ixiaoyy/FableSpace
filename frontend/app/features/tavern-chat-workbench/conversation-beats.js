@@ -1,11 +1,5 @@
 export const CONVERSATION_INTENT_CHIPS = [
   {
-    id: "follow_clue",
-    label: "追问线索",
-    hint: "把刚才提到的人、地点或异常问清楚",
-    context: "访客想追问刚才出现的线索。请围绕已有空间/NPC设定回应，不要凭空新增未确认正史。",
-  },
-  {
     id: "comfort",
     label: "安慰一下",
     hint: "用温和方式接住 NPC 的情绪",
@@ -61,50 +55,11 @@ function affinityStageLabel(affinity) {
   return String(affinity.stage_label_zh || affinity.new_stage || "").trim()
 }
 
+// 简洁模式：不显示系统提示，让对话更自然
+
 export function progressEchoesFromChatResult(result) {
-  if (result?.is_fallback === true) return []
-
-  const echoes = []
-  const memoryCount = countList(result?.created_memories)
-  const stateCardCount = countList(result?.state_card_candidates)
-  const affinity = result?.affinity && typeof result.affinity === "object" ? result.affinity : null
-  const stageLabel = affinityStageLabel(affinity)
-
-  if (memoryCount > 0) {
-    echoes.push({
-      id: "memory",
-      label: `记住了 ${memoryCount} 件事`,
-      detail: "这轮对话留下了可用于回访的线索。",
-      tone: "memory",
-    })
-  }
-
-  if (affinity?.stage_changed) {
-    echoes.push({
-      id: "affinity-stage",
-      label: stageLabel ? `关系进入「${stageLabel}」` : "关系阶段有变化",
-      detail: "NPC 对你的熟悉感出现了新的阶段。",
-      tone: "affinity",
-    })
-  } else if (affinity && Number.isFinite(Number(affinity.strength))) {
-    echoes.push({
-      id: "affinity",
-      label: stageLabel ? `当前关系：${stageLabel}` : "关系略有变化",
-      detail: "这轮互动已计入当前空间的关系进度。",
-      tone: "affinity",
-    })
-  }
-
-  if (stateCardCount > 0) {
-    echoes.push({
-      id: "state-card",
-      label: `可整理 ${stateCardCount} 条连续性线索`,
-      detail: "这轮内容可沉淀为后续对话的状态线索。",
-      tone: "state-card",
-    })
-  }
-
-  return echoes
+  // 简洁模式：不显示系统提示，让对话更自然
+  return []
 }
 
 export const progressSignalsFromChatResult = progressEchoesFromChatResult
