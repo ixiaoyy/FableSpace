@@ -2,8 +2,8 @@ import { ArrowRight, CheckCircle2, KeyRound, MapPinned, ShieldCheck, Sparkles, U
 import { useState, useEffect, type FormEvent } from "react"
 import { useNavigate, useSearchParams } from "react-router"
 
-import tavernStreetImage from "../assets/fable-map-05-10/discover/cards/card-train-platform-square.png"
-import { DEFAULT_NPC_PREVIEW_PORTRAIT } from "../features/tavern-npc-stage/portraitCatalogConfig"
+import spaceStreetImage from "../assets/fable-space-05-10/discover/cards/card-train-platform-square.png"
+import { DEFAULT_NPC_PREVIEW_PORTRAIT } from "../features/space-npc-stage/portraitCatalogConfig"
 import { readCreatePrefill } from "../lib/creator-conversion.js"
 import { buildAiDraftLifecycle } from "../lib/ai-draft-lifecycle.js"
 import { normalizeCreatePlacePayload } from "../lib/place-home.js"
@@ -13,23 +13,23 @@ import {
   DIGITAL_HUMAN_STUDIO_TYPE_ID,
 } from "../lib/digital-human-studio.js"
 import {
-  buildSpecialTavernTypeDraftSeed,
-  deriveSpecialTavernTypeDisplay,
-  normalizeSpecialTavernTypeId,
-  SPECIAL_TAVERN_TYPES,
-} from "../lib/special-tavern-types.js"
-import { createTavernDraftRequest, draftResponseToCreateForm } from "../lib/tavern-drafts.js"
-import { hasExplicitOwnerIdentity } from "../lib/tavern-runtime-config.js"
+  buildSpecialSpaceTypeDraftSeed,
+  deriveSpecialSpaceTypeDisplay,
+  normalizeSpecialSpaceTypeId,
+  SPECIAL_SPACE_TYPES,
+} from "../lib/special-space-types.js"
+import { createSpaceDraftRequest, draftResponseToCreateForm } from "../lib/space-drafts.js"
+import { hasExplicitOwnerIdentity } from "../lib/space-runtime-config.js"
 import {
   addCharacter,
-  createTavern,
+  createSpace,
   DEFAULT_OWNER_ID,
   errorMessage,
-  generateTavernDraft,
+  generateSpaceDraft,
   getOwnerDefaultLLM,
   saveOwnerDefaultLLM,
-  type TavernDraft,
-} from "../lib/taverns"
+  type SpaceDraft,
+} from "../lib/spaces"
 import { ProductShell } from "../shell/product-shell"
 import { Button } from "../ui/button"
 import {
@@ -41,7 +41,7 @@ import {
   DialogTrigger,
 } from "../ui/dialog"
 import LLMConfigForm from "../product/LLMConfigForm.jsx"
-import { TAVERN_INTENT_TEMPLATES, deriveTavernIntent } from "../product/tavernIntentTemplates.js"
+import { SPACE_INTENT_TEMPLATES, deriveSpaceIntent } from "../product/spaceIntentTemplates.js"
 
 const CREATE_WIZARD_STEPS = [
   { id: "anchor", number: "01", icon: MapPinned, title: "真实坐标", text: "先钉住地图锚点、地点类型和入口规则。" },
@@ -54,23 +54,23 @@ export default function CreateRoute() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const createPrefill = readCreatePrefill(searchParams)
-  const tavernDraftLifecycle = buildAiDraftLifecycle("tavern")
+  const spaceDraftLifecycle = buildAiDraftLifecycle("space")
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState("")
   const [createdId, setCreatedId] = useState("")
-  const [placeType, setPlaceType] = useState(() => normalizePlaceTypeId(searchParams.get("place_type") || "tavern"))
+  const [placeType, setPlaceType] = useState(() => normalizePlaceTypeId(searchParams.get("place_type") || "space"))
   const [layoutStyle, setLayoutStyle] = useState(
-    () => buildSpecialTavernTypeDraftSeed(searchParams.get("special_tavern_type") || "")?.layout_style || "lobby",
+    () => buildSpecialSpaceTypeDraftSeed(searchParams.get("special_space_type") || "")?.layout_style || "lobby",
   )
-  const [specialTavernTypeId, setSpecialTavernTypeId] = useState(
-    () => normalizeSpecialTavernTypeId(searchParams.get("special_tavern_type") || ""),
+  const [specialSpaceTypeId, setSpecialSpaceTypeId] = useState(
+    () => normalizeSpecialSpaceTypeId(searchParams.get("special_space_type") || ""),
   )
   const activePlaceType = derivePlaceTypeDisplay(placeType)
   const activePlaceTypeName = activePlaceType.shortLabel || activePlaceType.label
-  const activeSpecialTavernType = deriveSpecialTavernTypeDisplay(specialTavernTypeId)
-  const isDigitalHumanStudio = activeSpecialTavernType?.id === DIGITAL_HUMAN_STUDIO_TYPE_ID
+  const activeSpecialSpaceType = deriveSpecialSpaceTypeDisplay(specialSpaceTypeId)
+  const isDigitalHumanStudio = activeSpecialSpaceType?.id === DIGITAL_HUMAN_STUDIO_TYPE_ID
   const [intentId, setIntentId] = useState("companion-beacon")
-  const activeIntent = deriveTavernIntent(intentId)
+  const activeIntent = deriveSpaceIntent(intentId)
   const activeIntentChecklist = [
     activeIntent.primaryNpcRole,
     ...(activeIntent.verifiableOutputs || []).slice(0, 2),
@@ -81,7 +81,7 @@ export default function CreateRoute() {
   const activeDraftSummary = isDigitalHumanStudio
     ? "AI 草稿只填入可编辑表单；店主检查并点击「创建空间」后，才会保存为数字人工作室和档案师 NPC。后续数字人档案仍需用户确认后再导出。"
     : `AI 草稿只填入可编辑表单；店主检查并点击「创建空间」后，才会保存为正式${activePlaceTypeName}和首个 NPC。`
-  const activeDraftGuardrails = tavernDraftLifecycle.guardrails.map((item) =>
+  const activeDraftGuardrails = spaceDraftLifecycle.guardrails.map((item) =>
     item.replace("空间", activePlaceTypeName),
   )
   const activeRequiredChecklist = ["真实坐标", `店主确认的${activePlaceTypeName}内容`, "角色卡可导出", "密钥不向访客展示"]
@@ -180,8 +180,8 @@ export default function CreateRoute() {
     field.value = value
   }
 
-  function applySpecialTavernTypeDraft(id: string, { onlyIfEmpty = false }: { onlyIfEmpty?: boolean } = {}) {
-    const seed = buildSpecialTavernTypeDraftSeed(id)
+  function applySpecialSpaceTypeDraft(id: string, { onlyIfEmpty = false }: { onlyIfEmpty?: boolean } = {}) {
+    const seed = buildSpecialSpaceTypeDraftSeed(id)
     if (!seed) return
     setPlaceType(seed.place_type)
     setLayoutStyle(seed.layout_style)
@@ -197,9 +197,9 @@ export default function CreateRoute() {
     fillField('input[name="first_mes"]', seed.first_mes || "", { onlyIfEmpty })
   }
 
-  function handleSelectSpecialTavernType(id: string) {
-    setSpecialTavernTypeId(id)
-    applySpecialTavernTypeDraft(id, { onlyIfEmpty: true })
+  function handleSelectSpecialSpaceType(id: string) {
+    setSpecialSpaceTypeId(id)
+    applySpecialSpaceTypeDraft(id, { onlyIfEmpty: true })
   }
 
   async function handleGenerateDraft() {
@@ -220,7 +220,7 @@ export default function CreateRoute() {
     setDraftSuccess(false)
 
     try {
-      const request = createTavernDraftRequest({
+      const request = createSpaceDraftRequest({
         lat,
         lon,
         address: addressInput?.value || undefined,
@@ -230,7 +230,7 @@ export default function CreateRoute() {
         tone,
       })
 
-      const result = await generateTavernDraft(request, ownerId)
+      const result = await generateSpaceDraft(request, ownerId)
       applyDraft(result.draft)
       setDraftSuccess(true)
     } catch (err) {
@@ -240,7 +240,7 @@ export default function CreateRoute() {
     }
   }
 
-  function applyDraft(draft: TavernDraft) {
+  function applyDraft(draft: SpaceDraft) {
     const mapped = draftResponseToCreateForm({ draft })
     const nameInput = document.querySelector('input[name="name"]') as HTMLInputElement
     const descInput = document.querySelector('textarea[name="description"]') as HTMLTextAreaElement
@@ -271,7 +271,7 @@ export default function CreateRoute() {
     setError("")
     setCreatedId("")
     try {
-      const created = await createTavern(
+      const created = await createSpace(
         normalizeCreatePlacePayload({
           name: String(form.get("name") || "").trim() || "未命名空间",
           description: String(form.get("description") || "").trim(),
@@ -279,7 +279,7 @@ export default function CreateRoute() {
           lon: Number(form.get("lon") || 0),
           address: String(form.get("address") || "").trim(),
           access: String(form.get("access") || "public"),
-          place_type: String(form.get("place_type") || "tavern"),
+          place_type: String(form.get("place_type") || "space"),
           layout_style: String(form.get("layout_style") || layoutStyle || "lobby"),
           roleplay_mode: String(form.get("roleplay_mode") || "ai_only"),
           scene_prompt: String(form.get("scene_prompt") || "").trim(),
@@ -299,7 +299,7 @@ export default function CreateRoute() {
         )
       }
       setCreatedId(created.id)
-      navigate(`/tavern/${encodeURIComponent(created.id)}`)
+      navigate(`/space/${encodeURIComponent(created.id)}`)
     } catch (err) {
       setError(errorMessage(err))
     } finally {
@@ -320,7 +320,7 @@ export default function CreateRoute() {
               </p>
               {createPrefill.hasSource ? (
                 <p className="mt-3 max-w-2xl rounded-2xl border border-theme-accent-border bg-theme-accent-bg p-3 text-sm leading-6 text-theme-accent-text">
-                  已从空间 {createPrefill.sourceTavernId} 带入真实坐标/地址；不会复制原空间名称、简介、角色或场景内容。
+                  已从空间 {createPrefill.sourceSpaceId} 带入真实坐标/地址；不会复制原空间名称、简介、角色或场景内容。
                 </p>
               ) : null}
             </div>
@@ -390,7 +390,7 @@ export default function CreateRoute() {
                   <p className="text-xs font-black uppercase tracking-[0.2em] text-theme-accent-text">Step 01</p>
                   <h2 className="mt-1 text-xl font-black text-theme-primary">定位真实坐标与入口规则</h2>
                   <p className="mt-1 text-xs leading-5 text-theme-muted">
-                    FableMap 不创建无锚点空间；每间空间都先绑定真实地图位置。
+                    FableSpace 不创建无锚点空间；每间空间都先绑定真实地图位置。
                   </p>
                 </div>
                 <span className="w-fit rounded-full border border-theme-accent-border bg-theme-accent-bg px-3 py-1 text-xs font-bold text-theme-accent-text">
@@ -475,7 +475,7 @@ export default function CreateRoute() {
               </p>
               </section>
 
-              <section data-special-tavern-type-selector className="space-y-3 rounded-[1.75rem] border border-amber-300/16 bg-amber-300/[0.04] p-4">
+              <section data-special-space-type-selector className="space-y-3 rounded-[1.75rem] border border-amber-300/16 bg-amber-300/[0.04] p-4">
                 <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
                   <div>
                     <p className="text-sm font-black text-theme-primary">特殊空间模板</p>
@@ -483,19 +483,19 @@ export default function CreateRoute() {
                       这是可选的体验方向：只影响推荐文案和页面呈现，最终内容仍由店主确认。
                     </p>
                   </div>
-                  <span className={`inline-flex w-fit rounded-full border px-3 py-1.5 text-xs font-bold ${activeSpecialTavernType?.badgeClass || "border-theme-border bg-theme-card text-theme-muted"}`}>
-                    {activeSpecialTavernType ? `${activeSpecialTavernType.icon} ${activeSpecialTavernType.label}` : "可选专题体验"}
+                  <span className={`inline-flex w-fit rounded-full border px-3 py-1.5 text-xs font-bold ${activeSpecialSpaceType?.badgeClass || "border-theme-border bg-theme-card text-theme-muted"}`}>
+                    {activeSpecialSpaceType ? `${activeSpecialSpaceType.icon} ${activeSpecialSpaceType.label}` : "可选专题体验"}
                   </span>
                 </div>
                 <div className="grid gap-2 lg:grid-cols-2">
-                  {SPECIAL_TAVERN_TYPES.map((specialType) => {
-                    const active = specialTavernTypeId === specialType.id
+                  {SPECIAL_SPACE_TYPES.map((specialType) => {
+                    const active = specialSpaceTypeId === specialType.id
                     return (
                       <button
                         key={specialType.id}
                         type="button"
-                        data-special-tavern-type-card={specialType.id}
-                        onClick={() => handleSelectSpecialTavernType(specialType.id)}
+                        data-special-space-type-card={specialType.id}
+                        onClick={() => handleSelectSpecialSpaceType(specialType.id)}
                         aria-pressed={active}
                         className={`min-h-28 touch-manipulation rounded-2xl border p-3 text-left transition hover:-translate-y-0.5 ${
                           active
@@ -513,16 +513,16 @@ export default function CreateRoute() {
                     )
                   })}
                 </div>
-                {activeSpecialTavernType ? (
+                {activeSpecialSpaceType ? (
                   <div className="rounded-2xl border border-amber-300/18 bg-theme-card p-3 text-xs leading-5 text-theme-muted">
-                    <p className="font-bold text-theme-primary">{activeSpecialTavernType.label}</p>
-                    <p className="mt-1">{activeSpecialTavernType.description}</p>
+                    <p className="font-bold text-theme-primary">{activeSpecialSpaceType.label}</p>
+                    <p className="mt-1">{activeSpecialSpaceType.description}</p>
                     <div className="mt-3 flex flex-wrap gap-2">
                       <Button
                         type="button"
                         variant="secondary"
                         size="sm"
-                        onClick={() => applySpecialTavernTypeDraft(activeSpecialTavernType.id)}
+                        onClick={() => applySpecialSpaceTypeDraft(activeSpecialSpaceType.id)}
                       >
                         填入模板文案
                       </Button>
@@ -534,7 +534,7 @@ export default function CreateRoute() {
                 ) : null}
               </section>
 
-              <section data-tavern-intent-selector className="space-y-3 rounded-[1.75rem] border border-theme-border bg-fuchsia-300/[0.035] p-4">
+              <section data-space-intent-selector className="space-y-3 rounded-[1.75rem] border border-theme-border bg-fuchsia-300/[0.035] p-4">
                 <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
                   <div>
                     <p className="text-sm font-black text-theme-primary">经营意图</p>
@@ -547,13 +547,13 @@ export default function CreateRoute() {
                   </span>
                 </div>
                 <div className="grid gap-2 lg:grid-cols-2">
-                  {TAVERN_INTENT_TEMPLATES.map((intent) => {
+                  {SPACE_INTENT_TEMPLATES.map((intent) => {
                     const active = intentId === intent.id
                     return (
                       <button
                         key={intent.id}
                         type="button"
-                        data-tavern-intent-card={intent.id}
+                        data-space-intent-card={intent.id}
                         onClick={() => setIntentId(intent.id)}
                         aria-pressed={active}
                         className={`min-h-28 touch-manipulation rounded-2xl border p-3 text-left transition hover:-translate-y-0.5 ${
@@ -691,7 +691,7 @@ export default function CreateRoute() {
             <section aria-label="AI 草稿确认流程" className="mb-4 rounded-2xl border border-theme-border bg-theme-card p-3">
               <p className="text-xs font-black uppercase tracking-[0.18em] text-purple-100/65">{activePlaceTypeName}草稿确认流程</p>
               <div className="mt-3 grid gap-2">
-                {tavernDraftLifecycle.steps.map((step) => (
+                {spaceDraftLifecycle.steps.map((step) => (
                   <div key={step.id} className="rounded-xl border border-theme-border bg-theme-card px-3 py-2">
                     <span className="text-xs font-black text-theme-primary">{step.label}</span>
                     <p className="mt-1 text-[0.7rem] leading-4 text-theme-muted">{step.helper}</p>
@@ -834,7 +834,7 @@ export default function CreateRoute() {
             data-active-place-type-preview
             className="relative overflow-hidden rounded-[2.2rem] border border-theme-accent-border bg-theme-card shadow-2xl shadow-black/30"
           >
-            <img src={tavernStreetImage} alt={`${activePlaceType.label}空间预览`} className="h-72 w-full object-cover" loading="lazy" decoding="async" />
+            <img src={spaceStreetImage} alt={`${activePlaceType.label}空间预览`} className="h-72 w-full object-cover" loading="lazy" decoding="async" />
             <div className="absolute inset-0 bg-gradient-to-t from-[#050615] via-[#050615]/20 to-transparent" />
             <div className="absolute left-5 top-5">
               <span className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-black ${activePlaceType.cardClass || "border-theme-accent-border bg-theme-accent-bg text-theme-accent-text"}`}>
@@ -850,14 +850,14 @@ export default function CreateRoute() {
             </div>
           </div>
 
-          {activeSpecialTavernType ? (
+          {activeSpecialSpaceType ? (
             <div
-              data-special-tavern-type-preview={activeSpecialTavernType.id}
+              data-special-space-type-preview={activeSpecialSpaceType.id}
               className="rounded-[2rem] border border-amber-300/18 bg-amber-300/[0.045] p-5 backdrop-blur-xl"
             >
               <p className="text-xs font-black uppercase tracking-[0.18em] text-amber-100/72">专题体验预览</p>
-              <h2 className="mt-2 text-lg font-black text-theme-primary">{activeSpecialTavernType.icon} {activeSpecialTavernType.label}</h2>
-              <p className="mt-2 text-sm leading-6 text-theme-muted">{activeSpecialTavernType.summary}</p>
+              <h2 className="mt-2 text-lg font-black text-theme-primary">{activeSpecialSpaceType.icon} {activeSpecialSpaceType.label}</h2>
+              <p className="mt-2 text-sm leading-6 text-theme-muted">{activeSpecialSpaceType.summary}</p>
               <p className="mt-2 text-xs leading-5 text-theme-muted">
                 当前会保存为 <span className="font-bold text-theme-primary">{placeType}</span> / <span className="font-bold text-theme-primary">{layoutStyle}</span>，
                 识别依据仍是店主确认后的公开文案与既有字段。
@@ -865,7 +865,7 @@ export default function CreateRoute() {
               {isDigitalHumanStudio ? (
                 <div className="mt-3 grid gap-2 rounded-2xl border border-cyan-300/18 bg-cyan-300/[0.06] p-3 text-xs leading-5 text-cyan-50/78">
                   <p className="font-black text-cyan-50">可迁移数字人档案</p>
-                  <p>首个出口：FableMap / SillyTavern 角色卡 + 视频 / 短剧出镜 prompt。这里不直接生成视频、语音克隆或真人影像。</p>
+                  <p>首个出口：FableSpace / SillyTavern 角色卡 + 视频 / 短剧出镜 prompt。这里不直接生成视频、语音克隆或真人影像。</p>
                   <div className="flex flex-wrap gap-2">
                     {["身份定位", "口吻节奏", "外观风格", "示例口播", "授权边界"].map((item) => (
                       <span key={item} className="rounded-full border border-cyan-300/22 bg-slate-950/35 px-2.5 py-1 font-bold text-cyan-50">
@@ -929,7 +929,7 @@ export default function CreateRoute() {
               </DialogTrigger>
               <DialogContent>
                 <DialogHeader>
-                  <DialogTitle>FableMap 创作者工具</DialogTitle>
+                  <DialogTitle>FableSpace 创作者工具</DialogTitle>
                   <DialogDescription>
                     后续表单会以 owner-authored 内容为中心：平台提供结构和体验，不替店主自动生成空间内容。
                   </DialogDescription>

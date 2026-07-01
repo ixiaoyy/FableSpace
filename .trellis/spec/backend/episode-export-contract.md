@@ -6,10 +6,10 @@
 
 Use this guide when changing:
 
-- `backend/src/fablemap_api/core/episode_builder.py`
-- `backend/src/fablemap_api/application/services/runtime.py` `export_episode(...)`
-- `backend/src/fablemap_api/api/v1/chat.py` `/episodes/export`
-- frontend callers for `/api/v1/taverns/{id}/episodes/export`
+- `backend/src/fablespace_api/core/episode_builder.py`
+- `backend/src/fablespace_api/application/services/runtime.py` `export_episode(...)`
+- `backend/src/fablespace_api/api/v1/chat.py` `/episodes/export`
+- frontend callers for `/api/v1/spaces/{id}/episodes/export`
 
 Episode export is a record formatting feature. It must not become automatic story generation.
 
@@ -18,8 +18,8 @@ Episode export is a record formatting feature. It must not become automatic stor
 ```python
 build_episode_export(
     *,
-    tavern_id: str,
-    tavern_name: str = "",
+    space_id: str,
+    space_name: str = "",
     visitor_id: str,
     character_id: str = "",
     character_name: str = "",
@@ -30,14 +30,14 @@ build_episode_export(
 ```
 
 ```http
-POST /api/v1/taverns/{tavern_id}/episodes/export
+POST /api/v1/spaces/{space_id}/episodes/export
 ```
 
 Application method:
 
 ```python
 export_episode(
-    tavern_id: str,
+    space_id: str,
     user_id: str = "",
     *,
     visitor_id: str = "",
@@ -69,8 +69,8 @@ Response:
 ```json
 {
   "ok": true,
-  "tavern_id": "...",
-  "tavern_name": "...",
+  "space_id": "...",
+  "space_name": "...",
   "visitor_id": "...",
   "character_id": "...",
   "format": "episode_markdown_v1",
@@ -93,7 +93,7 @@ Rules:
 
 - Request must include explicit `visitor_id`; no all-visitor export in this endpoint.
 - Export must not call LLM providers.
-- Export must not persist generated markdown or mutate Tavern/StateCard/chat history.
+- Export must not persist generated markdown or mutate Space/StateCard/chat history.
 - Export must filter `system` and hidden prompt messages; include only observable user/assistant transcript entries.
 - Default StateCard scope is `confirmed` only. `include_pending=true` may include visible pending cards, labeled as pending candidates.
 - Do not expose owner API keys, hidden prompts, private memories, or other visitors' records.
@@ -102,11 +102,11 @@ Rules:
 
 | Case | Expected |
 |------|----------|
-| Missing tavern | `404 {"error": "空间不存在"}` |
+| Missing space | `404 {"error": "空间不存在"}` |
 | Missing user identity | `401 {"error": "导出剧集需要明确用户身份"}` |
 | Missing `visitor_id` | `400 {"error": "导出剧集需要 visitor_id"}` |
 | Visitor exports another visitor | `403 {"error": "不能导出其他访客的剧集"}` |
-| Private tavern viewed by non-owner | `403 {"error": "此空间是私人的"}` |
+| Private space viewed by non-owner | `403 {"error": "此空间是私人的"}` |
 | Unsupported format | `400 {"error": "剧集导出格式必须是 markdown 或 json"}` |
 | Valid visitor export | `200`, `persisted=false`, markdown contains visible chat |
 | Confirmed state cards exist | included by default |
@@ -138,7 +138,7 @@ Assertion points:
 ### Wrong
 
 ```python
-history, _ = self._chat_history_for_scope(tavern, owner_id, visitor_id="")
+history, _ = self._chat_history_for_scope(space, owner_id, visitor_id="")
 return llm.rewrite_as_novel(history)
 ```
 
@@ -147,7 +147,7 @@ This can expose all visitors and turns export into platform-generated story cont
 ### Correct
 
 ```python
-history = self.store.get_chat_history(tavern.id, visitor_id, character_id)
+history = self.store.get_chat_history(space.id, visitor_id, character_id)
 return build_episode_export(messages=history, state_cards=confirmed_cards, ...)
 ```
 

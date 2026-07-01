@@ -6,10 +6,10 @@
 
 Use this guide when changing:
 
-- `frontend/app/lib/taverns.ts`
-- `frontend/app/product/services/tavernService.js`
+- `frontend/app/lib/spaces.ts`
+- `frontend/app/product/services/spaceService.js`
 - `frontend/app/product/StateCardReviewPanel.jsx`
-- `frontend/app/product/TavernChatRoom.jsx`
+- `frontend/app/product/SpaceChatRoom.jsx`
 - `frontend/scripts/state-cards-test.mjs`
 
 ## Service boundary
@@ -17,9 +17,9 @@ Use this guide when changing:
 Components must use service helpers:
 
 ```typescript
-listStateCards(tavernId, filters, userId)
-createStateCard(tavernId, data, userId)
-decideStateCard(tavernId, cardId, { status, note }, userId)
+listStateCards(spaceId, filters, userId)
+createStateCard(spaceId, data, userId)
+decideStateCard(spaceId, cardId, { status, note }, userId)
 ```
 
 Do not call `fetch('/api/.../state-cards')` directly in product components.

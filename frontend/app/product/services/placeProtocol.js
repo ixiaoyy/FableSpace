@@ -1,5 +1,5 @@
 /**
- * FableMap Place Protocol — 定义地点的前后端数据结构
+ * FableSpace Place Protocol — 定义地点的前后端数据结构
  *
  * 地点协议将一个 POI 分解为四层视图：
  * - PlaceSummary:      地图列表/摘要视图使用的最小信息

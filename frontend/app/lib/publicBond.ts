@@ -36,7 +36,7 @@ export interface PublicBond {
 
 export interface PublicBondQueue {
   id: string
-  tavern_id: string
+  space_id: string
   character_id: string
   visitor_id: string
   bond_type: string
@@ -86,15 +86,15 @@ export interface RevokePayload {
 
 // ─── Internal helpers ─────────────────────────────────────────────────────────
 
-function _path(tavernId: string, characterId: string, bondId?: string) {
-  const base = `/api/v1/taverns/${tavernId}/characters/${characterId}/public-bonds`
+function _path(spaceId: string, characterId: string, bondId?: string) {
+  const base = `/api/v1/spaces/${spaceId}/characters/${characterId}/public-bonds`
   return bondId ? `${base}/${bondId}` : base
 }
 
 // ─── Visitor-facing endpoints ──────────────────────────────────────────────────
 
 export async function getVisitorBond(
-  tavernId: string,
+  spaceId: string,
   characterId: string,
   visitorId: string,
   visitorStrength = 0,
@@ -102,19 +102,19 @@ export async function getVisitorBond(
 ): Promise<VisitorBondStatus> {
   const params = new URLSearchParams({ visitor_id: visitorId, visitor_strength: String(visitorStrength) })
   return readApiJson<VisitorBondStatus>(
-    `/api/v1/taverns/${tavernId}/characters/${characterId}/public-bond?${params}`,
+    `/api/v1/spaces/${spaceId}/characters/${characterId}/public-bond?${params}`,
     init,
   )
 }
 
 export async function applyPublicBond(
-  tavernId: string,
+  spaceId: string,
   characterId: string,
   payload: ApplyPublicBondPayload,
   init?: ApiInit,
 ): Promise<VisitorBondStatus> {
   return readApiJson<VisitorBondStatus>(
-    `/api/v1/taverns/${tavernId}/characters/${characterId}/public-bond/apply`,
+    `/api/v1/spaces/${spaceId}/characters/${characterId}/public-bond/apply`,
     { ...jsonInit("POST", payload), ...init },
   )
 }
@@ -122,12 +122,12 @@ export async function applyPublicBond(
 // ─── Public endpoint (no auth needed) ────────────────────────────────────────
 
 export async function getPublicBondsForCharacter(
-  tavernId: string,
+  spaceId: string,
   characterId: string,
   init?: ApiInit,
 ): Promise<PublicBondsResponse> {
   return readApiJson<PublicBondsResponse>(
-    `/api/v1/taverns/${tavernId}/characters/${characterId}/public-bonds`,
+    `/api/v1/spaces/${spaceId}/characters/${characterId}/public-bonds`,
     init,
   )
 }
@@ -135,40 +135,40 @@ export async function getPublicBondsForCharacter(
 // ─── Owner/Admin endpoints ─────────────────────────────────────────────────────
 
 export async function approvePublicBond(
-  tavernId: string,
+  spaceId: string,
   characterId: string,
   bondId: string,
   payload?: ApproveRejectPayload,
   init?: ApiInit,
 ): Promise<PublicBond> {
   return readApiJson<PublicBond>(
-    `/api/v1/taverns/${tavernId}/characters/${characterId}/public-bonds/${bondId}/approve`,
+    `/api/v1/spaces/${spaceId}/characters/${characterId}/public-bonds/${bondId}/approve`,
     { ...jsonInit("POST", payload), ...init },
   )
 }
 
 export async function rejectPublicBond(
-  tavernId: string,
+  spaceId: string,
   characterId: string,
   bondId: string,
   payload?: ApproveRejectPayload,
   init?: ApiInit,
 ): Promise<PublicBond> {
   return readApiJson<PublicBond>(
-    `/api/v1/taverns/${tavernId}/characters/${characterId}/public-bonds/${bondId}/reject`,
+    `/api/v1/spaces/${spaceId}/characters/${characterId}/public-bonds/${bondId}/reject`,
     { ...jsonInit("POST", payload), ...init },
   )
 }
 
 export async function revokePublicBond(
-  tavernId: string,
+  spaceId: string,
   characterId: string,
   bondId: string,
   payload?: RevokePayload,
   init?: ApiInit,
 ): Promise<PublicBond> {
   return readApiJson<PublicBond>(
-    `/api/v1/taverns/${tavernId}/characters/${characterId}/public-bonds/${bondId}/revoke`,
+    `/api/v1/spaces/${spaceId}/characters/${characterId}/public-bonds/${bondId}/revoke`,
     { ...jsonInit("POST", payload), ...init },
   )
 }
@@ -176,24 +176,24 @@ export async function revokePublicBond(
 // ─── Queue endpoints ───────────────────────────────────────────────────────────
 
 export async function getBondQueue(
-  tavernId: string,
+  spaceId: string,
   characterId?: string,
   init?: ApiInit,
 ): Promise<BondQueueResponse> {
   const params = characterId ? `?character_id=${characterId}` : ""
   return readApiJson<BondQueueResponse>(
-    `/api/v1/taverns/${tavernId}/public-bond-queue${params}`,
+    `/api/v1/spaces/${spaceId}/public-bond-queue${params}`,
     init,
   )
 }
 
 export async function cancelQueueEntry(
-  tavernId: string,
+  spaceId: string,
   queueId: string,
   init?: ApiInit,
 ): Promise<{ success: boolean }> {
   return readApiJson<{ success: boolean }>(
-    `/api/v1/taverns/${tavernId}/public-bond-queue/${queueId}`,
+    `/api/v1/spaces/${spaceId}/public-bond-queue/${queueId}`,
     { ...jsonInit("DELETE"), ...init },
   )
 }

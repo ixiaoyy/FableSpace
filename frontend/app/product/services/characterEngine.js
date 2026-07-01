@@ -1,5 +1,5 @@
 /**
- * FableMap Character Engine — 角色引擎 MVP
+ * FableSpace Character Engine — 角色引擎 MVP
  *
  * 定义角色(persona)的前端数据结构和服务函数。
  * 角色可以是：

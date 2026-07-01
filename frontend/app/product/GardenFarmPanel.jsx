@@ -19,7 +19,7 @@ import {
   getVisitorStatsFromProgress,
   getVisitorRankForMetric,
   getAllCropDefs,
-} from './tavernFarmModes'
+} from './spaceFarmModes'
 
 export default function GardenFarmPanel({ enabled, progress, sending, onAction }) {
   const [now, setNow] = useState(Date.now())

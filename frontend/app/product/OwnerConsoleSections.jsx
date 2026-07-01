@@ -1,4 +1,4 @@
-import { getTavernAccessLabel, getTavernStatusLabel } from './services/tavernService'
+import { getSpaceAccessLabel, getSpaceStatusLabel } from './services/spaceService'
 
 export function OwnerSectionNav({ sections, activeSection, onChange }) {
   return (
@@ -32,11 +32,11 @@ export function OwnerNextActionPanel({ ownerStats, visitorStats, chatStats, onCr
       onClick: onCreate,
     },
     {
-      id: 'taverns',
+      id: 'spaces',
       label: '管理空间基础信息',
       note: `${ownerStats.open} 间营业中，${ownerStats.closed} 间歇业中。`,
       cta: '进入空间',
-      onClick: () => onOpenSection('taverns'),
+      onClick: () => onOpenSection('spaces'),
     },
     {
       id: 'visitors',
@@ -79,7 +79,7 @@ export function OwnerNextActionPanel({ ownerStats, visitorStats, chatStats, onCr
 }
 
 export function OwnerAdvancedToolPanel({
-  taverns,
+  spaces,
   packageBusy,
   onCreate,
   onImportPackage,
@@ -112,7 +112,7 @@ export function OwnerAdvancedToolPanel({
         </div>
       </div>
 
-      {taverns.length === 0 ? (
+      {spaces.length === 0 ? (
         <div className="owner-empty">
           <div className="empty-icon">🧰</div>
           <p>创建空间后，这里会出现角色、世界书、运行预设、Prompt 段落、输出护栏和导出入口。</p>
@@ -120,22 +120,22 @@ export function OwnerAdvancedToolPanel({
         </div>
       ) : (
         <div className="owner-advanced-grid">
-          {taverns.map((tavern) => {
-            const charCount = tavern?.characters?.length || 0
-            const worldInfoCount = tavern?.world_info?.length || 0
-            const ruleCount = tavern?.output_rules?.length || 0
-            const blockCount = tavern?.prompt_blocks?.length || 0
-            const presetCount = tavern?.runtime_presets?.length || 0
-            const skillPackCount = (tavern?.skill_packs || []).filter((item) => item?.enabled).length
-            const groupEnabled = Boolean(tavern?.group_chat_enabled)
+          {spaces.map((space) => {
+            const charCount = space?.characters?.length || 0
+            const worldInfoCount = space?.world_info?.length || 0
+            const ruleCount = space?.output_rules?.length || 0
+            const blockCount = space?.prompt_blocks?.length || 0
+            const presetCount = space?.runtime_presets?.length || 0
+            const skillPackCount = (space?.skill_packs || []).filter((item) => item?.enabled).length
+            const groupEnabled = Boolean(space?.group_chat_enabled)
             return (
-              <article key={tavern.id} className="owner-advanced-card">
+              <article key={space.id} className="owner-advanced-card">
                 <div className="owner-advanced-card__main">
                   <div>
-                    <strong>{tavern.name}</strong>
-                    <p>{tavern.description || '暂无描述'}</p>
+                    <strong>{space.name}</strong>
+                    <p>{space.description || '暂无描述'}</p>
                   </div>
-                  <span>{getTavernStatusLabel(tavern.status)} · {getTavernAccessLabel(tavern.access)}</span>
+                  <span>{getSpaceStatusLabel(space.status)} · {getSpaceAccessLabel(space.access)}</span>
                 </div>
                 <div className="owner-advanced-card__stats">
                   <small>{charCount} 角色</small>
@@ -147,18 +147,18 @@ export function OwnerAdvancedToolPanel({
                   <small>{groupEnabled ? '群聊已开' : '群聊未开'}</small>
                 </div>
                 <div className="owner-advanced-card__actions">
-                  <button type="button" className="secondary" onClick={() => onManageCharacters(tavern)}>角色</button>
-                  <button type="button" className="secondary" onClick={() => onManageWorldBook(tavern)}>世界书</button>
-                  <button type="button" className="secondary" onClick={() => onManagePresets(tavern)}>预设</button>
-                  <button type="button" className="secondary" onClick={() => onPreviewPresetImport(tavern)}>预览导入</button>
-                  <button type="button" className="secondary" onClick={() => onManageSkillPacks(tavern)}>技能包</button>
-                  <button type="button" className="secondary" onClick={() => onManagePromptBlocks(tavern)}>段落</button>
-                  <button type="button" className="secondary" onClick={() => onManageGroupSettings(tavern)}>群聊</button>
-                  <button type="button" className="secondary" onClick={() => onManageStateCards(tavern)}>状态卡</button>
-                  <button type="button" className="secondary" onClick={() => onManageOutputRules(tavern)}>护栏</button>
-                  <button type="button" className="secondary" onClick={() => onManageLlm(tavern)}>AI</button>
-                  <button type="button" className="secondary" onClick={() => onExportPackage(tavern)} disabled={packageBusy === `export:${tavern.id}`}>
-                    {packageBusy === `export:${tavern.id}` ? '导出中...' : '导出'}
+                  <button type="button" className="secondary" onClick={() => onManageCharacters(space)}>角色</button>
+                  <button type="button" className="secondary" onClick={() => onManageWorldBook(space)}>世界书</button>
+                  <button type="button" className="secondary" onClick={() => onManagePresets(space)}>预设</button>
+                  <button type="button" className="secondary" onClick={() => onPreviewPresetImport(space)}>预览导入</button>
+                  <button type="button" className="secondary" onClick={() => onManageSkillPacks(space)}>技能包</button>
+                  <button type="button" className="secondary" onClick={() => onManagePromptBlocks(space)}>段落</button>
+                  <button type="button" className="secondary" onClick={() => onManageGroupSettings(space)}>群聊</button>
+                  <button type="button" className="secondary" onClick={() => onManageStateCards(space)}>状态卡</button>
+                  <button type="button" className="secondary" onClick={() => onManageOutputRules(space)}>护栏</button>
+                  <button type="button" className="secondary" onClick={() => onManageLlm(space)}>AI</button>
+                  <button type="button" className="secondary" onClick={() => onExportPackage(space)} disabled={packageBusy === `export:${space.id}`}>
+                    {packageBusy === `export:${space.id}` ? '导出中...' : '导出'}
                   </button>
                 </div>
               </article>

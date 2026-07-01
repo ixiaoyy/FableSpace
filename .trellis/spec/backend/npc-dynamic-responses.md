@@ -6,11 +6,11 @@
 
 ## 核心机制
 
-FableMap 的 NPC 回复分为 **LLM 模式** 和 **规则模式** (Rules Backend)，两者均需感知角色的个性化背景。
+FableSpace 的 NPC 回复分为 **LLM 模式** 和 **规则模式** (Rules Backend)，两者均需感知角色的个性化背景。
 
 ### 1. 爱好字典 (Hobby Taxonomy)
 为了确保 Prompt 的一致性和规则回复的可读性，系统维护了一套精选爱好字典：
-- **文件路径**: `backend/src/fablemap_api/core/hobbies.py`
+- **文件路径**: `backend/src/fablespace_api/core/hobbies.py`
 - **内容**: 包含爱好分类、显示名称 (Label) 和 Prompt 提示语 (Hint)。
 - **规范**: 
   - 角色模型中的 `hobbies` 字段存储 Hobby ID 或自由文本。
@@ -98,8 +98,8 @@ FableMap 的 NPC 回复分为 **LLM 模式** 和 **规则模式** (Rules Backend
 - `backend/tests/test_v1_dynamic_npc_responses.py::test_rules_backend_fallback_keeps_character_identity_phrase`
 - `backend/tests/test_v1_dynamic_npc_responses.py::test_rules_backend_non_answer_fallback_is_flagged_without_progress`
 - `backend/tests/test_v1_dynamic_npc_responses.py::test_generic_llm_non_answer_template_is_flagged_without_progress`
-- `tests/test_tavern_prompt_blocks.py::test_custom_prompt_blocks_cannot_remove_npc_voice_contract`
-- `tests/test_tavern_llm_degradation.py::test_core_web_prompt_injects_npc_identity_and_voice_contract`
+- `tests/test_space_prompt_blocks.py::test_custom_prompt_blocks_cannot_remove_npc_voice_contract`
+- `tests/test_space_llm_degradation.py::test_core_web_prompt_injects_npc_identity_and_voice_contract`
 
 ### 7. Wrong vs Correct
 
@@ -138,14 +138,14 @@ PromptBuildConfig(
 - Trigger: 单聊、公共频道 `@NPC名` 定向回复、群聊 speaker 调用，当前 NPC 需要识别同一空间内其它已配置 NPC。
 
 ### 2. Contracts
-- `PromptBuildConfig.co_present_characters` 是 prompt-only 上下文，不写入 DB，不新增 Tavern/Character Schema 字段。
-- Runtime 构建 Prompt 时应从 `tavern.characters` 提取最多 8 个同场 NPC 的 `id / name / role / current`；`role` 只能来自已有 `description / personality / scenario` 的紧凑摘要。
+- `PromptBuildConfig.co_present_characters` 是 prompt-only 上下文，不写入 DB，不新增 Space/Character Schema 字段。
+- Runtime 构建 Prompt 时应从 `space.characters` 提取最多 8 个同场 NPC 的 `id / name / role / current`；`role` 只能来自已有 `description / personality / scenario` 的紧凑摘要。
 - Prompt 中必须明确标记“当前对话 NPC”和“同场 NPC”，并说明这些名字是同一空间内可见/同场角色。
 - 当访客向当前 NPC 提到同场 NPC 名字时，回复不得因缺少上下文而声称“不认识”“走错地方”或“只能代为转达”。可以自然回应、说明对方位置/职责，或提示访客直接 `@名字` 找对方。
 
 ### 3. Tests Required
-- `tests/test_tavern_prompt_blocks.py::test_prompt_builder_includes_co_present_npc_roster_for_targeted_chat`
-- `tests/test_tavern_prompt_blocks.py::test_prompt_blocks_include_co_present_roster_with_custom_blocks`
+- `tests/test_space_prompt_blocks.py::test_prompt_builder_includes_co_present_npc_roster_for_targeted_chat`
+- `tests/test_space_prompt_blocks.py::test_prompt_blocks_include_co_present_roster_with_custom_blocks`
 - `backend/tests/test_v1_runtime_features.py::test_v1_chat_prompt_includes_co_present_npc_roster`
 
 ---

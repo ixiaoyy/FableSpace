@@ -2,18 +2,18 @@
 
 ## Scope
 
-Use this when changing map/discovery copy that describes a Tavern's real-world anchor in `frontend/app/product/`.
+Use this when changing map/discovery copy that describes a Space's real-world anchor in `frontend/app/product/`.
 
-The goal is to make real coordinates feel like a cyber-tavern entrance — a street door, lantern, signboard, or operated nearby tavern — without turning FableMap into a traditional map app.
+The goal is to make real coordinates feel like a cyber-space entrance — a street door, lantern, signboard, or operated nearby space — without turning FableSpace into a traditional map app.
 
 ## Contracts
 
 Shared copy helpers live in `frontend/app/product/mapAnchorCopy.js`:
 
 ```javascript
-formatTavernAnchorLocation(tavern)
-buildMapAnchorCardCopy(tavern)
-buildMapAnchorMarkerCopy(tavern)
+formatSpaceAnchorLocation(space)
+buildMapAnchorCardCopy(space)
+buildMapAnchorMarkerCopy(space)
 buildMapAnchorSummaryCopy({ matching, total })
 ```
 
@@ -24,7 +24,7 @@ Rules:
 - Keep the real anchor visible: if address exists show it; otherwise show formatted coordinates; if neither exists show `坐标待确认`.
 - User-facing UI should avoid raw implementation wording like `marker`.
 - Do not introduce navigation, route planning, POI ratings, rankings, or traditional map-app affordances.
-- The helper may reuse `tavernService` access/status label helpers, but must not make network calls or mutate Tavern payloads.
+- The helper may reuse `spaceService` access/status label helpers, but must not make network calls or mutate Space payloads.
 
 ## Good / Base / Bad
 

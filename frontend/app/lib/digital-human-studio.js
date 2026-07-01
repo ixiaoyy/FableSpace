@@ -92,7 +92,7 @@ export function buildDigitalHumanIdentityPack(character = {}) {
   )
   const opening = firstMes || `大家好，我是${name}。今天我会用一个清晰、可复用的身份和你见面。`
   const tagsLine = tags.length ? tags.join(" / ") : "数字人 / 可迁移档案 / 视频出镜"
-  const fableMapAdapter = [
+  const fableSpaceAdapter = [
     `角色名：${name}`,
     `简介：${description || role}`,
     `性格 / 口吻：${personality || voiceStyle}`,
@@ -117,7 +117,7 @@ export function buildDigitalHumanIdentityPack(character = {}) {
     "禁忌与授权边界：",
     boundary,
     "",
-    "使用方式：把这段作为视频脚本、口播、短剧角色或外部生成工具的人设说明；FableMap 只生成文本档案，不直接生成视频、语音克隆或真人影像。",
+    "使用方式：把这段作为视频脚本、口播、短剧角色或外部生成工具的人设说明；FableSpace 只生成文本档案，不直接生成视频、语音克隆或真人影像。",
   ].join("\n")
 
   return {
@@ -130,7 +130,7 @@ export function buildDigitalHumanIdentityPack(character = {}) {
     sceneHook,
     boundary,
     opening,
-    fableMapAdapter,
+    fableSpaceAdapter,
     videoPrompt,
   }
 }

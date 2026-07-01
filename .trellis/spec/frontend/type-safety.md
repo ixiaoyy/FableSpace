@@ -31,7 +31,7 @@ Helpers should return stable defaults rather than throwing in render paths.
 ## Schema alignment
 
 - Do not invent frontend-only schema meanings for backend fields.
-- `place_type`, `special_tavern_type`, layout, gender, identity, and access/status values must match backend/docs.
+- `place_type`, `special_space_type`, layout, gender, identity, and access/status values must match backend/docs.
 - API/schema changes require corresponding client/test updates.
 
 ## Forbidden patterns

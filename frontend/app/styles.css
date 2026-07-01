@@ -154,8 +154,8 @@
 
   @media (max-width: 720px) {
     .amap-container {
-      --fablemap-map-height: clamp(280px, 50dvh, 420px);
-      --fablemap-map-min-height: clamp(280px, 50dvh, 420px);
+      --fablespace-map-height: clamp(280px, 50dvh, 420px);
+      --fablespace-map-min-height: clamp(280px, 50dvh, 420px);
     }
   }
 
@@ -238,8 +238,8 @@
   @media (hover: hover) and (pointer: fine) {
     :where(
       [data-discover-board] article,
-      [data-fable-map-discover-card="real-card"],
-      [data-fable-map-home-card="real-card"],
+      [data-fable-space-discover-card="real-card"],
+      [data-fable-space-home-card="real-card"],
       [data-chat-workbench="sillytavern-style"] button,
       [data-create-wizard-step] button
     ):is(:hover, :focus-visible, :focus-within) {

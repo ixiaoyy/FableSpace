@@ -1,6 +1,6 @@
 # Frontend Directory Structure
 
-> How React/Vite frontend code is organized in FableMap.
+> How React/Vite frontend code is organized in FableSpace.
 
 ---
 
@@ -29,7 +29,7 @@ frontend/
 │   ├── lib/                     # typed API client and frontend contracts
 │   └── product/                 # migrated parity product modules from the previous UI
 │       ├── App.jsx              # parity shell, routes, session-level state
-│       ├── Tavern*.jsx          # tavern discovery/entry/interior/owner/gameplay UI
+│       ├── Space*.jsx          # space discovery/entry/interior/owner/gameplay UI
 │       ├── Character*.jsx       # character editor/avatar/management UI
 │       ├── Gameplay*.jsx        # gameplay owner/visitor UI
 │       ├── World*.jsx           # old world-stage map/writeback UI still used by parity shell
@@ -52,15 +52,15 @@ Route modules must keep API calls behind `app/lib` or `app/product/services`; do
 
 ### Put API calls in services
 
-New React Router route modules should call `frontend/app/lib/` clients. Current `frontend/app/product/` code should keep using `frontend/app/product/services/tavernService.js` and `frontend/app/product/services/apiClient.js`.
+New React Router route modules should call `frontend/app/lib/` clients. Current `frontend/app/product/` code should keep using `frontend/app/product/services/spaceService.js` and `frontend/app/product/services/apiClient.js`.
 
 Existing pattern:
 
 ```javascript
-export function createTavernService(getBaseUrl) {
+export function createSpaceService(getBaseUrl) {
   return {
-    async getTavern(tavernId, userId = '') {
-      const response = await fetch(`${getBaseUrl()}/api/taverns/${encodeURIComponent(tavernId)}`, {
+    async getSpace(spaceId, userId = '') {
+      const response = await fetch(`${getBaseUrl()}/api/spaces/${encodeURIComponent(spaceId)}`, {
         cache: 'no-store',
         headers: buildHeaders(userId),
       })
@@ -85,11 +85,11 @@ Examples:
 - `services/appShellViewModel.js` builds app shell display data.
 - `services/appDisplay.js` contains display formatting.
 - `services/sessionPersistence.js` isolates localStorage persistence.
-- Component-local pure helpers such as `sortTavernsForDiscovery` in `App.jsx` are acceptable when only used there.
+- Component-local pure helpers such as `sortSpacesForDiscovery` in `App.jsx` are acceptable when only used there.
 
 ### Co-locate small subcomponents when they are only used once
 
-Large UI files currently contain local subcomponents, e.g. `TavernOwnerPanel.jsx` defines owner-specific sections and modals. If a subcomponent becomes reusable or makes the file too broad, extract it into a sibling file with a clear domain name.
+Large UI files currently contain local subcomponents, e.g. `SpaceOwnerPanel.jsx` defines owner-specific sections and modals. If a subcomponent becomes reusable or makes the file too broad, extract it into a sibling file with a clear domain name.
 
 ---
 
@@ -99,7 +99,7 @@ Large UI files currently contain local subcomponents, e.g. `TavernOwnerPanel.jsx
 - Hooks: `hooks/useSomething.js`, exported as `useSomething`.
 - Services/utilities: `camelCase.js` under `services/`.
 - Constants: `UPPER_SNAKE_CASE` for module-level constants.
-- CSS: shared product styles in `frontend/app/product/styles.css`; domain-specific styles may use a targeted file such as `tavernGameplay.css`.
+- CSS: shared product styles in `frontend/app/product/styles.css`; domain-specific styles may use a targeted file such as `spaceGameplay.css`.
 - Test scripts: `frontend/scripts/<domain>-test.mjs`, wired into `package.json` `test` when relevant.
 
 ---
@@ -108,22 +108,22 @@ Large UI files currently contain local subcomponents, e.g. `TavernOwnerPanel.jsx
 
 | Change type | Preferred location |
 |-------------|--------------------|
-| New tavern API method for route modules | `frontend/app/lib/taverns.ts` |
+| New space API method for route modules | `frontend/app/lib/spaces.ts` |
 | Generic API/world endpoint for product parity source | `frontend/app/product/services/apiClient.js` |
-| New tavern UI panel | `frontend/app/product/Tavern*.jsx` or `frontend/app/product/components/` only if a component folder is introduced deliberately |
+| New space UI panel | `frontend/app/product/Space*.jsx` or `frontend/app/product/components/` only if a component folder is introduced deliberately |
 | New reusable hook | `frontend/app/product/hooks/use*.js` |
 | App shell derived data | `frontend/app/product/services/appShellViewModel.js` or `appPanelProps.js` |
 | Session/localStorage persistence | `frontend/app/product/services/sessionPersistence.js` |
-| Gameplay owner/visitor UI | `Gameplay*.jsx`, `TavernGameplay*.jsx`, `tavernGameplay.css` |
+| Gameplay owner/visitor UI | `Gameplay*.jsx`, `SpaceGameplay*.jsx`, `spaceGameplay.css` |
 | Map drawing internals | `frontend/app/product/worldMap/` or `mapAdapter/`, but avoid reviving map visuals as the product center |
 
 ---
 
 ## Real examples to follow
 
-1. `frontend/app/product/TavernCreatePanel.jsx`: imports service helpers, form/editor components, templates, and readiness logic instead of embedding all logic inline.
+1. `frontend/app/product/SpaceCreatePanel.jsx`: imports service helpers, form/editor components, templates, and readiness logic instead of embedding all logic inline.
 2. `frontend/app/product/useWorldSession.js` pattern is actually `frontend/app/product/hooks/useWorldSession.js`: it composes smaller hooks and returns a view-model-like object to `App.jsx`.
-3. `frontend/app/product/services/tavernService.js`: centralizes `X-User-Id` headers, JSON parsing, and URL encoding for tavern APIs.
+3. `frontend/app/product/services/spaceService.js`: centralizes `X-User-Id` headers, JSON parsing, and URL encoding for space APIs.
 4. `frontend/app/product/GameplayDefinitionEditor.jsx`: keeps lightweight owner gameplay configuration in React state and avoids custom scripting.
 
 ---
@@ -131,6 +131,6 @@ Large UI files currently contain local subcomponents, e.g. `TavernOwnerPanel.jsx
 ## Common mistakes
 
 - Adding a new service under a component file instead of `services/`.
-- Duplicating constants for access/status labels instead of reusing `tavernService.js` helpers.
+- Duplicating constants for access/status labels instead of reusing `spaceService.js` helpers.
 - Editing generated `frontend/dist/` output.
-- Treating old `WorldMap.jsx` visual enhancement as the primary product direction when docs say tavern experience is the mainline.
+- Treating old `WorldMap.jsx` visual enhancement as the primary product direction when docs say space experience is the mainline.

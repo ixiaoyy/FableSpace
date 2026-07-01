@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import { buildAiDraftLifecycle } from '../lib/ai-draft-lifecycle.js'
-import { getGameplays, saveGameplays as persistGameplays } from '../lib/taverns'
+import { getGameplays, saveGameplays as persistGameplays } from '../lib/spaces'
 import GameplayDefinitionEditor, { createBlankGameplay } from './GameplayDefinitionEditor'
-import { createShortDramaDraftFromTavern } from './shortDramaDraftAssistant'
+import { createShortDramaDraftFromSpace } from './shortDramaDraftAssistant'
 import {
   OWNER_GAMEPLAY_TEMPLATE_CATEGORIES,
   createOwnerGameplayFromTemplate,
@@ -17,7 +17,7 @@ import {
   createStoryGameplayFromTemplate,
   filterStoryGameplayTemplates,
 } from './storyMicrogameTemplates'
-import './tavernGameplay.css'
+import './spaceGameplay.css'
 
 const STATUS_LABEL = {
   draft: '草稿',
@@ -33,8 +33,8 @@ function responseGameplays(result) {
   return result?.gameplays ?? result?.gameplay_definitions
 }
 
-export default function GameplayManager({ tavern, ownerId = '', onUpdated, onClose }) {
-  const [gameplays, setGameplays] = useState(() => normalizeGameplays(tavern?.gameplay_definitions))
+export default function GameplayManager({ space, ownerId = '', onUpdated, onClose }) {
+  const [gameplays, setGameplays] = useState(() => normalizeGameplays(space?.gameplay_definitions))
   const [selectedId, setSelectedId] = useState(gameplays[0]?.id || '')
   const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
@@ -63,11 +63,11 @@ export default function GameplayManager({ tavern, ownerId = '', onUpdated, onClo
   useEffect(() => {
     let ignore = false
     async function loadGameplays() {
-      if (!tavern?.id) return
+      if (!space?.id) return
       setLoading(true)
       setError('')
       try {
-        const result = await getGameplays(tavern.id, ownerId)
+        const result = await getGameplays(space.id, ownerId)
         if (ignore) return
         const next = normalizeGameplays(responseGameplays(result))
         setGameplays(next)
@@ -80,7 +80,7 @@ export default function GameplayManager({ tavern, ownerId = '', onUpdated, onClo
     }
     loadGameplays()
     return () => { ignore = true }
-  }, [tavern?.id, ownerId])
+  }, [space?.id, ownerId])
 
   function addGameplay() {
     const next = createBlankGameplay(gameplays.length + 1)
@@ -98,7 +98,7 @@ export default function GameplayManager({ tavern, ownerId = '', onUpdated, onClo
   }
 
   function addAssistantShortDramaDraft() {
-    const next = createShortDramaDraftFromTavern(tavern, {
+    const next = createShortDramaDraftFromSpace(space, {
       conflictHook: assistantConflictHook,
       tone: assistantTone,
     }, gameplays.length + 1)
@@ -139,17 +139,17 @@ export default function GameplayManager({ tavern, ownerId = '', onUpdated, onClo
   }
 
   async function saveGameplayDefinitions() {
-    if (!tavern?.id) return
+    if (!space?.id) return
     setSaving(true)
     setError('')
     setStatus('')
     try {
-      const result = await persistGameplays(tavern.id, gameplays, ownerId)
+      const result = await persistGameplays(space.id, gameplays, ownerId)
       const next = normalizeGameplays(responseGameplays(result))
       setGameplays(next)
       setSelectedId((current) => current && next.some((item) => item.id === current) ? current : (next[0]?.id || ''))
       setStatus('玩法已保存。published 对访客可见，disabled 会从入口隐藏。')
-      onUpdated?.({ ...tavern, gameplay_definitions: next })
+      onUpdated?.({ ...space, gameplay_definitions: next })
     } catch (err) {
       setError(`保存玩法失败：${err.message}`)
     } finally {
@@ -163,7 +163,7 @@ export default function GameplayManager({ tavern, ownerId = '', onUpdated, onClo
         <header className="modal-header gameplay-manager__header">
           <div>
             <p className="mini-label">空间玩法</p>
-            <h3>{tavern?.name || '当前空间'} · 玩法管理</h3>
+            <h3>{space?.name || '当前空间'} · 玩法管理</h3>
             <p className="note muted">只填目标、氛围和结算即可；有 AI 时由 AI Director 决定下一步，无 AI 时走随机事件。</p>
           </div>
           <button className="close-btn" type="button" onClick={onClose}>&times;</button>

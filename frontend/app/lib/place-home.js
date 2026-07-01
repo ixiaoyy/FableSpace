@@ -69,11 +69,11 @@ export function normalizePlaceRelationshipType(value) {
 }
 
 export function normalizePlaceRelationshipDraft(value = {}) {
-  const targetTavernId = text(value.target_tavern_id || value.school_tavern_id)
+  const targetSpaceId = text(value.target_space_id || value.school_space_id)
   const relationType = normalizePlaceRelationshipType(value.relation_type)
   const draft = {
     member_id: text(value.member_id || value.source_member_id),
-    target_tavern_id: targetTavernId,
+    target_space_id: targetSpaceId,
     relation_type: relationType,
     display_name: text(value.display_name),
     source_role: text(value.source_role),
@@ -81,7 +81,7 @@ export function normalizePlaceRelationshipDraft(value = {}) {
     note: text(value.note),
   }
   if (relationType === "school_enrollment") {
-    draft.school_tavern_id = targetTavernId
+    draft.school_space_id = targetSpaceId
   }
   return draft
 }

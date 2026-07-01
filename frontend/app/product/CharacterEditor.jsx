@@ -175,7 +175,7 @@ function normalizeCharacterDraft(character = {}) {
   const sprites = cleanSpriteMap(character.sprites)
   return {
     id: character.id || '',
-    tavern_id: character.tavern_id || '',
+    space_id: character.space_id || '',
     name: toText(character.name),
     description: toText(character.description),
     personality: toText(character.personality),
@@ -190,8 +190,8 @@ function normalizeCharacterDraft(character = {}) {
     appearance: normalizeCharacterAppearance(character),
     talkativeness: normalizeTalkativeness(character.talkativeness),
     hobbies: Array.isArray(character.hobbies) ? character.hobbies : [],
-    current_tavern_id: character.current_tavern_id || character.tavern_id || '',
-    home_tavern_id: character.home_tavern_id || character.tavern_id || '',
+    current_space_id: character.current_space_id || character.space_id || '',
+    home_space_id: character.home_space_id || character.space_id || '',
     traits: Array.isArray(character.traits) ? character.traits : [],
     simulation_state: {
       energy: 100,
@@ -238,15 +238,15 @@ export function normalizeCharacterPayload(draft) {
     appearance: normalizeCharacterAppearance(draft),
     talkativeness: normalizeTalkativeness(draft.talkativeness),
     hobbies: Array.isArray(draft.hobbies) ? draft.hobbies : [],
-    current_tavern_id: draft.current_tavern_id,
-    home_tavern_id: draft.home_tavern_id,
+    current_space_id: draft.current_space_id,
+    home_space_id: draft.home_space_id,
     traits: Array.isArray(draft.traits) ? draft.traits : [],
     simulation_state: draft.simulation_state,
     sprites: cleanSpriteMap(draft.sprites),
   }
 
   if (draft.id) payload.id = draft.id
-  if (draft.tavern_id) payload.tavern_id = draft.tavern_id
+  if (draft.space_id) payload.space_id = draft.space_id
   return payload
 }
 
@@ -597,7 +597,7 @@ export default function CharacterEditor({
         <section className="character-style-dial-compiled" aria-label="风格拨盘编译结果">
           <div className="character-editor-section-heading">
             <span>将写入角色指令的安全片段</span>
-            <small>不会覆盖店主已有指令；再次应用会替换旧的 FableMap 风格拨盘片段。</small>
+            <small>不会覆盖店主已有指令；再次应用会替换旧的 FableSpace 风格拨盘片段。</small>
           </div>
           <ul>
             {styleDialLines.map((line) => <li key={line}>{line}</li>)}
@@ -633,7 +633,7 @@ export default function CharacterEditor({
             <span className="mini-label">Portable identity package</span>
             <strong>数字人档案 / 视频短剧出镜 Prompt</strong>
             <p>
-              这不是保存动作，也不会调用视频或语音工具；它把当前角色草稿编译成可复制到 FableMap、SillyTavern、视频脚本或短剧工具的人设说明。
+              这不是保存动作，也不会调用视频或语音工具；它把当前角色草稿编译成可复制到 FableSpace、SillyTavern、视频脚本或短剧工具的人设说明。
             </p>
           </div>
           <button
@@ -673,7 +673,7 @@ export default function CharacterEditor({
           />
         </label>
         <div className="character-digital-human-pack__adapters">
-          <span>FableMap / SillyTavern 适配：使用下方角色卡字段保存</span>
+          <span>FableSpace / SillyTavern 适配：使用下方角色卡字段保存</span>
           <span>视频 / 短剧适配：复制出镜 prompt 到外部脚本或生成工具</span>
           <span>安全边界：不直接生成真人影像、语音克隆或未授权肖像</span>
         </div>
@@ -949,19 +949,19 @@ export default function CharacterEditor({
 
         <div className="simulation-mobility-fields">
           <label>
-            <span>初始出生点 (Home Tavern ID)</span>
+            <span>初始出生点 (Home Space ID)</span>
             <input
-              value={draft.home_tavern_id}
-              onChange={(e) => updateField('home_tavern_id', e.target.value)}
+              value={draft.home_space_id}
+              onChange={(e) => updateField('home_space_id', e.target.value)}
               disabled={disabled}
               placeholder="留空则默认为当前空间"
             />
           </label>
           <label>
-            <span>当前所在地 (Current Tavern ID)</span>
+            <span>当前所在地 (Current Space ID)</span>
             <input
-              value={draft.current_tavern_id}
-              onChange={(e) => updateField('current_tavern_id', e.target.value)}
+              value={draft.current_space_id}
+              onChange={(e) => updateField('current_space_id', e.target.value)}
               disabled={disabled}
               placeholder="跨空间流动中的当前位置"
             />

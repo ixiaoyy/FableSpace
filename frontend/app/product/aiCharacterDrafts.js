@@ -59,7 +59,7 @@ export function draftResponseToEditorDraft(response, baseDraft = {}) {
     ...baseDraft,
     ...draft,
     id: '',
-    tavern_id: '',
+    space_id: '',
     tags_text: tags.join(', '),
     alternate_greetings_text: Array.isArray(draft.alternate_greetings)
       ? draft.alternate_greetings.filter(Boolean).join('\n')

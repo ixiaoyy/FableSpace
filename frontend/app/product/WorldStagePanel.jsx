@@ -5,7 +5,7 @@ import WorldStageDisturbancePanel from './WorldStageDisturbancePanel'
 import WorldStageMapFrame from './WorldStageMapFrame'
 import WorldStageParticipationLane from './WorldStageParticipationLane'
 import WorldStagePoiFilterLane from './WorldStagePoiFilterLane'
-import WorldStageTavernDiscoveryLane from './WorldStageTavernDiscoveryLane'
+import WorldStageSpaceDiscoveryLane from './WorldStageSpaceDiscoveryLane'
 import { formatTagLabel } from './services/appDisplay'
 
 export default function WorldStagePanel({
@@ -67,25 +67,25 @@ export default function WorldStagePanel({
   behaviorInsights,
   focusWritebackTarget,
   lastWritebackPoiId,
-  taverns = [],
-  discoveryTaverns = taverns,
-  totalTaverns = 0,
-  totalMatchingTaverns = taverns.length,
-  tavernMarkerLimit = 0,
-  tavernFetchLoading = false,
-  tavernFetchError = null,
-  tavernSearch = '',
-  setTavernSearch,
-  tavernAccessFilter = 'all',
-  setTavernAccessFilter,
-  tavernStatusFilter = 'all',
-  setTavernStatusFilter,
-  tavernSortMode = 'distance',
-  setTavernSortMode,
-  onRefreshTaverns,
-  onTavernClick,
-  activeTavernId,
-  onQuickStartTavern,
+  spaces = [],
+  discoverySpaces = spaces,
+  totalSpaces = 0,
+  totalMatchingSpaces = spaces.length,
+  spaceMarkerLimit = 0,
+  spaceFetchLoading = false,
+  spaceFetchError = null,
+  spaceSearch = '',
+  setSpaceSearch,
+  spaceAccessFilter = 'all',
+  setSpaceAccessFilter,
+  spaceStatusFilter = 'all',
+  setSpaceStatusFilter,
+  spaceSortMode = 'distance',
+  setSpaceSortMode,
+  onRefreshSpaces,
+  onSpaceClick,
+  activeSpaceId,
+  onQuickStartSpace,
   quickStartLoading = false,
   mapOnly = false,
 }) {
@@ -121,11 +121,11 @@ export default function WorldStagePanel({
           toolbarLabel="地点视图"
           toolbarCopy={result ? `${originLabel} · ${form.radius}m · ${result?.poi_count ?? 0} 个候选地点` : '正在准备附近地点'}
           toolbarClassName="map-layer-toolbar map-only-stage__toolbar"
-          taverns={taverns}
-          totalTavernMatches={totalMatchingTaverns}
-          tavernMarkerLimit={tavernMarkerLimit}
-          onTavernClick={onTavernClick}
-          activeTavernId={activeTavernId}
+          spaces={spaces}
+          totalSpaceMatches={totalMatchingSpaces}
+          spaceMarkerLimit={spaceMarkerLimit}
+          onSpaceClick={onSpaceClick}
+          activeSpaceId={activeSpaceId}
         />
         <div className="map-only-stage__feedback" aria-live="polite">
           <div>
@@ -201,11 +201,11 @@ export default function WorldStagePanel({
           familiarityMap={familiarityMap}
           originLabel={originLabel}
           ghostTraces={ghostTraces}
-          taverns={taverns}
-          totalTavernMatches={totalMatchingTaverns}
-          tavernMarkerLimit={tavernMarkerLimit}
-          onTavernClick={onTavernClick}
-          activeTavernId={activeTavernId}
+          spaces={spaces}
+          totalSpaceMatches={totalMatchingSpaces}
+          spaceMarkerLimit={spaceMarkerLimit}
+          onSpaceClick={onSpaceClick}
+          activeSpaceId={activeSpaceId}
         />
 
         <div className="storyboard-shell-bottom">
@@ -316,25 +316,25 @@ export default function WorldStagePanel({
               setPoiTypeFilter={setPoiTypeFilter}
             />
 
-            <WorldStageTavernDiscoveryLane
-              taverns={discoveryTaverns}
-              totalTaverns={totalTaverns}
-              mapMarkerCount={taverns.length}
-              mapMarkerLimit={tavernMarkerLimit}
-              loading={tavernFetchLoading}
-              error={tavernFetchError}
-              search={tavernSearch}
-              setSearch={setTavernSearch}
-              accessFilter={tavernAccessFilter}
-              setAccessFilter={setTavernAccessFilter}
-              statusFilter={tavernStatusFilter}
-              setStatusFilter={setTavernStatusFilter}
-              sortMode={tavernSortMode}
-              setSortMode={setTavernSortMode}
-              activeTavernId={activeTavernId}
-              onTavernClick={onTavernClick}
-              onRefreshTaverns={onRefreshTaverns}
-              onQuickStartTavern={onQuickStartTavern}
+            <WorldStageSpaceDiscoveryLane
+              spaces={discoverySpaces}
+              totalSpaces={totalSpaces}
+              mapMarkerCount={spaces.length}
+              mapMarkerLimit={spaceMarkerLimit}
+              loading={spaceFetchLoading}
+              error={spaceFetchError}
+              search={spaceSearch}
+              setSearch={setSpaceSearch}
+              accessFilter={spaceAccessFilter}
+              setAccessFilter={setSpaceAccessFilter}
+              statusFilter={spaceStatusFilter}
+              setStatusFilter={setSpaceStatusFilter}
+              sortMode={spaceSortMode}
+              setSortMode={setSpaceSortMode}
+              activeSpaceId={activeSpaceId}
+              onSpaceClick={onSpaceClick}
+              onRefreshSpaces={onRefreshSpaces}
+              onQuickStartSpace={onQuickStartSpace}
               quickStartLoading={quickStartLoading}
             />
 

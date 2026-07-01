@@ -1,9 +1,9 @@
 import { useState } from 'react'
-import { testTavernLlm } from '../lib/taverns'
+import { testSpaceLlm } from '../lib/spaces'
 
 /**
  * All supported LLM backends with metadata.
- * Keep in sync with backend/src/fablemap_api/core/llm_clients.py DEFAULT_MODELS.
+ * Keep in sync with backend/src/fablespace_api/core/llm_clients.py DEFAULT_MODELS.
  */
 export const LLM_BACKENDS = [
   { id: 'openai',      label: 'OpenAI',           icon: '🤖', docs: 'https://platform.openai.com/docs/models' },
@@ -204,10 +204,10 @@ export const LLM_PRESETS = [
  *   value      — { backend, model, api_key, base_url, temperature, max_tokens, top_p }
  *   onChange   — (config) => void
  *   compact    — 是否使用紧凑布局
- *   tavernId   — 可选，用于测试连接（基于 /api/taverns/{id}/test-llm）
+ *   spaceId   — 可选，用于测试连接（基于 /api/spaces/{id}/test-llm）
  *   testDirect — 可选，直接测试配置的函数 (config) => Promise<{ok, message}>（用于创建空间时）
  */
-export default function LLMConfigForm({ value = {}, onChange, compact = false, tavernId = null, testDirect = null }) {
+export default function LLMConfigForm({ value = {}, onChange, compact = false, spaceId = null, testDirect = null }) {
   const config = {
     backend:    value.backend    || 'openai',
     model:      value.model      || DEFAULT_MODELS['openai'],
@@ -251,8 +251,8 @@ export default function LLMConfigForm({ value = {}, onChange, compact = false, t
       let result
       if (testDirect) {
         result = await testDirect(config)
-      } else if (tavernId) {
-        result = await testTavernLlm(tavernId, config)
+      } else if (spaceId) {
+        result = await testSpaceLlm(spaceId, config)
       } else {
         setTestResult({ ok: false, message: '无法测试连接：缺少空间 ID' })
         setTesting(false)
@@ -443,7 +443,7 @@ export default function LLMConfigForm({ value = {}, onChange, compact = false, t
       )}
 
       {/* Test connection */}
-      {(tavernId || testDirect) && (
+      {(spaceId || testDirect) && (
         <div className="test-connection">
           <button
             type="button"

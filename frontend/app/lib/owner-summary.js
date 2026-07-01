@@ -16,7 +16,7 @@ function timestampValue(value) {
 }
 
 function visitorKey(visitor = {}) {
-  return String(visitor.visitor_id || visitor.visitor_name || `${visitor.tavern_id || "tavern"}:anonymous`)
+  return String(visitor.visitor_id || visitor.visitor_name || `${visitor.space_id || "space"}:anonymous`)
 }
 
 export function formatOwnerSummaryTime(value) {
@@ -49,8 +49,8 @@ function summarizeReturningVisitors(visitors) {
     .map((visitor) => {
       const relationship = visitor.relationship && typeof visitor.relationship === "object" ? visitor.relationship : {}
       return {
-        tavernId: String(visitor.tavern_id || ""),
-        tavernName: visitor.tavern_name || visitor.tavern_id || "未知空间",
+        spaceId: String(visitor.space_id || ""),
+        spaceName: visitor.space_name || visitor.space_id || "未知空间",
         visitorId: String(visitor.visitor_id || ""),
         visitorLabel: getOwnerVisitorLabel(visitor),
         visitCount: toNumber(visitor.visit_count),
@@ -72,8 +72,8 @@ function summarizeReturningVisitors(visitors) {
 function summarizeRecentSessions(sessions) {
   return sessions
     .map((session) => ({
-      tavernId: String(session.tavern_id || ""),
-      tavernName: session.tavern_name || session.tavern_id || "未知空间",
+      spaceId: String(session.space_id || ""),
+      spaceName: session.space_name || session.space_id || "未知空间",
       visitorId: String(session.visitor_id || ""),
       visitorLabel: getOwnerSessionVisitorLabel(session),
       characterId: String(session.character_id || ""),
@@ -90,8 +90,8 @@ function summarizeVisitorNotes(notes) {
   return notes
     .map((note) => ({
       noteId: String(note.id || ""),
-      tavernId: String(note.tavern_id || ""),
-      tavernName: note.tavern_name || note.tavern_id || "未知空间",
+      spaceId: String(note.space_id || ""),
+      spaceName: note.space_name || note.space_id || "未知空间",
       visitorId: String(note.visitor_id || ""),
       visitorLabel: note.visitor_nickname || (note.visitor_id ? String(note.visitor_id).slice(0, 16) : "匿名访客"),
       content: String(note.content || ""),
@@ -104,23 +104,23 @@ function summarizeVisitorNotes(notes) {
     ))
 }
 
-function summarizeTaverns(taverns, visitors, sessions) {
-  return taverns
-    .map((tavern) => {
-      const tavernId = String(tavern.id || "")
-      const tavernVisitors = visitors.filter((visitor) => visitor.tavern_id === tavernId)
-      const tavernSessions = sessions.filter((session) => session.tavern_id === tavernId)
-      const returningVisitorCount = tavernVisitors.filter((visitor) => toNumber(visitor.visit_count) >= 2).length
-      const messageCount = tavernSessions.reduce((sum, session) => sum + toNumber(session.message_count), 0)
-      const score = tavernVisitors.length * 2 + returningVisitorCount * 3 + tavernSessions.length + messageCount / 10
+function summarizeSpaces(spaces, visitors, sessions) {
+  return spaces
+    .map((space) => {
+      const spaceId = String(space.id || "")
+      const spaceVisitors = visitors.filter((visitor) => visitor.space_id === spaceId)
+      const spaceSessions = sessions.filter((session) => session.space_id === spaceId)
+      const returningVisitorCount = spaceVisitors.filter((visitor) => toNumber(visitor.visit_count) >= 2).length
+      const messageCount = spaceSessions.reduce((sum, session) => sum + toNumber(session.message_count), 0)
+      const score = spaceVisitors.length * 2 + returningVisitorCount * 3 + spaceSessions.length + messageCount / 10
       return {
-        tavernId,
-        tavernName: tavern.name || tavernId || "未命名空间",
-        status: tavern.status || "unknown",
-        access: tavern.access || "public",
-        visitorCount: tavernVisitors.length,
+        spaceId,
+        spaceName: space.name || spaceId || "未命名空间",
+        status: space.status || "unknown",
+        access: space.access || "public",
+        visitorCount: spaceVisitors.length,
         returningVisitorCount,
-        sessionCount: tavernSessions.length,
+        sessionCount: spaceSessions.length,
         messageCount,
         score,
       }
@@ -129,17 +129,17 @@ function summarizeTaverns(taverns, visitors, sessions) {
       b.score - a.score
       || b.returningVisitorCount - a.returningVisitorCount
       || b.messageCount - a.messageCount
-      || a.tavernName.localeCompare(b.tavernName)
+      || a.spaceName.localeCompare(b.spaceName)
     ))
 }
 
-function buildNextActions(metrics, taverns, returningHighlights, latestFeedback) {
+function buildNextActions(metrics, spaces, returningHighlights, latestFeedback) {
   const actions = []
-  const closedCount = taverns.filter((tavern) => tavern.status === "closed").length
+  const closedCount = spaces.filter((space) => space.status === "closed").length
 
-  if (metrics.taverns === 0) {
+  if (metrics.spaces === 0) {
     actions.push({
-      kind: "create_first_tavern",
+      kind: "create_first_space",
       title: "先开出第一间空间",
       detail: "创建一间真实坐标锚定的空间，让发现页有第一个可进入入口。",
       to: "/create",
@@ -153,7 +153,7 @@ function buildNextActions(metrics, taverns, returningHighlights, latestFeedback)
       kind: "follow_up_returning",
       title: "回应正在形成关系的回访者",
       detail: `${first.visitorLabel} 已回访 ${first.visitCount} 次，可以先查看最近会话，确认 NPC 是否延续了关系。`,
-      tavernId: first.tavernId,
+      spaceId: first.spaceId,
     })
   }
 
@@ -172,7 +172,7 @@ function buildNextActions(metrics, taverns, returningHighlights, latestFeedback)
       kind: "review_owner_visible_feedback",
       title: "处理访客给店主的反馈",
       detail: `${firstNote.visitorLabel} 留下了私密反馈：${firstNote.content.slice(0, 28)}${firstNote.content.length > 28 ? "…" : ""}`,
-      tavernId: firstNote.tavernId,
+      spaceId: firstNote.spaceId,
     })
   }
 
@@ -205,13 +205,13 @@ function buildNextActions(metrics, taverns, returningHighlights, latestFeedback)
 }
 
 export function buildOwnerOperatingSummary({
-  taverns = [],
+  spaces = [],
   visitors = [],
   sessions = [],
   visitorNotes = [],
   ownerLLM = null,
 } = {}) {
-  const safeTaverns = asArray(taverns)
+  const safeSpaces = asArray(spaces)
   const safeVisitors = asArray(visitors)
   const safeSessions = asArray(sessions)
   const safeVisitorNotes = asArray(visitorNotes)
@@ -219,13 +219,13 @@ export function buildOwnerOperatingSummary({
   const uniqueVisitorKeys = new Set(safeVisitors.map(visitorKey))
   const returningHighlights = summarizeReturningVisitors(safeVisitors)
   const recentSessions = summarizeRecentSessions(safeSessions)
-  const tavernHighlights = summarizeTaverns(safeTaverns, safeVisitors, safeSessions)
+  const spaceHighlights = summarizeSpaces(safeSpaces, safeVisitors, safeSessions)
   const llmConfig = ownerLLM && typeof ownerLLM === "object" ? ownerLLM : {}
   const llmSafeConfig = llmConfig.llm_config && typeof llmConfig.llm_config === "object" ? llmConfig.llm_config : {}
   const llmConfigured = Boolean(llmConfig.configured || llmSafeConfig.api_key_configured)
   const metrics = {
-    taverns: safeTaverns.length,
-    openTaverns: safeTaverns.filter((tavern) => tavern.status === "open").length,
+    spaces: safeSpaces.length,
+    openSpaces: safeSpaces.filter((space) => space.status === "open").length,
     visitors: uniqueVisitorKeys.size,
     visits: safeVisitors.reduce((sum, visitor) => sum + toNumber(visitor.visit_count), 0),
     returningVisitors: returningHighlights.length,
@@ -243,7 +243,7 @@ export function buildOwnerOperatingSummary({
     returningHighlights: returningHighlights.slice(0, 5),
     recentSessions: recentSessions.slice(0, 5),
     latestFeedback: latestFeedback.slice(0, 5),
-    tavernHighlights: tavernHighlights.slice(0, 5),
-    nextActions: buildNextActions(metrics, safeTaverns, returningHighlights, latestFeedback),
+    spaceHighlights: spaceHighlights.slice(0, 5),
+    nextActions: buildNextActions(metrics, safeSpaces, returningHighlights, latestFeedback),
   }
 }

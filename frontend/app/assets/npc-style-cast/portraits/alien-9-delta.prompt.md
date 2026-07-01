@@ -11,13 +11,13 @@ can_regenerate_higher_quality: true
 
 ## Final prompt
 
-Reverse-engineered FableMap fallback NPC portrait asset for alien 9 delta. Create an original tavern-themed NPC portrait, bust or waist-up, with visible bar/counter/shelf/mug/lantern/map-table cues, readable role silhouette, anime/game-style rendering, distinct palette and material system, no placeholder icon treatment. Use the existing image as reference for broad role, silhouette, palette, and mood only; keep the result original and IP-safe.
+Reverse-engineered FableSpace fallback NPC portrait asset for alien 9 delta. Create an original space-themed NPC portrait, bust or waist-up, with visible bar/counter/shelf/mug/lantern/map-table cues, readable role silhouette, anime/game-style rendering, distinct palette and material system, no placeholder icon treatment. Use the existing image as reference for broad role, silhouette, palette, and mood only; keep the result original and IP-safe.
 
 ## Negative constraints
 
 - No readable brand text, logo, watermark, or existing IP imitation.
 - No living-artist imitation and no private data, API keys, visitor secrets, or exact private addresses.
-- Preserve FableMap tavern meaning: real-place anchor, owner-authored content, AI NPC/chat/memory support.
+- Preserve FableSpace space meaning: real-place anchor, owner-authored content, AI NPC/chat/memory support.
 
 ## Style recipe / Style DNA source
 

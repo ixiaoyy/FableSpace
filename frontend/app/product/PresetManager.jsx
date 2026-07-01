@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { applyRuntimePreset, getRuntimePresets, saveRuntimePresets } from '../lib/taverns'
+import { applyRuntimePreset, getRuntimePresets, saveRuntimePresets } from '../lib/spaces'
 
 const MEMORY_MODES = [
   { id: 'visitor_state', label: '轻量回访关系' },
@@ -63,13 +63,13 @@ function normalizePresets(value) {
   return Array.isArray(value) ? value.map(normalizePreset) : []
 }
 
-function capturePresetFromTavern(tavern, base = {}) {
+function capturePresetFromSpace(space, base = {}) {
   return normalizePreset({
     ...base,
-    llm_config: tavern?.llm_config || base.llm_config,
-    prompt_blocks: tavern?.prompt_blocks || base.prompt_blocks || [],
-    output_rules: tavern?.output_rules || base.output_rules || [],
-    memory_policy: tavern?.memory_policy || base.memory_policy || {},
+    llm_config: space?.llm_config || base.llm_config,
+    prompt_blocks: space?.prompt_blocks || base.prompt_blocks || [],
+    output_rules: space?.output_rules || base.output_rules || [],
+    memory_policy: space?.memory_policy || base.memory_policy || {},
   })
 }
 
@@ -80,12 +80,12 @@ function summarizePreset(preset) {
   return `${llm.backend || 'AI'} · ${llm.model || 'model'} · ${promptBlockCount || '默认'} 段落 · ${ruleCount || '默认'} 护栏`
 }
 
-export default function PresetManager({ tavern, ownerId, onClose, onPresetApplied }) {
-  const fallbackPresets = useMemo(() => normalizePresets(tavern?.runtime_presets || []), [tavern?.id])
+export default function PresetManager({ space, ownerId, onClose, onPresetApplied }) {
+  const fallbackPresets = useMemo(() => normalizePresets(space?.runtime_presets || []), [space?.id])
 
   const [presets, setPresets] = useState(fallbackPresets)
   const [defaultPresets, setDefaultPresets] = useState([])
-  const [selectedId, setSelectedId] = useState(tavern?.active_preset_id || fallbackPresets[0]?.id || '')
+  const [selectedId, setSelectedId] = useState(space?.active_preset_id || fallbackPresets[0]?.id || '')
   const [draft, setDraft] = useState(fallbackPresets[0] || null)
   const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
@@ -97,16 +97,16 @@ export default function PresetManager({ tavern, ownerId, onClose, onPresetApplie
   useEffect(() => {
     let alive = true
     async function loadPresets() {
-      if (!tavern?.id) return
+      if (!space?.id) return
       setLoading(true)
       setError('')
       setStatus('')
       try {
-        const payload = await getRuntimePresets(tavern.id, ownerId)
+        const payload = await getRuntimePresets(space.id, ownerId)
         if (!alive) return
         const loaded = normalizePresets(payload.presets || [])
         const defaults = normalizePresets(payload.default_presets || [])
-        const activeId = payload.active_preset_id || tavern?.active_preset_id || loaded[0]?.id || ''
+        const activeId = payload.active_preset_id || space?.active_preset_id || loaded[0]?.id || ''
         const activePreset = loaded.find((preset) => preset.id === activeId) || loaded[0] || null
         setPresets(loaded)
         setDefaultPresets(defaults)
@@ -121,7 +121,7 @@ export default function PresetManager({ tavern, ownerId, onClose, onPresetApplie
     }
     loadPresets()
     return () => { alive = false }
-  }, [tavern?.id, ownerId])
+  }, [space?.id, ownerId])
 
   const customPresets = presets.filter((preset) => !preset.built_in)
   const selectedPreset = presets.find((preset) => preset.id === selectedId) || null
@@ -181,7 +181,7 @@ export default function PresetManager({ tavern, ownerId, onClose, onPresetApplie
 
   function handleCaptureCurrent() {
     if (!draft || draft.built_in) return
-    const captured = capturePresetFromTavern(tavern, draft)
+    const captured = capturePresetFromSpace(space, draft)
     setDraft(captured)
     setPresets((prev) => prev.map((preset) => (preset.id === captured.id ? captured : preset)))
     setDirty(true)
@@ -200,14 +200,14 @@ export default function PresetManager({ tavern, ownerId, onClose, onPresetApplie
   }
 
   async function handleSave() {
-    if (!tavern?.id) return
+    if (!space?.id) return
     const next = draft && !draft.built_in ? upsertDraft({ silent: true }) : presets
     setSaving(true)
     setError('')
     setStatus('')
     try {
       const payload = await saveRuntimePresets(
-        tavern.id,
+        space.id,
         { presets: next.filter((preset) => !preset.built_in).map(normalizePreset) },
         ownerId,
       )
@@ -216,7 +216,7 @@ export default function PresetManager({ tavern, ownerId, onClose, onPresetApplie
       setDraft(loaded.find((preset) => preset.id === selectedId) || loaded[0] || null)
       setDirty(false)
       setStatus('自定义运行预设已保存。')
-      if (payload.tavern && onPresetApplied) onPresetApplied(payload.tavern)
+      if (payload.space && onPresetApplied) onPresetApplied(payload.space)
     } catch (err) {
       setError(`保存失败：${err.message}`)
     } finally {
@@ -225,20 +225,20 @@ export default function PresetManager({ tavern, ownerId, onClose, onPresetApplie
   }
 
   async function handleApply() {
-    if (!tavern?.id || !draft) return
+    if (!space?.id || !draft) return
     const presetToApply = normalizePreset(draft)
     setApplying(true)
     setError('')
     setStatus('')
     try {
       const payload = await applyRuntimePreset(
-        tavern.id,
+        space.id,
         presetToApply.built_in ? { preset_id: presetToApply.id } : { preset: presetToApply },
         ownerId,
       )
       setSelectedId(payload.active_preset_id || presetToApply.id)
       setStatus('运行预设已应用：AI 参数、段落、护栏和记忆策略已同步到空间。')
-      if (payload.tavern && onPresetApplied) onPresetApplied(payload.tavern)
+      if (payload.space && onPresetApplied) onPresetApplied(payload.space)
     } catch (err) {
       setError(`应用失败：${err.message}`)
     } finally {
@@ -252,7 +252,7 @@ export default function PresetManager({ tavern, ownerId, onClose, onPresetApplie
         <header className="modal-header preset-manager-header">
           <div>
             <p className="mini-label">运行预设</p>
-            <h3>{tavern?.name || '空间'} 的 AI 运行方案</h3>
+            <h3>{space?.name || '空间'} 的 AI 运行方案</h3>
             <p className="note muted">把模型参数、Prompt 段落、记忆策略和输出护栏打包成可复用方案。</p>
           </div>
           <button className="close-btn" type="button" onClick={onClose}>&times;</button>
@@ -261,7 +261,7 @@ export default function PresetManager({ tavern, ownerId, onClose, onPresetApplie
         <div className="preset-manager-summary">
           <span>内置 {defaultPresets.length}</span>
           <strong>自定义 {customPresets.length}</strong>
-          {tavern?.active_preset_id && <span>当前 {tavern.active_preset_id}</span>}
+          {space?.active_preset_id && <span>当前 {space.active_preset_id}</span>}
           {dirty && <em>有未保存更改</em>}
         </div>
 

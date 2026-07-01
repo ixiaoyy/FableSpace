@@ -1,7 +1,7 @@
 import {
-  getTavernAccessIcon,
-  getTavernAccessMarkerLabel,
-} from './services/tavernService.js'
+  getSpaceAccessIcon,
+  getSpaceAccessMarkerLabel,
+} from './services/spaceService.js'
 
 const ACCESS_LINES = {
   public: '可推门进入',
@@ -18,8 +18,8 @@ function formatCoordinate(value) {
   return Number.isFinite(parsed) ? parsed.toFixed(4) : ''
 }
 
-export function formatTavernAnchorLocation(tavern = {}) {
-  const address = toTrimmedText(tavern?.address)
+export function formatSpaceAnchorLocation(space = {}) {
+  const address = toTrimmedText(space?.address)
   if (address) {
     return {
       label: '街角门牌',
@@ -28,8 +28,8 @@ export function formatTavernAnchorLocation(tavern = {}) {
     }
   }
 
-  const lat = formatCoordinate(tavern?.lat)
-  const lon = formatCoordinate(tavern?.lon)
+  const lat = formatCoordinate(space?.lat)
+  const lon = formatCoordinate(space?.lon)
   if (lat && lon) {
     const text = `${lat}, ${lon}`
     return {
@@ -46,14 +46,14 @@ export function formatTavernAnchorLocation(tavern = {}) {
   }
 }
 
-export function buildMapAnchorCardCopy(tavern = {}) {
-  const anchor = formatTavernAnchorLocation(tavern)
-  const statusLine = tavern?.status === 'closed'
+export function buildMapAnchorCardCopy(space = {}) {
+  const anchor = formatSpaceAnchorLocation(space)
+  const statusLine = space?.status === 'closed'
     ? '灯牌暂暗 · 可以先记下门牌'
-    : tavern?.status === 'open'
+    : space?.status === 'open'
       ? '灯牌亮着 · 附近有人经营'
       : '灯牌状态待确认 · 真实锚点保留'
-  const accessLine = ACCESS_LINES[tavern?.access] || '入口规则待确认'
+  const accessLine = ACCESS_LINES[space?.access] || '入口规则待确认'
 
   return {
     eyebrow: '街区灯牌',
@@ -67,13 +67,13 @@ export function buildMapAnchorCardCopy(tavern = {}) {
   }
 }
 
-export function buildMapAnchorMarkerCopy(tavern = {}) {
-  const name = toTrimmedText(tavern?.name) || '未命名空间'
-  const icon = getTavernAccessIcon(tavern?.access)
-  const accessLabel = getTavernAccessMarkerLabel(tavern?.access)
-  const statusText = tavern?.status === 'closed'
+export function buildMapAnchorMarkerCopy(space = {}) {
+  const name = toTrimmedText(space?.name) || '未命名空间'
+  const icon = getSpaceAccessIcon(space?.access)
+  const accessLabel = getSpaceAccessMarkerLabel(space?.access)
+  const statusText = space?.status === 'closed'
     ? '灯牌暂暗'
-    : tavern?.status === 'open'
+    : space?.status === 'open'
       ? '灯牌亮着'
       : '灯牌待确认'
 

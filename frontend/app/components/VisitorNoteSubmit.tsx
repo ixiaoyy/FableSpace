@@ -7,19 +7,19 @@
 
 import { useState } from "react"
 import { MessageSquare, Send, Check } from "lucide-react"
-import { createVisitorNote, type TavernVisitorNote } from "../lib/taverns"
+import { createVisitorNote, type SpaceVisitorNote } from "../lib/spaces"
 
 type VisitorNoteSubmitProps = {
-  tavernId: string
+  spaceId: string
   visitorId?: string
-  onNoteCreated?: (note: TavernVisitorNote) => void
+  onNoteCreated?: (note: SpaceVisitorNote) => void
   compact?: boolean
 }
 
 const MAX_CONTENT_LENGTH = 500
 
 export function VisitorNoteSubmit({
-  tavernId,
+  spaceId,
   visitorId,
   onNoteCreated,
   compact = false,
@@ -42,7 +42,7 @@ export function VisitorNoteSubmit({
 
     try {
       const response = await createVisitorNote(
-        tavernId,
+        spaceId,
         {
           content: content.trim(),
           visitor_nickname: nickname.trim() || "旅人",

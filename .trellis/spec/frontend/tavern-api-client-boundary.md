@@ -1,20 +1,20 @@
-# Tavern API Client Boundary
+# Space API Client Boundary
 
-> Frontend contract for consuming page-optimized tavern API responses.
+> Frontend contract for consuming page-optimized space API responses.
 
-## Scenario: Route modules consume additive tavern response views
+## Scenario: Route modules consume additive space response views
 
 ### 1. Scope / Trigger
 
-Use this when changing `frontend/app/lib/taverns.ts`, native route loaders, or route-level page data for homepage, discovery/search, or tavern entry. Backend details are defined in `../backend/tavern-api-response-contract.md`.
+Use this when changing `frontend/app/lib/spaces.ts`, native route loaders, or route-level page data for homepage, discovery/search, or space entry. Backend details are defined in `../backend/space-api-response-contract.md`.
 
 ### 2. Signatures
 
 ```typescript
-export type TavernDetailView = "entry"
+export type SpaceDetailView = "entry"
 
-export type TavernListResponse = {
-  taverns: Tavern[]
+export type SpaceListResponse = {
+  spaces: Space[]
   count: number
   total?: number | null
   limit?: number | null
@@ -22,19 +22,19 @@ export type TavernListResponse = {
   has_more?: boolean
 }
 
-export function getTavern(
-  tavernId: string,
+export function getSpace(
+  spaceId: string,
   userId?: string,
-  options?: { view?: TavernDetailView },
-): Promise<Tavern>
+  options?: { view?: SpaceDetailView },
+): Promise<Space>
 ```
 
 ### 3. Contracts
 
-- Route modules must call `frontend/app/lib/taverns.ts` helpers rather than ad hoc `fetch`.
-- Default `getTavern(tavernId, userId)` must remain a full/default detail request for existing callers.
-- Tavern entry route must request `getTavern(tavernId, currentUserId, { view: "entry" })`.
-- `TavernListResponse` consumers must keep reading `taverns` and `count`; metadata fields are optional/additive.
+- Route modules must call `frontend/app/lib/spaces.ts` helpers rather than ad hoc `fetch`.
+- Default `getSpace(spaceId, userId)` must remain a full/default detail request for existing callers.
+- Space entry route must request `getSpace(spaceId, currentUserId, { view: "entry" })`.
+- `SpaceListResponse` consumers must keep reading `spaces` and `count`; metadata fields are optional/additive.
 - UI must not depend on owner-hidden fields (`system_prompt`, `world_info`, prompt blocks, draft gameplay nodes) being present in visitor entry responses.
 - Treat TypeScript as a boundary aid, not a runtime guarantee; route code must tolerate missing/empty arrays and loader errors as existing components already do.
 
@@ -42,24 +42,24 @@ export function getTavern(
 
 | Case | Expected |
 |------|----------|
-| Existing caller uses `getTavern(id, userId)` | URL has no `view` query |
-| Tavern entry route loads | URL includes `view=entry` through the service helper |
-| List response omits additive metadata | UI still works from `taverns` and `count` |
+| Existing caller uses `getSpace(id, userId)` | URL has no `view` query |
+| Space entry route loads | URL includes `view=entry` through the service helper |
+| List response omits additive metadata | UI still works from `spaces` and `count` |
 | List response includes metadata | UI may use `total`, `limit`, `offset`, `has_more` defensively |
 | Component accesses hidden prompt fields on visitor entry payload | Bad; entry response intentionally redacts them |
-| Route directly calls `fetch('/api/v1/taverns...')` | Bad; service helper boundary is bypassed |
+| Route directly calls `fetch('/api/v1/spaces...')` | Bad; service helper boundary is bypassed |
 
 ### 5. Good/Base/Bad Cases
 
-- Good: `queryString({ view: options.view })` is centralized inside `getTavern`.
+- Good: `queryString({ view: options.view })` is centralized inside `getSpace`.
 - Base: optional metadata is typed optional so older/legacy responses remain accepted.
 - Bad: route constructs query strings manually and forgets `encodeURIComponent`/identity headers.
 
 ### 6. Tests Required
 
 ```powershell
-node .\frontend\scripts\tavern-chat-workbench-test.mjs
-node .\frontend\scripts\tavern-entry-surface-test.mjs
+node .\frontend\scripts\space-chat-workbench-test.mjs
+node .\frontend\scripts\space-entry-surface-test.mjs
 npm --prefix .\frontend test
 npm --prefix .\frontend run typecheck
 npm --prefix .\frontend run build
@@ -67,9 +67,9 @@ npm --prefix .\frontend run build
 
 Required assertion points:
 
-- service exposes `TavernDetailView = "entry"`;
+- service exposes `SpaceDetailView = "entry"`;
 - service appends `view` via `queryString`;
-- tavern route uses `currentUserId` and `{ view: "entry" }`;
+- space route uses `currentUserId` and `{ view: "entry" }`;
 - no route/component direct-fetch duplicate of the same API call.
 
 ### 7. Wrong vs Correct
@@ -77,7 +77,7 @@ Required assertion points:
 #### Wrong
 
 ```tsx
-const tavern = await readApiJson(`/api/v1/taverns/${tavernId}?view=entry`)
+const space = await readApiJson(`/api/v1/spaces/${spaceId}?view=entry`)
 ```
 
 This duplicates service behavior and can lose viewer identity.
@@ -85,14 +85,14 @@ This duplicates service behavior and can lose viewer identity.
 #### Correct
 
 ```tsx
-const tavern = await getTavern(tavernId, currentUserId, { view: "entry" })
+const space = await getSpace(spaceId, currentUserId, { view: "entry" })
 ```
 
 ## Scenario: Chat fallback payload must not render progress badges
 
 ### 1. Scope / Trigger
 
-Use this when changing `ChatResponse`, `GroupChatResponse`, `TavernChatWorkbench`, or legacy tavern chat panels that consume `/api/v1/taverns/{id}/chat`.
+Use this when changing `ChatResponse`, `GroupChatResponse`, `SpaceChatWorkbench`, or legacy space chat panels that consume `/api/v1/spaces/{id}/chat`.
 
 ### 2. Signatures
 

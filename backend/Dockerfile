@@ -6,8 +6,8 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PIP_NO_CACHE_DIR=1 \
     PYTHONPATH=/app/backend/src \
-    FABLEMAP_OUTPUT_ROOT=/data \
-    FABLEMAP_ENV=production
+    FABLESPACE_OUTPUT_ROOT=/data \
+    FABLESPACE_ENV=production
 
 WORKDIR /app
 
@@ -17,13 +17,13 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY backend/src ./backend/src
 COPY tests/fixtures ./tests/fixtures
 
-RUN useradd --create-home --shell /usr/sbin/nologin fablemap \
+RUN useradd --create-home --shell /usr/sbin/nologin fablespace \
     && mkdir -p /data \
-    && chown -R fablemap:fablemap /app /data
+    && chown -R fablespace:fablespace /app /data
 
-USER fablemap
+USER fablespace
 
 EXPOSE 8000
 VOLUME ["/data"]
 
-CMD ["uvicorn", "fablemap_api.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "fablespace_api.main:app", "--host", "0.0.0.0", "--port", "8000"]

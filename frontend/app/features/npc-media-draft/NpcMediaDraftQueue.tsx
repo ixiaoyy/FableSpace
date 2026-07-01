@@ -20,29 +20,29 @@ type MediaDraft = {
 }
 
 type NpcMediaDraftQueueProps = {
-  tavernId: string
+  spaceId: string
   characterId: string
   userId: string
 }
 
-export function NpcMediaDraftQueue({ tavernId, characterId, userId }: NpcMediaDraftQueueProps) {
+export function NpcMediaDraftQueue({ spaceId, characterId, userId }: NpcMediaDraftQueueProps) {
   const [drafts, setDrafts] = useState<MediaDraft[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
 
   useEffect(() => {
-    if (!tavernId || !characterId) return
+    if (!spaceId || !characterId) return
     setLoading(true)
     setError("")
     fetch(
-      `/api/v1/taverns/${encodeURIComponent(tavernId)}/characters/${encodeURIComponent(characterId)}/media-drafts`,
+      `/api/v1/spaces/${encodeURIComponent(spaceId)}/characters/${encodeURIComponent(characterId)}/media-drafts`,
       { headers: { "X-User-Id": userId } },
     )
       .then((r) => r.json())
       .then((data) => setDrafts(data?.drafts ?? []))
       .catch((err) => setError(String(err?.message ?? "加载失败")))
       .finally(() => setLoading(false))
-  }, [tavernId, characterId, userId])
+  }, [spaceId, characterId, userId])
 
   return (
     <section aria-label="NPC 媒体草稿队列">

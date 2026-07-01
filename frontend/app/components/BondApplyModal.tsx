@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { cn } from "../lib/utils.js"
 
 type BondApplyModalProps = {
-  tavernId: string
+  spaceId: string
   characterId: string
   characterName: string
   visitorId: string
@@ -24,7 +24,7 @@ type BondApplyModalProps = {
 type ApplyState = "idle" | "submitting" | "success" | "error"
 
 export function BondApplyModal({
-  tavernId,
+  spaceId,
   characterId,
   characterName,
   visitorId,
@@ -81,7 +81,7 @@ export function BondApplyModal({
     setErrorMsg("")
     try {
       const result = await applyPublicBond(
-        tavernId,
+        spaceId,
         characterId,
         {
           bond_type: selectedType,

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import './tavernGameplay.css'
+import './spaceGameplay.css'
 
 function latestNarration(session, scene) {
   if (scene?.narration) return scene.narration

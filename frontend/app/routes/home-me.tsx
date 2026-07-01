@@ -8,8 +8,8 @@ import { useEffect, useMemo, useRef, useState } from "react"
 import { Link, useLoaderData } from "react-router"
 
 import { getVisitorEngagement, type VisitorEngagement } from "../lib/engagement"
-import { formatTavernAnchorLocation } from "../product/mapAnchorCopy.js"
-import { DEFAULT_VISITOR_ID, errorMessage, listMemories, listTaverns, type MemoryAtom, type Tavern } from "../lib/taverns"
+import { formatSpaceAnchorLocation } from "../product/mapAnchorCopy.js"
+import { DEFAULT_VISITOR_ID, errorMessage, listMemories, listSpaces, type MemoryAtom, type Space } from "../lib/spaces"
 import { ProductShell } from "../shell/product-shell"
 import { Button } from "../ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card"
@@ -36,21 +36,21 @@ function buildHomePlaceHref(ownerId: string) {
 }
 
 type VisitorEngagementRow = {
-  tavern: Tavern
+  space: Space
   progress: VisitorEngagement
 }
 
 type ReturnVisitMode = "continue" | "restart" | "trial"
 
 type ReturnVisitRow = {
-  tavern: Tavern
+  space: Space
   memory: MemoryAtom | null
   memoryCount: number
 }
 
 /**
  * Keeps visitor-facing home copy compact without changing owner-authored text.
- * @param value Source text from tavern or visitor-private memory data.
+ * @param value Source text from space or visitor-private memory data.
  * @param fallback Text to show when the source is empty.
  * @param maxLength Maximum visible characters before truncation.
  * @returns A short display string; has no persistence side effects.
@@ -78,57 +78,57 @@ function formatRevisitTime(value: unknown) {
 
 /**
  * Reads a visitor relationship label from the existing visitor-state payload.
- * @param tavern Tavern entry that may include visitor_state from the current API response.
+ * @param space Space entry that may include visitor_state from the current API response.
  * @returns A compact relationship stage label; no private data is queried here.
  */
-function relationshipLabel(tavern: Tavern) {
-  const relationship = tavern.visitor_state?.relationship as Record<string, unknown> | null | undefined
+function relationshipLabel(space: Space) {
+  const relationship = space.visitor_state?.relationship as Record<string, unknown> | null | undefined
   return String(relationship?.stage_label_zh || relationship?.stage || "关系待续")
 }
 
 /**
  * Builds a deterministic temporary visitor id for trial mode.
- * @param tavernId Target tavern id.
+ * @param spaceId Target space id.
  * @param visitorId Current visitor id used only as a local namespace.
  * @returns A separate visitor id so trial chat does not write to the current revisit identity.
  */
-function buildTrialVisitorId(tavernId: string, visitorId: string) {
-  const cleanTavern = tavernId.replace(/[^a-zA-Z0-9_-]/g, "_").slice(0, 42)
+function buildTrialVisitorId(spaceId: string, visitorId: string) {
+  const cleanSpace = spaceId.replace(/[^a-zA-Z0-9_-]/g, "_").slice(0, 42)
   const cleanVisitor = visitorId.replace(/[^a-zA-Z0-9_-]/g, "_").slice(0, 42)
-  return `trial_${cleanVisitor}_${cleanTavern}`
+  return `trial_${cleanVisitor}_${cleanSpace}`
 }
 
 /**
- * Builds explicit revisit links for the tavern route.
- * @param tavernId Target tavern id.
+ * Builds explicit revisit links for the space route.
+ * @param spaceId Target space id.
  * @param visitorId Current visitor id.
  * @param mode Continue, restart, or temporary trial mode.
  * @returns A route href; it does not call APIs or mutate state.
  */
-function buildReturnVisitHref(tavernId: string, visitorId: string, mode: ReturnVisitMode) {
+function buildReturnVisitHref(spaceId: string, visitorId: string, mode: ReturnVisitMode) {
   const params = new URLSearchParams()
-  params.set("visitor_id", mode === "trial" ? buildTrialVisitorId(tavernId, visitorId) : visitorId)
+  params.set("visitor_id", mode === "trial" ? buildTrialVisitorId(spaceId, visitorId) : visitorId)
   params.set("revisit", mode)
   if (mode === "trial") params.set("memory_mode", "trial")
-  return `/tavern/${encodeURIComponent(tavernId)}?${params.toString()}`
+  return `/space/${encodeURIComponent(spaceId)}?${params.toString()}`
 }
 
 /**
  * Creates one private revisit cue from visitor-owned memory when available.
- * @param row Tavern plus the current visitor's latest readable memory.
+ * @param row Space plus the current visitor's latest readable memory.
  * @returns Safe card copy scoped to the current visitor id.
  */
 function buildReturnVisitCue(row: ReturnVisitRow) {
   if (row.memory?.content) return compactHomeLine(row.memory.content, "上次的线索还在。", 70)
-  const visitCount = Number(row.tavern.visitor_state?.visit_count || 0)
+  const visitCount = Number(row.space.visitor_state?.visit_count || 0)
   if (visitCount > 1) return `这是你第 ${visitCount} 次回来，可以接住上次的关系感。`
-  return compactHomeLine(row.tavern.description, "从门口重新进入，让 NPC 接住第一条线索。", 70)
+  return compactHomeLine(row.space.description, "从门口重新进入，让 NPC 接住第一条线索。", 70)
 }
 
 /**
  * Shows current-visitor return entry cards on the personal center.
  * @param viewerId Visitor id from route query; falls back to the local anonymous visitor id.
- * @returns A visitor-scoped panel; it only reads tavern/memory data and never writes visit history.
+ * @returns A visitor-scoped panel; it only reads space/memory data and never writes visit history.
  */
 function ReturnVisitSurfacePanel({ viewerId }: { viewerId: string }) {
   const visitorId = viewerId || DEFAULT_VISITOR_ID
@@ -139,7 +139,7 @@ function ReturnVisitSurfacePanel({ viewerId }: { viewerId: string }) {
   const loadTokenRef = useRef(0)
 
   /**
-   * Loads public tavern entries first, then hydrates visitor memory cues in the background.
+   * Loads public space entries first, then hydrates visitor memory cues in the background.
    * @returns void; updates local component state and never calls enter/chat/write APIs.
    */
   async function loadReturnVisits() {
@@ -148,30 +148,30 @@ function ReturnVisitSurfacePanel({ viewerId }: { viewerId: string }) {
     setLoading(true)
     setError("")
     try {
-      const list = await listTaverns({ limit: 12, offset: 0, visitor_id: visitorId })
-      const taverns = Array.isArray(list.taverns) ? list.taverns : []
-      const baseRows: ReturnVisitRow[] = taverns.map((tavern) => ({ tavern, memory: null, memoryCount: 0 }))
+      const list = await listSpaces({ limit: 12, offset: 0, visitor_id: visitorId })
+      const spaces = Array.isArray(list.spaces) ? list.spaces : []
+      const baseRows: ReturnVisitRow[] = spaces.map((space) => ({ space, memory: null, memoryCount: 0 }))
       if (loadTokenRef.current !== loadToken) return
       setRows(baseRows)
       setLoading(false)
 
       const memoryResults = await Promise.allSettled(
         baseRows.map(async (row) => {
-          const memories = await listMemories(row.tavern.id, { visitor_id: visitorId, visibility: "visitor", limit: 1 }, visitorId)
+          const memories = await listMemories(row.space.id, { visitor_id: visitorId, visibility: "visitor", limit: 1 }, visitorId)
           const memoryList = Array.isArray(memories.memories) ? memories.memories : []
           return {
-            tavernId: row.tavern.id,
+            spaceId: row.space.id,
             memory: memoryList[0] || null,
             memoryCount: Number(memories.total ?? memories.count ?? memoryList.length ?? 0),
           }
         }),
       )
       if (loadTokenRef.current !== loadToken) return
-      const memoryByTavern = new Map(
-        memoryResults.flatMap((result) => result.status === "fulfilled" ? [[result.value.tavernId, result.value]] : []),
+      const memoryBySpace = new Map(
+        memoryResults.flatMap((result) => result.status === "fulfilled" ? [[result.value.spaceId, result.value]] : []),
       )
       setRows((currentRows) => currentRows.map((row) => {
-        const memoryPatch = memoryByTavern.get(row.tavern.id)
+        const memoryPatch = memoryBySpace.get(row.space.id)
         return memoryPatch
           ? { ...row, memory: memoryPatch.memory, memoryCount: memoryPatch.memoryCount }
           : row
@@ -195,14 +195,14 @@ function ReturnVisitSurfacePanel({ viewerId }: { viewerId: string }) {
     .sort((a, b) => {
       const memoryDiff = Number(b.memoryCount > 0) - Number(a.memoryCount > 0)
       if (memoryDiff !== 0) return memoryDiff
-      const visitDiff = Number(b.tavern.visitor_state?.visit_count || 0) - Number(a.tavern.visitor_state?.visit_count || 0)
+      const visitDiff = Number(b.space.visitor_state?.visit_count || 0) - Number(a.space.visitor_state?.visit_count || 0)
       if (visitDiff !== 0) return visitDiff
-      return Number(b.tavern.visit_count || 0) - Number(a.tavern.visit_count || 0)
+      return Number(b.space.visit_count || 0) - Number(a.space.visit_count || 0)
     })
     .slice(0, 4), [rows])
 
   const memorySpaces = rows.filter((row) => row.memoryCount > 0).length
-  const returningSpaces = rows.filter((row) => Number(row.tavern.visitor_state?.visit_count || 0) > 1).length
+  const returningSpaces = rows.filter((row) => Number(row.space.visitor_state?.visit_count || 0) > 1).length
 
   return (
     <Card data-return-visit-surface className="border-cyan-300/18 bg-cyan-300/8">
@@ -253,11 +253,11 @@ function ReturnVisitSurfacePanel({ viewerId }: { viewerId: string }) {
         ) : sortedRows.length ? (
           <div className="grid gap-3" data-return-visit-card-list data-return-visit-loaded>
             {sortedRows.map((row) => {
-              const anchor = formatTavernAnchorLocation(row.tavern)
-              const lastTime = formatRevisitTime(row.memory?.updated_at || row.tavern.visitor_state?.last_visit)
-              const npcCount = Array.isArray(row.tavern.characters) ? row.tavern.characters.length : 0
+              const anchor = formatSpaceAnchorLocation(row.space)
+              const lastTime = formatRevisitTime(row.memory?.updated_at || row.space.visitor_state?.last_visit)
+              const npcCount = Array.isArray(row.space.characters) ? row.space.characters.length : 0
               return (
-                <article key={row.tavern.id} data-return-visit-card className="rounded-[1.6rem] border border-white/10 bg-slate-950/42 p-4">
+                <article key={row.space.id} data-return-visit-card className="rounded-[1.6rem] border border-white/10 bg-slate-950/42 p-4">
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                     <div className="min-w-0">
                       <div className="flex flex-wrap items-center gap-2 text-xs font-black">
@@ -270,12 +270,12 @@ function ReturnVisitSurfacePanel({ viewerId }: { viewerId: string }) {
                           {lastTime}
                         </span>
                       </div>
-                      <h3 className="mt-3 truncate text-lg font-black text-theme-primary">{row.tavern.name || row.tavern.id}</h3>
+                      <h3 className="mt-3 truncate text-lg font-black text-theme-primary">{row.space.name || row.space.id}</h3>
                       <p className="mt-1 truncate text-xs font-bold text-theme-muted">{anchor.line}</p>
                     </div>
                     <div className="flex shrink-0 gap-2 text-xs font-bold text-theme-muted">
                       <span className="rounded-xl border border-theme-border bg-theme-card px-2.5 py-1">{npcCount} 位 NPC</span>
-                      <span className="rounded-xl border border-theme-border bg-theme-card px-2.5 py-1">{relationshipLabel(row.tavern)}</span>
+                      <span className="rounded-xl border border-theme-border bg-theme-card px-2.5 py-1">{relationshipLabel(row.space)}</span>
                     </div>
                   </div>
                   <p className="mt-3 rounded-2xl border border-theme-border bg-theme-card p-3 text-sm leading-6 text-violet-50/72">
@@ -283,19 +283,19 @@ function ReturnVisitSurfacePanel({ viewerId }: { viewerId: string }) {
                   </p>
                   <div className="mt-3 grid gap-2 sm:grid-cols-3">
                     <Button asChild className="min-h-12">
-                      <Link to={buildReturnVisitHref(row.tavern.id, visitorId, "continue")}>
+                      <Link to={buildReturnVisitHref(row.space.id, visitorId, "continue")}>
                         <PlayCircle className="h-4 w-4" />
                         继续回访
                       </Link>
                     </Button>
                     <Button asChild variant="secondary" className="min-h-12">
-                      <Link to={buildReturnVisitHref(row.tavern.id, visitorId, "restart")}>
+                      <Link to={buildReturnVisitHref(row.space.id, visitorId, "restart")}>
                         <RotateCcw className="h-4 w-4" />
                         从入口重开
                       </Link>
                     </Button>
                     <Button asChild variant="ghost" className="min-h-12">
-                      <Link to={buildReturnVisitHref(row.tavern.id, visitorId, "trial")}>
+                      <Link to={buildReturnVisitHref(row.space.id, visitorId, "trial")}>
                         <DoorOpen className="h-4 w-4" />
                         临时试游
                       </Link>
@@ -339,12 +339,12 @@ function VisitorEngagementSummaryPanel({ viewerId }: { viewerId: string }) {
     setLoading(true)
     setError("")
     try {
-      const list = await listTaverns({ limit: 24, offset: 0 })
-      const taverns = Array.isArray(list.taverns) ? list.taverns : []
+      const list = await listSpaces({ limit: 24, offset: 0 })
+      const spaces = Array.isArray(list.spaces) ? list.spaces : []
       const results = await Promise.allSettled(
-        taverns.map(async (tavern) => ({
-          tavern,
-          progress: await getVisitorEngagement(tavern.id, visitorId),
+        spaces.map(async (space) => ({
+          space,
+          progress: await getVisitorEngagement(space.id, visitorId),
         })),
       )
       setRows(
@@ -445,14 +445,14 @@ function VisitorEngagementSummaryPanel({ viewerId }: { viewerId: string }) {
               <span>空间明细</span>
               <span>{summary.activeSpaces} 个有资产记录</span>
             </div>
-            {topRows.map(({ tavern, progress }) => (
+            {topRows.map(({ space, progress }) => (
               <Link
-                key={tavern.id}
-                to={`/tavern/${encodeURIComponent(tavern.id)}`}
+                key={space.id}
+                to={`/space/${encodeURIComponent(space.id)}`}
                 className="flex min-h-14 items-center justify-between gap-3 rounded-2xl border border-theme-border bg-theme-card p-3 text-sm transition hover:border-theme-accent-border"
               >
                 <span className="min-w-0">
-                  <span className="block truncate font-black text-theme-primary">{tavern.name || tavern.id}</span>
+                  <span className="block truncate font-black text-theme-primary">{space.name || space.id}</span>
                   <span className="mt-0.5 block truncate text-xs text-theme-muted">{progress.coin_label || "纪念币"}</span>
                 </span>
                 <span className="flex shrink-0 items-center gap-3 text-xs font-bold text-theme-muted">

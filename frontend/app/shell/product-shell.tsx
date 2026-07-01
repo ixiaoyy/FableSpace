@@ -67,7 +67,7 @@ export function ProductShell({
   return (
     <main className="relative min-h-screen overflow-hidden bg-theme-bg text-theme-primary">
       {/* Background is now handled in styles.css body::before */}
-      <header className="sticky top-0 z-40 border-b border-theme-border bg-theme-header backdrop-blur-xl" aria-label="FableMap navigation">
+      <header className="sticky top-0 z-40 border-b border-theme-border bg-theme-header backdrop-blur-xl" aria-label="FableSpace navigation">
         <div className="mx-auto flex max-w-[1320px] flex-col gap-4 px-4 py-4 sm:px-6 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex items-center justify-between">
             <NavLink to="/" end className="flex min-h-11 w-fit touch-manipulation items-center gap-3">
@@ -75,7 +75,7 @@ export function ProductShell({
                 FM
               </span>
               <div>
-                <p className="font-black tracking-wide text-theme-primary">FableMap</p>
+                <p className="font-black tracking-wide text-theme-primary">FableSpace</p>
                 <p className="text-xs text-theme-muted">世界的镜像面 · AI 私密空间</p>
               </div>
             </NavLink>

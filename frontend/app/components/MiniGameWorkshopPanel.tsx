@@ -1,7 +1,7 @@
 /**
  * MiniGameWorkshopPanel
  *
- * Shows self-designed mini-games in TavernChatWorkbench.
+ * Shows self-designed mini-games in SpaceChatWorkbench.
  * All games are original designs — no external licenses needed.
  * Whitelist only, local hosting, iframe sandbox.
  */

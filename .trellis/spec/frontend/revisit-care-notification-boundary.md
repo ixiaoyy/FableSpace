@@ -4,7 +4,7 @@
 
 ## Scope
 
-Use this guide when touching revisit-care, return-visit reminders, proactive notification copy, notification scheduling previews, or any UI that suggests reaching out to a visitor after a tavern visit.
+Use this guide when touching revisit-care, return-visit reminders, proactive notification copy, notification scheduling previews, or any UI that suggests reaching out to a visitor after a space visit.
 
 Current product status:
 
@@ -22,7 +22,7 @@ Any future revisit-care notification design must satisfy all of these before it 
 4. **Unsubscribe required** — cancellation must be available and respected.
 5. **In-app first** — current frontend previews may only model `in_app`; no OS push, email, SMS, or cross-channel delivery.
 6. **No marketing/social growth loops** — no advertising, resurrection campaigns, friend-online pings, rankings, public feeds, or visitor-to-visitor social graph.
-7. **No platform-authored content publishing** — reminders may reference existing owner/visitor-visible facts, but must not auto-generate or publish tavern/NPC/story content.
+7. **No platform-authored content publishing** — reminders may reference existing owner/visitor-visible facts, but must not auto-generate or publish space/NPC/story content.
 
 ## Approved helper pattern
 
@@ -57,7 +57,7 @@ Expected behavior:
 - Clearly label current surfaces as “未启用设计预览” / preview-only.
 - Say that the UI does **not** send notifications and does **not** write schema.
 - Keep preview controls local with `useState`; do not introduce global state or persistence for this design.
-- Use polished FableMap cards/panels and keep mobile/narrow screens usable.
+- Use polished FableSpace cards/panels and keep mobile/narrow screens usable.
 
 ## Required checks
 

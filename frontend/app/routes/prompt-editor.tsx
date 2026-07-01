@@ -5,20 +5,20 @@ import { useState } from "react"
 import {
   DEFAULT_OWNER_ID,
   errorMessage,
-  getTavern,
+  getSpace,
   updateCharacter,
-  type Tavern,
-  type TavernCharacter,
-} from "../lib/taverns"
+  type Space,
+  type SpaceCharacter,
+} from "../lib/spaces"
 import { ProductShell } from "../shell/product-shell"
 import PromptBlockEditor from "../product/PromptBlockEditor"
 
 type PromptEditorLoaderData = {
-  tavernId: string
+  spaceId: string
   characterId: string
   currentUserId: string
-  tavern: Tavern | null
-  character: TavernCharacter | null
+  space: Space | null
+  character: SpaceCharacter | null
   error: string
 }
 
@@ -32,40 +32,40 @@ function getOwnerIdFromRequest(request: Request) {
 }
 
 export async function clientLoader({ params, request }: ClientLoaderFunctionArgs): Promise<PromptEditorLoaderData> {
-  const tavernId = params.tavernId ?? ""
+  const spaceId = params.spaceId ?? ""
   const characterId = params.characterId ?? ""
   const currentUserId = getOwnerIdFromRequest(request)
 
-  if (!tavernId || !characterId) {
-    return { tavernId, characterId, currentUserId, tavern: null, character: null, error: "缺少必要参数" }
+  if (!spaceId || !characterId) {
+    return { spaceId, characterId, currentUserId, space: null, character: null, error: "缺少必要参数" }
   }
 
   try {
-    const tavern = await getTavern(tavernId, currentUserId)
-    const character = (tavern.characters || []).find(c => c.id === characterId) || null
+    const space = await getSpace(spaceId, currentUserId)
+    const character = (space.characters || []).find(c => c.id === characterId) || null
     
     if (!character) {
-      return { tavernId, characterId, currentUserId, tavern, character: null, error: "未找到目标角色" }
+      return { spaceId, characterId, currentUserId, space, character: null, error: "未找到目标角色" }
     }
 
-    return { tavernId, characterId, currentUserId, tavern, character, error: "" }
+    return { spaceId, characterId, currentUserId, space, character, error: "" }
   } catch (error) {
-    return { tavernId, characterId, currentUserId, tavern: null, character: null, error: errorMessage(error) }
+    return { spaceId, characterId, currentUserId, space: null, character: null, error: errorMessage(error) }
   }
 }
 
 export default function PromptEditorRoute() {
-  const { tavernId, characterId, currentUserId, tavern, character, error } = useLoaderData<typeof clientLoader>()
+  const { spaceId, characterId, currentUserId, space, character, error } = useLoaderData<typeof clientLoader>()
   const navigate = useNavigate()
   const [busy, setBusy] = useState(false)
 
-  async function handleSave(updatedChar: TavernCharacter) {
+  async function handleSave(updatedChar: SpaceCharacter) {
     setBusy(true)
     try {
-      await updateCharacter(tavernId, characterId, updatedChar, currentUserId)
+      await updateCharacter(spaceId, characterId, updatedChar, currentUserId)
       // 保存后返回管理页或保持原位？
       // 保持原位并显示成功提示可能更好，但这里先简单处理
-      navigate(`/tavern/${tavernId}/manage`)
+      navigate(`/space/${spaceId}/manage`)
     } catch (err) {
       throw err // 让组件内部捕获并显示错误
     } finally {
@@ -77,7 +77,7 @@ export default function PromptEditorRoute() {
     navigate(-1)
   }
 
-  if (error || !tavern || !character) {
+  if (error || !space || !character) {
     return (
       <ProductShell eyebrow="Error">
         <div className="p-8 text-center">
@@ -90,9 +90,9 @@ export default function PromptEditorRoute() {
 
   return (
     <ProductShell eyebrow="Prompt Lab">
-      <PromptBlockEditor 
-        character={character} 
-        tavern={tavern} 
+      <PromptBlockEditor
+        character={character}
+        space={space}
         onSave={handleSave}
         onBack={handleBack}
         disabled={busy}

@@ -1,5 +1,5 @@
 /**
- * FableMap Chat Panel — 聊天气泡 UI
+ * FableSpace Chat Panel — 聊天气泡 UI
  *
  * 最小可玩原型的核心：展示角色、发送消息、显示对话历史
  */

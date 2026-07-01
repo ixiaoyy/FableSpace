@@ -9,7 +9,7 @@ export const CULTIVATION_PLAY_PACK = {
   id: 'cultivation-play-pack',
   name: '修行空间默认玩法包',
   description: '提供修行、问道、历练回执与突破条件面板的默认内容。',
-  owner_confirmation_note: '这里只提供待确认模板；只有店主在本空间确认注入后，NPC、世界书和玩法定义才会真正写入当前 Tavern。',
+  owner_confirmation_note: '这里只提供待确认模板；只有店主在本空间确认注入后，NPC、世界书和玩法定义才会真正写入当前 Space。',
 
   // 安全边界 (Forbidden list)
   forbidden: '战斗, 等级, 装备, 排行榜, 充值, 跨空间社交, 竞技, 交易',

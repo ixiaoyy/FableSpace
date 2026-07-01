@@ -14,23 +14,23 @@ import {
 import { Link, useSearchParams } from "react-router"
 import { useEffect, useMemo, useState } from "react"
 
-import discoverRadarSurfaceImage from "../assets/fable-map-05-10/discover/cards/card-compass-square.png"
+import discoverRadarSurfaceImage from "../assets/fable-space-05-10/discover/cards/card-compass-square.png"
 import { DiscoveryLivelinessStrip } from "../components/DiscoveryLivelinessStrip"
-import { FableMapDiscoverReference } from "../components/fable-map-reference-artboards"
-import { TavernPreviewModal } from "../components/tavern-preview-modal"
+import { FableSpaceDiscoverReference } from "../components/fable-space-reference-artboards"
+import { SpacePreviewModal } from "../components/space-preview-modal"
 import { buildDiscoveryLiveliness, getDiscoveryLivelinessSearchText } from "../lib/discovery-liveliness.js"
-import { resolveHomepageTavernCover, resolveUniqueHomepageTavernCovers } from "../lib/homepage-taverns"
-import { DISCOVERABLE_PLACE_TYPES, derivePlaceTypeDisplay, placeTypeMatchesTavern } from "../lib/place-types.js"
+import { resolveHomepageSpaceCover, resolveUniqueHomepageSpaceCovers } from "../lib/homepage-spaces"
+import { DISCOVERABLE_PLACE_TYPES, derivePlaceTypeDisplay, placeTypeMatchesSpace } from "../lib/place-types.js"
 import { buildShortDramaTeaser, getShortDramaTeaserSearchText } from "../lib/short-drama-teasers.js"
 import {
-  deriveSpecialTavernTypeDisplay,
-  SPECIAL_TAVERN_TYPES,
-  specialTavernTypeMatchesTavern,
-} from "../lib/special-tavern-types.js"
-import { buildTavernFirstMinuteGuide, getTavernFirstMinuteSearchText } from "../lib/tavern-first-minute"
-import { buildTavernIntentTags, getTavernIntentTagsSearchText } from "../lib/tavern-intent-tags.js"
-import { errorMessage, listTaverns, type Tavern, type TavernCharacter, type TavernListResponse } from "../lib/taverns"
-import { buildMapAnchorCardCopy, formatTavernAnchorLocation } from "../product/mapAnchorCopy.js"
+  deriveSpecialSpaceTypeDisplay,
+  SPECIAL_SPACE_TYPES,
+  specialSpaceTypeMatchesSpace,
+} from "../lib/special-space-types.js"
+import { buildSpaceFirstMinuteGuide, getSpaceFirstMinuteSearchText } from "../lib/space-first-minute"
+import { buildSpaceIntentTags, getSpaceIntentTagsSearchText } from "../lib/space-intent-tags.js"
+import { errorMessage, listSpaces, type Space, type SpaceCharacter, type SpaceListResponse } from "../lib/spaces"
+import { buildMapAnchorCardCopy, formatSpaceAnchorLocation } from "../product/mapAnchorCopy.js"
 import { useTheme } from "../hooks/useTheme"
 import { ProductShell } from "../shell/product-shell"
 import { Button } from "../ui/button"
@@ -44,11 +44,11 @@ type Category = {
 }
 
 type DiscoverLoaderData = {
-  result: TavernListResponse
+  result: SpaceListResponse
   error: string
 }
 
-type TavernWithTimeStatus = Tavern & {
+type SpaceWithTimeStatus = Space & {
   is_open?: boolean
   local_time_display?: string
 }
@@ -93,7 +93,7 @@ const DISCOVER_DESKTOP_BOARD_FRAME =
 const DISCOVER_DESKTOP_BOARD_SCROLL =
   "lg:min-h-0 lg:overflow-y-auto lg:pr-2 lg:[scrollbar-gutter:stable]"
 
-const DISCOVER_TAVERN_LIST_LIMIT = 100
+const DISCOVER_SPACE_LIST_LIMIT = 100
 
 function cleanSearchParam(value: string | null) {
   return typeof value === "string" ? value.trim() : ""
@@ -102,7 +102,7 @@ function cleanSearchParam(value: string | null) {
 function discoverListFiltersFromRequest(request: Request): Record<string, string | number> {
   const url = new URL(request.url)
   const filters: Record<string, string | number> = {
-    limit: DISCOVER_TAVERN_LIST_LIMIT,
+    limit: DISCOVER_SPACE_LIST_LIMIT,
     offset: 0,
   }
   const query = cleanSearchParam(url.searchParams.get("search")) || cleanSearchParam(url.searchParams.get("q"))
@@ -119,7 +119,7 @@ function discoverListFiltersFromRequest(request: Request): Record<string, string
   return filters
 }
 
-function characterAvatar(character: TavernCharacter) {
+function characterAvatar(character: SpaceCharacter) {
   if (!character) return ""
   return (
     character.sprites?.neutral
@@ -134,23 +134,23 @@ function initialFor(value = "?") {
   return value.trim().slice(0, 1).toUpperCase() || "?"
 }
 
-function locationLabel(tavern: Tavern) {
-  const anchor = formatTavernAnchorLocation(tavern)
+function locationLabel(space: Space) {
+  const anchor = formatSpaceAnchorLocation(space)
   return anchor.line
 }
 
-function coordinateLabel(tavern: Tavern) {
-  return buildMapAnchorCardCopy(tavern).locationLabel
+function coordinateLabel(space: Space) {
+  return buildMapAnchorCardCopy(space).locationLabel
 }
 
-function coverForTavern(tavern: Tavern, index: number) {
-  return resolveHomepageTavernCover(tavern, index)
+function coverForSpace(space: Space, index: number) {
+  return resolveHomepageSpaceCover(space, index)
 }
 
-function echoStrength(tavern: Tavern, index: number) {
-  const characterBoost = Math.min(tavern.characters?.length ?? 0, 5) * 4
-  const openBoost = tavern.status === "open" || tavern.is_open ? 10 : 0
-  const visitBoost = Math.min(Math.floor((tavern.visit_count ?? 0) / 10), 10)
+function echoStrength(space: Space, index: number) {
+  const characterBoost = Math.min(space.characters?.length ?? 0, 5) * 4
+  const openBoost = space.status === "open" || space.is_open ? 10 : 0
+  const visitBoost = Math.min(Math.floor((space.visit_count ?? 0) / 10), 10)
   return Math.min(99, 58 + (index % 4) * 5 + characterBoost + openBoost + visitBoost)
 }
 
@@ -169,10 +169,10 @@ function previewBackgroundImage(image: string) {
   ].join(", ")
 }
 
-function entryStatusDisplay(tavern: TavernWithTimeStatus | Tavern): EntryStatusDisplay {
-  const access = typeof tavern.access === "string" ? tavern.access : "public"
-  const status = typeof tavern.status === "string" ? tavern.status : "open"
-  const isClosed = (tavern as TavernWithTimeStatus).is_open === false || status === "closed"
+function entryStatusDisplay(space: SpaceWithTimeStatus | Space): EntryStatusDisplay {
+  const access = typeof space.access === "string" ? space.access : "public"
+  const status = typeof space.status === "string" ? space.status : "open"
+  const isClosed = (space as SpaceWithTimeStatus).is_open === false || status === "closed"
 
   if (isClosed) {
     return {
@@ -205,10 +205,10 @@ function entryStatusDisplay(tavern: TavernWithTimeStatus | Tavern): EntryStatusD
   }
 }
 
-function buildEntryEchoes(tavern: TavernWithTimeStatus | Tavern, placeType: ReturnType<typeof derivePlaceTypeDisplay>): EntryEcho[] {
-  const entry = entryStatusDisplay(tavern)
-  const characterCount = Array.isArray(tavern.characters) ? tavern.characters.length : 0
-  const visitCount = Number.isFinite(tavern.visit_count) ? Number(tavern.visit_count) : 0
+function buildEntryEchoes(space: SpaceWithTimeStatus | Space, placeType: ReturnType<typeof derivePlaceTypeDisplay>): EntryEcho[] {
+  const entry = entryStatusDisplay(space)
+  const characterCount = Array.isArray(space.characters) ? space.characters.length : 0
+  const visitCount = Number.isFinite(space.visit_count) ? Number(space.visit_count) : 0
 
   return [
     {
@@ -238,59 +238,59 @@ function buildEntryEchoes(tavern: TavernWithTimeStatus | Tavern, placeType: Retu
   ]
 }
 
-function tavernMatchesCategory(
-  tavern: TavernListResponse["taverns"][number],
+function spaceMatchesCategory(
+  space: SpaceListResponse["spaces"][number],
   category: Category,
 ): boolean {
-  const allTags = tavern.characters?.flatMap((character) => character.tags ?? []) ?? []
+  const allTags = space.characters?.flatMap((character) => character.tags ?? []) ?? []
   return category.tags.some((tag) => allTags.some((candidate) => candidate.includes(tag)))
 }
 
-function tavernSearchText(tavern: TavernListResponse["taverns"][number]) {
+function spaceSearchText(space: SpaceListResponse["spaces"][number]) {
   return [
-    tavern.name,
-    tavern.description,
-    tavern.address,
-    tavern.scene_prompt,
-    getTavernFirstMinuteSearchText(tavern),
-    getDiscoveryLivelinessSearchText(tavern),
-    getShortDramaTeaserSearchText(tavern),
-    getTavernIntentTagsSearchText(buildTavernIntentTags(tavern)),
-    ...(tavern.characters?.flatMap((character) => [character.name, ...(character.tags ?? [])]) ?? []),
+    space.name,
+    space.description,
+    space.address,
+    space.scene_prompt,
+    getSpaceFirstMinuteSearchText(space),
+    getDiscoveryLivelinessSearchText(space),
+    getShortDramaTeaserSearchText(space),
+    getSpaceIntentTagsSearchText(buildSpaceIntentTags(space)),
+    ...(space.characters?.flatMap((character) => [character.name, ...(character.tags ?? [])]) ?? []),
   ]
     .filter(Boolean)
     .join(" ")
     .toLowerCase()
 }
 
-function tavernMatchesFilter(tavern: TavernListResponse["taverns"][number], filters: FilterState): boolean {
+function spaceMatchesFilter(space: SpaceListResponse["spaces"][number], filters: FilterState): boolean {
   const search = filters.search.trim().toLowerCase()
-  if (search && !tavernSearchText(tavern).includes(search)) return false
+  if (search && !spaceSearchText(space).includes(search)) return false
 
   if (filters.activePlaceTypes.size > 0) {
-    const matches = Array.from(filters.activePlaceTypes).some((placeTypeId) => placeTypeMatchesTavern(tavern, placeTypeId))
+    const matches = Array.from(filters.activePlaceTypes).some((placeTypeId) => placeTypeMatchesSpace(space, placeTypeId))
     if (!matches) return false
   }
 
   if (filters.activeCategories.size > 0) {
     const matches = Array.from(filters.activeCategories).some((label) => {
       const category = CATEGORIES.find((candidate) => candidate.label === label)
-      return category && tavernMatchesCategory(tavern, category)
+      return category && spaceMatchesCategory(space, category)
     })
     if (!matches) return false
   }
 
   if (filters.activeSpecialTypes.size > 0) {
-    const matches = Array.from(filters.activeSpecialTypes).some((specialTypeId) => specialTavernTypeMatchesTavern(tavern, specialTypeId))
+    const matches = Array.from(filters.activeSpecialTypes).some((specialTypeId) => specialSpaceTypeMatchesSpace(space, specialTypeId))
     if (!matches) return false
   }
 
-  if (filters.publicOnly && tavern.access !== "public") return false
-  if (filters.openOnly && tavern.status !== "open") return false
+  if (filters.publicOnly && space.access !== "public") return false
+  if (filters.openOnly && space.status !== "open") return false
   return true
 }
 
-function CharacterStack({ characters = [], muted = false }: { characters?: TavernCharacter[]; muted?: boolean }) {
+function CharacterStack({ characters = [], muted = false }: { characters?: SpaceCharacter[]; muted?: boolean }) {
   if (!characters.length) {
     return <span className="text-xs text-theme-muted">暂无活跃角色</span>
   }
@@ -331,7 +331,7 @@ function CharacterInitialBadge({ name, muted = false }: { name?: string; muted?:
   )
 }
 
-function CharacterAvatarBadge({ character, muted = false }: { character: TavernCharacter; muted?: boolean }) {
+function CharacterAvatarBadge({ character, muted = false }: { character: SpaceCharacter; muted?: boolean }) {
   const [broken, setBroken] = useState(false)
   const avatar = characterAvatar(character)
 
@@ -351,29 +351,29 @@ function CharacterAvatarBadge({ character, muted = false }: { character: TavernC
   )
 }
 
-function compactCharacterNames(characters: TavernCharacter[]) {
+function compactCharacterNames(characters: SpaceCharacter[]) {
   if (!characters.length) return "待配置 NPC"
   const names = characters.slice(0, 3).map((character) => character.name || "未命名").join(" · ")
   return characters.length > 3 ? `${names} · +${characters.length - 3}` : names
 }
 
-function visitEchoLabel(tavern: Tavern) {
-  const visitCount = Number(tavern.visit_count)
+function visitEchoLabel(space: Space) {
+  const visitCount = Number(space.visit_count)
   return Number.isFinite(visitCount) && visitCount > 0 ? `${Math.round(visitCount)} 次回访` : "新坐标"
 }
 
 function RadarEchoSummary({
-  tavern,
+  space,
   strength,
   muted = false,
 }: {
-  tavern: TavernWithTimeStatus | Tavern
+  space: SpaceWithTimeStatus | Space
   placeType: ReturnType<typeof derivePlaceTypeDisplay>
   strength: number
   muted?: boolean
 }) {
-  const characters = Array.isArray(tavern.characters) ? tavern.characters : []
-  const liveliness = buildDiscoveryLiveliness(tavern)
+  const characters = Array.isArray(space.characters) ? space.characters : []
+  const liveliness = buildDiscoveryLiveliness(space)
   const summaryItems = [
     {
       label: characters.length ? `${characters.length} 位 NPC` : "NPC",
@@ -387,7 +387,7 @@ function RadarEchoSummary({
     },
     {
       label: "空间热度",
-      value: `${visitEchoLabel(tavern)} · ${strength}%`,
+      value: `${visitEchoLabel(space)} · ${strength}%`,
       icon: Waves,
     },
   ]
@@ -420,17 +420,17 @@ function RadarEchoSummary({
 }
 
 function EntryEchoGrid({
-  tavern,
+  space,
   placeType,
   compact = false,
   muted = false,
 }: {
-  tavern: TavernWithTimeStatus | Tavern
+  space: SpaceWithTimeStatus | Space
   placeType: ReturnType<typeof derivePlaceTypeDisplay>
   compact?: boolean
   muted?: boolean
 }) {
-  const echoes = buildEntryEchoes(tavern, placeType)
+  const echoes = buildEntryEchoes(space, placeType)
 
   return (
     <div className={`grid gap-2 ${compact ? "grid-cols-2" : "grid-cols-2 sm:grid-cols-4"}`} aria-label="入店探索线索">
@@ -484,9 +484,9 @@ function ShortDramaTeaserCard({
             {teaser.summary}
           </p>
         </div>
-        {teaser.tavernId ? (
+        {teaser.spaceId ? (
           <Link
-            to={`/tavern/${teaser.tavernId}`}
+            to={`/space/${teaser.spaceId}`}
             className={`inline-flex min-h-11 shrink-0 touch-manipulation items-center justify-center gap-1 rounded-full border px-3 py-2 text-xs font-black transition ${
               muted
                 ? "border-theme-border text-theme-primary/38"
@@ -653,7 +653,7 @@ function FilterPanel({
         <div className="space-y-2">
           <p className="text-xs font-bold text-theme-muted">专题体验</p>
           <div className="flex flex-wrap gap-2">
-            {SPECIAL_TAVERN_TYPES.map((specialType) => {
+            {SPECIAL_SPACE_TYPES.map((specialType) => {
               const active = activeSpecialTypes.has(specialType.id)
               return (
                 <button
@@ -740,14 +740,14 @@ function PreviewTile({ image, title, text }: { image: string; title: string; tex
   )
 }
 
-function RadarEchoCard({ tavern, index, onPreview }: { tavern: Tavern; index: number; onPreview: (tavern: Tavern) => void }) {
-  const tavernWithTimeStatus = tavern as TavernWithTimeStatus
-  const isClosed = tavernWithTimeStatus.is_open === false
-  const placeType = derivePlaceTypeDisplay(tavern)
-  const specialType = deriveSpecialTavernTypeDisplay(tavern)
-  const entry = entryStatusDisplay(tavernWithTimeStatus)
-  const strength = echoStrength(tavern, index)
-  const firstMinute = buildTavernFirstMinuteGuide(tavern)
+function RadarEchoCard({ space, index, onPreview }: { space: Space; index: number; onPreview: (space: Space) => void }) {
+  const spaceWithTimeStatus = space as SpaceWithTimeStatus
+  const isClosed = spaceWithTimeStatus.is_open === false
+  const placeType = derivePlaceTypeDisplay(space)
+  const specialType = deriveSpecialSpaceTypeDisplay(space)
+  const entry = entryStatusDisplay(spaceWithTimeStatus)
+  const strength = echoStrength(space, index)
+  const firstMinute = buildSpaceFirstMinuteGuide(space)
 
   return (
     <article
@@ -767,10 +767,10 @@ function RadarEchoCard({ tavern, index, onPreview }: { tavern: Tavern; index: nu
           <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
             <button
               type="button"
-              onClick={() => onPreview(tavern)}
+              onClick={() => onPreview(space)}
               className={`min-h-11 min-w-0 touch-manipulation text-left font-black transition group-hover:text-theme-accent-text ${isClosed ? "text-theme-primary/50" : "text-theme-primary"}`}
             >
-              {tavern.name}
+              {space.name}
             </button>
             <div className="flex flex-wrap items-center gap-2">
               <span
@@ -803,7 +803,7 @@ function RadarEchoCard({ tavern, index, onPreview }: { tavern: Tavern; index: nu
             </div>
           </div>
           <p className={`mt-2 line-clamp-2 text-sm leading-6 ${isClosed ? "text-theme-primary/25" : "text-theme-muted"}`}>
-            {tavern.description || "这个区域还没有公开简介，但坐标已经亮起。"}
+            {space.description || "这个区域还没有公开简介，但坐标已经亮起。"}
           </p>
           <div
             data-first-minute-guide="radar-compact"
@@ -821,13 +821,13 @@ function RadarEchoCard({ tavern, index, onPreview }: { tavern: Tavern; index: nu
               专题体验：{specialType.summary}
             </p>
           ) : null}
-          <RadarEchoSummary tavern={tavernWithTimeStatus} placeType={placeType} strength={strength} muted={isClosed} />
+          <RadarEchoSummary space={spaceWithTimeStatus} placeType={placeType} strength={strength} muted={isClosed} />
           <div className={`mt-4 flex flex-wrap items-center gap-2 text-xs ${isClosed ? "text-theme-primary/24" : "text-theme-muted"}`}>
-            <span>{locationLabel(tavern)}</span>
-            {tavernWithTimeStatus.local_time_display ? (
-              <span>{isClosed ? "已熄灯" : "亮灯中"} · {tavernWithTimeStatus.local_time_display}</span>
+            <span>{locationLabel(space)}</span>
+            {spaceWithTimeStatus.local_time_display ? (
+              <span>{isClosed ? "已熄灯" : "亮灯中"} · {spaceWithTimeStatus.local_time_display}</span>
             ) : null}
-            <Link to={`/tavern/${tavern.id}`} className="ml-auto inline-flex min-h-11 touch-manipulation items-center gap-1 rounded-full border border-theme-accent-border px-4 py-2 font-bold text-theme-accent-text transition hover:bg-theme-accent-bg">
+            <Link to={`/space/${space.id}`} className="ml-auto inline-flex min-h-11 touch-manipulation items-center gap-1 rounded-full border border-theme-accent-border px-4 py-2 font-bold text-theme-accent-text transition hover:bg-theme-accent-bg">
               进入
               <ArrowRight className="h-3 w-3" />
             </Link>
@@ -839,28 +839,28 @@ function RadarEchoCard({ tavern, index, onPreview }: { tavern: Tavern; index: nu
 }
 
 function ResultCard({
-  tavern,
+  space,
   index,
   coverImage,
   onPreview,
 }: {
-  tavern: Tavern
+  space: Space
   index: number
   coverImage: string
-  onPreview: (tavern: Tavern) => void
+  onPreview: (space: Space) => void
 }) {
-  const tavernWithTimeStatus = tavern as TavernWithTimeStatus
-  const placeType = derivePlaceTypeDisplay(tavern)
-  const specialType = deriveSpecialTavernTypeDisplay(tavern)
-  const entry = entryStatusDisplay(tavernWithTimeStatus)
-  const isClosed = tavernWithTimeStatus.is_open === false
-  const shortDramaTeaser = buildShortDramaTeaser(tavern)
-  const intentTags = buildTavernIntentTags(tavern)
-  const firstMinute = buildTavernFirstMinuteGuide(tavern)
+  const spaceWithTimeStatus = space as SpaceWithTimeStatus
+  const placeType = derivePlaceTypeDisplay(space)
+  const specialType = deriveSpecialSpaceTypeDisplay(space)
+  const entry = entryStatusDisplay(spaceWithTimeStatus)
+  const isClosed = spaceWithTimeStatus.is_open === false
+  const shortDramaTeaser = buildShortDramaTeaser(space)
+  const intentTags = buildSpaceIntentTags(space)
+  const firstMinute = buildSpaceFirstMinuteGuide(space)
 
   return (
     <article className="group overflow-hidden rounded-[1.75rem] border border-theme-border bg-theme-card transition hover:-translate-y-0.5 hover:border-cyan-300/45">
-      <button type="button" onClick={() => onPreview(tavern)} className="relative block h-52 w-full touch-manipulation overflow-hidden text-left sm:h-60">
+      <button type="button" onClick={() => onPreview(space)} className="relative block h-52 w-full touch-manipulation overflow-hidden text-left sm:h-60">
         <img
           src={coverImage}
           alt=""
@@ -870,7 +870,7 @@ function ResultCard({
         />
         <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/20 to-transparent" />
         <span className="absolute left-4 top-4 rounded-full border border-theme-border bg-theme-card px-3 py-1 text-xs font-bold text-theme-accent-text backdrop-blur-md">
-          {locationLabel(tavern)}
+          {locationLabel(space)}
         </span>
         <span className="absolute right-4 top-4 rounded-full border border-theme-border bg-theme-bg px-3 py-1 text-xs font-bold text-theme-primary backdrop-blur-md">
           {placeType.shortLabel || placeType.label}
@@ -888,17 +888,17 @@ function ResultCard({
           {entry.label}
         </span>
         <div className="absolute bottom-4 left-4 right-4">
-          <CharacterStack characters={tavern.characters} muted={isClosed} />
+          <CharacterStack characters={space.characters} muted={isClosed} />
         </div>
       </button>
       <div className="space-y-4 p-5">
         <div>
-          <h3 className="text-xl font-black text-theme-primary">{tavern.name}</h3>
+          <h3 className="text-xl font-black text-theme-primary">{space.name}</h3>
           <p className="mt-2 line-clamp-2 text-sm leading-6 text-theme-muted">
-            {tavern.description || "这个区域还没有公开简介，但坐标已经亮起。"}
+            {space.description || "这个区域还没有公开简介，但坐标已经亮起。"}
           </p>
           <p className="mt-2 line-clamp-1 text-xs font-bold text-theme-accent-text">
-            氛围线索：{compactDisplayText(placeType.tone, tavern.scene_prompt || "真实坐标上的入口", 42)}
+            氛围线索：{compactDisplayText(placeType.tone, space.scene_prompt || "真实坐标上的入口", 42)}
           </p>
           {specialType ? (
             <p className="mt-2 line-clamp-2 text-xs leading-5 text-amber-100/72">
@@ -927,8 +927,8 @@ function ResultCard({
             ))}
           </div>
         </section>
-        <EntryEchoGrid tavern={tavernWithTimeStatus} placeType={placeType} muted={isClosed} />
-        <DiscoveryLivelinessStrip tavern={tavernWithTimeStatus} muted={isClosed} />
+        <EntryEchoGrid space={spaceWithTimeStatus} placeType={placeType} muted={isClosed} />
+        <DiscoveryLivelinessStrip space={spaceWithTimeStatus} muted={isClosed} />
         {intentTags.length ? (
           <div className="flex flex-wrap gap-2" aria-label="经营意图">
             {intentTags.map((tag) => (
@@ -942,20 +942,20 @@ function ResultCard({
           <ShortDramaTeaserCard teaser={shortDramaTeaser} muted={isClosed} />
         ) : null}
         <div className="flex flex-wrap items-center gap-2 text-xs font-bold">
-          <span className="rounded-full border border-theme-accent-border bg-theme-accent-bg px-2.5 py-1 text-theme-accent-text">热度 {echoStrength(tavern, index)}%</span>
+          <span className="rounded-full border border-theme-accent-border bg-theme-accent-bg px-2.5 py-1 text-theme-accent-text">热度 {echoStrength(space, index)}%</span>
           <span className={`rounded-full border px-2.5 py-1 ${isClosed ? "border-theme-border bg-theme-card text-theme-muted" : entry.className}`}>{entry.label}</span>
-          {tavernWithTimeStatus.local_time_display ? (
+          {spaceWithTimeStatus.local_time_display ? (
             <span className="rounded-full border border-emerald-300/18 bg-emerald-300/10 px-2.5 py-1 text-emerald-100">
-              {isClosed ? "已熄灯" : "亮灯中"} · {tavernWithTimeStatus.local_time_display}
+              {isClosed ? "已熄灯" : "亮灯中"} · {spaceWithTimeStatus.local_time_display}
             </span>
           ) : null}
         </div>
         <div className="flex gap-2">
-          <Button type="button" variant="secondary" size="sm" onClick={() => onPreview(tavern)}>
+          <Button type="button" variant="secondary" size="sm" onClick={() => onPreview(space)}>
             预览
           </Button>
           <Button asChild size="sm">
-            <Link to={`/tavern/${tavern.id}`}>
+            <Link to={`/space/${space.id}`}>
               进入
               <ArrowRight className="h-4 w-4" />
             </Link>
@@ -980,17 +980,17 @@ function EmptyState({ hasFilters }: { hasFilters: boolean }) {
   )
 }
 
-function DesktopRadarTelemetry({ taverns }: { taverns: Tavern[] }) {
-  const openEchoes = taverns.filter((tavern) => tavern.status === "open" || (tavern as TavernWithTimeStatus).is_open).length
-  const activeOperationCount = taverns.filter((tavern) => buildDiscoveryLiveliness(tavern).headline === "附近有人经营").length
-  const averageEcho = taverns.length
-    ? Math.round(taverns.reduce((total, tavern, index) => total + echoStrength(tavern, index), 0) / taverns.length)
+function DesktopRadarTelemetry({ spaces }: { spaces: Space[] }) {
+  const openEchoes = spaces.filter((space) => space.status === "open" || (space as SpaceWithTimeStatus).is_open).length
+  const activeOperationCount = spaces.filter((space) => buildDiscoveryLiveliness(space).headline === "附近有人经营").length
+  const averageEcho = spaces.length
+    ? Math.round(spaces.reduce((total, space, index) => total + echoStrength(space, index), 0) / spaces.length)
     : 0
 
   return (
     <div className="hidden gap-3 xl:grid xl:grid-cols-4" aria-label="Live telemetry">
       {[
-        { label: "Live telemetry", value: `${taverns.length}`, helper: "坐标入口" },
+        { label: "Live telemetry", value: `${spaces.length}`, helper: "坐标入口" },
         { label: "Open spaces", value: `${openEchoes}`, helper: "正在亮起" },
         { label: "Operated nearby", value: `${activeOperationCount}`, helper: "有人经营" },
         { label: "Avg warmth", value: `${averageEcho}%`, helper: "平均热度" },
@@ -1005,7 +1005,7 @@ function DesktopRadarTelemetry({ taverns }: { taverns: Tavern[] }) {
   )
 }
 
-function RadarBoard({ taverns, hasFilters, onPreview }: { taverns: Tavern[]; hasFilters: boolean; onPreview: (tavern: Tavern) => void }) {
+function RadarBoard({ spaces, hasFilters, onPreview }: { spaces: Space[]; hasFilters: boolean; onPreview: (space: Space) => void }) {
   return (
     <section
       data-discover-board="radar"
@@ -1036,12 +1036,12 @@ function RadarBoard({ taverns, hasFilters, onPreview }: { taverns: Tavern[]; has
           </span>
         </div>
 
-        <DesktopRadarTelemetry taverns={taverns} />
+        <DesktopRadarTelemetry spaces={spaces} />
 
-        {taverns.length ? (
+        {spaces.length ? (
           <div data-discover-board-scroll="radar-results" className={`grid flex-1 content-start gap-4 ${DISCOVER_DESKTOP_BOARD_SCROLL}`}>
-            {taverns.map((tavern, index) => (
-              <RadarEchoCard key={tavern.id} tavern={tavern} index={index} onPreview={onPreview} />
+            {spaces.map((space, index) => (
+              <RadarEchoCard key={space.id} space={space} index={index} onPreview={onPreview} />
             ))}
           </div>
         ) : (
@@ -1054,8 +1054,8 @@ function RadarBoard({ taverns, hasFilters, onPreview }: { taverns: Tavern[]; has
   )
 }
 
-function CardsBoard({ taverns, hasFilters, onPreview }: { taverns: Tavern[]; hasFilters: boolean; onPreview: (tavern: Tavern) => void }) {
-  const coversByTavernId = resolveUniqueHomepageTavernCovers(taverns)
+function CardsBoard({ spaces, hasFilters, onPreview }: { spaces: Space[]; hasFilters: boolean; onPreview: (space: Space) => void }) {
+  const coversBySpaceId = resolveUniqueHomepageSpaceCovers(spaces)
 
   return (
     <section
@@ -1070,18 +1070,18 @@ function CardsBoard({ taverns, hasFilters, onPreview }: { taverns: Tavern[]; has
             <p className="mt-1 text-sm text-theme-muted">搜索和筛选时优先展示更高效的图片卡片。</p>
           </div>
           <span className="rounded-full border border-theme-accent-border bg-theme-accent-bg px-4 py-2 text-xs font-black text-theme-accent-text">
-            {taverns.length} 个结果
+            {spaces.length} 个结果
           </span>
         </div>
 
-        {taverns.length ? (
+        {spaces.length ? (
           <div data-discover-board-scroll="card-results" className={`grid flex-1 content-start gap-5 md:grid-cols-2 xl:grid-cols-3 ${DISCOVER_DESKTOP_BOARD_SCROLL}`}>
-            {taverns.map((tavern, index) => (
+            {spaces.map((space, index) => (
               <ResultCard
-                key={tavern.id}
-                tavern={tavern}
+                key={space.id}
+                space={space}
                 index={index}
-                coverImage={coversByTavernId[tavern.id] || coverForTavern(tavern, index)}
+                coverImage={coversBySpaceId[space.id] || coverForSpace(space, index)}
                 onPreview={onPreview}
               />
             ))}
@@ -1097,7 +1097,7 @@ function CardsBoard({ taverns, hasFilters, onPreview }: { taverns: Tavern[]; has
 }
 
 export default function DiscoverRoute() {
-  const [result, setResult] = useState<TavernListResponse>({ taverns: [], count: 0 })
+  const [result, setResult] = useState<SpaceListResponse>({ spaces: [], count: 0 })
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(true)
 
@@ -1106,7 +1106,7 @@ export default function DiscoverRoute() {
   useEffect(() => {
     let cancelled = false
     setLoading(true)
-    listTaverns(discoverListFiltersFromRequest(new Request(window.location.href)))
+    listSpaces(discoverListFiltersFromRequest(new Request(window.location.href)))
       .then((data) => { if (!cancelled) { setResult(data); setLoading(false); } })
       .catch((err) => { if (!cancelled) { setError(errorMessage(err)); setLoading(false); } })
     return () => { cancelled = true }
@@ -1122,7 +1122,7 @@ export default function DiscoverRoute() {
   const [publicOnly, setPublicOnly] = useState(false)
   const [openOnly, setOpenOnly] = useState(false)
   const [manualViewMode, setManualViewMode] = useState<DiscoverViewMode | null>(null)
-  const [previewTavern, setPreviewTavern] = useState<Tavern | null>(null)
+  const [previewSpace, setPreviewSpace] = useState<Space | null>(null)
 
   useEffect(() => {
     const nextSearch = searchParams.get("search") ?? searchParams.get("q") ?? ""
@@ -1147,38 +1147,38 @@ export default function DiscoverRoute() {
   const expandedDiscovery = searchParams.get("view") === "expanded" || Boolean(searchParams.get("owner_id"))
   const visitorReduced = !expandedDiscovery
 
-  const filteredTaverns = useMemo(() => {
-    return result.taverns.filter((tavern) =>
-      tavernMatchesFilter(tavern, { search, activePlaceTypes, activeSpecialTypes, activeCategories, publicOnly, openOnly }),
+  const filteredSpaces = useMemo(() => {
+    return result.spaces.filter((space) =>
+      spaceMatchesFilter(space, { search, activePlaceTypes, activeSpecialTypes, activeCategories, publicOnly, openOnly }),
     )
-  }, [result.taverns, search, activePlaceTypes, activeSpecialTypes, activeCategories, publicOnly, openOnly])
+  }, [result.spaces, search, activePlaceTypes, activeSpecialTypes, activeCategories, publicOnly, openOnly])
   const sideFeedItems = useMemo(() => {
-    const previewTaverns = filteredTaverns.slice(0, 3)
-    const coversByTavernId = resolveUniqueHomepageTavernCovers(previewTaverns)
-    return previewTaverns.map((tavern, index) => ({
-      id: tavern.id,
-      title: tavern.name || `坐标 ${index + 1}`,
-      subtitle: tavern.description || `${Array.isArray(tavern.characters) ? tavern.characters.length : 0} 位角色正在回应`,
+    const previewSpaces = filteredSpaces.slice(0, 3)
+    const coversBySpaceId = resolveUniqueHomepageSpaceCovers(previewSpaces)
+    return previewSpaces.map((space, index) => ({
+      id: space.id,
+      title: space.name || `坐标 ${index + 1}`,
+      subtitle: space.description || `${Array.isArray(space.characters) ? space.characters.length : 0} 位角色正在回应`,
       meta: `${index * 5 + 3} 分钟前`,
-      image: coversByTavernId[tavern.id] || resolveHomepageTavernCover(tavern, index),
-      to: `/tavern/${encodeURIComponent(tavern.id)}`,
+      image: coversBySpaceId[space.id] || resolveHomepageSpaceCover(space, index),
+      to: `/space/${encodeURIComponent(space.id)}`,
     }))
-  }, [filteredTaverns])
+  }, [filteredSpaces])
   const onlineEntities = useMemo(() => {
-    const coversByTavernId = resolveUniqueHomepageTavernCovers(filteredTaverns.slice(0, 3))
-    return filteredTaverns
-      .flatMap((tavern, tavernIndex) =>
-        (Array.isArray(tavern.characters) ? tavern.characters : []).slice(0, 1).map((character, characterIndex) => ({
-          id: `${tavern.id}-${character.id || characterIndex}`,
-          name: character.name || `角色 ${tavernIndex + 1}`,
-          location: `在 ${tavern.name || "某个坐标"}`,
-          status: tavernIndex < 2 ? "在线" : `${tavernIndex * 5 + 5} 分钟前`,
-          avatar: character.avatar || coversByTavernId[tavern.id] || resolveHomepageTavernCover(tavern, tavernIndex),
-          to: `/tavern/${encodeURIComponent(tavern.id)}`,
+    const coversBySpaceId = resolveUniqueHomepageSpaceCovers(filteredSpaces.slice(0, 3))
+    return filteredSpaces
+      .flatMap((space, spaceIndex) =>
+        (Array.isArray(space.characters) ? space.characters : []).slice(0, 1).map((character, characterIndex) => ({
+          id: `${space.id}-${character.id || characterIndex}`,
+          name: character.name || `角色 ${spaceIndex + 1}`,
+          location: `在 ${space.name || "某个坐标"}`,
+          status: spaceIndex < 2 ? "在线" : `${spaceIndex * 5 + 5} 分钟前`,
+          avatar: character.avatar || coversBySpaceId[space.id] || resolveHomepageSpaceCover(space, spaceIndex),
+          to: `/space/${encodeURIComponent(space.id)}`,
         })),
       )
       .slice(0, 3)
-  }, [filteredTaverns])
+  }, [filteredSpaces])
 
   function switchToCardsForSearch(value: string) {
     setSearch(value)
@@ -1233,10 +1233,10 @@ export default function DiscoverRoute() {
   }
 
   return (
-    <FableMapDiscoverReference
+    <FableSpaceDiscoverReference
       variant="black"
       search={search}
-      taverns={filteredTaverns}
+      spaces={filteredSpaces}
       isLoading={loading}
       visitorReduced={visitorReduced}
       sideFeedItems={sideFeedItems}

@@ -1,4 +1,4 @@
-# Tavern Skill Pack UI Boundary
+# Space Skill Pack UI Boundary
 
 ## Scope
 
@@ -6,20 +6,20 @@ Use this spec when changing the owner-facing Skill Pack UI, frontend skill-pack 
 
 ## Service contract
 
-Shared typed clients belong in `frontend/app/lib/taverns.ts`:
+Shared typed clients belong in `frontend/app/lib/spaces.ts`:
 
 ```typescript
-listSkillPacks(tavernId, userId)
-saveSkillPacks(tavernId, skillPacks, userId)
+listSkillPacks(spaceId, userId)
+saveSkillPacks(spaceId, skillPacks, userId)
 ```
 
-Product-parity helpers in `frontend/app/product/services/tavernService.js` should expose the same endpoint names when product components or tests need them.
+Product-parity helpers in `frontend/app/product/services/spaceService.js` should expose the same endpoint names when product components or tests need them.
 
 ## UI contract
 
 `SkillPackManager` must:
 
-- Be opened from the owner tavern management surface, not visitor chat controls.
+- Be opened from the owner space management surface, not visitor chat controls.
 - Show each pack's owner-readable capabilities and prompt/boundary notes.
 - For `local-rumor`, expose a small numeric `limit` control (1-5).
 - Say that skills do not write canon, do not edit role cards, and do not bypass owner settings.
@@ -29,7 +29,7 @@ Product-parity helpers in `frontend/app/product/services/tavernService.js` shoul
 
 - Direct `fetch` in owner components instead of service helpers.
 - Visitor controls for enabling/disabling owner skill packs.
-- UI copy implying platform-generated tavern/NPC/story content is automatically published.
+- UI copy implying platform-generated space/NPC/story content is automatically published.
 - Adding image/audio/proactive notification packs without first documenting privacy, retention, opt-in, quiet-hours, rate-limit, and provider-cost rules.
 
 ## Required verification

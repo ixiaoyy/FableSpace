@@ -37,7 +37,7 @@ export function useBackendStatus({ api, apiBase, restoredSession, setForm }) {
       const [health, meta] = await Promise.all([api.getHealth(), api.getMeta()])
       applyMeta(meta)
       setStatusOk(true)
-      setStatusText(`FastAPI 已连接 · ${meta.project || 'FableMap'}`)
+      setStatusText(`FastAPI 已连接 · ${meta.project || 'FableSpace'}`)
       setStatusDetail(
         `api=${meta.api_base || apiBase} · frontend_mode=${meta.frontend_mode} · fixture_available=${health.fixture_available}`
       )

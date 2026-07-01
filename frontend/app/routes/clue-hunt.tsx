@@ -12,7 +12,7 @@ import {
   submitClueHuntAnswer,
   type ClueHuntRoutePayload,
   type ClueHuntSessionPayload,
-} from "../lib/taverns"
+} from "../lib/spaces"
 import { ProductShell } from "../shell/product-shell"
 import { Button } from "../ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card"
@@ -138,7 +138,7 @@ export default function ClueHuntRoute() {
                 {session.current_node ? (
                   <>
                     <div className="rounded-3xl border border-theme-border bg-theme-card p-4">
-                      <p className="font-black text-theme-primary">{session.current_node.tavern_name}</p>
+                      <p className="font-black text-theme-primary">{session.current_node.space_name}</p>
                       <p className="mt-1 text-xs font-bold text-theme-accent-text">{nodeCoordinateLabel(session.current_node)}</p>
                       <p className="mt-3 text-sm leading-6 text-theme-muted">{session.current_node.clue}</p>
                       {session.current_node.hint ? <p className="mt-3 rounded-2xl bg-theme-bg p-3 text-sm text-theme-primary/70">提示：{session.current_node.hint}</p> : null}
@@ -158,7 +158,7 @@ export default function ClueHuntRoute() {
                 ) : (
                   <div className="rounded-3xl border border-emerald-300/24 bg-emerald-300/10 p-5">
                     <p className="font-black text-emerald-100">所有线索已解开</p>
-                    <p className="mt-2 text-sm leading-6 text-emerald-50/70">领取的是 tavern-local 纪念，不是平台钱包、充值或排行榜积分。</p>
+                    <p className="mt-2 text-sm leading-6 text-emerald-50/70">领取的是 space-local 纪念，不是平台钱包、充值或排行榜积分。</p>
                     <Button type="button" className="mt-4" onClick={handleClaimReward} disabled={busy || session.reward_claimed}>
                       <Gift className="h-4 w-4" />
                       {session.reward_claimed ? "已领取" : "领取纪念"}
@@ -178,7 +178,7 @@ export default function ClueHuntRoute() {
               <CardContent className="space-y-3">
                 {session.visible_nodes.map((node) => (
                   <div key={node.id} className="rounded-2xl border border-theme-border bg-theme-card p-3">
-                    <p className="font-black text-theme-primary">{node.tavern_name || node.id}</p>
+                    <p className="font-black text-theme-primary">{node.space_name || node.id}</p>
                     <p className="mt-1 text-xs text-theme-muted">{nodeCoordinateLabel(node)}</p>
                     {node.to ? (
                       <Button asChild variant="secondary" size="sm" className="mt-3">

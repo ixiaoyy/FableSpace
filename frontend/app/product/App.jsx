@@ -1,14 +1,14 @@
 import { useMemo, useRef, useEffect, useState } from 'react'
 import { Navigate, NavLink, Route, Routes, matchPath, useLocation, useNavigate } from 'react-router-dom'
 import AdminDebugPanel from './AdminDebugPanel'
-import TavernOwnerPanel from './TavernOwnerPanel'
+import SpaceOwnerPanel from './SpaceOwnerPanel'
 import WorldEntryPanel from './WorldEntryPanel'
 import WorldSliceResultPanel from './WorldSliceResultPanel'
 import WorldStagePanel from './WorldStagePanel'
-import TavernEntryPanel from './TavernEntryPanel'
-import TavernChatRoom from './TavernChatRoom'
+import SpaceEntryPanel from './SpaceEntryPanel'
+import SpaceChatRoom from './SpaceChatRoom'
 import FirstRunModeModal from './FirstRunModeModal'
-import TavernTemplateGallery from './TavernTemplateGallery'
+import SpaceTemplateGallery from './SpaceTemplateGallery'
 import ThemeToggle from './ThemeToggle'
 import {
   DEFAULT_VISIBLE_MAP_LAYERS,
@@ -24,34 +24,34 @@ import { useScrollToWorldStage } from './hooks/useScrollToWorldStage'
 import { useWorldSession } from './hooks/useWorldSession'
 import { buildAppPanelProps } from './services/appPanelProps'
 import { buildEntryStatusText, buildHeroMetrics } from './services/appShellViewModel'
-import { buildGuestNickname, resolveNewcomerTavern } from './services/newcomerTavern'
-import { getTavernAccessLabel, getTavernStatusLabel } from './services/tavernService'
-import { enterTavern, getTavern, listTaverns } from '../lib/taverns'
+import { buildGuestNickname, resolveNewcomerSpace } from './services/newcomerSpace'
+import { getSpaceAccessLabel, getSpaceStatusLabel } from './services/spaceService'
+import { enterSpace, getSpace, listSpaces } from '../lib/spaces'
 
-const MAX_TAVERN_MAP_MARKERS = 80
-const FIRST_RUN_MODE_STORAGE_KEY = 'fablemap_first_run_mode'
+const MAX_SPACE_MAP_MARKERS = 80
+const FIRST_RUN_MODE_STORAGE_KEY = 'fablespace_first_run_mode'
 
 function viewFromPath(pathname = '/') {
   if (matchPath('/discover', pathname)) return 'map'
   if (matchPath('/templates', pathname)) return 'templates'
   if (matchPath('/owner', pathname)) return 'owner'
-  if (matchPath('/tavern/:tavernId', pathname)) return 'tavern'
+  if (matchPath('/space/:spaceId', pathname)) return 'space'
   return 'home'
 }
 
-function buildTavernSearchText(tavern) {
-  const characters = Array.isArray(tavern?.characters) ? tavern.characters : []
-  const bookmarks = Array.isArray(tavern?.bookmarks) ? tavern.bookmarks : []
+function buildSpaceSearchText(space) {
+  const characters = Array.isArray(space?.characters) ? space.characters : []
+  const bookmarks = Array.isArray(space?.bookmarks) ? space.bookmarks : []
   return [
-    tavern?.id,
-    tavern?.name,
-    tavern?.description,
-    tavern?.address,
-    tavern?.scene_prompt,
-    tavern?.access,
-    getTavernAccessLabel(tavern?.access),
-    tavern?.status,
-    getTavernStatusLabel(tavern?.status),
+    space?.id,
+    space?.name,
+    space?.description,
+    space?.address,
+    space?.scene_prompt,
+    space?.access,
+    getSpaceAccessLabel(space?.access),
+    space?.status,
+    getSpaceStatusLabel(space?.status),
     ...bookmarks.map((bookmark) => bookmark?.content),
     ...characters.flatMap((character) => [
       character?.name,
@@ -66,17 +66,17 @@ function buildTavernSearchText(tavern) {
     .toLowerCase()
 }
 
-function getTavernDistance(tavern) {
-  const distance = Number(tavern?._distance)
+function getSpaceDistance(space) {
+  const distance = Number(space?._distance)
   return Number.isFinite(distance) ? distance : Number.POSITIVE_INFINITY
 }
 
-function getTavernCharacterCount(tavern) {
-  return Array.isArray(tavern?.characters) ? tavern.characters.length : 0
+function getSpaceCharacterCount(space) {
+  return Array.isArray(space?.characters) ? space.characters.length : 0
 }
 
-function sortTavernsForDiscovery(taverns, sortMode) {
-  const rows = [...taverns]
+function sortSpacesForDiscovery(spaces, sortMode) {
+  const rows = [...spaces]
   rows.sort((a, b) => {
     if (sortMode === 'name') {
       return String(a?.name || '').localeCompare(String(b?.name || ''), 'zh-CN')
@@ -85,25 +85,25 @@ function sortTavernsForDiscovery(taverns, sortMode) {
       return Number(b?.visit_count || 0) - Number(a?.visit_count || 0)
     }
     if (sortMode === 'characters') {
-      return getTavernCharacterCount(b) - getTavernCharacterCount(a)
+      return getSpaceCharacterCount(b) - getSpaceCharacterCount(a)
     }
-    return getTavernDistance(a) - getTavernDistance(b)
+    return getSpaceDistance(a) - getSpaceDistance(b)
   })
   return rows
 }
 
-function pickTavernsForMap(taverns, activeTavernId, limit = MAX_TAVERN_MAP_MARKERS) {
-  if (!Array.isArray(taverns) || taverns.length <= limit) return taverns
+function pickSpacesForMap(spaces, activeSpaceId, limit = MAX_SPACE_MAP_MARKERS) {
+  if (!Array.isArray(spaces) || spaces.length <= limit) return spaces
 
-  const visible = taverns.slice(0, limit)
-  if (!activeTavernId || visible.some((tavern) => tavern.id === activeTavernId)) {
+  const visible = spaces.slice(0, limit)
+  if (!activeSpaceId || visible.some((space) => space.id === activeSpaceId)) {
     return visible
   }
 
-  const activeTavern = taverns.find((tavern) => tavern.id === activeTavernId)
-  if (!activeTavern) return visible
+  const activeSpace = spaces.find((space) => space.id === activeSpaceId)
+  if (!activeSpace) return visible
 
-  return [...visible.slice(0, Math.max(0, limit - 1)), activeTavern]
+  return [...visible.slice(0, Math.max(0, limit - 1)), activeSpace]
 }
 
 function navLinkClass({ isActive }) {
@@ -114,25 +114,25 @@ export default function App() {
   const navigate = useNavigate()
   const location = useLocation()
   const view = viewFromPath(location.pathname)
-  const tavernRouteMatch = matchPath('/tavern/:tavernId', location.pathname)
-  const routeTavernId = tavernRouteMatch?.params?.tavernId || ''
+  const spaceRouteMatch = matchPath('/space/:spaceId', location.pathname)
+  const routeSpaceId = spaceRouteMatch?.params?.spaceId || ''
   const stageRef = useRef(null)
-  const [taverns, setTaverns] = useState([])
-  const [activeTavernId, setActiveTavernId] = useState(null)
-  const [enteredTavern, setEnteredTavern] = useState(null)
-  const [tavernFetchError, setTavernFetchError] = useState(null)
-  const [tavernFetchLoading, setTavernFetchLoading] = useState(false)
-  const [tavernRefreshKey, setTavernRefreshKey] = useState(0)
-  const [tavernSearch, setTavernSearch] = useState('')
-  const [tavernAccessFilter, setTavernAccessFilter] = useState('all')
-  const [tavernStatusFilter, setTavernStatusFilter] = useState('all')
-  const [tavernSortMode, setTavernSortMode] = useState('distance')
+  const [spaces, setSpaces] = useState([])
+  const [activeSpaceId, setActiveSpaceId] = useState(null)
+  const [enteredSpace, setEnteredSpace] = useState(null)
+  const [spaceFetchError, setSpaceFetchError] = useState(null)
+  const [spaceFetchLoading, setSpaceFetchLoading] = useState(false)
+  const [spaceRefreshKey, setSpaceRefreshKey] = useState(0)
+  const [spaceSearch, setSpaceSearch] = useState('')
+  const [spaceAccessFilter, setSpaceAccessFilter] = useState('all')
+  const [spaceStatusFilter, setSpaceStatusFilter] = useState('all')
+  const [spaceSortMode, setSpaceSortMode] = useState('distance')
   const [ownerCreateTrigger, setOwnerCreateTrigger] = useState(0)
   const [homeSettingsOpen, setHomeSettingsOpen] = useState(false)
   const [quickStartLoading, setQuickStartLoading] = useState(false)
   const [quickStartError, setQuickStartError] = useState('')
-  const [routeTavernLoading, setRouteTavernLoading] = useState(false)
-  const [routeTavernError, setRouteTavernError] = useState('')
+  const [routeSpaceLoading, setRouteSpaceLoading] = useState(false)
+  const [routeSpaceError, setRouteSpaceError] = useState('')
 
   // Visitor ID — persisted across sessions
   const [visitorId, setVisitorId] = useState('')
@@ -143,21 +143,21 @@ export default function App() {
 
   useEffect(() => {
     // Read from localStorage on mount (client-only)
-    let vid = localStorage.getItem('fablemap_visitor_id')
+    let vid = localStorage.getItem('fablespace_visitor_id')
     if (!vid) {
       vid = `visitor_${Date.now()}_${Math.random().toString(36).slice(2)}`
-      localStorage.setItem('fablemap_visitor_id', vid)
+      localStorage.setItem('fablespace_visitor_id', vid)
     }
     setVisitorId(vid)
 
-    const nickname = localStorage.getItem('fablemap_visitor_nickname') || ''
+    const nickname = localStorage.getItem('fablespace_visitor_nickname') || ''
     setVisitorNickname(nickname)
 
     const mode = localStorage.getItem(FIRST_RUN_MODE_STORAGE_KEY) || ''
     setFirstRunMode(mode)
 
     // Apply saved theme on mount
-    const savedTheme = localStorage.getItem('fablemap_theme') || 'dark'
+    const savedTheme = localStorage.getItem('fablespace_theme') || 'dark'
     document.documentElement.setAttribute('data-theme', savedTheme)
   }, [])
 
@@ -258,108 +258,108 @@ export default function App() {
     visibilityOptions: VISIBILITY_OPTIONS,
   })
 
-  // Fetch nearby taverns when map center changes
+  // Fetch nearby spaces when map center changes
   useEffect(() => {
     if (!form?.lat || !form?.lon) return
 
     let cancelled = false
-    setTavernFetchError(null)
-    setTavernFetchLoading(true)
+    setSpaceFetchError(null)
+    setSpaceFetchLoading(true)
 
-    async function fetchTaverns() {
+    async function fetchSpaces() {
       try {
-        const result = await listTaverns({
+        const result = await listSpaces({
           lat: form.lat,
           lon: form.lon,
           radius: form.radius || 5000,
         })
         if (!cancelled) {
-          setTaverns(Array.isArray(result) ? result : (result.taverns || []))
+          setSpaces(Array.isArray(result) ? result : (result.spaces || []))
         }
       } catch (err) {
         if (!cancelled) {
-          setTavernFetchError(err.message)
-          setTaverns([])
+          setSpaceFetchError(err.message)
+          setSpaces([])
         }
       } finally {
         if (!cancelled) {
-          setTavernFetchLoading(false)
+          setSpaceFetchLoading(false)
         }
       }
     }
 
-    fetchTaverns()
+    fetchSpaces()
 
     return () => {
       cancelled = true
     }
-  }, [form?.lat, form?.lon, form?.radius, tavernRefreshKey])
+  }, [form?.lat, form?.lon, form?.radius, spaceRefreshKey])
 
   useEffect(() => {
-    if (view !== 'tavern') {
-      setRouteTavernError('')
-      setRouteTavernLoading(false)
-      if (enteredTavern) setEnteredTavern(null)
+    if (view !== 'space') {
+      setRouteSpaceError('')
+      setRouteSpaceLoading(false)
+      if (enteredSpace) setEnteredSpace(null)
       return
     }
-    if (!routeTavernId || enteredTavern?.id === routeTavernId) return
+    if (!routeSpaceId || enteredSpace?.id === routeSpaceId) return
 
     let cancelled = false
-    async function loadRouteTavern() {
-      setRouteTavernLoading(true)
-      setRouteTavernError('')
+    async function loadRouteSpace() {
+      setRouteSpaceLoading(true)
+      setRouteSpaceError('')
       try {
-        const tavern = taverns.find((item) => item.id === routeTavernId)
-          || await getTavern(routeTavernId, visitorId)
-        const entryState = await enterTavern(routeTavernId, '', visitorId)
+        const space = spaces.find((item) => item.id === routeSpaceId)
+          || await getSpace(routeSpaceId, visitorId)
+        const entryState = await enterSpace(routeSpaceId, '', visitorId)
         if (cancelled) return
-        const entered = { ...tavern, entry_state: entryState }
-        setEnteredTavern(entered)
-        setActiveTavernId(routeTavernId)
-        setTaverns((prev) => [entered, ...prev.filter((item) => item.id !== routeTavernId)])
+        const entered = { ...space, entry_state: entryState }
+        setEnteredSpace(entered)
+        setActiveSpaceId(routeSpaceId)
+        setSpaces((prev) => [entered, ...prev.filter((item) => item.id !== routeSpaceId)])
       } catch (err) {
         if (!cancelled) {
-          setRouteTavernError(err?.message || '无法进入这间空间')
+          setRouteSpaceError(err?.message || '无法进入这间空间')
         }
       } finally {
-        if (!cancelled) setRouteTavernLoading(false)
+        if (!cancelled) setRouteSpaceLoading(false)
       }
     }
 
-    loadRouteTavern()
+    loadRouteSpace()
     return () => {
       cancelled = true
     }
-  }, [view, routeTavernId, visitorId, enteredTavern?.id])
+  }, [view, routeSpaceId, visitorId, enteredSpace?.id])
 
-  const indexedTaverns = useMemo(() => {
-    return taverns.map((tavern) => ({
-      tavern,
-      searchText: buildTavernSearchText(tavern),
+  const indexedSpaces = useMemo(() => {
+    return spaces.map((space) => ({
+      space,
+      searchText: buildSpaceSearchText(space),
     }))
-  }, [taverns])
+  }, [spaces])
 
-  const filteredTaverns = useMemo(() => {
-    const query = tavernSearch.trim().toLowerCase()
-    const filtered = indexedTaverns.filter(({ tavern, searchText }) => {
-      if (tavernAccessFilter !== 'all' && tavern.access !== tavernAccessFilter) {
+  const filteredSpaces = useMemo(() => {
+    const query = spaceSearch.trim().toLowerCase()
+    const filtered = indexedSpaces.filter(({ space, searchText }) => {
+      if (spaceAccessFilter !== 'all' && space.access !== spaceAccessFilter) {
         return false
       }
-      if (tavernStatusFilter !== 'all' && tavern.status !== tavernStatusFilter) {
+      if (spaceStatusFilter !== 'all' && space.status !== spaceStatusFilter) {
         return false
       }
       if (query && !searchText.includes(query)) {
         return false
       }
       return true
-    }).map(({ tavern }) => tavern)
+    }).map(({ space }) => space)
 
-    return sortTavernsForDiscovery(filtered, tavernSortMode)
-  }, [indexedTaverns, tavernAccessFilter, tavernSearch, tavernSortMode, tavernStatusFilter])
+    return sortSpacesForDiscovery(filtered, spaceSortMode)
+  }, [indexedSpaces, spaceAccessFilter, spaceSearch, spaceSortMode, spaceStatusFilter])
 
-  const mapTaverns = useMemo(
-    () => pickTavernsForMap(filteredTaverns, activeTavernId),
-    [filteredTaverns, activeTavernId],
+  const mapSpaces = useMemo(
+    () => pickSpacesForMap(filteredSpaces, activeSpaceId),
+    [filteredSpaces, activeSpaceId],
   )
 
   function navigateTo(nextRoute, options = {}) {
@@ -370,12 +370,12 @@ export default function App() {
     setHomeSettingsOpen(false)
   }
 
-  function refreshTaverns() {
-    setTavernRefreshKey((key) => key + 1)
+  function refreshSpaces() {
+    setSpaceRefreshKey((key) => key + 1)
   }
 
   function persistFirstRunChoice(nickname, mode = 'play') {
-    localStorage.setItem('fablemap_visitor_nickname', nickname)
+    localStorage.setItem('fablespace_visitor_nickname', nickname)
     localStorage.setItem(FIRST_RUN_MODE_STORAGE_KEY, mode)
     setVisitorNickname(nickname)
     setFirstRunMode(mode)
@@ -394,19 +394,19 @@ export default function App() {
     setQuickStartLoading(true)
     setQuickStartError('')
     try {
-      const tavern = await resolveNewcomerTavern(visitorId)
-      const entryState = await enterTavern(tavern.id, '', visitorId)
+      const space = await resolveNewcomerSpace(visitorId)
+      const entryState = await enterSpace(space.id, '', visitorId)
 
       persistFirstRunChoice(nickname, 'play')
-      setEnteredTavern({ ...tavern, entry_state: entryState })
-      setActiveTavernId(tavern.id)
-      setTaverns((prev) => [tavern, ...prev.filter((item) => item.id !== tavern.id)])
-      navigateTo(`/tavern/${encodeURIComponent(tavern.id)}`)
-      return { ...tavern, entry_state: entryState }
+      setEnteredSpace({ ...space, entry_state: entryState })
+      setActiveSpaceId(space.id)
+      setSpaces((prev) => [space, ...prev.filter((item) => item.id !== space.id)])
+      navigateTo(`/space/${encodeURIComponent(space.id)}`)
+      return { ...space, entry_state: entryState }
     } catch (err) {
       let message = err?.message || '新手空间暂时无法进入，请稍后重试或先刷新附近空间。'
       if (message.includes('空间不存在') || message.includes('404')) {
-        message = '内置新手体验空间未启用；请确认后端已启动，并且没有关闭 FABLEMAP_SEED_DEFAULT_TAVERNS。'
+        message = '内置新手体验空间未启用；请确认后端已启动，并且没有关闭 FABLESPACE_SEED_DEFAULT_SPACES。'
       }
       setQuickStartError(message)
       throw new Error(message)
@@ -425,40 +425,40 @@ export default function App() {
   }
 
   function openDiscoverView() {
-    setEnteredTavern(null)
+    setEnteredSpace(null)
     navigateTo('/discover')
   }
 
-  function openCreateTavern() {
-    setEnteredTavern(null)
+  function openCreateSpace() {
+    setEnteredSpace(null)
     navigateTo('/owner')
     setOwnerCreateTrigger((trigger) => trigger + 1)
   }
 
   function openOwnerView() {
-    setEnteredTavern(null)
+    setEnteredSpace(null)
     navigateTo('/owner')
   }
 
   function openTemplateView() {
-    setEnteredTavern(null)
+    setEnteredSpace(null)
     navigateTo('/templates')
   }
 
-  function handleTemplateInstalled(tavern) {
-    if (tavern?.id) {
-      setTaverns((prev) => [tavern, ...prev.filter((item) => item.id !== tavern.id)])
-      setActiveTavernId(tavern.id)
+  function handleTemplateInstalled(space) {
+    if (space?.id) {
+      setSpaces((prev) => [space, ...prev.filter((item) => item.id !== space.id)])
+      setActiveSpaceId(space.id)
     }
-    refreshTaverns()
+    refreshSpaces()
     navigateTo('/owner')
   }
 
-  function handleEnteredTavern(tavern) {
-    if (!tavern?.id) return
-    setEnteredTavern(tavern)
-    setActiveTavernId(tavern.id)
-    navigateTo(`/tavern/${encodeURIComponent(tavern.id)}`)
+  function handleEnteredSpace(space) {
+    if (!space?.id) return
+    setEnteredSpace(space)
+    setActiveSpaceId(space.id)
+    navigateTo(`/space/${encodeURIComponent(space.id)}`)
   }
 
   const entryStatusText = buildEntryStatusText({
@@ -475,9 +475,9 @@ export default function App() {
     visibleMapLayers,
     originLabel,
     view,
-    totalTaverns: taverns.length,
-    matchingTaverns: filteredTaverns.length,
-    openTaverns: filteredTaverns.filter((tavern) => tavern.status === 'open').length,
+    totalSpaces: spaces.length,
+    matchingSpaces: filteredSpaces.length,
+    openSpaces: filteredSpaces.filter((space) => space.status === 'open').length,
   })
 
   const {
@@ -581,32 +581,32 @@ export default function App() {
           <NavLink
             className={navLinkClass}
             to="/discover"
-            onClick={() => setEnteredTavern(null)}
+            onClick={() => setEnteredSpace(null)}
           >
             🔎 附近门牌
           </NavLink>
           <NavLink
             className={navLinkClass}
             to="/templates"
-            onClick={() => setEnteredTavern(null)}
+            onClick={() => setEnteredSpace(null)}
           >
             📦 模板
           </NavLink>
-          <button className="secondary" onClick={openCreateTavern}>
+          <button className="secondary" onClick={openCreateSpace}>
             ✨ 开一间
           </button>
           <NavLink
             className={navLinkClass}
             to="/owner"
-            onClick={() => setEnteredTavern(null)}
+            onClick={() => setEnteredSpace(null)}
           >
             🏮 后台
           </NavLink>
-          {enteredTavern ? (
+          {enteredSpace ? (
             <button
               className="secondary"
               onClick={() => {
-                setEnteredTavern(null)
+                setEnteredSpace(null)
                 navigateTo('/discover')
               }}
             >
@@ -698,35 +698,35 @@ export default function App() {
               <div ref={stageRef} className="world-app-shell__stage">
                 <WorldStagePanel
                   {...mapStageProps}
-                  taverns={mapTaverns}
-                  discoveryTaverns={filteredTaverns}
-                  totalTaverns={taverns.length}
-                  totalMatchingTaverns={filteredTaverns.length}
-                  tavernMarkerLimit={MAX_TAVERN_MAP_MARKERS}
-                  tavernFetchLoading={tavernFetchLoading}
-                  tavernFetchError={tavernFetchError}
-                  tavernSearch={tavernSearch}
-                  setTavernSearch={setTavernSearch}
-                  tavernAccessFilter={tavernAccessFilter}
-                  setTavernAccessFilter={setTavernAccessFilter}
-                  tavernStatusFilter={tavernStatusFilter}
-                  setTavernStatusFilter={setTavernStatusFilter}
-                  tavernSortMode={tavernSortMode}
-                  setTavernSortMode={setTavernSortMode}
-                  onRefreshTaverns={refreshTaverns}
-                  activeTavernId={activeTavernId}
-                  onTavernClick={(id) => setActiveTavernId(id)}
-                  onQuickStartTavern={handleQuickStartClick}
+                  spaces={mapSpaces}
+                  discoverySpaces={filteredSpaces}
+                  totalSpaces={spaces.length}
+                  totalMatchingSpaces={filteredSpaces.length}
+                  spaceMarkerLimit={MAX_SPACE_MAP_MARKERS}
+                  spaceFetchLoading={spaceFetchLoading}
+                  spaceFetchError={spaceFetchError}
+                  spaceSearch={spaceSearch}
+                  setSpaceSearch={setSpaceSearch}
+                  spaceAccessFilter={spaceAccessFilter}
+                  setSpaceAccessFilter={setSpaceAccessFilter}
+                  spaceStatusFilter={spaceStatusFilter}
+                  setSpaceStatusFilter={setSpaceStatusFilter}
+                  spaceSortMode={spaceSortMode}
+                  setSpaceSortMode={setSpaceSortMode}
+                  onRefreshSpaces={refreshSpaces}
+                  activeSpaceId={activeSpaceId}
+                  onSpaceClick={(id) => setActiveSpaceId(id)}
+                  onQuickStartSpace={handleQuickStartClick}
                   quickStartLoading={quickStartLoading}
                 />
               </div>
 
-              {activeTavernId && (
-                <TavernEntryPanel
-                  tavernId={activeTavernId}
+              {activeSpaceId && (
+                <SpaceEntryPanel
+                  spaceId={activeSpaceId}
                   visitorId={visitorId}
-                  onEnter={handleEnteredTavern}
-                  onClose={() => setActiveTavernId(null)}
+                  onEnter={handleEnteredSpace}
+                  onClose={() => setActiveSpaceId(null)}
                 />
               )}
             </>
@@ -735,7 +735,7 @@ export default function App() {
         <Route
           path="templates"
           element={(
-            <TavernTemplateGallery
+            <SpaceTemplateGallery
               ownerId={visitorId}
               currentLat={form.lat}
               currentLon={form.lon}
@@ -747,7 +747,7 @@ export default function App() {
         <Route
           path="owner"
           element={(
-            <TavernOwnerPanel
+            <SpaceOwnerPanel
               ownerId={visitorId}
               createTrigger={ownerCreateTrigger}
               createInitialLat={form.lat}
@@ -756,26 +756,26 @@ export default function App() {
           )}
         />
         <Route
-          path="tavern/:tavernId"
+          path="space/:spaceId"
           element={(
-            <div className="tavern-chat-view slide-up">
-              {enteredTavern ? (
-                <TavernChatRoom
-                  roomId={enteredTavern.id}
-                  roomName={enteredTavern.name}
-                  roomDescription={enteredTavern.description}
-                  characters={enteredTavern.characters}
-                  tavern={enteredTavern}
+            <div className="space-chat-view slide-up">
+              {enteredSpace ? (
+                <SpaceChatRoom
+                  roomId={enteredSpace.id}
+                  roomName={enteredSpace.name}
+                  roomDescription={enteredSpace.description}
+                  characters={enteredSpace.characters}
+                  space={enteredSpace}
                   visitorId={visitorId}
                   visitorNickname={visitorNickname}
-                  entryState={enteredTavern.entry_state}
+                  entryState={enteredSpace.entry_state}
                 />
               ) : (
                 <div className="panel route-loading-panel">
-                  <span className="mini-label">Tavern Room</span>
-                  <h2>{routeTavernLoading ? '正在推门...' : '这扇门暂时打不开'}</h2>
-                  {routeTavernError ? <p>{routeTavernError}</p> : <p>正在读取空间房间。</p>}
-                  {routeTavernError ? <button type="button" className="secondary" onClick={openDiscoverView}>回到附近门牌</button> : null}
+                  <span className="mini-label">Space Room</span>
+                  <h2>{routeSpaceLoading ? '正在推门...' : '这扇门暂时打不开'}</h2>
+                  {routeSpaceError ? <p>{routeSpaceError}</p> : <p>正在读取空间房间。</p>}
+                  {routeSpaceError ? <button type="button" className="secondary" onClick={openDiscoverView}>回到附近门牌</button> : null}
                 </div>
               )}
             </div>

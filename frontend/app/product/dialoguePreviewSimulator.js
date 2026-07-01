@@ -45,13 +45,13 @@ export function summarizePreviewCharacter(character = {}) {
   }
 }
 
-export function buildOwnerDialoguePreview({ tavern = {}, character = {}, visitorMessage = '' } = {}) {
+export function buildOwnerDialoguePreview({ space = {}, character = {}, visitorMessage = '' } = {}) {
   const summary = summarizePreviewCharacter(character)
   const message = redactSensitivePreviewText(visitorMessage).trim() || DEFAULT_OWNER_PREVIEW_MESSAGE
-  const tavernName = toText(tavern.name).trim() || '当前空间'
-  const firstGreeting = clampText(firstSegment(character.first_mes, `欢迎来到${tavernName}`), 72)
+  const spaceName = toText(space.name).trim() || '当前空间'
+  const firstGreeting = clampText(firstSegment(character.first_mes, `欢迎来到${spaceName}`), 72)
   const tone = clampText(firstSegment(character.personality, '保持简短、克制、贴合店主已写设定'), 72)
-  const setting = clampText(firstSegment(character.scenario, `${tavernName}的日常场景`), 72)
+  const setting = clampText(firstSegment(character.scenario, `${spaceName}的日常场景`), 72)
   const messageEcho = clampText(message, 52)
   const boundaryLine = summary.hasBoundaryInstruction
     ? '会遵守已配置的边界指令，但本预览不会展开隐藏 prompt。'
@@ -65,7 +65,7 @@ export function buildOwnerDialoguePreview({ tavern = {}, character = {}, visitor
     history_written: false,
     writeback_written: false,
     provider_cost: 'none',
-    tavern_name: tavernName,
+    space_name: spaceName,
     character_name: summary.name,
     visitor_message: message,
     assistant_message: `${summary.name}会先接住“${messageEcho}”，用「${tone}」的口吻回应，并把语境落在「${setting}」。可参考开场气质：“${firstGreeting}”。`,
@@ -78,7 +78,7 @@ export function buildOwnerDialoguePreview({ tavern = {}, character = {}, visitor
     },
     notes: [
       '本地模拟：不调用 LLM，不消耗店主 provider token。',
-      '不会写入 chat history、访客记忆、writeback 或公开 Tavern payload。',
+      '不会写入 chat history、访客记忆、writeback 或公开 Space payload。',
       boundaryLine,
     ],
   }
@@ -92,7 +92,7 @@ export function normalizeOwnerDialogueDryRunPreview(payload = {}, fallback = nul
   const notes = Array.isArray(payload.notes) && payload.notes.length
     ? payload.notes
     : [
-        '后端 dry-run：已组装真实 Tavern / NPC / WorldInfo prompt。',
+        '后端 dry-run：已组装真实 Space / NPC / WorldInfo prompt。',
         'persisted=false：不会写入 chat history、记忆、visitor state 或 writeback。',
       ]
 
@@ -113,7 +113,7 @@ export function normalizeOwnerDialogueDryRunPreview(payload = {}, fallback = nul
     token_estimate: Number(payload.token_estimate || 0),
     model_status: toText(payload.model_status) || (payload.model_called ? 'called' : 'not_requested'),
     model_error: toText(payload.model_error),
-    tavern_name: fallbackPreview.tavern_name,
+    space_name: fallbackPreview.space_name,
     character_name: toText(payload.character_name) || fallbackPreview.character_name,
     visitor_message: toText(payload.message) || fallbackPreview.visitor_message || DEFAULT_OWNER_PREVIEW_MESSAGE,
     assistant_message: assistant || '已完成后端 prompt dry-run；本次未调用模型，因此没有真实模型回复。',

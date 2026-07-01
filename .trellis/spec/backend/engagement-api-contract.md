@@ -1,6 +1,6 @@
 # Engagement API Contract
 
-Concise contract for tavern-local engagement features.
+Concise contract for space-local engagement features.
 
 ## Scope
 
@@ -8,19 +8,19 @@ Use when touching soft currency, gifts, bonus vouchers/draws, or engagement HUD/
 
 ## Product boundary
 
-- Engagement is tavern-local and lightweight.
+- Engagement is space-local and lightweight.
 - No platform recharge, settlement, exchange, cash-out, ad revival, ranking, combat, level, or equipment economy.
 - Owner token/API-key data must remain separate from visitor engagement data.
 
 ## Backend placement
 
-- Routes: `backend/src/fablemap_api/api/v1/engagement.py`
+- Routes: `backend/src/fablespace_api/api/v1/engagement.py`
 - Application/store: existing engagement modules.
 - Frontend: `frontend/app/lib/engagement.ts` and engagement components.
 
 ## Contract
 
-- Scope balances/rewards to tavern + visitor where applicable.
+- Scope balances/rewards to space + visitor where applicable.
 - Validate gift/bonus action limits server-side.
 - Return deterministic, non-monetary labels.
 - Keep public/owner/visitor projections separate.

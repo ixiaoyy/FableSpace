@@ -1,17 +1,17 @@
 # Engagement UI Boundary
 
-> Frontend contract for tavern-local soft currency, gift, and bonus-voucher UI.
+> Frontend contract for space-local soft currency, gift, and bonus-voucher UI.
 
 ## Scope / Trigger
 
 Use this when changing:
 
 - `frontend/app/lib/engagement.ts`
-- `frontend/app/components/TavernEngagementPanel.tsx`
+- `frontend/app/components/SpaceEngagementPanel.tsx`
 - `frontend/app/components/GiftPanel.tsx`
 - `frontend/app/components/BonusDrawCTA.tsx`
 - `frontend/app/components/EngagementHUD.tsx`
-- `frontend/app/routes/tavern.tsx`
+- `frontend/app/routes/space.tsx`
 - `frontend/scripts/engagement-panel-test.mjs`
 - `frontend/scripts/playwright-engagement-panel-check.mjs`
 
@@ -25,11 +25,11 @@ This boundary is visitor-facing UI only. It must not introduce:
 ## Service Signatures
 
 ```ts
-getVisitorEngagement(tavernId: string, userId?: string) -> Promise<VisitorEngagement>
-getEngagementConfig(tavernId: string, userId?: string) -> Promise<EngagementConfig>
-claimEngagementReward(tavernId: string, sessionId: string, userId?: string) -> Promise<EarnCoinsResult>
-sendGift(tavernId: string, characterId: string, giftId: string, userId?: string) -> Promise<SendGiftResult>
-redeemVoucher(tavernId: string, userId?: string) -> Promise<RedeemVoucherResult>
+getVisitorEngagement(spaceId: string, userId?: string) -> Promise<VisitorEngagement>
+getEngagementConfig(spaceId: string, userId?: string) -> Promise<EngagementConfig>
+claimEngagementReward(spaceId: string, sessionId: string, userId?: string) -> Promise<EarnCoinsResult>
+sendGift(spaceId: string, characterId: string, giftId: string, userId?: string) -> Promise<SendGiftResult>
+redeemVoucher(spaceId: string, userId?: string) -> Promise<RedeemVoucherResult>
 ```
 
 `userId` must be forwarded through `jsonInit(..., userId)` / `readApiJson(..., { userId })`, or backend identity checks on `/me`, `/send`, and `/redeem` will fail.
@@ -64,19 +64,19 @@ Rules:
 
 ## Route/UI Contract
 
-### Tavern route placement
+### Space route placement
 
-`frontend/app/routes/tavern.tsx` must mount `TavernEngagementPanel` inside the folded public sidecar area, not inside the core chat composer.
+`frontend/app/routes/space.tsx` must mount `SpaceEngagementPanel` inside the folded public sidecar area, not inside the core chat composer.
 
 Current contract:
 
 ```tsx
-<TavernChatWorkbench
+<SpaceChatWorkbench
   publicPanel={
     <div className="space-y-4">
-      <SpecialTavernTypeCard tavern={tavern} />
-      <TavernEngagementPanel tavern={tavern} currentUserId={currentUserId} />
-      <TavernShareCard tavern={tavern} />
+      <SpecialSpaceTypeCard space={space} />
+      <SpaceEngagementPanel space={space} currentUserId={currentUserId} />
+      <SpaceShareCard space={space} />
       ...
     </div>
   }
@@ -87,13 +87,13 @@ The workbench wraps this under the `DetailSection` titled `更多空间功能`, 
 
 ### Panel content
 
-`TavernEngagementPanel` must show:
+`SpaceEngagementPanel` must show:
 
-- current tavern-local balance
+- current space-local balance
 - today earned amount
 - voucher count
-- gift target selector using tavern characters
-- clear copy that currency is tavern-local, non-recharge, non-transferable
+- gift target selector using space characters
+- clear copy that currency is space-local, non-recharge, non-transferable
 
 If there are no characters, show a fallback empty-state message instead of crashing.
 
@@ -121,7 +121,7 @@ If there are no characters, show a fallback empty-state message instead of crash
 | Backend returns `icon` instead of `emoji` | UI still shows gift icon |
 | No `description` from backend | fallback description is shown |
 | `userId` omitted on `/engagement/me` | backend rejects; service call must support explicit `userId` |
-| Tavern has no characters | panel shows no-NPC fallback |
+| Space has no characters | panel shows no-NPC fallback |
 | Public detail section is collapsed | panel exists under `更多空间功能`; Playwright expands first |
 | Gift sent successfully | result message shown and parent progress refresh runs |
 | Voucher redeemed successfully | result message shown and parent progress refresh runs |
@@ -131,7 +131,7 @@ If there are no characters, show a fallback empty-state message instead of crash
 
 Good:
 
-- Visitor opens a tavern, expands `更多空间功能`, sees balance + gift + voucher sections, and can target an NPC.
+- Visitor opens a space, expands `更多空间功能`, sees balance + gift + voucher sections, and can target an NPC.
 - Mocked backend returns `icon`, and the UI still renders the correct emoji.
 
 Base:
@@ -156,6 +156,6 @@ node .\frontend\scripts\playwright-engagement-panel-check.mjs
 
 Playwright must emit:
 
-- `D:\work\ai-\.trellis\tasks\05-06-tavern-soft-currency-gifts-design\artifacts\playwright\desktop-engagement-panel.png`
-- `D:\work\ai-\.trellis\tasks\05-06-tavern-soft-currency-gifts-design\artifacts\playwright\mobile-engagement-panel.png`
-- `D:\work\ai-\.trellis\tasks\05-06-tavern-soft-currency-gifts-design\artifacts\playwright\report.md`
+- `D:\work\ai-\.trellis\tasks\05-06-space-soft-currency-gifts-design\artifacts\playwright\desktop-engagement-panel.png`
+- `D:\work\ai-\.trellis\tasks\05-06-space-soft-currency-gifts-design\artifacts\playwright\mobile-engagement-panel.png`
+- `D:\work\ai-\.trellis\tasks\05-06-space-soft-currency-gifts-design\artifacts\playwright\report.md`

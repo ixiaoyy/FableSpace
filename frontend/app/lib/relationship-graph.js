@@ -1,5 +1,5 @@
 export const RELATIONSHIP_NODE_TYPES = [
-  { id: "tavern", label: "空间" },
+  { id: "space", label: "空间" },
   { id: "character", label: "角色" },
 ]
 
@@ -50,7 +50,7 @@ function choose(value, allowed, fallback) {
   return allowed.has(normalized) ? normalized : fallback
 }
 
-export function normalizeRelationshipNodeType(value, fallback = "tavern") {
+export function normalizeRelationshipNodeType(value, fallback = "space") {
   return choose(value, NODE_TYPE_IDS, fallback)
 }
 
@@ -71,20 +71,20 @@ export function normalizeRelationshipEdgeStatus(value, fallback = "confirmed") {
 }
 
 export function normalizeRelationshipEdge(value = {}, defaults = {}) {
-  const sourceTavernId = text(value.source_tavern_id || defaults.source_tavern_id)
-  const targetTavernId = text(value.target_tavern_id || defaults.target_tavern_id)
-  const sourceNodeType = normalizeRelationshipNodeType(value.source_node_type, defaults.source_node_type || "tavern")
-  const targetNodeType = normalizeRelationshipNodeType(value.target_node_type, defaults.target_node_type || "tavern")
+  const sourceSpaceId = text(value.source_space_id || defaults.source_space_id)
+  const targetSpaceId = text(value.target_space_id || defaults.target_space_id)
+  const sourceNodeType = normalizeRelationshipNodeType(value.source_node_type, defaults.source_node_type || "space")
+  const targetNodeType = normalizeRelationshipNodeType(value.target_node_type, defaults.target_node_type || "space")
   return {
     id: text(value.id || defaults.id),
     source_owner_id: text(value.source_owner_id || defaults.source_owner_id),
-    source_tavern_id: sourceTavernId,
+    source_space_id: sourceSpaceId,
     source_node_type: sourceNodeType,
-    source_node_id: text(value.source_node_id || defaults.source_node_id || (sourceNodeType === "tavern" ? sourceTavernId : "")),
+    source_node_id: text(value.source_node_id || defaults.source_node_id || (sourceNodeType === "space" ? sourceSpaceId : "")),
     target_owner_id: text(value.target_owner_id || defaults.target_owner_id),
-    target_tavern_id: targetTavernId,
+    target_space_id: targetSpaceId,
     target_node_type: targetNodeType,
-    target_node_id: text(value.target_node_id || defaults.target_node_id || (targetNodeType === "tavern" ? targetTavernId : "")),
+    target_node_id: text(value.target_node_id || defaults.target_node_id || (targetNodeType === "space" ? targetSpaceId : "")),
     behavior_type: normalizeRelationshipBehaviorType(value.behavior_type, defaults.behavior_type || "friendly"),
     display_name: text(value.display_name || defaults.display_name),
     description: text(value.description || defaults.description),
@@ -103,27 +103,27 @@ export function normalizeRelationshipEdge(value = {}, defaults = {}) {
 export function normalizeRelationshipEdgeDraft(value = {}, options = {}) {
   const draft = normalizeRelationshipEdge(value, options)
   const fallbackSourceCharacterId = text(options.fallback_source_character_id)
-  if (draft.source_node_type === "tavern") {
-    draft.source_node_id = draft.source_tavern_id
+  if (draft.source_node_type === "space") {
+    draft.source_node_id = draft.source_space_id
   } else if (!draft.source_node_id) {
     draft.source_node_id = fallbackSourceCharacterId
   }
-  if (draft.target_node_type === "tavern") {
-    draft.target_node_id = draft.target_tavern_id
+  if (draft.target_node_type === "space") {
+    draft.target_node_id = draft.target_space_id
   }
   return draft
 }
 
-export function createRelationshipEdgeDraftSeed(tavern = {}, characters = []) {
-  const tavernId = text(tavern.id)
+export function createRelationshipEdgeDraftSeed(space = {}, characters = []) {
+  const spaceId = text(space.id)
   const firstCharacterId = Array.isArray(characters) ? text(characters[0]?.id) : ""
   return normalizeRelationshipEdgeDraft(
     {
-      source_tavern_id: tavernId,
-      source_node_type: firstCharacterId ? "character" : "tavern",
-      source_node_id: firstCharacterId || tavernId,
-      target_tavern_id: "",
-      target_node_type: "tavern",
+      source_space_id: spaceId,
+      source_node_type: firstCharacterId ? "character" : "space",
+      source_node_id: firstCharacterId || spaceId,
+      target_space_id: "",
+      target_node_type: "space",
       target_node_id: "",
       behavior_type: "friendly",
       display_name: "",
@@ -134,7 +134,7 @@ export function createRelationshipEdgeDraftSeed(tavern = {}, characters = []) {
       confirmed_by_type: "owner",
     },
     {
-      source_tavern_id: tavernId,
+      source_space_id: spaceId,
       fallback_source_character_id: firstCharacterId,
     },
   )

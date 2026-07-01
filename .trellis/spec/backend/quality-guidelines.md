@@ -13,7 +13,7 @@ Concise backend quality rules.
 
 ## Forbidden patterns
 
-- Adding platform-generated tavern/NPC/story content that bypasses owner confirmation.
+- Adding platform-generated space/NPC/story content that bypasses owner confirmation.
 - Adding platform billing/recharge/settlement/token monetization.
 - Adding combat/level/equipment/ranking/social-network systems.
 - Logging secrets or returning private state in public/visitor payloads.

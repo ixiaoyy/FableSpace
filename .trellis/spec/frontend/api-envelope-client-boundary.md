@@ -22,14 +22,14 @@ export async function readApiJson<T>(
 JavaScript product-parity readers should implement the same runtime behavior in:
 
 - `frontend/app/product/services/apiClient.js`
-- `frontend/app/product/services/tavernService.js`
+- `frontend/app/product/services/spaceService.js`
 
 ### 3. Contracts
 
 - API reader helpers must accept both:
-  - raw legacy payloads, e.g. `{ taverns, count }`;
-  - transitional envelopes, e.g. `{ taverns, count, data: { taverns, count }, meta: {...} }`;
-  - strict envelopes in future, e.g. `{ data: { taverns, count }, meta: {...} }`.
+  - raw legacy payloads, e.g. `{ spaces, count }`;
+  - transitional envelopes, e.g. `{ spaces, count, data: { spaces, count }, meta: {...} }`;
+  - strict envelopes in future, e.g. `{ data: { spaces, count }, meta: {...} }`.
 - For successful responses, frontend helpers return the unwrapped `data` value when a `{data, meta}` envelope is detected; otherwise they return the raw payload.
 - For HTTP errors, helpers must extract a user-facing message from legacy `error` / `detail` first, then from `meta.error.message`, then fall back to `HTTP <status>`.
 - Route modules should continue calling service helpers (`frontend/app/lib/*` or `frontend/app/product/services/*`) rather than parsing envelopes in components.
@@ -51,7 +51,7 @@ JavaScript product-parity readers should implement the same runtime behavior in:
 ### 5. Good/Base/Bad Cases
 
 - Good: centralize unwrapping in `readApiJson` / product `readJson` helpers.
-- Base: TypeScript types still describe the domain payload (`TavernListResponse`, `Tavern`, etc.), not the transport envelope.
+- Base: TypeScript types still describe the domain payload (`SpaceListResponse`, `Space`, etc.), not the transport envelope.
 - Bad: route components doing `payload.data ?? payload` ad hoc.
 - Bad: assuming a top-level `data` key always means API envelope without also checking for a `meta` object.
 
@@ -83,8 +83,8 @@ Required assertions:
 #### Wrong
 
 ```tsx
-const payload = await readApiJson("/api/v1/taverns")
-const taverns = payload.data?.taverns ?? payload.taverns
+const payload = await readApiJson("/api/v1/spaces")
+const spaces = payload.data?.spaces ?? payload.spaces
 ```
 
 This leaks transport compatibility into route UI code.
@@ -92,8 +92,8 @@ This leaks transport compatibility into route UI code.
 #### Correct
 
 ```tsx
-const result = await readApiJson<TavernListResponse>("/api/v1/taverns")
-const taverns = result.taverns
+const result = await readApiJson<SpaceListResponse>("/api/v1/spaces")
+const spaces = result.spaces
 ```
 
 The shared client unwraps the envelope before route code sees the response.

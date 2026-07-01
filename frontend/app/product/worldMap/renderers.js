@@ -512,7 +512,7 @@ export function drawPois({
     const pos = tileToCanvas(node.tile_position.x, node.tile_position.y, W, H)
     const poi = poiMap.get(node.id)
     const faction = getFactionColors(poi?.faction_alignment)
-    const fillColor = faction?.fill || palette.tavern
+    const fillColor = faction?.fill || palette.space
     const glowColor = faction?.glow || palette.glow
     const isActive = node.id === activePoiId
     const isHovered = node.id === hovered

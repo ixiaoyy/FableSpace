@@ -5,8 +5,8 @@ export const OWNER_TOKEN_REFERENCE_BOUNDARIES = [
   '访客不可见账单',
 ]
 
-export function getOwnerTokenUsage(tavern) {
-  const usage = Number(tavern?.llm_config?.token_used || 0)
+export function getOwnerTokenUsage(space) {
+  const usage = Number(space?.llm_config?.token_used || 0)
   return Number.isFinite(usage) && usage > 0 ? usage : 0
 }
 
@@ -31,15 +31,15 @@ function hasConfiguredLlm(llmConfig = {}) {
   return Boolean(llmConfig.api_key_configured || safeText(llmConfig.model))
 }
 
-export function createOwnerTokenRow(tavern = {}) {
-  const llmConfig = tavern?.llm_config || {}
-  const tokens = getOwnerTokenUsage(tavern)
+export function createOwnerTokenRow(space = {}) {
+  const llmConfig = space?.llm_config || {}
+  const tokens = getOwnerTokenUsage(space)
   const configured = hasConfiguredLlm(llmConfig)
   return {
-    tavernId: safeText(tavern.id, 'unknown'),
-    name: safeText(tavern.name, '未命名空间'),
-    status: tavern.status === 'open' ? 'open' : 'closed',
-    statusLabel: tavern.status === 'open' ? '营业中' : '歇业中',
+    spaceId: safeText(space.id, 'unknown'),
+    name: safeText(space.name, '未命名空间'),
+    status: space.status === 'open' ? 'open' : 'closed',
+    statusLabel: space.status === 'open' ? '营业中' : '歇业中',
     tokens,
     backend: safeText(llmConfig.backend, '未配置'),
     model: safeText(llmConfig.model, configured ? '未填写模型' : '未配置模型'),
@@ -49,8 +49,8 @@ export function createOwnerTokenRow(tavern = {}) {
   }
 }
 
-export function buildOwnerTokenStats(taverns = []) {
-  const rows = (Array.isArray(taverns) ? taverns : [])
+export function buildOwnerTokenStats(spaces = []) {
+  const rows = (Array.isArray(spaces) ? spaces : [])
     .map(createOwnerTokenRow)
     .sort((a, b) => b.tokens - a.tokens || a.name.localeCompare(b.name, 'zh-Hans-CN'))
 
@@ -68,6 +68,6 @@ export function buildOwnerTokenStats(taverns = []) {
     configuredCount,
     unconfiguredCount: rows.length - configuredCount,
     topTokens,
-    topTavernName: usedRows[0]?.name || '',
+    topSpaceName: usedRows[0]?.name || '',
   }
 }

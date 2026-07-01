@@ -5,8 +5,8 @@
 Use this spec when changing preset import parsing or these owner-only endpoints:
 
 ```http
-POST /api/v1/taverns/{tavern_id}/preset-import/preview
-POST /api/v1/taverns/{tavern_id}/preset-import/apply
+POST /api/v1/spaces/{space_id}/preset-import/preview
+POST /api/v1/spaces/{space_id}/preset-import/apply
 ```
 
 This feature is an owner utility for community / SillyTavern-style preset JSON.
@@ -28,7 +28,7 @@ Response shape:
 ```json
 {
   "ok": true,
-  "tavern_id": "...",
+  "space_id": "...",
   "preview_only": true,
   "applied": false,
   "preset_name": "...",
@@ -60,8 +60,8 @@ Response shape:
 }
 ```
 
-- `confirm=false` returns an apply diff only and must not mutate Tavern state.
-- `confirm=true` applies the exact diff to safe Tavern fields.
+- `confirm=false` returns an apply diff only and must not mutate Space state.
+- `confirm=true` applies the exact diff to safe Space fields.
 - `selected_ids` must refer only to `supported` preview items. Selecting a
   `warning`, `blocked`, unknown, or runtime-warning item returns HTTP 400.
 - Supported targets are `prompt_blocks`, `world_info`, and `characters`; default
@@ -94,7 +94,7 @@ Response shape includes:
 ```
 
 When `confirm=true`, response sets `applied=true`, `confirm_required=false`, and
-returns owner-private `tavern` after persistence.
+returns owner-private `space` after persistence.
 
 ## Classification contract
 
@@ -112,7 +112,7 @@ silently discarded or converted into usable prompt blocks.
 
 ## Persistence and security
 
-- Preview must not mutate `Tavern.runtime_presets`, `prompt_blocks`,
+- Preview must not mutate `Space.runtime_presets`, `prompt_blocks`,
   `world_info`, `characters`, `skill_packs`, State Cards, memory atoms, access
   rules, LLM config, or owner keyvault data.
 - Apply must mutate only `runtime_presets`, `prompt_blocks`, `world_info`, and
@@ -127,7 +127,7 @@ silently discarded or converted into usable prompt blocks.
 
 - Good: owner previews a preset containing one style prompt, one model-specific
   note, and one jailbreak; response has supported/warning/blocked groups and no
-  tavern fields change.
+  space fields change.
 - Good: owner selects supported style/world-info/role-consistency items, previews
   a diff with `confirm=false`, then persists the same safe subset with
   `confirm=true`.

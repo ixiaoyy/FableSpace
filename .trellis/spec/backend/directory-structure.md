@@ -4,12 +4,12 @@ Concise backend placement rules for AI development. Product source of truth rema
 
 ## Core layout
 
-- `backend/src/fablemap_api/api/v1/`: FastAPI route modules. Keep routes thin.
-- `backend/src/fablemap_api/application/services/`: use-case orchestration and payload assembly.
-- `backend/src/fablemap_api/application/stores/`: persistence adapters and query helpers.
-- `backend/src/fablemap_api/contracts/`: request/response DTOs and normalization helpers.
-- `backend/src/fablemap_api/domain/`: domain entities/policies when behavior is framework-free.
-- `backend/src/fablemap_api/core/`: legacy compatibility core; do not add new product surface here unless maintaining compatibility.
+- `backend/src/fablespace_api/api/v1/`: FastAPI route modules. Keep routes thin.
+- `backend/src/fablespace_api/application/services/`: use-case orchestration and payload assembly.
+- `backend/src/fablespace_api/application/stores/`: persistence adapters and query helpers.
+- `backend/src/fablespace_api/contracts/`: request/response DTOs and normalization helpers.
+- `backend/src/fablespace_api/domain/`: domain entities/policies when behavior is framework-free.
+- `backend/src/fablespace_api/core/`: legacy compatibility core; do not add new product surface here unless maintaining compatibility.
 - `backend/tests/`: native v1/backend tests.
 - `tests/`: legacy/core compatibility tests.
 
@@ -24,7 +24,7 @@ Routes may:
 - return a response envelope where required.
 
 Routes must not:
-- mutate tavern state directly;
+- mutate space state directly;
 - implement owner/visitor visibility rules inline;
 - duplicate prompt, memory, or relationship policy.
 

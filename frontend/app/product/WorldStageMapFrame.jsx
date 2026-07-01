@@ -21,11 +21,11 @@ export default function WorldStageMapFrame({
   toolbarLabel,
   toolbarCopy,
   toolbarClassName,
-  taverns = [],
-  totalTavernMatches = taverns.length,
-  tavernMarkerLimit = 0,
-  onTavernClick,
-  activeTavernId,
+  spaces = [],
+  totalSpaceMatches = spaces.length,
+  spaceMarkerLimit = 0,
+  onSpaceClick,
+  activeSpaceId,
   territories = [],
 }) {
   return (
@@ -52,11 +52,11 @@ export default function WorldStageMapFrame({
         originLabel={originLabel}
         ghostTraces={ghostTraces}
         visibleLayers={visibleMapLayers}
-        taverns={taverns}
-        totalTavernMatches={totalTavernMatches}
-        tavernMarkerLimit={tavernMarkerLimit}
-        onTavernClick={onTavernClick}
-        activeTavernId={activeTavernId}
+        spaces={spaces}
+        totalSpaceMatches={totalSpaceMatches}
+        spaceMarkerLimit={spaceMarkerLimit}
+        onSpaceClick={onSpaceClick}
+        activeSpaceId={activeSpaceId}
         territories={territories}
       />
     </div>

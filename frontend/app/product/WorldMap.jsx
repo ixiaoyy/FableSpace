@@ -1,11 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { createMapAdapter } from './mapAdapter'
 import { buildMapAnchorSummaryCopy } from './mapAnchorCopy'
-import { TAVERN_ACCESS_META, getTavernAccessDescription } from './services/tavernService'
+import { SPACE_ACCESS_META, getSpaceAccessDescription } from './services/spaceService'
 import { territoriesToCircles } from '../lib/territoryService.js'
 
-const SNAPSHOT_STORAGE_KEY = 'fablemap.activeMapSnapshot'
-const TAVERN_ACCESS_ORDER = ['public', 'password', 'private']
+const SNAPSHOT_STORAGE_KEY = 'fablespace.activeMapSnapshot'
+const SPACE_ACCESS_ORDER = ['public', 'password', 'private']
 
 function getSnapshotId(world) {
   const raw = world?.slice_id || world?.id || world?.source?.label || world?.source?.name || 'default'
@@ -71,11 +71,11 @@ export default function WorldMap({
   originLabel,
   ghostTraces = [],
   visibleLayers,
-  taverns = [],
-  totalTavernMatches = taverns.length,
-  tavernMarkerLimit = 0,
-  onTavernClick,
-  activeTavernId,
+  spaces = [],
+  totalSpaceMatches = spaces.length,
+  spaceMarkerLimit = 0,
+  onSpaceClick,
+  activeSpaceId,
   territories = [],
 }) {
   const containerRef = useRef(null)
@@ -103,24 +103,24 @@ export default function WorldMap({
 
   const center = useMemo(() => computeMapCenter(world, pois, landmarks), [world, pois, landmarks])
   const usingSnapshot = preferSnapshot && Boolean(snapshotManifest)
-  const hiddenTavernMarkerCount = Math.max(0, Number(totalTavernMatches || 0) - taverns.length)
-  const tavernAnchorSummary = buildMapAnchorSummaryCopy({
-    matching: taverns.length,
-    total: totalTavernMatches,
+  const hiddenSpaceMarkerCount = Math.max(0, Number(totalSpaceMatches || 0) - spaces.length)
+  const spaceAnchorSummary = buildMapAnchorSummaryCopy({
+    matching: spaces.length,
+    total: totalSpaceMatches,
   })
-  const tavernAccessLegend = useMemo(() => {
-    const counts = taverns.reduce((acc, tavern) => {
-      const access = tavern?.access || 'unknown'
+  const spaceAccessLegend = useMemo(() => {
+    const counts = spaces.reduce((acc, space) => {
+      const access = space?.access || 'unknown'
       acc[access] = (acc[access] || 0) + 1
       return acc
     }, {})
 
-    return TAVERN_ACCESS_ORDER.map((access) => ({
+    return SPACE_ACCESS_ORDER.map((access) => ({
       access,
       count: counts[access] || 0,
-      ...TAVERN_ACCESS_META[access],
+      ...SPACE_ACCESS_META[access],
     }))
-  }, [taverns])
+  }, [spaces])
 
   // Initialize adapter
   useEffect(() => {
@@ -300,20 +300,20 @@ export default function WorldMap({
     adapter.setMarkers(landmarks, 'landmark', {})
   }, [landmarks, layers.landmarks])
 
-  // Update tavern markers when taverns change
+  // Update space markers when spaces change
   useEffect(() => {
     const adapter = adapterRef.current
     if (!adapter) return
 
-    adapter.setMarkers(taverns, 'tavern', {
-      activeTavernId,
-      onTavernClick: (marker) => {
-        if (onTavernClick) {
-          onTavernClick(marker.id, marker)
+    adapter.setMarkers(spaces, 'space', {
+      activeSpaceId,
+      onSpaceClick: (marker) => {
+        if (onSpaceClick) {
+          onSpaceClick(marker.id, marker)
         }
       },
     })
-  }, [taverns, activeTavernId, onTavernClick])
+  }, [spaces, activeSpaceId, onSpaceClick])
 
   // Update territory circles when territories change
   useEffect(() => {
@@ -419,8 +419,8 @@ export default function WorldMap({
         className="amap-container"
         style={{
           width: '100%',
-          minHeight: 'var(--fablemap-map-min-height, 600px)',
-          height: 'var(--fablemap-map-height, min(72vh, 720px))',
+          minHeight: 'var(--fablespace-map-min-height, 600px)',
+          height: 'var(--fablespace-map-height, min(72vh, 720px))',
           opacity: usingSnapshot ? 0.01 : 1,
           pointerEvents: usingSnapshot ? 'none' : 'auto',
         }}
@@ -470,7 +470,7 @@ export default function WorldMap({
             {usingSnapshot ? '本地街区快照' : '街区底图已接入'}
           </strong>
           <span style={{ fontSize: 13, color: '#cbd5e1', display: 'block', marginBottom: 10 }}>
-            {originLabel || '当前街角'} · {pois.length} 个地点 · {landmarks.length} 个地标 · {tavernAnchorSummary}
+            {originLabel || '当前街角'} · {pois.length} 个地点 · {landmarks.length} 个地标 · {spaceAnchorSummary}
           </span>
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
             <button
@@ -529,22 +529,22 @@ export default function WorldMap({
         </div>
       </div>
 
-      <div className="tavern-map-legend" aria-label="空间灯牌分类">
-        <div className="tavern-map-legend__header">
+      <div className="space-map-legend" aria-label="空间灯牌分类">
+        <div className="space-map-legend__header">
           <span>空间灯牌</span>
-          <strong>{taverns.length}/{totalTavernMatches}</strong>
+          <strong>{spaces.length}/{totalSpaceMatches}</strong>
         </div>
-        {hiddenTavernMarkerCount ? (
-          <p className="tavern-map-legend__note">
-            已优先点亮前 {tavernMarkerLimit || taverns.length} 间；继续搜索或筛选可缩小地图灯牌数量。
+        {hiddenSpaceMarkerCount ? (
+          <p className="space-map-legend__note">
+            已优先点亮前 {spaceMarkerLimit || spaces.length} 间；继续搜索或筛选可缩小地图灯牌数量。
           </p>
         ) : null}
-        <div className="tavern-map-legend__items">
-          {tavernAccessLegend.map((item) => (
+        <div className="space-map-legend__items">
+          {spaceAccessLegend.map((item) => (
             <div
               key={item.access}
-              className={`tavern-map-legend__item tavern-access-chip tavern-access-chip--${item.tone}`}
-              title={getTavernAccessDescription(item.access)}
+              className={`space-map-legend__item space-access-chip space-access-chip--${item.tone}`}
+              title={getSpaceAccessDescription(item.access)}
             >
               <span>{item.icon} {item.label}</span>
               <strong>{item.count}</strong>

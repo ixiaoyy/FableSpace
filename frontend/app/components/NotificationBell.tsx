@@ -124,9 +124,9 @@ export function NotificationBell({ userId }: NotificationBellProps) {
                           <p className="mt-1 text-xs text-white/50 line-clamp-2">
                             {notification.content}
                           </p>
-                          {notification.tavern_name && (
+                          {notification.space_name && (
                             <p className="mt-1 text-xs text-cyan-300/60">
-                              {notification.tavern_name}
+                              {notification.space_name}
                             </p>
                           )}
                         </div>

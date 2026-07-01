@@ -1,9 +1,9 @@
-import { FableMapDiscoverReference } from "./fable-map-reference-artboards"
-import type { Tavern } from "../lib/taverns"
+import { FableSpaceDiscoverReference } from "./fable-space-reference-artboards"
+import type { Space } from "../lib/spaces"
 
 type DiscoverBlackReferenceProps = {
   search: string
-  taverns: Tavern[]
+  spaces: Space[]
   onSearchChange: (value: string) => void
   onClear: () => void
   onTogglePlaceType: (placeTypeId: string) => void
@@ -15,5 +15,5 @@ type DiscoverBlackReferenceProps = {
 }
 
 export function DiscoverBlackReference(props: DiscoverBlackReferenceProps) {
-  return <FableMapDiscoverReference variant="black" {...props} />
+  return <FableSpaceDiscoverReference variant="black" {...props} />
 }

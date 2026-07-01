@@ -1,18 +1,18 @@
 import React, { useState } from 'react';
-import { 
-  Rocket, 
-  Server, 
-  ShieldCheck, 
-  Puzzle, 
-  Code, 
-  Users, 
-  FolderOpen, 
-  Box, 
-  Zap, 
-  Key, 
-  RefreshCw, 
-  Trash2, 
-  MapPin, 
+import {
+  Rocket,
+  Server,
+  ShieldCheck,
+  Puzzle,
+  Code,
+  Users,
+  FolderOpen,
+  Box,
+  Zap,
+  Key,
+  RefreshCw,
+  Trash2,
+  MapPin,
   Compass,
   ChevronRight,
   Gift,
@@ -24,10 +24,10 @@ import {
 } from 'lucide-react';
 import WorldMap from '../../product/WorldMap';
 
-export function TerritoryManagementDashboard({ 
-  tavern, 
-  territory, 
-  onClaim, 
+export function TerritoryManagementDashboard({
+  space,
+  territory,
+  onClaim,
   onUpdate,
   onDelete,
   busy = false,
@@ -47,7 +47,7 @@ export function TerritoryManagementDashboard({
         {/* Anime Hero Banner */}
         <div className="relative rounded-3xl bg-gradient-to-br from-indigo-900 via-purple-800 to-fuchsia-700 overflow-hidden shadow-[0_20px_50px_-12px_rgba(107,33,168,0.5)] border border-white/10">
           {/* Tech/Anime HUD decorative elements */}
-          <div className="absolute top-4 left-6 text-white/30 font-mono text-xs font-bold tracking-widest">// FABLEMAP.SYS :: TERRITORY_LINK_ACTIVE</div>
+          <div className="absolute top-4 left-6 text-white/30 font-mono text-xs font-bold tracking-widest">// FABLESPACE.SYS :: TERRITORY_LINK_ACTIVE</div>
           <div className="absolute bottom-4 right-6 text-white/30 font-mono text-xs font-bold tracking-widest">[ READY ]</div>
           {/* Subtle grid pattern over banner */}
           <div className="absolute inset-0 bg-[radial-gradient(rgba(255,255,255,0.1)_1px,transparent_1px)] bg-[length:20px_20px] mix-blend-overlay"></div>
@@ -93,7 +93,7 @@ export function TerritoryManagementDashboard({
 
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
           
-          {/* Left Column: My Tavern Info */}
+          {/* Left Column: My Space Info */}
           <div className="xl:col-span-2 space-y-6">
             {/* Glassmorphism Card */}
             <div className="bg-white/80 backdrop-blur-xl rounded-3xl p-6 md:p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 relative overflow-hidden">
@@ -113,7 +113,7 @@ export function TerritoryManagementDashboard({
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <InfoItem label="访问地址" value={isClaimed ? `fablemap.app/t/${tavern?.id}` : '等待申领...'} isMono />
+                <InfoItem label="访问地址" value={isClaimed ? `fablespace.app/t/${space?.id}` : '等待申领...'} isMono />
                 <InfoItem label="中心坐标" value={isClaimed ? `${territory.center_lat.toFixed(6)}, ${territory.center_lon.toFixed(6)}` : '未绑定坐标'} />
                 <InfoItem label="领地半径" value={isClaimed ? `${territory.radius} 米` : '-'} />
                 <InfoItem label="领地类型" value={isClaimed ? territory.type : '-'} badge />
@@ -169,8 +169,8 @@ export function TerritoryManagementDashboard({
                   familiarityMap={{}}
                   originLabel="领地中心"
                   visibleLayers={{ territories: true }}
-                  onTavernClick={() => {}}
-                  activeTavernId=""
+                  onSpaceClick={() => {}}
+                  activeSpaceId=""
                   world={{
                     source: {
                       lat: territory?.center_lat || 39.9042,

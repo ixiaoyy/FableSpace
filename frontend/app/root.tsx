@@ -5,7 +5,7 @@ import { ThemeProvider } from "./hooks/useTheme"
 import "./styles.css"
 
 export const meta: MetaFunction = () => [
-  { title: "FableMap｜世界的镜像面" },
+  { title: "FableSpace｜世界的镜像面" },
   {
     name: "description",
     content: "基于地理位置的多类型 AI 空间游玩平台。",
@@ -44,5 +44,5 @@ export default function Root() {
 }
 
 export function HydrateFallback() {
-  return <div className="app-loading">正在进入 FableMap 镜像空间...</div>
+  return <div className="app-loading">正在进入 FableSpace 镜像空间...</div>
 }

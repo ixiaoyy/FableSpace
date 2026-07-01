@@ -4,7 +4,7 @@ Concise rules for NPC visual assets.
 
 ## When to read
 
-Read for new formal NPC roles, NPC portraits, expression sprites, or tavern character visual payloads.
+Read for new formal NPC roles, NPC portraits, expression sprites, or space character visual payloads.
 
 ## Required asset contract
 
@@ -18,7 +18,7 @@ Use repository paths, not `.codex/generated_images` or temp/chat-only paths.
 
 ## Style rules
 
-- Fictional, stylized tavern/NPC art is preferred.
+- Fictional, stylized space/NPC art is preferred.
 - Avoid unauthorized real-person likeness, celebrity face, photoreal impersonation, or copied IP.
 - Keep character identity consistent across expressions.
 - Do not use art to bypass owner-authored content or create platform-authored canon.

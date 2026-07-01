@@ -18,12 +18,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui
 /**
  * PromptBlockEditor — 模块化视觉提示词块编辑器
  */
-export default function PromptBlockEditor({ 
-  character, 
-  tavern, 
-  onSave, 
+export default function PromptBlockEditor({
+  character,
+  space,
+  onSave,
   onBack,
-  disabled = false 
+  disabled = false
 }) {
   const [draft, setDraft] = useState(character)
   const [dials, setDials] = useState(character.style_dials || DEFAULT_PROMPT_STYLE_DIALS)
@@ -41,12 +41,12 @@ export default function PromptBlockEditor({
   const fullPromptSegments = useMemo(() => {
     // 最终拼接逻辑，带层标记用于预览高亮
     const dialLines = compilePromptStyleDialLines(dials)
-    
+
     return [
       { id: 'platform_boundary', label: 'Platform Boundary', content: layers.find(l => l.id === 'platform_boundary')?.body },
-      { 
-        id: 'character_card', 
-        label: 'TavernCharacter', 
+      {
+        id: 'character_card',
+        label: 'SpaceCharacter',
         content: [
           `角色姓名：${draft.name}`,
           draft.description && `描述：${draft.description}`,
@@ -55,10 +55,10 @@ export default function PromptBlockEditor({
           draft.first_mes && `开场白：${draft.first_mes}`,
         ].filter(Boolean).join('\n')
       },
-      { 
-        id: 'style_dials', 
-        label: 'Style Dials', 
-        content: `【FableMap 风格拨盘】\n${dialLines.map(l => `- ${l}`).join('\n')}\n【/FableMap 风格拨盘】` 
+      {
+        id: 'style_dials',
+        label: 'Style Dials',
+        content: `【FableSpace 风格拨盘】\n${dialLines.map(l => `- ${l}`).join('\n')}\n【/FableSpace 风格拨盘】`
       },
       { id: 'world_info', label: 'WorldInfo', content: `【世界背景补充】\n${simulatedWorldInfo}` },
       { id: 'visitor_state', label: 'Visitor State', content: `【当前访客关系与记忆】\n${simulatedVisitorState}` }
@@ -267,4 +267,3 @@ export default function PromptBlockEditor({
     </div>
   )
 }
-

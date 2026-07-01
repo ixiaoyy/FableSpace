@@ -1,4 +1,4 @@
-import { FableMapHomeReference } from "./fable-map-reference-artboards"
+import { FableSpaceHomeReference } from "./fable-space-reference-artboards"
 
 type HomeBlackReferenceProps = {
   featuredCitySlices: { id?: string; name?: string; description?: string; visit_count?: number }[]
@@ -6,5 +6,5 @@ type HomeBlackReferenceProps = {
 }
 
 export function HomeBlackReference(props: HomeBlackReferenceProps) {
-  return <FableMapHomeReference variant="black" {...props} />
+  return <FableSpaceHomeReference variant="black" {...props} />
 }

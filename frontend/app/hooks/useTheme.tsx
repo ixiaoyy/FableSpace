@@ -12,7 +12,7 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined)
 
 function savedTheme(): Theme {
   if (typeof window === "undefined") return "dark"
-  return localStorage.getItem("fablemap-theme") === "light" ? "light" : "dark"
+  return localStorage.getItem("fablespace-theme") === "light" ? "light" : "dark"
 }
 
 function supportsLightTheme(pathname: string) {
@@ -29,7 +29,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     root.classList.toggle("light", effectiveTheme === "light")
     root.classList.toggle("dark", effectiveTheme === "dark")
     root.setAttribute("data-theme", effectiveTheme)
-    localStorage.setItem("fablemap-theme", selectedTheme)
+    localStorage.setItem("fablespace-theme", selectedTheme)
   }, [effectiveTheme, selectedTheme])
 
   const toggleTheme = () => {

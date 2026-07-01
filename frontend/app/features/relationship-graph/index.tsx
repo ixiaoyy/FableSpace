@@ -22,13 +22,13 @@ import {
   listRelationshipEdges,
   updateRelationshipEdge,
   type RelationshipEdge,
-  type Tavern,
-  type TavernCharacter,
-} from "../../lib/taverns"
+  type Space,
+  type SpaceCharacter,
+} from "../../lib/spaces"
 import { Button } from "../../ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../ui/card"
 
-function localCharacterName(characters: TavernCharacter[], characterId: string) {
+function localCharacterName(characters: SpaceCharacter[], characterId: string) {
   return characters.find((character) => character.id === characterId)?.name || characterId
 }
 
@@ -54,26 +54,26 @@ function sortedEdges(edges: RelationshipEdge[]) {
   })
 }
 
-function edgeNodeLabel(edge: RelationshipEdge, side: "source" | "target", characters: TavernCharacter[]) {
-  const nodeType = String(edge[`${side}_node_type` as const] || "tavern")
+function edgeNodeLabel(edge: RelationshipEdge, side: "source" | "target", characters: SpaceCharacter[]) {
+  const nodeType = String(edge[`${side}_node_type` as const] || "space")
   const nodeId = String(edge[`${side}_node_id` as const] || "")
-  const tavernId = String(edge[`${side}_tavern_id` as const] || "")
+  const spaceId = String(edge[`${side}_space_id` as const] || "")
   if (nodeType === "character") {
     return `${relationshipOptionLabel(RELATIONSHIP_NODE_TYPES, nodeType, nodeType)} · ${localCharacterName(characters, nodeId)}`
   }
-  return `${relationshipOptionLabel(RELATIONSHIP_NODE_TYPES, nodeType, nodeType)} · ${nodeId || tavernId || "未设置"}`
+  return `${relationshipOptionLabel(RELATIONSHIP_NODE_TYPES, nodeType, nodeType)} · ${nodeId || spaceId || "未设置"}`
 }
 
 export function RelationshipGraphPanel({
-  tavern,
+  space,
   characters,
 }: {
-  tavern: Tavern
-  characters: TavernCharacter[]
+  space: Space
+  characters: SpaceCharacter[]
 }) {
-  const [ownerId, setOwnerId] = useState(tavern.owner_id || DEFAULT_OWNER_ID)
+  const [ownerId, setOwnerId] = useState(space.owner_id || DEFAULT_OWNER_ID)
   const [edges, setEdges] = useState<RelationshipEdge[]>([])
-  const [draft, setDraft] = useState(() => createRelationshipEdgeDraftSeed(tavern, characters))
+  const [draft, setDraft] = useState(() => createRelationshipEdgeDraftSeed(space, characters))
   const [editingEdgeId, setEditingEdgeId] = useState("")
   const [busy, setBusy] = useState("")
   const [message, setMessage] = useState("")
@@ -86,19 +86,19 @@ export function RelationshipGraphPanel({
 
   function resetDraft() {
     setEditingEdgeId("")
-    setDraft(createRelationshipEdgeDraftSeed(tavern, characters))
+    setDraft(createRelationshipEdgeDraftSeed(space, characters))
   }
 
   async function loadEdges(userId = ownerId) {
     setBusy("load")
     setMessage("")
     try {
-      const payload = await listRelationshipEdges(tavern.id, userId)
+      const payload = await listRelationshipEdges(space.id, userId)
       setEdges(
         sortedEdges(
           normalizeRelationshipEdges(payload.edges, {
-            source_tavern_id: tavern.id,
-            source_owner_id: tavern.owner_id,
+            source_space_id: space.id,
+            source_owner_id: space.owner_id,
           }),
         ),
       )
@@ -114,20 +114,20 @@ export function RelationshipGraphPanel({
     if (!ownerId) return
     void loadEdges(ownerId)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tavern.id])
+  }, [space.id])
 
   async function handleSave() {
     const normalized = normalizeRelationshipEdgeDraft(draft, {
-      source_tavern_id: tavern.id,
-      source_owner_id: tavern.owner_id,
+      source_space_id: space.id,
+      source_owner_id: space.owner_id,
       fallback_source_character_id: characterOptions[0]?.id || "",
     })
     if (!ownerId) {
       setMessage("需要 owner ID 才能保存关系。")
       return
     }
-    if (!normalized.target_tavern_id) {
-      setMessage("请填写目标 Tavern ID。")
+    if (!normalized.target_space_id) {
+      setMessage("请填写目标 Space ID。")
       return
     }
     if (normalized.source_node_type === "character" && !normalized.source_node_id) {
@@ -140,10 +140,10 @@ export function RelationshipGraphPanel({
     }
 
     const payload = {
-      source_tavern_id: tavern.id,
+      source_space_id: space.id,
       source_node_type: normalized.source_node_type,
       source_node_id: normalized.source_node_id,
-      target_tavern_id: normalized.target_tavern_id,
+      target_space_id: normalized.target_space_id,
       target_node_type: normalized.target_node_type,
       target_node_id: normalized.target_node_id,
       behavior_type: normalized.behavior_type,
@@ -160,11 +160,11 @@ export function RelationshipGraphPanel({
     setMessage("")
     try {
       const response = editingEdgeId
-        ? await updateRelationshipEdge(tavern.id, editingEdgeId, payload, ownerId)
-        : await createRelationshipEdge(tavern.id, payload, ownerId)
+        ? await updateRelationshipEdge(space.id, editingEdgeId, payload, ownerId)
+        : await createRelationshipEdge(space.id, payload, ownerId)
       const saved = normalizeRelationshipEdge(response.edge, {
-        source_tavern_id: tavern.id,
-        source_owner_id: tavern.owner_id,
+        source_space_id: space.id,
+        source_owner_id: space.owner_id,
       })
       setEdges((current) =>
         sortedEdges([
@@ -175,7 +175,7 @@ export function RelationshipGraphPanel({
       setEditingEdgeId(saved.id)
       setDraft(
         normalizeRelationshipEdgeDraft(saved, {
-          source_tavern_id: tavern.id,
+          source_space_id: space.id,
           fallback_source_character_id: characterOptions[0]?.id || "",
         }),
       )
@@ -196,14 +196,14 @@ export function RelationshipGraphPanel({
     setMessage("")
     try {
       const response = await decideRelationshipEdge(
-        tavern.id,
+        space.id,
         edge.id,
         { status, confirmed_by_type: "owner" },
         ownerId,
       )
       const saved = normalizeRelationshipEdge(response.edge, {
-        source_tavern_id: tavern.id,
-        source_owner_id: tavern.owner_id,
+        source_space_id: space.id,
+        source_owner_id: space.owner_id,
       })
       setEdges((current) => sortedEdges(current.map((item) => (item.id === saved.id ? saved : item))))
       setMessage(status === "confirmed" ? "待确认关系已批准。" : "待确认关系已拒绝。")
@@ -218,14 +218,14 @@ export function RelationshipGraphPanel({
     setEditingEdgeId(edge.id)
     setDraft(
       normalizeRelationshipEdgeDraft(edge, {
-        source_tavern_id: tavern.id,
+        source_space_id: space.id,
         fallback_source_character_id: characterOptions[0]?.id || "",
       }),
     )
     setMessage(`正在编辑 ${edge.display_name || edge.id}`)
   }
 
-  const perspectiveNotice = draft.target_tavern_id
+  const perspectiveNotice = draft.target_space_id
     ? "跨 owner 目标在保存后仍只会被记录为当前空间 source-side 视角；不会自动变成目标空间的正史。"
     : "跨 owner 关系默认是单边视角，只代表当前空间 source-side 立场。"
 
@@ -269,7 +269,7 @@ export function RelationshipGraphPanel({
             <div>
               <p className="text-sm font-black text-white">{editingEdgeId ? "编辑关系边" : "新建关系边"}</p>
               <p className="mt-1 text-xs leading-5 text-violet-100/58">
-                Source-side 固定属于当前空间；角色边可选择本空间角色。目标 tavern / character 仍按后端 owner 边界校验。
+                Source-side 固定属于当前空间；角色边可选择本空间角色。目标 space / character 仍按后端 owner 边界校验。
               </p>
             </div>
             {editingEdgeId ? (
@@ -290,10 +290,10 @@ export function RelationshipGraphPanel({
                       {
                         ...current,
                         source_node_type: event.target.value,
-                        source_node_id: event.target.value === "tavern" ? tavern.id : characterOptions[0]?.id || "",
+                        source_node_id: event.target.value === "space" ? space.id : characterOptions[0]?.id || "",
                       },
                       {
-                        source_tavern_id: tavern.id,
+                        source_space_id: space.id,
                         fallback_source_character_id: characterOptions[0]?.id || "",
                       },
                     ),
@@ -319,26 +319,26 @@ export function RelationshipGraphPanel({
                   )) : <option value="">当前空间暂无角色</option>}
                 </select>
               ) : (
-                <input value={tavern.id} readOnly className="w-full rounded-2xl border border-white/12 bg-white/[0.04] px-4 py-3 text-violet-50/78 outline-none" />
+                <input value={space.id} readOnly className="w-full rounded-2xl border border-white/12 bg-white/[0.04] px-4 py-3 text-violet-50/78 outline-none" />
               )}
             </label>
             <label className="space-y-1.5 text-sm">
-              <span className="text-violet-100/65">目标 Tavern ID</span>
+              <span className="text-violet-100/65">目标 Space ID</span>
               <input
-                value={draft.target_tavern_id}
+                value={draft.target_space_id}
                 onChange={(event) =>
                   setDraft((current) =>
                     normalizeRelationshipEdgeDraft(
                       {
                         ...current,
-                        target_tavern_id: event.target.value,
-                        target_node_id: current.target_node_type === "tavern" ? event.target.value : current.target_node_id,
+                        target_space_id: event.target.value,
+                        target_node_id: current.target_node_type === "space" ? event.target.value : current.target_node_id,
                       },
-                      { source_tavern_id: tavern.id },
+                      { source_space_id: space.id },
                     ),
                   )
                 }
-                placeholder="tavern_xxx"
+                placeholder="space_xxx"
                 className="w-full rounded-2xl border border-white/12 bg-white/[0.06] px-4 py-3 text-white outline-none focus:border-cyan-300/60"
               />
             </label>
@@ -352,9 +352,9 @@ export function RelationshipGraphPanel({
                       {
                         ...current,
                         target_node_type: event.target.value,
-                        target_node_id: event.target.value === "tavern" ? current.target_tavern_id : current.target_node_id,
+                        target_node_id: event.target.value === "space" ? current.target_space_id : current.target_node_id,
                       },
-                      { source_tavern_id: tavern.id },
+                      { source_space_id: space.id },
                     ),
                   )
                 }
@@ -370,9 +370,9 @@ export function RelationshipGraphPanel({
               <input
                 value={draft.target_node_id}
                 onChange={(event) => setDraft((current) => ({ ...current, target_node_id: event.target.value }))}
-                placeholder={draft.target_node_type === "character" ? "character_xxx" : "默认跟随目标 Tavern ID"}
+                placeholder={draft.target_node_type === "character" ? "character_xxx" : "默认跟随目标 Space ID"}
                 className="w-full rounded-2xl border border-white/12 bg-white/[0.06] px-4 py-3 text-white outline-none focus:border-cyan-300/60"
-                readOnly={draft.target_node_type === "tavern"}
+                readOnly={draft.target_node_type === "space"}
               />
             </label>
             <label className="space-y-1.5 text-sm">
@@ -447,7 +447,7 @@ export function RelationshipGraphPanel({
           {edges.length ? (
             <div className="grid gap-3">
               {edges.map((edge) => {
-                const crossOwner = isCrossOwnerRelationshipPerspective(edge, tavern.owner_id || ownerId)
+                const crossOwner = isCrossOwnerRelationshipPerspective(edge, space.owner_id || ownerId)
                 return (
                   <div key={edge.id} className="rounded-3xl border border-white/10 bg-white/[0.04] p-4">
                     <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">

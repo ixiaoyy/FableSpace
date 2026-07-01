@@ -22,9 +22,9 @@ export function buildHeroMetrics({
   visibleMapLayers,
   originLabel,
   view = 'map',
-  totalTaverns = 0,
-  matchingTaverns = 0,
-  openTaverns = 0,
+  totalSpaces = 0,
+  matchingSpaces = 0,
+  openSpaces = 0,
 }) {
   const visibleLayerCount = Object.values(visibleMapLayers || {}).filter(Boolean).length
   const mapReady = Boolean(result?.world)
@@ -59,11 +59,11 @@ export function buildHeroMetrics({
     visibleLayerCount,
     cards: [
       {
-        id: 'taverns',
+        id: 'spaces',
         label: '附近空间',
-        value: totalTaverns > 0 ? `${matchingTaverns} / ${totalTaverns} 间` : '等待发现',
-        detail: openTaverns > 0
-          ? `${openTaverns} 盏灯亮着，挑一间进去。`
+        value: totalSpaces > 0 ? `${matchingSpaces} / ${totalSpaces} 间` : '等待发现',
+        detail: openSpaces > 0
+          ? `${openSpaces} 盏灯亮着，挑一间进去。`
           : '刷新后看看附近有没有灯亮。',
       },
       {

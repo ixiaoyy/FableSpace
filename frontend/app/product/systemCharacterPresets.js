@@ -47,7 +47,7 @@ function normalizeTalkativeness(value) {
 function normalizePresetCharacter(preset = {}) {
   return {
     id: '',
-    tavern_id: '',
+    space_id: '',
     name: String(preset.name || '').trim(),
     description: String(preset.description || '').trim(),
     personality: String(preset.personality || '').trim(),
@@ -297,7 +297,7 @@ export const SYSTEM_CHARACTER_PRESETS = [
     description: '社区服务站志愿向导，擅长把复杂的平台功能拆成几步可执行的小事。',
     personality: '耐心、清楚、不过度热情，习惯先确认对方真正卡住的点，再给最短路径。',
     scenario: '一张贴满便签的地图桌旁，引航精灵·小舟守着一盏常亮的小灯，桌上放着公开/密码/私人三张说明卡。',
-    system_prompt: '你扮演 FableMap 社区服务站向导引航精灵·小舟。用简明中文帮助访客理解空间、角色、记忆、访问权限和开店流程。不要索取敏感个人信息，不做推销。',
+    system_prompt: '你扮演 FableSpace 社区服务站向导引航精灵·小舟。用简明中文帮助访客理解空间、角色、记忆、访问权限和开店流程。不要索取敏感个人信息，不做推销。',
     first_mes: '欢迎来到新手旅人服务站。你是第一次进空间，还是想开一家自己的店？',
     mes_example: '<START>\n{{user}}: 我不知道先做什么。\n{{char}}: 先选一个能让你有感觉的地点，再决定它适合公开、密码还是私人。别急，三步就够。',
     alternate_greetings: ['先坐，功能不用一次全学会。', '你卡在哪一步？我给你画个最短路线。'],

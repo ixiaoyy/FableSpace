@@ -17,7 +17,7 @@ Concise React component rules.
 
 ## Styling / UX
 
-- Preserve FableMap tavern-first product direction.
+- Preserve FableSpace space-first product direction.
 - Mobile/narrow screens must remain usable.
 - Primary surfaces should look intentional, not bare admin forms.
 - Avoid desktop-only panels blocking visitor-first flows.

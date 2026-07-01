@@ -9,8 +9,8 @@ export type Notification = {
   data: Record<string, unknown>
   created_at: string
   read: boolean
-  tavern_id: string | null
-  tavern_name: string | null
+  space_id: string | null
+  space_name: string | null
 }
 
 export type NotificationState = {

@@ -1,16 +1,16 @@
 import { useEffect, useState } from "react"
 
-import { FableMapHomeReference } from "../components/fable-map-reference-artboards"
+import { FableSpaceHomeReference } from "../components/fable-space-reference-artboards"
 import { useTheme } from "../hooks/useTheme"
-import { buildHomepageView } from "../lib/homepage-taverns"
-import { errorMessage, listTaverns, type TavernListResponse } from "../lib/taverns"
+import { buildHomepageView } from "../lib/homepage-spaces"
+import { errorMessage, listSpaces, type SpaceListResponse } from "../lib/spaces"
 
-const HOMEPAGE_TAVERN_LIST_LIMIT = 12
+const HOMEPAGE_SPACE_LIST_LIMIT = 12
 
-const EMPTY_LIST_RESULT: TavernListResponse = { taverns: [], count: 0 }
+const EMPTY_LIST_RESULT: SpaceListResponse = { spaces: [], count: 0 }
 
 export default function HomeRoute() {
-  const [result, setResult] = useState<TavernListResponse>(EMPTY_LIST_RESULT)
+  const [result, setResult] = useState<SpaceListResponse>(EMPTY_LIST_RESULT)
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(true)
   const { toggleTheme } = useTheme()
@@ -20,7 +20,7 @@ export default function HomeRoute() {
     setLoading(true)
     setError("")
 
-    listTaverns({ limit: HOMEPAGE_TAVERN_LIST_LIMIT, offset: 0 })
+    listSpaces({ limit: HOMEPAGE_SPACE_LIST_LIMIT, offset: 0 })
       .then((data) => {
         if (!cancelled) setResult(data)
       })
@@ -39,7 +39,7 @@ export default function HomeRoute() {
   const homepage = buildHomepageView(result, error)
 
   return (
-    <FableMapHomeReference
+    <FableSpaceHomeReference
       variant="black"
       featuredCitySlices={homepage.featuredCitySlices}
       isLoading={loading}

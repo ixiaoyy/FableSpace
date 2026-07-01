@@ -8,8 +8,8 @@ Do not override `AGENTS.md`, `docs/ARCHITECTURE.md`, `docs/WORLD_SCHEMA.md`, or 
 
 Current backend principles:
 
-- Real-coordinate tavern anchoring.
-- Owner-authored tavern/NPC/world content.
+- Real-coordinate space anchoring.
+- Owner-authored space/NPC/world content.
 - Owner LLM config and API keys are sensitive.
 - Public/owner/visitor payloads must stay separate.
 - Prefer native `/api/v1/*` boundaries; legacy compatibility is not the home for new work.
@@ -26,13 +26,13 @@ Current backend principles:
 
 - API envelope: [api-response-envelope-contract.md](./api-response-envelope-contract.md)
 - Platform homepage aggregates: [platform-home-api-contract.md](./platform-home-api-contract.md)
-- Tavern list/detail optimization: [tavern-api-response-contract.md](./tavern-api-response-contract.md)
-- Default DB tavern list performance: [default-db-tavern-list-performance.md](./default-db-tavern-list-performance.md)
+- Space list/detail optimization: [space-api-response-contract.md](./space-api-response-contract.md)
+- Default DB space list performance: [default-db-space-list-performance.md](./default-db-space-list-performance.md)
 - Clue hunt routes/sessions/rewards: [clue-hunt-api-contract.md](./clue-hunt-api-contract.md)
 - NPC vividness prompt: [npc-vividness-prompt-contract.md](./npc-vividness-prompt-contract.md)
-- Share: [tavern-share-api-contract.md](./tavern-share-api-contract.md)
+- Share: [space-share-api-contract.md](./space-share-api-contract.md)
 - State cards / GM / episode / voice / souvenir / skill packs / preset import: corresponding `*-contract.md` files.
-- Territory / engagement / special tavern types / NPC dynamic responses: corresponding focused files.
+- Territory / engagement / special space types / NPC dynamic responses: corresponding focused files.
 
 ## Pre-development checklist
 
@@ -50,7 +50,7 @@ Current backend principles:
 ## Anti-patterns
 
 - Route-level persistence/business logic.
-- Raw tavern records returned to public endpoints.
+- Raw space records returned to public endpoints.
 - Secret leakage.
 - Platform-generated content bypassing owner confirmation.
 - Combat/level/equipment/ranking/social-network directions.

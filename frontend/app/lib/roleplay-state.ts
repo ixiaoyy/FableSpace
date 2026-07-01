@@ -1,10 +1,10 @@
-import type { RoleplayState, Tavern, TavernCharacter } from "./taverns"
+import type { RoleplayState, Space, SpaceCharacter } from "./spaces"
 
-export function fallbackRoleplayState(tavern: Tavern, characters: TavernCharacter[]): RoleplayState {
+export function fallbackRoleplayState(space: Space, characters: SpaceCharacter[]): RoleplayState {
   return {
-    tavern_id: tavern.id,
-    roleplay_mode: tavern.roleplay_mode || "ai_only",
-    claims: tavern.character_claims || [],
+    space_id: space.id,
+    roleplay_mode: space.roleplay_mode || "ai_only",
+    claims: space.character_claims || [],
     characters: characters.map((character) => ({
       id: character.id,
       name: character.name,

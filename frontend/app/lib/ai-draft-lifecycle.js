@@ -17,7 +17,7 @@ export const AI_DRAFT_LIFECYCLE_STEPS = [
 ]
 
 const CONTEXT_COPY = {
-  tavern: {
+  space: {
     title: '空间草稿确认流程',
     summary: 'AI 草稿只填入可编辑表单；店主检查并点击「创建空间」后，才会保存为正式空间和首个 NPC。',
     guardrails: [
@@ -46,8 +46,8 @@ const CONTEXT_COPY = {
   },
 }
 
-export function buildAiDraftLifecycle(context = 'tavern') {
-  const copy = CONTEXT_COPY[context] || CONTEXT_COPY.tavern
+export function buildAiDraftLifecycle(context = 'space') {
+  const copy = CONTEXT_COPY[context] || CONTEXT_COPY.space
   return {
     context,
     steps: AI_DRAFT_LIFECYCLE_STEPS.map((step) => ({ ...step })),

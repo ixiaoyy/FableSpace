@@ -1,6 +1,6 @@
 # API Response Envelope Contract
 
-> Global JSON transport envelope for FableMap API responses.
+> Global JSON transport envelope for FableSpace API responses.
 
 ## Scenario: Transitional `{data, meta}` API envelope
 
@@ -8,7 +8,7 @@
 
 Use this when changing FastAPI app shells, response middleware, API error handlers, or route/client contracts that depend on response shape.
 
-This is a transport contract only. It does not add persisted Tavern / Character / VisitorState / WorldInfo fields and does not require DB schema or enum migration by itself.
+This is a transport contract only. It does not add persisted Space / Character / VisitorState / WorldInfo fields and does not require DB schema or enum migration by itself.
 
 ### 2. Signatures
 
@@ -32,8 +32,8 @@ build_response_envelope(
 
 Registered app shells:
 
-- `backend/src/fablemap_api/app_factory.py`: wraps `/api/v1/*` JSON responses.
-- `backend/src/fablemap_api/core/web/app.py`: wraps legacy/core `/api/*` JSON responses while that compatibility surface exists.
+- `backend/src/fablespace_api/app_factory.py`: wraps `/api/v1/*` JSON responses.
+- `backend/src/fablespace_api/core/web/app.py`: wraps legacy/core `/api/*` JSON responses while that compatibility surface exists.
 
 ### 3. Contracts
 

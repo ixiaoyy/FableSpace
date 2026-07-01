@@ -1,18 +1,18 @@
-import type { Tavern } from "../lib/taverns"
+import type { Space } from "../lib/spaces"
 import { buildDiscoveryLiveliness } from "../lib/discovery-liveliness.js"
 
 type DiscoveryLivelinessStripProps = {
-  tavern: Tavern
+  space: Space
   compact?: boolean
   muted?: boolean
 }
 
 export function DiscoveryLivelinessStrip({
-  tavern,
+  space,
   compact = false,
   muted = false,
 }: DiscoveryLivelinessStripProps) {
-  const liveliness = buildDiscoveryLiveliness(tavern)
+  const liveliness = buildDiscoveryLiveliness(space)
   const chips = compact ? liveliness.chips.slice(0, 3) : liveliness.chips
 
   return (

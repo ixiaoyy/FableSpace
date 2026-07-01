@@ -9,7 +9,7 @@ import { useEffect, useState } from "react"
 import { getEngagementConfig, sendGift, type EngagementConfig, type GiftCatalogItem, type SendGiftResult } from "../lib/engagement"
 
 type GiftPanelProps = {
-  tavernId: string
+  spaceId: string
   userId?: string
   characterId: string
   characterName: string
@@ -63,22 +63,22 @@ function GiftCard({
   )
 }
 
-export function GiftPanel({ tavernId, userId = "", characterId, characterName, balance, coinLabel, onGiftSent }: GiftPanelProps) {
+export function GiftPanel({ spaceId, userId = "", characterId, characterName, balance, coinLabel, onGiftSent }: GiftPanelProps) {
   const [config, setConfig] = useState<EngagementConfig | null>(null)
   const [sendingGiftId, setSendingGiftId] = useState<string | null>(null)
   const [resultMsg, setResultMsg] = useState<{ type: "success" | "error"; text: string } | null>(null)
 
   useEffect(() => {
-    getEngagementConfig(tavernId, userId)
+    getEngagementConfig(spaceId, userId)
       .then(setConfig)
       .catch(() => setConfig(null))
-  }, [tavernId, userId])
+  }, [spaceId, userId])
 
   async function handleSendGift(giftId: string) {
     setSendingGiftId(giftId)
     setResultMsg(null)
     try {
-      const result = await sendGift(tavernId, characterId, giftId, userId)
+      const result = await sendGift(spaceId, characterId, giftId, userId)
       if (result.success) {
         setResultMsg({ type: "success", text: result.narration || `${result.gift_id} 已送出！好感 +${result.affinity_delta}` })
         onGiftSent?.(result)

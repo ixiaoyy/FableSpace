@@ -1,14 +1,14 @@
 import { useRef, useState } from 'react'
 import { Link } from 'react-router'
-import { parseCharacterCard, extractCharacterCardPayloadFromPng } from './services/tavernService'
+import { parseCharacterCard, extractCharacterCardPayloadFromPng } from './services/spaceService'
 import { buildAiDraftLifecycle } from '../lib/ai-draft-lifecycle.js'
 import {
   DIGITAL_HUMAN_DRAFT_FORBIDDEN,
   DIGITAL_HUMAN_DRAFT_STYLE_TAGS,
   DIGITAL_HUMAN_STUDIO_TYPE_ID,
 } from '../lib/digital-human-studio.js'
-import { deriveSpecialTavernTypeDisplay } from '../lib/special-tavern-types.js'
-import { addCharacter, deleteCharacter, exportCharacterCard, generateCharacterDraft, importCharacterCard, listCharacters, updateCharacter } from '../lib/taverns'
+import { deriveSpecialSpaceTypeDisplay } from '../lib/special-space-types.js'
+import { addCharacter, deleteCharacter, exportCharacterCard, generateCharacterDraft, importCharacterCard, listCharacters, updateCharacter } from '../lib/spaces'
 import CharacterEditor, { createEmptyCharacterDraft, normalizeCharacterPayload } from './CharacterEditor'
 import CharacterAvatar from './CharacterAvatar'
 import CharacterLookSummary from './CharacterLookSummary'
@@ -42,17 +42,17 @@ import {
  *
  * 允许店主从空间添加、编辑、导入和删除角色。
  *
- * @param {object}   tavern        - 当前空间数据
+ * @param {object}   space        - 当前空间数据
  * @param {string}   ownerId       - 店主 ID
  * @param {Function} onClose       - () => void 关闭回调
  * @param {Function} onCharactersChanged - (characters) => void 角色变动回调（用于更新父组件）
  */
-export default function CharacterManagementModal({ tavern, ownerId, onClose, onCharactersChanged }) {
-  const specialTavernType = deriveSpecialTavernTypeDisplay(tavern || {})
-  const isDigitalHumanStudio = specialTavernType?.id === DIGITAL_HUMAN_STUDIO_TYPE_ID
+export default function CharacterManagementModal({ space, ownerId, onClose, onCharactersChanged }) {
+  const specialSpaceType = deriveSpecialSpaceTypeDisplay(space || {})
+  const isDigitalHumanStudio = specialSpaceType?.id === DIGITAL_HUMAN_STUDIO_TYPE_ID
   const defaultAiDraftStyleTags = isDigitalHumanStudio ? DIGITAL_HUMAN_DRAFT_STYLE_TAGS : DEFAULT_AI_DRAFT_STYLE_TAGS
   const defaultAiDraftForbidden = isDigitalHumanStudio ? DIGITAL_HUMAN_DRAFT_FORBIDDEN : DEFAULT_AI_DRAFT_FORBIDDEN
-  const [characters, setCharacters] = useState(tavern?.characters || [])
+  const [characters, setCharacters] = useState(space?.characters || [])
   const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
@@ -98,7 +98,7 @@ export default function CharacterManagementModal({ tavern, ownerId, onClose, onC
   // 拉取最新角色列表
   async function refreshCharacters() {
     try {
-      const result = await listCharacters(tavern.id, ownerId)
+      const result = await listCharacters(space.id, ownerId)
       const list = result?.characters || []
       setCharacters(list)
       if (onCharactersChanged) onCharactersChanged(list)
@@ -161,7 +161,7 @@ export default function CharacterManagementModal({ tavern, ownerId, onClose, onC
       batchPreview.forEach((draft) => assertCharacterPromptRiskCanSave(draft))
       const savedCharacters = []
       for (const draft of batchPreview) {
-        const saved = await addCharacter(tavern.id, draft, ownerId)
+        const saved = await addCharacter(space.id, draft, ownerId)
         savedCharacters.push(saved)
       }
       const updated = [...characters, ...savedCharacters]
@@ -189,7 +189,7 @@ export default function CharacterManagementModal({ tavern, ownerId, onClose, onC
     setEditorError('')
     try {
       const response = await generateCharacterDraft(
-        tavern.id,
+        space.id,
         createAiCharacterDraftRequest({
           styleTagsText: aiDraftStyleText,
           forbiddenText: aiDraftForbiddenText,
@@ -237,9 +237,9 @@ export default function CharacterManagementModal({ tavern, ownerId, onClose, onC
     try {
       let saved
       if (editingChar === 'new') {
-        saved = await addCharacter(tavern.id, payload, ownerId)
+        saved = await addCharacter(space.id, payload, ownerId)
       } else {
-        saved = await updateCharacter(tavern.id, editingChar.id, payload, ownerId)
+        saved = await updateCharacter(space.id, editingChar.id, payload, ownerId)
       }
       const updated = editingChar === 'new'
         ? [...characters, saved]
@@ -259,7 +259,7 @@ export default function CharacterManagementModal({ tavern, ownerId, onClose, onC
   async function handleDelete(charId) {
     setDeleting(true)
     try {
-      await deleteCharacter(tavern.id, charId, ownerId)
+      await deleteCharacter(space.id, charId, ownerId)
       const updated = characters.filter((c) => c.id !== charId)
       setCharacters(updated)
       if (onCharactersChanged) onCharactersChanged(updated)
@@ -341,7 +341,7 @@ export default function CharacterManagementModal({ tavern, ownerId, onClose, onC
     setImportStatus('')
     try {
       assertCharacterPromptRiskCanSave(pendingImport.cardData)
-      const saved = await importCharacterCard(tavern.id, pendingImport.importPayload, ownerId)
+      const saved = await importCharacterCard(space.id, pendingImport.importPayload, ownerId)
       const updated = [...characters, saved]
       setCharacters(updated)
       if (onCharactersChanged) onCharactersChanged(updated)
@@ -421,7 +421,7 @@ export default function CharacterManagementModal({ tavern, ownerId, onClose, onC
       <div className="modal-content panel char-mgmt-modal">
         {/* Header */}
         <header className="modal-header">
-          <h3>角色管理 — {tavern?.name}</h3>
+          <h3>角色管理 — {space?.name}</h3>
           <button className="close-btn" onClick={onClose}>&times;</button>
         </header>
 
@@ -497,7 +497,7 @@ export default function CharacterManagementModal({ tavern, ownerId, onClose, onC
                     </div>
                     <div className="char-mgmt-item-actions">
                       <Link
-                        to={`/tavern/${tavern.id}/character/${char.id}/prompt?owner_id=${encodeURIComponent(ownerId)}`}
+                        to={`/space/${space.id}/character/${char.id}/prompt?owner_id=${encodeURIComponent(ownerId)}`}
                         className="btn-sm text-cyan-400 hover:underline flex items-center gap-1"
                         style={{ fontSize: '12px', fontWeight: 'bold' }}
                       >
@@ -701,7 +701,7 @@ export default function CharacterManagementModal({ tavern, ownerId, onClose, onC
                 </section>
 
                 <OwnerDialoguePreviewSimulator
-                  tavern={tavern}
+                  space={space}
                   characters={characters}
                   ownerId={ownerId}
                   disabled={batchSaving || saving || importing || deleting || drafting}

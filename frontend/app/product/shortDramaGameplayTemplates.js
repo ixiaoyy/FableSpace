@@ -180,7 +180,7 @@ export const SHORT_DRAMA_GAMEPLAY_TEMPLATES = [
       {
         id: 'boundary',
         kind: 'scene',
-        narration: '你差点把故事推向恐怖方向。FableMap 的空间短剧只做轻悬疑，不制造血腥或真实危险。',
+        narration: '你差点把故事推向恐怖方向。FableSpace 的空间短剧只做轻悬疑，不制造血腥或真实危险。',
         choices: [
           { id: 'soft-reset', label: '改成“误会一个物件昵称”', next_node_id: 'second-beat' },
           { id: 'owner-rule', label: '请 NPC 说明店内安全规则', next_node_id: 'second-beat' },

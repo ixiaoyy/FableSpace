@@ -14,7 +14,7 @@ const DEFAULT_LON = 116.4074
 
 type TerritoryLoaderData = {
   currentUserId: string
-  tavernId: string
+  spaceId: string
   lat: number
   lon: number
 }
@@ -28,14 +28,14 @@ export async function clientLoader({ request }: ClientLoaderFunctionArgs): Promi
   const url = new URL(request.url)
   return {
     currentUserId: url.searchParams.get("owner_id")?.trim() || DEFAULT_OWNER_ID,
-    tavernId: url.searchParams.get("tavern_id")?.trim() || "",
+    spaceId: url.searchParams.get("space_id")?.trim() || "",
     lat: finiteNumber(url.searchParams.get("lat"), DEFAULT_LAT),
     lon: finiteNumber(url.searchParams.get("lon"), DEFAULT_LON),
   }
 }
 
 export default function TerritoryRoute() {
-  const { currentUserId, tavernId, lat, lon } = useLoaderData<typeof clientLoader>()
+  const { currentUserId, spaceId, lat, lon } = useLoaderData<typeof clientLoader>()
   const [refreshKey, setRefreshKey] = useState(0)
 
   return (
@@ -78,7 +78,7 @@ export default function TerritoryRoute() {
             <CardContent>
               <TerritoryClaimPanel
                 userId={currentUserId}
-                tavernId={tavernId || null}
+                spaceId={spaceId || null}
                 initialLat={lat}
                 initialLon={lon}
                 onCancel={null}

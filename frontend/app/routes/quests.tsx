@@ -3,7 +3,7 @@ import { ArrowRight, Compass, MapPinned, ShieldCheck, Sparkles } from "lucide-re
 import { Link, useLoaderData } from "react-router"
 
 import { buildQuestGuideSummary } from "../lib/quest-guide.js"
-import { DEFAULT_OWNER_ID, errorMessage, listTaverns, type Tavern } from "../lib/taverns"
+import { DEFAULT_OWNER_ID, errorMessage, listSpaces, type Space } from "../lib/spaces"
 import { ProductShell } from "../shell/product-shell"
 import { Button } from "../ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card"
@@ -12,11 +12,11 @@ export async function clientLoader({ request }: ClientLoaderFunctionArgs) {
   const url = new URL(request.url)
   const ownerId = url.searchParams.get("owner_id")?.trim() || DEFAULT_OWNER_ID
   const errors: string[] = []
-  let taverns: Tavern[] = []
+  let spaces: Space[] = []
 
   try {
-    const result = await listTaverns({})
-    taverns = result.taverns || []
+    const result = await listSpaces({})
+    spaces = result.spaces || []
   } catch (error) {
     errors.push(`读取探索指南数据失败：${errorMessage(error)}`)
   }
@@ -24,7 +24,7 @@ export async function clientLoader({ request }: ClientLoaderFunctionArgs) {
   return {
     ownerId,
     errors,
-    summary: buildQuestGuideSummary({ taverns, ownerId }),
+    summary: buildQuestGuideSummary({ spaces, ownerId }),
   }
 }
 
@@ -88,11 +88,11 @@ export default function QuestsRoute() {
             <CardContent className="grid gap-3 text-sm">
               <div className="rounded-2xl border border-theme-border bg-theme-card p-4">
                 <p className="text-theme-muted">可见空间</p>
-                <p className="mt-1 text-2xl font-black text-theme-primary">{summary.metrics.taverns}</p>
+                <p className="mt-1 text-2xl font-black text-theme-primary">{summary.metrics.spaces}</p>
               </div>
               <div className="rounded-2xl border border-theme-border bg-theme-card p-4">
                 <p className="text-theme-muted">开放入口</p>
-                <p className="mt-1 text-2xl font-black text-theme-primary">{summary.metrics.openTaverns}</p>
+                <p className="mt-1 text-2xl font-black text-theme-primary">{summary.metrics.openSpaces}</p>
               </div>
               <div className="rounded-2xl border border-theme-border bg-theme-card p-4">
                 <p className="text-theme-muted">可认识 NPC</p>
@@ -116,7 +116,7 @@ export default function QuestsRoute() {
             </Card>
             <Card className="p-5">
               <p className="text-xs font-black uppercase tracking-[0.2em] text-emerald-100/62">玩法空间</p>
-              <p className="mt-3 text-3xl font-black text-theme-primary">{summary.metrics.questPlayTaverns}</p>
+              <p className="mt-3 text-3xl font-black text-theme-primary">{summary.metrics.questPlaySpaces}</p>
               <p className="mt-2 text-sm text-theme-muted">含探索布局或已发布玩法</p>
             </Card>
           </div>

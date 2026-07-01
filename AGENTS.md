@@ -1,6 +1,6 @@
 # AGENTS.md
 
-本文件是 FableMap 项目的 AI 协作硬约束入口。所有 AI / Codex / Claude / 其他 agent 在本仓库内工作时，必须先遵守本文件，再按任务读取相关文档。
+本文件是 FableSpace 项目的 AI 协作硬约束入口。所有 AI / Codex / Claude / 其他 agent 在本仓库内工作时，必须先遵守本文件，再按任务读取相关文档。
 
 ## 适用范围
 
@@ -10,7 +10,7 @@
 
 ## 项目定位
 
-FableMap 是一个空间 UGC 平台：每个人都可以在真实地图上开一间自己的空间，配置 AI NPC，接待访客。
+FableSpace 是一个空间 UGC 平台：每个人都可以在真实地图上开一间自己的空间，配置 AI NPC，接待访客。
 
 当前主链路：坐标输入 / 定位 → 真实底图 → 浏览空间 → 进入空间 → 配置 AI NPC → 对话互动 → 写回记忆 → 回访反馈。
 
@@ -29,7 +29,7 @@ FableMap 是一个空间 UGC 平台：每个人都可以在真实地图上开一
 1. `README.md`：项目总览、启动方式、核心模块。
 2. `docs/INDEX.md`：既有文档导航。
 3. `docs/PRODUCT_BRIEF.md`：产品定义与目标体验。
-4. `docs/FABLEMAP_TAVERN_PLATFORM.md`：空间平台主线设计。
+4. `docs/FABLESPACE_SPACE_PLATFORM.md`：空间平台主线设计。
 5. `docs/ARCHITECTURE.md`：系统分层、模块边界、API 端点。
 6. `docs/WORLD_SCHEMA.md`：数据模型与 Schema 约束。
 7. `docs/WHAT_NOT_TO_BUILD.md`：明确不做清单。
@@ -74,7 +74,7 @@ FableMap 是一个空间 UGC 平台：每个人都可以在真实地图上开一
 
 ### Python 后端
 
-- 兼容产品核心位于 `backend/src/fablemap_api/core/`，回归测试位于 `tests/`；企业级 v1 后端位于 `backend/src/fablemap_api/`，新后端测试位于 `backend/tests/`。
+- 兼容产品核心位于 `backend/src/fablespace_api/core/`，回归测试位于 `tests/`；企业级 v1 后端位于 `backend/src/fablespace_api/`，新后端测试位于 `backend/tests/`。
 - 优先保持标准库 + `requirements.txt` 中已有依赖；新增依赖必须先说明理由并获得确认。
 - API / Schema 改动必须同步相关测试与文档。
 - 持久化、对话历史、记忆写回相关逻辑要保持可落库、可回放、可测试。
@@ -89,7 +89,7 @@ FableMap 是一个空间 UGC 平台：每个人都可以在真实地图上开一
 
 ### 数据与兼容
 
-- Tavern / TavernCharacter / WorldInfoEntry / VisitorState 等核心数据结构必须与 `docs/WORLD_SCHEMA.md` 保持一致。
+- Space / SpaceCharacter / WorldInfoEntry / VisitorState 等核心数据结构必须与 `docs/WORLD_SCHEMA.md` 保持一致。
 - SillyTavern 角色卡导入/导出兼容性不能被无意破坏。
 - 店主 API Key、LLM 配置、Token 统计相关改动必须默认按敏感数据处理，不得写入日志或暴露给访客。
 

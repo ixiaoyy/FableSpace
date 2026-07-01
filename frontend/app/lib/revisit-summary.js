@@ -13,7 +13,7 @@ function clamp(value, min, max) {
   return Math.max(min, Math.min(max, value))
 }
 
-function tavernLabel(name) {
+function spaceLabel(name) {
   const value = String(name || "").trim()
   return value ? `「${value}」` : "这间空间"
 }
@@ -46,7 +46,7 @@ export function buildRevisitCue(visitorState, options = {}) {
   const available = Boolean(
     visitCount > 0
       || state.visitor_id
-      || state.tavern_id
+      || state.space_id
       || relationshipStage
       || relationshipStrength > 0,
   )
@@ -68,7 +68,7 @@ export function buildRevisitCue(visitorState, options = {}) {
 
   const isReturning = visitCount >= 2 || isEstablishedStage(relationshipStage)
   const safeVisitCount = Math.max(1, visitCount)
-  const label = tavernLabel(options.tavernName)
+  const label = spaceLabel(options.spaceName)
   const characterName = String(options.characterName || "").trim()
   const target = characterName || "NPC"
 

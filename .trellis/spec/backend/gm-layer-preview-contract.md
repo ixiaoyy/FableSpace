@@ -1,4 +1,4 @@
-# Tavern GM Layer Preview API Contract
+# Space GM Layer Preview API Contract
 
 > Backend contract for preview-only structured GM suggestions on top of State Cards / Canon Ledger.
 
@@ -6,10 +6,10 @@
 
 Use this guide when changing:
 
-- `backend/src/fablemap_api/core/gm_layer.py`
-- `backend/src/fablemap_api/application/services/state_cards.py` `preview_gm_layer(...)`
-- `backend/src/fablemap_api/api/v1/state_cards.py` GM Layer preview route
-- frontend callers for `/api/v1/taverns/{id}/gm-layer/preview`
+- `backend/src/fablespace_api/core/gm_layer.py`
+- `backend/src/fablespace_api/application/services/state_cards.py` `preview_gm_layer(...)`
+- `backend/src/fablespace_api/api/v1/state_cards.py` GM Layer preview route
+- frontend callers for `/api/v1/spaces/{id}/gm-layer/preview`
 
 The GM Layer is an AI-adjacent feature, but this MVP is deterministic and preview-only. It must reinforce the State Card confirmation loop instead of silently writing canon.
 
@@ -18,7 +18,7 @@ The GM Layer is an AI-adjacent feature, but this MVP is deterministic and previe
 ```python
 preview_gm_layer_candidates(
     *,
-    tavern_id: str,
+    space_id: str,
     visitor_id: str,
     character_id: str = "",
     user_message: str = "",
@@ -31,13 +31,13 @@ preview_gm_layer_candidates(
 ```
 
 ```http
-POST /api/v1/taverns/{tavern_id}/gm-layer/preview
+POST /api/v1/spaces/{space_id}/gm-layer/preview
 ```
 
 Application method:
 
 ```python
-preview_gm_layer(tavern_id: str, data: dict[str, Any], user_id: str = "") -> dict[str, Any]
+preview_gm_layer(space_id: str, data: dict[str, Any], user_id: str = "") -> dict[str, Any]
 ```
 
 ## Contracts
@@ -60,8 +60,8 @@ Response shape:
 ```json
 {
   "ok": true,
-  "tavern_id": "...",
-  "tavern_name": "...",
+  "space_id": "...",
+  "space_name": "...",
   "visitor_id": "...",
   "gm_mode": "structured_conflict_v1",
   "preview_only": true,
@@ -94,7 +94,7 @@ Rules:
 
 - Preview must not call LLM providers.
 - Preview must not persist candidates to `_state_cards`.
-- Preview must not mutate `Tavern`, `TavernCharacter`, `WorldInfoEntry`, owner LLM config, access rules, or role cards.
+- Preview must not mutate `Space`, `SpaceCharacter`, `WorldInfoEntry`, owner LLM config, access rules, or role cards.
 - All candidates remain `pending` and require the existing State Card decision flow before becoming structured canon.
 - Summaries are observable text snippets only; do not store hidden prompts or chain-of-thought.
 
@@ -102,9 +102,9 @@ Rules:
 
 | Case | Expected |
 |------|----------|
-| Missing tavern | `404 {"error": "空间不存在"}` |
+| Missing space | `404 {"error": "空间不存在"}` |
 | Missing `X-User-Id` / user identity | `401 {"error": "GM Layer 预览需要明确用户身份"}` |
-| Private tavern viewed by non-owner | `403 {"error": "此空间是私人的"}` |
+| Private space viewed by non-owner | `403 {"error": "此空间是私人的"}` |
 | Visitor previews another `visitor_id` | `403 {"error": "不能为其他访客预览 GM Layer 候选"}` |
 | Owner previews any visitor | `200`, response `visitor_id` matches requested visitor |
 | Empty user/assistant turn text | `400`, user-facing message mentions 回合文本 |
@@ -120,7 +120,7 @@ Rules:
 ## Tests Required
 
 ```powershell
-py -3 -m pytest -q tests/test_tavern_gm_layer.py backend/tests/test_v1_gm_layer.py --tb=short
+py -3 -m pytest -q tests/test_space_gm_layer.py backend/tests/test_v1_gm_layer.py --tb=short
 py -3 -m compileall -q backend/src
 ```
 
@@ -129,7 +129,7 @@ Assertion points:
 - `preview_gm_layer_candidates(...)` emits StateCard-compatible dictionaries with `metadata.gm_layer`.
 - API response is `preview_only=true` / `applied=false`.
 - API preview does not persist cards.
-- Missing identity, wrong visitor scope, and private tavern visibility are covered.
+- Missing identity, wrong visitor scope, and private space visibility are covered.
 
 ## Wrong vs Correct
 
@@ -137,7 +137,7 @@ Assertion points:
 
 ```python
 for card in preview_cards:
-    self.store.save_state_card(tavern_id, card)
+    self.store.save_state_card(space_id, card)
 return {"ok": True, "state_cards": [card.to_dict() for card in preview_cards]}
 ```
 

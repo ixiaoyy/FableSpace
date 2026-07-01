@@ -9,7 +9,7 @@ import { useState } from "react"
 import { redeemVoucher, type RedeemVoucherResult } from "../lib/engagement"
 
 type BonusDrawCTAProps = {
-  tavernId: string
+  spaceId: string
   userId?: string
   balance: number
   coinLabel: string
@@ -20,7 +20,7 @@ type BonusDrawCTAProps = {
 }
 
 export function BonusDrawCTA({
-  tavernId,
+  spaceId,
   userId = "",
   balance,
   coinLabel,
@@ -39,7 +39,7 @@ export function BonusDrawCTA({
     setLoading(true)
     setResult(null)
     try {
-      const res = await redeemVoucher(tavernId, userId)
+      const res = await redeemVoucher(spaceId, userId)
       if (res.success) {
         setResult({ type: "success", text: `获得 1 张抽奖券！剩余：${res.vouchers_remaining}` })
         onRedeemed?.(res)

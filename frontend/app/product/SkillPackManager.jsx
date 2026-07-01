@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { listSkillPacks, saveSkillPacks } from '../lib/taverns'
+import { listSkillPacks, saveSkillPacks } from '../lib/spaces'
 
 const SPATIAL_PACKS = ['local-rumor', 'neighborhood-knowledge', 'territory-awareness']
 
@@ -13,7 +13,7 @@ function normalizeLimit(value) {
   return Math.max(1, Math.min(10, parsed))
 }
 
-export default function SkillPackManager({ tavern, ownerId = '', onClose, onUpdated }) {
+export default function SkillPackManager({ space, ownerId = '', onClose, onUpdated }) {
   const [availablePacks, setAvailablePacks] = useState([])
   const [settings, setSettings] = useState([])
   const [loading, setLoading] = useState(true)
@@ -21,16 +21,16 @@ export default function SkillPackManager({ tavern, ownerId = '', onClose, onUpda
   const [error, setError] = useState('')
   const [status, setStatus] = useState('')
 
-  const tavernId = tavern?.id || ''
+  const spaceId = space?.id || ''
 
   useEffect(() => {
     let cancelled = false
     async function load() {
-      if (!tavernId) return
+      if (!spaceId) return
       setLoading(true)
       setError('')
       try {
-        const result = await listSkillPacks(tavernId, ownerId)
+        const result = await listSkillPacks(spaceId, ownerId)
         if (cancelled) return
         setAvailablePacks(Array.isArray(result?.available_packs) ? result.available_packs : [])
         setSettings(Array.isArray(result?.skill_packs) ? result.skill_packs : [])
@@ -44,7 +44,7 @@ export default function SkillPackManager({ tavern, ownerId = '', onClose, onUpda
     return () => {
       cancelled = true
     }
-  }, [tavernId, ownerId])
+  }, [spaceId, ownerId])
 
   const mergedSettings = useMemo(() => {
     return availablePacks.map((pack) => settingFor(settings, pack.id))
@@ -64,7 +64,7 @@ export default function SkillPackManager({ tavern, ownerId = '', onClose, onUpda
   }
 
   async function handleSave() {
-    if (!tavernId) return
+    if (!spaceId) return
     setSaving(true)
     setError('')
     setStatus('')
@@ -77,10 +77,10 @@ export default function SkillPackManager({ tavern, ownerId = '', onClose, onUpda
           limit: normalizeLimit(item.config?.limit) 
         },
       }))
-      const result = await saveSkillPacks(tavernId, payload, ownerId)
+      const result = await saveSkillPacks(spaceId, payload, ownerId)
       setSettings(Array.isArray(result?.skill_packs) ? result.skill_packs : payload)
       setStatus('技能包设置已保存。')
-      onUpdated?.({ ...(tavern || {}), skill_packs: result?.skill_packs || payload })
+      onUpdated?.({ ...(space || {}), skill_packs: result?.skill_packs || payload })
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err || '保存技能包失败'))
     } finally {
@@ -93,8 +93,8 @@ export default function SkillPackManager({ tavern, ownerId = '', onClose, onUpda
       <div className="modal skill-pack-manager">
         <div className="modal-header">
           <div>
-            <p className="mini-label">Tavern Skill Packs</p>
-            <h2>技能包 · {tavern?.name || '未命名空间'}</h2>
+            <p className="mini-label">Space Skill Packs</p>
+            <h2>技能包 · {space?.name || '未命名空间'}</h2>
             <p className="note muted">技能包提供环境传闻、周边知识等特定维度的感知能力，只增强当前对话参考，不会写入正史。</p>
           </div>
           <button className="close-btn" type="button" onClick={onClose}>&times;</button>

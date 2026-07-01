@@ -1,6 +1,6 @@
-# FableMap 系统架构
+# FableSpace 系统架构
 
-本文档描述当前空间平台的实现分层。产品主线见 [FABLEMAP_TAVERN_PLATFORM.md](FABLEMAP_TAVERN_PLATFORM.md)，字段约束见 [WORLD_SCHEMA.md](WORLD_SCHEMA.md)。
+本文档描述当前空间平台的实现分层。产品主线见 [FABLESPACE_SPACE_PLATFORM.md](FABLESPACE_SPACE_PLATFORM.md)，字段约束见 [WORLD_SCHEMA.md](WORLD_SCHEMA.md)。
 
 ## 总览
 
@@ -13,7 +13,7 @@ Frontend (React Router / Vite)
   -> SQLAlchemy database or explicit JSON fallback
 ```
 
-FableMap 同时保留两类 API 面：
+FableSpace 同时保留两类 API 面：
 
 - `/api/*`：旧兼容层和本地一体化页面使用。
 - `/api/v1/*`：当前原生后端接口面，前端新代码优先使用。
@@ -22,13 +22,13 @@ FableMap 同时保留两类 API 面：
 
 | 区域 | 主要路径 | 说明 |
 |------|----------|------|
-| 后端本地一体化入口 | `backend/src/fablemap_api/core/api.py` | `py -3 -m fablemap_api api`，默认端口 `8950`，可托管前端构建。 |
-| 后端 ASGI 入口 | `backend/src/fablemap_api/main.py` | Docker / uvicorn 使用。 |
-| 旧兼容 Web app | `backend/src/fablemap_api/core/web/app.py` | 组合 `/api/*` 和 `/api/v1/*`。 |
-| v1 路由 | `backend/src/fablemap_api/api/v1/` | 当前原生 API 路由。 |
-| 应用服务 | `backend/src/fablemap_api/application/services/` | API orchestration，不直接放 UI 逻辑。 |
-| 核心领域 | `backend/src/fablemap_api/core/` | Tavern、玩法、记忆、LLM、状态卡等核心规则。 |
-| 持久化 | `backend/src/fablemap_api/infrastructure/` | SQLAlchemy models、stores、迁移工具。 |
+| 后端本地一体化入口 | `backend/src/fablespace_api/core/api.py` | `py -3 -m fablespace_api api`，默认端口 `8950`，可托管前端构建。 |
+| 后端 ASGI 入口 | `backend/src/fablespace_api/main.py` | Docker / uvicorn 使用。 |
+| 旧兼容 Web app | `backend/src/fablespace_api/core/web/app.py` | 组合 `/api/*` 和 `/api/v1/*`。 |
+| v1 路由 | `backend/src/fablespace_api/api/v1/` | 当前原生 API 路由。 |
+| 应用服务 | `backend/src/fablespace_api/application/services/` | API orchestration，不直接放 UI 逻辑。 |
+| 核心领域 | `backend/src/fablespace_api/core/` | Space、玩法、记忆、LLM、状态卡等核心规则。 |
+| 持久化 | `backend/src/fablespace_api/infrastructure/` | SQLAlchemy models、stores、迁移工具。 |
 | 前端入口 | `frontend/app/` | React Router routes、features、lib。 |
 | 产品兼容模块 | `frontend/app/product/` | 历史产品模块和兼容服务。 |
 
@@ -40,40 +40,40 @@ FableMap 同时保留两类 API 面：
 
 - 接收坐标、半径、定位等地理输入。
 - 拉取或读取 OSM / Overpass 风格数据。
-- 为 Tavern 提供真实地图锚点。
+- 为 Space 提供真实地图锚点。
 
 原则：AI 不创造坐标，不替代真实地理骨架。
 
 关键路径：
 
-- `backend/src/fablemap_api/core/overpass.py`
-- `backend/src/fablemap_api/core/nearby.py`
+- `backend/src/fablespace_api/core/overpass.py`
+- `backend/src/fablespace_api/core/nearby.py`
 - `frontend/app/product/WorldMap.jsx`
 
-### Tavern Platform Core
+### Space Platform Core
 
 职责：
 
-- Tavern CRUD、访问控制、公开分享 payload。
+- Space CRUD、访问控制、公开分享 payload。
 - NPC / 角色卡管理。
 - LLM 配置和敏感 Key 隔离。
 - 玩法定义、玩法会话、状态卡、技能包、预设导入预览。
 
 关键路径：
 
-- `backend/src/fablemap_api/core/tavern.py`
-- `backend/src/fablemap_api/core/gameplay.py`
-- `backend/src/fablemap_api/core/state_cards.py`
-- `backend/src/fablemap_api/core/skill_packs.py`
-- `backend/src/fablemap_api/core/preset_import.py`
-- `backend/src/fablemap_api/application/services/`
-- `backend/src/fablemap_api/api/v1/`
+- `backend/src/fablespace_api/core/space.py`
+- `backend/src/fablespace_api/core/gameplay.py`
+- `backend/src/fablespace_api/core/state_cards.py`
+- `backend/src/fablespace_api/core/skill_packs.py`
+- `backend/src/fablespace_api/core/preset_import.py`
+- `backend/src/fablespace_api/application/services/`
+- `backend/src/fablespace_api/api/v1/`
 
 原则：
 
 - Owner-only 配置不能暴露给访客。
 - AI 候选不能直接改写店主正史。
-- 运行时私有桶不进入公开 Tavern payload。
+- 运行时私有桶不进入公开 Space payload。
 
 ### Experience Layer
 
@@ -87,7 +87,7 @@ FableMap 同时保留两类 API 面：
 
 - `frontend/app/routes/`
 - `frontend/app/features/`
-- `frontend/app/lib/taverns.ts`
+- `frontend/app/lib/spaces.ts`
 - `frontend/app/product/`
 
 前端 API 调用边界：
@@ -107,11 +107,11 @@ FableMap 同时保留两类 API 面：
 
 关键路径：
 
-- `backend/src/fablemap_api/core/llm_clients.py`
-- `backend/src/fablemap_api/core/prompt_builder.py`
-- `backend/src/fablemap_api/core/world_info_injector.py`
-- `backend/src/fablemap_api/core/output_rules.py`
-- `backend/src/fablemap_api/core/gameplay.py`
+- `backend/src/fablespace_api/core/llm_clients.py`
+- `backend/src/fablespace_api/core/prompt_builder.py`
+- `backend/src/fablespace_api/core/world_info_injector.py`
+- `backend/src/fablespace_api/core/output_rules.py`
+- `backend/src/fablespace_api/core/gameplay.py`
 
 原则：
 
@@ -125,18 +125,18 @@ FableMap 同时保留两类 API 面：
 
 关键路径：
 
-- `backend/src/fablemap_api/infrastructure/models.py`
-- `backend/src/fablemap_api/infrastructure/storage.py`
-- `backend/src/fablemap_api/infrastructure/mysql_store.py`
-- `backend/src/fablemap_api/infrastructure/migrate_database.py`
-- `backend/src/fablemap_api/infrastructure/migrate.py`
+- `backend/src/fablespace_api/infrastructure/models.py`
+- `backend/src/fablespace_api/infrastructure/storage.py`
+- `backend/src/fablespace_api/infrastructure/mysql_space_store.py`
+- `backend/src/fablespace_api/infrastructure/migrate_database.py`
+- `backend/src/fablespace_api/infrastructure/migrate.py`
 
 存储选择：
 
-- 默认：`FABLEMAP_STORAGE_BACKEND=database`
-- 设置 `FABLEMAP_DATABASE_URL` / `FABLEMAP_MYSQL_URL`：使用对应 SQLAlchemy URL
-- 未设置数据库 URL：使用 `<output-root>/fablemap.sqlite3`
-- 显式 `FABLEMAP_STORAGE_BACKEND=json`：使用旧 JSON 兼容存储
+- 默认：`FABLESPACE_STORAGE_BACKEND=database`
+- 设置 `FABLESPACE_DATABASE_URL` / `FABLESPACE_MYSQL_URL`：使用对应 SQLAlchemy URL
+- 未设置数据库 URL：使用 `<output-root>/fablespace.sqlite3`
+- 显式 `FABLESPACE_STORAGE_BACKEND=json`：使用旧 JSON 兼容存储
 
 主要表：
 
@@ -148,11 +148,13 @@ FableMap 同时保留两类 API 面：
 - `relationship_edges` / `visitor_relationship_projections`
 - `npc_public_bonds` / `npc_public_bond_queues`
 
+说明：对外 API、领域类和前端均使用 Space 命名；当前数据库物理表仍保留 legacy `taverns` 表名以避免无迁移的破坏性 Schema 改动。
+
 ## API 面分组
 
 ### 空间与角色
 
-- Tavern 列表、创建、读取、更新、删除。
+- Space 列表、创建、读取、更新、删除。
 - 公开分享 payload。
 - 进入空间、密码验证。
 - NPC 列表、创建、导入、更新、删除。
@@ -185,14 +187,14 @@ FableMap 同时保留两类 API 面：
 - visual souvenir preview。
 - clue hunts、territories、engagement、notifications。
 
-完整路由以 `backend/src/fablemap_api/api/v1/` 和 `backend/src/fablemap_api/core/web/router.py` 为准。
+完整路由以 `backend/src/fablespace_api/api/v1/` 和 `backend/src/fablespace_api/core/web/router.py` 为准。
 
 ## 安全边界
 
 - `api_key`、owner LLM 配置、token 统计只对 owner 可见。
-- 私密 Tavern / Home 不进入公开发现。
+- 私密 Space / Home 不进入公开发现。
 - 访客只能读取和修改自己范围内的运行时状态。
-- StateCard 的 Tavern-scope 或 `fixed_canon=true` 只能由店主维护。
+- StateCard 的 Space-scope 或 `fixed_canon=true` 只能由店主维护。
 - 跨 owner 的关系边只代表 source owner 视角，不能强迫 target owner 接受。
 - preview / dry-run API 默认不落库，响应必须标明是否 persisted / applied / model_called。
 

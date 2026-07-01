@@ -105,7 +105,7 @@ export const PROMPT_STYLE_DIAL_GROUPS = [
     helper: '只影响表达，不新增未确认世界观。',
     options: [
       {
-        id: 'cyber_tavern',
+        id: 'cyber_space',
         label: '空间',
         detail: '霓虹、吧台、真实坐标。',
         line: '风味：空间感，围绕真实坐标、吧台、灯光、门牌和店主确认设定表达。',
@@ -131,11 +131,11 @@ export const DEFAULT_PROMPT_STYLE_DIALS = {
   density: 'balanced',
   perspective: 'second_person_address',
   emotion: 'stable',
-  genre: 'cyber_tavern',
+  genre: 'cyber_space',
 }
 
-export const STYLE_DIALS_START = '【FableMap 风格拨盘】'
-export const STYLE_DIALS_END = '【/FableMap 风格拨盘】'
+export const STYLE_DIALS_START = '【FableSpace 风格拨盘】'
+export const STYLE_DIALS_END = '【/FableSpace 风格拨盘】'
 
 function toText(value) {
   return typeof value === 'string' ? value.trim() : ''
@@ -215,7 +215,7 @@ export function buildPromptLayerPreview(draft = {}, value = {}) {
     },
     {
       id: 'character_card',
-      label: 'TavernCharacter',
+      label: 'SpaceCharacter',
       helper: '来自当前编辑中的角色卡字段。',
       body: [
         `name: ${compact(draft.name, '未命名 NPC')}`,

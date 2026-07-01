@@ -7,12 +7,12 @@ const PLACE_TYPE_KEYWORDS = {
   bookstore: ["书店", "书屋", "旧书", "书架", "阅读"],
   restaurant: ["餐馆", "餐厅", "饭店", "牛排", "食堂", "主厨", "侍者"],
   hospital: ["医院", "诊所", "护士", "护士站", "分诊", "护理", "夜间护理", "急诊"],
-  tavern: ["空间", "酒吧", "酒保", "吧台", "tavern", "bar"],
+  space: ["空间", "酒吧", "酒保", "吧台", "space", "bar"],
 }
 
 export const PLACE_TYPES = [
   {
-    id: "tavern",
+    id: "space",
     label: "空间",
     shortLabel: "空间",
     icon: "🍻",
@@ -120,20 +120,20 @@ function collectTagText(characters) {
   })
 }
 
-function tavernSearchText(tavern = {}) {
+function spaceSearchText(space = {}) {
   const parts = [
-    tavern.name,
-    tavern.description,
-    tavern.address,
-    tavern.scene_prompt,
-    ...collectTagText(tavern.characters),
+    space.name,
+    space.description,
+    space.address,
+    space.scene_prompt,
+    ...collectTagText(space.characters),
   ]
   return parts.map(normalizeText).filter(Boolean).join(" ")
 }
 
 export function normalizePlaceTypeId(value) {
   const normalized = normalizeText(value).replace(/_/g, "-")
-  return PLACE_TYPE_BY_ID.has(normalized) ? normalized : "tavern"
+  return PLACE_TYPE_BY_ID.has(normalized) ? normalized : "space"
 }
 
 export function isDiscoverablePlaceType(value) {
@@ -141,13 +141,13 @@ export function isDiscoverablePlaceType(value) {
   return Boolean(type?.discoverable)
 }
 
-export function derivePlaceType(tavern = {}) {
-  if (tavern && typeof tavern === "object" && "place_type" in tavern) {
-    return normalizePlaceTypeId(tavern.place_type)
+export function derivePlaceType(space = {}) {
+  if (space && typeof space === "object" && "place_type" in space) {
+    return normalizePlaceTypeId(space.place_type)
   }
 
-  const text = tavernSearchText(tavern)
-  if (!text) return "tavern"
+  const text = spaceSearchText(space)
+  if (!text) return "space"
 
   for (const type of PLACE_TYPES) {
     const keywords = PLACE_TYPE_KEYWORDS[type.id] || []
@@ -156,14 +156,14 @@ export function derivePlaceType(tavern = {}) {
     }
   }
 
-  return "tavern"
+  return "space"
 }
 
-export function placeTypeMatchesTavern(tavern, placeTypeId) {
-  return derivePlaceType(tavern) === normalizePlaceTypeId(placeTypeId)
+export function placeTypeMatchesSpace(space, placeTypeId) {
+  return derivePlaceType(space) === normalizePlaceTypeId(placeTypeId)
 }
 
-export function derivePlaceTypeDisplay(tavernOrType = {}) {
-  const typeId = typeof tavernOrType === "string" ? normalizePlaceTypeId(tavernOrType) : derivePlaceType(tavernOrType)
-  return PLACE_TYPE_BY_ID.get(typeId) || PLACE_TYPE_BY_ID.get("tavern")
+export function derivePlaceTypeDisplay(spaceOrType = {}) {
+  const typeId = typeof spaceOrType === "string" ? normalizePlaceTypeId(spaceOrType) : derivePlaceType(spaceOrType)
+  return PLACE_TYPE_BY_ID.get(typeId) || PLACE_TYPE_BY_ID.get("space")
 }

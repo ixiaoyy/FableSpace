@@ -66,7 +66,7 @@
       "Bash(python .trellis/scripts/task.py start 04-30-worldinfo-visual-editor-modern-mvp)",
       "Bash(python .trellis/scripts/add_session.py --title \"Research WorldInfo Visual Editor Modern MVP\" --summary \"Analyzed existing WorldBookEditor.jsx \\(588 lines\\), documented all features, compared with PromptBlockEditor, defined MVP scope \\(loading state, mobile layout, keyboard shortcuts, visual polish\\), updated PRD and created implementation files\")",
       "Bash(python .trellis/scripts/task.py start 04-30-home-real-coordinate-governance-review)",
-      "Bash(python -c \"from src.fablemap_api.api.v1 import homes; print\\('Home API OK'\\)\")",
+      "Bash(python -c \"from src.fablespace_api.api.v1 import homes; print\\('Home API OK'\\)\")",
       "Bash(python -c \"import sys; sys.path.insert\\(0, 'backend/src'\\); from fablemap_api.core.home import Home, HomeStatus, HomeMemberType; print\\('Home governance methods OK'\\)\")",
       "Bash(python .trellis/scripts/add_session.py --title \"Home Real-coordinate Governance Review\" --summary \"Reviewed Home system governance alignment. Verified existing Home implementation \\(home.py 305 lines\\) aligns with product-direction-decision.md framework. Access control, member classification, nonliving silence, and owner sovereignty confirmed. No code changes required. Three minor documentation gaps documented but not blocking.\")",
       "Bash(python .trellis/scripts/task.py start 04-30-gameplay-template-library-for-owners)",

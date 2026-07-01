@@ -9,7 +9,7 @@ Do not override `AGENTS.md`, `docs/ARCHITECTURE.md`, `docs/WORLD_SCHEMA.md`, or 
 Current frontend principles:
 
 - Real map/coordinate anchoring.
-- Owner-authored tavern/NPC/world content.
+- Owner-authored space/NPC/world content.
 - Centralized API clients in `frontend/app/lib/` or `frontend/app/product/services/`.
 - Mobile/narrow-screen usability.
 - No large UI/state/map dependency without approval.
@@ -25,10 +25,10 @@ Current frontend principles:
 
 ## Read only when touched
 
-- API envelope/tavern page clients: `api-envelope-client-boundary.md`, `tavern-api-client-boundary.md`
+- API envelope/space page clients: `api-envelope-client-boundary.md`, `space-api-client-boundary.md`
 - Homepage dynamic data: `homepage-dynamic-data-boundary.md`
 - Clue hunt UI/API client boundary: `clue-hunt-ui-boundary.md`
-- Tavern doorway ritual UI: `tavern-doorway-ritual-ui.md`
+- Space doorway ritual UI: `space-doorway-ritual-ui.md`
 - Visitor-first discovery reduction: `visitor-first-discovery-reduction.md`
 - Images/NPC art: `image-asset-guidelines.md`, `npc-art-guidelines.md`
 - State cards / GM / episode / voice / souvenir / skill packs / preset import / risk linter / digital-human / map copy / discovery signals / mobile / revisit-care / engagement: corresponding focused files.
@@ -52,5 +52,5 @@ Current frontend principles:
 - Scattered direct `fetch` calls.
 - Visitor-visible owner secrets/private memory.
 - Platform-generated content as owner-authored content.
-- Old RPG-map/game center replacing tavern discovery/entry/chat.
+- Old RPG-map/game center replacing space discovery/entry/chat.
 - Brittle tests for simple copy/layout internals.

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { getTavernShare } from '../lib/taverns'
+import { getSpaceShare } from '../lib/spaces'
 
 /**
  * 分享按钮组件
@@ -9,7 +9,7 @@ import { getTavernShare } from '../lib/taverns'
  * - 分享到社交平台（微博、微信等）
  * - 显示分享预览信息
  */
-export default function ShareButton({ tavernId, tavernName = '', className = '', variant = 'primary' }) {
+export default function ShareButton({ spaceId, spaceName = '', className = '', variant = 'primary' }) {
   const [showModal, setShowModal] = useState(false)
   const [shareData, setShareData] = useState(null)
   const [loading, setLoading] = useState(false)
@@ -23,7 +23,7 @@ export default function ShareButton({ tavernId, tavernName = '', className = '',
     setLoading(true)
     setError(null)
 
-    getTavernShare(tavernId)
+    getSpaceShare(spaceId)
       .then((data) => {
         setShareData(data)
         setLoading(false)
@@ -33,10 +33,10 @@ export default function ShareButton({ tavernId, tavernName = '', className = '',
         setError('加载分享信息失败')
         setLoading(false)
       })
-  }, [showModal, shareData, tavernId])
+  }, [showModal, shareData, spaceId])
 
   const handleCopyLink = async () => {
-    const url = shareData?.share_url || `${window.location.origin}/tavern/${tavernId}`
+    const url = shareData?.share_url || `${window.location.origin}/space/${spaceId}`
     try {
       await navigator.clipboard.writeText(url)
       setCopied(true)
@@ -64,9 +64,9 @@ export default function ShareButton({ tavernId, tavernName = '', className = '',
 
     try {
       await navigator.share({
-        title: shareData?.share_title || tavernName || '空间',
+        title: shareData?.share_title || spaceName || '空间',
         text: shareData?.share_text || '发现了一个有趣的空间',
-        url: shareData?.share_url || `${window.location.origin}/tavern/${tavernId}`,
+        url: shareData?.share_url || `${window.location.origin}/space/${spaceId}`,
       })
     } catch (err) {
       if (err.name !== 'AbortError') {
@@ -76,8 +76,8 @@ export default function ShareButton({ tavernId, tavernName = '', className = '',
   }
 
   const handleWeiboShare = () => {
-    const url = shareData?.share_url || `${window.location.origin}/tavern/${tavernId}`
-    const title = encodeURIComponent(shareData?.share_text || `${tavernName} - 空间`)
+    const url = shareData?.share_url || `${window.location.origin}/space/${spaceId}`
+    const title = encodeURIComponent(shareData?.share_text || `${spaceName} - 空间`)
     const wbUrl = `https://service.weibo.com/share/share.php?url=${encodeURIComponent(url)}&title=${title}`
     window.open(wbUrl, '_blank', 'width=600,height=400')
   }

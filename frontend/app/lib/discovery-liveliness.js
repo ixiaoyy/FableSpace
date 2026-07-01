@@ -1,9 +1,9 @@
 import {
-  TAVERN_ACTIVITY_FORBIDDEN_COPY,
-  buildTavernActivityEchoes,
-} from './tavern-activity-echoes.js'
+  SPACE_ACTIVITY_FORBIDDEN_COPY,
+  buildSpaceActivityEchoes,
+} from './space-activity-echoes.js'
 
-export const DISCOVERY_LIVELINESS_FORBIDDEN_COPY = TAVERN_ACTIVITY_FORBIDDEN_COPY
+export const DISCOVERY_LIVELINESS_FORBIDDEN_COPY = SPACE_ACTIVITY_FORBIDDEN_COPY
 
 function findEcho(view, id) {
   return (Array.isArray(view?.echoes) ? view.echoes : []).find((echo) => echo?.id === id) || null
@@ -19,9 +19,9 @@ function formatCount(value, suffix) {
   return count ? `${count.toLocaleString('zh-CN')} ${suffix}` : `暂无${suffix}`
 }
 
-export function buildDiscoveryLiveliness(tavern = {}) {
-  const view = buildTavernActivityEchoes(tavern)
-  const visitCount = toPositiveNumber(tavern?.visit_count)
+export function buildDiscoveryLiveliness(space = {}) {
+  const view = buildSpaceActivityEchoes(space)
+  const visitCount = toPositiveNumber(space?.visit_count)
   const rumorEcho = findEcho(view, 'rumor')
   const gameplayEcho = findEcho(view, 'gameplay')
   const hasRumor = rumorEcho?.value === '可用'
@@ -102,9 +102,9 @@ export function buildDiscoveryLiveliness(tavern = {}) {
   }
 }
 
-export function getDiscoveryLivelinessSearchText(viewOrTavern = {}) {
-  const view = Array.isArray(viewOrTavern?.chips)
-    ? viewOrTavern
-    : buildDiscoveryLiveliness(viewOrTavern)
+export function getDiscoveryLivelinessSearchText(viewOrSpace = {}) {
+  const view = Array.isArray(viewOrSpace?.chips)
+    ? viewOrSpace
+    : buildDiscoveryLiveliness(viewOrSpace)
   return String(view?.searchText || '').trim().toLowerCase()
 }

@@ -157,14 +157,14 @@ export default function OrphanEchoGameplayPanel({
       <div className="oe-terminal-content">
         <header className="oe-footer" style={{ borderBottom: '1px solid var(--oe-border)', background: 'rgba(34, 211, 238, 0.08)', padding: '4px 12px' }}>
           <div className="oe-label" style={{ fontSize: '0.6rem' }}>
-            <span style={{ color: '#fff' }}>COORD:</span> {session?.tavern?.lat?.toFixed(4) || '??.????'}N / {session?.tavern?.lon?.toFixed(4) || '??.????'}E
+            <span style={{ color: '#fff' }}>COORD:</span> {session?.space?.lat?.toFixed(4) || '??.????'}N / {session?.space?.lon?.toFixed(4) || '??.????'}E
           </div>
           <div className="oe-label" style={{ fontSize: '0.6rem', marginLeft: '12px' }}>
             <span style={{ color: '#fff' }}>ECHO:</span> STABLE 98%
           </div>
           <div style={{ flex: 1 }} />
           <div className="oe-label" style={{ fontSize: '0.6rem' }}>
-            <span style={{ color: '#fff' }}>OS:</span> FABLEMAP-ECHO-v1
+            <span style={{ color: '#fff' }}>OS:</span> FABLESPACE-ECHO-v1
           </div>
           <button type="button" className="oe-btn" style={{ padding: '0px 6px', fontSize: '0.6rem', marginLeft: '12px', borderStyle: 'dashed' }} onClick={onAbandon} disabled={busy}>
             DISCONNECT

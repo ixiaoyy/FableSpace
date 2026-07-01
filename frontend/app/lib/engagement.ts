@@ -115,36 +115,36 @@ function normalizeEngagementConfig(value: RawEngagementConfig): EngagementConfig
   }
 }
 
-export async function getVisitorEngagement(tavernId: string, userId = ""): Promise<VisitorEngagement> {
-  return readApiJson<VisitorEngagement>(`/api/v1/taverns/${tavernId}/engagement/me`, { userId })
+export async function getVisitorEngagement(spaceId: string, userId = ""): Promise<VisitorEngagement> {
+  return readApiJson<VisitorEngagement>(`/api/v1/spaces/${spaceId}/engagement/me`, { userId })
 }
 
 
-export async function getEngagementConfig(tavernId: string, userId = ""): Promise<EngagementConfig> {
-  const payload = await readApiJson<RawEngagementConfig>(`/api/v1/taverns/${tavernId}/engagement/config`, { userId })
+export async function getEngagementConfig(spaceId: string, userId = ""): Promise<EngagementConfig> {
+  const payload = await readApiJson<RawEngagementConfig>(`/api/v1/spaces/${spaceId}/engagement/config`, { userId })
   return normalizeEngagementConfig(payload)
 }
 
 
-export async function claimEngagementReward(tavernId: string, sessionId: string, userId = ""): Promise<EarnCoinsResult> {
+export async function claimEngagementReward(spaceId: string, sessionId: string, userId = ""): Promise<EarnCoinsResult> {
   return readApiJson<EarnCoinsResult>(
-    `/api/v1/taverns/${tavernId}/engagement/claim-reward`,
+    `/api/v1/spaces/${spaceId}/engagement/claim-reward`,
     jsonInit("POST", { session_id: sessionId }, userId),
   )
 }
 
 
-export async function sendGift(tavernId: string, characterId: string, giftId: string, userId = ""): Promise<SendGiftResult> {
+export async function sendGift(spaceId: string, characterId: string, giftId: string, userId = ""): Promise<SendGiftResult> {
   return readApiJson<SendGiftResult>(
-    `/api/v1/taverns/${tavernId}/engagement/gifts/send`,
+    `/api/v1/spaces/${spaceId}/engagement/gifts/send`,
     jsonInit("POST", { gift_id: giftId, character_id: characterId }, userId),
   )
 }
 
 
-export async function redeemVoucher(tavernId: string, userId = ""): Promise<RedeemVoucherResult> {
+export async function redeemVoucher(spaceId: string, userId = ""): Promise<RedeemVoucherResult> {
   return readApiJson<RedeemVoucherResult>(
-    `/api/v1/taverns/${tavernId}/engagement/vouchers/redeem`,
+    `/api/v1/spaces/${spaceId}/engagement/vouchers/redeem`,
     jsonInit("POST", {}, userId),
   )
 }

@@ -1,5 +1,5 @@
-export const LAST_WORLD_STORAGE_KEY = 'fablemap:last-world-session'
-export const LAST_WRITEBACK_STORAGE_KEY = 'fablemap:last-writeback-session'
+export const LAST_WORLD_STORAGE_KEY = 'fablespace:last-world-session'
+export const LAST_WRITEBACK_STORAGE_KEY = 'fablespace:last-writeback-session'
 
 export function isPersistedResultUsable(result) {
   return Boolean(result && typeof result === 'object' && result.preview_url)

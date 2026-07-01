@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react'
-import { listWorldInfo, saveWorldInfo, testWorldInfo } from '../lib/taverns'
+import { listWorldInfo, saveWorldInfo, testWorldInfo } from '../lib/spaces'
 
 const STATUS_LABELS = {
   matched: '命中',
@@ -104,7 +104,7 @@ function MatchedEntryCard({ entry, testText }) {
  * 支持测试编辑器中未保存的更改。
  */
 export default function WorldBookTester({
-  tavern,
+  space,
   ownerId,
   entries,
 }) {
@@ -133,12 +133,12 @@ export default function WorldBookTester({
         : []
       const data = {
         message: testText.trim(),
-        include_tavern_context: includeContext,
+        include_space_context: includeContext,
         recent_messages: recent,
         // Pass current editor entries to test unsaved changes
         world_info: entries,
       }
-      const result = await testWorldInfo(tavern.id, data, ownerId)
+      const result = await testWorldInfo(space.id, data, ownerId)
       setResults(result)
     } catch (err) {
       setError('测试失败：' + (err.message || '未知错误'))

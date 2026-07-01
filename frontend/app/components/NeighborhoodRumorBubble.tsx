@@ -12,12 +12,12 @@ import {
   listRumors,
   recordRumorClick,
   recordRumorView,
-} from "../lib/taverns"
+} from "../lib/spaces"
 
 type RumorBubbleProps = {
-  tavernId: string
+  spaceId: string
   limit?: number
-  onNavigate?: (targetTavernId: string) => void
+  onNavigate?: (targetSpaceId: string) => void
 }
 
 function formatTime(dateStr: string) {
@@ -41,7 +41,7 @@ function RumorCard({
   onNavigate,
 }: {
   rumor: NeighborhoodRumor
-  onNavigate?: (targetTavernId: string) => void
+  onNavigate?: (targetSpaceId: string) => void
 }) {
   async function handleClick() {
     // 记录点击
@@ -52,10 +52,10 @@ function RumorCard({
     }
     // 触发跳转
     if (onNavigate) {
-      onNavigate(rumor.target_tavern_id)
+      onNavigate(rumor.target_space_id)
     } else {
       // 默认行为：导航到目标空间
-      window.location.href = `/tavern/${encodeURIComponent(rumor.target_tavern_id)}`
+      window.location.href = `/space/${encodeURIComponent(rumor.target_space_id)}`
     }
   }
 
@@ -76,7 +76,7 @@ function RumorCard({
             className="mt-3 flex items-center gap-1.5 rounded-full border border-amber-300/30 bg-amber-300/10 px-3 py-1.5 text-xs text-amber-200 transition-colors hover:bg-amber-300/20"
           >
             <MapPin className="h-3 w-3" />
-            去看看「{rumor.target_tavern_name}」
+            去看看「{rumor.target_space_name}」
           </button>
         </div>
       </div>
@@ -84,7 +84,7 @@ function RumorCard({
   )
 }
 
-export function NeighborhoodRumorBubble({ tavernId, limit = 3, onNavigate }: RumorBubbleProps) {
+export function NeighborhoodRumorBubble({ spaceId, limit = 3, onNavigate }: RumorBubbleProps) {
   const [rumors, setRumors] = useState<NeighborhoodRumor[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
@@ -95,7 +95,7 @@ export function NeighborhoodRumorBubble({ tavernId, limit = 3, onNavigate }: Rum
       setLoading(true)
       setError("")
       try {
-        const result = await listRumors({ source_tavern_id: tavernId, limit })
+        const result = await listRumors({ source_space_id: spaceId, limit })
         setRumors(result.rumors)
 
         // 记录浏览
@@ -114,14 +114,14 @@ export function NeighborhoodRumorBubble({ tavernId, limit = 3, onNavigate }: Rum
     }
 
     loadRumors()
-  }, [tavernId, limit])
+  }, [spaceId, limit])
 
   const handleNavigate = useCallback(
-    (targetTavernId: string) => {
+    (targetSpaceId: string) => {
       if (onNavigate) {
-        onNavigate(targetTavernId)
+        onNavigate(targetSpaceId)
       } else {
-        window.location.href = `/tavern/${encodeURIComponent(targetTavernId)}`
+        window.location.href = `/space/${encodeURIComponent(targetSpaceId)}`
       }
     },
     [onNavigate],

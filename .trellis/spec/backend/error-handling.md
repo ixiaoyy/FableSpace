@@ -1,12 +1,12 @@
 # Backend Error Handling
 
-> How backend errors are represented, propagated, and degraded in FableMap.
+> How backend errors are represented, propagated, and degraded in FableSpace.
 
 ---
 
 ## Overview
 
-The backend exposes FastAPI endpoints. User/client errors should become `fastapi.HTTPException` with meaningful Chinese user-facing `detail` strings. `backend/src/fablemap_api/core/web/app.py` normalizes these into JSON:
+The backend exposes FastAPI endpoints. User/client errors should become `fastapi.HTTPException` with meaningful Chinese user-facing `detail` strings. `backend/src/fablespace_api/core/web/app.py` normalizes these into JSON:
 
 ```python
 @app.exception_handler(HTTPException)
@@ -31,7 +31,7 @@ Use these conventions:
 | LLM unavailable | Degraded payload where possible; do not crash chat flow unnecessarily |
 | Unexpected server bug | Log server-side; return safe generic error or degraded fallback where product requires continuity |
 
-Examples from existing code include private tavern checks, missing visitor identity checks, and gameplay/session ownership checks in `backend/src/fablemap_api/core/web/service.py`.
+Examples from existing code include private space checks, missing visitor identity checks, and gameplay/session ownership checks in `backend/src/fablespace_api/core/web/service.py`.
 
 ---
 
@@ -42,10 +42,10 @@ Examples from existing code include private tavern checks, missing visitor ident
 Routes extract request data and user identity, then delegate. Service methods enforce ownership and state. Example route pattern:
 
 ```python
-@router.post("/{tavern_id}/chat")
-def send_chat(request: Request, tavern_id: str, data: ChatRequest) -> dict[str, Any]:
-    return _taverns(request).send_chat(
-        tavern_id,
+@router.post("/{space_id}/chat")
+def send_chat(request: Request, space_id: str, data: ChatRequest) -> dict[str, Any]:
+    return _spaces(request).send_chat(
+        space_id,
         character_id=data.character_id,
         message=data.message,
         visitor_id=data.visitor_id or _get_user_id(request),
@@ -53,11 +53,11 @@ def send_chat(request: Request, tavern_id: str, data: ChatRequest) -> dict[str, 
     )
 ```
 
-The application method should check tavern existence, access, status, LLM config, and visitor scope. Migrated-product-core `/api/*` routes follow the same rule through `backend/src/fablemap_api/core/web/service.py`.
+The application method should check space existence, access, status, LLM config, and visitor scope. Migrated-product-core `/api/*` routes follow the same rule through `backend/src/fablespace_api/core/web/service.py`.
 
 ### Prefer degraded chat/gameplay payloads over hard crashes
 
-FableMap's tavern experience should remain understandable when an LLM backend fails. Existing `WebService` chat/group-chat logic catches `LLMError`, logs a warning, marks the tavern closed when appropriate, and returns a rule/fallback response with degradation metadata.
+FableSpace's space experience should remain understandable when an LLM backend fails. Existing `WebService` chat/group-chat logic catches `LLMError`, logs a warning, marks the space closed when appropriate, and returns a rule/fallback response with degradation metadata.
 
 Follow this pattern for AI-adjacent features:
 
@@ -65,20 +65,20 @@ Follow this pattern for AI-adjacent features:
 except LLMError as e:
     logger.warning("... %s", e)
     response_text = self._fallback_response(message, char.name)
-    self._mark_tavern_closed(tavern)
+    self._mark_space_closed(space)
 ```
 
 Do not expose API keys, full provider payloads, or sensitive request bodies in degradation messages.
 
 ### Use deterministic fallback for gameplay
 
-`backend/src/fablemap_api/core/gameplay.py` uses fallback events and seeds based on session context. AI Director output must be validated before use; illegal JSON, unknown node IDs, or unsafe values should fall back rather than corrupt session state.
+`backend/src/fablespace_api/core/gameplay.py` uses fallback events and seeds based on session context. AI Director output must be validated before use; illegal JSON, unknown node IDs, or unsafe values should fall back rather than corrupt session state.
 
 ---
 
 ## API error responses
 
-Backend HTTP errors are JSON objects with an `error` field because of `backend/src/fablemap_api/core/web/app.py`. Frontend service helpers parse:
+Backend HTTP errors are JSON objects with an `error` field because of `backend/src/fablespace_api/core/web/app.py`. Frontend service helpers parse:
 
 ```javascript
 const err = new Error(payload.error || payload.detail || `HTTP ${response.status}`)
@@ -95,16 +95,16 @@ Do not change the backend error envelope without updating frontend clients and t
 - Use `logger.error` for unexpected internal exceptions.
 - Never log raw API keys, owner secrets, visitor-sensitive data, or full prompts unless explicitly redacted.
 
-See `backend/src/fablemap_api/core/web/service.py` and `backend/src/fablemap_api/core/llm_clients.py` for existing patterns.
+See `backend/src/fablespace_api/core/web/service.py` and `backend/src/fablespace_api/core/llm_clients.py` for existing patterns.
 
 ---
 
 ## Real examples to follow
 
-1. `backend/src/fablemap_api/core/web/app.py` central `HTTPException` handler keeps API errors JSON-shaped for the frontend.
-2. `backend/src/fablemap_api/core/web/service.py` `send_group_chat_payload(...)` separates user identity checks, tavern status checks, LLM degradation, token counting, history persistence, and memory fallback.
-3. `backend/src/fablemap_api/core/gameplay.py` `fallback_result(...)` / `AIDirector` validation keeps gameplay sessions recoverable when AI output is unusable.
-4. `backend/src/fablemap_api/core/tavern.py` `_load_taverns(...)` returns `{}` on invalid JSON rather than throwing during store load.
+1. `backend/src/fablespace_api/core/web/app.py` central `HTTPException` handler keeps API errors JSON-shaped for the frontend.
+2. `backend/src/fablespace_api/core/web/service.py` `send_group_chat_payload(...)` separates user identity checks, space status checks, LLM degradation, token counting, history persistence, and memory fallback.
+3. `backend/src/fablespace_api/core/gameplay.py` `fallback_result(...)` / `AIDirector` validation keeps gameplay sessions recoverable when AI output is unusable.
+4. `backend/src/fablespace_api/core/space.py` `_load_spaces(...)` returns `{}` on invalid JSON rather than throwing during store load.
 
 ---
 

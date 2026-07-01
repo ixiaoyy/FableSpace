@@ -7,29 +7,29 @@ preset import service methods, or script tests for the preview/apply contract.
 
 ## Service contract
 
-Shared typed clients belong in `frontend/app/lib/taverns.ts`:
+Shared typed clients belong in `frontend/app/lib/spaces.ts`:
 
 ```typescript
-previewPresetImport(tavernId, data, userId)
-applyPresetImport(tavernId, data, userId)
+previewPresetImport(spaceId, data, userId)
+applyPresetImport(spaceId, data, userId)
 ```
 
-Product-parity helpers in `frontend/app/product/services/tavernService.js`
+Product-parity helpers in `frontend/app/product/services/spaceService.js`
 should expose the same methods when product components or script tests need
 them.
 
 Endpoints:
 
 ```http
-POST /api/v1/taverns/{tavern_id}/preset-import/preview
-POST /api/v1/taverns/{tavern_id}/preset-import/apply
+POST /api/v1/spaces/{space_id}/preset-import/preview
+POST /api/v1/spaces/{space_id}/preset-import/apply
 ```
 
 ## UI contract
 
 `PresetImportPreviewModal` must:
 
-- Open only from owner surfaces (`TavernOwnerPanel` card actions or advanced
+- Open only from owner surfaces (`SpaceOwnerPanel` card actions or advanced
   tools), not visitor chat controls.
 - Parse pasted JSON client-side and show a readable parse error before calling
   the API when JSON is invalid.
@@ -49,7 +49,7 @@ POST /api/v1/taverns/{tavern_id}/preset-import/apply
 ## Forbidden patterns
 
 - Direct `fetch` inside owner UI components instead of service helpers.
-- Copy implying imported presets are automatically applied to live tavern state.
+- Copy implying imported presets are automatically applied to live space state.
 - Applying warning/blocked prompt blocks, runtime presets, world info,
   characters, memory, State Cards, or skill packs from the modal.
 - Visitor-facing controls for importing or previewing owner-private prompts.

@@ -53,8 +53,8 @@ export function isShortDramaGameplayCandidate(gameplay) {
   return SHORT_DRAMA_KEYWORDS.some((keyword) => text.includes(keyword))
 }
 
-export function buildShortDramaTeaser(tavern = {}) {
-  const gameplay = asArray(tavern?.gameplay_definitions).find((item) => (
+export function buildShortDramaTeaser(space = {}) {
+  const gameplay = asArray(space?.gameplay_definitions).find((item) => (
     publishedGameplay(item) && isShortDramaGameplayCandidate(item)
   ))
 
@@ -68,7 +68,7 @@ export function buildShortDramaTeaser(tavern = {}) {
   )
 
   return {
-    tavernId: cleanText(tavern.id),
+    spaceId: cleanText(space.id),
     gameplayId: cleanText(gameplay.id),
     kicker: '短剧入口',
     conflictTitle,
@@ -79,8 +79,8 @@ export function buildShortDramaTeaser(tavern = {}) {
   }
 }
 
-export function getShortDramaTeaserSearchText(tavern = {}) {
-  return asArray(tavern?.gameplay_definitions)
+export function getShortDramaTeaserSearchText(space = {}) {
+  return asArray(space?.gameplay_definitions)
     .filter((gameplay) => publishedGameplay(gameplay) && isShortDramaGameplayCandidate(gameplay))
     .flatMap((gameplay) => [
       gameplay.title,

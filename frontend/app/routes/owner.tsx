@@ -26,45 +26,45 @@ import {
   buildOwnerOperatingSummary,
   formatOwnerSummaryTime,
 } from "../lib/owner-summary.js"
-import { hasExplicitOwnerIdentity } from "../lib/tavern-runtime-config.js"
+import { hasExplicitOwnerIdentity } from "../lib/space-runtime-config.js"
 import {
   DEFAULT_OWNER_ID,
   createClueHuntRoute,
   errorMessage,
   getOwnerDefaultLLM,
-  getTavernMetrics,
+  getSpaceMetrics,
   listVisitorNotes,
   listGlobalChatSessions,
-  listTavernVisitors,
-  listTaverns,
+  listSpaceVisitors,
+  listSpaces,
   type ChatSession,
   type OwnerDefaultLLMSafe,
-  type Tavern,
-  type TavernMetricsResponse,
-  type TavernVisitorNote,
-  type TavernVisitor,
-} from "../lib/taverns"
+  type Space,
+  type SpaceMetricsResponse,
+  type SpaceVisitorNote,
+  type SpaceVisitor,
+} from "../lib/spaces"
 import { ProductShell } from "../shell/product-shell"
 import { Button } from "../ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card"
 
-type TavernMetrics = TavernMetricsResponse & {
-  tavern_id: string
-  tavern_name?: string
+type SpaceMetrics = SpaceMetricsResponse & {
+  space_id: string
+  space_name?: string
 }
 
-type OwnerVisitorNote = TavernVisitorNote & {
-  tavern_name?: string
+type OwnerVisitorNote = SpaceVisitorNote & {
+  space_name?: string
 }
 
 type OwnerLoaderData = {
   ownerId: string
-  taverns: Tavern[]
-  visitors: TavernVisitor[]
+  spaces: Space[]
+  visitors: SpaceVisitor[]
   sessions: ChatSession[]
   visitorNotes: OwnerVisitorNote[]
   ownerLLM: OwnerDefaultLLMSafe | null
-  tavernMetrics: Record<string, TavernMetrics>
+  spaceMetrics: Record<string, SpaceMetrics>
   errors: string[]
 }
 
@@ -79,21 +79,21 @@ function formatNumber(value: number) {
   return Number(value || 0).toLocaleString("zh-CN")
 }
 
-function ownerTavernManagePath(tavernId: string, ownerId: string) {
-  return `/tavern/${encodeURIComponent(tavernId)}/manage?owner_id=${encodeURIComponent(ownerId)}`
+function ownerSpaceManagePath(spaceId: string, ownerId: string) {
+  return `/space/${encodeURIComponent(spaceId)}/manage?owner_id=${encodeURIComponent(ownerId)}`
 }
 
 export async function clientLoader({ request }: ClientLoaderFunctionArgs): Promise<OwnerLoaderData> {
   const url = new URL(request.url)
   const ownerId = url.searchParams.get("owner_id")?.trim() || DEFAULT_OWNER_ID
   const errors: string[] = []
-  let taverns: Tavern[] = []
+  let spaces: Space[] = []
   let sessions: ChatSession[] = []
   let ownerLLM: OwnerDefaultLLMSafe | null = null
 
   try {
-    const result = await listTaverns({ owner_id: ownerId })
-    taverns = (result.taverns || []).filter((tavern) => !tavern.owner_id || tavern.owner_id === ownerId)
+    const result = await listSpaces({ owner_id: ownerId })
+    spaces = (result.spaces || []).filter((space) => !space.owner_id || space.owner_id === ownerId)
   } catch (error) {
     errors.push(`读取空间失败：${errorMessage(error)}`)
   }
@@ -114,61 +114,61 @@ export async function clientLoader({ request }: ClientLoaderFunctionArgs): Promi
   }
 
   const visitorRows = await Promise.all(
-    taverns.map(async (tavern) => {
+    spaces.map(async (space) => {
       try {
-        const result = await listTavernVisitors(tavern.id, ownerId)
+        const result = await listSpaceVisitors(space.id, ownerId)
         return (result.visitors || []).map((visitor) => ({
           ...visitor,
-          tavern_id: tavern.id,
-          tavern_name: tavern.name,
+          space_id: space.id,
+          space_name: space.name,
         }))
       } catch (error) {
-        errors.push(`读取 ${tavern.name || tavern.id} 访客失败：${errorMessage(error)}`)
+        errors.push(`读取 ${space.name || space.id} 访客失败：${errorMessage(error)}`)
         return []
       }
     }),
   )
 
   const visitorNoteRows = await Promise.all(
-    taverns.map(async (tavern) => {
+    spaces.map(async (space) => {
       try {
-        const result = await listVisitorNotes(tavern.id, { limit: 5 }, ownerId)
+        const result = await listVisitorNotes(space.id, { limit: 5 }, ownerId)
         return (result.notes || []).map((note) => ({
           ...note,
-          tavern_name: tavern.name,
+          space_name: space.name,
         }))
       } catch (error) {
-        errors.push(`读取 ${tavern.name || tavern.id} 访客反馈失败：${errorMessage(error)}`)
+        errors.push(`读取 ${space.name || space.id} 访客反馈失败：${errorMessage(error)}`)
         return []
       }
     }),
   )
 
-  // Fetch metrics for each tavern
-  const tavernMetricsMap: Record<string, TavernMetrics> = {}
+  // Fetch metrics for each space
+  const spaceMetricsMap: Record<string, SpaceMetrics> = {}
   await Promise.all(
-    taverns.map(async (tavern) => {
+    spaces.map(async (space) => {
       try {
-        const metrics = await getTavernMetrics(tavern.id, ownerId)
-        tavernMetricsMap[tavern.id] = {
+        const metrics = await getSpaceMetrics(space.id, ownerId)
+        spaceMetricsMap[space.id] = {
           ...metrics,
-          tavern_name: tavern.name,
+          space_name: space.name,
         }
       } catch (error) {
         // Metrics are optional, don't add to errors
-        console.warn(`读取 ${tavern.name || tavern.id} 指标失败：${errorMessage(error)}`)
+        console.warn(`读取 ${space.name || space.id} 指标失败：${errorMessage(error)}`)
       }
     }),
   )
 
   return {
     ownerId,
-    taverns,
+    spaces,
     visitors: visitorRows.flat(),
     sessions,
     visitorNotes: visitorNoteRows.flat(),
     ownerLLM,
-    tavernMetrics: tavernMetricsMap,
+    spaceMetrics: spaceMetricsMap,
     errors,
   }
 }
@@ -190,11 +190,11 @@ function MetricCard({ label, value, helper, icon: Icon }: MetricCardProps) {
   )
 }
 
-function ClueHuntBuilderCard({ ownerId, taverns }: { ownerId: string; taverns: Tavern[] }) {
-  const publicTaverns = taverns.filter((tavern) => tavern.access === "public")
+function ClueHuntBuilderCard({ ownerId, spaces }: { ownerId: string; spaces: Space[] }) {
+  const publicSpaces = spaces.filter((space) => space.access === "public")
   const [title, setTitle] = useState("两站线索小路")
-  const [firstTavernId, setFirstTavernId] = useState(publicTaverns[0]?.id || "")
-  const [secondTavernId, setSecondTavernId] = useState(publicTaverns[1]?.id || publicTaverns[0]?.id || "")
+  const [firstSpaceId, setFirstSpaceId] = useState(publicSpaces[0]?.id || "")
+  const [secondSpaceId, setSecondSpaceId] = useState(publicSpaces[1]?.id || publicSpaces[0]?.id || "")
   const [firstClue, setFirstClue] = useState("第一站灯牌上最显眼的词是什么？")
   const [firstAnswer, setFirstAnswer] = useState("")
   const [secondClue, setSecondClue] = useState("第二站入口旁的物件是什么？")
@@ -217,8 +217,8 @@ function ClueHuntBuilderCard({ ownerId, taverns }: { ownerId: string; taverns: T
         reward_text: rewardText,
         reward_coin_amount: coinAmount,
         nodes: [
-          { id: "node_1", tavern_id: firstTavernId, clue: firstClue, answer: firstAnswer, hint: "回到当前空间公开内容里找线索。" },
-          { id: "node_2", tavern_id: secondTavernId, clue: secondClue, answer: secondAnswer, hint: "第二站会在第一题答对后显示。" },
+          { id: "node_1", space_id: firstSpaceId, clue: firstClue, answer: firstAnswer, hint: "回到当前空间公开内容里找线索。" },
+          { id: "node_2", space_id: secondSpaceId, clue: secondClue, answer: secondAnswer, hint: "第二站会在第一题答对后显示。" },
         ],
       }, ownerId)
       setRouteLink(`/clue-hunts/${encodeURIComponent(data.route.id)}`)
@@ -249,14 +249,14 @@ function ClueHuntBuilderCard({ ownerId, taverns }: { ownerId: string; taverns: T
         <div className="grid gap-3 md:grid-cols-2">
           <label className="space-y-1.5 text-sm">
             <span className="text-theme-muted">第一站空间</span>
-            <select value={firstTavernId} onChange={(event) => setFirstTavernId(event.target.value)} className="w-full rounded-2xl border border-theme-border bg-theme-card px-4 py-3 text-theme-primary outline-none focus:border-theme-accent-border">
-              {publicTaverns.map((tavern) => <option key={tavern.id} value={tavern.id}>{tavern.name}</option>)}
+            <select value={firstSpaceId} onChange={(event) => setFirstSpaceId(event.target.value)} className="w-full rounded-2xl border border-theme-border bg-theme-card px-4 py-3 text-theme-primary outline-none focus:border-theme-accent-border">
+              {publicSpaces.map((space) => <option key={space.id} value={space.id}>{space.name}</option>)}
             </select>
           </label>
           <label className="space-y-1.5 text-sm">
             <span className="text-theme-muted">第二站空间</span>
-            <select value={secondTavernId} onChange={(event) => setSecondTavernId(event.target.value)} className="w-full rounded-2xl border border-theme-border bg-theme-card px-4 py-3 text-theme-primary outline-none focus:border-theme-accent-border">
-              {publicTaverns.map((tavern) => <option key={tavern.id} value={tavern.id}>{tavern.name}</option>)}
+            <select value={secondSpaceId} onChange={(event) => setSecondSpaceId(event.target.value)} className="w-full rounded-2xl border border-theme-border bg-theme-card px-4 py-3 text-theme-primary outline-none focus:border-theme-accent-border">
+              {publicSpaces.map((space) => <option key={space.id} value={space.id}>{space.name}</option>)}
             </select>
           </label>
         </div>
@@ -282,7 +282,7 @@ function ClueHuntBuilderCard({ ownerId, taverns }: { ownerId: string; taverns: T
             <input type="number" min={0} max={99} value={coinAmount} onChange={(event) => setCoinAmount(Number(event.target.value))} className="w-full rounded-2xl border border-theme-border bg-theme-card px-4 py-3 text-theme-primary outline-none focus:border-theme-accent-border" />
           </label>
         </div>
-        <Button type="button" className="w-full" disabled={busy || publicTaverns.length < 2 || firstTavernId === secondTavernId || !firstAnswer.trim() || !secondAnswer.trim()} onClick={handleCreate}>
+        <Button type="button" className="w-full" disabled={busy || publicSpaces.length < 2 || firstSpaceId === secondSpaceId || !firstAnswer.trim() || !secondAnswer.trim()} onClick={handleCreate}>
           创建半隐藏路线
         </Button>
         {message ? <p className="rounded-2xl border border-theme-border bg-theme-card p-3 text-sm text-theme-primary">{message}</p> : null}
@@ -297,22 +297,22 @@ function ClueHuntBuilderCard({ ownerId, taverns }: { ownerId: string; taverns: T
 }
 
 export default function OwnerRoute() {
-  const { ownerId, taverns, visitors, sessions, visitorNotes, ownerLLM, tavernMetrics, errors } = useLoaderData<typeof clientLoader>()
-  const summary = buildOwnerOperatingSummary({ taverns, visitors, sessions, visitorNotes, ownerLLM })
+  const { ownerId, spaces, visitors, sessions, visitorNotes, ownerLLM, spaceMetrics, errors } = useLoaderData<typeof clientLoader>()
+  const summary = buildOwnerOperatingSummary({ spaces, visitors, sessions, visitorNotes, ownerLLM })
   const metrics = summary.metrics
-  const openRatio = metrics.taverns ? Math.round((metrics.openTaverns / metrics.taverns) * 100) : 0
+  const openRatio = metrics.spaces ? Math.round((metrics.openSpaces / metrics.spaces) * 100) : 0
   const returnRatio = metrics.visitors ? Math.round((metrics.returningVisitors / metrics.visitors) * 100) : 0
   const llmStatusText = metrics.llmConfigured ? "已配置" : "待配置"
   const llmHelperText = metrics.llmConfigured
     ? `${metrics.llmBackend || "AI"}${metrics.llmModel ? ` · ${metrics.llmModel}` : ""}`
     : "进入创建页配置默认 AI；草稿保存前仍需店主确认"
 
-  // Calculate aggregate metrics from all taverns
-  const totalTokens = Object.values(tavernMetrics).reduce((sum, m) => {
+  // Calculate aggregate metrics from all spaces
+  const totalTokens = Object.values(spaceMetrics).reduce((sum, m) => {
     const usage = m.token_usage
     return sum + (typeof usage === "number" ? usage : usage?.total || 0)
   }, 0)
-  const allPeakHours = Object.values(tavernMetrics).flatMap((m) => m.peak_hours || [])
+  const allPeakHours = Object.values(spaceMetrics).flatMap((m) => m.peak_hours || [])
   const peakHourCounts: Record<number, number> = {}
   allPeakHours.forEach((h) => { peakHourCounts[h] = (peakHourCounts[h] || 0) + 1 })
   const topPeakHours = Object.entries(peakHourCounts)
@@ -320,7 +320,7 @@ export default function OwnerRoute() {
     .slice(0, 3)
     .map(([h]) => Number(h))
 
-  const allSessions = Object.values(tavernMetrics).flatMap((m) =>
+  const allSessions = Object.values(spaceMetrics).flatMap((m) =>
     m.npc_rankings?.map((npc) => ({
       updated_at: npc.last_interaction,
       message_count: npc.message_count,
@@ -403,7 +403,7 @@ export default function OwnerRoute() {
               <div className="rounded-3xl border border-theme-accent-border bg-theme-accent-bg p-4">
                 <p className="text-xs font-black uppercase tracking-[0.2em] text-theme-accent-text">当前判断</p>
                 <p className="mt-2 text-sm leading-7 text-theme-muted">
-                  {metrics.taverns === 0
+                  {metrics.spaces === 0
                     ? "还没有空间。第一步是创建一个真实坐标锚定入口。"
                     : metrics.returningVisitors > 0
                       ? `已有 ${metrics.returningVisitors} 位回访者，说明空间关系链开始成立。`
@@ -442,9 +442,9 @@ export default function OwnerRoute() {
                         <ArrowRight className="h-4 w-4" />
                       </Link>
                     </Button>
-                  ) : action.tavernId ? (
+                  ) : action.spaceId ? (
                     <Button asChild size="sm" variant="ghost" className="mt-3">
-                      <Link to={ownerTavernManagePath(action.tavernId, ownerId)}>
+                      <Link to={ownerSpaceManagePath(action.spaceId, ownerId)}>
                         管理空间
                         <ArrowRight className="h-4 w-4" />
                       </Link>
@@ -460,8 +460,8 @@ export default function OwnerRoute() {
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
             <MetricCard
               label="空间"
-              value={formatNumber(metrics.taverns)}
-              helper={`${formatNumber(metrics.openTaverns)} 间营业中 · ${openRatio}% 开放率`}
+              value={formatNumber(metrics.spaces)}
+              helper={`${formatNumber(metrics.openSpaces)} 间营业中 · ${openRatio}% 开放率`}
               icon={Store}
             />
             <MetricCard
@@ -497,15 +497,15 @@ export default function OwnerRoute() {
             <MetricCard
               label="Token"
               value={totalTokens > 0 ? `${(totalTokens / 1000).toFixed(1)}k` : "0"}
-              helper={`${Object.keys(tavernMetrics).length} 个空间统计`}
+              helper={`${Object.keys(spaceMetrics).length} 个空间统计`}
               icon={Zap}
             />
           </div>
 
-          <ClueHuntBuilderCard ownerId={ownerId} taverns={taverns} />
+          <ClueHuntBuilderCard ownerId={ownerId} spaces={spaces} />
 
           {/* Token Usage and Peak Hours Charts */}
-          {(Object.keys(tavernMetrics).length > 0) && (
+          {(Object.keys(spaceMetrics).length > 0) && (
             <section className="grid gap-6 xl:grid-cols-2">
               <Card>
                 <CardHeader>
@@ -514,7 +514,7 @@ export default function OwnerRoute() {
                 </CardHeader>
                 <CardContent>
                   <TokenUsageChart
-                    peakDays={Object.values(tavernMetrics).flatMap((m) => m.peak_days || [])}
+                    peakDays={Object.values(spaceMetrics).flatMap((m) => m.peak_days || [])}
                     totalTokens={metrics.messages}
                   />
                 </CardContent>
@@ -543,11 +543,11 @@ export default function OwnerRoute() {
               </CardHeader>
               <CardContent className="space-y-3">
                 {summary.returningHighlights.length ? summary.returningHighlights.map((visitor) => (
-                  <article key={`${visitor.tavernId}-${visitor.visitorId}`} className="rounded-2xl border border-theme-border bg-theme-card p-4">
+                  <article key={`${visitor.spaceId}-${visitor.visitorId}`} className="rounded-2xl border border-theme-border bg-theme-card p-4">
                     <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                       <div>
                         <p className="font-black text-theme-primary">{visitor.visitorLabel}</p>
-                        <p className="mt-1 text-sm text-theme-muted">{visitor.tavernName} · {visitor.relationshipLabel}</p>
+                        <p className="mt-1 text-sm text-theme-muted">{visitor.spaceName} · {visitor.relationshipLabel}</p>
                       </div>
                       <span className="w-fit rounded-full border border-theme-accent-border bg-theme-accent-bg px-3 py-1 text-xs font-black text-theme-accent-text">
                         {visitor.visitCount} 次访问
@@ -574,13 +574,13 @@ export default function OwnerRoute() {
               </CardHeader>
               <CardContent className="space-y-3">
                 {summary.recentSessions.length ? summary.recentSessions.map((session) => (
-                  <article key={`${session.tavernId}-${session.visitorId}-${session.characterId}-${session.updatedAt}`} className="rounded-2xl border border-theme-border bg-theme-card p-4">
+                  <article key={`${session.spaceId}-${session.visitorId}-${session.characterId}-${session.updatedAt}`} className="rounded-2xl border border-theme-border bg-theme-card p-4">
                     <div className="flex items-start gap-3">
                       <span className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl border border-theme-border bg-theme-bg text-theme-primary">
                         <Clock3 className="h-4 w-4" />
                       </span>
                       <div className="min-w-0 flex-1">
-                        <p className="font-bold text-theme-primary">{session.tavernName} · {session.characterName}</p>
+                        <p className="font-bold text-theme-primary">{session.spaceName} · {session.characterName}</p>
                         <p className="mt-1 text-xs text-theme-muted">{session.visitorLabel} · {formatOwnerSummaryTime(session.updatedAt)}</p>
                         <p className="mt-2 line-clamp-2 text-sm leading-6 text-theme-muted">{session.lastMessage || "暂无最近消息"}</p>
                       </div>
@@ -602,20 +602,20 @@ export default function OwnerRoute() {
             </CardHeader>
             <CardContent className="space-y-3">
               {summary.latestFeedback.length ? summary.latestFeedback.map((note) => (
-                <article key={`${note.tavernId}-${note.noteId}-${note.createdAt}`} className="rounded-2xl border border-theme-border bg-theme-card p-4">
+                <article key={`${note.spaceId}-${note.noteId}-${note.createdAt}`} className="rounded-2xl border border-theme-border bg-theme-card p-4">
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                     <div className="min-w-0">
                       <p className="font-black text-theme-primary">{note.visitorLabel}</p>
-                      <p className="mt-1 text-sm text-theme-muted">{note.tavernName} · {formatOwnerSummaryTime(note.createdAt)}</p>
+                      <p className="mt-1 text-sm text-theme-muted">{note.spaceName} · {formatOwnerSummaryTime(note.createdAt)}</p>
                     </div>
                     <span className="w-fit rounded-full border border-theme-border bg-theme-bg px-3 py-1 text-xs font-black text-theme-primary">
                       {note.visibility}
                     </span>
                   </div>
                   <p className="mt-3 text-sm leading-6 text-theme-muted">{note.content || "访客未留下文字内容"}</p>
-                  {note.tavernId ? (
+                  {note.spaceId ? (
                     <Button asChild size="sm" variant="ghost" className="mt-3">
-                      <Link to={ownerTavernManagePath(note.tavernId, ownerId)}>
+                      <Link to={ownerSpaceManagePath(note.spaceId, ownerId)}>
                         进入管理页处理反馈
                         <ArrowRight className="h-4 w-4" />
                       </Link>
@@ -636,18 +636,18 @@ export default function OwnerRoute() {
               <CardDescription>按访客、回访、会话和消息量综合排序。</CardDescription>
             </CardHeader>
             <CardContent>
-              {summary.tavernHighlights.length ? (
+              {summary.spaceHighlights.length ? (
                 <div className="grid gap-3">
-                  {summary.tavernHighlights.map((item) => (
+                  {summary.spaceHighlights.map((item) => (
                     <Link
-                      key={item.tavernId}
-                      to={ownerTavernManagePath(item.tavernId, ownerId)}
+                      key={item.spaceId}
+                      to={ownerSpaceManagePath(item.spaceId, ownerId)}
                       className="group grid gap-4 rounded-2xl border border-theme-border bg-theme-card p-4 transition hover:border-theme-accent-border hover:bg-theme-accent-bg sm:grid-cols-[minmax(0,1fr)_auto]"
                     >
                       <div className="min-w-0">
                         <div className="flex flex-wrap items-center gap-2">
                           <DoorOpen className="h-4 w-4 text-theme-accent-text" />
-                          <p className="font-black text-theme-primary group-hover:text-theme-accent-text">{item.tavernName}</p>
+                          <p className="font-black text-theme-primary group-hover:text-theme-accent-text">{item.spaceName}</p>
                           <span className="rounded-full border border-theme-border px-2 py-0.5 text-xs text-theme-muted">{item.status}</span>
                         </div>
                         <p className="mt-2 text-sm text-theme-muted">

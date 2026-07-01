@@ -7,7 +7,7 @@ const QUEST_TYPES = {
 
 export const PLATFORM_QUEST_GUIDES = [
   {
-    id: 'visit-first-open-tavern',
+    id: 'visit-first-open-space',
     title: '记录第一间营业空间',
     type: 'exploration',
     icon: '🧭',
@@ -16,10 +16,10 @@ export const PLATFORM_QUEST_GUIDES = [
     ctaTo: '/discover',
     echoLabel: '当前开放空间',
     helperText: '进入一间开放空间后，可以把对话和回访提示留在空间体验里；本页不保存个人进度。',
-    measure: ({ openTaverns }) => openTaverns,
+    measure: ({ openSpaces }) => openSpaces,
   },
   {
-    id: 'tour-three-open-taverns',
+    id: 'tour-three-open-spaces',
     title: '巡礼三间开放空间',
     type: 'exploration',
     icon: '🍻',
@@ -28,7 +28,7 @@ export const PLATFORM_QUEST_GUIDES = [
     ctaTo: '/discover',
     echoLabel: '可比较空间',
     helperText: '把它当作路线建议：多看几间空间的风格差异，并把回访提示留在各自空间里，不形成排行榜或完成率。',
-    measure: ({ openTaverns }) => openTaverns,
+    measure: ({ openSpaces }) => openSpaces,
   },
   {
     id: 'meet-three-npcs',
@@ -43,7 +43,7 @@ export const PLATFORM_QUEST_GUIDES = [
     measure: ({ npcCount }) => npcCount,
   },
   {
-    id: 'try-quest-play-tavern',
+    id: 'try-quest-play-space',
     title: '试一间探索玩法空间',
     type: 'gameplay',
     icon: '📜',
@@ -52,7 +52,7 @@ export const PLATFORM_QUEST_GUIDES = [
     ctaTo: '/discover',
     echoLabel: '玩法空间',
     helperText: '玩法入口只做轻量文本互动和回访提示，不做等级、装备、奖励或访客竞争。',
-    measure: ({ questPlayTaverns }) => questPlayTaverns,
+    measure: ({ questPlaySpaces }) => questPlaySpaces,
   },
   {
     id: 'create-real-anchor',
@@ -64,7 +64,7 @@ export const PLATFORM_QUEST_GUIDES = [
     ctaTo: '/create',
     echoLabel: '你的空间',
     helperText: '创建从真实坐标开始，内容仍由店主确认；本指南只提示下一步，不替你发布空间。',
-    measure: ({ ownerTaverns }) => ownerTaverns,
+    measure: ({ ownerSpaces }) => ownerSpaces,
   },
 ]
 
@@ -76,20 +76,20 @@ function isPublishedGameplay(definition) {
   return definition && typeof definition === 'object' && definition.status === 'published'
 }
 
-function questPlayCandidate(tavern = {}) {
-  if (tavern.layout_style === 'quest-play') return true
-  return asArray(tavern.gameplay_definitions).some(isPublishedGameplay)
+function questPlayCandidate(space = {}) {
+  if (space.layout_style === 'quest-play') return true
+  return asArray(space.gameplay_definitions).some(isPublishedGameplay)
 }
 
-export function buildQuestGuideSummary({ taverns = [], ownerId = '' } = {}) {
-  const safeTaverns = asArray(taverns)
-  const openTaverns = safeTaverns.filter((tavern) => tavern.status === 'open' && tavern.access !== 'private')
+export function buildQuestGuideSummary({ spaces = [], ownerId = '' } = {}) {
+  const safeSpaces = asArray(spaces)
+  const openSpaces = safeSpaces.filter((space) => space.status === 'open' && space.access !== 'private')
   const metrics = {
-    taverns: safeTaverns.length,
-    openTaverns: openTaverns.length,
-    npcCount: openTaverns.reduce((sum, tavern) => sum + asArray(tavern.characters).length, 0),
-    questPlayTaverns: openTaverns.filter(questPlayCandidate).length,
-    ownerTaverns: ownerId ? safeTaverns.filter((tavern) => tavern.owner_id === ownerId).length : 0,
+    spaces: safeSpaces.length,
+    openSpaces: openSpaces.length,
+    npcCount: openSpaces.reduce((sum, space) => sum + asArray(space.characters).length, 0),
+    questPlaySpaces: openSpaces.filter(questPlayCandidate).length,
+    ownerSpaces: ownerId ? safeSpaces.filter((space) => space.owner_id === ownerId).length : 0,
   }
 
   const quests = PLATFORM_QUEST_GUIDES.map((quest) => {

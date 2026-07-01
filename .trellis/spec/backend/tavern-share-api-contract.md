@@ -1,37 +1,37 @@
-# Tavern Share API Contract
+# Space Share API Contract
 
-## Scenario: Public-safe tavern share payload
+## Scenario: Public-safe space share payload
 
 ### 1. Scope / Trigger
 
-- Trigger: Any backend or frontend change that reads or writes tavern share/invite payloads.
-- Scope: `GET /api/v1/taverns/{tavern_id}/share` and the legacy-compatible `GET /api/taverns/{id}/share` path.
-- Source of truth: persisted `Tavern` owner-authored fields only; no platform-generated marketing copy.
+- Trigger: Any backend or frontend change that reads or writes space share/invite payloads.
+- Scope: `GET /api/v1/spaces/{space_id}/share` and the legacy-compatible `GET /api/spaces/{id}/share` path.
+- Source of truth: persisted `Space` owner-authored fields only; no platform-generated marketing copy.
 
 ### 2. Signatures
 
-- Backend policy: `backend/src/fablemap_api/domain/tavern_share_policy.py`
-  - `build_tavern_share_payload(tavern: Any, *, base_url: str = "") -> dict[str, Any]`
-- Backend service: `backend/src/fablemap_api/application/services/management.py`
-  - `TavernManagementService.get_tavern_share(tavern_id: str, user_id: str = "", base_url: str = "") -> dict[str, Any]`
-- API route: `backend/src/fablemap_api/api/v1/taverns.py`
-  - `GET /api/v1/taverns/{tavern_id}/share`
-- Frontend client: `frontend/app/lib/taverns.ts`
-  - `getTavernShare(tavernId: string, userId = "")`
+- Backend policy: `backend/src/fablespace_api/domain/space_share_policy.py`
+  - `build_space_share_payload(space: Any, *, base_url: str = "") -> dict[str, Any]`
+- Backend service: `backend/src/fablespace_api/application/services/management.py`
+  - `SpaceManagementService.get_space_share(space_id: str, user_id: str = "", base_url: str = "") -> dict[str, Any]`
+- API route: `backend/src/fablespace_api/api/v1/spaces.py`
+  - `GET /api/v1/spaces/{space_id}/share`
+- Frontend client: `frontend/app/lib/spaces.ts`
+  - `getSpaceShare(spaceId: string, userId = "")`
 
 ### 3. Contracts
 
 Request:
 
-- Path param: `tavern_id` / `id`; must be URL-encoded by clients with `encodeURIComponent`.
-- Header: optional `X-User-Id`; required only when a private tavern is read by its owner.
+- Path param: `space_id` / `id`; must be URL-encoded by clients with `encodeURIComponent`.
+- Header: optional `X-User-Id`; required only when a private space is read by its owner.
 - Body: none.
 
 Response `200` fields:
 
 ```json
 {
-  "tavern_id": "string",
+  "space_id": "string",
   "title": "string",
   "description": "string <= 200 chars",
   "short_description": "string <= 80 chars",
@@ -42,7 +42,7 @@ Response `200` fields:
   "tags": ["string"],
   "characters": [{ "id": "string", "name": "string <= 80 chars", "avatar": "string|null" }],
   "character_count": 1,
-  "share_url": "https://host/tavern/{encoded_tavern_id}",
+  "share_url": "https://host/space/{encoded_space_id}",
   "share_title": "邀请你进入「空间名」",
   "share_text": "邀请你进入「空间名」：公开短简介"
 }
@@ -59,7 +59,7 @@ Never include:
 
 | Case | Expected |
 |------|----------|
-| Missing tavern | `404 {"error": "空间不存在"}` |
+| Missing space | `404 {"error": "空间不存在"}` |
 | `access=public` | Anonymous and visitor users receive `200` |
 | `access=password` | Share payload is visible without password, but password/hash is never present |
 | `access=private`, non-owner or anonymous | `403 {"error": "此空间是私人的"}` |
@@ -71,33 +71,33 @@ Never include:
 Base:
 
 ```python
-payload = service.get_tavern_share(tavern_id, user_id="visitor-demo", base_url="https://example.test")
-assert payload["share_url"] == f"https://example.test/tavern/{tavern_id}"
+payload = service.get_space_share(space_id, user_id="visitor-demo", base_url="https://example.test")
+assert payload["share_url"] == f"https://example.test/space/{space_id}"
 assert "api_key" not in json.dumps(payload, ensure_ascii=False)
 ```
 
 Good:
 
 ```typescript
-const payload = await getTavernShare(tavernId, DEFAULT_VISITOR_ID)
+const payload = await getSpaceShare(spaceId, DEFAULT_VISITOR_ID)
 // UI renders payload.share_title/share_url and falls back locally only if the API fails.
 ```
 
 Bad:
 
 ```python
-# Do not serialize Tavern.to_dict() directly for sharing.
-return tavern.to_dict()
+# Do not serialize Space.to_dict() directly for sharing.
+return space.to_dict()
 ```
 
 ### 6. Tests Required
 
-- Backend focused test: `py -3 -m pytest -q backend/tests/test_v1_tavern_share.py --tb=short`
+- Backend focused test: `py -3 -m pytest -q backend/tests/test_v1_space_share.py --tb=short`
   - Assert public/password visibility.
   - Assert private owner vs visitor behavior.
   - Assert secret and prompt fields are absent from serialized JSON.
-  - Assert `share_url` uses `request.base_url` and URL-encoded tavern id.
-- Frontend helper test: `node ./frontend/scripts/tavern-share-test.mjs`
+  - Assert `share_url` uses `request.base_url` and URL-encoded space id.
+- Frontend helper test: `node ./frontend/scripts/space-share-test.mjs`
   - Assert backend payload is converted into copyable display text.
   - Assert local fallback still handles missing description and coordinates.
 
@@ -105,12 +105,12 @@ return tavern.to_dict()
 
 #### Wrong
 
-- Frontend builds the only share contract from the current `Tavern` detail object and never calls `/share`.
-- Backend returns full `Tavern` or character card objects from `/share`.
-- Private taverns are indistinguishable from missing taverns for owners.
+- Frontend builds the only share contract from the current `Space` detail object and never calls `/share`.
+- Backend returns full `Space` or character card objects from `/share`.
+- Private spaces are indistinguishable from missing spaces for owners.
 
 #### Correct
 
-- Backend builds a dedicated share payload in `tavern_share_policy.py`.
-- Service applies the same visibility rules as tavern detail, with explicit owner access for private taverns.
-- Frontend prefers `getTavernShare(...)` and keeps local copy text only as a degraded fallback.
+- Backend builds a dedicated share payload in `space_share_policy.py`.
+- Service applies the same visibility rules as space detail, with explicit owner access for private spaces.
+- Frontend prefers `getSpaceShare(...)` and keeps local copy text only as a degraded fallback.

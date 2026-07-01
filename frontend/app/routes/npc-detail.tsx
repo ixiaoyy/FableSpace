@@ -1,7 +1,7 @@
 /**
  * NPC 关系胶囊详情页
  *
- * 路由：/npc/:tavernId/:characterId
+ * 路由：/npc/:spaceId/:characterId
  *
  * 展示：
  * - NPC 大头像 / 名称 / 空间信息
@@ -24,13 +24,13 @@ import { NpcRelationshipResetModal } from "../components/NpcRelationshipResetMod
 import {
   DEFAULT_VISITOR_ID,
   errorMessage,
-  getTavern,
+  getSpace,
   resetNpcRelationship,
   type MemoryAtom,
-  type TavernCharacter,
-  type Tavern,
+  type SpaceCharacter,
+  type Space,
   type VisitorRelationshipPayload,
-} from "../lib/taverns"
+} from "../lib/spaces"
 import { getVisitorBond, type VisitorBondStatus } from "../lib/publicBond"
 import {
   getAffinityStageMeta,
@@ -42,11 +42,11 @@ import { NpcSimulationStatusPanel } from "../features/npc-simulation-status/NpcS
 // ─── Loader ────────────────────────────────────────────────────────────────────
 
 type NpcDetailLoaderData = {
-  tavernId: string
+  spaceId: string
   characterId: string
   currentUserId: string
-  tavern: Tavern | null
-  character: TavernCharacter | null
+  space: Space | null
+  character: SpaceCharacter | null
   relationship: VisitorRelationshipPayload | null
   error: string
 }
@@ -64,16 +64,16 @@ export async function clientLoader({
   params,
   request,
 }: ClientLoaderFunctionArgs): Promise<NpcDetailLoaderData> {
-  const tavernId = params.tavernId ?? ""
+  const spaceId = params.spaceId ?? ""
   const characterId = params.characterId ?? ""
   const currentUserId = getCurrentUserIdFromRequest(request)
 
-  if (!tavernId || !characterId) {
+  if (!spaceId || !characterId) {
     return {
-      tavernId,
+      spaceId,
       characterId,
       currentUserId,
-      tavern: null,
+      space: null,
       character: null,
       relationship: null,
       error: "缺少空间或角色 ID",
@@ -81,28 +81,28 @@ export async function clientLoader({
   }
 
   try {
-    const tavern = await getTavern(tavernId, currentUserId, { view: "entry" })
-    const character = tavern?.characters?.find((c) => c.id === characterId) ?? null
+    const space = await getSpace(spaceId, currentUserId, { view: "entry" })
+    const character = space?.characters?.find((c) => c.id === characterId) ?? null
 
-    // 访客与该空间的整体关系数据（好感 strength 在 tavern 返回的 visitor_state 里）
+    // 访客与该空间的整体关系数据（好感 strength 在 space 返回的 visitor_state 里）
     // 此处 relationship 直接从空间 API 取（已有字段），无需额外请求
     const relationship: VisitorRelationshipPayload | null = null
 
     return {
-      tavernId,
+      spaceId,
       characterId,
       currentUserId,
-      tavern,
+      space,
       character,
       relationship,
       error: "",
     }
   } catch (err) {
     return {
-      tavernId,
+      spaceId,
       characterId,
       currentUserId,
-      tavern: null,
+      space: null,
       character: null,
       relationship: null,
       error: errorMessage(err),
@@ -113,7 +113,7 @@ export async function clientLoader({
 // ─── Page Component ────────────────────────────────────────────────────────────
 
 export default function NpcDetailRoute() {
-  const { tavernId, characterId, currentUserId, tavern, character, error } =
+  const { spaceId, characterId, currentUserId, space, character, error } =
     useLoaderData<typeof clientLoader>()
   const navigate = useNavigate()
 
@@ -134,25 +134,25 @@ export default function NpcDetailRoute() {
   const [resetBusy, setResetBusy] = useState(false)
   const [resetResult, setResetResult] = useState<string>("")
 
-  // 访客好感（从 tavern.visitor_state 取，如果后端返回了的话）
-  const visitorStrength = normalizeAffinityStrength(tavern?.visitor_state?.relationship?.strength ?? 0)
-  const visitorStage = tavern?.visitor_state?.relationship?.stage ?? "stranger"
+  // 访客好感（从 space.visitor_state 取，如果后端返回了的话）
+  const visitorStrength = normalizeAffinityStrength(space?.visitor_state?.relationship?.strength ?? 0)
+  const visitorStage = space?.visitor_state?.relationship?.stage ?? "stranger"
 
   // 加载 bond 状态
   useEffect(() => {
-    if (!tavernId || !characterId || !currentUserId) return
+    if (!spaceId || !characterId || !currentUserId) return
     setBondLoading(true)
-    getVisitorBond(tavernId, characterId, currentUserId, visitorStrength)
+    getVisitorBond(spaceId, characterId, currentUserId, visitorStrength)
       .then((data) => setBondStatus(data))
       .catch(() => setBondStatus(null))
       .finally(() => setBondLoading(false))
-  }, [tavernId, characterId, currentUserId, visitorStrength])
+  }, [spaceId, characterId, currentUserId, visitorStrength])
 
   // 加载记忆计数
   useEffect(() => {
-    if (!tavernId || !characterId || !currentUserId) return
+    if (!spaceId || !characterId || !currentUserId) return
     fetch(
-      `/api/v1/taverns/${encodeURIComponent(tavernId)}/memory-atoms?visitor_id=${encodeURIComponent(currentUserId)}&character_id=${encodeURIComponent(characterId)}&visibility=visitor&limit=5`,
+      `/api/v1/spaces/${encodeURIComponent(spaceId)}/memory-atoms?visitor_id=${encodeURIComponent(currentUserId)}&character_id=${encodeURIComponent(characterId)}&visibility=visitor&limit=5`,
       { headers: { "X-User-Id": currentUserId } },
     )
       .then((r) => r.json())
@@ -164,14 +164,14 @@ export default function NpcDetailRoute() {
         setMemoryCount(0)
         setRecentMemories([])
       })
-  }, [tavernId, characterId, currentUserId])
+  }, [spaceId, characterId, currentUserId])
 
   // 关系重置处理
   async function handleResetConfirm(reason: string) {
     setResetBusy(true)
     setResetResult("")
     try {
-      const result = await resetNpcRelationship(tavernId, characterId, reason, currentUserId)
+      const result = await resetNpcRelationship(spaceId, characterId, reason, currentUserId)
       setShowResetModal(false)
       setResetResult(
         result.bond_revoked
@@ -188,7 +188,7 @@ export default function NpcDetailRoute() {
   }
 
   // 错误态
-  if (error || !tavern || !character) {
+  if (error || !space || !character) {
     return (
       <ProductShell eyebrow="NPC">
         <div className="flex min-h-[50vh] flex-col items-center justify-center gap-4 px-6 text-center">
@@ -255,7 +255,7 @@ export default function NpcDetailRoute() {
               </div>
             )}
             {/* 在线/开放指示 */}
-            {tavern.status === "open" && (
+            {space.status === "open" && (
               <span
                 className="absolute bottom-1 right-1 h-4 w-4 rounded-full border-2 border-[#0d0a1a] bg-emerald-400"
                 title="空间开放中"
@@ -269,11 +269,11 @@ export default function NpcDetailRoute() {
 
           {/* 空间名 + 地址 */}
           <div className="z-10 mt-1.5 flex flex-col items-center gap-1 text-sm text-white/50">
-            <span className="font-medium text-white/70">{tavern.name}</span>
-            {tavern.address && (
+            <span className="font-medium text-white/70">{space.name}</span>
+            {space.address && (
               <span className="flex items-center gap-1 text-xs">
                 <MapPin className="h-3 w-3" aria-hidden="true" />
-                {tavern.address}
+                {space.address}
               </span>
             )}
           </div>
@@ -345,7 +345,7 @@ export default function NpcDetailRoute() {
             id="npc-detail-chat"
             type="button"
             onClick={() =>
-              navigate(`/tavern/${encodeURIComponent(tavernId)}?character_id=${encodeURIComponent(characterId)}`)
+              navigate(`/space/${encodeURIComponent(spaceId)}?character_id=${encodeURIComponent(characterId)}`)
             }
             className="flex flex-1 items-center justify-center gap-2 rounded-2xl bg-violet-600 py-3.5 text-sm font-semibold text-white shadow-lg shadow-violet-900/40 hover:bg-violet-500 active:bg-violet-700 transition-colors"
           >
@@ -358,7 +358,7 @@ export default function NpcDetailRoute() {
               id="npc-detail-apply-bond"
               type="button"
               onClick={() =>
-                navigate(`/tavern/${encodeURIComponent(tavernId)}?character_id=${encodeURIComponent(characterId)}&action=apply_bond`)
+                navigate(`/space/${encodeURIComponent(spaceId)}?character_id=${encodeURIComponent(characterId)}&action=apply_bond`)
               }
               className="rounded-2xl border border-rose-400/30 bg-rose-500/10 px-4 py-3.5 text-sm font-medium text-rose-300 hover:bg-rose-500/20 transition-colors"
             >
@@ -397,7 +397,7 @@ export default function NpcDetailRoute() {
             <h2 className="mb-3 text-xs font-semibold uppercase tracking-wider text-white/30">
               数字居民状态
             </h2>
-            <NpcSimulationStatusPanel character={character} variant="compact" tavernName={tavern.name} />
+            <NpcSimulationStatusPanel character={character} variant="compact" spaceName={space.name} />
           </div>
         )}
 

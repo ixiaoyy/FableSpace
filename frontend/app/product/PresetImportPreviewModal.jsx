@@ -1,13 +1,13 @@
 import { useMemo, useState } from 'react'
-import { applyPresetImport, errorMessage, previewPresetImport } from '../lib/taverns'
+import { applyPresetImport, errorMessage, previewPresetImport } from '../lib/spaces'
 
 const SAMPLE_PRESET = {
   name: '示例社区预设',
   temperature: 0.85,
   prompts: [
     {
-      name: 'Tavern Style',
-      content: 'Use warm tavern atmosphere and concise dialogue.',
+      name: 'Space Style',
+      content: 'Use warm space atmosphere and concise dialogue.',
     },
     {
       name: 'Rain World Info',
@@ -127,7 +127,7 @@ function DiffList({ title, items = [] }) {
   )
 }
 
-export default function PresetImportPreviewModal({ tavern, ownerId = '', onClose, onApplied }) {
+export default function PresetImportPreviewModal({ space, ownerId = '', onClose, onApplied }) {
   const [rawText, setRawText] = useState(() => JSON.stringify(SAMPLE_PRESET, null, 2))
   const [result, setResult] = useState(null)
   const [applyPlan, setApplyPlan] = useState(null)
@@ -172,7 +172,7 @@ export default function PresetImportPreviewModal({ tavern, ownerId = '', onClose
     }
     setLoading(true)
     try {
-      const payload = await previewPresetImport(tavern.id, { preset: parsed }, ownerId)
+      const payload = await previewPresetImport(space.id, { preset: parsed }, ownerId)
       const supported = payload.supported || []
       const nextTargetMap = Object.fromEntries(supported.map((item) => [item.id, defaultTargetForItem(item)]))
       setResult(payload)
@@ -202,7 +202,7 @@ export default function PresetImportPreviewModal({ tavern, ownerId = '', onClose
     setStatus('')
     try {
       const payload = await applyPresetImport(
-        tavern.id,
+        space.id,
         {
           preset: parsed,
           selected_ids: selectedIds,
@@ -215,7 +215,7 @@ export default function PresetImportPreviewModal({ tavern, ownerId = '', onClose
       setApplyPlan(payload)
       if (payload.applied) {
         setStatus(`已应用所选 supported 子集：${diffCountLabel(payload.diff)}。`)
-        if (payload.tavern && onApplied) onApplied(payload.tavern)
+        if (payload.space && onApplied) onApplied(payload.space)
       } else {
         setStatus(`已生成应用前 diff，可确认或取消：${diffCountLabel(payload.diff)}。`)
       }
@@ -253,7 +253,7 @@ export default function PresetImportPreviewModal({ tavern, ownerId = '', onClose
         <header className="modal-header">
           <div>
             <p className="mini-label">Preset Import · owner confirmed apply</p>
-            <h3>预览并应用预设：{tavern?.name || '当前空间'}</h3>
+            <h3>预览并应用预设：{space?.name || '当前空间'}</h3>
             <p className="note muted">
               粘贴社区 / SillyTavern 风格 JSON，先生成风险报告；只有店主选择 supported 子集、查看 diff 后，才会写入空间。
             </p>

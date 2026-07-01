@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { getOutputRules, saveOutputRules, testOutputRules } from '../lib/taverns'
+import { getOutputRules, saveOutputRules, testOutputRules } from '../lib/spaces'
 
 function makeRuleId() {
   if (typeof crypto !== 'undefined' && crypto.randomUUID) {
@@ -47,8 +47,8 @@ function getRuleStatusLabel(rule) {
   return rule.kind === 'literal' ? '文本替换' : '正则'
 }
 
-export default function OutputRulesEditor({ tavern, ownerId, onClose, onRulesChanged }) {
-  const fallbackRules = useMemo(() => normalizeRules(tavern?.output_rules || []), [tavern?.id])
+export default function OutputRulesEditor({ space, ownerId, onClose, onRulesChanged }) {
+  const fallbackRules = useMemo(() => normalizeRules(space?.output_rules || []), [space?.id])
 
   const [rules, setRules] = useState(fallbackRules)
   const [defaultRules, setDefaultRules] = useState([])
@@ -66,12 +66,12 @@ export default function OutputRulesEditor({ tavern, ownerId, onClose, onRulesCha
   useEffect(() => {
     let alive = true
     async function loadRules() {
-      if (!tavern?.id) return
+      if (!space?.id) return
       setLoading(true)
       setError('')
       setStatus('')
       try {
-        const payload = await getOutputRules(tavern.id, ownerId)
+        const payload = await getOutputRules(space.id, ownerId)
         if (!alive) return
         const nextRules = normalizeRules(payload.rules || [])
         const nextDefaults = normalizeRules(payload.default_rules || [])
@@ -83,7 +83,7 @@ export default function OutputRulesEditor({ tavern, ownerId, onClose, onRulesCha
         setTestResult(null)
       } catch (err) {
         if (!alive) return
-        const nextRules = normalizeRules(tavern?.output_rules || [])
+        const nextRules = normalizeRules(space?.output_rules || [])
         setRules(nextRules)
         setSelectedId(nextRules[0]?.id || '')
         setDraft(nextRules[0] || null)
@@ -94,7 +94,7 @@ export default function OutputRulesEditor({ tavern, ownerId, onClose, onRulesCha
     }
     loadRules()
     return () => { alive = false }
-  }, [tavern?.id, ownerId])
+  }, [space?.id, ownerId])
 
   const enabledCount = rules.filter((rule) => rule.enabled).length
   const builtInCount = rules.filter((rule) => rule.built_in).length
@@ -185,20 +185,20 @@ export default function OutputRulesEditor({ tavern, ownerId, onClose, onRulesCha
   }
 
   async function handleSave() {
-    if (!tavern?.id) return
+    if (!space?.id) return
     const nextRules = applyDraftToRules({ silent: true })
     setSaving(true)
     setError('')
     setStatus('')
     try {
-      const payload = await saveOutputRules(tavern.id, nextRules.map(normalizeRule), ownerId)
-      const savedRules = normalizeRules(payload.rules || payload.tavern?.output_rules || nextRules)
+      const payload = await saveOutputRules(space.id, nextRules.map(normalizeRule), ownerId)
+      const savedRules = normalizeRules(payload.rules || payload.space?.output_rules || nextRules)
       setRules(savedRules)
       setSelectedId(savedRules[0]?.id || '')
       setDraft(savedRules.find((rule) => rule.id === selectedId) || savedRules[0] || null)
       setDirty(false)
       setStatus('输出护栏已保存，新的 AI 回复会自动套用这些规则。')
-      if (payload.tavern && onRulesChanged) onRulesChanged(payload.tavern)
+      if (payload.space && onRulesChanged) onRulesChanged(payload.space)
     } catch (err) {
       setError(`保存失败：${err.message}`)
     } finally {
@@ -207,13 +207,13 @@ export default function OutputRulesEditor({ tavern, ownerId, onClose, onRulesCha
   }
 
   async function handleTest() {
-    if (!tavern?.id) return
+    if (!space?.id) return
     const nextRules = applyDraftToRules({ silent: true })
     setTesting(true)
     setError('')
     setTestResult(null)
     try {
-      const payload = await testOutputRules(tavern.id, { text: testText, rules: nextRules }, ownerId)
+      const payload = await testOutputRules(space.id, { text: testText, rules: nextRules }, ownerId)
       setTestResult(payload)
     } catch (err) {
       setError(`预览失败：${err.message}`)
@@ -228,7 +228,7 @@ export default function OutputRulesEditor({ tavern, ownerId, onClose, onRulesCha
         <header className="modal-header output-rules-header">
           <div>
             <p className="mini-label">输出修正 / 风格护栏</p>
-            <h3>{tavern?.name || '空间'} 的输出护栏</h3>
+            <h3>{space?.name || '空间'} 的输出护栏</h3>
             <p className="note muted">在 AI 回复保存前做确定性清理，用来减少出戏前缀、总结腔和格式噪音。</p>
           </div>
           <button className="close-btn" type="button" onClick={onClose}>&times;</button>

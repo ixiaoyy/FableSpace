@@ -1,6 +1,6 @@
-# FableMap 操作手册
+# FableSpace 操作手册
 
-> FableMap 是一个基于真实地理位置的 AI 空间 UGC 平台：店主在地图上创建空间、配置 AI NPC，探索者进入空间对话、游玩、留下记忆并回访。
+> FableSpace 是一个基于真实地理位置的 AI 空间 UGC 平台：店主在地图上创建空间、配置 AI NPC，探索者进入空间对话、游玩、留下记忆并回访。
 
 本 README 是项目默认入口，侧重“怎么把项目跑起来、怎么配置、怎么验证、常见操作在哪里做”。产品定义、架构和 Schema 细节请看文末文档入口。
 
@@ -8,12 +8,12 @@
 
 | 路径 | 用途 |
 |------|------|
-| `backend/src/fablemap_api/` | Python / FastAPI 后端源码 |
+| `backend/src/fablespace_api/` | Python / FastAPI 后端源码 |
 | `frontend/` | React Router + Vite 前端 |
 | `docs/` | 产品、架构、Schema、边界与资源规范 |
 | `.trellis/` | Trellis 任务、规范与协作记录 |
-| `fablemap_data/` | 本地运行数据参考目录 |
-| `.fablemap-api/` | 默认本地输出 / SQLite / 兼容数据目录，运行后生成 |
+| `fablespace_data/` | 本地运行数据参考目录 |
+| `.fablespace-api/` | 默认本地输出 / SQLite / 兼容数据目录，运行后生成 |
 
 ## 环境准备
 
@@ -40,7 +40,7 @@ npm --prefix .\frontend install
 npm --prefix .\frontend run build
 
 $env:PYTHONPATH = "$PWD\backend\src"
-py -3 -m fablemap_api api --no-open
+py -3 -m fablespace_api api --no-open
 ```
 
 访问：
@@ -54,8 +54,8 @@ http://127.0.0.1:8950/api/meta
 常用参数：
 
 ```powershell
-py -3 -m fablemap_api api --host 127.0.0.1 --port 8950 --no-open
-py -3 -m fablemap_api api --output-root .fablemap-api --no-open
+py -3 -m fablespace_api api --host 127.0.0.1 --port 8950 --no-open
+py -3 -m fablespace_api api --output-root .fablespace-api --no-open
 ```
 
 ## 前端开发运行
@@ -66,7 +66,7 @@ py -3 -m fablemap_api api --output-root .fablemap-api --no-open
 
 ```powershell
 $env:PYTHONPATH = "$PWD\backend\src"
-py -3 -m fablemap_api api --no-open
+py -3 -m fablespace_api api --no-open
 ```
 
 终端 B：启动前端开发服务器。
@@ -85,7 +85,7 @@ http://127.0.0.1:5173/
 
 ## Docker Compose 运行
 
-仓库提供 `docker-compose.yml`，前端由 nginx 托管静态构建，后端运行 `uvicorn fablemap_api.main:app`。
+仓库提供 `docker-compose.yml`，前端由 nginx 托管静态构建，后端运行 `uvicorn fablespace_api.main:app`。
 
 ```powershell
 Copy-Item .env.example .env
@@ -102,8 +102,8 @@ http://127.0.0.1:8000/api/v1/health
 端口可在 `.env` 中调整：
 
 ```env
-FABLEMAP_FRONTEND_PORT=3000
-FABLEMAP_API_PORT=8000
+FABLESPACE_FRONTEND_PORT=3000
+FABLESPACE_API_PORT=8000
 ```
 
 ## 环境变量
@@ -112,41 +112,43 @@ FABLEMAP_API_PORT=8000
 
 | 变量 | 用途 |
 |------|------|
-| `FABLEMAP_DATABASE_URL` | 首选 SQLAlchemy 数据库 URL；可指向 MySQL / Postgres / SQLite |
-| `FABLEMAP_MYSQL_URL` | 旧数据库 URL 别名，新配置优先用 `FABLEMAP_DATABASE_URL` |
-| `FABLEMAP_STORAGE_BACKEND` | 默认 `database`；只有显式设为 `json` 时使用旧 JSON 文件存储 |
-| `FABLEMAP_OUTPUT_ROOT` | 后端输出目录；本地默认 `.fablemap-api`，Docker 默认 `/data` |
-| `FABLEMAP_SEED_DEFAULT_TAVERNS` | 是否写入默认公益空间；默认 `1` |
-| `FABLEMAP_CORS_ORIGINS` | 前后端分离运行时允许的浏览器来源 |
+| `FABLESPACE_DATABASE_URL` | 首选 SQLAlchemy 数据库 URL；可指向 MySQL / Postgres / SQLite |
+| `FABLESPACE_MYSQL_URL` | 旧数据库 URL 别名，新配置优先用 `FABLESPACE_DATABASE_URL` |
+| `FABLESPACE_STORAGE_BACKEND` | 默认 `database`；只有显式设为 `json` 时使用旧 JSON 文件存储 |
+| `FABLESPACE_OUTPUT_ROOT` | 后端输出目录；本地默认 `.fablespace-api`，Docker 默认 `/data` |
+| `FABLESPACE_SEED_DEFAULT_SPACES` | 是否写入默认公益空间；默认 `1` |
+| `FABLESPACE_CORS_ORIGINS` | 前后端分离运行时允许的浏览器来源 |
 | `VITE_API_BASE` | 前端构建期 API 基址；留空时使用同源 `/api` |
 | `VITE_AMAP_KEY` / `VITE_AMAP_SECURITY_CODE` | 可选地图服务密钥 |
 | `OPENCODE_API_KEY` | 可选系统公益空间测试 LLM Key；普通店主 Key 不应写入共享 `.env` |
 
-店主自己的 LLM API Key 应在 FableMap 店主管理界面中按空间配置，不要提交到仓库，也不要写入共享环境文件。
+旧 `FABLEMAP_*` 环境变量名仍作为后端回退兼容；新部署和新文档优先使用上表中的 `FABLESPACE_*`。
+
+店主自己的 LLM API Key 应在 FableSpace 店主管理界面中按空间配置，不要提交到仓库，也不要写入共享环境文件。
 
 ## 数据存储
 
 默认存储策略：
 
-- `FABLEMAP_STORAGE_BACKEND=database` 是默认值。
-- 未配置 `FABLEMAP_DATABASE_URL` / `FABLEMAP_MYSQL_URL` 时，本地会使用 `<output-root>/fablemap.sqlite3`。
-- 显式设置 `FABLEMAP_STORAGE_BACKEND=json` 时，才使用旧 JSON 兼容存储。
-- Docker Compose 会把后端输出写入 Docker volume `fablemap_data`。
+- `FABLESPACE_STORAGE_BACKEND=database` 是默认值。
+- 未配置 `FABLESPACE_DATABASE_URL` / `FABLESPACE_MYSQL_URL` 时，本地会使用 `<output-root>/fablespace.sqlite3`。
+- 显式设置 `FABLESPACE_STORAGE_BACKEND=json` 时，才使用旧 JSON 兼容存储。
+- Docker Compose 会把后端输出写入 Docker volume `fablespace_data`。
 
 从本地 SQLite 迁移到 `.env` 中的目标数据库：
 
 ```powershell
 $env:PYTHONPATH = "$PWD\backend\src"
-py -3 -m fablemap_api.infrastructure.migrate_database --dry-run
-py -3 -m fablemap_api.infrastructure.migrate_database
+py -3 -m fablespace_api.infrastructure.migrate_database --dry-run
+py -3 -m fablespace_api.infrastructure.migrate_database
 ```
 
 从旧 JSON / file runtime 数据迁移：
 
 ```powershell
 $env:PYTHONPATH = "$PWD\backend\src"
-$env:FABLEMAP_DATABASE_URL = "mysql+pymysql://user:pass@localhost:3306/fablemap"
-py -3 -m fablemap_api.infrastructure.migrate --output-root .fablemap-api
+$env:FABLESPACE_DATABASE_URL = "mysql+pymysql://user:pass@localhost:3306/fablespace"
+py -3 -m fablespace_api.infrastructure.migrate --output-root .fablespace-api
 ```
 
 ## 常用操作
@@ -203,7 +205,7 @@ py -3 -m pytest -q --tb=short
 换端口启动：
 
 ```powershell
-py -3 -m fablemap_api api --port 8951 --no-open
+py -3 -m fablespace_api api --port 8951 --no-open
 ```
 
 前端开发模式如果换了后端端口，需要同步调整 `frontend/vite.config.js` 的代理目标。
@@ -214,7 +216,7 @@ py -3 -m fablemap_api api --port 8951 --no-open
 
 **数据库初始化失败**
 
-先确认 `FABLEMAP_DATABASE_URL` 是否正确。只想本地快速体验时，可以清空数据库 URL，默认使用 `.fablemap-api/fablemap.sqlite3`；只有需要旧文件存储时才设置 `FABLEMAP_STORAGE_BACKEND=json`。
+先确认 `FABLESPACE_DATABASE_URL` 是否正确。只想本地快速体验时，可以清空数据库 URL，默认使用 `.fablespace-api/fablespace.sqlite3`；只有需要旧文件存储时才设置 `FABLESPACE_STORAGE_BACKEND=json`。
 
 **空间内 NPC 没有真实 LLM 回复**
 
@@ -222,7 +224,7 @@ py -3 -m fablemap_api api --port 8951 --no-open
 
 **Docker 端口冲突**
 
-修改 `.env` 中的 `FABLEMAP_FRONTEND_PORT` 或 `FABLEMAP_API_PORT` 后重新启动 Compose。
+修改 `.env` 中的 `FABLESPACE_FRONTEND_PORT` 或 `FABLESPACE_API_PORT` 后重新启动 Compose。
 
 ## 开发边界
 
@@ -238,7 +240,7 @@ py -3 -m fablemap_api api --port 8951 --no-open
 ## 文档入口
 
 - [产品概述](docs/PRODUCT_BRIEF.md)
-- [空间平台设计](docs/FABLEMAP_TAVERN_PLATFORM.md)
+- [空间平台设计](docs/FABLESPACE_SPACE_PLATFORM.md)
 - [系统架构](docs/ARCHITECTURE.md)
 - [世界数据结构](docs/WORLD_SCHEMA.md)
 - [明确不做清单](docs/WHAT_NOT_TO_BUILD.md)

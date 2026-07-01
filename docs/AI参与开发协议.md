@@ -1,6 +1,6 @@
 # AI 参与开发协议
 
-本协议用于约束 AI 在 FableMap 仓库内协作开发。更高优先级规则见 `AGENTS.md`。
+本协议用于约束 AI 在 FableSpace 仓库内协作开发。更高优先级规则见 `AGENTS.md`。
 
 ## 基本原则
 

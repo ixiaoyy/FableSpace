@@ -20,16 +20,16 @@ const TERRITORY_TYPE_OPTIONS = Object.entries(TERRITORY_TYPE_META).map(([type, m
 
 export default function TerritoryClaimPanel({
   userId,
-  tavernId,
+  spaceId,
   initialLat,
   initialLon,
   onClaimSuccess,
   onCancel,
 }) {
-  const [selectedType, setSelectedType] = useState('tavern')
+  const [selectedType, setSelectedType] = useState('space')
   const [centerLat, setCenterLat] = useState(initialLat || 39.9042)
   const [centerLon, setCenterLon] = useState(initialLon || 116.4074)
-  const [radius, setRadius] = useState(TERRITORY_DEFAULT_RADIUS.tavern)
+  const [radius, setRadius] = useState(TERRITORY_DEFAULT_RADIUS.space)
   const [name, setName] = useState('')
   const [checking, setChecking] = useState(false)
   const [claiming, setClaiming] = useState(false)
@@ -83,7 +83,7 @@ export default function TerritoryClaimPanel({
         center_lat: centerLat,
         center_lon: centerLon,
         radius,
-        tavern_id: tavernId,
+        space_id: spaceId,
         name: name || currentTypeMeta.name,
       }, userId)
 
@@ -95,7 +95,7 @@ export default function TerritoryClaimPanel({
     } finally {
       setClaiming(false)
     }
-  }, [checkResult, selectedType, centerLat, centerLon, radius, tavernId, name, currentTypeMeta, userId, onClaimSuccess])
+  }, [checkResult, selectedType, centerLat, centerLon, radius, spaceId, name, currentTypeMeta, userId, onClaimSuccess])
 
   return (
     <div className="territory-claim-panel" style={panelStyle}>

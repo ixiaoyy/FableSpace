@@ -1,12 +1,12 @@
 # Frontend State Management
 
-> How local, server, URL, and persisted state are managed in FableMap.
+> How local, server, URL, and persisted state are managed in FableSpace.
 
 ---
 
 ## Overview
 
-FableMap does not use Redux, Zustand, MobX, React Query, SWR, or another global state library. State is managed with React `useState`, `useMemo`, `useEffect`, custom hooks, React Router, and small persistence helpers.
+FableSpace does not use Redux, Zustand, MobX, React Query, SWR, or another global state library. State is managed with React `useState`, `useMemo`, `useEffect`, custom hooks, React Router, and small persistence helpers.
 
 Do not add a new state management dependency without user approval.
 
@@ -18,10 +18,10 @@ Do not add a new state management dependency without user approval.
 |------------|-----------------|----------|
 | Local UI state | `useState` in component | modal open flags, form drafts, active tab/section |
 | Workflow/session state | custom hooks | `useWorldSession`, `useNearbySession`, `useWritebackSession` |
-| Server state | explicit service calls + loading/error state | `tavernService.listTaverns`, `getTavern`, gameplay session methods |
-| URL state | React Router route matching/navigation | `/discover`, `/templates`, `/owner`, `/tavern/:tavernId` in `App.jsx` |
+| Server state | explicit service calls + loading/error state | `spaceService.listSpaces`, `getSpace`, gameplay session methods |
+| URL state | React Router route matching/navigation | `/discover`, `/templates`, `/owner`, `/space/:spaceId` in `App.jsx` |
 | Persisted browser state | `localStorage` via service/helpers | visitor ID/nickname, theme, first-run mode, world session persistence |
-| Derived display state | `useMemo` or pure service functions | `buildAppPanelProps`, `buildWorldSessionViewState`, sorted/filtered taverns |
+| Derived display state | `useMemo` or pure service functions | `buildAppPanelProps`, `buildWorldSessionViewState`, sorted/filtered spaces |
 
 ---
 
@@ -33,7 +33,7 @@ Existing examples:
 
 - `CharacterEditor.jsx` keeps a local `draft` and derives completion/preview with `useMemo`.
 - `GameplayDefinitionEditor.jsx` keeps text versions of arrays/JSON and emits parsed structures.
-- `TavernOwnerPanel.jsx` owns owner-console panels/modals and passes callbacks to child editors.
+- `SpaceOwnerPanel.jsx` owns owner-console panels/modals and passes callbacks to child editors.
 
 ---
 
@@ -42,15 +42,15 @@ Existing examples:
 Server state is loaded on demand and refreshed explicitly. Existing services expose methods such as:
 
 ```javascript
-const service = getDefaultTavernService()
-const payload = await service.listTaverns({ lat, lon, radius })
+const service = getDefaultSpaceService()
+const payload = await service.listSpaces({ lat, lon, radius })
 ```
 
 Use visible loading and error state around calls. Do not assume successful network calls or valid JSON; service helpers already convert HTTP/JSON failures to `Error` objects.
 
 When changing backend response shape, update:
 
-- `frontend/app/product/services/tavernService.js` or `apiClient.js`,
+- `frontend/app/product/services/spaceService.js` or `apiClient.js`,
 - affected components/hooks,
 - frontend script tests if service behavior changes,
 - backend tests/docs if the contract is canonical.
@@ -66,12 +66,12 @@ function viewFromPath(pathname = '/') {
   if (matchPath('/discover', pathname)) return 'map'
   if (matchPath('/templates', pathname)) return 'templates'
   if (matchPath('/owner', pathname)) return 'owner'
-  if (matchPath('/tavern/:tavernId', pathname)) return 'tavern'
+  if (matchPath('/space/:spaceId', pathname)) return 'space'
   return 'home'
 }
 ```
 
-New top-level routes should fit this route/view model and preserve direct links to taverns where possible.
+New top-level routes should fit this route/view model and preserve direct links to spaces where possible.
 
 ---
 
@@ -91,7 +91,7 @@ Do not store owner API keys or sensitive LLM configuration in localStorage unles
 
 Prefer pure helpers and `useMemo` for derived state instead of duplicating mutable state. Examples:
 
-- `sortTavernsForDiscovery(...)` and `pickTavernsForMap(...)` in `App.jsx`.
+- `sortSpacesForDiscovery(...)` and `pickSpacesForMap(...)` in `App.jsx`.
 - `usePoiFilters(...)` derives filter options and filtered POIs.
 - `buildWorldSessionViewState(...)` returns display-ready world/writeback state.
 
@@ -99,10 +99,10 @@ Prefer pure helpers and `useMemo` for derived state instead of duplicating mutab
 
 ## Real examples to follow
 
-1. `frontend/app/product/App.jsx`: visitor identity/theme/route state plus top-level tavern discovery refresh keys.
+1. `frontend/app/product/App.jsx`: visitor identity/theme/route state plus top-level space discovery refresh keys.
 2. `frontend/app/product/hooks/useWorldSession.js`: composed workflow state with persisted session restore.
 3. `frontend/app/product/services/sessionPersistence.js`: isolates localStorage serialization details.
-4. `frontend/app/product/GameplayManager.jsx`: loads/saves gameplay definitions through `tavernService` and keeps owner editing state local.
+4. `frontend/app/product/GameplayManager.jsx`: loads/saves gameplay definitions through `spaceService` and keeps owner editing state local.
 
 ---
 

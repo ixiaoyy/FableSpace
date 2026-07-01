@@ -1,16 +1,16 @@
 /**
  * SpaceCapabilityHubPanel
  *
- * Renders optional visitor actions in TavernChatWorkbench.
+ * Renders optional visitor actions in SpaceChatWorkbench.
  */
 
 import { useState } from "react"
 import { deriveCapabilityProfile, sortCapabilityCards, groupCapabilityCards, type CapabilityCard, type CapabilityGroup } from "../lib/space-capability-hub"
-import type { Tavern } from "../lib/taverns"
+import type { Space } from "../lib/spaces"
 import { MiniGameWorkshopPanel } from "./MiniGameWorkshopPanel"
 
 type SpaceCapabilityHubPanelProps = {
-  tavern: Tavern
+  space: Space
   onCapabilityClick?: (card: CapabilityCard) => void
 }
 
@@ -84,10 +84,10 @@ function CapabilityCategorySection({
   )
 }
 
-export function SpaceCapabilityHubPanel({ tavern, onCapabilityClick }: SpaceCapabilityHubPanelProps) {
+export function SpaceCapabilityHubPanel({ space, onCapabilityClick }: SpaceCapabilityHubPanelProps) {
   const [showMiniGame, setShowMiniGame] = useState(false)
 
-  const profile = deriveCapabilityProfile(tavern)
+  const profile = deriveCapabilityProfile(space)
   const sortedCards = sortCapabilityCards(profile)
   const groups = groupCapabilityCards(sortedCards)
 
@@ -123,7 +123,7 @@ export function SpaceCapabilityHubPanel({ tavern, onCapabilityClick }: SpaceCapa
       </div>
 
       {/* Place type badge */}
-      {tavern.place_type && (
+      {space.place_type && (
         <div className="rounded-2xl border border-cyan-300/18 bg-cyan-300/8 p-3">
           <p className="text-xs font-black uppercase tracking-[0.16em] text-cyan-100/62">空间提示</p>
           <p className="mt-1 text-sm font-semibold text-cyan-50">已根据这间空间的氛围整理入口</p>
@@ -151,8 +151,8 @@ export function SpaceCapabilityHubPanel({ tavern, onCapabilityClick }: SpaceCapa
 /**
  * Simple inline capability grid for compact usage
  */
-export function SpaceCapabilityGrid({ tavern, onCardClick }: { tavern: Tavern; onCardClick?: (card: CapabilityCard) => void }) {
-  const profile = deriveCapabilityProfile(tavern)
+export function SpaceCapabilityGrid({ space, onCardClick }: { space: Space; onCardClick?: (card: CapabilityCard) => void }) {
+  const profile = deriveCapabilityProfile(space)
   const sortedCards = sortCapabilityCards(profile).slice(0, 6) // Max 6 cards for compact view
 
   return (

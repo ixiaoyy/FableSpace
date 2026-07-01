@@ -21,7 +21,7 @@ export default function WorldMapOverlays({
       <div className="map-sky-glow" />
       <div className="map-overlay map-overlay-top">
         <div className="map-biome-banner">
-          <span className="map-biome-kicker">FableMap 世界切片</span>
+          <span className="map-biome-kicker">FableSpace 世界切片</span>
           <strong>{formatTag(region?.theme || vibe)}</strong>
           <span>{originLabel || '附近切片'} · {formatCount(poiNodes.length, '个地点')} · {formatCount(landmarkNodes.length, '个地标')}</span>
         </div>

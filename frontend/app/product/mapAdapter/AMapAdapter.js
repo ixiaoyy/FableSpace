@@ -5,7 +5,7 @@ const AMAP_KEY = import.meta.env.VITE_AMAP_KEY
 const AMAP_SECURITY_CODE = import.meta.env.VITE_AMAP_SECURITY_CODE
 const AMAP_SRC = `https://webapi.amap.com/maps?v=2.0&key=${AMAP_KEY}`
 
-const TAVERN_ACCESS_MARKER_THEME = {
+const SPACE_ACCESS_MARKER_THEME = {
   public: {
     icon: '🔓',
     label: '公开',
@@ -50,8 +50,8 @@ function escapeHtml(value) {
     .replaceAll("'", '&#39;')
 }
 
-function getTavernAccessMarkerTheme(access) {
-  return TAVERN_ACCESS_MARKER_THEME[access] || {
+function getSpaceAccessMarkerTheme(access) {
+  return SPACE_ACCESS_MARKER_THEME[access] || {
     icon: '❓',
     label: '未知',
     accent: '#94a3b8',
@@ -66,7 +66,7 @@ function getTavernAccessMarkerTheme(access) {
 
 // Territory type to color mapping
 const TERRITORY_TYPE_COLORS = {
-  tavern: '#FFD700',
+  space: '#FFD700',
   pet_shop: '#FF69B4',
   garden: '#32CD32',
   game_workshop: '#4169E1',
@@ -130,10 +130,10 @@ function buildLandmarkMarkerContent(landmark) {
   `
 }
 
-function buildTavernMarkerContent({ tavern, isActive }) {
-  const accessTheme = getTavernAccessMarkerTheme(tavern?.access)
-  const statusColor = tavern?.status === 'open' ? '#22c55e' : '#ef4444'
-  const copy = buildMapAnchorMarkerCopy(tavern)
+function buildSpaceMarkerContent({ space, isActive }) {
+  const accessTheme = getSpaceAccessMarkerTheme(space?.access)
+  const statusColor = space?.status === 'open' ? '#22c55e' : '#ef4444'
+  const copy = buildMapAnchorMarkerCopy(space)
   const label = escapeHtml(copy.name)
   const badgeLabel = escapeHtml(copy.badgeLabel)
   const statusText = escapeHtml(copy.statusText)
@@ -184,7 +184,7 @@ export class AMapAdapter extends MapAdapter {
     this._container = null
     this._poiMarkers = []
     this._landmarkMarkers = []
-    this._tavernMarkers = []
+    this._spaceMarkers = []
     this._territoryCircles = []
     this._ready = Boolean(window.AMap)
     this._error = ''
@@ -213,8 +213,8 @@ export class AMapAdapter extends MapAdapter {
       return
     }
 
-    if (window.__fablemapAmapLoader) {
-      return window.__fablemapAmapLoader
+    if (window.__fablespaceAmapLoader) {
+      return window.__fablespaceAmapLoader
     }
 
     if (AMAP_SECURITY_CODE) {
@@ -223,7 +223,7 @@ export class AMapAdapter extends MapAdapter {
       }
     }
 
-    window.__fablemapAmapLoader = new Promise((resolve, reject) => {
+    window.__fablespaceAmapLoader = new Promise((resolve, reject) => {
       const existing = document.querySelector('script[data-amap-sdk="true"]')
       if (existing) {
         existing.addEventListener('load', () => {
@@ -263,7 +263,7 @@ export class AMapAdapter extends MapAdapter {
       document.head.appendChild(script)
     })
 
-    return window.__fablemapAmapLoader
+    return window.__fablespaceAmapLoader
   }
 
   createMap(container, options = {}) {
@@ -337,14 +337,14 @@ export class AMapAdapter extends MapAdapter {
       this._poiMarkers = newMarkers
       this._map.add(newMarkers)
       this.fitBounds(newMarkers.map((m) => m.getPosition()), 80, 16)
-    } else if (type === 'tavern') {
-      // Remove existing tavern markers
-      this._tavernMarkers.forEach((m) => m.setMap(null))
-      this._tavernMarkers = []
+    } else if (type === 'space') {
+      // Remove existing space markers
+      this._spaceMarkers.forEach((m) => m.setMap(null))
+      this._spaceMarkers = []
 
       if (!markers?.length) return
 
-      const { activeTavernId, onTavernClick } = opts
+      const { activeSpaceId, onSpaceClick } = opts
       const newMarkers = markers
         .map((marker) => {
           const lat = Number(marker.lat)
@@ -355,21 +355,21 @@ export class AMapAdapter extends MapAdapter {
             position: [lon, lat],
             anchor: 'bottom-center',
             offset: new window.AMap.Pixel(0, 0),
-            content: buildTavernMarkerContent({
-              tavern: marker,
-              isActive: marker.id === activeTavernId,
+            content: buildSpaceMarkerContent({
+              space: marker,
+              isActive: marker.id === activeSpaceId,
             }),
           })
 
-          if (onTavernClick) {
-            amapMarker.on('click', () => onTavernClick(marker))
+          if (onSpaceClick) {
+            amapMarker.on('click', () => onSpaceClick(marker))
           }
 
           return amapMarker
         })
         .filter(Boolean)
 
-      this._tavernMarkers = newMarkers
+      this._spaceMarkers = newMarkers
       this._map.add(newMarkers)
     } else if (type === 'landmark') {
       // Remove existing landmark markers
@@ -548,11 +548,11 @@ export class AMapAdapter extends MapAdapter {
     if (this._map) {
       this._poiMarkers.forEach((m) => m.setMap(null))
       this._landmarkMarkers.forEach((m) => m.setMap(null))
-      this._tavernMarkers.forEach((m) => m.setMap(null))
+      this._spaceMarkers.forEach((m) => m.setMap(null))
       this._territoryCircles.forEach((c) => c.setMap(null))
       this._poiMarkers = []
       this._landmarkMarkers = []
-      this._tavernMarkers = []
+      this._spaceMarkers = []
       this._territoryCircles = []
       this._map.destroy()
       this._map = null

@@ -1,6 +1,6 @@
 # Backend Persistence Guidelines
 
-Concise persistence rules for FableMap backend work. Product schema authority remains `docs/WORLD_SCHEMA.md`; API contracts live in focused backend spec files.
+Concise persistence rules for FableSpace backend work. Product schema authority remains `docs/WORLD_SCHEMA.md`; API contracts live in focused backend spec files.
 
 ## Principles
 
@@ -8,13 +8,13 @@ Concise persistence rules for FableMap backend work. Product schema authority re
 - Keep owner-private, visitor-private, and public payloads separate.
 - Do not add schema fields, enum meanings, or required/optional changes without explicit task scope.
 - Sensitive owner LLM/API key fields must never leak to visitor payloads, logs, or public responses.
-- Runtime-private state such as sessions, draft previews, and dry-runs must not silently become public tavern content.
+- Runtime-private state such as sessions, draft previews, and dry-runs must not silently become public space content.
 
 ## Persistence patterns
 
 ### Load-normalize-save
 
-1. Load the existing tavern/user/session record.
+1. Load the existing space/user/session record.
 2. Normalize incoming payload with safe defaults.
 3. Validate identity and visibility.
 4. Save through the store/core adapter.
@@ -24,7 +24,7 @@ Concise persistence rules for FableMap backend work. Product schema authority re
 
 - Public discovery/entry payloads: no owner API keys, private memories, hidden prompt blocks, private visitor notes, or raw internal diagnostics.
 - Owner payloads: may include owner-facing config state, still no raw secrets unless explicitly needed for edit form masking.
-- Visitor payloads: only visitor-owned state plus public tavern/NPC content.
+- Visitor payloads: only visitor-owned state plus public space/NPC content.
 
 ### Query/list helpers
 
@@ -39,8 +39,8 @@ Before changing persistence schema:
 - Add migration/backfill behavior for existing JSON/SQLite/MySQL rows.
 - Update API contracts and tests in the same change.
 - Do not reinterpret existing enum values silently.
-- Every SQLAlchemy table and column must have a concise Chinese schema comment in `backend/src/fablemap_api/infrastructure/schema_comments.py`.
-- New tables/columns are not complete until `backend/tests/test_schema_comments.py` passes and the live MySQL metadata can be synced with `python -m fablemap_api.infrastructure.apply_schema_comments --apply`.
+- Every SQLAlchemy table and column must have a concise Chinese schema comment in `backend/src/fablespace_api/infrastructure/schema_comments.py`.
+- New tables/columns are not complete until `backend/tests/test_schema_comments.py` passes and the live MySQL metadata can be synced with `python -m fablespace_api.infrastructure.apply_schema_comments --apply`.
 - Database comments are metadata only; do not use a comment-only task to change field types, enum semantics, nullability, or row data.
 
 ## Database compatibility
@@ -64,7 +64,7 @@ Before changing persistence schema:
 
 ## Common mistakes
 
-- Returning raw tavern records directly to public endpoints.
+- Returning raw space records directly to public endpoints.
 - Updating in-memory compatibility data but not persistence adapters.
 - Adding fields to backend without frontend/client defaults.
 - Treating dry-run/preview data as saved chat history.

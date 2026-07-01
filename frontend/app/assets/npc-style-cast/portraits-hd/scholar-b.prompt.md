@@ -20,7 +20,7 @@ Do not use third-party characters, logos, living-artist imitation, private data,
 
 ## Style recipe / Style DNA source
 
-Project-local FableMap NPC portrait catalog, upscaled 2x with Lanczos resampling and light unsharp masking for runtime avatar clarity.
+Project-local FableSpace NPC portrait catalog, upscaled 2x with Lanczos resampling and light unsharp masking for runtime avatar clarity.
 
 ## Identity locks
 

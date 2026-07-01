@@ -5,7 +5,7 @@ export function ThemeToggle() {
   const [theme, setTheme] = useState<"dark" | "light">("dark")
 
   useEffect(() => {
-    const savedTheme = localStorage.getItem("fablemap_theme") || "dark"
+    const savedTheme = localStorage.getItem("fablespace_theme") || "dark"
     setTheme(savedTheme as "dark" | "light")
     if (savedTheme === "light") {
       document.documentElement.classList.add("light")
@@ -21,7 +21,7 @@ export function ThemeToggle() {
   const toggleTheme = () => {
     const newTheme = theme === "dark" ? "light" : "dark"
     setTheme(newTheme)
-    localStorage.setItem("fablemap_theme", newTheme)
+    localStorage.setItem("fablespace_theme", newTheme)
     
     if (newTheme === "light") {
       document.documentElement.classList.add("light")

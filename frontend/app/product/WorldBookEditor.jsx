@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { createWorldInfo, deleteWorldInfo, listWorldInfo, testWorldInfo, updateTavern, updateWorldInfo } from '../lib/taverns'
+import { createWorldInfo, deleteWorldInfo, listWorldInfo, testWorldInfo, updateSpace, updateWorldInfo } from '../lib/spaces'
 
 function makeWorldInfoId() {
   if (typeof crypto !== 'undefined' && crypto.randomUUID) {
@@ -37,11 +37,11 @@ function clampNumber(value, fallback, min, max) {
   return Math.max(min, Math.min(max, numeric))
 }
 
-function normalizeEntry(entry = {}, tavernId = '') {
+function normalizeEntry(entry = {}, spaceId = '') {
   const order = entry.order ?? entry.insertion_order ?? 100
   return {
     id: entry.id || makeWorldInfoId(),
-    tavern_id: entry.tavern_id || tavernId,
+    space_id: entry.space_id || spaceId,
     keys: normalizeArray(entry.keys),
     keys_secondary: normalizeArray(entry.keys_secondary),
     content: String(entry.content || ''),
@@ -63,8 +63,8 @@ function entryToDraft(entry) {
   }
 }
 
-function draftToEntry(draft, tavernId = '') {
-  const normalized = normalizeEntry(draft, tavernId)
+function draftToEntry(draft, spaceId = '') {
+  const normalized = normalizeEntry(draft, spaceId)
   return {
     ...normalized,
     keys: splitKeywords(draft.keys_text),
@@ -73,11 +73,11 @@ function draftToEntry(draft, tavernId = '') {
   }
 }
 
-function sanitizeEntryForSave(entry, tavernId = '') {
-  const normalized = normalizeEntry(entry, tavernId)
+function sanitizeEntryForSave(entry, spaceId = '') {
+  const normalized = normalizeEntry(entry, spaceId)
   return {
     id: normalized.id,
-    tavern_id: tavernId || normalized.tavern_id,
+    space_id: spaceId || normalized.space_id,
     keys: normalized.keys,
     keys_secondary: normalized.keys_secondary,
     content: normalized.content,
@@ -126,12 +126,12 @@ function getTestStatusLabel(entry) {
 /**
  * WorldBookEditor — 空间世界书编辑器
  *
- * 将 Tavern.world_info 从 JSON 数据变成店主可直接编辑的 UI。
+ * 将 Space.world_info 从 JSON 数据变成店主可直接编辑的 UI。
  */
-export default function WorldBookEditor({ tavern, ownerId, onClose, onWorldInfoChanged }) {
+export default function WorldBookEditor({ space, ownerId, onClose, onWorldInfoChanged }) {
   const initialEntries = useMemo(
-    () => (tavern?.world_info || []).map((entry) => normalizeEntry(entry, tavern?.id)),
-    [tavern?.id, tavern?.world_info],
+    () => (space?.world_info || []).map((entry) => normalizeEntry(entry, space?.id)),
+    [space?.id, space?.world_info],
   )
 
   const [initializing, setInitializing] = useState(true)
@@ -147,20 +147,20 @@ export default function WorldBookEditor({ tavern, ownerId, onClose, onWorldInfoC
   const [testing, setTesting] = useState(false)
   const [testError, setTestError] = useState('')
   const [testResult, setTestResult] = useState(null)
-  const lastTavernIdRef = useRef('')
+  const lastSpaceIdRef = useRef('')
 
   useEffect(() => {
     setInitializing(true)
-    const tavernChanged = lastTavernIdRef.current !== tavern?.id
-    lastTavernIdRef.current = tavern?.id || ''
-    const next = (tavern?.world_info || []).map((entry) => normalizeEntry(entry, tavern?.id))
+    const spaceChanged = lastSpaceIdRef.current !== space?.id
+    lastSpaceIdRef.current = space?.id || ''
+    const next = (space?.world_info || []).map((entry) => normalizeEntry(entry, space?.id))
     setEntries(next)
     setSelectedId(next[0]?.id || '')
     setDraft(next[0] ? entryToDraft(next[0]) : null)
     setDirty(false)
     setDraftTouched(false)
     setError('')
-    if (tavernChanged) {
+    if (spaceChanged) {
       setStatus('')
       setTestMessage('')
       setTesting(false)
@@ -171,7 +171,7 @@ export default function WorldBookEditor({ tavern, ownerId, onClose, onWorldInfoC
     return () => {
       if (timer !== null) window.clearTimeout(timer)
     }
-  }, [tavern?.id, tavern?.world_info])
+  }, [space?.id, space?.world_info])
 
   const selectedEntry = entries.find((entry) => entry.id === selectedId) || null
   const enabledCount = entries.filter((entry) => !entry.disable).length
@@ -179,7 +179,7 @@ export default function WorldBookEditor({ tavern, ownerId, onClose, onWorldInfoC
 
   function applyDraftToEntries(options = {}) {
     if (!draft) return { ok: true, nextEntries: entries, savedEntry: null }
-    const nextEntry = draftToEntry(draft, tavern?.id)
+    const nextEntry = draftToEntry(draft, space?.id)
     const validation = validateEntry(nextEntry)
     if (validation && !options.allowInvalid) {
       setError(validation)
@@ -210,7 +210,7 @@ export default function WorldBookEditor({ tavern, ownerId, onClose, onWorldInfoC
   function handleAddEntry() {
     const nextEntry = normalizeEntry({
       id: makeWorldInfoId(),
-      tavern_id: tavern?.id,
+      space_id: space?.id,
       keys: [],
       keys_secondary: [],
       content: '',
@@ -220,7 +220,7 @@ export default function WorldBookEditor({ tavern, ownerId, onClose, onWorldInfoC
       order: entries.length ? Math.max(...entries.map((entry) => Number(entry.order || 0))) + 10 : 100,
       probability: 100,
       disable: false,
-    }, tavern?.id)
+    }, space?.id)
     setEntries((prev) => [nextEntry, ...prev])
     setSelectedId(nextEntry.id)
     setDraft(entryToDraft(nextEntry))
@@ -242,13 +242,13 @@ export default function WorldBookEditor({ tavern, ownerId, onClose, onWorldInfoC
 
   function handleDuplicateEntry() {
     if (!draft) return
-    const source = draftToEntry(draft, tavern?.id)
+    const source = draftToEntry(draft, space?.id)
     const nextEntry = normalizeEntry({
       ...source,
       id: makeWorldInfoId(),
       order: Number(source.order || 100) + 1,
       disable: false,
-    }, tavern?.id)
+    }, space?.id)
     const nextEntries = [nextEntry, ...entries]
     setEntries(nextEntries)
     setSelectedId(nextEntry.id)
@@ -273,7 +273,7 @@ export default function WorldBookEditor({ tavern, ownerId, onClose, onWorldInfoC
 
   function getEntriesWithCurrentDraft() {
     if (!draftTouched || !draft) return entries
-    const nextEntry = draftToEntry(draft, tavern?.id)
+    const nextEntry = draftToEntry(draft, space?.id)
     return entries.some((entry) => entry.id === nextEntry.id)
       ? entries.map((entry) => (entry.id === nextEntry.id ? nextEntry : entry))
       : [nextEntry, ...entries]
@@ -289,10 +289,10 @@ export default function WorldBookEditor({ tavern, ownerId, onClose, onWorldInfoC
     setTestError('')
     setTestResult(null)
     try {
-      const worldInfo = getEntriesWithCurrentDraft().map((entry) => sanitizeEntryForSave(entry, tavern?.id))
+      const worldInfo = getEntriesWithCurrentDraft().map((entry) => sanitizeEntryForSave(entry, space?.id))
       const result = await testWorldInfo(
-        tavern.id,
-        { message, world_info: worldInfo, include_tavern_context: false },
+        space.id,
+        { message, world_info: worldInfo, include_space_context: false },
         ownerId,
       )
       setTestResult(result)
@@ -312,7 +312,7 @@ export default function WorldBookEditor({ tavern, ownerId, onClose, onWorldInfoC
     }
 
     const invalidEntry = nextEntries
-      .map((entry) => sanitizeEntryForSave(entry, tavern?.id))
+      .map((entry) => sanitizeEntryForSave(entry, space?.id))
       .find((entry) => validateEntry(entry))
     if (invalidEntry) {
       setError(`${getEntryTitle(invalidEntry)}：${validateEntry(invalidEntry)}`)
@@ -323,9 +323,9 @@ export default function WorldBookEditor({ tavern, ownerId, onClose, onWorldInfoC
     setError('')
     setStatus('')
     try {
-      const payload = nextEntries.map((entry) => sanitizeEntryForSave(entry, tavern?.id))
-      const savedTavern = await updateTavern(tavern.id, { world_info: payload }, ownerId)
-      const savedEntries = (savedTavern?.world_info || payload).map((entry) => normalizeEntry(entry, tavern?.id))
+      const payload = nextEntries.map((entry) => sanitizeEntryForSave(entry, space?.id))
+      const savedSpace = await updateSpace(space.id, { world_info: payload }, ownerId)
+      const savedEntries = (savedSpace?.world_info || payload).map((entry) => normalizeEntry(entry, space?.id))
       setEntries(savedEntries)
       const nextSelected = savedEntries.find((entry) => entry.id === selectedId) || savedEntries[0] || null
       setSelectedId(nextSelected?.id || '')
@@ -335,8 +335,8 @@ export default function WorldBookEditor({ tavern, ownerId, onClose, onWorldInfoC
       setStatus('世界书已保存。')
       if (onWorldInfoChanged) {
         onWorldInfoChanged({
-          ...tavern,
-          ...savedTavern,
+          ...space,
+          ...savedSpace,
           world_info: savedEntries,
         })
       }
@@ -353,14 +353,14 @@ export default function WorldBookEditor({ tavern, ownerId, onClose, onWorldInfoC
     const shortcut = event.ctrlKey || event.metaKey
     if (shortcut && key === 's') {
       event.preventDefault()
-      if (!saving && tavern?.id) {
+      if (!saving && space?.id) {
         handlePersist()
       }
       return
     }
     if (shortcut && key === 'enter') {
       event.preventDefault()
-      if (!testing && tavern?.id) {
+      if (!testing && space?.id) {
         handleTestWorldInfo()
       }
     }
@@ -370,7 +370,7 @@ export default function WorldBookEditor({ tavern, ownerId, onClose, onWorldInfoC
     if (typeof document === 'undefined') return undefined
     document.addEventListener('keydown', handleEditorKeyDown)
     return () => document.removeEventListener('keydown', handleEditorKeyDown)
-  }, [saving, testing, tavern?.id, testMessage, draft, entries, draftTouched, selectedId, ownerId])
+  }, [saving, testing, space?.id, testMessage, draft, entries, draftTouched, selectedId, ownerId])
 
   return (
     <div className="modal-overlay world-book-overlay" onClick={(event) => event.target === event.currentTarget && onClose()}>
@@ -378,7 +378,7 @@ export default function WorldBookEditor({ tavern, ownerId, onClose, onWorldInfoC
         <header className="modal-header world-book-header">
           <div>
             <p className="mini-label">世界书</p>
-            <h3>{tavern?.name || '当前空间'} 的背景资料</h3>
+            <h3>{space?.name || '当前空间'} 的背景资料</h3>
             <p className="note muted">
               把地点、传闻、规则和隐藏设定写成条目，AI 会按关键词或常驻规则读取。
               <span className="world-book-shortcut-hint"> Ctrl/⌘+S 保存，Ctrl/⌘+Enter 测试命中。</span>
@@ -387,7 +387,7 @@ export default function WorldBookEditor({ tavern, ownerId, onClose, onWorldInfoC
           <button className="close-btn" onClick={onClose}>&times;</button>
         </header>
 
-        {initializing || !tavern ? (
+        {initializing || !space ? (
           <div className="world-book-loading" role="status" aria-live="polite">
             <span className="world-book-loading__orb" aria-hidden="true" />
             <strong>正在加载世界书...</strong>

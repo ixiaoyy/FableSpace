@@ -6,8 +6,8 @@
 
 Use this guide when changing:
 
-- `frontend/app/lib/taverns.ts` `previewVisualSouvenir(...)`
-- `frontend/app/product/services/tavernService.js` product parity helper
+- `frontend/app/lib/spaces.ts` `previewVisualSouvenir(...)`
+- `frontend/app/product/services/spaceService.js` product parity helper
 - future UI panels that show souvenir prompts
 - `frontend/scripts/visual-souvenir-test.mjs`
 
@@ -16,13 +16,13 @@ Use this guide when changing:
 Native route modules must use:
 
 ```typescript
-previewVisualSouvenir(tavernId, data, userId)
+previewVisualSouvenir(spaceId, data, userId)
 ```
 
 Product parity components must use:
 
 ```javascript
-service.previewVisualSouvenir(tavernId, data, userId)
+service.previewVisualSouvenir(spaceId, data, userId)
 ```
 
 Do not call `/visual-souvenir/preview` directly in components.
@@ -82,10 +82,10 @@ npm --prefix .\frontend run build
 The script must assert:
 
 - product service method exists;
-- endpoint path is `/api/v1/taverns/{id}/visual-souvenir/preview`;
+- endpoint path is `/api/v1/spaces/{id}/visual-souvenir/preview`;
 - method is `POST`;
 - request body preserves `visitor_id`, `character_id`, and message text;
-- native `frontend/app/lib/taverns.ts` exports `VisualSouvenirPreviewResponse` and `previewVisualSouvenir`.
+- native `frontend/app/lib/spaces.ts` exports `VisualSouvenirPreviewResponse` and `previewVisualSouvenir`.
 
 ## Wrong vs Correct
 

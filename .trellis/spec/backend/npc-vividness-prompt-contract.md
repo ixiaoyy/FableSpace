@@ -21,5 +21,5 @@ Use this when changing default NPC voice/system prompt wording that makes charac
 
 ## Affected Files
 
-- `backend/src/fablemap_api/core/npc_voice.py`
+- `backend/src/fablespace_api/core/npc_voice.py`
 - `backend/tests/test_npc_vividness_prompt.py`

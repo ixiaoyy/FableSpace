@@ -6,10 +6,10 @@
 
 Use this guide when changing:
 
-- `backend/src/fablemap_api/core/visual_souvenir.py`
-- `backend/src/fablemap_api/application/services/runtime.py` `preview_visual_souvenir(...)`
-- `backend/src/fablemap_api/api/v1/runtime.py` `/visual-souvenir/preview`
-- frontend callers for `/api/v1/taverns/{id}/visual-souvenir/preview`
+- `backend/src/fablespace_api/core/visual_souvenir.py`
+- `backend/src/fablespace_api/application/services/runtime.py` `preview_visual_souvenir(...)`
+- `backend/src/fablespace_api/api/v1/runtime.py` `/visual-souvenir/preview`
+- frontend callers for `/api/v1/spaces/{id}/visual-souvenir/preview`
 
 This is not an image generation endpoint. It only prepares a prompt brief for human review.
 
@@ -18,8 +18,8 @@ This is not an image generation endpoint. It only prepares a prompt brief for hu
 ```python
 build_visual_souvenir_preview(
     *,
-    tavern_id: str,
-    tavern_name: str = "",
+    space_id: str,
+    space_name: str = "",
     character_name: str = "",
     visitor_id: str = "",
     user_message: str = "",
@@ -29,7 +29,7 @@ build_visual_souvenir_preview(
 ```
 
 ```http
-POST /api/v1/taverns/{tavern_id}/visual-souvenir/preview
+POST /api/v1/spaces/{space_id}/visual-souvenir/preview
 ```
 
 Request:
@@ -40,7 +40,7 @@ Request:
   "character_id": "char_keeper",
   "user_message": "...",
   "assistant_message": "...",
-  "style": "warm cyber tavern postcard"
+  "style": "warm cyber space postcard"
 }
 ```
 
@@ -78,19 +78,19 @@ Response:
 
 | Case | Expected |
 |------|----------|
-| Missing tavern | `404 {"error": "空间不存在"}` |
+| Missing space | `404 {"error": "空间不存在"}` |
 | Missing user identity | `401 {"error": "纪念图预览需要明确用户身份"}` |
 | Missing `visitor_id` | `400 {"error": "纪念图预览需要 visitor_id"}` |
 | Visitor previews another visitor | `403 {"error": "不能为其他访客预览纪念图"}` |
 | Missing/unknown character | `400` / `404` |
-| Private tavern viewed by non-owner | `403 {"error": "此空间是私人的"}` |
+| Private space viewed by non-owner | `403 {"error": "此空间是私人的"}` |
 | Empty observable text | `400 {"error": "纪念图预览需要可观察回合文本"}` |
 | Valid preview | `200`, `image_generated=false`, prompt returned |
 
 ## Good/Base/Bad Cases
 
 - Good: visitor previews a shared moment prompt with redacted visitor id and no generated image.
-- Base: style omitted, helper falls back to a warm cyber tavern postcard style.
+- Base: style omitted, helper falls back to a warm cyber space postcard style.
 - Bad: endpoint writes a PNG into a temp folder or returns a prompt with visitor id / private contact info.
 
 ## Tests Required

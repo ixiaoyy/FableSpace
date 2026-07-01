@@ -4,7 +4,7 @@
 
 Use this when changing `/discover` liveliness/activity labels that summarize rumor, owner-visible feedback, visits, gameplay, or NPC activity.
 
-The current visitor-facing copy should use FableMap/tavern/coordinate/space wording. Legacy SoulLink-style `signal` / `online entities` wording is not allowed in visible shell labels.
+The current visitor-facing copy should use FableSpace/space/coordinate/space wording. Legacy SoulLink-style `signal` / `online entities` wording is not allowed in visible shell labels.
 
 This boundary is specifically for making discovery feel alive without creating a visitor social network.
 
@@ -13,21 +13,21 @@ This boundary is specifically for making discovery feel alive without creating a
 Shared helper:
 
 ```javascript
-buildDiscoveryLiveliness(tavern)
-getDiscoveryLivelinessSearchText(viewOrTavern)
+buildDiscoveryLiveliness(space)
+getDiscoveryLivelinessSearchText(viewOrSpace)
 DISCOVERY_LIVELINESS_FORBIDDEN_COPY
 ```
 
 Component:
 
 ```tsx
-<DiscoveryLivelinessStrip tavern={tavern} compact muted />
+<DiscoveryLivelinessStrip space={space} compact muted />
 ```
 
 Rules:
 
-- Reuse `buildTavernActivityEchoes(...)` from `frontend/app/lib/tavern-activity-echoes.js` for the aggregate no-social activity model. The exported/helper name is historical; visible labels must remain tavern/space/activity-oriented.
-- Use existing Tavern payload fields only: `visit_count`, `characters`, `gameplay_definitions`, and `skill_packs`.
+- Reuse `buildSpaceActivityEchoes(...)` from `frontend/app/lib/space-activity-echoes.js` for the aggregate no-social activity model. The exported/helper name is historical; visible labels must remain space/space/activity-oriented.
+- Use existing Space payload fields only: `visit_count`, `characters`, `gameplay_definitions`, and `skill_packs`.
 - Treat rumor as an ambient discovery clue only; do not render a public feed.
 - Treat feedback as owner-visible governance only; do not display note content, visitor identity, replies, likes, pins, or public guestbook UI.
 - Do not add friends, DMs, global social graph, ranking, route planning, POI scoring, combat, levels, or equipment.
@@ -36,7 +36,7 @@ Rules:
 ## Good / Base / Bad
 
 - Good: discovery card shows `附近有人经营`, `环境传闻可用`, `回访反馈给店主`, `24 次到访`.
-- Base: quiet tavern shows `等待第一束灯` and encourages entering or sending owner-visible feedback.
+- Base: quiet space shows `等待第一束灯` and encourages entering or sending owner-visible feedback.
 - Bad: showing a public visitor wall, visitor names, replies/likes, rankings, a global activity feed, or visible SoulLink/signal-network labels.
 
 ## Verification

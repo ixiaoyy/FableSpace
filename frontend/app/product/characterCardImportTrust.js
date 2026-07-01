@@ -17,7 +17,7 @@ const SAVED_FIELD_DEFINITIONS = [
 
 const REVIEW_FIELD_DEFINITIONS = [
   { id: 'creator_notes', label: '创作者备注', detail: '仅用于人工核对；当前不会作为角色字段自动保存。' },
-  { id: 'post_history_instructions', label: '历史后置指令', detail: 'FableMap 当前没有独立字段承载它；请手动并入角色指令或提示词块。' },
+  { id: 'post_history_instructions', label: '历史后置指令', detail: 'FableSpace 当前没有独立字段承载它；请手动并入角色指令或提示词块。' },
   { id: 'creator', label: '创作者署名', detail: '可人工保留在描述/备注中；当前不会影响 NPC 运行。' },
   { id: 'character_version', label: '角色版本', detail: '可人工记录；当前不会创建版本历史。' },
   { id: 'extensions', label: '扩展字段', detail: '第三方扩展不会自动执行，避免把未知脚本/预设当作平台能力。', kind: 'object' },
@@ -72,7 +72,7 @@ function describeMappedValue(value, kind = '') {
 }
 
 /**
- * Reads world-info entries from raw SillyTavern data or normalized FableMap card data.
+ * Reads world-info entries from raw SillyTavern data or normalized FableSpace card data.
  * @param {object} rawCard - Raw card payload.
  * @param {object} normalizedCard - Frontend-normalized character payload.
  * @returns {Array<object>} Candidate world-info entries.
@@ -100,7 +100,7 @@ function hasExtraWorldInfoFields(entries) {
  * Builds an owner-facing compatibility report for a pending character card import.
  * @param {object} params
  * @param {object} params.rawCard - Raw JSON extracted from JSON/PNG card.
- * @param {object} params.normalizedCard - FableMap-normalized character data.
+ * @param {object} params.normalizedCard - FableSpace-normalized character data.
  * @param {string} params.sourceName - Uploaded source filename.
  * @returns {object} Report with mapped fields, review notes, counts and source summary.
  */
@@ -171,7 +171,7 @@ export function buildCharacterCardImportTrustReport({ rawCard, normalizedCard, s
 /**
  * Creates the payload sent to the existing import endpoint without discarding raw card metadata.
  * @param {object} rawCard - Original card JSON when available.
- * @param {object} normalizedCard - Parsed FableMap character data fallback.
+ * @param {object} normalizedCard - Parsed FableSpace character data fallback.
  * @returns {object} Import payload accepted by the backend.
  */
 export function buildCharacterCardImportPayload(rawCard, normalizedCard) {
@@ -191,12 +191,12 @@ export function buildCharacterCardImportPayload(rawCard, normalizedCard) {
  * @returns {string} Suggested `.json` filename.
  */
 export function createCharacterCardExportFilename(character = {}) {
-  const base = String(character.name || character.id || 'fablemap-character')
+  const base = String(character.name || character.id || 'fablespace-character')
     .trim()
     .replace(/[\\/:*?"<>|]+/g, '-')
     .replace(/\s+/g, '-')
     .replace(/-+/g, '-')
     .replace(/^-+|-+$/g, '')
-    .slice(0, 64) || 'fablemap-character'
+    .slice(0, 64) || 'fablespace-character'
   return `${base}.sillytavern-card.json`
 }

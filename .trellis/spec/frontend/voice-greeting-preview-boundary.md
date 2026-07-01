@@ -6,8 +6,8 @@
 
 Use this guide when changing:
 
-- `frontend/app/lib/taverns.ts` `previewVoiceGreeting(...)`
-- `frontend/app/product/services/tavernService.js` product parity helper
+- `frontend/app/lib/spaces.ts` `previewVoiceGreeting(...)`
+- `frontend/app/product/services/spaceService.js` product parity helper
 - future UI play buttons for first greeting / alternate greetings
 - `frontend/scripts/voice-greeting-test.mjs`
 
@@ -16,13 +16,13 @@ Use this guide when changing:
 Native route modules must use:
 
 ```typescript
-previewVoiceGreeting(tavernId, { characterId, greetingIndex }, userId)
+previewVoiceGreeting(spaceId, { characterId, greetingIndex }, userId)
 ```
 
 Product parity components must use:
 
 ```javascript
-service.previewVoiceGreeting(tavernId, { characterId, greetingIndex }, userId)
+service.previewVoiceGreeting(spaceId, { characterId, greetingIndex }, userId)
 ```
 
 Do not call `/voice-greeting/preview` directly in components.
@@ -58,7 +58,7 @@ type VoiceGreetingPreviewResponse = {
 | Valid preview | service returns text, `audio_generated=false`, and `tts_request` |
 | Voice disabled | UI can show text preview and disabled/secondary play state |
 | Unknown character | backend error surfaced to user |
-| Future play action | call existing `synthesizeVoice(tavernId, preview.tts_request, userId)` |
+| Future play action | call existing `synthesizeVoice(spaceId, preview.tts_request, userId)` |
 
 ## Good/Base/Bad Cases
 
@@ -78,10 +78,10 @@ npm --prefix .\frontend run build
 The script must assert:
 
 - product service method exists;
-- endpoint path is `/api/v1/taverns/{id}/voice-greeting/preview`;
+- endpoint path is `/api/v1/spaces/{id}/voice-greeting/preview`;
 - method is `POST`;
 - request body preserves `character_id` and `greeting_index`;
-- native `frontend/app/lib/taverns.ts` exports `VoiceGreetingPreviewResponse` and `previewVoiceGreeting`.
+- native `frontend/app/lib/spaces.ts` exports `VoiceGreetingPreviewResponse` and `previewVoiceGreeting`.
 
 ## Wrong vs Correct
 
@@ -89,14 +89,14 @@ The script must assert:
 
 ```jsx
 useEffect(() => {
-  synthesizeVoice(tavernId, { text: character.first_mes })
+  synthesizeVoice(spaceId, { text: character.first_mes })
 }, [])
 ```
 
 ### Correct
 
 ```jsx
-const preview = await service.previewVoiceGreeting(tavernId, { characterId }, visitorId)
+const preview = await service.previewVoiceGreeting(spaceId, { characterId }, visitorId)
 // later, after explicit click:
-await service.synthesizeVoice(tavernId, preview.tts_request.text, preview.tts_request.character_id, visitorId)
+await service.synthesizeVoice(spaceId, preview.tts_request.text, preview.tts_request.character_id, visitorId)
 ```

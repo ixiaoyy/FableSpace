@@ -5,11 +5,11 @@
  * that makes map markers feel like discoverable places, not raw data.
  *
  * Maps lat/lon to human-readable location expressions:
- * - Street-corner doors, alley lanterns, nearby taverns
- * - District names when available from tavern address
+ * - Street-corner doors, alley lanterns, nearby spaces
+ * - District names when available from space address
  * - Neighborhood context from address parsing
  *
- * No new schema. Uses existing tavern.lat/lon/address fields only.
+ * No new schema. Uses existing space.lat/lon/address fields only.
  */
 
 const DISTRICT_KEYWORDS = [
@@ -142,11 +142,11 @@ export function compactLocationLabel(
 }
 
 /**
- * Check if a tavern has address that can yield emotional labels
+ * Check if a space has address that can yield emotional labels
  */
-export function hasEmotionalLocationData(tavern) {
+export function hasEmotionalLocationData(space) {
   return Boolean(
-    extractNeighborhood(tavern?.address)
-    || (Number.isFinite(Number(tavern?.lat)) && Number.isFinite(Number(tavern?.lon))),
+    extractNeighborhood(space?.address)
+    || (Number.isFinite(Number(space?.lat)) && Number.isFinite(Number(space?.lon))),
   )
 }

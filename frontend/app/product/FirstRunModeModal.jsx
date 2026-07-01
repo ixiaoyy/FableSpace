@@ -67,7 +67,7 @@ export default function FirstRunModeModal({ initialNickname = '', initialMode = 
           ✦
         </div>
 
-        <h2 id="first-run-title" className="visitor-nickname-title">欢迎来到 FableMap 空间</h2>
+        <h2 id="first-run-title" className="visitor-nickname-title">欢迎来到 FableSpace 空间</h2>
         <p className="visitor-nickname-subtitle first-run-subtitle">
           不会玩也没关系：可以直接试玩、点快捷句开始，或用模板开店。之后不会重复打扰，可随时重置新手引导。
         </p>

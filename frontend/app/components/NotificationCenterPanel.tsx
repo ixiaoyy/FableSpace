@@ -147,8 +147,8 @@ export function NotificationCenterPanel({
                         </div>
                         <h3 className="mt-3 text-lg font-black text-white">{item.title}</h3>
                         <p className="mt-2 text-sm leading-6 text-violet-100/68">{item.content}</p>
-                        {item.tavern_name ? (
-                          <p className="mt-2 text-sm font-bold text-cyan-100/82">{item.tavern_name}</p>
+                        {item.space_name ? (
+                          <p className="mt-2 text-sm font-bold text-cyan-100/82">{item.space_name}</p>
                         ) : null}
                       </div>
                       <div className="shrink-0 text-left md:text-right">

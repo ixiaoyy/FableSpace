@@ -1,4 +1,4 @@
-import { buildTavernFirstMinuteGuide } from '../lib/tavern-first-minute'
+import { buildSpaceFirstMinuteGuide } from '../lib/space-first-minute'
 
 const DEFAULT_SCENE_PROMPTS = [
   {
@@ -40,30 +40,30 @@ function compactSceneText(value, maxLength = 120) {
 }
 
 /**
- * safeFirstMinuteGuide — 从现有 tavern 字段构建第一分钟引导，失败时返回空对象。
- * @param {object} tavern — 当前空间对象。
+ * safeFirstMinuteGuide — 从现有 space 字段构建第一分钟引导，失败时返回空对象。
+ * @param {object} space — 当前空间对象。
  * @returns {object} 访客可见第一分钟引导；无副作用、不持久化。
  */
-function safeFirstMinuteGuide(tavern = {}) {
+function safeFirstMinuteGuide(space = {}) {
   try {
-    return buildTavernFirstMinuteGuide(tavern || {})
+    return buildSpaceFirstMinuteGuide(space || {})
   } catch (_err) {
     return {}
   }
 }
 
 /**
- * buildTavernArrivalScene — 为入场面板生成 UI-only 抵达场景卡。
- * @param {object} tavern — 当前空间；只读取 owner 已公开字段。
+ * buildSpaceArrivalScene — 为入场面板生成 UI-only 抵达场景卡。
+ * @param {object} space — 当前空间；只读取 owner 已公开字段。
  * @param {object} playMode — 已推断的玩法模式，用于下一步提示。
  * @returns {object|null} 抵达卡 view model；不调用 AI、不落库。
  */
-export function buildTavernArrivalScene(tavern = {}, playMode = {}) {
-  if (!tavern) return null
-  const guide = safeFirstMinuteGuide(tavern)
-  const name = compactSceneText(tavern.name, 28) || '这间空间'
-  const scene = compactSceneText(tavern.scene_prompt || tavern.description, 118)
-  const anchor = compactSceneText(guide.anchorLine || tavern.address, 52)
+export function buildSpaceArrivalScene(space = {}, playMode = {}) {
+  if (!space) return null
+  const guide = safeFirstMinuteGuide(space)
+  const name = compactSceneText(space.name, 28) || '这间空间'
+  const scene = compactSceneText(space.scene_prompt || space.description, 118)
+  const anchor = compactSceneText(guide.anchorLine || space.address, 52)
   const action = compactSceneText(playMode?.prompts?.[0] || guide.tryThisFirst?.[0], 54)
 
   return {
@@ -79,14 +79,14 @@ export function buildTavernArrivalScene(tavern = {}, playMode = {}) {
 
 /**
  * buildOpeningSceneDigest — 为聊天首屏生成场景摘要，不创造新的空间正史。
- * @param {object} options — tavern、character、playMode、entryState 组合。
+ * @param {object} options — space、character、playMode、entryState 组合。
  * @returns {Array<{label: string, value: string}>} 可展示的摘要条目。
  */
-export function buildOpeningSceneDigest({ tavern = {}, character = {}, playMode = {}, entryState = null } = {}) {
-  const guide = safeFirstMinuteGuide(tavern)
+export function buildOpeningSceneDigest({ space = {}, character = {}, playMode = {}, entryState = null } = {}) {
+  const guide = safeFirstMinuteGuide(space)
   const digest = []
-  const location = compactSceneText(guide.anchorLine || tavern.address || tavern.name, 44)
-  const mood = compactSceneText(tavern.scene_prompt || tavern.description || guide.experienceHelper, 64)
+  const location = compactSceneText(guide.anchorLine || space.address || space.name, 44)
+  const mood = compactSceneText(space.scene_prompt || space.description || guide.experienceHelper, 64)
   const npc = compactSceneText(
     [character?.name, character?.description || character?.personality].filter(Boolean).join(' · '),
     58,
@@ -110,14 +110,14 @@ export function buildOpeningSceneDigest({ tavern = {}, character = {}, playMode 
  * @param {object} options — 当前玩法、角色和空间；仅用于排序和去重。
  * @returns {Array<{id: string, label: string, helper: string, prompt: string}>} 可点击 starter chips。
  */
-export function getRoleplayStarterPrompts({ playMode = {}, character = {}, tavern = {} } = {}) {
+export function getRoleplayStarterPrompts({ playMode = {}, character = {}, space = {} } = {}) {
   const searchText = [
     playMode?.id,
     playMode?.label,
     playMode?.summary,
-    tavern?.layout_style,
-    tavern?.place_type,
-    tavern?.scene_prompt,
+    space?.layout_style,
+    space?.place_type,
+    space?.scene_prompt,
     character?.scenario,
     character?.tags?.join(' '),
   ].filter(Boolean).join(' ').toLowerCase()

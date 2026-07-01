@@ -1,5 +1,5 @@
 import { useState } from "react"
-import type { PeakDay } from "../lib/taverns"
+import type { PeakDay } from "../lib/spaces"
 
 type TokenUsageChartProps = {
   peakDays: PeakDay[]

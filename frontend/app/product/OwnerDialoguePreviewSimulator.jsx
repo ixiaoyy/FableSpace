@@ -5,10 +5,10 @@ import {
   normalizeOwnerDialogueDryRunPreview,
   summarizePreviewCharacter,
 } from './dialoguePreviewSimulator'
-import { errorMessage, previewOwnerDialogueDryRun } from '../lib/taverns'
+import { errorMessage, previewOwnerDialogueDryRun } from '../lib/spaces'
 
 export default function OwnerDialoguePreviewSimulator({
-  tavern,
+  space,
   characters = [],
   ownerId = '',
   disabled = false,
@@ -52,8 +52,8 @@ export default function OwnerDialoguePreviewSimulator({
       setPreview(null)
       return
     }
-    const fallbackPreview = buildOwnerDialoguePreview({ tavern, character: selectedCharacter, visitorMessage })
-    if (!tavern?.id || !ownerId) {
+    const fallbackPreview = buildOwnerDialoguePreview({ space, character: selectedCharacter, visitorMessage })
+    if (!space?.id || !ownerId) {
       setError('缺少空间或店主身份，暂时只能显示本地模拟降级结果。')
       setPreview(fallbackPreview)
       return
@@ -62,7 +62,7 @@ export default function OwnerDialoguePreviewSimulator({
     setLoading(true)
     try {
       const payload = await previewOwnerDialogueDryRun(
-        tavern.id,
+        space.id,
         {
           character_id: getCharacterOptionId(selectedCharacter),
           message: visitorMessage,
@@ -85,7 +85,7 @@ export default function OwnerDialoguePreviewSimulator({
     <section className="owner-dialogue-preview" aria-label="店主 AI 对话 prompt dry-run">
       <div className="character-editor-section-heading">
         <span>AI 对话 prompt dry-run</span>
-        <small>Owner-only · dry_run。后端组装真实 Tavern / NPC / WorldInfo prompt；默认不调用 LLM，不写入聊天历史 / 记忆 / writeback。</small>
+        <small>Owner-only · dry_run。后端组装真实 Space / NPC / WorldInfo prompt；默认不调用 LLM，不写入聊天历史 / 记忆 / writeback。</small>
       </div>
 
       {availableCharacters.length === 0 ? (

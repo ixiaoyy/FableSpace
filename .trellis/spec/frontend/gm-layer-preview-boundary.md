@@ -1,4 +1,4 @@
-# Tavern GM Layer Preview Frontend Boundary
+# Space GM Layer Preview Frontend Boundary
 
 > Frontend contract for calling preview-only structured GM suggestions.
 
@@ -6,8 +6,8 @@
 
 Use this guide when changing:
 
-- `frontend/app/lib/taverns.ts` GM Layer types and `previewGmLayer(...)`
-- `frontend/app/product/services/tavernService.js` product parity helper
+- `frontend/app/lib/spaces.ts` GM Layer types and `previewGmLayer(...)`
+- `frontend/app/product/services/spaceService.js` product parity helper
 - future GM Layer UI panels that display preview candidates
 - `frontend/scripts/gm-layer-test.mjs`
 
@@ -16,16 +16,16 @@ Use this guide when changing:
 Native route modules must use:
 
 ```typescript
-previewGmLayer(tavernId, data, userId)
+previewGmLayer(spaceId, data, userId)
 ```
 
 Product parity components must use:
 
 ```javascript
-service.previewGmLayer(tavernId, data, userId)
+service.previewGmLayer(spaceId, data, userId)
 ```
 
-Do not call `fetch('/api/v1/taverns/.../gm-layer/preview')` directly inside components.
+Do not call `fetch('/api/v1/spaces/.../gm-layer/preview')` directly inside components.
 
 ## Payload contract
 
@@ -47,8 +47,8 @@ Response:
 ```typescript
 type GmLayerPreviewResponse = {
   ok: boolean
-  tavern_id: string
-  tavern_name?: string
+  space_id: string
+  space_name?: string
   visitor_id: string
   gm_mode: string
   preview_only: boolean
@@ -81,7 +81,7 @@ type GmLayerPreviewResponse = {
 
 - Good: a component calls `previewGmLayer(...)`, then renders candidate cards as pending suggestions.
 - Base: a route uses the typed helper for a tool panel without adding UI persistence.
-- Bad: component posts preview, then locally treats candidates as confirmed facts or writes them to tavern payload.
+- Bad: component posts preview, then locally treats candidates as confirmed facts or writes them to space payload.
 
 ## Tests Required
 
@@ -95,17 +95,17 @@ npm --prefix .\frontend run build
 The script must assert:
 
 - product service method exists;
-- endpoint path is `/api/v1/taverns/{id}/gm-layer/preview`;
+- endpoint path is `/api/v1/spaces/{id}/gm-layer/preview`;
 - method is `POST`;
 - request body preserves `visitor_id` and `source_message_ids`;
-- native `frontend/app/lib/taverns.ts` exports `GmLayerPreviewResponse` and `previewGmLayer`.
+- native `frontend/app/lib/spaces.ts` exports `GmLayerPreviewResponse` and `previewGmLayer`.
 
 ## Wrong vs Correct
 
 ### Wrong
 
 ```jsx
-await fetch(`/api/v1/taverns/${id}/gm-layer/preview`, { method: 'POST' })
+await fetch(`/api/v1/spaces/${id}/gm-layer/preview`, { method: 'POST' })
 setFacts(response.candidates)
 ```
 

@@ -4,7 +4,7 @@ import CharacterAvatar from './CharacterAvatar'
 /**
  * OpeningSceneReader — 聊天首屏的场景阅读器。
  * @param {object} props
- * @param {object} props.tavern — 当前空间对象，只读取公开/已授权字段。
+ * @param {object} props.space — 当前空间对象，只读取公开/已授权字段。
  * @param {object} props.character — 当前选中的 NPC。
  * @param {object} props.playMode — 已推断玩法模式，用于提示用户如何继续。
  * @param {object|null} props.entryState — 入场回访状态；只展示非敏感计数/关系提示。
@@ -15,7 +15,7 @@ import CharacterAvatar from './CharacterAvatar'
  * @returns {JSX.Element|null} 场景引导 UI；不调用 API、不写入持久状态。
  */
 export default function OpeningSceneReader({
-  tavern = {},
+  space = {},
   character = null,
   playMode = {},
   entryState = null,
@@ -26,7 +26,7 @@ export default function OpeningSceneReader({
 }) {
   if (!character) return null
 
-  const digest = buildOpeningSceneDigest({ tavern, character, playMode, entryState })
+  const digest = buildOpeningSceneDigest({ space, character, playMode, entryState })
   const opener = truncateSceneText(character.first_mes, 180)
 
   return (

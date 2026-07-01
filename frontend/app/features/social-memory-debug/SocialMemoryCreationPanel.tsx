@@ -8,7 +8,7 @@
  */
 
 import { useState } from "react"
-import type { NpcSocialMemory } from "../../lib/taverns"
+import type { NpcSocialMemory } from "../../lib/spaces"
 
 // ── Scoring helpers (mirror of backend logic) ───────────────────────────────
 

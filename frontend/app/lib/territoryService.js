@@ -24,7 +24,7 @@ function buildJsonHeaders(userId) {
  * @property {number} center_lon
  * @property {number} radius
  * @property {string} status
- * @property {string|null} tavern_id
+ * @property {string|null} space_id
  * @property {string|null} name
  * @property {string} created_at
  * @property {string} updated_at
@@ -40,7 +40,7 @@ function buildJsonHeaders(userId) {
 
 // Territory type metadata for UI
 export const TERRITORY_TYPE_META = {
-  tavern: { name: '酒馆', icon: '🍺', color: '#FFD700' },
+  space: { name: '酒馆', icon: '🍺', color: '#FFD700' },
   pet_shop: { name: '宠物店', icon: '🐱', color: '#FF69B4' },
   garden: { name: '菜园', icon: '🌱', color: '#32CD32' },
   game_workshop: { name: '游戏工坊', icon: '🎮', color: '#4169E1' },
@@ -52,7 +52,7 @@ export const TERRITORY_TYPE_META = {
 
 // Default radius by type
 export const TERRITORY_DEFAULT_RADIUS = {
-  tavern: 50,
+  space: 50,
   pet_shop: 50,
   garden: 100,
   game_workshop: 50,
@@ -64,7 +64,7 @@ export const TERRITORY_DEFAULT_RADIUS = {
 
 // Radius limits by type
 export const TERRITORY_RADIUS_LIMITS = {
-  tavern: { min: 20, max: 200 },
+  space: { min: 20, max: 200 },
   pet_shop: { min: 20, max: 200 },
   garden: { min: 50, max: 500 },
   game_workshop: { min: 20, max: 200 },
@@ -109,7 +109,7 @@ export async function checkTerritoryAvailability(lat, lon, radius, type, exclude
  * @param {number} data.center_lat
  * @param {number} data.center_lon
  * @param {number} data.radius
- * @param {string|null} data.tavern_id
+ * @param {string|null} data.space_id
  * @param {string|null} data.name
  * @returns {Promise<Territory>}
  */
@@ -187,7 +187,7 @@ export async function deleteTerritory(territoryId, userId = '') {
 export async function listTerritories(filters = {}) {
   const params = new URLSearchParams()
   if (filters.owner_id) params.set('owner_id', filters.owner_id)
-  if (filters.tavern_id) params.set('tavern_id', filters.tavern_id)
+  if (filters.space_id) params.set('space_id', filters.space_id)
   if (filters.type) params.set('type', filters.type)
   if (filters.status) params.set('status', filters.status)
   params.set('limit', String(filters.limit ?? 100))

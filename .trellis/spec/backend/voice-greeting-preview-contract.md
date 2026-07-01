@@ -6,10 +6,10 @@
 
 Use this guide when changing:
 
-- `backend/src/fablemap_api/core/voice_greeting.py`
-- `backend/src/fablemap_api/application/services/runtime.py` `preview_voice_greeting(...)`
-- `backend/src/fablemap_api/api/v1/runtime.py` `/voice-greeting/preview`
-- frontend callers for `/api/v1/taverns/{id}/voice-greeting/preview`
+- `backend/src/fablespace_api/core/voice_greeting.py`
+- `backend/src/fablespace_api/application/services/runtime.py` `preview_voice_greeting(...)`
+- `backend/src/fablespace_api/api/v1/runtime.py` `/voice-greeting/preview`
+- frontend callers for `/api/v1/spaces/{id}/voice-greeting/preview`
 
 This feature is a TTS-adjacent preview. It must not synthesize audio or create voice-cloning/storage obligations.
 
@@ -18,16 +18,16 @@ This feature is a TTS-adjacent preview. It must not synthesize audio or create v
 ```python
 build_voice_greeting_preview(
     *,
-    tavern_id: str,
-    tavern_name: str = "",
-    character: TavernCharacter,
+    space_id: str,
+    space_name: str = "",
+    character: SpaceCharacter,
     voice_config: VoiceConfig | None = None,
     greeting_index: int | str = 0,
 ) -> dict[str, Any]
 ```
 
 ```http
-POST /api/v1/taverns/{tavern_id}/voice-greeting/preview
+POST /api/v1/spaces/{space_id}/voice-greeting/preview
 ```
 
 Request:
@@ -78,14 +78,14 @@ Response:
 - Preview does not persist anything.
 - Response must not include API keys, authorization headers, or owner secrets.
 - `tts_ready` is true only when voice is enabled and greeting text is non-empty.
-- Private tavern visibility still applies through `_ensure_visible(...)`.
+- Private space visibility still applies through `_ensure_visible(...)`.
 
 ## Validation & Error Matrix
 
 | Case | Expected |
 |------|----------|
-| Missing tavern | `404 {"error": "空间不存在"}` |
-| Private tavern viewed by non-owner | `403 {"error": "此空间是私人的"}` |
+| Missing space | `404 {"error": "空间不存在"}` |
+| Private space viewed by non-owner | `403 {"error": "此空间是私人的"}` |
 | Missing `character_id` | `400 {"error": "语音问候预览需要 character_id"}` |
 | Unknown character | `404 {"error": "角色不存在"}` |
 | Voice disabled | `200`, `tts_ready=false`, note mentions 语音未启用 |
@@ -110,7 +110,7 @@ py -3 -m compileall -q backend/src
 ### Wrong
 
 ```python
-audio = self.synthesize_voice(tavern_id, {"text": character.first_mes}, user_id)
+audio = self.synthesize_voice(space_id, {"text": character.first_mes}, user_id)
 return {"audio": audio}
 ```
 

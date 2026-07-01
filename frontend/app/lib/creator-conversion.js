@@ -29,19 +29,19 @@ export function buildCreatorProfileLink(ownerId = "") {
   return `/creator/${encodeURIComponent(safeId)}`
 }
 
-// Build a link to create a new tavern (with optional prefilled data)
-export function buildCreatorConversionLink(tavern = {}) {
+// Build a link to create a new space (with optional prefilled data)
+export function buildCreatorConversionLink(space = {}) {
   const params = new URLSearchParams()
-  const lat = coordinateParam(tavern.lat)
-  const lon = coordinateParam(tavern.lon)
-  const address = toText(tavern.address)
-  const sourceTavernId = toText(tavern.id)
-  const sourceOwnerId = toText(tavern.owner_id)
+  const lat = coordinateParam(space.lat)
+  const lon = coordinateParam(space.lon)
+  const address = toText(space.address)
+  const sourceSpaceId = toText(space.id)
+  const sourceOwnerId = toText(space.owner_id)
 
   if (lat) params.set("lat", lat)
   if (lon) params.set("lon", lon)
   if (address) params.set("address", address)
-  if (sourceTavernId) params.set("source_tavern", sourceTavernId)
+  if (sourceSpaceId) params.set("source_space", sourceSpaceId)
   if (sourceOwnerId) params.set("source_creator", sourceOwnerId)
 
   const query = params.toString()
@@ -50,15 +50,15 @@ export function buildCreatorConversionLink(tavern = {}) {
 
 export function readCreatePrefill(searchParams = new URLSearchParams()) {
   const get = (key) => (typeof searchParams.get === "function" ? searchParams.get(key) : "")
-  const sourceTavernId = toText(get("source_tavern"))
+  const sourceSpaceId = toText(get("source_space"))
   const sourceOwnerId = toText(get("source_creator"))
 
   return {
     lat: safeQueryCoordinate(get("lat"), DEFAULT_CREATE_LAT),
     lon: safeQueryCoordinate(get("lon"), DEFAULT_CREATE_LON),
     address: toText(get("address")),
-    sourceTavernId,
+    sourceSpaceId,
     sourceOwnerId,
-    hasSource: Boolean(sourceTavernId || sourceOwnerId),
+    hasSource: Boolean(sourceSpaceId || sourceOwnerId),
   }
 }

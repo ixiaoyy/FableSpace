@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 
-const THEME_STORAGE_KEY = 'fablemap_theme'
+const THEME_STORAGE_KEY = 'fablespace_theme'
 
 export default function ThemeToggle({ compact = false }) {
   const [theme, setTheme] = useState(() => {

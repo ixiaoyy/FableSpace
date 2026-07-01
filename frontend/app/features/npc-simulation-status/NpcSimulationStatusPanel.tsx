@@ -8,7 +8,7 @@
  */
 
 import { useState } from "react"
-import type { TavernCharacter, NpcSimulationState, NpcSocialMemory } from "../../lib/taverns"
+import type { SpaceCharacter, NpcSimulationState, NpcSocialMemory } from "../../lib/spaces"
 
 // ── Status bar config ───────────────────────────────────────────────────────
 
@@ -74,11 +74,11 @@ const TRAIT_DISPLAY: Record<string, { label: string; icon: string; desc: string 
 // ── Props ───────────────────────────────────────────────────────────────────
 
 export type NpcSimulationStatusPanelProps = {
-  character: TavernCharacter
+  character: SpaceCharacter
   /** "full" = owner management view with all details; "compact" = visitor-facing summary */
   variant?: "full" | "compact"
-  /** Optional tavern name for mobility context */
-  tavernName?: string
+  /** Optional space name for mobility context */
+  spaceName?: string
 }
 
 // ── Component ───────────────────────────────────────────────────────────────
@@ -86,7 +86,7 @@ export type NpcSimulationStatusPanelProps = {
 export function NpcSimulationStatusPanel({
   character,
   variant = "full",
-  tavernName,
+  spaceName,
 }: NpcSimulationStatusPanelProps) {
   const [showMemories, setShowMemories] = useState(false)
   const state = character.simulation_state
@@ -174,14 +174,14 @@ export function NpcSimulationStatusPanel({
       )}
 
       {/* ── Mobility info (full variant only) ────────────────────────────── */}
-      {!isCompact && (character.is_visitor || character.current_tavern_id !== character.home_tavern_id) && (
+      {!isCompact && (character.is_visitor || character.current_space_id !== character.home_space_id) && (
         <div className="rounded-xl border border-cyan-300/20 bg-cyan-300/[0.06] p-3">
           <p className="text-xs font-bold text-cyan-100/80">🚶 流动中</p>
           <p className="mt-1 text-xs text-cyan-100/60">
             {character.is_visitor
-              ? `作为外来访客在「${tavernName || character.current_tavern_id}」逗留`
-              : `当前在「${tavernName || character.current_tavern_id}」`}
-            {character.home_tavern_id ? `，锚点在 ${character.home_tavern_id}` : ""}
+              ? `作为外来访客在「${spaceName || character.current_space_id}」逗留`
+              : `当前在「${spaceName || character.current_space_id}」`}
+            {character.home_space_id ? `，锚点在 ${character.home_space_id}` : ""}
           </p>
         </div>
       )}

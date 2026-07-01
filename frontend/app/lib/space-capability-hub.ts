@@ -1,7 +1,7 @@
 /**
  * Space Capability Hub
  *
- * Maps place_type + layout_style to optional visitor action cards in TavernChatWorkbench.
+ * Maps place_type + layout_style to optional visitor action cards in SpaceChatWorkbench.
  *
  * 4 layers:
  * 1. 聊天核心 (Chat Core)       — invite/revisit feedback, always shown
@@ -12,8 +12,8 @@
  * Each card: "一键开始" + "完成后回到聊天" + "可给店主复核摘要"
  */
 
-import type { Tavern, TavernCharacter } from "./taverns"
-import { deriveSpecialTavernType } from "./special-tavern-types"
+import type { Space, SpaceCharacter } from "./spaces"
+import { deriveSpecialSpaceType } from "./special-space-types"
 
 export type CapabilityCard = {
   id: string
@@ -232,9 +232,9 @@ const WORK_ASSISTANT_BY_PLACE_TYPE: Record<string, CapabilityCard[]> = {
       enabled: true,
     },
   ],
-  tavern: [
+  space: [
     {
-      id: "tavern-demand-clarify",
+      id: "space-demand-clarify",
       category: "work_assistant",
       label: "需求整理",
       description: "帮你把模糊想法整理成清晰的问题清单",
@@ -242,7 +242,7 @@ const WORK_ASSISTANT_BY_PLACE_TYPE: Record<string, CapabilityCard[]> = {
       enabled: true,
     },
     {
-      id: "tavern-revisit-note",
+      id: "space-revisit-note",
       category: "work_assistant",
       label: "回访便签",
       description: "帮你记录本次空间体验和后续计划",
@@ -296,7 +296,7 @@ const DEFAULT_SORT_ORDER: CapabilityCard["category"][] = [
 
 // ─── Chat Core capabilities (always present) ─────────────────────────────────
 
-function buildChatCoreCards(tavern: Tavern, characters: TavernCharacter[]): CapabilityCard[] {
+function buildChatCoreCards(space: Space, characters: SpaceCharacter[]): CapabilityCard[] {
   const cards: CapabilityCard[] = [
     {
       id: "chat-core-invite",
@@ -340,8 +340,8 @@ function buildChatCoreCards(tavern: Tavern, characters: TavernCharacter[]): Capa
 
 // ─── Interactive gameplay (from gameplay_definitions) ────────────────────────
 
-function buildInteractiveCards(tavern: Tavern): CapabilityCard[] {
-  const specialType = deriveSpecialTavernType(tavern)
+function buildInteractiveCards(space: Space): CapabilityCard[] {
+  const specialType = deriveSpecialSpaceType(space)
   const cards: CapabilityCard[] = []
 
   // Specialized interactive cards
@@ -367,7 +367,7 @@ function buildInteractiveCards(tavern: Tavern): CapabilityCard[] {
     })
   }
 
-  const gameplays = Array.isArray(tavern.gameplay_definitions) ? tavern.gameplay_definitions : []
+  const gameplays = Array.isArray(space.gameplay_definitions) ? space.gameplay_definitions : []
   if (!gameplays.length && !cards.length) return []
 
   const gameplayCards = gameplays.slice(0, 3).map((gp: unknown) => {
@@ -416,18 +416,18 @@ export const MINI_GAME_WHITELIST: CapabilityCard[] = [
 
 // ─── Main export: derive capability profile ──────────────────────────────────
 
-export function deriveCapabilityProfile(tavern: Tavern): CapabilityProfile {
-  const placeType = String(tavern.place_type || "tavern")
-  const layoutStyle = String(tavern.layout_style || "npc-chat")
-  const characters = Array.isArray(tavern.characters) ? tavern.characters : []
+export function deriveCapabilityProfile(space: Space): CapabilityProfile {
+  const placeType = String(space.place_type || "space")
+  const layoutStyle = String(space.layout_style || "npc-chat")
+  const characters = Array.isArray(space.characters) ? space.characters : []
 
-  const chatCoreCards = buildChatCoreCards(tavern, characters)
-  const interactiveCards = buildInteractiveCards(tavern)
+  const chatCoreCards = buildChatCoreCards(space, characters)
+  const interactiveCards = buildInteractiveCards(space)
   
-  const specialType = deriveSpecialTavernType(tavern)
+  const specialType = deriveSpecialSpaceType(space)
   const workAssistantCards = (specialType && WORK_ASSISTANT_BY_PLACE_TYPE[specialType]) 
     ? WORK_ASSISTANT_BY_PLACE_TYPE[specialType] 
-    : (WORK_ASSISTANT_BY_PLACE_TYPE[placeType] || WORK_ASSISTANT_BY_PLACE_TYPE.tavern)
+    : (WORK_ASSISTANT_BY_PLACE_TYPE[placeType] || WORK_ASSISTANT_BY_PLACE_TYPE.space)
     
   const miniGameCards = MINI_GAME_WHITELIST
 

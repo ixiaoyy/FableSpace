@@ -1,6 +1,6 @@
 # Frontend Hook Guidelines
 
-> How custom hooks are used in FableMap.
+> How custom hooks are used in FableSpace.
 
 ---
 
@@ -48,7 +48,7 @@ export function useBackendStatus({ api, apiBase, restoredSession, setForm }) {
 
 ## Data fetching
 
-- Hooks may orchestrate fetches, but the fetch implementation belongs in services (`apiClient.js`, `tavernService.js`).
+- Hooks may orchestrate fetches, but the fetch implementation belongs in services (`apiClient.js`, `spaceService.js`).
 - Set loading/error state around async calls.
 - Use `cache: 'no-store'` in service methods for fresh server state where existing code does so.
 - Do not hide failures silently unless the feature is explicitly non-critical; existing examples include ghost trace/disturbance best-effort flows.

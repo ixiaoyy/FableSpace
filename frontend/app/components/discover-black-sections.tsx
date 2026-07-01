@@ -1,8 +1,8 @@
-import type { Tavern } from "../lib/taverns"
+import type { Space } from "../lib/spaces"
 
 export type DiscoverBlackReferenceProps = {
   search: string
-  taverns: Tavern[]
+  spaces: Space[]
   onSearchChange: (value: string) => void
   onClear: () => void
   onTogglePlaceType: (placeTypeId: string) => void

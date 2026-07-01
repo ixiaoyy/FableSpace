@@ -1,6 +1,6 @@
 # Character Prompt Risk Linter
 
-> Frontend contract for owner-facing `TavernCharacter` prompt risk checks before saving or importing NPC role cards.
+> Frontend contract for owner-facing `SpaceCharacter` prompt risk checks before saving or importing NPC role cards.
 
 ## Scope / Trigger
 
@@ -12,7 +12,7 @@ Use this spec when changing:
 - SillyTavern / community character-card import paths
 - frontend script tests for NPC prompt safety
 
-This is a frontend guardrail and does not add `TavernCharacter` schema fields, new backend persistence, adult governance, or platform-side automatic content publication.
+This is a frontend guardrail and does not add `SpaceCharacter` schema fields, new backend persistence, adult governance, or platform-side automatic content publication.
 
 ## Signatures
 
@@ -42,7 +42,7 @@ assertCharacterPromptRiskCanSave(character) -> report | throws Error
 
 ## Contracts
 
-- The linter inspects owner/imported character prompt fields only: existing `TavernCharacter` / `NpcDraftPreview` text fields and imported `world_info` content.
+- The linter inspects owner/imported character prompt fields only: existing `SpaceCharacter` / `NpcDraftPreview` text fields and imported `world_info` content.
 - It must not add or depend on persisted schema fields.
 - `blocked` means the editor/import path must not call `addCharacter`, `updateCharacter`, or `importCharacterCard` until the owner removes the risk.
 - `warning` means the owner can still save, but UI must show the risk in readable language.
@@ -104,7 +104,7 @@ For visible UI changes, also run a Playwright self-acceptance pass against the e
 ### Wrong
 
 ```javascript
-const saved = await importCharacterCard(tavern.id, cardData, ownerId)
+const saved = await importCharacterCard(space.id, cardData, ownerId)
 ```
 
 This silently persists unsafe imported prompt text.
@@ -113,7 +113,7 @@ This silently persists unsafe imported prompt text.
 
 ```javascript
 assertCharacterPromptRiskCanSave(cardData)
-const saved = await importCharacterCard(tavern.id, cardData, ownerId)
+const saved = await importCharacterCard(space.id, cardData, ownerId)
 ```
 
-The owner must remove blocked risks before the imported card can become a saved `TavernCharacter`.
+The owner must remove blocked risks before the imported card can become a saved `SpaceCharacter`.

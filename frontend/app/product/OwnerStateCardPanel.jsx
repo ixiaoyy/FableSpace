@@ -5,12 +5,12 @@
  * 支持查看、确认/拒绝/替换，以及创建空间级正史卡。
  *
  * 权限：
- * - 店主可查看/管理所有 scope=tavern 和 scope=visitor 的卡
+ * - 店主可查看/管理所有 scope=space 和 scope=visitor 的卡
  * - fixed_canon=true 的卡只能由店主管理
  * - 其他访客的 pending visitor 卡只能由该访客确认，店主可查看
  */
 import { useState, useEffect, useMemo } from 'react'
-import { listStateCards, decideStateCard, createStateCard } from '../lib/taverns'
+import { listStateCards, decideStateCard, createStateCard } from '../lib/spaces'
 
 const CATEGORY_META = {
   character: { label: '角色事实', icon: '👤' },
@@ -71,8 +71,8 @@ function CardItem({ card, onDecision, busy }) {
         >
           {sm.label}
         </span>
-        {card.canon_scope === 'tavern' && (
-          <span className="owner-state-card-item__scope tavern">正史</span>
+        {card.canon_scope === 'space' && (
+          <span className="owner-state-card-item__scope space">正史</span>
         )}
         {isFixed && (
           <span className="owner-state-card-item__fixed">固定正史</span>
@@ -130,7 +130,7 @@ function CardItem({ card, onDecision, busy }) {
   )
 }
 
-export default function OwnerStateCardPanel({ tavern, ownerId, onClose }) {
+export default function OwnerStateCardPanel({ space, ownerId, onClose }) {
   const [allCards, setAllCards] = useState([])
   const [loading, setLoading] = useState(false)
   const [busy, setBusy] = useState(false)
@@ -142,12 +142,12 @@ export default function OwnerStateCardPanel({ tavern, ownerId, onClose }) {
   const [newCardDraft, setNewCardDraft] = useState({ category: 'task', title: '', summary: '' })
 
   async function loadCards() {
-    if (!tavern?.id) return
+    if (!space?.id) return
     setLoading(true)
     setError('')
     try {
       const result = await listStateCards(
-        tavern.id,
+        space.id,
         {
           status: filterStatus || undefined,
           category: filterCategory || undefined,
@@ -165,7 +165,7 @@ export default function OwnerStateCardPanel({ tavern, ownerId, onClose }) {
 
   useEffect(() => {
     loadCards()
-  }, [tavern?.id, filterStatus, filterCategory, filterScope])
+  }, [space?.id, filterStatus, filterCategory, filterScope])
 
   async function handleDecision(card, status) {
     if (busy) return
@@ -173,7 +173,7 @@ export default function OwnerStateCardPanel({ tavern, ownerId, onClose }) {
     setError('')
     try {
       const note = `店主决策：${status}`
-      const result = await decideStateCard(tavern.id, card.id, { status, note }, ownerId)
+      const result = await decideStateCard(space.id, card.id, { status, note }, ownerId)
       // Remove the decided card from local state
       setAllCards((prev) => prev.filter((c) => c.id !== card.id))
     } catch (err) {
@@ -192,12 +192,12 @@ export default function OwnerStateCardPanel({ tavern, ownerId, onClose }) {
     setError('')
     try {
       const result = await createStateCard(
-        tavern.id,
+        space.id,
         {
           category: newCardDraft.category,
           title: newCardDraft.title.trim(),
           summary: newCardDraft.summary.trim(),
-          canon_scope: 'tavern',
+          canon_scope: 'space',
           fixed_canon: false,
           status: 'pending',
         },
@@ -230,7 +230,7 @@ export default function OwnerStateCardPanel({ tavern, ownerId, onClose }) {
         <div className="modal__header">
           <div>
             <p className="mini-label">Canon Ledger</p>
-            <h2>{tavern?.name || '空间'} — 状态卡管理</h2>
+            <h2>{space?.name || '空间'} — 状态卡管理</h2>
             <p className="note muted">
               共 {stats.total} 张卡 · {stats.pending} 待确认 · {stats.confirmed} 已确认
             </p>
@@ -274,7 +274,7 @@ export default function OwnerStateCardPanel({ tavern, ownerId, onClose }) {
             <select value={filterScope} onChange={(e) => setFilterScope(e.target.value)}>
               <option value="">全部</option>
               <option value="visitor">访客卡</option>
-              <option value="tavern">正史卡</option>
+              <option value="space">正史卡</option>
             </select>
           </label>
         </div>

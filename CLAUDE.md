@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## 项目概述
 
-FableMap 是一个基于真实地理位置的 AI 空间 UGC 平台：
+FableSpace 是一个基于真实地理位置的 AI 空间 UGC 平台：
 - **店主**：在地图上创建空间、配置 AI NPC
 - **探索者**：进入空间对话、游玩、留下记忆并回访
 - **核心优势**：真实坐标锚定 + SillyTavern 角色卡兼容 + 回访记忆
@@ -32,7 +32,7 @@ npm --prefix .\frontend run typecheck
 ```powershell
 # 设置 PYTHONPATH 后启动本地 API（端口 8950，可托管前端）
 $env:PYTHONPATH = "$PWD\backend\src"
-py -3 -m fablemap_api api --no-open
+py -3 -m fablespace_api api --no-open
 
 # 语法检查
 py -3 -m compileall -q backend/src
@@ -43,7 +43,7 @@ py -3 -m compileall -q backend/src
 ```powershell
 npm --prefix .\frontend run build
 $env:PYTHONPATH = "$PWD\backend\src"
-py -3 -m fablemap_api api --no-open
+py -3 -m fablespace_api api --no-open
 ```
 
 访问 `http://127.0.0.1:8950/`
@@ -68,20 +68,20 @@ Frontend (React Router / Vite)
 
 | 区域 | 路径 | 说明 |
 |------|------|------|
-| 后端入口 | `backend/src/fablemap_api/core/api.py` | 默认端口 8950 |
-| v1 API | `backend/src/fablemap_api/api/v1/` | 当前原生接口 |
-| 应用服务 | `backend/src/fablemap_api/application/services/` | API 编排层 |
-| 核心领域 | `backend/src/fablemap_api/core/` | Tavern、玩法、记忆、LLM |
+| 后端入口 | `backend/src/fablespace_api/core/api.py` | 默认端口 8950 |
+| v1 API | `backend/src/fablespace_api/api/v1/` | 当前原生接口 |
+| 应用服务 | `backend/src/fablespace_api/application/services/` | API 编排层 |
+| 核心领域 | `backend/src/fablespace_api/core/` | Space、玩法、记忆、LLM |
 | 前端路由 | `frontend/app/routes/` | 页面入口 |
 | 前端功能 | `frontend/app/features/` | 独立功能模块 |
 | 兼容模块 | `frontend/app/product/` | 历史产品模块 |
-| Tavern 客户端 | `frontend/app/lib/taverns.ts` | 空间 API 客户端 |
+| Space 客户端 | `frontend/app/lib/spaces.ts` | 空间 API 客户端 |
 
 ### 数据存储
 
-- 默认使用 SQLite（`FABLEMAP_DATABASE_URL` 未配置时）
+- 默认使用 SQLite（`FABLESPACE_DATABASE_URL` 未配置时）
 - 支持 MySQL / PostgreSQL（配置环境变量）
-- 旧 JSON 存储需设置 `FABLEMAP_STORAGE_BACKEND=json`
+- 旧 JSON 存储需设置 `FABLESPACE_STORAGE_BACKEND=json`
 
 ### 敏感数据原则
 
@@ -104,7 +104,7 @@ Frontend (React Router / Vite)
 ## 文档入口
 
 - [产品概述](docs/PRODUCT_BRIEF.md)
-- [空间平台设计](docs/FABLEMAP_TAVERN_PLATFORM.md)
+- [空间平台设计](docs/FABLESPACE_SPACE_PLATFORM.md)
 - [系统架构](docs/ARCHITECTURE.md)
 - [明确不做清单](docs/WHAT_NOT_TO_BUILD.md)
 - [AI 协作协议](docs/AI参与开发协议.md)

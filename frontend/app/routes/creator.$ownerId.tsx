@@ -3,16 +3,16 @@ import { ArrowRight, Globe, MapPinned, Store, Users, Sparkles } from "lucide-rea
 import { Link, useLoaderData } from "react-router"
 import { useMemo, useState } from "react"
 
-import tavernNeonImage from "../assets/fable-map-05-10/discover/cards/card-sky-city-square.png"
-import tavernNightImage from "../assets/fable-map-05-10/home-black/hero-system-visual.png"
-import { TavernPreviewModal } from "../components/tavern-preview-modal"
-import { DEFAULT_OWNER_ID, errorMessage, listTaverns, type Tavern, type TavernCharacter, type TavernListResponse } from "../lib/taverns"
+import spaceNeonImage from "../assets/fable-space-05-10/discover/cards/card-sky-city-square.png"
+import spaceNightImage from "../assets/fable-space-05-10/home-black/hero-system-visual.png"
+import { SpacePreviewModal } from "../components/space-preview-modal"
+import { DEFAULT_OWNER_ID, errorMessage, listSpaces, type Space, type SpaceCharacter, type SpaceListResponse } from "../lib/spaces"
 import { ProductShell } from "../shell/product-shell"
 import { Button } from "../ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card"
 
 // Helper functions for character rendering
-function characterAvatar(character: TavernCharacter) {
+function characterAvatar(character: SpaceCharacter) {
   if (!character) return ""
   return (
     character.sprites?.neutral
@@ -29,39 +29,39 @@ function initialFor(value = "?") {
 
 type CreatorLoaderData = {
   ownerId: string
-  result: TavernListResponse
+  result: SpaceListResponse
   error: string
 }
 
 export async function clientLoader({ params }: ClientLoaderFunctionArgs): Promise<CreatorLoaderData> {
   const ownerId = params.ownerId || DEFAULT_OWNER_ID
   try {
-    const result = await listTaverns({ owner_id: ownerId })
-    const taverns = (result.taverns || []).filter(
-      (tavern) => !tavern.owner_id || tavern.owner_id === ownerId
+    const result = await listSpaces({ owner_id: ownerId })
+    const spaces = (result.spaces || []).filter(
+      (space) => !space.owner_id || space.owner_id === ownerId
     )
-    return { ownerId, result: { ...result, taverns }, error: "" }
+    return { ownerId, result: { ...result, spaces }, error: "" }
   } catch (error) {
-    return { ownerId, result: { taverns: [], count: 0 }, error: errorMessage(error) }
+    return { ownerId, result: { spaces: [], count: 0 }, error: errorMessage(error) }
   }
 }
 
 export default function CreatorRoute() {
   const { ownerId, result, error } = useLoaderData<typeof clientLoader>()
-  const [previewTavern, setPreviewTavern] = useState<Tavern | null>(null)
+  const [previewSpace, setPreviewSpace] = useState<Space | null>(null)
 
   const stats = useMemo(() => {
-    const taverns = result.taverns || []
-    const totalCharacters = taverns.reduce((sum, t) => sum + (t.characters?.length || 0), 0)
-    const totalVisitors = taverns.reduce((sum, t) => sum + (t.visit_count || 0), 0)
-    const openTaverns = taverns.filter((t) => t.status === "open").length
+    const spaces = result.spaces || []
+    const totalCharacters = spaces.reduce((sum, t) => sum + (t.characters?.length || 0), 0)
+    const totalVisitors = spaces.reduce((sum, t) => sum + (t.visit_count || 0), 0)
+    const openSpaces = spaces.filter((t) => t.status === "open").length
     return {
-      tavernCount: taverns.length,
+      spaceCount: spaces.length,
       characterCount: totalCharacters,
       visitorCount: totalVisitors,
-      openCount: openTaverns,
+      openCount: openSpaces,
     }
-  }, [result.taverns])
+  }, [result.spaces])
 
   return (
     <ProductShell eyebrow="Creator">
@@ -82,12 +82,12 @@ export default function CreatorRoute() {
               </div>
               <div>
                 <h1 className="text-2xl font-black text-theme-primary">创作者 #{ownerId.slice(0, 8)}</h1>
-                <p className="mt-1 text-sm text-theme-muted">在 FableMap 创作空间</p>
+                <p className="mt-1 text-sm text-theme-muted">在 FableSpace 创作空间</p>
               </div>
             </div>
 
             <p className="text-sm leading-7 text-theme-muted">
-              这位创作者在 FableMap 平台开设了 {stats.tavernCount} 间空间，
+              这位创作者在 FableSpace 平台开设了 {stats.spaceCount} 间空间，
               创作了 {stats.characterCount} 位 NPC，
               累计接待了 {stats.visitorCount} 位访客。
             </p>
@@ -95,7 +95,7 @@ export default function CreatorRoute() {
             {/* Stats */}
             <div className="mt-5 grid grid-cols-2 gap-3">
               <div className="rounded-2xl border border-theme-border bg-theme-card p-3 text-center">
-                <p className="text-2xl font-black text-theme-primary">{stats.tavernCount}</p>
+                <p className="text-2xl font-black text-theme-primary">{stats.spaceCount}</p>
                 <p className="mt-1 text-xs text-theme-muted">空间</p>
               </div>
               <div className="rounded-2xl border border-theme-border bg-theme-card p-3 text-center">
@@ -125,8 +125,8 @@ export default function CreatorRoute() {
           {/* Info cards */}
           <div className="grid gap-4 sm:grid-cols-1">
             {[
-              { image: tavernNightImage, title: "探索空间", text: "从真实坐标进入店主创作的空间，和 NPC 对话。" },
-              { image: tavernNeonImage, title: "成为创作者", text: "在地图上开设自己的空间，创作独特的角色和故事。" },
+              { image: spaceNightImage, title: "探索空间", text: "从真实坐标进入店主创作的空间，和 NPC 对话。" },
+              { image: spaceNeonImage, title: "成为创作者", text: "在地图上开设自己的空间，创作独特的角色和故事。" },
             ].map((card) => (
               <article key={card.title} className="overflow-hidden rounded-[1.75rem] border border-theme-border bg-theme-card">
                 <img src={card.image} alt="" className="h-36 w-full object-cover" loading="lazy" decoding="async" />
@@ -146,7 +146,7 @@ export default function CreatorRoute() {
           <div className="relative flex flex-col gap-5">
             <div className="flex flex-col gap-4 rounded-[1.75rem] border border-theme-border bg-theme-card p-5 backdrop-blur-md sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <p className="text-xs font-black uppercase tracking-[0.24em] text-theme-accent-text">Creator's taverns</p>
+                <p className="text-xs font-black uppercase tracking-[0.24em] text-theme-accent-text">Creator's spaces</p>
                 <h2 className="mt-2 text-3xl font-black text-theme-primary">创作者的空间</h2>
                 <p className="mt-1 text-sm text-theme-muted">
                   {result.count} 间空间 · 点击预览 · 进入对话
@@ -158,12 +158,12 @@ export default function CreatorRoute() {
             </div>
 
             <div className="grid gap-3">
-              {result.taverns && result.taverns.length > 0 ? (
-                result.taverns.map((tavern, index) => (
+              {result.spaces && result.spaces.length > 0 ? (
+                result.spaces.map((space, index) => (
                   <button
-                    key={tavern.id}
+                    key={space.id}
                     type="button"
-                    onClick={() => setPreviewTavern(tavern)}
+                    onClick={() => setPreviewSpace(space)}
                     className="group relative w-full overflow-hidden rounded-[1.75rem] border border-theme-border bg-theme-card p-4 text-left transition hover:-translate-y-0.5 hover:border-theme-accent-border hover:bg-theme-accent-bg"
                   >
                     <div className="absolute right-5 top-5 text-5xl font-black text-theme-primary/[0.025]">
@@ -175,20 +175,20 @@ export default function CreatorRoute() {
                       </span>
                       <div className="min-w-0 flex-1">
                         <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-                          <h3 className="font-black text-theme-primary group-hover:text-theme-accent-text">{tavern.name}</h3>
+                          <h3 className="font-black text-theme-primary group-hover:text-theme-accent-text">{space.name}</h3>
                           <span className="w-fit rounded-full border border-theme-border bg-theme-bg px-2.5 py-1 text-xs font-bold text-theme-primary">
-                            {tavern.access || "public"}
+                            {space.access || "public"}
                           </span>
                         </div>
                         <p className="mt-2 line-clamp-2 text-sm leading-6 text-theme-muted">
-                          {tavern.description || "店主还没有写下空间简介。"}
+                          {space.description || "店主还没有写下空间简介。"}
                         </p>
 
                         {/* Character previews */}
-                        {tavern.characters && tavern.characters.length > 0 && (
+                        {space.characters && space.characters.length > 0 && (
                           <div className="mt-3 flex items-center gap-2">
                             <div className="flex -space-x-2">
-                              {tavern.characters.slice(0, 4).map((character, charIndex) => {
+                              {space.characters.slice(0, 4).map((character, charIndex) => {
                                 const avatar = characterAvatar(character)
                                 return avatar ? (
                                   <img
@@ -208,15 +208,15 @@ export default function CreatorRoute() {
                                   </span>
                                 )
                               })}
-                              {tavern.characters.length > 4 && (
+                              {space.characters.length > 4 && (
                                 <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border-2 border-slate-950 bg-slate-800 text-xs font-bold text-violet-100">
-                                  +{tavern.characters.length - 4}
+                                  +{space.characters.length - 4}
                                 </span>
                               )}
                             </div>
                             <span className="text-xs text-theme-muted">
-                              {tavern.characters.slice(0, 2).map((c) => c.name || "未命名").join(" · ")}
-                              {tavern.characters.length > 2 ? " · ..." : ""}
+                              {space.characters.slice(0, 2).map((c) => c.name || "未命名").join(" · ")}
+                              {space.characters.length > 2 ? " · ..." : ""}
                             </span>
                           </div>
                         )}
@@ -224,14 +224,14 @@ export default function CreatorRoute() {
                         <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-theme-muted">
                           <span className="inline-flex items-center gap-1">
                             <MapPinned className="h-3 w-3" />
-                            {Number(tavern.lat).toFixed(4)}, {Number(tavern.lon).toFixed(4)}
+                            {Number(space.lat).toFixed(4)}, {Number(space.lon).toFixed(4)}
                           </span>
                           <span className="rounded-full border border-theme-border bg-theme-card px-2 py-0.5">
-                            {tavern.status || "unknown"}
+                            {space.status || "unknown"}
                           </span>
                           <span className="inline-flex items-center gap-1">
                             <Users className="h-3 w-3" />
-                            {tavern.visit_count || 0} 访客
+                            {space.visit_count || 0} 访客
                           </span>
                         </div>
                       </div>
@@ -254,11 +254,11 @@ export default function CreatorRoute() {
         </section>
       </section>
 
-      {/* Tavern Preview Modal */}
-      {previewTavern && (
-        <TavernPreviewModal
-          tavern={previewTavern}
-          onClose={() => setPreviewTavern(null)}
+      {/* Space Preview Modal */}
+      {previewSpace && (
+        <SpacePreviewModal
+          space={previewSpace}
+          onClose={() => setPreviewSpace(null)}
         />
       )}
     </ProductShell>

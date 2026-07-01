@@ -12,10 +12,10 @@ function cleanText(value, fallback = '') {
 }
 
 function safeId(value) {
-  return String(value || 'tavern')
+  return String(value || 'space')
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '') || 'tavern'
+    .replace(/^-+|-+$/g, '') || 'space'
 }
 
 function shortText(value, maxLength = 42) {
@@ -32,20 +32,20 @@ function unique(items) {
   return next
 }
 
-function characterMaterials(tavern = {}) {
-  const characters = Array.isArray(tavern.characters) ? tavern.characters : []
+function characterMaterials(space = {}) {
+  const characters = Array.isArray(space.characters) ? space.characters : []
   return characters.slice(0, 3).map((character) => {
     const role = cleanText(character.archetype || character.personality, '驻店 NPC')
     return `${cleanText(character.name, '未命名 NPC')}（${shortText(role, 18)}）`
   })
 }
 
-function tavernMaterials(tavern = {}) {
+function spaceMaterials(space = {}) {
   return unique([
-    cleanText(tavern.name) ? `空间名：${cleanText(tavern.name)}` : '',
-    cleanText(tavern.description) ? `公开简介：${shortText(tavern.description, 52)}` : '',
-    cleanText(tavern.scene_prompt) ? `场景素材：${shortText(tavern.scene_prompt, 60)}` : '',
-    ...characterMaterials(tavern),
+    cleanText(space.name) ? `空间名：${cleanText(space.name)}` : '',
+    cleanText(space.description) ? `公开简介：${shortText(space.description, 52)}` : '',
+    cleanText(space.scene_prompt) ? `场景素材：${shortText(space.scene_prompt, 60)}` : '',
+    ...characterMaterials(space),
   ]).slice(0, 8)
 }
 
@@ -53,23 +53,23 @@ function fallback(text, nextNodeId) {
   return [{ id: `${nextNodeId || 'stay'}-fallback`, text, next_node_id: nextNodeId }]
 }
 
-export function createShortDramaDraftFromTavern(tavern = {}, options = {}, index = 1) {
-  const tavernName = cleanText(tavern.name, '这间空间')
-  const tavernSlug = safeId(tavern.id || tavernName)
+export function createShortDramaDraftFromSpace(space = {}, options = {}, index = 1) {
+  const spaceName = cleanText(space.name, '这间空间')
+  const spaceSlug = safeId(space.id || spaceName)
   const conflictHook = cleanText(options.conflictHook, '有客人误会了店主确认的规则，需要有人把场面稳住')
   const tone = cleanText(options.tone, '短剧主持感、节奏清楚、克制、不羞辱任何人')
-  const materials = tavernMaterials(tavern)
+  const materials = spaceMaterials(space)
   const sceneSeed = materials.find((item) => item.startsWith('场景素材：')) || materials[0] || '空间里的一个可确认物件'
 
   return {
-    id: `gp_ai_short_${tavernSlug}_${Date.now().toString(36)}_${index}`,
-    title: `${shortText(tavernName, 12)} · 登记册短剧`,
+    id: `gp_ai_short_${spaceSlug}_${Date.now().toString(36)}_${index}`,
+    title: `${shortText(spaceName, 12)} · 登记册短剧`,
     status: 'draft',
-    summary: `基于${tavernName}设定生成的未发布草稿；店主编辑并保存/发布后访客才可见。`,
+    summary: `基于${spaceName}设定生成的未发布草稿；店主编辑并保存/发布后访客才可见。`,
     entry_label: '进入短剧小剧场',
     mode: 'ai_directed_branch',
     owner_brief: {
-      goal: `围绕「${tavernName}」里的冲突钩子「${conflictHook}」，完成一段 3-4 步的安全短剧选择体验。`,
+      goal: `围绕「${spaceName}」里的冲突钩子「${conflictHook}」，完成一段 3-4 步的安全短剧选择体验。`,
       tone,
       materials,
       forbidden: [...ASSISTANT_FORBIDDEN],
@@ -78,7 +78,7 @@ export function createShortDramaDraftFromTavern(tavern = {}, options = {}, index
       {
         id: 'opening',
         kind: 'scene',
-        narration: `【未发布草稿】${tavernName}里出现了一个短剧冲突：${conflictHook}。先用空间内可确认的信息稳住场面。`,
+        narration: `【未发布草稿】${spaceName}里出现了一个短剧冲突：${conflictHook}。先用空间内可确认的信息稳住场面。`,
         choices: [
           { id: 'ask-npc', label: '请 NPC 复述店主确认的规则', next_node_id: 'second-beat' },
           { id: 'use-prop', label: '拿出一个空间内物件做解释', next_node_id: 'second-beat' },

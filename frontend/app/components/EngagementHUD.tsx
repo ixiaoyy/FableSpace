@@ -1,7 +1,7 @@
 /**
  * EngagementHUD
  *
- * Compact coin wallet + voucher badge shown in the tavern header.
+ * Compact coin wallet + voucher badge shown in the space header.
  * Shows balance, daily earnings progress, and voucher count.
  */
 
@@ -9,19 +9,19 @@ import { useEffect, useState } from "react"
 import { getVisitorEngagement, type VisitorEngagement } from "../lib/engagement"
 
 type EngagementHUDProps = {
-  tavernId: string
+  spaceId: string
   userId?: string
   coinLabel?: string
 }
 
-export function EngagementHUD({ tavernId, userId = "", coinLabel = "纪念币" }: EngagementHUDProps) {
+export function EngagementHUD({ spaceId, userId = "", coinLabel = "纪念币" }: EngagementHUDProps) {
   const [data, setData] = useState<VisitorEngagement | null>(null)
 
   useEffect(() => {
-    getVisitorEngagement(tavernId, userId)
+    getVisitorEngagement(spaceId, userId)
       .then(setData)
       .catch(() => setData(null))
-  }, [tavernId, userId])
+  }, [spaceId, userId])
 
   // Show only when data is loaded
   if (!data) {
