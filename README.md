@@ -1,250 +1,151 @@
-# FableSpace 操作手册
+# FableSpace
 
-> FableSpace 是一个基于真实地理位置的 AI 空间 UGC 平台：店主在地图上创建空间、配置 AI NPC，探索者进入空间对话、游玩、留下记忆并回访。
+FableSpace 是一个基于真实地理位置的 AI 空间 UGC 平台。每个用户都可以在真实地图上开设自己的空间，配置 AI NPC，接待访客进入空间探索、对话、游玩，并通过记忆和回访状态延续体验。
 
-本 README 是项目默认入口，侧重“怎么把项目跑起来、怎么配置、怎么验证、常见操作在哪里做”。产品定义、架构和 Schema 细节请看文末文档入口。
+项目适合自托管部署，也适合作为“地图 + AI NPC + 角色卡 + 空间叙事”方向的开源基础工程。
 
-## 目录速览
+## 主要能力
 
-| 路径 | 用途 |
+- 真实地图锚点：空间必须绑定真实坐标，访客从地图或空间列表进入。
+- 店主自主管理：空间名称、描述、访问规则、NPC、玩法和氛围由店主配置。
+- AI NPC 对话：支持单 NPC 对话、多人空间互动、访客状态和记忆写回。
+- 角色卡兼容：角色数据优先兼容 SillyTavern Character Card V2，支持导入和导出。
+- 轻量玩法系统：店主可以为空间配置文字玩法、任务线索和访客进度。
+- 自托管部署：前端、后端和持久化数据可通过 Docker Compose 一体化运行。
+
+## 技术栈
+
+- 后端：Python 3.12、FastAPI、Uvicorn、SQLAlchemy。
+- 前端：React Router、Vite、TypeScript、React 18。
+- 容器：Docker Compose，前端容器使用 nginx 托管静态构建并反向代理 API。
+- 存储：默认 SQLite；可通过 SQLAlchemy URL 配置 MySQL。其他数据库需要自行提供对应驱动。
+
+## 仓库结构
+
+| 路径 | 说明 |
 |------|------|
-| `apps/api/src/fablespace_api/` | Python / FastAPI 后端源码 |
-| `apps/web/` | React Router + Vite 前端 |
-| `docs/` | 产品、架构、Schema、边界与资源规范 |
-| `.trellis/` | Trellis 任务、规范与协作记录 |
-| `.fablespace-api/` | 默认本地输出 / SQLite / 兼容数据目录，运行后生成，不入库 |
+| `apps/api/` | FastAPI 后端、配置示例、SQL 和迁移工具 |
+| `apps/web/` | React Router + Vite 前端应用 |
+| `docs/` | 产品定义、架构、数据结构和资源规范 |
+| `docker-compose.yml` | 默认自托管部署编排 |
 
-## 环境准备
+## Docker Compose 部署
 
-本仓库常用命令以 Windows PowerShell 为例。
+准备：
 
-需要准备：
+- Docker Desktop 或兼容的 Docker Compose 环境。
+- 如需公开到互联网，建议在外层配置 HTTPS 反向代理。
 
-- Python 3 与 `pip`
-- Node.js 与 `npm`
-- 可选：Docker Desktop / Docker Compose
+Windows PowerShell：
 
-首次安装依赖：
+```powershell
+Copy-Item .\apps\api\.env.example .\apps\api\.env
+docker compose up --build -d
+```
+
+Linux / macOS：
+
+```bash
+cp apps/api/.env.example apps/api/.env
+docker compose up --build -d
+```
+
+默认访问地址：
+
+| 服务 | 地址 |
+|------|------|
+| Web 应用 | `http://127.0.0.1:3000/` |
+| 后端健康检查 | `http://127.0.0.1:8000/api/v1/health` |
+
+Compose 默认启动两个服务：
+
+- `frontend`：构建 `apps/web/`，由 nginx 暴露 `3000` 端口，并把 `/api`、`/generated` 反向代理到后端。
+- `backend`：运行 `uvicorn fablespace_api.main:app`，暴露 `8000` 端口，数据写入 `/data`。
+
+查看日志：
+
+```bash
+docker compose logs -f
+```
+
+停止服务：
+
+```bash
+docker compose down
+```
+
+重新构建并启动：
+
+```bash
+docker compose up --build -d
+```
+
+## 配置
+
+后端环境文件位于 `apps/api/.env`，示例文件是 `apps/api/.env.example`。不要提交真实密钥。
+
+常用后端变量：
+
+| 变量 | 说明 |
+|------|------|
+| `FABLESPACE_STORAGE_BACKEND` | 默认 `database`；显式设为 `json` 时使用旧 JSON 文件存储 |
+| `FABLESPACE_DATABASE_URL` | 首选 SQLAlchemy 数据库 URL；留空时使用默认 SQLite |
+| `FABLESPACE_MYSQL_URL` | 旧 MySQL URL 别名，新部署优先使用 `FABLESPACE_DATABASE_URL` |
+| `FABLESPACE_OUTPUT_ROOT` | 后端输出目录；Docker Compose 中为 `/data` |
+| `FABLESPACE_SEED_DEFAULT_SPACES` | 是否写入默认示例空间，默认 `1` |
+| `FABLESPACE_CORS_ORIGINS` | 前后端分离部署时允许的浏览器来源 |
+| `OPENCODE_API_KEY` | 可选的系统示例 LLM Key；不要用于保存店主私有 Key |
+
+前端环境示例位于 `apps/web/.env.example`。Docker 默认使用同源 `/api` 调用后端；如果你自行构建或分离部署前端，可以按需设置：
+
+| 变量 | 说明 |
+|------|------|
+| `VITE_API_BASE` | 前端构建期 API 基址，留空时使用同源 `/api` |
+| `VITE_AMAP_KEY` | 可选地图服务 Key |
+| `VITE_AMAP_SECURITY_CODE` | 可选地图服务安全码 |
+
+店主自己的 LLM API Key 应在 FableSpace 的空间管理界面中配置，不应写入共享环境文件或提交到仓库。
+
+## 数据持久化
+
+Docker Compose 会把后端数据写入 volume `fablespace_data` 对应的数据卷。未配置外部数据库时，默认 SQLite 文件会位于容器内的 `/data/fablespace.sqlite3`。
+
+部署到生产环境时建议：
+
+- 定期备份 Compose 数据卷或外部数据库。
+- 对公开访问的站点配置 HTTPS。
+- 使用独立数据库时，把 `FABLESPACE_DATABASE_URL` 写入 `apps/api/.env`，并妥善管理数据库账号权限。
+- 升级前先备份数据，再拉取新版本并重新构建容器。
+
+## 非 Docker 运行
+
+如果只想在本机快速预览，也可以先构建前端，再由 Python 后端托管 API 和前端页面。
+
+Windows PowerShell：
 
 ```powershell
 py -3 -m pip install -r .\apps\api\requirements.txt
 npm --prefix .\apps\web install
-```
-
-可选本地环境文件：
-
-```powershell
-Copy-Item .\apps\api\.env.example .\apps\api\.env
-Copy-Item .\apps\web\.env.example .\apps\web\.env.local
-```
-
-## 本地一体化运行
-
-这种方式先构建前端，再由 Python 后端在 `8950` 端口同时提供 API 和前端页面。
-
-```powershell
 npm --prefix .\apps\web run build
 
 $env:PYTHONPATH = "$PWD\apps\api\src"
 py -3 -m fablespace_api api --no-open
-```
-
-访问：
-
-```text
-http://127.0.0.1:8950/
-http://127.0.0.1:8950/api/health
-http://127.0.0.1:8950/api/meta
-```
-
-常用参数：
-
-```powershell
-py -3 -m fablespace_api api --host 127.0.0.1 --port 8950 --no-open
-py -3 -m fablespace_api api --output-root .fablespace-api --no-open
-```
-
-## 前端开发运行
-
-需要两个终端。
-
-终端 A：启动后端。
-
-```powershell
-$env:PYTHONPATH = "$PWD\apps\api\src"
-py -3 -m fablespace_api api --no-open
-```
-
-终端 B：启动前端开发服务器。
-
-```powershell
-npm --prefix .\apps\web run dev
-```
-
-访问：
-
-```text
-http://127.0.0.1:5173/
-```
-
-`apps/web/vite.config.js` 已把 `/api` 和 `/generated` 代理到 `http://127.0.0.1:8950`，所以前端开发模式下仍需要后端先启动。
-
-## Docker Compose 运行
-
-仓库提供 `docker-compose.yml`，前端由 nginx 托管静态构建，后端运行 `uvicorn fablespace_api.main:app`。
-
-```powershell
-Copy-Item .\apps\api\.env.example .\apps\api\.env
-docker compose up --build
 ```
 
 默认访问：
 
-```text
-http://127.0.0.1:3000/
-http://127.0.0.1:8000/api/v1/health
-```
-
-默认端口在 `docker-compose.yml` 中固定：
-
-```yaml
-frontend: 3000 -> 80
-backend: 8000 -> 8000
-```
-
-## 环境变量
-
-环境文件按用途拆开：
-
-- `apps/api/.env`：给本地 Python 后端和 Docker 后端服务读取；示例是 `apps/api/.env.example`。
-- `apps/web/.env.local`：给 Vite 前端开发读取；示例是 `apps/web/.env.example`。
-
-本地 Python 后端默认只读取 `apps/api/.env`；已有的 Shell / Docker 环境变量仍优先。
-
-| 变量 | 用途 |
+| 服务 | 地址 |
 |------|------|
-| `FABLESPACE_DATABASE_URL` | 首选 SQLAlchemy 数据库 URL；可指向 MySQL / Postgres / SQLite |
-| `FABLESPACE_MYSQL_URL` | 旧数据库 URL 别名，新配置优先用 `FABLESPACE_DATABASE_URL` |
-| `FABLESPACE_STORAGE_BACKEND` | 默认 `database`；只有显式设为 `json` 时使用旧 JSON 文件存储 |
-| `FABLESPACE_OUTPUT_ROOT` | 后端输出目录；本地默认 `.fablespace-api`，Docker 默认 `/data` |
-| `FABLESPACE_SEED_DEFAULT_SPACES` | 是否写入默认公益空间；默认 `1` |
-| `FABLESPACE_CORS_ORIGINS` | 前后端分离运行时允许的浏览器来源 |
-| `VITE_API_BASE` | 前端构建期 API 基址；留空时使用同源 `/api` |
-| `VITE_AMAP_KEY` / `VITE_AMAP_SECURITY_CODE` | 可选地图服务密钥 |
-| `OPENCODE_API_KEY` | 可选系统公益空间测试 LLM Key；普通店主 Key 不应写入共享环境文件 |
+| Web 应用 | `http://127.0.0.1:8950/` |
+| 健康检查 | `http://127.0.0.1:8950/api/health` |
 
-旧 `FABLEMAP_*` 环境变量名仍作为后端回退兼容；新部署和新文档优先使用上表中的 `FABLESPACE_*`。
-
-店主自己的 LLM API Key 应在 FableSpace 店主管理界面中按空间配置，不要提交到仓库，也不要写入共享环境文件。
-
-## 数据存储
-
-默认存储策略：
-
-- `FABLESPACE_STORAGE_BACKEND=database` 是默认值。
-- 未配置 `FABLESPACE_DATABASE_URL` / `FABLESPACE_MYSQL_URL` 时，本地会使用 `<output-root>/fablespace.sqlite3`。
-- 显式设置 `FABLESPACE_STORAGE_BACKEND=json` 时，才使用旧 JSON 兼容存储。
-- Docker Compose 会把后端输出写入 Docker volume `fablespace_data`。
-
-从本地 SQLite 迁移到 `apps/api/.env` 中的目标数据库：
+需要改端口时：
 
 ```powershell
-$env:PYTHONPATH = "$PWD\apps\api\src"
-py -3 -m fablespace_api.infrastructure.migrate_database --dry-run
-py -3 -m fablespace_api.infrastructure.migrate_database
+py -3 -m fablespace_api api --host 127.0.0.1 --port 8951 --no-open
 ```
 
-从旧 JSON / file runtime 数据迁移：
-
-```powershell
-$env:PYTHONPATH = "$PWD\apps\api\src"
-$env:FABLESPACE_DATABASE_URL = "mysql+pymysql://user:pass@localhost:3306/fablespace"
-py -3 -m fablespace_api.infrastructure.migrate --output-root .fablespace-api
-```
-
-## 常用操作
-
-### 健康检查
-
-```powershell
-Invoke-RestMethod http://127.0.0.1:8950/api/health
-Invoke-RestMethod http://127.0.0.1:8950/api/meta
-```
-
-Docker 模式：
-
-```powershell
-Invoke-RestMethod http://127.0.0.1:8000/api/v1/health
-```
-
-### 前端构建与类型检查
-
-```powershell
-npm --prefix .\apps\web run build
-npm --prefix .\apps\web run typecheck
-```
-
-当前 `apps/web/package.json` 没有通用 `test` 脚本；如后续新增测试脚本，以 package scripts 为准。
-
-### 后端语法检查
-
-```powershell
-py -3 -m compileall -q apps/api/src
-```
-
-当前仓库不保留 pytest 用例目录；不要把手工脚本放在根目录并命名为 `test_*.py`，以免重新污染开发验证。
-
-## 产品内操作入口
-
-启动后在浏览器中完成这些动作：
-
-- **探索空间**：从地图 / 空间列表进入公开、密码或私密空间。
-- **创建空间**：店主选择真实坐标，填写空间名称、描述、访问规则和空间类型。
-- **配置 NPC**：在店主管理界面添加角色，或导入 SillyTavern 角色卡。
-- **配置 LLM**：按空间保存 owner 私有模型配置；敏感 Key 不对访客展示。
-- **配置玩法**：店主发布轻量文字玩法，访客可开始、继续、推进或放弃会话。
-- **查看回访状态**：通过对话历史、访客状态、记忆和状态卡维护空间连续性。
-
-## 常见问题
-
-**`8950` 端口被占用**
-
-换端口启动：
-
-```powershell
-py -3 -m fablespace_api api --port 8951 --no-open
-```
-
-前端开发模式如果换了后端端口，需要同步调整 `apps/web/vite.config.js` 的代理目标。
-
-**前端开发页打开后 API 失败**
-
-确认后端已在 `8950` 运行，并检查 `/api/health`。前端 dev server 只代理请求，不会自己启动后端。
-
-**数据库初始化失败**
-
-先确认 `FABLESPACE_DATABASE_URL` 是否正确。只想本地快速体验时，可以清空数据库 URL，默认使用 `.fablespace-api/fablespace.sqlite3`；只有需要旧文件存储时才设置 `FABLESPACE_STORAGE_BACKEND=json`。
-
-**空间内 NPC 没有真实 LLM 回复**
-
-确认店主已经在空间管理界面配置 LLM。没有外部 Key 时，默认公益空间仍可体验本地 fallback 玩法，但不等同于真实模型调用。
-
-**Docker 端口冲突**
-
-修改 `docker-compose.yml` 里的端口映射，或新增本地 compose override 文件后重新启动 Compose。
-
-## 开发边界
-
-改动前先按任务范围读取相关文档。尤其注意：
-
-- 空间必须挂接真实坐标。
-- 平台不能绕过店主确认自动发布空间内容。
-- 店主 LLM API Key、Token 统计和对话记录按敏感数据处理。
-- 不做平台级 Token 充值 / 结算。
-- 不做无边界访客社交、路线导航、评分系统、战斗等级装备系统。
-- API / Schema 改动必须同步文档，并运行当前保留的最小真实验证。
-
-## 文档入口
+## 项目文档
 
 - [产品概述](docs/PRODUCT_BRIEF.md)
 - [空间平台设计](docs/FABLESPACE_SPACE_PLATFORM.md)
@@ -252,5 +153,10 @@ py -3 -m fablespace_api api --port 8951 --no-open
 - [世界数据结构](docs/WORLD_SCHEMA.md)
 - [明确不做清单](docs/WHAT_NOT_TO_BUILD.md)
 - [图像资源规范](docs/IMAGE_ASSETS_SPEC.md)
-- [AI 协作协议](docs/AI参与开发协议.md)
-- [文档索引](docs/INDEX.md)
+
+## 安全提醒
+
+- 不要提交 `.env`、数据库文件、日志文件或真实 API Key。
+- 访客可见数据和店主私有配置应分开处理。
+- 公开部署时建议使用 HTTPS、强随机访问密码和受限数据库账号。
+- 对 LLM Key、对话记录和记忆写回数据按敏感数据处理。
