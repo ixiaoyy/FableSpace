@@ -15,10 +15,10 @@
 
 | 位置 | 用途 |
 |------|------|
-| `frontend/public/assets/` | 需要稳定 public URL 的运行时资源，例如默认 NPC seed、地图快照。 |
-| `frontend/app/assets/` | 由 React / Vite import 的前端资产。 |
-| `frontend/public/place-atmosphere/` | 地点氛围图。 |
-| `frontend/public/faction-emblems/` | 势力 / 分类徽章。 |
+| `apps/web/public/assets/` | 需要稳定 public URL 的运行时资源，例如默认 NPC seed、地图快照。 |
+| `apps/web/app/assets/` | 由 React / Vite import 的前端资产。 |
+| `apps/web/public/place-atmosphere/` | 地点氛围图。 |
+| `apps/web/public/faction-emblems/` | 势力 / 分类徽章。 |
 | `artifacts/assets/<YYYY-MM-DD-task>/` | 草稿、contact sheet、审计截图、参考素材。 |
 
 不要把运行时资源只放在 `artifacts/`、`.codex/` 或临时目录。
@@ -45,7 +45,7 @@ expression-set.prompt.md
 
 ```markdown
 ---
-asset: frontend/public/assets/npcs/public-welfare/char_demo/neutral.png
+asset: apps/web/public/assets/npcs/public-welfare/char_demo/neutral.png
 prompt_type: original-final
 source_type: prompt-manifest
 source_manifest: artifacts/assets/2026-01-01-demo/prompt-manifest.json
@@ -117,17 +117,17 @@ NPC 资产必须是原创虚构角色插画，不得像真人照片。
 - no celebrity likeness
 - no DSLR / camera-lens look
 
-如果结果像摄影棚人像、cosplay 照、明星脸或现实人物，不得进入 `frontend/public/...` 或 `frontend/app/assets/...`，必须重生或标记为废稿。
+如果结果像摄影棚人像、cosplay 照、明星脸或现实人物，不得进入 `apps/web/public/...` 或 `apps/web/app/assets/...`，必须重生或标记为废稿。
 
 ## 图片规格
 
 | 类型 | 推荐尺寸 | 推荐格式 | 位置 |
 |------|----------|----------|------|
-| NPC fallback 头像 | 256x256 | PNG | `frontend/app/assets/npc-style-cast/portraits/` |
-| 默认公益 NPC 表情 | 256x256 | PNG | `frontend/public/assets/npcs/public-welfare/<char_id>/` |
-| 地点氛围图 | 512x288 | WebP / PNG | `frontend/public/place-atmosphere/` |
-| 势力徽章 | 64x64 | SVG / PNG | `frontend/public/faction-emblems/` |
-| 前端页面 import 图 | 按 UI 槽位 | PNG / WebP / SVG | `frontend/app/assets/<feature>/` |
+| NPC fallback 头像 | 256x256 | PNG | `apps/web/app/assets/npc-style-cast/portraits/` |
+| 默认公益 NPC 表情 | 256x256 | PNG | `apps/web/public/assets/npcs/public-welfare/<char_id>/` |
+| 地点氛围图 | 512x288 | WebP / PNG | `apps/web/public/place-atmosphere/` |
+| 势力徽章 | 64x64 | SVG / PNG | `apps/web/public/faction-emblems/` |
+| 前端页面 import 图 | 按 UI 槽位 | PNG / WebP / SVG | `apps/web/app/assets/<feature>/` |
 | 审计 / 参考图 | 原始尺寸 | PNG / WebP | `artifacts/assets/<task>/` |
 
 ## 质量要求
@@ -165,4 +165,4 @@ negative constraints:
 - [ ] Sidecar 中尺寸、hash、expression、prompt_type 与当前文件一致。
 - [ ] 非 NPC 参考图已记录来源或处理方式。
 - [ ] 已核对 `.codex/generated_images` 本轮产物，未采用的图已标记或不作为交付。
-- [ ] 如前端会加载资源，已运行 `npm --prefix .\frontend run build` 或说明未运行原因。
+- [ ] 如前端会加载资源，已运行 `npm --prefix .\apps\web run build` 或说明未运行原因。

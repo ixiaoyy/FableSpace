@@ -1,6 +1,0 @@
-{"file": ".claude/commands/trellis/finish-work.md", "reason": "Finish work checklist"}
-{"file": ".claude/commands/trellis/check.md", "reason": "Code quality check spec"}
-{"file": ".trellis/spec/frontend/component-guidelines.md", "reason": "Frontend DOM/component/accessibility conventions"}
-{"file": ".trellis/spec/frontend/quality-guidelines.md", "reason": "Frontend validation commands"}
-{"file": ".trellis/spec/frontend/image-asset-guidelines.md", "reason": "Image replacement/decomposition guardrails"}
-{"file": ".trellis/spec/guides/code-reuse-thinking-guide.md", "reason": "Reuse existing SoulLink components"}

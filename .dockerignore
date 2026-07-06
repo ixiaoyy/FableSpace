@@ -26,26 +26,20 @@ venv
 fablemap_data
 
 # Node/Vite/React Router generated output
-frontend/node_modules
-frontend/build
-frontend/.react-router
-frontend/dist
-
-# Test output, but keep fixtures used by the API CLI defaults
-tests/*
-!tests/fixtures
-!tests/fixtures/**
-backend/tests
+apps/web/node_modules
+apps/web/build
+apps/web/.react-router
+apps/web/dist
 
 # Local env files and secrets
 .env
 .env.*
-!.env.example
-backend/.env
-backend/.env.*
-!backend/.env.example
-frontend/.env
-frontend/.env.*
+apps/api/.env
+apps/api/.env.*
+!apps/api/.env.example
+apps/web/.env
+apps/web/.env.*
+!apps/web/.env.example
 
 # OS noise
 .DS_Store

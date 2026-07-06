@@ -10,7 +10,7 @@ Current frontend principles:
 
 - Real map/coordinate anchoring.
 - Owner-authored space/NPC/world content.
-- Centralized API clients in `frontend/app/lib/` or `frontend/app/product/services/`.
+- Centralized API clients in `apps/web/app/lib/` or `apps/web/app/product/services/`.
 - Mobile/narrow-screen usability.
 - No large UI/state/map dependency without approval.
 
@@ -25,13 +25,9 @@ Current frontend principles:
 
 ## Read only when touched
 
-- API envelope/space page clients: `api-envelope-client-boundary.md`, `space-api-client-boundary.md`
-- Homepage dynamic data: `homepage-dynamic-data-boundary.md`
-- Clue hunt UI/API client boundary: `clue-hunt-ui-boundary.md`
-- Space doorway ritual UI: `space-doorway-ritual-ui.md`
-- Visitor-first discovery reduction: `visitor-first-discovery-reduction.md`
 - Images/NPC art: `image-asset-guidelines.md`, `npc-art-guidelines.md`
-- State cards / GM / episode / voice / souvenir / skill packs / preset import / risk linter / digital-human / map copy / discovery signals / mobile / revisit-care / engagement: corresponding focused files.
+- Focused feature specs were pruned. For feature work, inspect the live route/component/service/hook files and core product docs.
+- Add a new focused spec only when a durable frontend contract genuinely changes.
 
 ## Pre-development checklist
 
@@ -39,12 +35,12 @@ Current frontend principles:
 2. Keep API calls centralized.
 3. Keep owner/visitor/public state separate.
 4. For UI changes, account for narrow screens.
-5. Add/update tests only for real helper/service/contract behavior, not incidental copy/CSS.
+5. Do not add test files or test scripts unless the user explicitly restores a test workflow.
 
 ## Verification
 
-- UI/build change: `npm --prefix .\frontend run build`
-- Helper/service rule change: focused script or `npm --prefix .\frontend test`
+- UI/build change: `npm --prefix .\apps\web run build`
+- Type/API client change: `npm --prefix .\apps\web run typecheck`
 - Browser/Playwright only when visual acceptance is actually needed.
 
 ## Anti-patterns

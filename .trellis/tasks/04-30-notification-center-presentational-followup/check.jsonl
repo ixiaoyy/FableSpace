@@ -1,5 +1,0 @@
-{"file": ".claude/commands/trellis/finish-work.md", "reason": "Finish work checklist"}
-{"file": ".claude/commands/trellis/check.md", "reason": "Code quality check spec"}
-{"file": "frontend/app/routes/owner.tsx", "reason": "Owner route already exposes notification entry point; ensure link remains user-scoped."}
-{"file": "frontend/scripts/notification-center-test.mjs", "reason": "Regression test for notification center helper, route registration, guardrails, and UI copy."}
-{"file": ".trellis/tmp/playwright-mainline/evidence/04-30-notification-center-visual-acceptance/notification-center-visual-acceptance-report.json", "reason": "Playwright desktop/mobile visual evidence for notification center."}

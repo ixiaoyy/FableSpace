@@ -1,7 +1,0 @@
-{"file": ".claude/commands/trellis/finish-work.md", "reason": "Finish work checklist"}
-{"file": ".claude/commands/trellis/check.md", "reason": "Code quality check spec"}
-{"file": ".trellis/spec/frontend/quality-guidelines.md", "reason": "quality and visual verification requirements"}
-{"file": ".trellis/spec/frontend/type-safety.md", "reason": "validate import parser boundary"}
-{"file": "docs/WHAT_NOT_TO_BUILD.md", "reason": "owner confirmation and no automatic platform publication"}
-{"file": "frontend/scripts/npc-batch-import-test.mjs", "reason": "static regression coverage for batch import"}
-{"file": ".trellis/tmp/playwright-mainline/evidence/04-30-npc-batch-visual-acceptance/npc-batch-visual-acceptance-report.json", "reason": "Playwright visual acceptance evidence"}

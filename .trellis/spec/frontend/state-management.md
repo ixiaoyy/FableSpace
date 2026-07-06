@@ -50,10 +50,10 @@ Use visible loading and error state around calls. Do not assume successful netwo
 
 When changing backend response shape, update:
 
-- `frontend/app/product/services/spaceService.js` or `apiClient.js`,
+- `apps/web/app/product/services/spaceService.js` or `apiClient.js`,
 - affected components/hooks,
-- frontend script tests if service behavior changes,
-- backend tests/docs if the contract is canonical.
+- frontend type/build verification if service behavior changes,
+- backend docs/spec if the contract is canonical.
 
 ---
 
@@ -99,10 +99,10 @@ Prefer pure helpers and `useMemo` for derived state instead of duplicating mutab
 
 ## Real examples to follow
 
-1. `frontend/app/product/App.jsx`: visitor identity/theme/route state plus top-level space discovery refresh keys.
-2. `frontend/app/product/hooks/useWorldSession.js`: composed workflow state with persisted session restore.
-3. `frontend/app/product/services/sessionPersistence.js`: isolates localStorage serialization details.
-4. `frontend/app/product/GameplayManager.jsx`: loads/saves gameplay definitions through `spaceService` and keeps owner editing state local.
+1. `apps/web/app/product/App.jsx`: visitor identity/theme/route state plus top-level space discovery refresh keys.
+2. `apps/web/app/product/hooks/useWorldSession.js`: composed workflow state with persisted session restore.
+3. `apps/web/app/product/services/sessionPersistence.js`: isolates localStorage serialization details.
+4. `apps/web/app/product/GameplayManager.jsx`: loads/saves gameplay definitions through `spaceService` and keeps owner editing state local.
 
 ---
 

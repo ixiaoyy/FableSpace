@@ -1,7 +1,0 @@
-{"file": ".agents/skills/finish-work/SKILL.md", "reason": "Finish work checklist"}
-{"file": ".agents/skills/check/SKILL.md", "reason": "Code quality check spec"}
-{"file": ".trellis/spec/frontend/component-guidelines.md", "reason": "Check route UI quality and mobile-safe components"}
-{"file": ".trellis/spec/frontend/quality-guidelines.md", "reason": "Check build/product quality requirements"}
-{"file": ".trellis/spec/frontend/type-safety.md", "reason": "Check runtime-safe Tavern payload usage"}
-{"file": "frontend/app/routes/discover.tsx", "reason": "Check /discover route changes"}
-{"file": "frontend/app/lib/place-types.js", "reason": "Check shared place type metadata usage"}

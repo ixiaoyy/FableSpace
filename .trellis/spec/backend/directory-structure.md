@@ -4,14 +4,13 @@ Concise backend placement rules for AI development. Product source of truth rema
 
 ## Core layout
 
-- `backend/src/fablespace_api/api/v1/`: FastAPI route modules. Keep routes thin.
-- `backend/src/fablespace_api/application/services/`: use-case orchestration and payload assembly.
-- `backend/src/fablespace_api/application/stores/`: persistence adapters and query helpers.
-- `backend/src/fablespace_api/contracts/`: request/response DTOs and normalization helpers.
-- `backend/src/fablespace_api/domain/`: domain entities/policies when behavior is framework-free.
-- `backend/src/fablespace_api/core/`: legacy compatibility core; do not add new product surface here unless maintaining compatibility.
-- `backend/tests/`: native v1/backend tests.
-- `tests/`: legacy/core compatibility tests.
+- `apps/api/src/fablespace_api/api/v1/`: FastAPI route modules. Keep routes thin.
+- `apps/api/src/fablespace_api/application/services/`: use-case orchestration and payload assembly.
+- `apps/api/src/fablespace_api/application/stores/`: persistence adapters and query helpers.
+- `apps/api/src/fablespace_api/contracts/`: request/response DTOs and normalization helpers.
+- `apps/api/src/fablespace_api/domain/`: domain entities/policies when behavior is framework-free.
+- `apps/api/src/fablespace_api/core/`: legacy compatibility core; do not add new product surface here unless maintaining compatibility.
+- Current repo intentionally does not keep pytest test directories.
 
 ## Placement rules
 
@@ -61,8 +60,6 @@ Use `contracts/` for:
 | Response shape / DTO | `contracts/<domain>.py` |
 | Persistence query/update | application store or existing core adapter |
 | Prompt/runtime behavior | application service or `core/` compatibility only if already there |
-| Tests for native API | `backend/tests/` |
-| Tests for legacy/core behavior | `tests/` |
 
 ## Import direction
 
@@ -76,18 +73,18 @@ Avoid reverse imports from `core/` into `api/v1` unless maintaining legacy bridg
 
 ## Verification
 
-- Python source touched: `py -3 -m compileall -q backend/src`.
-- API behavior touched: focused `py -3 -m pytest backend/tests/<file>.py -q --tb=short` or relevant legacy test.
-- Global contract/schema touched: update focused spec and run the affected backend tests.
+- Python source touched: `py -3 -m compileall -q apps/api/src`.
+- API behavior touched: run an isolated local API check for the touched endpoint.
+- Global contract/schema touched: update docs/spec and run compile/import plus an isolated local API check.
 
 ## Common mistakes
 
 - Adding direct persistence logic to a route.
-- Adding new schema fields without updating contract tests/docs.
+- Adding new schema fields without updating contract docs and local verification.
 - Putting one-off helpers in global modules before reuse exists.
 - Treating legacy `/api/*` compatibility code as the preferred home for new v1 behavior.
 - Returning a different payload shape for the same endpoint depending on caller.
 
 ## Context policy
 
-Verbose historical scenario matrices were removed from this file to keep AI context small. For feature-specific contracts, read the focused spec file named in `backend/index.md` instead of loading a mega guide.
+Verbose historical scenario matrices were removed from this file to keep AI context small. For feature-specific behavior, inspect the live code and only add a focused spec when a durable contract changes.

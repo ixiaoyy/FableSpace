@@ -1,6 +1,6 @@
 # FableSpace 世界 Schema
 
-本文档只记录当前空间平台的 durable data contract。实现字段以 `backend/src/fablespace_api/core/`、`backend/src/fablespace_api/contracts/` 和 `backend/src/fablespace_api/infrastructure/models.py` 为准；若代码与本文冲突，先修正文档或代码，不要静默漂移。
+本文档只记录当前空间平台的 durable data contract。实现字段以 `apps/api/src/fablespace_api/core/`、`apps/api/src/fablespace_api/contracts/` 和 `apps/api/src/fablespace_api/infrastructure/models.py` 为准；若代码与本文冲突，先修正文档或代码，不要静默漂移。
 
 命名说明：对外 API、领域文档和前端统一使用 Space / `space_id`。当前数据库物理表仍保留 legacy `taverns` 表名，旧 `tavern` place type 输入会归一为 `space`，这是兼容策略，不代表新增一套并行 Schema。
 

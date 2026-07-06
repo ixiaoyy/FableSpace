@@ -1,8 +1,0 @@
-{"file": ".trellis/workflow.md", "reason": "Project workflow and conventions"}
-{"file": ".trellis/spec/frontend/index.md", "reason": "Frontend development guide"}
-{"file": ".trellis/spec/frontend/component-guidelines.md", "reason": "GameplayManager UI and owner-confirmed draft patterns"}
-{"file": ".trellis/spec/frontend/state-management.md", "reason": "local draft state before save"}
-{"file": ".trellis/spec/frontend/type-safety.md", "reason": "GameplayDefinition schema alignment"}
-{"file": "frontend/app/product/GameplayManager.jsx", "reason": "existing owner gameplay manager"}
-{"file": "frontend/app/product/GameplayDefinitionEditor.jsx", "reason": "existing GameplayDefinition editor/schema"}
-{"file": "frontend/app/product/ownerGameplayTemplates.js", "reason": "Template helper creates owner-confirmed draft GameplayDefinition payloads from reusable non-RPG templates."}

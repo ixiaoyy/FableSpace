@@ -22,15 +22,15 @@ FableSpace 同时保留两类 API 面：
 
 | 区域 | 主要路径 | 说明 |
 |------|----------|------|
-| 后端本地一体化入口 | `backend/src/fablespace_api/core/api.py` | `py -3 -m fablespace_api api`，默认端口 `8950`，可托管前端构建。 |
-| 后端 ASGI 入口 | `backend/src/fablespace_api/main.py` | Docker / uvicorn 使用。 |
-| 旧兼容 Web app | `backend/src/fablespace_api/core/web/app.py` | 组合 `/api/*` 和 `/api/v1/*`。 |
-| v1 路由 | `backend/src/fablespace_api/api/v1/` | 当前原生 API 路由。 |
-| 应用服务 | `backend/src/fablespace_api/application/services/` | API orchestration，不直接放 UI 逻辑。 |
-| 核心领域 | `backend/src/fablespace_api/core/` | Space、玩法、记忆、LLM、状态卡等核心规则。 |
-| 持久化 | `backend/src/fablespace_api/infrastructure/` | SQLAlchemy models、stores、迁移工具。 |
-| 前端入口 | `frontend/app/` | React Router routes、features、lib。 |
-| 产品兼容模块 | `frontend/app/product/` | 历史产品模块和兼容服务。 |
+| 后端本地一体化入口 | `apps/api/src/fablespace_api/core/api.py` | `py -3 -m fablespace_api api`，默认端口 `8950`，可托管前端构建。 |
+| 后端 ASGI 入口 | `apps/api/src/fablespace_api/main.py` | Docker / uvicorn 使用。 |
+| 旧兼容 Web app | `apps/api/src/fablespace_api/core/web/app.py` | 组合 `/api/*` 和 `/api/v1/*`。 |
+| v1 路由 | `apps/api/src/fablespace_api/api/v1/` | 当前原生 API 路由。 |
+| 应用服务 | `apps/api/src/fablespace_api/application/services/` | API orchestration，不直接放 UI 逻辑。 |
+| 核心领域 | `apps/api/src/fablespace_api/core/` | Space、玩法、记忆、LLM、状态卡等核心规则。 |
+| 持久化 | `apps/api/src/fablespace_api/infrastructure/` | SQLAlchemy models、stores、迁移工具。 |
+| 前端入口 | `apps/web/app/` | React Router routes、features、lib。 |
+| 产品兼容模块 | `apps/web/app/product/` | 历史产品模块和兼容服务。 |
 
 ## 分层职责
 
@@ -46,9 +46,9 @@ FableSpace 同时保留两类 API 面：
 
 关键路径：
 
-- `backend/src/fablespace_api/core/overpass.py`
-- `backend/src/fablespace_api/core/nearby.py`
-- `frontend/app/product/WorldMap.jsx`
+- `apps/api/src/fablespace_api/core/overpass.py`
+- `apps/api/src/fablespace_api/core/nearby.py`
+- `apps/web/app/product/WorldMap.jsx`
 
 ### Space Platform Core
 
@@ -61,13 +61,13 @@ FableSpace 同时保留两类 API 面：
 
 关键路径：
 
-- `backend/src/fablespace_api/core/space.py`
-- `backend/src/fablespace_api/core/gameplay.py`
-- `backend/src/fablespace_api/core/state_cards.py`
-- `backend/src/fablespace_api/core/skill_packs.py`
-- `backend/src/fablespace_api/core/preset_import.py`
-- `backend/src/fablespace_api/application/services/`
-- `backend/src/fablespace_api/api/v1/`
+- `apps/api/src/fablespace_api/core/space.py`
+- `apps/api/src/fablespace_api/core/gameplay.py`
+- `apps/api/src/fablespace_api/core/state_cards.py`
+- `apps/api/src/fablespace_api/core/skill_packs.py`
+- `apps/api/src/fablespace_api/core/preset_import.py`
+- `apps/api/src/fablespace_api/application/services/`
+- `apps/api/src/fablespace_api/api/v1/`
 
 原则：
 
@@ -85,15 +85,15 @@ FableSpace 同时保留两类 API 面：
 
 关键路径：
 
-- `frontend/app/routes/`
-- `frontend/app/features/`
-- `frontend/app/lib/spaces.ts`
-- `frontend/app/product/`
+- `apps/web/app/routes/`
+- `apps/web/app/features/`
+- `apps/web/app/lib/spaces.ts`
+- `apps/web/app/product/`
 
 前端 API 调用边界：
 
-- 新路由优先使用 `frontend/app/lib/`。
-- 产品兼容模块继续使用 `frontend/app/product/services/`。
+- 新路由优先使用 `apps/web/app/lib/`。
+- 产品兼容模块继续使用 `apps/web/app/product/services/`。
 - 不在组件里散落复杂协议转换。
 
 ### AI Dialogue Layer
@@ -107,11 +107,11 @@ FableSpace 同时保留两类 API 面：
 
 关键路径：
 
-- `backend/src/fablespace_api/core/llm_clients.py`
-- `backend/src/fablespace_api/core/prompt_builder.py`
-- `backend/src/fablespace_api/core/world_info_injector.py`
-- `backend/src/fablespace_api/core/output_rules.py`
-- `backend/src/fablespace_api/core/gameplay.py`
+- `apps/api/src/fablespace_api/core/llm_clients.py`
+- `apps/api/src/fablespace_api/core/prompt_builder.py`
+- `apps/api/src/fablespace_api/core/world_info_injector.py`
+- `apps/api/src/fablespace_api/core/output_rules.py`
+- `apps/api/src/fablespace_api/core/gameplay.py`
 
 原则：
 
@@ -125,11 +125,11 @@ FableSpace 同时保留两类 API 面：
 
 关键路径：
 
-- `backend/src/fablespace_api/infrastructure/models.py`
-- `backend/src/fablespace_api/infrastructure/storage.py`
-- `backend/src/fablespace_api/infrastructure/mysql_space_store.py`
-- `backend/src/fablespace_api/infrastructure/migrate_database.py`
-- `backend/src/fablespace_api/infrastructure/migrate.py`
+- `apps/api/src/fablespace_api/infrastructure/models.py`
+- `apps/api/src/fablespace_api/infrastructure/storage.py`
+- `apps/api/src/fablespace_api/infrastructure/mysql_space_store.py`
+- `apps/api/src/fablespace_api/infrastructure/migrate_database.py`
+- `apps/api/src/fablespace_api/infrastructure/migrate.py`
 
 存储选择：
 
@@ -187,7 +187,7 @@ FableSpace 同时保留两类 API 面：
 - visual souvenir preview。
 - clue hunts、territories、engagement、notifications。
 
-完整路由以 `backend/src/fablespace_api/api/v1/` 和 `backend/src/fablespace_api/core/web/router.py` 为准。
+完整路由以 `apps/api/src/fablespace_api/api/v1/` 和 `apps/api/src/fablespace_api/core/web/router.py` 为准。
 
 ## 安全边界
 
@@ -200,11 +200,11 @@ FableSpace 同时保留两类 API 面：
 
 ## 前端构建与资源
 
-- 前端构建：`npm --prefix .\frontend run build`
-- 类型检查：`npm --prefix .\frontend run typecheck`
+- 前端构建：`npm --prefix .\apps\web run build`
+- 类型检查：`npm --prefix .\apps\web run typecheck`
 - Vite dev server 默认把 `/api` 和 `/generated` 代理到 `127.0.0.1:8950`
-- Public URL 资源放 `frontend/public/assets/`
-- Vite import 资源放 `frontend/app/assets/`
+- Public URL 资源放 `apps/web/public/assets/`
+- Vite import 资源放 `apps/web/app/assets/`
 - 图片落盘规则见 [IMAGE_ASSETS_SPEC.md](IMAGE_ASSETS_SPEC.md)
 
 ## 架构判断标准

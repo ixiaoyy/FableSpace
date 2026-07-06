@@ -1,9 +1,0 @@
-{"file": ".trellis/workflow.md", "reason": "Project workflow and conventions"}
-{"file": ".trellis/spec/backend/index.md", "reason": "Backend development guide"}
-{"file": ".trellis/spec/frontend/index.md", "reason": "Frontend development guide"}
-{"file": "AGENTS.md", "reason": "Global project instruction entry to update with prompt sidecar rule"}
-{"file": "docs/IMAGE_ASSETS_SPEC.md", "reason": "Canonical image asset spec to extend with prompt sidecar schema"}
-{"file": ".trellis/spec/frontend/image-asset-guidelines.md", "reason": "Frontend image asset landing/provenance rules"}
-{"file": ".trellis/spec/frontend/npc-art-guidelines.md", "reason": "NPC sprite and expression prompt sidecar rules"}
-{"file": ".agents/skills/generate-character-prompt/SKILL.md", "reason": "Prompt-first skill must land final prompts beside assets"}
-{"file": ".agents/skills/image-style-prompt-extractor/SKILL.md", "reason": "Reverse prompt extraction workflow for assets missing original prompts"}

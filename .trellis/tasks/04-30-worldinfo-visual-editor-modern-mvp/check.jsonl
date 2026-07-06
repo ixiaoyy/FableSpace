@@ -1,7 +1,0 @@
-{"file": "frontend/app/product/WorldBookEditor.jsx", "reason": "Verify all features work after changes"}
-{"file": ".trellis/spec/frontend/index.md", "reason": "Verify compliance with frontend guidelines"}
-{"file": ".trellis/spec/frontend/component-guidelines.md", "reason": "Check WorldBook editor visual/mobile rules"}
-{"file": ".trellis/spec/frontend/quality-guidelines.md", "reason": "Check verification and Playwright self-acceptance"}
-{"file": ".trellis/spec/frontend/type-safety.md", "reason": "Check runtime-safe WorldInfo payload handling"}
-{"file": "frontend/app/product/styles.css", "reason": "Check WorldBook modal responsive styling"}
-{"file": "frontend/scripts/worldbook-editor-test.mjs", "reason": "Check WorldBook editor regression test"}

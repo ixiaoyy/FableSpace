@@ -2,11 +2,11 @@ __pycache__/
 *.py[cod]
 
 # Node
-frontend/node_modules/
-frontend/dist/
-frontend/.vite/
-frontend/.react-router/
-frontend/build/
+apps/web/node_modules/
+apps/web/dist/
+apps/web/.vite/
+apps/web/.react-router/
+apps/web/build/
 
 # Trellis local harness dependencies/caches
 .trellis/tmp/
@@ -28,7 +28,7 @@ artifacts/dev-server/
 # Artifacts / generated evidence
 artifacts/
 test-results/
-frontend/scripts/playwright-discover-visual-audit.mjs
+apps/web/scripts/playwright-discover-visual-audit.mjs
 
 # Generated outputs
 .fablemap-api/
@@ -59,3 +59,4 @@ Thumbs.db
 
 .agents/
 .codex/
+.locked-delete/

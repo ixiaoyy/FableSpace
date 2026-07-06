@@ -1,7 +1,0 @@
-{"file": ".trellis/spec/frontend/component-guidelines.md", "reason": "Check UI cards/mobile social guardrails"}
-{"file": ".trellis/spec/frontend/quality-guidelines.md", "reason": "Check verification completeness"}
-{"file": ".trellis/spec/frontend/type-safety.md", "reason": "Check dynamic field normalization"}
-{"file": "docs/WHAT_NOT_TO_BUILD.md", "reason": "Check no public social/ranking leak"}
-{"file": "frontend/scripts/tavern-activity-signals-test.mjs", "reason": "Existing no-social signal regression patterns"}
-{"file": ".trellis/spec/frontend/discovery-liveliness-signals.md", "reason": "Check discovery liveliness boundary"}
-{"file": "frontend/scripts/discovery-liveliness-test.mjs", "reason": "Regression test for discovery liveliness helper and route integration"}

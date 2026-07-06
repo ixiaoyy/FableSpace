@@ -1,9 +1,0 @@
-{"file": ".trellis/workflow.md", "reason": "Project workflow and conventions"}
-{"file": ".trellis/spec/frontend/index.md", "reason": "Frontend development guide"}
-{"file": ".trellis/spec/frontend/directory-structure.md", "reason": "Route module and shared helper placement"}
-{"file": ".trellis/spec/frontend/component-guidelines.md", "reason": "Homepage UI visual quality and mobile-safe cards"}
-{"file": ".trellis/spec/frontend/type-safety.md", "reason": "Normalize dynamic tavern payloads"}
-{"file": ".trellis/spec/frontend/state-management.md", "reason": "Use loader/server state and derived values"}
-{"file": ".trellis/spec/frontend/image-asset-guidelines.md", "reason": "Reuse project-local atmosphere images"}
-{"file": ".trellis/spec/frontend/map-anchor-copy.md", "reason": "Keep real-coordinate entry copy consistent"}
-{"file": ".trellis/spec/guides/code-reuse-thinking-guide.md", "reason": "Share cover selection instead of duplicating"}

@@ -1,9 +1,0 @@
-{"file": ".trellis/workflow.md", "reason": "Project workflow and conventions"}
-{"file": ".trellis/spec/frontend/index.md", "reason": "Frontend development guide"}
-{"file": ".trellis/spec/frontend/component-guidelines.md", "reason": "global visual quality and mobile UI standard"}
-{"file": ".trellis/spec/frontend/quality-guidelines.md", "reason": "frontend build and visual quality requirements"}
-{"file": ".trellis/spec/frontend/type-safety.md", "reason": "route payload/runtime safety"}
-{"file": "docs/WHAT_NOT_TO_BUILD.md", "reason": "product boundary"}
-{"file": "frontend/app/features/tavern-layout-showcase/index.tsx", "reason": "tavern entry surface implementation"}
-{"file": "frontend/scripts/tavern-entry-surface-test.mjs", "reason": "entry surface regression guard"}
-{"file": "frontend/package.json", "reason": "frontend test script wiring"}

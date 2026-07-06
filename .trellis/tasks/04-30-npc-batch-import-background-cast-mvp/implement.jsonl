@@ -1,9 +1,0 @@
-{"file": ".trellis/workflow.md", "reason": "Project workflow and conventions"}
-{"file": ".trellis/spec/frontend/index.md", "reason": "Frontend development guide"}
-{"file": ".trellis/spec/frontend/component-guidelines.md", "reason": "component/editor patterns and owner-authored content boundaries"}
-{"file": ".trellis/spec/frontend/state-management.md", "reason": "local draft/server state pattern for owner panel"}
-{"file": ".trellis/spec/frontend/type-safety.md", "reason": "runtime normalization for imported character payloads"}
-{"file": ".trellis/spec/frontend/quality-guidelines.md", "reason": "verification and Playwright self-acceptance rule"}
-{"file": "frontend/app/product/CharacterManagementModal.jsx", "reason": "existing character management UI to extend"}
-{"file": "frontend/app/product/CharacterEditor.jsx", "reason": "existing TavernCharacter normalization fields"}
-{"file": "frontend/app/product/npcBatchImport.js", "reason": "batch parser/normalizer implementation"}

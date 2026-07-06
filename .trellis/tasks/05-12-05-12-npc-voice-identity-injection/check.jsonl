@@ -1,5 +1,0 @@
-{"file":".agents/skills/check/SKILL.md","reason":"项目代码检查流程"}
-{"file":".agents/skills/finish-work/SKILL.md","reason":"最终验证清单"}
-{"file":"backend/tests/test_v1_dynamic_npc_responses.py","reason":"v1 runtime 个性化 prompt 测试"}
-{"file":"tests/test_tavern_prompt_blocks.py","reason":"PromptBuilder/Prompt Blocks 测试"}
-{"file":"tests/test_tavern_llm_degradation.py","reason":"core web prompt/降级回归"}

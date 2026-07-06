@@ -49,4 +49,4 @@ Use proportional checks:
 - Leave deliverable NPC art only in generated/temp folders.
 - Claim replacement while code still references old assets.
 - Add huge screenshot evidence to Trellis.
-- Add brittle tests for visual copy unless protecting an actual asset contract.
+- Add brittle exact-visual checks unless protecting an actual asset contract.

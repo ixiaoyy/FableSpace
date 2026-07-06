@@ -1,4 +1,0 @@
-{"file": ".trellis/workflow.md", "reason": "Project workflow and conventions"}
-{"file": ".trellis/spec/frontend/index.md", "reason": "Frontend development guide"}
-{"file": ".\\.trellis\\spec\\frontend\\component-guidelines.md", "reason": "Shared component DOM/layout conventions"}
-{"file": ".\\.trellis\\spec\\frontend\\image-asset-guidelines.md", "reason": "Project-local UI PNG asset placement"}

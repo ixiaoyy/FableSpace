@@ -1,5 +1,0 @@
-{"file": ".trellis/workflow.md", "reason": "Project workflow and conventions"}
-{"file": ".trellis/spec/frontend/index.md", "reason": "Frontend development guide"}
-{"file": ".\\.trellis\\spec\\frontend\\quality-guidelines.md", "reason": "template helper is covered by frontend script tests"}
-{"file": ".\\.trellis\\spec\\frontend\\type-safety.md", "reason": "TavernCharacter tags/personality remain schema-aligned strings/lists"}
-{"file": ".\\.trellis\\spec\\guides\\code-reuse-thinking-guide.md", "reason": "extend existing template source instead of duplicating logic"}

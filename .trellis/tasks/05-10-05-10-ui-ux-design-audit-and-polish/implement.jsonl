@@ -1,6 +1,0 @@
-{"file": ".trellis/workflow.md", "reason": "Project workflow and conventions"}
-{"file": ".trellis/spec/frontend/index.md", "reason": "Frontend development guide"}
-{"file": ".trellis/spec/frontend/component-guidelines.md", "reason": "Follow component styling and accessibility standards"}
-{"file": ".trellis/spec/frontend/discovery-liveliness-signals.md", "reason": "Use correct signal labels in Discover"}
-{"file": ".trellis/spec/frontend/mobile-single-mainline.md", "reason": "Ensure mobile usability"}
-{"file": ".trellis/spec/frontend/map-anchor-copy.md", "reason": "Follow copy direction for coordinates and tavern markers"}

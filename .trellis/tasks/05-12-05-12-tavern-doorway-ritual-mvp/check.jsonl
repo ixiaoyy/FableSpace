@@ -1,6 +1,0 @@
-{"file": ".claude/commands/trellis/finish-work.md", "reason": "Finish work checklist"}
-{"file": ".claude/commands/trellis/check.md", "reason": "Code quality check spec"}
-{"file": "frontend/scripts/tavern-chat-workbench-test.mjs", "reason": "既有游客工作台源码守护测试"}
-{"file": "frontend/scripts/tavern-doorway-ritual-test.mjs", "reason": "新增门口仪式源码回归测试"}
-{"file": "frontend/package.json", "reason": "前端 npm test 链包含本任务回归测试"}
-{"file": "frontend/scripts/playwright-tavern-doorway-check.mjs", "reason": "可见 UI 桌面/移动 Playwright 自验收脚本"}

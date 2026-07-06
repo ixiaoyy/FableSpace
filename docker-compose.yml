@@ -2,19 +2,16 @@ services:
   backend:
     build:
       context: .
-      dockerfile: backend/Dockerfile
+      dockerfile: apps/api/Dockerfile
     image: fablespace-backend:local
+    env_file:
+      - path: ./apps/api/.env
+        required: false
     environment:
-      FABLESPACE_STORAGE_BACKEND: ${FABLESPACE_STORAGE_BACKEND:-${FABLEMAP_STORAGE_BACKEND:-database}}
-      FABLESPACE_DATABASE_URL: ${FABLESPACE_DATABASE_URL:-${FABLEMAP_DATABASE_URL:-}}
-      FABLESPACE_MYSQL_URL: ${FABLESPACE_MYSQL_URL:-${FABLEMAP_MYSQL_URL:-}}
       FABLESPACE_OUTPUT_ROOT: /data
-      FABLESPACE_SEED_DEFAULT_SPACES: ${FABLESPACE_SEED_DEFAULT_SPACES:-${FABLEMAP_SEED_DEFAULT_TAVERNS:-1}}
-      FABLESPACE_CORS_ORIGINS: ${FABLESPACE_CORS_ORIGINS:-${FABLEMAP_CORS_ORIGINS:-http://localhost:3000,http://127.0.0.1:3000}}
-      OPENCODE_API_KEY: ${OPENCODE_API_KEY:-}
-      PYTHONPATH: /app/backend/src
+      PYTHONPATH: /app/apps/api/src
     ports:
-      - "${FABLESPACE_API_PORT:-${FABLEMAP_API_PORT:-8000}}:8000"
+      - "8000:8000"
     volumes:
       - fablespace_data:/data
     healthcheck:
@@ -33,17 +30,13 @@ services:
   frontend:
     build:
       context: .
-      dockerfile: frontend/Dockerfile
-      args:
-        VITE_API_BASE: ${VITE_API_BASE:-}
-        VITE_AMAP_KEY: ${VITE_AMAP_KEY:-}
-        VITE_AMAP_SECURITY_CODE: ${VITE_AMAP_SECURITY_CODE:-}
+      dockerfile: apps/web/Dockerfile
     image: fablespace-frontend:local
     depends_on:
       backend:
         condition: service_healthy
     ports:
-      - "${FABLESPACE_FRONTEND_PORT:-${FABLEMAP_FRONTEND_PORT:-3000}}:80"
+      - "3000:80"
 
 volumes:
   fablespace_data:

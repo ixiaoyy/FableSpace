@@ -8,7 +8,7 @@ Read when adding, replacing, compressing, deleting, or referencing image assets.
 
 ## Placement
 
-- Deliverable images must live inside the repo, e.g. `frontend/public/...`, `frontend/app/assets/...`, or `artifacts/...`.
+- Deliverable images must live inside the repo, e.g. `apps/web/public/...`, `apps/web/app/assets/...`, or `artifacts/...`.
 - Do not ship references to `.codex/generated_images`, temp folders, or chat-only previews.
 - Generated NPC art follows `npc-art-guidelines.md` sidecar rules.
 
@@ -39,4 +39,4 @@ Use proportional checks:
 - Reporting “replaced” while old asset is still imported.
 - Keeping temporary generation outputs as deliverables.
 - Adding huge screenshot evidence to `.trellis/tasks`.
-- Adding brittle tests for exact visual internals instead of checking asset existence/reference.
+- Adding brittle exact-visual checks instead of checking asset existence/reference.

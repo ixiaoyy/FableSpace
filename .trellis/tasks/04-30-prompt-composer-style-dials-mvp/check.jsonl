@@ -1,4 +1,0 @@
-{"file": ".agents/skills/finish-work/SKILL.md", "reason": "Finish work checklist"}
-{"file": ".agents/skills/check/SKILL.md", "reason": "Code quality check spec"}
-{"file": ".trellis/spec/frontend/quality-guidelines.md", "reason": "Check tests/build and visual scope reporting."}
-{"file": ".trellis/spec/frontend/character-prompt-risk-linter.md", "reason": "Check generated style text is not blocked and owner-facing."}

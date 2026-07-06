@@ -1,9 +1,0 @@
-{"file": ".agents/skills/finish-work/SKILL.md", "reason": "Finish work checklist"}
-{"file": ".agents/skills/check/SKILL.md", "reason": "Code quality check spec"}
-{"file": ".trellis/spec/backend/error-handling.md", "reason": "Check changed error envelope compatibility"}
-{"file": ".trellis/spec/backend/quality-guidelines.md", "reason": "Check backend verification scope"}
-{"file": ".trellis/spec/frontend/tavern-api-client-boundary.md", "reason": "Check frontend client boundary"}
-{"file": ".trellis/spec/guides/cross-layer-thinking-guide.md", "reason": "Check cross-layer migration coverage"}
-{"file": ".trellis/spec/backend/api-response-envelope-contract.md", "reason": "Check backend envelope contract"}
-{"file": ".trellis/spec/frontend/api-envelope-client-boundary.md", "reason": "Check frontend envelope client contract"}
-{"file": ".trellis/tasks/05-13-global-api-envelope-legacy-migration/implementation-notes.md", "reason": "Validation and implementation notes"}

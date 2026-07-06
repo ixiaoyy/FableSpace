@@ -1,7 +1,0 @@
-{"file": ".trellis/spec/frontend/preset-import-preview-ui-boundary.md", "reason": "Check blocked risks are visible and not applied silently"}
-{"file": ".trellis/spec/frontend/component-guidelines.md", "reason": "Review CharacterEditor UI against owner-facing component rules"}
-{"file": ".trellis/spec/guides/code-reuse-thinking-guide.md", "reason": "Check no duplicate validation patterns drift"}
-{"file": ".trellis/spec/frontend/type-safety.md", "reason": "Check runtime validation and schema-safe payloads"}
-{"file": ".trellis/spec/frontend/npc-art-guidelines.md", "reason": "Review NPC visual prompt risk coverage"}
-{"file": ".trellis/spec/frontend/quality-guidelines.md", "reason": "Verify tests/build and product boundaries"}
-{"file": ".trellis/spec/frontend/character-prompt-risk-linter.md", "reason": "Review implementation against the new prompt risk linter contract"}

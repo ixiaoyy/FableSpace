@@ -6,7 +6,7 @@
 
 ## Overview
 
-Custom hooks live in `frontend/app/product/hooks/` for product parity source or beside `frontend/app/` route modules when route-specific. They do not replace services; API methods come from `frontend/app/lib/` or `frontend/app/product/services/`.
+Custom hooks live in `apps/web/app/product/hooks/` for product parity source or beside `apps/web/app/` route modules when route-specific. They do not replace services; API methods come from `apps/web/app/lib/` or `apps/web/app/product/services/`.
 
 Existing hooks include:
 
@@ -91,10 +91,10 @@ try {
 
 ## Real examples to follow
 
-1. `frontend/app/product/hooks/useWorldSession.js`: composes smaller hooks and returns a large but explicit session view model to `App.jsx`.
-2. `frontend/app/product/hooks/usePoiFilters.js`: uses `useMemo` for derived filter options and filtered POIs.
-3. `frontend/app/product/hooks/useBackendStatus.js`: wraps async health/meta check and applies default coordinates safely.
-4. `frontend/app/product/hooks/useScrollToWorldStage.js`: demonstrates DOM/timer cleanup for side effects.
+1. `apps/web/app/product/hooks/useWorldSession.js`: composes smaller hooks and returns a large but explicit session view model to `App.jsx`.
+2. `apps/web/app/product/hooks/usePoiFilters.js`: uses `useMemo` for derived filter options and filtered POIs.
+3. `apps/web/app/product/hooks/useBackendStatus.js`: wraps async health/meta check and applies default coordinates safely.
+4. `apps/web/app/product/hooks/useScrollToWorldStage.js`: demonstrates DOM/timer cleanup for side effects.
 
 ---
 

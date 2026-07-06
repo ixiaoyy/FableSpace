@@ -1,6 +1,0 @@
-{"file": ".claude/commands/trellis/finish-work.md", "reason": "Finish work checklist"}
-{"file": ".claude/commands/trellis/check.md", "reason": "Code quality check spec"}
-{"file": "frontend/app/routes/discover.tsx", "reason": "Review route diff and parse/build result"}
-{"file": ".trellis/spec/frontend/quality-guidelines.md", "reason": "Validate build/browser evidence"}
-{"file": ".trellis/spec/frontend/component-guidelines.md", "reason": "Review UI/component quality"}
-{"file": ".trellis/spec/guides/code-reuse-thinking-guide.md", "reason": "Review missed duplicated constants/fragments"}

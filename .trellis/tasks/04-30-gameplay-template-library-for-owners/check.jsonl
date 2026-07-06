@@ -1,6 +1,0 @@
-{"file": ".claude/commands/trellis/finish-work.md", "reason": "Finish work checklist"}
-{"file": ".claude/commands/trellis/check.md", "reason": "Code quality check spec"}
-{"file": "docs/WHAT_NOT_TO_BUILD.md", "reason": "no combat/levels/ranking/tradable rewards"}
-{"file": ".trellis/spec/frontend/quality-guidelines.md", "reason": "verification and visual acceptance"}
-{"file": "frontend/scripts/gameplay-test.mjs", "reason": "gameplay template regression coverage"}
-{"file": ".trellis/tmp/playwright-mainline/evidence/04-30-gameplay-template-visual-acceptance/gameplay-template-visual-acceptance-report.json", "reason": "Playwright desktop/mobile acceptance evidence for gameplay template library."}

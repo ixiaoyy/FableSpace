@@ -24,15 +24,15 @@ Do not bulk-load historical `.trellis/tasks/**`. Active task records and focused
 
 1. Reproduce/understand the issue.
 2. Make the smallest coherent change.
-3. Update tests/docs/spec only when the contract actually changed.
+3. Update docs/spec only when the contract actually changed.
 4. Run proportional validation.
 5. Report changed files, reason, validation, and risks.
 
 ## Validation selection
 
 - Docs only: content/path check.
-- Python source: `py -3 -m compileall -q backend/src` plus focused pytest when behavior changes.
-- Frontend source: `npm --prefix .\frontend run build` when UI/build changes; focused script tests for helper/service rules.
+- Python source: `py -3 -m compileall -q apps/api/src`.
+- Frontend source: `npm --prefix .\apps\web run build` when UI/build changes; run `npm --prefix .\apps\web run typecheck` for TypeScript/API boundary changes.
 - Visual changes: browser/Playwright only when visual acceptance is actually needed.
 - Do not add broad regression scripts for small copy/layout changes unless they protect a real contract.
 
@@ -55,10 +55,9 @@ Do not say a task is complete unless:
 
 ```powershell
 py -3 .\.trellis\scripts\get_context.py --mode packages
-py -3 -m compileall -q backend/src
-py -3 -m pytest backend/tests/<file>.py -q --tb=short
-npm --prefix .\frontend run build
-npm --prefix .\frontend test
+py -3 -m compileall -q apps/api/src
+npm --prefix .\apps\web run build
+npm --prefix .\apps\web run typecheck
 ```
 
 ## Do / don't
@@ -75,4 +74,4 @@ Don't:
 - bulk-read or bulk-edit unrelated history;
 - add huge screenshots/raw scans to `.trellis`;
 - turn local task rules into global rules;
-- add brittle tests for incidental UI copy/CSS/source internals.
+- reintroduce test files for incidental UI copy/CSS/source internals.

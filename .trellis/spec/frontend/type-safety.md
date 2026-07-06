@@ -4,8 +4,8 @@ Concise type/data-boundary rules for the React Router frontend.
 
 ## Type organization
 
-- New route API clients: `frontend/app/lib/`.
-- Product-parity/legacy services: `frontend/app/product/services/`.
+- New route API clients: `apps/web/app/lib/`.
+- Product-parity/legacy services: `apps/web/app/product/services/`.
 - Shared route/component types should stay close to the service/helper that produces them.
 - Avoid duplicating backend enum strings in several components; centralize normalization.
 
@@ -44,8 +44,8 @@ Helpers should return stable defaults rather than throwing in render paths.
 
 ## Tests
 
-Keep script tests for data helpers, API clients, and safety boundaries. Avoid adding brittle source-string assertions for normal UI copy/layout.
+Keep data helpers, API clients, and safety boundaries easy to typecheck. Avoid adding brittle source-string checks for normal UI copy/layout.
 
 ## Context policy
 
-Long scenario examples were removed to reduce AI context. For feature-specific frontend contracts, use the focused spec file from `frontend/index.md`.
+Long scenario examples were removed to reduce AI context. For feature-specific frontend contracts, use the focused spec file from `.trellis/spec/frontend/index.md`.

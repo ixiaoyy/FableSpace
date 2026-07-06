@@ -24,28 +24,22 @@ Current backend principles:
 
 ## Read only when touched
 
-- API envelope: [api-response-envelope-contract.md](./api-response-envelope-contract.md)
-- Platform homepage aggregates: [platform-home-api-contract.md](./platform-home-api-contract.md)
-- Space list/detail optimization: [space-api-response-contract.md](./space-api-response-contract.md)
-- Default DB space list performance: [default-db-space-list-performance.md](./default-db-space-list-performance.md)
-- Clue hunt routes/sessions/rewards: [clue-hunt-api-contract.md](./clue-hunt-api-contract.md)
-- NPC vividness prompt: [npc-vividness-prompt-contract.md](./npc-vividness-prompt-contract.md)
-- Share: [space-share-api-contract.md](./space-share-api-contract.md)
-- State cards / GM / episode / voice / souvenir / skill packs / preset import: corresponding `*-contract.md` files.
-- Territory / engagement / special space types / NPC dynamic responses: corresponding focused files.
+- Focused feature specs were pruned to keep the repository close to real business code.
+- For feature work, inspect the live route/service/store/contract files plus `docs/ARCHITECTURE.md` and `docs/WORLD_SCHEMA.md`.
+- Add a new focused spec only when a durable contract genuinely changes.
 
 ## Pre-development checklist
 
 1. Identify touched layer/files.
-2. Read the smallest focused spec above.
+2. Read the relevant core guide and live code.
 3. Inspect existing route/service/store before editing.
 4. Choose focused validation before coding.
 
 ## Verification
 
-- Syntax/import: `py -3 -m compileall -q backend/src`
-- Focused behavior: `py -3 -m pytest backend/tests/<file>.py -q --tb=short` or relevant `tests/<file>.py`
-- Broad API/schema migration only: larger pytest selection.
+- Syntax/import: `py -3 -m compileall -q apps/api/src`
+- Current repo does not keep pytest suites or `test_*.py` entry points.
+- For runtime behavior, start the API against an isolated local database and hit the touched endpoint manually or with a one-off command that is not committed as a test file.
 
 ## Anti-patterns
 

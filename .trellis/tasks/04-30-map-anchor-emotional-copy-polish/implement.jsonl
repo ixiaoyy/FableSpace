@@ -1,7 +1,0 @@
-{"file": ".trellis/workflow.md", "reason": "Project workflow and conventions"}
-{"file": ".trellis/spec/frontend/index.md", "reason": "Frontend development guide"}
-{"file": ".trellis/spec/frontend/component-guidelines.md", "reason": "Frontend UI copy polish must keep component/accessibility/mobile conventions"}
-{"file": ".trellis/spec/frontend/quality-guidelines.md", "reason": "Verification expectations for UI and tests"}
-{"file": ".trellis/spec/frontend/type-safety.md", "reason": "Runtime normalization for dynamic tavern/address/coordinate payloads"}
-{"file": ".trellis/spec/guides/code-reuse-thinking-guide.md", "reason": "Search/reuse before helper creation"}
-{"file": ".trellis/spec/frontend/map-anchor-copy.md", "reason": "Task created this frontend copy boundary for future map anchor wording"}

@@ -1,5 +1,0 @@
-{"file": ".trellis/spec/frontend/component-guidelines.md", "reason": "Check UI copy polish against component/mobile conventions"}
-{"file": ".trellis/spec/frontend/quality-guidelines.md", "reason": "Check verification commands"}
-{"file": ".trellis/spec/frontend/type-safety.md", "reason": "Check normalization of coordinate/address formatting"}
-{"file": "docs/WHAT_NOT_TO_BUILD.md", "reason": "Confirm scope avoids navigation/POI scoring/traditional map features"}
-{"file": ".trellis/spec/frontend/map-anchor-copy.md", "reason": "Check helper/UI against map anchor wording contract"}

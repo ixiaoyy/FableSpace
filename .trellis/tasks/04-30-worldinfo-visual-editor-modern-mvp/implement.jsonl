@@ -1,9 +1,0 @@
-{"file": ".trellis/spec/frontend/index.md", "reason": "Frontend guidelines and patterns"}
-{"file": "frontend/app/product/WorldBookEditor.jsx", "reason": "Main component to be modernized"}
-{"file": "frontend/app/product/WorldBookTester.jsx", "reason": "Related component for comparison"}
-{"file": "frontend/app/product/PromptBlockEditor.jsx", "reason": "Reference for modernization patterns"}
-{"file": ".trellis/spec/frontend/component-guidelines.md", "reason": "WorldBook editor visual and mobile component rules"}
-{"file": ".trellis/spec/frontend/quality-guidelines.md", "reason": "Frontend verification and Playwright self-acceptance rules"}
-{"file": ".trellis/spec/frontend/type-safety.md", "reason": "Runtime-safe WorldInfo/Tavern payload handling"}
-{"file": "frontend/app/product/styles.css", "reason": "WorldBook modal responsive styling"}
-{"file": "frontend/scripts/worldbook-editor-test.mjs", "reason": "WorldBook editor static regression test"}

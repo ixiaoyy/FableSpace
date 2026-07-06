@@ -1,5 +1,0 @@
-{"file":".agents/skills/finish-work/SKILL.md","reason":"最终验证清单"}
-{"file":".agents/skills/check/SKILL.md","reason":"项目代码检查流程"}
-{"file":"backend/tests/test_v1_memory_atoms.py","reason":"MemoryAtom 权限/行为测试"}
-{"file":"backend/tests/test_v1_dynamic_npc_responses.py","reason":"runtime LLM prompt 捕获测试"}
-{"file":".trellis/spec/backend/directory-structure.md","reason":"runtime MemoryAtom prompt injection contract"}

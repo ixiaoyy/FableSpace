@@ -1,8 +1,0 @@
-{"file": ".trellis/workflow.md", "reason": "Project workflow and conventions"}
-{"file": ".trellis/spec/frontend/index.md", "reason": "Frontend development guide"}
-{"file": "docs/WHAT_NOT_TO_BUILD.md", "reason": "Out-of-scope constraints"}
-{"file": "docs/WORLD_SCHEMA.md", "reason": "Gameplay/asset schema boundary"}
-{"file": "docs/IMAGE_ASSETS_SPEC.md", "reason": "Project asset placement and sidecar rules"}
-{"file": ".trellis/spec/frontend/image-asset-guidelines.md", "reason": "AI image asset guardrails"}
-{"file": ".trellis/spec/frontend/visual-souvenir-preview-boundary.md", "reason": "No-image preview boundary"}
-{"file": ".trellis/spec/guides/cross-layer-thinking-guide.md", "reason": "Asset pipeline cross-layer analysis"}

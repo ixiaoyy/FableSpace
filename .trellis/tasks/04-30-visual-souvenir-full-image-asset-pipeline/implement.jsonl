@@ -1,9 +1,0 @@
-{"file": ".trellis/workflow.md", "reason": "Project workflow and conventions"}
-{"file": "docs/WHAT_NOT_TO_BUILD.md", "reason": "product boundary and forbidden scope"}
-{"file": "docs/PRODUCT_BRIEF.md", "reason": "owner sovereignty and platform mainline"}
-{"file": "docs/ARCHITECTURE.md", "reason": "current platform layers and preview boundaries"}
-{"file": "docs/WORLD_SCHEMA.md", "reason": "schema compatibility guardrail"}
-{"file": ".trellis/spec/backend/visual-souvenir-preview-contract.md", "reason": "no-image preview baseline"}
-{"file": ".trellis/spec/frontend/visual-souvenir-preview-boundary.md", "reason": "frontend no-image preview boundary"}
-{"file": ".trellis/spec/frontend/image-asset-guidelines.md", "reason": "project asset and prompt sidecar rules"}
-{"file": "docs/IMAGE_ASSETS_SPEC.md", "reason": "canonical AI-generated image asset spec"}

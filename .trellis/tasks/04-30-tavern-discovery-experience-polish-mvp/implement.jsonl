@@ -1,7 +1,0 @@
-{"file": ".trellis/workflow.md", "reason": "Project workflow and conventions"}
-{"file": ".trellis/spec/frontend/index.md", "reason": "Frontend development guide"}
-{"file": ".trellis/spec/frontend/component-guidelines.md", "reason": "Discover route UI quality and mobile-safe components"}
-{"file": ".trellis/spec/frontend/quality-guidelines.md", "reason": "Frontend build and product quality bar"}
-{"file": ".trellis/spec/frontend/type-safety.md", "reason": "Runtime-safe handling of Tavern payload fields"}
-{"file": "frontend/app/routes/discover.tsx", "reason": "Primary /discover route implementation"}
-{"file": "frontend/app/lib/place-types.js", "reason": "Shared place type display metadata"}

@@ -6,14 +6,14 @@
 
 ## Overview
 
-Frontend quality means preserving the space-first product direction, keeping API/service boundaries clear, staying mobile-aware, and verifying with Vite build and script tests when relevant.
+Frontend quality means preserving the space-first product direction, keeping API/service boundaries clear, staying mobile-aware, and verifying with typecheck/build when relevant.
 
 ---
 
 ## Required patterns
 
-- API calls go through `frontend/app/lib/` for new route modules or `frontend/app/product/services/` for product parity source.
-- Reusable stateful workflows go through `frontend/app/product/hooks/`.
+- API calls go through `apps/web/app/lib/` for new route modules or `apps/web/app/product/services/` for product parity source.
+- Reusable stateful workflows go through `apps/web/app/product/hooks/`.
 - Owner-editable payloads are normalized before save.
 - UI errors are readable and do not reveal secrets.
 - Space and gameplay UI must respect owner-authored content boundaries.
@@ -29,7 +29,7 @@ Frontend quality means preserving the space-first product direction, keeping API
 - Logging or displaying owner `api_key`, private LLM config, password hashes, or visitor private memory to the wrong user.
 - Implementing platform-generated space/NPC/story content as if it were owner-authored.
 - Adding combat/level/equipment/ranking or visitor-to-visitor social features.
-- Editing `frontend/dist/` as source.
+- Editing `apps/web/dist/` as source.
 - Mixing unrelated style refactors into feature/bug changes.
 
 ---
@@ -39,35 +39,23 @@ Frontend quality means preserving the space-first product direction, keeping API
 For the target React Router Framework frontend, use:
 
 ```powershell
-npm --prefix frontend run typecheck
-npm --prefix frontend run build
-npm --prefix frontend test
+npm --prefix .\apps\web run typecheck
+npm --prefix .\apps\web run build
 ```
 
-Generated React Router artifacts (`frontend/.react-router/`) and build output (`frontend/build/`) are not source and must stay ignored.
+Generated React Router artifacts (`apps/web/.react-router/`) and build output (`apps/web/build/`) are not source and must stay ignored.
 
 For frontend changes, run the smallest real verification:
 
 ```powershell
 # Build React/Vite frontend
-npm --prefix .\frontend run build
+npm --prefix .\apps\web run build
 
-# Service/rule/script tests
-npm --prefix .\frontend test
+# Type/API client changes
+npm --prefix .\apps\web run typecheck
 ```
 
-Current `frontend/package.json` test script runs:
-
-```text
-service-contract-test.mjs
-play-modes-test.mjs
-mini-games-test.mjs
-gameplay-test.mjs
-personality-templates-test.mjs
-space-create-readiness-test.mjs
-```
-
-If a change affects a specific script-tested service/rule, run `npm --prefix .\frontend test`; for visual/component-only changes, at least run build.
+Current `apps/web/package.json` intentionally has no `test` script. Do not add frontend test entry points unless the user explicitly restores a test workflow.
 
 ### Playwright self-acceptance before human visual review
 
@@ -89,7 +77,7 @@ The Playwright pass must check:
 - no obvious horizontal overflow on the narrow viewport;
 - screenshot paths are recorded in the Trellis task notes or final report.
 
-Playwright self-acceptance does **not** replace `npm --prefix .\frontend run build`; it is an additional browser sanity pass before human visual acceptance. If Playwright cannot run, explicitly report the failure command and reason instead of claiming visual acceptance.
+Playwright self-acceptance does **not** replace `npm --prefix .\apps\web run build`; it is an additional browser sanity pass before human visual acceptance. If Playwright cannot run, explicitly report the failure command and reason instead of claiming visual acceptance.
 
 ---
 
@@ -103,33 +91,33 @@ Playwright self-acceptance does **not** replace `npm --prefix .\frontend run bui
 - Does it work on narrow screens?
 - Does the page look like a polished FableSpace product surface rather than an internal/admin prototype?
 - Are primary flows represented with designed cards/panels/previews instead of only raw form controls?
-- Was the appropriate build/test command run and reported?
+- Was the appropriate typecheck/build command run and reported?
 
 ---
 
 ## Real examples to follow
 
-1. `frontend/app/lib/spaces.ts`: typed `/api/v1/spaces` methods and user ID headers for new route modules.
-2. `frontend/app/product/services/spaceService.js`: centralized product-parity service methods and user ID headers.
-3. `frontend/app/product/spaceCreateReadiness.js` with `frontend/scripts/space-create-readiness-test.mjs`: business/readiness rules tested outside components.
-4. `frontend/app/product/spaceMiniGames.js` with `frontend/scripts/mini-games-test.mjs`: static gameplay templates protected by script tests.
-5. `frontend/app/product/personalityTemplates.js` with `frontend/scripts/personality-templates-test.mjs`: template/filter logic covered without requiring the browser.
+1. `apps/web/app/lib/spaces.ts`: typed `/api/v1/spaces` methods and user ID headers for new route modules.
+2. `apps/web/app/product/services/spaceService.js`: centralized product-parity service methods and user ID headers.
+3. `apps/web/app/product/spaceCreateReadiness.js`: business/readiness rules kept outside components.
+4. `apps/web/app/product/spaceMiniGames.js`: static gameplay templates kept outside route code.
+5. `apps/web/app/product/personalityTemplates.js`: template/filter logic kept in reusable modules.
 
 ---
 
 ## Common mistakes
 
-- Running only backend tests after frontend service changes.
+- Skipping `typecheck` after frontend service/API changes.
 - Changing UI labels/constants in several files instead of centralizing or reusing helpers.
-- Treating a Vite dev server manual check as a substitute for `npm --prefix .\frontend run build`.
-- Forgetting to update script tests when changing service contracts or rule helpers.
+- Treating a Vite dev server manual check as a substitute for `npm --prefix .\apps\web run build`.
+- Reintroducing deleted script tests for narrow service/helper changes.
 - Shipping UI that works only with a configured external LLM, despite the project maintaining no-key/fallback demo flows.
 
 ---
 
 ## Scenario: Owner Dialogue Preview Dry-run UI
 
-- Owner dialogue preview UI must call the centralized `frontend/app/lib/spaces.ts` dry-run service instead of sending chat messages or using direct `fetch` in the component.
+- Owner dialogue preview UI must call the centralized `apps/web/app/lib/spaces.ts` dry-run service instead of sending chat messages or using direct `fetch` in the component.
 - Copy must distinguish backend prompt dry-run from real visitor chat: default no LLM call, no chat history, no memory, no writeback, and `persisted=false`.
 - Any model test action must be explicit owner confirmation because it may consume owner provider tokens.
 - Display dry-run flags (`dry_run`, `persisted`, `model_called`, `history_written`, `memory_written`, `writeback_written`) and readable model error/status.
@@ -138,8 +126,6 @@ Playwright self-acceptance does **not** replace `npm --prefix .\frontend run bui
 Required checks:
 
 ```powershell
-node .\scripts\owner-dialogue-preview-test.mjs
-npm --prefix .\frontend run typecheck
-npm --prefix .\frontend test
-npm --prefix .\frontend run build
+npm --prefix .\apps\web run typecheck
+npm --prefix .\apps\web run build
 ```

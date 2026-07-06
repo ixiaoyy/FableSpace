@@ -1,9 +1,0 @@
-{"file": ".trellis/workflow.md", "reason": "Project workflow and conventions"}
-{"file": ".trellis/spec/backend/index.md", "reason": "Backend development guide"}
-{"file": ".trellis/spec/frontend/index.md", "reason": "Frontend development guide"}
-{"file": "AGENTS.md", "reason": "project hard constraints"}
-{"file": "docs/PRODUCT_BRIEF.md", "reason": "product mainline and values"}
-{"file": "docs/WHAT_NOT_TO_BUILD.md", "reason": "forbidden directions and boundaries"}
-{"file": "docs/ARCHITECTURE.md", "reason": "architecture current landing points and planned gaps"}
-{"file": ".trellis\\tasks\\05-06-demo-level-implementation-audit\\prd.md", "reason": "task PRD requirements"}
-{"file": ".trellis/tasks/05-06-demo-level-implementation-audit/audit-report.md", "reason": "audit report and created backlog"}

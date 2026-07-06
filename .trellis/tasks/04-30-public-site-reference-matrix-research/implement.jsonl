@@ -1,8 +1,0 @@
-{"file": ".trellis/workflow.md", "reason": "Project workflow and conventions"}
-{"file": "docs/WHAT_NOT_TO_BUILD.md", "reason": "Research guardrails and forbidden product directions"}
-{"file": "docs/PRODUCT_BRIEF.md", "reason": "FableMap product framing for translating references"}
-{"file": ".trellis/tasks/04-29-ai-creation-sites-research/prd.md", "reason": "Parent research scope and artifact path"}
-{"file": ".trellis/tasks/04-30-public-site-reference-matrix-research/prd.md", "reason": "Current task requirements"}
-{"file": "artifacts/research/ai-creation-sites/research.md", "reason": "Final public-site reference matrix"}
-{"file": ".trellis/tmp/playwright-mainline/public-site-reference-capture.cjs", "reason": "Screenshot capture script for core/public samples"}
-{"file": ".trellis/tmp/playwright-mainline/public-site-reference-extra-capture.cjs", "reason": "Extra screenshot capture script for accessible backup samples"}

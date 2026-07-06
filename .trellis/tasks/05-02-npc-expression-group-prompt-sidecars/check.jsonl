@@ -1,6 +1,0 @@
-{"file": ".agents/skills/finish-work/SKILL.md", "reason": "Finish work checklist"}
-{"file": ".agents/skills/check/SKILL.md", "reason": "Code quality check spec"}
-{"file": ".trellis/spec/frontend/image-asset-guidelines.md", "reason": "image prompt sidecar convention"}
-{"file": ".trellis/spec/frontend/npc-art-guidelines.md", "reason": "NPC expression sprite prompt convention"}
-{"file": "docs/IMAGE_ASSETS_SPEC.md", "reason": "global image asset spec"}
-{"file": "artifacts/04-30-image-asset-prompt-sidecars/test_image_prompt_sidecars.py", "reason": "script regression tests"}

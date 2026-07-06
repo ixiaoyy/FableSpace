@@ -1,6 +1,0 @@
-{"file": ".agents/skills/finish-work/SKILL.md", "reason": "Finish work checklist"}
-{"file": ".agents/skills/check/SKILL.md", "reason": "Code quality check spec"}
-{"file": ".trellis/spec/frontend/quality-guidelines.md", "reason": "Check required frontend verification and forbidden product drift"}
-{"file": ".trellis/spec/frontend/component-guidelines.md", "reason": "Check owner/visitor UI structure, accessibility, and mobile-safe controls"}
-{"file": ".trellis/spec/frontend/type-safety.md", "reason": "Check GameplayDefinition schema alignment and runtime normalization"}
-{"file": "docs/WHAT_NOT_TO_BUILD.md", "reason": "Check negative product boundaries for short-drama gameplay"}

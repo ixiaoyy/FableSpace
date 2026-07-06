@@ -7,7 +7,7 @@ Concise backend quality rules.
 - Read only the docs/specs relevant to the change; do not bulk-load historical task files.
 - Keep route/service/store boundaries clear.
 - Normalize external/user input before persistence or prompt construction.
-- Keep behavior testable with focused unit/API tests.
+- Keep behavior easy to verify through clear boundaries and small manual/API checks.
 - Preserve owner-authored content, real-coordinate anchoring, and SillyTavern compatibility.
 - Treat owner API keys, LLM config, private memories, and visitor-private data as sensitive.
 
@@ -26,16 +26,13 @@ Run the smallest real validation:
 
 ```powershell
 # Python import/syntax
-py -3 -m compileall -q backend/src
+py -3 -m compileall -q apps/api/src
 
-# Focused backend tests
-py -3 -m pytest backend/tests/<file>.py -q --tb=short
-
-# Legacy/core tests when touched
-py -3 -m pytest tests/<file>.py -q --tb=short
+# Runtime behavior
+# Start the API with an isolated local database and hit the touched endpoint.
 ```
 
-Use full backend pytest only for broad API/schema changes.
+Do not add pytest suites or root `test_*.py` scripts unless the user explicitly restores a test workflow.
 
 ## Review checklist
 

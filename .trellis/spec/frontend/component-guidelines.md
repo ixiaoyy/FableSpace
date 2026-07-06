@@ -6,7 +6,7 @@ Concise React component rules.
 
 - Prefer function components.
 - Keep route-level data loading in route/client helpers.
-- Keep API calls in `frontend/app/lib/` or `frontend/app/product/services/`.
+- Keep API calls in `apps/web/app/lib/` or `apps/web/app/product/services/`.
 - Extract reusable logic only after repetition is real.
 
 ## Props/state
@@ -30,7 +30,7 @@ Concise React component rules.
 
 ## Verification
 
-- UI/build changes: `npm --prefix .\frontend run build`.
+- UI/build changes: `npm --prefix .\apps\web run build`.
 - Browser/Playwright only when visual acceptance is actually needed.
 - Do not add script assertions for incidental copy/CSS/layout details.
 

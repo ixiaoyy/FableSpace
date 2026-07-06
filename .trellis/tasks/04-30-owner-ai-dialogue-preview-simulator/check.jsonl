@@ -1,7 +1,0 @@
-{"file": ".claude/commands/trellis/finish-work.md", "reason": "Finish work checklist"}
-{"file": ".claude/commands/trellis/check.md", "reason": "Code quality check spec"}
-{"file": "docs/WHAT_NOT_TO_BUILD.md", "reason": "owner sovereignty/token/social boundaries"}
-{"file": ".trellis/spec/frontend/quality-guidelines.md", "reason": "verification requirements"}
-{"file": ".trellis/spec/frontend/type-safety.md", "reason": "no prompt/API key leak in preview"}
-{"file": "frontend/scripts/owner-dialogue-preview-test.mjs", "reason": "static regression coverage"}
-{"file": ".trellis/tmp/playwright-mainline/evidence/04-30-owner-dialogue-preview-visual-acceptance/owner-dialogue-preview-visual-acceptance-report.json", "reason": "Playwright visual acceptance evidence"}

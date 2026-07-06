@@ -8,12 +8,11 @@
 
 | 路径 | 用途 |
 |------|------|
-| `backend/src/fablespace_api/` | Python / FastAPI 后端源码 |
-| `frontend/` | React Router + Vite 前端 |
+| `apps/api/src/fablespace_api/` | Python / FastAPI 后端源码 |
+| `apps/web/` | React Router + Vite 前端 |
 | `docs/` | 产品、架构、Schema、边界与资源规范 |
 | `.trellis/` | Trellis 任务、规范与协作记录 |
-| `fablespace_data/` | 本地运行数据参考目录 |
-| `.fablespace-api/` | 默认本地输出 / SQLite / 兼容数据目录，运行后生成 |
+| `.fablespace-api/` | 默认本地输出 / SQLite / 兼容数据目录，运行后生成，不入库 |
 
 ## 环境准备
 
@@ -28,8 +27,15 @@
 首次安装依赖：
 
 ```powershell
-py -3 -m pip install -r requirements.txt
-npm --prefix .\frontend install
+py -3 -m pip install -r .\apps\api\requirements.txt
+npm --prefix .\apps\web install
+```
+
+可选本地环境文件：
+
+```powershell
+Copy-Item .\apps\api\.env.example .\apps\api\.env
+Copy-Item .\apps\web\.env.example .\apps\web\.env.local
 ```
 
 ## 本地一体化运行
@@ -37,9 +43,9 @@ npm --prefix .\frontend install
 这种方式先构建前端，再由 Python 后端在 `8950` 端口同时提供 API 和前端页面。
 
 ```powershell
-npm --prefix .\frontend run build
+npm --prefix .\apps\web run build
 
-$env:PYTHONPATH = "$PWD\backend\src"
+$env:PYTHONPATH = "$PWD\apps\api\src"
 py -3 -m fablespace_api api --no-open
 ```
 
@@ -65,14 +71,14 @@ py -3 -m fablespace_api api --output-root .fablespace-api --no-open
 终端 A：启动后端。
 
 ```powershell
-$env:PYTHONPATH = "$PWD\backend\src"
+$env:PYTHONPATH = "$PWD\apps\api\src"
 py -3 -m fablespace_api api --no-open
 ```
 
 终端 B：启动前端开发服务器。
 
 ```powershell
-npm --prefix .\frontend run dev
+npm --prefix .\apps\web run dev
 ```
 
 访问：
@@ -81,14 +87,14 @@ npm --prefix .\frontend run dev
 http://127.0.0.1:5173/
 ```
 
-`frontend/vite.config.js` 已把 `/api` 和 `/generated` 代理到 `http://127.0.0.1:8950`，所以前端开发模式下仍需要后端先启动。
+`apps/web/vite.config.js` 已把 `/api` 和 `/generated` 代理到 `http://127.0.0.1:8950`，所以前端开发模式下仍需要后端先启动。
 
 ## Docker Compose 运行
 
 仓库提供 `docker-compose.yml`，前端由 nginx 托管静态构建，后端运行 `uvicorn fablespace_api.main:app`。
 
 ```powershell
-Copy-Item .env.example .env
+Copy-Item .\apps\api\.env.example .\apps\api\.env
 docker compose up --build
 ```
 
@@ -99,16 +105,21 @@ http://127.0.0.1:3000/
 http://127.0.0.1:8000/api/v1/health
 ```
 
-端口可在 `.env` 中调整：
+默认端口在 `docker-compose.yml` 中固定：
 
-```env
-FABLESPACE_FRONTEND_PORT=3000
-FABLESPACE_API_PORT=8000
+```yaml
+frontend: 3000 -> 80
+backend: 8000 -> 8000
 ```
 
 ## 环境变量
 
-复制 `.env.example` 为 `.env` 后按需修改。
+环境文件按用途拆开：
+
+- `apps/api/.env`：给本地 Python 后端和 Docker 后端服务读取；示例是 `apps/api/.env.example`。
+- `apps/web/.env.local`：给 Vite 前端开发读取；示例是 `apps/web/.env.example`。
+
+本地 Python 后端默认只读取 `apps/api/.env`；已有的 Shell / Docker 环境变量仍优先。
 
 | 变量 | 用途 |
 |------|------|
@@ -120,7 +131,7 @@ FABLESPACE_API_PORT=8000
 | `FABLESPACE_CORS_ORIGINS` | 前后端分离运行时允许的浏览器来源 |
 | `VITE_API_BASE` | 前端构建期 API 基址；留空时使用同源 `/api` |
 | `VITE_AMAP_KEY` / `VITE_AMAP_SECURITY_CODE` | 可选地图服务密钥 |
-| `OPENCODE_API_KEY` | 可选系统公益空间测试 LLM Key；普通店主 Key 不应写入共享 `.env` |
+| `OPENCODE_API_KEY` | 可选系统公益空间测试 LLM Key；普通店主 Key 不应写入共享环境文件 |
 
 旧 `FABLEMAP_*` 环境变量名仍作为后端回退兼容；新部署和新文档优先使用上表中的 `FABLESPACE_*`。
 
@@ -135,10 +146,10 @@ FABLESPACE_API_PORT=8000
 - 显式设置 `FABLESPACE_STORAGE_BACKEND=json` 时，才使用旧 JSON 兼容存储。
 - Docker Compose 会把后端输出写入 Docker volume `fablespace_data`。
 
-从本地 SQLite 迁移到 `.env` 中的目标数据库：
+从本地 SQLite 迁移到 `apps/api/.env` 中的目标数据库：
 
 ```powershell
-$env:PYTHONPATH = "$PWD\backend\src"
+$env:PYTHONPATH = "$PWD\apps\api\src"
 py -3 -m fablespace_api.infrastructure.migrate_database --dry-run
 py -3 -m fablespace_api.infrastructure.migrate_database
 ```
@@ -146,7 +157,7 @@ py -3 -m fablespace_api.infrastructure.migrate_database
 从旧 JSON / file runtime 数据迁移：
 
 ```powershell
-$env:PYTHONPATH = "$PWD\backend\src"
+$env:PYTHONPATH = "$PWD\apps\api\src"
 $env:FABLESPACE_DATABASE_URL = "mysql+pymysql://user:pass@localhost:3306/fablespace"
 py -3 -m fablespace_api.infrastructure.migrate --output-root .fablespace-api
 ```
@@ -169,23 +180,19 @@ Invoke-RestMethod http://127.0.0.1:8000/api/v1/health
 ### 前端构建与类型检查
 
 ```powershell
-npm --prefix .\frontend run build
-npm --prefix .\frontend run typecheck
+npm --prefix .\apps\web run build
+npm --prefix .\apps\web run typecheck
 ```
 
-当前 `frontend/package.json` 没有通用 `test` 脚本；如后续新增测试脚本，以 package scripts 为准。
+当前 `apps/web/package.json` 没有通用 `test` 脚本；如后续新增测试脚本，以 package scripts 为准。
 
 ### 后端语法检查
 
 ```powershell
-py -3 -m compileall -q backend/src
+py -3 -m compileall -q apps/api/src
 ```
 
-如当前分支包含测试目录，再运行对应 pytest：
-
-```powershell
-py -3 -m pytest -q --tb=short
-```
+当前仓库不保留 pytest 用例目录；不要把手工脚本放在根目录并命名为 `test_*.py`，以免重新污染开发验证。
 
 ## 产品内操作入口
 
@@ -208,7 +215,7 @@ py -3 -m pytest -q --tb=short
 py -3 -m fablespace_api api --port 8951 --no-open
 ```
 
-前端开发模式如果换了后端端口，需要同步调整 `frontend/vite.config.js` 的代理目标。
+前端开发模式如果换了后端端口，需要同步调整 `apps/web/vite.config.js` 的代理目标。
 
 **前端开发页打开后 API 失败**
 
@@ -224,7 +231,7 @@ py -3 -m fablespace_api api --port 8951 --no-open
 
 **Docker 端口冲突**
 
-修改 `.env` 中的 `FABLESPACE_FRONTEND_PORT` 或 `FABLESPACE_API_PORT` 后重新启动 Compose。
+修改 `docker-compose.yml` 里的端口映射，或新增本地 compose override 文件后重新启动 Compose。
 
 ## 开发边界
 
@@ -235,7 +242,7 @@ py -3 -m fablespace_api api --port 8951 --no-open
 - 店主 LLM API Key、Token 统计和对话记录按敏感数据处理。
 - 不做平台级 Token 充值 / 结算。
 - 不做无边界访客社交、路线导航、评分系统、战斗等级装备系统。
-- API / Schema 改动必须同步测试和文档。
+- API / Schema 改动必须同步文档，并运行当前保留的最小真实验证。
 
 ## 文档入口
 

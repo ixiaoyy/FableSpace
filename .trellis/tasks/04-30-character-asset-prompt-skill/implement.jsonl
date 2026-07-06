@@ -1,4 +1,0 @@
-{"file": ".trellis/workflow.md", "reason": "Project workflow and conventions"}
-{"file": ".trellis/spec/frontend/npc-art-guidelines.md", "reason": "NPC asset prompt contract to extend"}
-{"file": ".trellis/spec/frontend/image-asset-guidelines.md", "reason": "Project-local generated image guardrails"}
-{"file": "AGENTS.md", "reason": "Project AI collaboration constraints"}

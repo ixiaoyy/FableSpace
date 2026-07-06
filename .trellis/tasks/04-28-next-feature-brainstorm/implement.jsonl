@@ -1,6 +1,0 @@
-{"file": ".trellis/workflow.md", "reason": "Project workflow and conventions"}
-{"file": ".trellis/spec/frontend/index.md", "reason": "Frontend development guide"}
-{"file": ".trellis/spec/frontend/component-guidelines.md", "reason": "Homepage route component and responsive Tailwind structure."}
-{"file": ".trellis/spec/frontend/quality-guidelines.md", "reason": "Frontend build/typecheck verification for visual route change."}
-{"file": ".trellis/spec/frontend/image-asset-guidelines.md", "reason": "Existing hero image asset is reused as project-local visual baseline."}
-{"file": ".trellis/spec/guides/code-reuse-thinking-guide.md", "reason": "Changing route constants/copy; search first and avoid duplication drift."}

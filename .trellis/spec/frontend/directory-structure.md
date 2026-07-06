@@ -6,11 +6,11 @@
 
 ## Overview
 
-> **Refactor target note (2026-04-22)**: root `frontend/src/` has been retired. React Router Framework code lives under `frontend/app/`; parity product modules retained from the previous UI now live under `frontend/app/product/` for staged native extraction.
+> **Refactor target note (2026-04-22)**: root `apps/web/src/` has been retired. React Router Framework code lives under `apps/web/app/`; parity product modules retained from the previous UI now live under `apps/web/app/product/` for staged native extraction.
 
-The frontend lives in `frontend/` and uses React 18 + Vite + ESM. Most source files are plain `.js` / `.jsx`; TypeScript is configured for checking JavaScript but `strict` is currently disabled.
+The frontend lives in `apps/web/` and uses React 18 + Vite + ESM. Most source files are plain `.js` / `.jsx`; TypeScript is configured for checking JavaScript but `strict` is currently disabled.
 
-Do not treat `frontend/dist/` or `frontend/node_modules/` as source.
+Do not treat `apps/web/dist/` or `apps/web/node_modules/` as source.
 
 ---
 
@@ -19,7 +19,7 @@ Do not treat `frontend/dist/` or `frontend/node_modules/` as source.
 ### Target React Router Framework layout
 
 ```text
-frontend/
+apps/web/
 ├── app/
 │   ├── root.tsx                 # document shell, global providers, styles
 │   ├── routes.ts                # route module registry
@@ -52,7 +52,7 @@ Route modules must keep API calls behind `app/lib` or `app/product/services`; do
 
 ### Put API calls in services
 
-New React Router route modules should call `frontend/app/lib/` clients. Current `frontend/app/product/` code should keep using `frontend/app/product/services/spaceService.js` and `frontend/app/product/services/apiClient.js`.
+New React Router route modules should call `apps/web/app/lib/` clients. Current `apps/web/app/product/` code should keep using `apps/web/app/product/services/spaceService.js` and `apps/web/app/product/services/apiClient.js`.
 
 Existing pattern:
 
@@ -74,7 +74,7 @@ Do not add duplicate `readJson`/header builders inside UI components.
 
 ### Keep reusable stateful orchestration in hooks
 
-`frontend/app/product/hooks/` contains composable hooks such as `useWorldSession`, `useBackendStatus`, `useNearbySession`, `usePoiFilters`, `useWritebackSession`, and `useMapLayerControls`.
+`apps/web/app/product/hooks/` contains composable hooks such as `useWorldSession`, `useBackendStatus`, `useNearbySession`, `usePoiFilters`, `useWritebackSession`, and `useMapLayerControls`.
 
 Create a hook when state/effects are reused or when moving orchestration out of a component improves clarity. Keep purely presentational state local to the component.
 
@@ -99,8 +99,8 @@ Large UI files currently contain local subcomponents, e.g. `SpaceOwnerPanel.jsx`
 - Hooks: `hooks/useSomething.js`, exported as `useSomething`.
 - Services/utilities: `camelCase.js` under `services/`.
 - Constants: `UPPER_SNAKE_CASE` for module-level constants.
-- CSS: shared product styles in `frontend/app/product/styles.css`; domain-specific styles may use a targeted file such as `spaceGameplay.css`.
-- Test scripts: `frontend/scripts/<domain>-test.mjs`, wired into `package.json` `test` when relevant.
+- CSS: shared product styles in `apps/web/app/product/styles.css`; domain-specific styles may use a targeted file such as `spaceGameplay.css`.
+- Current repo intentionally does not keep frontend test scripts or a `package.json` `test` entry.
 
 ---
 
@@ -108,23 +108,23 @@ Large UI files currently contain local subcomponents, e.g. `SpaceOwnerPanel.jsx`
 
 | Change type | Preferred location |
 |-------------|--------------------|
-| New space API method for route modules | `frontend/app/lib/spaces.ts` |
-| Generic API/world endpoint for product parity source | `frontend/app/product/services/apiClient.js` |
-| New space UI panel | `frontend/app/product/Space*.jsx` or `frontend/app/product/components/` only if a component folder is introduced deliberately |
-| New reusable hook | `frontend/app/product/hooks/use*.js` |
-| App shell derived data | `frontend/app/product/services/appShellViewModel.js` or `appPanelProps.js` |
-| Session/localStorage persistence | `frontend/app/product/services/sessionPersistence.js` |
+| New space API method for route modules | `apps/web/app/lib/spaces.ts` |
+| Generic API/world endpoint for product parity source | `apps/web/app/product/services/apiClient.js` |
+| New space UI panel | `apps/web/app/product/Space*.jsx` or `apps/web/app/product/components/` only if a component folder is introduced deliberately |
+| New reusable hook | `apps/web/app/product/hooks/use*.js` |
+| App shell derived data | `apps/web/app/product/services/appShellViewModel.js` or `appPanelProps.js` |
+| Session/localStorage persistence | `apps/web/app/product/services/sessionPersistence.js` |
 | Gameplay owner/visitor UI | `Gameplay*.jsx`, `SpaceGameplay*.jsx`, `spaceGameplay.css` |
-| Map drawing internals | `frontend/app/product/worldMap/` or `mapAdapter/`, but avoid reviving map visuals as the product center |
+| Map drawing internals | `apps/web/app/product/worldMap/` or `mapAdapter/`, but avoid reviving map visuals as the product center |
 
 ---
 
 ## Real examples to follow
 
-1. `frontend/app/product/SpaceCreatePanel.jsx`: imports service helpers, form/editor components, templates, and readiness logic instead of embedding all logic inline.
-2. `frontend/app/product/useWorldSession.js` pattern is actually `frontend/app/product/hooks/useWorldSession.js`: it composes smaller hooks and returns a view-model-like object to `App.jsx`.
-3. `frontend/app/product/services/spaceService.js`: centralizes `X-User-Id` headers, JSON parsing, and URL encoding for space APIs.
-4. `frontend/app/product/GameplayDefinitionEditor.jsx`: keeps lightweight owner gameplay configuration in React state and avoids custom scripting.
+1. `apps/web/app/product/SpaceCreatePanel.jsx`: imports service helpers, form/editor components, templates, and readiness logic instead of embedding all logic inline.
+2. `apps/web/app/product/useWorldSession.js` pattern is actually `apps/web/app/product/hooks/useWorldSession.js`: it composes smaller hooks and returns a view-model-like object to `App.jsx`.
+3. `apps/web/app/product/services/spaceService.js`: centralizes `X-User-Id` headers, JSON parsing, and URL encoding for space APIs.
+4. `apps/web/app/product/GameplayDefinitionEditor.jsx`: keeps lightweight owner gameplay configuration in React state and avoids custom scripting.
 
 ---
 
@@ -132,5 +132,5 @@ Large UI files currently contain local subcomponents, e.g. `SpaceOwnerPanel.jsx`
 
 - Adding a new service under a component file instead of `services/`.
 - Duplicating constants for access/status labels instead of reusing `spaceService.js` helpers.
-- Editing generated `frontend/dist/` output.
+- Editing generated `apps/web/dist/` output.
 - Treating old `WorldMap.jsx` visual enhancement as the primary product direction when docs say space experience is the mainline.

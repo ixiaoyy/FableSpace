@@ -1,8 +1,0 @@
-{"file": ".agents/skills/finish-work/SKILL.md", "reason": "Finish work checklist"}
-{"file": ".agents/skills/check/SKILL.md", "reason": "Code quality check spec"}
-{"file": "frontend/scripts/revisit-summary-test.mjs", "reason": "Regression tests for visitor revisit cue copy and labels"}
-{"file": "frontend/scripts/owner-summary-test.mjs", "reason": "Regression tests for owner returning visitor summary"}
-{"file": "frontend/scripts/owner-dashboard-layout-test.mjs", "reason": "Static dashboard layout checks for owner route panels"}
-{"file": "frontend/app/features/tavern-chat/index.tsx", "reason": "Review rendered visitor state chip and no-private-memory UI copy"}
-{"file": "frontend/app/routes/owner.tsx", "reason": "Review owner-only returning visitor panel and privacy copy"}
-{"file": ".trellis/spec/frontend/quality-guidelines.md", "reason": "Verification command selection and visual self-acceptance expectations"}

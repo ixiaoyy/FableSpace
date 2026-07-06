@@ -1,9 +1,0 @@
-{"file": ".trellis/workflow.md", "reason": "Project workflow and conventions"}
-{"file": ".trellis/spec/frontend/index.md", "reason": "Frontend development guide"}
-{"file": ".trellis/spec/frontend/component-guidelines.md", "reason": "owner-panel component and preview UI patterns"}
-{"file": ".trellis/spec/frontend/state-management.md", "reason": "local simulator state/no server persistence"}
-{"file": ".trellis/spec/frontend/type-safety.md", "reason": "runtime normalization and no secret leakage"}
-{"file": ".trellis/spec/frontend/quality-guidelines.md", "reason": "build/test/Playwright requirements"}
-{"file": "frontend/app/product/CharacterManagementModal.jsx", "reason": "owner-only character management entry"}
-{"file": "frontend/app/product/dialoguePreviewSimulator.js", "reason": "preview-only local simulator helper"}
-{"file": "frontend/app/product/OwnerDialoguePreviewSimulator.jsx", "reason": "owner-only preview UI"}

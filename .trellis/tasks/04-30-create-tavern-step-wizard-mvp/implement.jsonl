@@ -1,7 +1,0 @@
-{"file": ".trellis/workflow.md", "reason": "Project workflow and conventions"}
-{"file": ".trellis/spec/frontend/index.md", "reason": "Frontend development guide"}
-{"file": ".trellis/spec/frontend/directory-structure.md", "reason": "Route-module placement and frontend boundaries"}
-{"file": ".trellis/spec/frontend/component-guidelines.md", "reason": "Create page visual hierarchy/mobile-safe component guidance"}
-{"file": ".trellis/spec/frontend/type-safety.md", "reason": "Create-page AI tavern draft boundary"}
-{"file": ".trellis/spec/guides/code-reuse-thinking-guide.md", "reason": "Search before adding helpers/constants"}
-{"file": ".trellis/spec/guides/cross-layer-thinking-guide.md", "reason": "Confirm this stays frontend-only/no schema flow change"}

@@ -14,7 +14,7 @@
 - 新功能/较大 bug/跨层改动：使用 `.trellis/tasks/<task>/` 留痕。
 - 小修：可只在最终汇报说明，不强制创建新任务。
 - 完成任务记录保持简短：目标、改动文件、验证、风险。
-- 不要把截图、raw scan、Vite cache、pytest 临时数据、长日志放进 Trellis。
+- 不要把截图、raw scan、Vite cache、pytest 临时数据、长日志放进 Trellis；历史任务只保留必要摘要。
 
 ## 文档/spec
 
@@ -26,8 +26,8 @@
 
 按改动范围选择最小真实验证：
 
-- Python：`py -3 -m compileall -q backend/src`，行为变化跑 focused pytest。
-- Frontend：UI/build 变化跑 `npm --prefix .\frontend run build`；类型或 API client 变化跑 `npm --prefix .\frontend run typecheck`；只有 package scripts 中存在对应测试脚本时才运行 focused test。
+- Python：`py -3 -m compileall -q apps/api/src`。当前仓库不保留 pytest 套件，不新增 `test_*.py` 或 pytest 入口。
+- Frontend：UI/build 变化跑 `npm --prefix .\apps\web run build`；类型或 API client 变化跑 `npm --prefix .\apps\web run typecheck`。当前 `apps/web/package.json` 不保留 `test` 脚本，不新增前端测试入口。
 - 视觉验收/Playwright：仅在视觉还原、用户指定验收或高风险 UI 时使用。
 - 不要为简单文案/布局增加大量 brittle 断言。
 

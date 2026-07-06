@@ -1,8 +1,0 @@
-{"file": ".claude/commands/trellis/finish-work.md", "reason": "Finish work checklist"}
-{"file": ".claude/commands/trellis/check.md", "reason": "Code quality check spec"}
-{"file": "frontend/app/routes/discover.tsx", "reason": "Discover mobile first-screen anchor and mainline."}
-{"file": "frontend/app/routes/create.tsx", "reason": "Create mobile first-screen anchor and mainline."}
-{"file": "frontend/app/routes/tavern.tsx", "reason": "Tavern mobile first-screen anchor and mainline."}
-{"file": "frontend/app/routes/owner.tsx", "reason": "Owner mobile first-screen anchor and mainline."}
-{"file": "frontend/scripts/mobile-critical-flow-test.mjs", "reason": "Regression test for mobile critical-flow strip, route anchors, no mobile framework dependencies, and forbidden direction guard."}
-{"file": ".trellis/tmp/playwright-mainline/evidence/04-30-mobile-critical-flow-visual-acceptance/mobile-critical-flow-visual-acceptance-report.json", "reason": "Playwright desktop/mobile visual evidence for mobile critical-flow guide."}

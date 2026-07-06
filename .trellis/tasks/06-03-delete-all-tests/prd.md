@@ -7,18 +7,18 @@ User explicitly requested deleting all test cases after confirmation.
 ## Scope
 
 - Delete `tests/`.
-- Delete `backend/tests/`.
-- Delete `frontend/scripts/` test and Playwright scripts.
+- Delete `apps/api/tests/`.
+- Delete `apps/web/scripts/` test and Playwright scripts.
 - Delete root `scripts/` P0 validation scripts created for tests/demo smoke.
 - Delete `pytest.ini`.
-- Remove `frontend/package.json` `scripts.test` entry so it does not point at deleted files.
+- Remove `apps/web/package.json` `scripts.test` entry so it does not point at deleted files.
 
 ## Validation after deletion
 
 No test command remains by design. Run only non-test build/syntax checks:
 
-- `py -3 -m compileall -q backend/src`
-- `npm --prefix .\frontend run build`
+- `py -3 -m compileall -q apps/api/src`
+- `npm --prefix .\apps\web run build`
 
 ## Risk
 
@@ -29,16 +29,16 @@ This removes regression coverage and leaves historical docs/Trellis records that
 Deleted per explicit user confirmation:
 
 - `tests/`
-- `backend/tests/`
-- `frontend/scripts/`
+- `apps/api/tests/`
+- `apps/web/scripts/`
 - `scripts/`
 - `pytest.ini`
-- Removed `scripts.test` from `frontend/package.json`
+- Removed `scripts.test` from `apps/web/package.json`
 
 ## Validation
 
-- `py -3 -m compileall -q backend/src` — PASS
-- `npm --prefix .\frontend run build` — PASS
+- `py -3 -m compileall -q apps/api/src` — PASS
+- `npm --prefix .\apps\web run build` — PASS
 
 ## Remaining risk
 

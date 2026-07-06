@@ -1,7 +1,0 @@
-{"file": ".trellis/workflow.md", "reason": "Project workflow and conventions"}
-{"file": ".trellis/spec/backend/index.md", "reason": "Backend development guide"}
-{"file": ".trellis/spec/frontend/index.md", "reason": "Frontend development guide"}
-{"file": ".trellis\\spec\\frontend\\component-guidelines.md", "reason": "owner play pack UI surface"}
-{"file": ".trellis\\spec\\frontend\\quality-guidelines.md", "reason": "frontend verification requirements"}
-{"file": ".trellis\\spec\\frontend\\type-safety.md", "reason": "js-first runtime normalization"}
-{"file": ".trellis\\spec\\guides\\code-reuse-thinking-guide.md", "reason": "avoid duplicating play-pack constants"}

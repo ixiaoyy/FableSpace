@@ -1,3 +1,0 @@
-{"file": "backend/src/fablemap_api/core/home.py", "reason": "Verify governance methods exist"}
-{"file": "backend/src/fablemap_api/contracts/homes.py", "reason": "Verify API contract alignment"}
-{"file": "docs/WHAT_NOT_TO_BUILD.md", "reason": "Final governance alignment verification"}

@@ -1,6 +1,0 @@
-{"file": ".trellis/workflow.md", "reason": "Project workflow and conventions"}
-{"file": ".trellis/spec/frontend/index.md", "reason": "Frontend development guide"}
-{"file": ".trellis/spec/frontend/image-asset-guidelines.md", "reason": "image prompt sidecar convention"}
-{"file": ".trellis/spec/frontend/npc-art-guidelines.md", "reason": "NPC expression sprite prompt convention"}
-{"file": "docs/IMAGE_ASSETS_SPEC.md", "reason": "global image asset spec"}
-{"file": "artifacts/04-30-image-asset-prompt-sidecars/image_prompt_sidecars.py", "reason": "generator and validation logic"}

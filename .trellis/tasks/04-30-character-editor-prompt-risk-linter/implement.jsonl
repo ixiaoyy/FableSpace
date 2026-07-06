@@ -1,9 +1,0 @@
-{"file": ".trellis/workflow.md", "reason": "Project workflow and conventions"}
-{"file": ".trellis/spec/frontend/index.md", "reason": "Frontend development guide"}
-{"file": ".trellis/spec/frontend/preset-import-preview-ui-boundary.md", "reason": "Reuse supported/warning/blocked risk-report pattern and preview-only safety language"}
-{"file": ".trellis/spec/frontend/component-guidelines.md", "reason": "CharacterEditor UI, owner-facing risk panel, mobile-aware component patterns"}
-{"file": ".trellis/spec/guides/code-reuse-thinking-guide.md", "reason": "Search and reuse existing preset/import risk vocabulary"}
-{"file": ".trellis/spec/frontend/type-safety.md", "reason": "Normalize owner/imported character prompt payloads before lint/save"}
-{"file": ".trellis/spec/frontend/npc-art-guidelines.md", "reason": "Include non-photoreal/no-real-person prompt constraints for NPC visual prompt fields"}
-{"file": ".trellis/spec/frontend/quality-guidelines.md", "reason": "Frontend tests/build and no secret exposure"}
-{"file": ".trellis/spec/frontend/character-prompt-risk-linter.md", "reason": "New executable contract for the implemented character prompt risk linter"}

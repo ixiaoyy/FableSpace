@@ -1,8 +1,0 @@
-{"file": ".trellis/workflow.md", "reason": "Project workflow and conventions"}
-{"file": ".trellis/spec/frontend/index.md", "reason": "Frontend development guide"}
-{"file": ".trellis/spec/frontend/component-guidelines.md", "reason": "User-facing home UI component and visual quality rules."}
-{"file": ".trellis/spec/frontend/quality-guidelines.md", "reason": "Frontend build and Playwright self-acceptance requirements."}
-{"file": ".trellis/spec/frontend/image-asset-guidelines.md", "reason": "Icon/reference image wiring and no large-draft-as-page constraints."}
-{"file": ".trellis/spec/guides/code-reuse-thinking-guide.md", "reason": "Search/reuse existing artboard/layout helpers before new code."}
-{"file": "frontend/app/components/soul-link-reference-artboards.tsx", "reason": "Current home light reference implementation and artboard overlays."}
-{"file": "frontend/app/routes/home.tsx", "reason": "Home route wiring and data to pass into light reference."}

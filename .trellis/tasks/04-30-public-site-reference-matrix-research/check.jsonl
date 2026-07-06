@@ -1,6 +1,0 @@
-{"file": "docs/WHAT_NOT_TO_BUILD.md", "reason": "Check research conclusions do not violate boundaries"}
-{"file": "docs/PRODUCT_BRIEF.md", "reason": "Check takeaways are translated to FableMap"}
-{"file": ".trellis/tasks/04-30-public-site-reference-matrix-research/prd.md", "reason": "Check task acceptance and verification notes"}
-{"file": "artifacts/research/ai-creation-sites/research.md", "reason": "Check research matrix and FableMap translation"}
-{"file": ".trellis/tmp/playwright-mainline/public-site-reference-capture.cjs", "reason": "Check capture script stays public-only"}
-{"file": ".trellis/tmp/playwright-mainline/public-site-reference-extra-capture.cjs", "reason": "Check extra capture script stays public-only"}

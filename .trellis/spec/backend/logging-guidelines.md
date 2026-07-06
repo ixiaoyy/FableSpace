@@ -15,7 +15,7 @@ import logging
 logger = logging.getLogger(__name__)
 ```
 
-Seen in modules such as `backend/src/fablespace_api/core/web/service.py`, `backend/src/fablespace_api/core/llm_clients.py`, `backend/src/fablespace_api/core/char_card_parser.py`, and `backend/src/fablespace_api/core/world_info_injector.py`.
+Seen in modules such as `apps/api/src/fablespace_api/core/web/service.py`, `apps/api/src/fablespace_api/core/llm_clients.py`, `apps/api/src/fablespace_api/core/char_card_parser.py`, and `apps/api/src/fablespace_api/core/world_info_injector.py`.
 
 ---
 
@@ -91,16 +91,16 @@ except Exception as e:
 
 ## Real examples to follow
 
-1. `backend/src/fablespace_api/core/web/service.py`: logs LLM/output-rule failures while returning user-facing degraded results.
-2. `backend/src/fablespace_api/core/llm_clients.py`: module-level logger lives beside backend adapters; provider-specific errors become `LLMError`.
-3. `backend/src/fablespace_api/core/char_card_parser.py`: parser logger exists for import/export diagnostics; binary/card parsing should not leak unrelated file content.
-4. `backend/src/fablespace_api/core/world_info_injector.py`: injection logic has a module logger; logs should describe matching/injection problems without dumping private conversation history.
+1. `apps/api/src/fablespace_api/core/web/service.py`: logs LLM/output-rule failures while returning user-facing degraded results.
+2. `apps/api/src/fablespace_api/core/llm_clients.py`: module-level logger lives beside backend adapters; provider-specific errors become `LLMError`.
+3. `apps/api/src/fablespace_api/core/char_card_parser.py`: parser logger exists for import/export diagnostics; binary/card parsing should not leak unrelated file content.
+4. `apps/api/src/fablespace_api/core/world_info_injector.py`: injection logic has a module logger; logs should describe matching/injection problems without dumping private conversation history.
 
 ---
 
 ## Common mistakes
 
-- Using `print()` for backend diagnostics instead of logger methods. CLI startup output in `backend/src/fablespace_api/core/api.py` is an exception because it intentionally prints server metadata.
+- Using `print()` for backend diagnostics instead of logger methods. CLI startup output in `apps/api/src/fablespace_api/core/api.py` is an exception because it intentionally prints server metadata.
 - Logging full request payloads for convenience.
 - Logging stack traces for expected user input errors that should be `HTTPException`.
 - Adding noisy per-token/per-message logs in chat loops.

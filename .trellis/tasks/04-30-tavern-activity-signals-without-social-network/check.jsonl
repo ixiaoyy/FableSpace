@@ -1,4 +1,0 @@
-{"file": ".claude/commands/trellis/finish-work.md", "reason": "Finish work checklist"}
-{"file": ".claude/commands/trellis/check.md", "reason": "Code quality check spec"}
-{"file": "frontend/scripts/tavern-activity-signals-test.mjs", "reason": "Regression test for activity signal helper/card and no-social guardrails."}
-{"file": ".trellis/tmp/playwright-mainline/evidence/04-30-tavern-activity-signals-visual-acceptance/tavern-activity-signals-visual-acceptance-report.json", "reason": "Playwright desktop/mobile visual evidence for tavern activity signals card."}

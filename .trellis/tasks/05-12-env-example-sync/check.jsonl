@@ -1,7 +1,0 @@
-{"file": ".claude/commands/trellis/finish-work.md", "reason": "Finish work checklist"}
-{"file": ".claude/commands/trellis/check.md", "reason": "Code quality check spec"}
-{"file": ".env.example", "reason": "Review committed env contract"}
-{"file": "docker-compose.yml", "reason": "Review compose env references"}
-{"file": "backend/config/system_public_welfare_llm.json", "reason": "Review OpenCode env key source"}
-{"file": ".trellis/spec/backend/logging-guidelines.md", "reason": "Review secret handling"}
-{"file": ".trellis/spec/guides/code-reuse-thinking-guide.md", "reason": "Review missed config references"}

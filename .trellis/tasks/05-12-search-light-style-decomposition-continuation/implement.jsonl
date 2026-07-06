@@ -1,6 +1,0 @@
-{"file": ".trellis/workflow.md", "reason": "Project workflow and conventions"}
-{"file": ".trellis/spec/frontend/index.md", "reason": "Frontend development guide"}
-{"file": ".trellis/spec/frontend/component-guidelines.md", "reason": "UI component/style contracts and mobile-safe controls"}
-{"file": ".trellis/spec/frontend/quality-guidelines.md", "reason": "Frontend build/Playwright self-acceptance requirements"}
-{"file": ".trellis/spec/frontend/image-asset-guidelines.md", "reason": "Project-local image placement and dimensions verification"}
-{"file": ".trellis/spec/guides/code-reuse-thinking-guide.md", "reason": "Search existing patterns before adding helpers/assets"}

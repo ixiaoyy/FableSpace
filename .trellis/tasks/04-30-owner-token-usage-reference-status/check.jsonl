@@ -1,7 +1,0 @@
-{"file": ".claude/commands/trellis/finish-work.md", "reason": "Finish work checklist"}
-{"file": ".claude/commands/trellis/check.md", "reason": "Code quality check spec"}
-{"file": "frontend/app/product/TavernOwnerPanel.jsx", "reason": "Existing owner dashboard AI section/token usage panel to review for no-billing/no-api-key boundary."}
-{"file": ".trellis/spec/frontend/quality-guidelines.md", "reason": "Check build/test and Playwright visual evidence for frontend change."}
-{"file": "docs/WHAT_NOT_TO_BUILD.md", "reason": "Check no platform billing, recharge, settlement, platform cut, or visitor-visible token cost."}
-{"file": "frontend/scripts/owner-token-status-test.mjs", "reason": "Regression test for token reference helper boundaries, safe stats, and UI copy."}
-{"file": ".trellis/tmp/playwright-mainline/evidence/04-30-owner-token-status-visual-acceptance/owner-token-visual-acceptance-report.json", "reason": "Playwright desktop/mobile visual evidence for owner token reference status panel."}

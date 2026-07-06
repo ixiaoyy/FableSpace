@@ -1,8 +1,0 @@
-{"file": ".agents/skills/finish-work/SKILL.md", "reason": "Finish work checklist"}
-{"file": ".agents/skills/check/SKILL.md", "reason": "Code quality check spec"}
-{"file": "frontend/scripts/ai-tavern-drafts-test.mjs", "reason": "Existing tavern draft helper regression tests"}
-{"file": "frontend/scripts/ai-character-drafts-test.mjs", "reason": "Existing character draft helper regression tests"}
-{"file": "frontend/scripts/create-wizard-route-test.mjs", "reason": "Static create route checks for AI draft boundary copy"}
-{"file": "frontend/app/routes/create.tsx", "reason": "Review create-page AI draft lifecycle UI copy"}
-{"file": "frontend/app/product/CharacterManagementModal.jsx", "reason": "Review NPC draft lifecycle status UI copy"}
-{"file": ".trellis/spec/frontend/quality-guidelines.md", "reason": "Verification and Playwright expectations for UI changes"}

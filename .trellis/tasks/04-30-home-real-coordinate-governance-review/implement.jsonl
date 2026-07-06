@@ -1,5 +1,0 @@
-{"file": ".trellis/tasks/archive/2026-04/04-27-place-type-home-concept/product-direction-decision.md", "reason": "Previous governance decision to review"}
-{"file": "backend/src/fablemap_api/core/home.py", "reason": "Home domain model analysis"}
-{"file": "backend/src/fablemap_api/contracts/homes.py", "reason": "Home API contracts"}
-{"file": "backend/src/fablemap_api/api/v1/homes.py", "reason": "Home REST API endpoints"}
-{"file": "docs/WHAT_NOT_TO_BUILD.md", "reason": "Governance alignment check"}
