@@ -15,7 +15,7 @@ apps/web/app/assets/
 
 - `fable-space-05-10/` 只保留运行时会 import 的素材和必要 reference；不要恢复整页 screenshot 切片作为动态内容。
 - `npc-style-cast/portraits/` 是默认 NPC fallback 头像目录，运行时图片应保持 256x256 PNG，优先被 owner 自定义 `sprites.neutral` / `avatar` / `image_url` 覆盖。
-- 原始草图、对比截图、contact sheet、审计图优先放 `artifacts/assets/<YYYY-MM-DD-task>/` 或 Trellis evidence，不要散落在运行时目录。
+- 原始草图、对比截图、contact sheet、审计图优先放 `docs/assets/<YYYY-MM-DD-topic>/` 或维护任务记录，不要散落在运行时目录。
 - 与图片资产有关的 prompt sidecar、hash 和落盘规则见 [docs/IMAGE_ASSETS_SPEC.md](../../../docs/IMAGE_ASSETS_SPEC.md)。
 
 ## 禁止

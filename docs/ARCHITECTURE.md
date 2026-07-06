@@ -170,7 +170,7 @@ FableSpace 同时保留两类 API 面：
 
 ### 店主管理
 
-- LLM 配置测试。
+- LLM 配置校验。
 - owner default LLM。
 - AI draft。
 - preset import preview/apply。
@@ -198,11 +198,11 @@ FableSpace 同时保留两类 API 面：
 - 跨 owner 的关系边只代表 source owner 视角，不能强迫 target owner 接受。
 - preview / dry-run API 默认不落库，响应必须标明是否 persisted / applied / model_called。
 
-## 前端构建与资源
+## 前端运行与资源边界
 
-- 前端构建：`npm --prefix .\apps\web run build`
-- 类型检查：`npm --prefix .\apps\web run typecheck`
-- Vite dev server 默认把 `/api` 和 `/generated` 代理到 `127.0.0.1:8950`
+- Docker Compose 部署时，`apps/web/Dockerfile` 构建静态前端，nginx 托管页面并把 `/api`、`/generated` 反向代理到后端服务。
+- 非 Docker 一体化运行时，先构建前端，再由 `py -3 -m fablespace_api api` 在默认 `8950` 端口托管页面和兼容 API。
+- Vite 本地开发服务器默认把 `/api` 和 `/generated` 代理到 `127.0.0.1:8950`。
 - Public URL 资源放 `apps/web/public/assets/`
 - Vite import 资源放 `apps/web/app/assets/`
 - 图片落盘规则见 [IMAGE_ASSETS_SPEC.md](IMAGE_ASSETS_SPEC.md)

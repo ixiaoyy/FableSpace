@@ -19,9 +19,9 @@
 | `apps/web/app/assets/` | 由 React / Vite import 的前端资产。 |
 | `apps/web/public/place-atmosphere/` | 地点氛围图。 |
 | `apps/web/public/faction-emblems/` | 势力 / 分类徽章。 |
-| `artifacts/assets/<YYYY-MM-DD-task>/` | 草稿、contact sheet、审计截图、参考素材。 |
+| `docs/assets/<YYYY-MM-DD-topic>/` | 需要随文档长期保留的参考图、审计截图、contact sheet。 |
 
-不要把运行时资源只放在 `artifacts/`、`.codex/` 或临时目录。
+不要把运行时资源只放在 `.codex/`、系统临时目录、下载目录或聊天预览中。只有会被代码、seed 或页面引用的图片，才应该进入 `apps/web/...` 运行时资源目录。
 
 ## NPC prompt sidecar
 
@@ -48,7 +48,7 @@ expression-set.prompt.md
 asset: apps/web/public/assets/npcs/public-welfare/char_demo/neutral.png
 prompt_type: original-final
 source_type: prompt-manifest
-source_manifest: artifacts/assets/2026-01-01-demo/prompt-manifest.json
+source_manifest: docs/assets/2026-01-01-demo/prompt-manifest.json
 character_id: char_demo
 expression: neutral
 width: 256
@@ -128,7 +128,7 @@ NPC 资产必须是原创虚构角色插画，不得像真人照片。
 | 地点氛围图 | 512x288 | WebP / PNG | `apps/web/public/place-atmosphere/` |
 | 势力徽章 | 64x64 | SVG / PNG | `apps/web/public/faction-emblems/` |
 | 前端页面 import 图 | 按 UI 槽位 | PNG / WebP / SVG | `apps/web/app/assets/<feature>/` |
-| 审计 / 参考图 | 原始尺寸 | PNG / WebP | `artifacts/assets/<task>/` |
+| 审计 / 参考图 | 原始尺寸 | PNG / WebP | `docs/assets/<topic>/` |
 
 ## 质量要求
 
