@@ -210,6 +210,13 @@ const DEFAULT_WORLD_STATS: FableSpaceWorldStat[] = [
   { id: "explores", label: "探索次数", value: "3,214" },
 ]
 
+const WORLD_TIME_FORMATTER = new Intl.DateTimeFormat("zh-CN", {
+  hour: "2-digit",
+  minute: "2-digit",
+  second: "2-digit",
+  hour12: false,
+})
+
 const LIGHT_GUIDE_BACKGROUNDS = [lightGuideStarterBg, lightGuideEnvelopeBg, lightGuideShieldBg] as const
 
 const LIGHT_FALLBACK_COORDINATE_CARDS = [
@@ -249,6 +256,13 @@ const DISCOVER_CARD_IMAGES = [
   discoverCardCompass,
   discoverCardPlane,
 ] as const
+
+const HOME_COORDINATE_CARD_AVATAR_IMAGES = [homeBlackUserAvatar, discoverCardCafe, discoverCardLibrarySunlit, discoverCardPlane] as const
+const DISCOVER_CARD_AVATAR_IMAGE_SETS = DISCOVER_CARD_IMAGES.map((_, index) => [
+  DISCOVER_CARD_IMAGES[(index + 1) % DISCOVER_CARD_IMAGES.length],
+  DISCOVER_CARD_IMAGES[(index + 2) % DISCOVER_CARD_IMAGES.length],
+  DISCOVER_CARD_IMAGES[(index + 3) % DISCOVER_CARD_IMAGES.length],
+] as const)
 
 const BLACK_FALLBACK_COORDINATE_CARDS = [
   {
@@ -306,6 +320,7 @@ const DISCOVER_RIGHT_RAIL = {
   echoFeed: { x: 1236, y: 300, w: 270, h: 250 },
   onlineEntities: { x: 1236, y: 574, w: 270, h: 260 },
 } as const
+const DISCOVER_RIGHT_RAIL_PANEL = { w: 316, h: 1024 } as const
 
 const homeSharedCardBoxes = [
   [256, 560, 224, 249],
@@ -480,6 +495,11 @@ function targetFor(id?: string) {
   return id ? `/space/${encodeURIComponent(id)}` : "/discover"
 }
 
+/** Build a stable local favorite key while fallback cards do not have persisted ids. */
+function discoverFavoriteKey(kind: "echo" | "footprint", cardId: string | undefined, index: number) {
+  return `${kind}:${cardId || `pending-${index}`}`
+}
+
 function homeCoordinateCardData(slice: HomeReferenceProps["featuredCitySlices"][number] | undefined, index: number, variant: Variant) {
   const fallback = variant === "black"
     ? BLACK_FALLBACK_COORDINATE_CARDS[index % BLACK_FALLBACK_COORDINATE_CARDS.length]
@@ -531,12 +551,7 @@ function formatStatusNumber(value: number): string {
 }
 
 function formatWorldTime(date: Date): string {
-  return new Intl.DateTimeFormat("zh-CN", {
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-    hour12: false,
-  }).format(date)
+  return WORLD_TIME_FORMATTER.format(date)
 }
 
 function discoverWorldStatusFromSpaces(spaces: Space[]) {
@@ -828,9 +843,10 @@ function FableSpaceUserIdentity({ name, meta, variant }: { name: string; meta: s
 
 function FableSpaceWorldTimeCard({ variant }: { variant: Variant }) {
   const isBlack = variant === "black"
-  const [time, setTime] = useState(() => formatWorldTime(new Date()))
+  const [time, setTime] = useState("00:00:00")
 
   useEffect(() => {
+    setTime(formatWorldTime(new Date()))
     const timer = window.setInterval(() => setTime(formatWorldTime(new Date())), 1000)
     return () => window.clearInterval(timer)
   }, [])
@@ -1782,7 +1798,6 @@ function FableSpaceHomeCoordinateCard({
       : card.tone === "low"
         ? "border-amber-300/38 bg-amber-300/12 text-amber-200 shadow-[0_0_16px_rgba(251,191,36,0.14)]"
         : "border-cyan-300/38 bg-cyan-300/18 text-cyan-100 shadow-[0_0_16px_rgba(34,211,238,0.18)]"
-  const avatarImages = [homeBlackUserAvatar, discoverCardCafe, discoverCardLibrarySunlit, discoverCardPlane]
   const className = cx(
     "absolute z-20 flex min-h-11 flex-col overflow-hidden rounded-[0.72rem] border outline-none transition",
     canEnter ? "touch-manipulation hover:-translate-y-0.5 focus:ring-4" : "cursor-wait select-none opacity-86",
@@ -1817,7 +1832,7 @@ function FableSpaceHomeCoordinateCard({
         <p className={cx("mt-5 line-clamp-2 text-[13px] font-bold leading-6", isBlack ? "text-cyan-100/48" : "text-slate-400")} title={card.description}>{card.description}</p>
         <div className="mt-auto flex items-center justify-between gap-3">
           <span data-fable-space-active-node-avatars="replaceable-images" className="flex -space-x-1.5">
-            {avatarImages.map((image, avatarIndex) => (
+            {HOME_COORDINATE_CARD_AVATAR_IMAGES.map((image, avatarIndex) => (
               <img key={`${card.name}-node-avatar-${avatarIndex}`} src={image} alt="" aria-hidden="true" className={cx("h-5 w-5 rounded-full border object-cover", isBlack ? "border-[#06111f]" : "border-white")} loading="lazy" decoding="async" />
             ))}
           </span>
@@ -1877,11 +1892,7 @@ function FableSpaceDiscoverCard({
   const card = discoverCardData(space, index)
   const isBlack = variant === "black"
   const isEnterable = Boolean(space?.id)
-  const avatarImages = [
-    DISCOVER_CARD_IMAGES[(index + 1) % DISCOVER_CARD_IMAGES.length],
-    DISCOVER_CARD_IMAGES[(index + 2) % DISCOVER_CARD_IMAGES.length],
-    DISCOVER_CARD_IMAGES[(index + 3) % DISCOVER_CARD_IMAGES.length],
-  ]
+  const avatarImages = DISCOVER_CARD_AVATAR_IMAGE_SETS[index % DISCOVER_CARD_AVATAR_IMAGE_SETS.length]
   const className = cx(
     "absolute z-20 flex flex-col overflow-hidden rounded-[1.28rem] border",
     isEnterable
@@ -2233,7 +2244,7 @@ function FableSpaceHomeMobile({
             if (!isEnterable) {
               return (
                 <div
-                  key={`fallback-${index}`}
+                  key={slice.nodeId}
                   data-fable-space-home-card="real-card"
                   data-fable-space-home-card-state={isLoading ? "loading" : "placeholder"}
                   aria-disabled="true"
@@ -2246,7 +2257,7 @@ function FableSpaceHomeMobile({
 
             return (
               <Link
-                key={slice.id || `fallback-${index}`}
+                key={slice.id || slice.nodeId}
                 to={targetFor(slice.id)}
                 data-fable-space-home-card="real-card"
                 data-fable-space-home-card-state="enterable"
@@ -2534,7 +2545,7 @@ function FableSpaceDiscoverRightRail({
   const cards = DISCOVER_LAYOUT.cards.map((_, index) => discoverCardData(spaces[index], index))
   const recommendedQuotes = DISCOVER_RIGHT_QUOTES.slice(0, 3)
   const footprintCards = cards.slice(0, 3)
-  const railPanel = { w: 316, h: 1024 }
+  const railPanel = DISCOVER_RIGHT_RAIL_PANEL
   const isBlack = variant === "black"
   const isInitialLoading = isLoading && spaces.length === 0
   const [favoriteKeys, setFavoriteKeys] = useState<Set<string>>(() => {
@@ -2550,9 +2561,6 @@ function FableSpaceDiscoverRightRail({
     if (typeof window === "undefined") return
     window.localStorage.setItem("fable-space-discover-right-rail-favorites", JSON.stringify([...favoriteKeys]))
   }, [favoriteKeys])
-  function favoriteKey(kind: "echo" | "footprint", cardId: string | undefined, index: number) {
-    return `${kind}:${cardId || `pending-${index}`}`
-  }
   function toggleFavorite(event: MouseEvent<HTMLButtonElement>, key: string, disabled = false) {
     event.preventDefault()
     event.stopPropagation()
@@ -2632,7 +2640,7 @@ function FableSpaceDiscoverRightRail({
         <div className="space-y-[clamp(4px,0.65vw,10px)]">
           {recommendedQuotes.map((quote, index) => {
             const card = cards[index]
-            const key = favoriteKey("echo", card?.id, index)
+            const key = discoverFavoriteKey("echo", card?.id, index)
             const isFavorite = favoriteKeys.has(key)
             const canEnter = Boolean(card?.id)
             const favoriteCount = (card?.favoriteCount || 0) + (isFavorite ? 1 : 0)
@@ -2695,7 +2703,7 @@ function FableSpaceDiscoverRightRail({
         </header>
         <div className="space-y-2">
           {footprintCards.map((card, index) => {
-            const key = favoriteKey("footprint", card.id, index)
+            const key = discoverFavoriteKey("footprint", card.id, index)
             const isFavorite = favoriteKeys.has(key)
             const canEnter = Boolean(card.id)
             const entryCopy = (
@@ -2951,10 +2959,11 @@ function DiscoverCardLinks({
       {cardBoxes.map((box, index) => {
         const [x, y, w, h] = box
         const space = spaces[index]
+        const boxKey = `${x}-${y}-${w}-${h}`
         if (forceVisible) {
           return (
             <FableSpaceDiscoverCard
-              key={`discover-card-${space?.id || index}`}
+              key={`discover-card-${space?.id || boxKey}`}
               artboard={artboard}
               box={box}
               space={space}
@@ -2966,7 +2975,7 @@ function DiscoverCardLinks({
         }
         return (
           <OverlayLink
-            key={`discover-card-${index}`}
+            key={`discover-card-${space?.id || boxKey}`}
             artboard={artboard}
             hotspot={{
               label: `进入探索坐标 ${space?.name || index + 1}`,

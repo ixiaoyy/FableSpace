@@ -11,11 +11,13 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 from fablespace_api.api.response_envelope import add_api_response_envelope_middleware
 from fablespace_api.api.v1.router import api_router
 from fablespace_api.application.spaces import SpaceApplicationService
+from fablespace_api.application.territories import TerritoryApplicationService
 from fablespace_api.infrastructure.settings import ApiSettings as NativeApiSettings
 from fablespace_api.infrastructure.storage import (
     configure_process_stores,
     create_owner_config_store,
     create_space_store,
+    create_territory_store,
     create_visitor_note_store,
     create_writeback_store,
 )
@@ -63,6 +65,9 @@ def create_web_app(settings: ApiSettings) -> FastAPI:
     )
     space_store = create_space_store(native_settings)
     configure_process_stores(native_settings, space_store)
+    territory_service = TerritoryApplicationService(
+        create_territory_store(native_settings, space_store)
+    )
     service = WebService(
         resolved,
         space_store=space_store,
@@ -70,10 +75,12 @@ def create_web_app(settings: ApiSettings) -> FastAPI:
     )
     app = FastAPI(title="FableSpace API", version="0.1.0")
     app.state.settings = native_settings
+    app.state.territory_service = territory_service
     app.state.spaces = SpaceApplicationService(
         service.space_store,
         create_owner_config_store(native_settings, service.space_store),
         create_visitor_note_store(native_settings, service.space_store),
+        territory_service=territory_service,
     )
     app.state.sillytavern_url = resolved.sillytavern_url
     app.add_middleware(
