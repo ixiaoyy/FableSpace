@@ -1,0 +1,14 @@
+{
+  "id": "07-07-space-ambient-activity",
+  "title": "Space ambient NPC activity",
+  "status": "done",
+  "created_at": "2026-07-07",
+  "updated_at": "2026-07-07",
+  "scope": "Expose safe NPC ambient activity in entry payload and show it in the space chat workbench.",
+  "validation": [
+    "py -3 -m compileall -q apps/api/src",
+    "npm --prefix .\\apps\\web run typecheck",
+    "npm --prefix .\\apps\\web run build",
+    "Playwright desktop/mobile smoke check for /space/pw_midnight_commission_board"
+  ]
+}

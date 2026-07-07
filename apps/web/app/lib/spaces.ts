@@ -24,6 +24,41 @@ export type NpcSocialMemory = {
   timestamp: string
 }
 
+export type SpaceAmbientActivitySignal = {
+  id: string
+  label: string
+  value: string
+  tone?: string
+}
+
+export type SpaceAmbientActivityRecent = {
+  id: string
+  type?: string
+  character_id?: string
+  character_name?: string
+  source_name?: string
+  content: string
+  timestamp?: string
+}
+
+export type SpaceAmbientCharacterState = {
+  character_id: string
+  character_name: string
+  label: string
+  talkativeness?: number
+  is_visitor?: boolean
+}
+
+export type SpaceAmbientActivity = {
+  summary: string
+  active_character_count: number
+  visiting_character_count?: number
+  social_memory_count?: number
+  signals?: SpaceAmbientActivitySignal[]
+  recent?: SpaceAmbientActivityRecent[]
+  character_states?: SpaceAmbientCharacterState[]
+}
+
 export type SpaceCharacter = {
   id: string
   name: string
@@ -205,6 +240,7 @@ export type Space = {
   world_info?: unknown[]
   gameplay_definitions?: unknown[]
   skill_packs?: SkillPackSetting[]
+  ambient_activity?: SpaceAmbientActivity
   home_members?: HomeMember[]
   place_relationships?: PlaceRelationship[]
   school_members?: SchoolMemberSummary[]

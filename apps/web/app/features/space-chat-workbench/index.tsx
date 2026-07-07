@@ -4,6 +4,8 @@ import {
   DoorOpen,
   LockKeyhole,
   MapPin,
+  MessagesSquare,
+  Radio,
   Send,
   Sparkles,
   UsersRound,
@@ -22,6 +24,7 @@ import {
   type ChatMessage,
   type RoleplayState,
   type Space,
+  type SpaceAmbientActivity,
   type SpaceCharacter,
 } from "../../lib/spaces"
 import { Button } from "../../ui/button"
@@ -246,6 +249,183 @@ function getWorkbenchRoleplayStarters(space: Space, character: SpaceCharacter | 
   return priority
     .map((id) => ROLEPLAY_STARTER_PROMPTS.find((prompt) => prompt.id === id))
     .filter((prompt): prompt is RoleplayStarterPrompt => Boolean(prompt))
+}
+
+/**
+ * Normalizes a numeric talkativeness value for local ambient fallback UI.
+ * @param value Raw value from a public character payload.
+ * @returns A 0-1 value; invalid inputs fall back to 0.5.
+ */
+function normalizeAmbientTalkativeness(value: unknown) {
+  const parsed = Number(value)
+  if (!Number.isFinite(parsed)) return 0.5
+  return Math.max(0, Math.min(1, parsed))
+}
+
+/**
+ * Formats an optional activity timestamp for compact visitor display.
+ * @param value ISO-like timestamp from the backend ambient payload.
+ * @returns A short local time label, or an empty string when parsing fails.
+ */
+function formatAmbientActivityTime(value?: string) {
+  if (!value) return ""
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return ""
+  return date.toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit" })
+}
+
+/**
+ * Builds a conservative ambient activity fallback when the backend has not
+ * returned the computed entry payload yet.
+ * @param space Public Space payload already loaded for the visitor.
+ * @param characters Published NPCs visible in this Space.
+ * @returns A read-only UI model; it does not imply new canon or persisted activity.
+ */
+function buildLocalAmbientActivity(space: Space, characters: SpaceCharacter[]): SpaceAmbientActivity {
+  const talkativeCount = characters.filter((character) => normalizeAmbientTalkativeness(character.talkativeness) >= 0.65).length
+  const visitingCount = characters.filter((character) => character.is_visitor).length
+  const groupChatEnabled = Boolean((space as { group_chat_enabled?: unknown }).group_chat_enabled && characters.length > 1)
+  const signals = [
+    { id: "active-characters", label: "在场角色", value: `${characters.length} 位`, tone: "info" },
+  ]
+  if (groupChatEnabled) {
+    signals.push({ id: "group-chat", label: "群聊桌", value: "已开启", tone: "live" })
+  }
+  if (visitingCount) {
+    signals.push({ id: "visiting-npcs", label: "外来 NPC", value: `${visitingCount} 位路过`, tone: "motion" })
+  }
+  if (talkativeCount) {
+    signals.push({ id: "talkative-npcs", label: "接话意愿", value: `${talkativeCount} 位偏主动`, tone: "social" })
+  }
+
+  return {
+    summary: characters.length > 1
+      ? `${characters.length} 位 NPC 在场，空间会按店主配置接住你的下一句话。`
+      : characters.length === 1
+        ? "1 位 NPC 正在空间里待命。"
+        : "这间空间还没有配置驻场 NPC。",
+    active_character_count: characters.length,
+    visiting_character_count: visitingCount,
+    social_memory_count: 0,
+    signals,
+    recent: [],
+    character_states: characters.slice(0, 8).map((character) => ({
+      character_id: character.id,
+      character_name: character.name || character.id || "NPC",
+      label: character.is_visitor ? "正在路过" : normalizeAmbientTalkativeness(character.talkativeness) >= 0.65 ? "偏主动" : "待命中",
+      talkativeness: normalizeAmbientTalkativeness(character.talkativeness),
+      is_visitor: Boolean(character.is_visitor),
+    })),
+  }
+}
+
+/**
+ * Returns the effective ambient activity model for the workbench.
+ * @param space Public Space payload; may include backend-computed ambient_activity.
+ * @param characters Published NPCs used for safe local fallback.
+ * @returns A stable read-only activity view model for rendering.
+ */
+function resolveAmbientActivity(space: Space, characters: SpaceCharacter[]) {
+  const backendActivity = space.ambient_activity
+  if (backendActivity && typeof backendActivity === "object") {
+    return {
+      ...buildLocalAmbientActivity(space, characters),
+      ...backendActivity,
+      signals: Array.isArray(backendActivity.signals) ? backendActivity.signals : [],
+      recent: Array.isArray(backendActivity.recent) ? backendActivity.recent : [],
+      character_states: Array.isArray(backendActivity.character_states) ? backendActivity.character_states : [],
+    }
+  }
+  return buildLocalAmbientActivity(space, characters)
+}
+
+/**
+ * Picks restrained product-UI styling for ambient signal chips.
+ * @param tone Backend-provided semantic tone name.
+ * @returns Tailwind class names for a compact status chip.
+ */
+function ambientSignalClass(tone?: string) {
+  if (tone === "live") return "border-emerald-200/24 bg-emerald-300/[0.08] text-emerald-50"
+  if (tone === "motion") return "border-amber-200/24 bg-amber-300/[0.08] text-amber-50"
+  if (tone === "memory") return "border-violet-200/24 bg-violet-300/[0.09] text-violet-50"
+  if (tone === "social") return "border-cyan-200/22 bg-cyan-300/[0.08] text-cyan-50"
+  return "border-white/10 bg-white/[0.045] text-cyan-50/78"
+}
+
+/**
+ * Renders read-only NPC ambient activity for a Space entry.
+ * @param activity Computed or fallback activity view model.
+ * @returns A compact panel that shows the Space as inhabited without sending chat.
+ */
+function AmbientActivityPanel({ activity }: { activity: SpaceAmbientActivity }) {
+  const signals = Array.isArray(activity.signals) ? activity.signals : []
+  const recent = Array.isArray(activity.recent) ? activity.recent : []
+  const characterStates = Array.isArray(activity.character_states) ? activity.character_states : []
+
+  return (
+    <section
+      data-space-ambient-activity
+      className="border-b border-cyan-200/10 bg-[#071326]/78 px-3 py-3 sm:px-4"
+      aria-label="空间 NPC 自主活动"
+    >
+      <div className="rounded-xl border border-cyan-200/12 bg-slate-950/28 p-3">
+        <div className="flex min-w-0 items-start gap-3">
+          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-cyan-200/18 bg-cyan-300/[0.09] text-cyan-50">
+            <Radio className="h-4 w-4" />
+          </span>
+          <div className="min-w-0 flex-1">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+              <div className="min-w-0">
+                <p className="text-xs font-black uppercase tracking-[0.16em] text-cyan-100/45">空间脉搏</p>
+                <p className="mt-1 text-sm font-bold leading-6 text-cyan-50/78">{activity.summary}</p>
+              </div>
+              {signals.length ? (
+                <div className="flex shrink-0 flex-wrap gap-1.5 sm:justify-end">
+                  {signals.slice(0, 4).map((signal) => (
+                    <span key={signal.id} className={`rounded-full border px-2.5 py-1 text-[0.68rem] font-black ${ambientSignalClass(signal.tone)}`}>
+                      {signal.label} · {signal.value}
+                    </span>
+                  ))}
+                </div>
+              ) : null}
+            </div>
+
+            {recent.length ? (
+              <div className="mt-3 grid gap-2" data-space-ambient-recent>
+                {recent.slice(0, 2).map((item) => {
+                  const target = item.character_name || "NPC"
+                  const source = item.source_name || "某位 NPC"
+                  const time = formatAmbientActivityTime(item.timestamp)
+                  return (
+                    <div key={item.id || `${source}-${target}-${item.content}`} className="min-w-0 rounded-xl border border-white/10 bg-white/[0.035] px-3 py-2">
+                      <div className="flex min-w-0 items-center gap-2 text-[0.68rem] font-black text-violet-100/45">
+                        <MessagesSquare className="h-3.5 w-3.5 shrink-0 text-cyan-100/52" />
+                        <span className="truncate">{source} → {target}</span>
+                        {time ? <span className="shrink-0 font-semibold normal-case tracking-normal">{time}</span> : null}
+                      </div>
+                      <p className="mt-1 line-clamp-2 text-xs font-semibold leading-5 text-violet-50/72">{item.content}</p>
+                    </div>
+                  )
+                })}
+              </div>
+            ) : characterStates.length ? (
+              <div className="mt-3 flex gap-2 overflow-x-auto pb-1" data-space-ambient-character-states>
+                {characterStates.slice(0, 6).map((state) => (
+                  <span
+                    key={state.character_id || state.character_name}
+                    className="inline-flex min-w-fit items-center gap-2 rounded-full border border-white/10 bg-white/[0.035] px-3 py-1.5 text-xs font-bold text-violet-50/70"
+                  >
+                    <span className="h-1.5 w-1.5 rounded-full bg-cyan-300" />
+                    {state.character_name} · {state.label}
+                  </span>
+                ))}
+              </div>
+            ) : null}
+          </div>
+        </div>
+      </div>
+    </section>
+  )
 }
 
 type SpaceChatWorkbenchProps = {
@@ -496,6 +676,7 @@ export function SpaceChatWorkbench({
 
   const passwordLocked = access === "password" && !isOwner && !hasEnteredPasswordSpace
   const firstMinuteGuide = useMemo(() => buildSpaceFirstMinuteGuide(space), [space])
+  const ambientActivity = useMemo(() => resolveAmbientActivity(space, characters), [space, characters])
   const doorwayHost = selectedCharacter || characters[0]
   const doorwayGreeting = doorwayHost
     ? entranceReactionContent(doorwayHost, space.name)
@@ -1406,6 +1587,7 @@ export function SpaceChatWorkbench({
                 ) : null}
               </div>
             </div>
+            <AmbientActivityPanel activity={ambientActivity} />
 
             {isOrphanEchoMode ? (
               <div className="p-4">

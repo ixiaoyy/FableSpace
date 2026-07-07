@@ -159,6 +159,7 @@ FableSpace 同时保留两类 API 面：
 - 进入空间、密码验证。
 - NPC 列表、创建、导入、更新、删除。
 - SillyTavern 角色卡解析与导出。
+- Space entry view 可返回计算型 `ambient_activity` 摘要，用于展示 NPC 仿真 / 社交记忆带来的空间活性；该字段不是持久 Schema，也不代表店主确认正史。
 
 ### 对话与记忆
 

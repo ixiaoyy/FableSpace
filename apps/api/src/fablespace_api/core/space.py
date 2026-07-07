@@ -364,6 +364,191 @@ def _entry_character_payload(character: TavernCharacter) -> dict[str, Any]:
     }
 
 
+def _public_safe_ambient_text(value: Any, *, max_length: int = 120) -> str:
+    """Return short visitor-safe ambient text for entry payloads.
+
+    Args:
+        value: Raw runtime text from NPC social memories or owner-authored public fields.
+        max_length: Maximum number of display characters retained after whitespace cleanup.
+
+    Returns:
+        A sanitized string, or an empty string when the value is blank or appears sensitive.
+
+    Side effects:
+        None. This helper only normalizes text for a public projection.
+    """
+    text = str(value or "").strip().replace("\r", " ").replace("\n", " ")
+    text = " ".join(text.split())
+    if not text:
+        return ""
+    lowered = text.lower()
+    sensitive_markers = (
+        "api key",
+        "apikey",
+        "api_key",
+        "secret",
+        "password",
+        "token",
+        "bearer ",
+        "sk-",
+        "密钥",
+        "密码",
+        "令牌",
+    )
+    if any(marker in lowered for marker in sensitive_markers):
+        return ""
+    return text[:max_length]
+
+
+def _ambient_need_label(character: TavernCharacter) -> str:
+    """Build one public mood/need label from an NPC simulation state.
+
+    Args:
+        character: Published NPC whose simulation state already exists in memory.
+
+    Returns:
+        A short Chinese status label suitable for visitor UI chips.
+
+    Side effects:
+        None. This helper reads but never mutates NPC state.
+    """
+    state = character.simulation_state
+    if not state:
+        return "状态平稳"
+    needs = [
+        ("想休息", float(getattr(state, "energy", 100.0))),
+        ("想吃点东西", float(getattr(state, "hunger", 100.0))),
+        ("想喝点东西", float(getattr(state, "thirst", 100.0))),
+        ("想找人聊天", float(getattr(state, "social", 100.0))),
+        ("想找点乐子", float(getattr(state, "entertainment", 100.0))),
+    ]
+    urgent = [item for item in needs if item[1] < 45.0]
+    if urgent:
+        urgent.sort(key=lambda item: item[1])
+        return urgent[0][0]
+    mood = float(getattr(state, "mood", 50.0))
+    if mood >= 70.0:
+        return "心情很好"
+    if mood <= 35.0:
+        return "有点低落"
+    return "状态平稳"
+
+
+def _entry_ambient_activity_payload(tavern: Tavern) -> dict[str, Any]:
+    """Create a public-safe ambient activity summary for a Space entry page.
+
+    Args:
+        tavern: Space domain object already authorized for public entry viewing.
+
+    Returns:
+        A computed activity payload with summary counts, state signals, and recent NPC-to-NPC
+        snippets. It is runtime atmosphere, not owner-confirmed canon.
+
+    Side effects:
+        None. This helper never writes Space, NPC, chat history, or social memory data.
+    """
+    characters = list(tavern.characters or [])
+    active_count = len(characters)
+    visitor_count = sum(1 for character in characters if character.is_visitor)
+    social_memory_count = sum(
+        len(character.social_memories)
+        for character in characters
+        if isinstance(character.social_memories, list)
+    )
+    talkative_count = sum(1 for character in characters if _normalize_talkativeness(character.talkativeness) >= 0.65)
+
+    recent: list[dict[str, Any]] = []
+    for character in characters:
+        memories = character.social_memories if isinstance(character.social_memories, list) else []
+        for index, memory in enumerate(memories[:3]):
+            if not isinstance(memory, dict):
+                continue
+            content = _public_safe_ambient_text(memory.get("content"), max_length=96)
+            source_name = _public_safe_ambient_text(memory.get("source_name"), max_length=40)
+            if not content or not source_name:
+                continue
+            timestamp = _public_safe_ambient_text(memory.get("timestamp"), max_length=40)
+            recent.append({
+                "id": f"{character.id or 'npc'}-{index}-{timestamp or len(recent)}",
+                "type": "npc_exchange",
+                "character_id": character.id,
+                "character_name": character.name,
+                "source_name": source_name,
+                "content": content,
+                "timestamp": timestamp,
+            })
+
+    recent.sort(key=lambda item: str(item.get("timestamp") or ""), reverse=True)
+    recent = recent[:5]
+
+    signals = [
+        {
+            "id": "active-characters",
+            "label": "在场角色",
+            "value": f"{active_count} 位",
+            "tone": "info",
+        }
+    ]
+    if bool(tavern.group_chat_enabled) and active_count > 1:
+        signals.append({
+            "id": "group-chat",
+            "label": "群聊桌",
+            "value": "已开启",
+            "tone": "live",
+        })
+    if visitor_count:
+        signals.append({
+            "id": "visiting-npcs",
+            "label": "外来 NPC",
+            "value": f"{visitor_count} 位路过",
+            "tone": "motion",
+        })
+    if recent:
+        signals.append({
+            "id": "recent-exchanges",
+            "label": "最近交流",
+            "value": f"{len(recent)} 条",
+            "tone": "memory",
+        })
+    elif talkative_count:
+        signals.append({
+            "id": "talkative-npcs",
+            "label": "接话意愿",
+            "value": f"{talkative_count} 位偏主动",
+            "tone": "social",
+        })
+
+    character_states = [
+        {
+            "character_id": character.id,
+            "character_name": character.name,
+            "label": _ambient_need_label(character),
+            "talkativeness": _normalize_talkativeness(character.talkativeness),
+            "is_visitor": bool(character.is_visitor),
+        }
+        for character in characters[:8]
+    ]
+
+    if recent:
+        summary = f"{active_count} 位 NPC 在场，最近留下 {len(recent)} 条彼此交流。"
+    elif active_count > 1:
+        summary = f"{active_count} 位 NPC 在场，空间会按店主配置接住你的下一句话。"
+    elif active_count == 1:
+        summary = "1 位 NPC 正在空间里待命。"
+    else:
+        summary = "这间空间还没有配置驻场 NPC。"
+
+    return {
+        "summary": summary,
+        "active_character_count": active_count,
+        "visiting_character_count": visitor_count,
+        "social_memory_count": social_memory_count,
+        "signals": signals,
+        "recent": recent,
+        "character_states": character_states,
+    }
+
+
 def _entry_gameplay_payload(gameplay: dict[str, Any]) -> dict[str, Any]:
     """Small published gameplay summary for first-render task hints."""
     return {
@@ -843,6 +1028,7 @@ class Space:
         )
         result["llm_config"] = {"backend": visible_llm_config.backend}
         result["characters"] = [_entry_character_payload(character) for character in self.characters]
+        result["ambient_activity"] = _entry_ambient_activity_payload(self)
         result["gameplay_definitions"] = [
             _entry_gameplay_payload(gameplay)
             for gameplay in deepcopy(self.gameplay_definitions)
