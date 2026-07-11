@@ -39,13 +39,13 @@ export default function TerritoryRoute() {
   const [refreshKey, setRefreshKey] = useState(0)
 
   return (
-    <ProductShell eyebrow="Territory">
+    <ProductShell eyebrow="领地">
       <section className="space-y-6">
         <div className="overflow-hidden rounded-[2rem] border border-cyan-300/20 bg-gradient-to-br from-slate-950 via-indigo-950 to-slate-950 p-6 text-white shadow-2xl shadow-cyan-950/30 sm:p-8">
           <div className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr] lg:items-center">
             <div className="space-y-4">
               <span className="inline-flex items-center gap-2 rounded-full border border-cyan-200/25 bg-cyan-200/10 px-3 py-1 text-xs font-bold uppercase tracking-[0.2em] text-cyan-100">
-                <MapPinned className="h-4 w-4" /> Real-coordinate claim
+                <MapPinned className="h-4 w-4" /> 真实坐标申领
               </span>
               <h1 className="max-w-3xl text-4xl font-black tracking-tight sm:text-5xl">
                 为你的空间申领真实地图领地

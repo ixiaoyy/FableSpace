@@ -10,6 +10,7 @@ import { Link, useLoaderData } from "react-router"
 import { getVisitorEngagement, type VisitorEngagement } from "../lib/engagement"
 import { formatSpaceAnchorLocation } from "../product/mapAnchorCopy.js"
 import { DEFAULT_VISITOR_ID, errorMessage, listMemories, listSpaces, type MemoryAtom, type Space } from "../lib/spaces"
+import { WEB_PATHS, spacePath } from "../lib/web-routes"
 import { ProductShell } from "../shell/product-shell"
 import { Button } from "../ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card"
@@ -22,7 +23,7 @@ type HomeRouteLoaderData = {
   viewerRole: ViewerRole
 }
 
-const HOME_PLACE_CREATE_PATH = "/create?place_type=home"
+const HOME_PLACE_CREATE_PATH = `${WEB_PATHS.createSpace}?place_type=home`
 
 function cleanIdentity(value: string | null) {
   return typeof value === "string" ? value.trim() : ""
@@ -32,7 +33,7 @@ function buildHomePlaceHref(ownerId: string) {
   if (!ownerId) return HOME_PLACE_CREATE_PATH
   const params = new URLSearchParams({ place_type: "home" })
   params.set("owner_id", ownerId)
-  return `/create?${params.toString()}`
+  return `${WEB_PATHS.createSpace}?${params.toString()}`
 }
 
 type VisitorEngagementRow = {
@@ -105,12 +106,12 @@ function buildTrialVisitorId(spaceId: string, visitorId: string) {
  * @param mode Continue, restart, or temporary trial mode.
  * @returns A route href; it does not call APIs or mutate state.
  */
-function buildReturnVisitHref(spaceId: string, visitorId: string, mode: ReturnVisitMode) {
+function buildReturnVisitHref(space: Pick<Space, "id" | "name">, visitorId: string, mode: ReturnVisitMode) {
   const params = new URLSearchParams()
-  params.set("visitor_id", mode === "trial" ? buildTrialVisitorId(spaceId, visitorId) : visitorId)
+  params.set("visitor_id", mode === "trial" ? buildTrialVisitorId(space.id, visitorId) : visitorId)
   params.set("revisit", mode)
   if (mode === "trial") params.set("memory_mode", "trial")
-  return `/space/${encodeURIComponent(spaceId)}?${params.toString()}`
+  return `${spacePath(space)}?${params.toString()}`
 }
 
 /**
@@ -283,19 +284,19 @@ function ReturnVisitSurfacePanel({ viewerId }: { viewerId: string }) {
                   </p>
                   <div className="mt-3 grid gap-2 sm:grid-cols-3">
                     <Button asChild className="min-h-12">
-                      <Link to={buildReturnVisitHref(row.space.id, visitorId, "continue")}>
+                      <Link to={buildReturnVisitHref(row.space, visitorId, "continue")}>
                         <PlayCircle className="h-4 w-4" />
                         继续回访
                       </Link>
                     </Button>
                     <Button asChild variant="secondary" className="min-h-12">
-                      <Link to={buildReturnVisitHref(row.space.id, visitorId, "restart")}>
+                      <Link to={buildReturnVisitHref(row.space, visitorId, "restart")}>
                         <RotateCcw className="h-4 w-4" />
                         从入口重开
                       </Link>
                     </Button>
                     <Button asChild variant="ghost" className="min-h-12">
-                      <Link to={buildReturnVisitHref(row.space.id, visitorId, "trial")}>
+                      <Link to={buildReturnVisitHref(row.space, visitorId, "trial")}>
                         <DoorOpen className="h-4 w-4" />
                         临时试游
                       </Link>
@@ -309,7 +310,7 @@ function ReturnVisitSurfacePanel({ viewerId }: { viewerId: string }) {
           <div data-return-visit-empty data-return-visit-loaded className="rounded-2xl border border-theme-border bg-theme-card p-4 text-sm leading-6 text-theme-muted">
             还没有可回访空间。先去发现公开空间。
             <Button asChild variant="secondary" className="mt-3 w-full justify-start">
-              <Link to="/discover">
+              <Link to={WEB_PATHS.spaces}>
                 <Compass className="h-4 w-4" />
                 去发现公开空间
               </Link>
@@ -448,7 +449,7 @@ function VisitorEngagementSummaryPanel({ viewerId }: { viewerId: string }) {
             {topRows.map(({ space, progress }) => (
               <Link
                 key={space.id}
-                to={`/space/${encodeURIComponent(space.id)}`}
+                to={spacePath(space)}
                 className="flex min-h-14 items-center justify-between gap-3 rounded-2xl border border-theme-border bg-theme-card p-3 text-sm transition hover:border-theme-accent-border"
               >
                 <span className="min-w-0">
@@ -494,11 +495,11 @@ export async function clientLoader({ request }: ClientLoaderFunctionArgs): Promi
 export default function HomeMePage() {
   const { ownerId, viewerId, viewerRole } = useLoaderData<typeof clientLoader>()
   const homePlaceHref = buildHomePlaceHref(ownerId)
-  const ownerHref = ownerId ? `/owner?owner_id=${encodeURIComponent(ownerId)}` : "/owner"
+  const ownerHref = ownerId ? `${WEB_PATHS.owner}?owner_id=${encodeURIComponent(ownerId)}` : WEB_PATHS.owner
   const isOwnerView = viewerRole === "owner"
 
   return (
-    <ProductShell eyebrow="Home">
+    <ProductShell eyebrow="我的家">
       <section
         data-home-route-mode="personal-center"
         className="grid gap-6 lg:grid-cols-[minmax(0,1.1fr)_minmax(320px,0.9fr)]"
@@ -600,7 +601,7 @@ export default function HomeMePage() {
                     如果你是访客，可以从主人分享的链接进入具体空间，也可以在发现页看看公开空间。
                   </p>
                   <Button asChild variant="secondary" className="min-h-12 w-full justify-start">
-                    <Link to="/discover">去发现公开空间</Link>
+                    <Link to={WEB_PATHS.spaces}>去发现公开空间</Link>
                   </Button>
                 </>
               )}

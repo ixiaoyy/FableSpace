@@ -44,6 +44,7 @@ import {
   type SpaceVisitorNote,
   type SpaceVisitor,
 } from "../lib/spaces"
+import { WEB_PATHS, clueHuntPath, spaceManagePath } from "../lib/web-routes"
 import { ProductShell } from "../shell/product-shell"
 import { Button } from "../ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card"
@@ -79,8 +80,8 @@ function formatNumber(value: number) {
   return Number(value || 0).toLocaleString("zh-CN")
 }
 
-function ownerSpaceManagePath(spaceId: string, ownerId: string) {
-  return `/space/${encodeURIComponent(spaceId)}/manage?owner_id=${encodeURIComponent(ownerId)}`
+function ownerSpaceManagePath(spaceId: string, ownerId: string, spaceName = "空间") {
+  return `${spaceManagePath({ id: spaceId, name: spaceName })}?owner_id=${encodeURIComponent(ownerId)}`
 }
 
 export async function clientLoader({ request }: ClientLoaderFunctionArgs): Promise<OwnerLoaderData> {
@@ -221,7 +222,7 @@ function ClueHuntBuilderCard({ ownerId, spaces }: { ownerId: string; spaces: Spa
           { id: "node_2", space_id: secondSpaceId, clue: secondClue, answer: secondAnswer, hint: "第二站会在第一题答对后显示。" },
         ],
       }, ownerId)
-      setRouteLink(`/clue-hunts/${encodeURIComponent(data.route.id)}`)
+      setRouteLink(clueHuntPath(data.route))
       setMessage("寻宝路线已创建。访客只会看到第一站，不会拿到答案。")
     } catch (error) {
       setMessage(errorMessage(error))
@@ -328,8 +329,8 @@ export default function OwnerRoute() {
   )
 
   return (
-    <ProductShell eyebrow="Owner">
-      <section id="owner-mainline" className="grid scroll-mt-28 gap-6 lg:grid-cols-[0.78fr_1.22fr] lg:items-start">
+    <ProductShell eyebrow="店主后台">
+      <section id="店主主线" className="grid scroll-mt-28 gap-6 lg:grid-cols-[0.78fr_1.22fr] lg:items-start">
         <aside className="space-y-5">
           <Card className="overflow-hidden">
             <CardHeader>
@@ -360,19 +361,19 @@ export default function OwnerRoute() {
 
               <div className="grid gap-3 sm:grid-cols-2">
                 <Button asChild size="lg">
-                  <Link to={`/create?owner_id=${encodeURIComponent(ownerId)}`}>
+                  <Link to={`${WEB_PATHS.createSpace}?owner_id=${encodeURIComponent(ownerId)}`}>
                     <Sparkles className="h-4 w-4" />
                     开店 / AI 草稿辅助
                   </Link>
                 </Button>
                 <Button asChild size="lg" variant="secondary">
-                  <Link to="/discover">
+                  <Link to={WEB_PATHS.spaces}>
                     <DoorOpen className="h-4 w-4" />
                     查看发现页入口
                   </Link>
                 </Button>
                 <Button asChild size="lg" variant="secondary" className="sm:col-span-2">
-                  <Link to={`/territory?owner_id=${encodeURIComponent(ownerId)}`}>
+                  <Link to={`${WEB_PATHS.territory}?owner_id=${encodeURIComponent(ownerId)}`}>
                     <Compass className="h-4 w-4" />
                     领地地图申领
                   </Link>
@@ -615,7 +616,7 @@ export default function OwnerRoute() {
                   <p className="mt-3 text-sm leading-6 text-theme-muted">{note.content || "访客未留下文字内容"}</p>
                   {note.spaceId ? (
                     <Button asChild size="sm" variant="ghost" className="mt-3">
-                      <Link to={ownerSpaceManagePath(note.spaceId, ownerId)}>
+                      <Link to={ownerSpaceManagePath(note.spaceId, ownerId, note.spaceName)}>
                         进入管理页处理反馈
                         <ArrowRight className="h-4 w-4" />
                       </Link>
@@ -641,7 +642,7 @@ export default function OwnerRoute() {
                   {summary.spaceHighlights.map((item) => (
                     <Link
                       key={item.spaceId}
-                      to={ownerSpaceManagePath(item.spaceId, ownerId)}
+                      to={ownerSpaceManagePath(item.spaceId, ownerId, item.spaceName)}
                       className="group grid gap-4 rounded-2xl border border-theme-border bg-theme-card p-4 transition hover:border-theme-accent-border hover:bg-theme-accent-bg sm:grid-cols-[minmax(0,1fr)_auto]"
                     >
                       <div className="min-w-0">

@@ -144,10 +144,11 @@ class TavernManagementApplicationMixin:
         return self.taverns.create_space(data, owner_id)
 
     def get_space(self, space_id: str, user_id: str = "", view: str = "") -> dict[str, Any]:
-        return self.taverns.get_space(space_id, user_id, view=view)
+        tavern = self._resolve_public_space_reference_or_404(space_id)
+        return self.taverns.get_space(tavern.id, user_id, view=view)
 
     def get_tavern_share(self, space_id: str, user_id: str = "", base_url: str = "") -> dict[str, Any]:
-        tavern = self._get_tavern_or_404(space_id)
+        tavern = self._resolve_public_space_reference_or_404(space_id)
         self._ensure_visible(tavern, user_id)
         return build_space_share_payload(tavern, base_url=base_url)
 

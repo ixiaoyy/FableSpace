@@ -1,6 +1,8 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useSyncExternalStore } from "react"
 import { useLocation } from "react-router"
 
+import { WEB_PATHS } from "../lib/web-routes"
+
 type Theme = "dark" | "light"
 
 interface ThemeContextType {
@@ -43,7 +45,7 @@ function subscribeToThemeChanges(onStoreChange: () => void) {
 }
 
 function supportsLightTheme(pathname: string) {
-  return pathname === "/" || pathname === "/discover" || pathname.startsWith("/discover/")
+  return pathname === WEB_PATHS.home || pathname === WEB_PATHS.spaces || pathname.startsWith(`${WEB_PATHS.spaces}/`)
 }
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {

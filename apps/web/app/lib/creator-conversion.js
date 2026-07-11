@@ -1,3 +1,5 @@
+import { WEB_PATHS, ownerProfilePath } from "./web-routes"
+
 const DEFAULT_CREATE_LAT = "31.2304"
 const DEFAULT_CREATE_LON = "121.4737"
 
@@ -25,8 +27,8 @@ function safeQueryCoordinate(value, fallback) {
 // Build a link to the creator's public profile page
 export function buildCreatorProfileLink(ownerId = "") {
   const safeId = toText(ownerId)
-  if (!safeId) return "/discover"
-  return `/creator/${encodeURIComponent(safeId)}`
+  if (!safeId) return WEB_PATHS.spaces
+  return ownerProfilePath(safeId)
 }
 
 // Build a link to create a new space (with optional prefilled data)
@@ -45,7 +47,7 @@ export function buildCreatorConversionLink(space = {}) {
   if (sourceOwnerId) params.set("source_creator", sourceOwnerId)
 
   const query = params.toString()
-  return query ? `/create?${query}` : "/create"
+  return query ? `${WEB_PATHS.createSpace}?${query}` : WEB_PATHS.createSpace
 }
 
 export function readCreatePrefill(searchParams = new URLSearchParams()) {

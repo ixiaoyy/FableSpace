@@ -1,7 +1,7 @@
 import type { ClientLoaderFunctionArgs } from "react-router"
 import { Compass, Gift, MapPinned } from "lucide-react"
 import { useState } from "react"
-import { Link, useLoaderData } from "react-router"
+import { Link, replace, useLoaderData } from "react-router"
 
 import {
   DEFAULT_VISITOR_ID,
@@ -13,6 +13,7 @@ import {
   type ClueHuntRoutePayload,
   type ClueHuntSessionPayload,
 } from "../lib/spaces"
+import { clueHuntPath, redirectPathForRequest } from "../lib/web-routes"
 import { ProductShell } from "../shell/product-shell"
 import { Button } from "../ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card"
@@ -23,14 +24,21 @@ type LoaderData = {
   error: string
 }
 
-export async function clientLoader({ params }: ClientLoaderFunctionArgs): Promise<LoaderData> {
-  const routeId = params.routeId || ""
-  if (!routeId) return { routeId, route: null, error: "缺少寻宝路线 ID" }
+export async function clientLoader({ params, request }: ClientLoaderFunctionArgs): Promise<LoaderData> {
+  const routeRef = params.routeRef || ""
+  if (!routeRef) return { routeId: "", route: null, error: "缺少寻宝路线引用" }
   try {
-    const data = await getClueHuntRoute(routeId)
+    const data = await getClueHuntRoute(routeRef)
+    const routeId = data.route.id
+    const url = new URL(request.url)
+    const canonicalPath = clueHuntPath(data.route)
+    if (url.pathname !== new URL(canonicalPath, url.origin).pathname) {
+      throw replace(redirectPathForRequest(request, canonicalPath))
+    }
     return { routeId, route: data.route, error: "" }
   } catch (error) {
-    return { routeId, route: null, error: errorMessage(error) }
+    if (error instanceof Response) throw error
+    return { routeId: routeRef, route: null, error: errorMessage(error) }
   }
 }
 
@@ -96,7 +104,7 @@ export default function ClueHuntRoute() {
   }
 
   return (
-    <ProductShell eyebrow="Clue Hunt">
+    <ProductShell eyebrow="寻宝">
       <section className="mx-auto grid max-w-5xl gap-5">
         <Card className="overflow-hidden border-theme-accent-border bg-theme-accent-bg">
           <CardHeader>

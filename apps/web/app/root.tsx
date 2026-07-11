@@ -1,5 +1,5 @@
 import type { LinksFunction, MetaFunction } from "react-router"
-import { Links, Meta, Outlet, Scripts, ScrollRestoration } from "react-router"
+import { Links, Meta, Navigate, Outlet, Scripts, ScrollRestoration, useLocation } from "react-router"
 import { ThemeProvider } from "./hooks/useTheme"
 
 import "./styles.css"
@@ -36,6 +36,20 @@ export function Layout({ children }: { children: React.ReactNode }) {
 }
 
 export default function Root() {
+  const location = useLocation()
+  const canonicalPathname = location.pathname === "/"
+    ? "/"
+    : location.pathname.replace(/\/+$/, "") || "/"
+
+  if (canonicalPathname !== location.pathname) {
+    return (
+      <Navigate
+        replace
+        to={{ pathname: canonicalPathname, search: location.search, hash: location.hash }}
+      />
+    )
+  }
+
   return (
     <ThemeProvider>
       <Outlet />

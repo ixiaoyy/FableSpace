@@ -10,8 +10,10 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from fablespace_api.api.response_envelope import add_api_response_envelope_middleware
 from fablespace_api.api.v1.router import api_router
+from fablespace_api.application.clue_hunts import ClueHuntApplicationService
 from fablespace_api.application.spaces import SpaceApplicationService
 from fablespace_api.application.territories import TerritoryApplicationService
+from fablespace_api.core.clue_hunt import ClueHuntStore
 from fablespace_api.infrastructure.settings import ApiSettings as NativeApiSettings
 from fablespace_api.infrastructure.storage import (
     configure_process_stores,
@@ -81,6 +83,10 @@ def create_web_app(settings: ApiSettings) -> FastAPI:
         create_owner_config_store(native_settings, service.space_store),
         create_visitor_note_store(native_settings, service.space_store),
         territory_service=territory_service,
+    )
+    app.state.clue_hunts = ClueHuntApplicationService(
+        ClueHuntStore(resolved.output_root / "clue_hunts.json"),
+        service.space_store,
     )
     app.state.sillytavern_url = resolved.sillytavern_url
     app.add_middleware(

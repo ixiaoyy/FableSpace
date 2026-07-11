@@ -1649,7 +1649,7 @@ export function SpaceChatWorkbench({
               ref={chatLogRef}
               data-entrance-reactions
               data-chat-log-compact
-              aria-label="chat log"
+              aria-label="聊天记录"
               className="min-h-[10rem] flex-1 space-y-4 overflow-y-auto p-4 sm:p-5"
             >
               {visibleMessages.map((line, index) => {

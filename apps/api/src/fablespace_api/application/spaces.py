@@ -6,6 +6,7 @@ from fastapi import HTTPException
 
 from fablespace_api.core.space import LLMConfig, Space, SpaceService, SpaceStore
 
+from ..domain.public_reference import parse_public_reference_code, public_reference_code
 from ..domain.space_policy import can_view_space, is_space_owner
 from ..infrastructure.owner_config_store import OwnerConfigStore
 from ..infrastructure.settings import ApiSettings
@@ -105,6 +106,34 @@ class SpaceApplicationService(
         if not tavern:
             raise HTTPException(status_code=404, detail="空间不存在")
         return tavern
+
+    def _resolve_public_space_reference_or_404(self, space_reference: str) -> Space:
+        """Resolve an exact internal ID or a derived public Space reference.
+
+        The readable name is deliberately ignored. A full scan is acceptable
+        for the current dataset and lets renamed references keep working. More
+        than one code match fails closed instead of selecting an arbitrary row.
+        """
+
+        code = parse_public_reference_code(space_reference)
+        if code:
+            list_all_spaces = getattr(self.store, "list_all_spaces", None)
+            candidates = list_all_spaces() if callable(list_all_spaces) else []
+            matches = [
+                tavern
+                for tavern in candidates
+                if public_reference_code("space", tavern.id) == code
+            ]
+            if len(matches) > 1:
+                raise HTTPException(status_code=409, detail="空间公开引用发生冲突，无法确定目标")
+            if not matches:
+                raise HTTPException(status_code=404, detail="空间不存在")
+            return matches[0]
+
+        exact = self.store.get_space(space_reference)
+        if exact:
+            return exact
+        raise HTTPException(status_code=404, detail="空间不存在")
 
     def _is_owner(self, tavern: Space, user_id: str) -> bool:
         return is_space_owner(tavern, user_id)

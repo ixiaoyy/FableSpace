@@ -5,6 +5,7 @@ import { derivePlaceTypeDisplay } from "../lib/place-types.js"
 import { buildSpaceFirstMinuteGuide } from "../lib/space-first-minute"
 import { type Space, type SpaceCharacter } from "../lib/spaces"
 import { cn } from "../lib/utils"
+import { spacePath } from "../lib/web-routes"
 import { Button } from "../ui/button"
 
 type SpacePreviewModalProps = {
@@ -203,7 +204,7 @@ export function SpacePreviewModal({ space, onClose }: SpacePreviewModalProps) {
           <div className="flex items-center justify-between gap-4">
             <p className="text-xs text-violet-100/55">预览内容仅展示公开信息</p>
             <Button asChild>
-              <Link to={`/space/${encodeURIComponent(space.id)}`} onClick={onClose}>
+              <Link to={spacePath(space)} onClick={onClose}>
                 <DoorOpen className="h-4 w-4" />
                 进入空间
               </Link>

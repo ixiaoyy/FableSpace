@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import uuid
 from typing import Any
+from urllib.parse import quote
 
 from fastapi import HTTPException
 
@@ -14,6 +15,12 @@ from fablespace_api.core.clue_hunt import (
     utc_now_iso,
 )
 from fablespace_api.core.space import TavernStore
+
+from fablespace_api.domain.public_reference import (
+    build_public_reference,
+    parse_public_reference_code,
+    public_reference_code,
+)
 
 
 def _require_identity(value: str, label: str = "用户身份") -> str:
@@ -42,6 +49,25 @@ class ClueHuntApplicationService:
         if not route:
             raise HTTPException(status_code=404, detail="寻宝路线不存在")
         return route
+
+    def _resolve_public_route_reference_or_404(self, route_reference: str) -> ClueHuntRoute:
+        code = parse_public_reference_code(route_reference)
+        if code:
+            matches = [
+                route
+                for route in self.store.list_routes()
+                if public_reference_code("clue-hunt", route.id) == code
+            ]
+            if len(matches) > 1:
+                raise HTTPException(status_code=409, detail="寻宝路线公开引用发生冲突，无法确定目标")
+            if not matches:
+                raise HTTPException(status_code=404, detail="寻宝路线不存在")
+            return matches[0]
+
+        exact = self.store.get_route(route_reference)
+        if exact:
+            return exact
+        raise HTTPException(status_code=404, detail="寻宝路线不存在")
 
     def _ensure_route_owner(self, route: ClueHuntRoute, user_id: str) -> None:
         if route.owner_id != _require_identity(user_id):
@@ -105,8 +131,10 @@ class ClueHuntApplicationService:
     def _route_public_summary(self, route: ClueHuntRoute) -> dict[str, Any]:
         first = route.nodes[0] if route.nodes else None
         first_tavern = self.space_store.get_space(first.space_id) if first else None
+        route_reference = build_public_reference("clue-hunt", route.id)
         return {
             "id": route.id,
+            "route_ref": route_reference,
             "title": route.title,
             "description": route.description,
             "status": route.status,
@@ -122,9 +150,11 @@ class ClueHuntApplicationService:
         tavern = tavern or self.space_store.get_space(node.space_id)
         if not tavern or tavern.access != "public":
             return {"id": node.id, "locked": True}
+        space_reference = build_public_reference("space", tavern.id)
         return {
             "id": node.id,
             "space_id": node.space_id,
+            "space_ref": space_reference,
             "space_name": tavern.name,
             "lat": tavern.lat,
             "lon": tavern.lon,
@@ -132,7 +162,7 @@ class ClueHuntApplicationService:
             "clue": node.clue,
             "hint": node.hint,
             "unlocked_summary": node.unlocked_summary or tavern.description,
-            "to": f"/tavern/{node.space_id}",
+            "to": f"/空间/{quote(space_reference, safe='~')}",
         }
 
     def _session_payload(self, route: ClueHuntRoute, session: ClueHuntSession) -> dict[str, Any]:
@@ -184,39 +214,39 @@ class ClueHuntApplicationService:
         return {"routes": [self._route_owner_payload(route) for route in routes], "count": len(routes)}
 
     def get_public_route(self, route_id: str) -> dict[str, Any]:
-        route = self._get_route_or_404(route_id)
+        route = self._resolve_public_route_reference_or_404(route_id)
         if route.status != "published":
             raise HTTPException(status_code=404, detail="寻宝路线暂未发布")
         return {"route": self._route_public_summary(route)}
 
     def start_or_resume_session(self, route_id: str, data: dict[str, Any], user_id: str) -> dict[str, Any]:
-        route = self._get_route_or_404(route_id)
+        route = self._resolve_public_route_reference_or_404(route_id)
         if route.status != "published":
             raise HTTPException(status_code=404, detail="寻宝路线暂未发布")
         visitor_id = _require_identity((data or {}).get("visitor_id") or user_id, "访客身份")
-        session = self.store.get_session_for_visitor(route_id, visitor_id)
+        session = self.store.get_session_for_visitor(route.id, visitor_id)
         if not session:
             session = ClueHuntSession(
                 id=f"clue_session_{uuid.uuid4().hex[:12]}",
-                route_id=route_id,
+                route_id=route.id,
                 visitor_id=visitor_id,
             )
             self.store.save_session(session)
         return {"ok": True, "route": self._route_public_summary(route), "session": self._session_payload(route, session)}
 
     def get_session(self, route_id: str, session_id: str, user_id: str) -> dict[str, Any]:
-        route = self._get_route_or_404(route_id)
+        route = self._resolve_public_route_reference_or_404(route_id)
         session = self.store.get_session(session_id)
-        if not session or session.route_id != route_id:
+        if not session or session.route_id != route.id:
             raise HTTPException(status_code=404, detail="寻宝进度不存在")
         if session.visitor_id != _require_identity(user_id, "访客身份") and route.owner_id != user_id:
             raise HTTPException(status_code=403, detail="不能读取其他访客的寻宝进度")
         return {"session": self._session_payload(route, session)}
 
     def submit_answer(self, route_id: str, session_id: str, data: dict[str, Any], user_id: str) -> dict[str, Any]:
-        route = self._get_route_or_404(route_id)
+        route = self._resolve_public_route_reference_or_404(route_id)
         session = self.store.get_session(session_id)
-        if not session or session.route_id != route_id:
+        if not session or session.route_id != route.id:
             raise HTTPException(status_code=404, detail="寻宝进度不存在")
         visitor_id = _require_identity((data or {}).get("visitor_id") or user_id, "访客身份")
         if session.visitor_id != visitor_id:
@@ -259,9 +289,9 @@ class ClueHuntApplicationService:
         }
 
     def claim_reward(self, route_id: str, session_id: str, user_id: str) -> dict[str, Any]:
-        route = self._get_route_or_404(route_id)
+        route = self._resolve_public_route_reference_or_404(route_id)
         session = self.store.get_session(session_id)
-        if not session or session.route_id != route_id:
+        if not session or session.route_id != route.id:
             raise HTTPException(status_code=404, detail="寻宝进度不存在")
         if session.visitor_id != _require_identity(user_id, "访客身份"):
             raise HTTPException(status_code=403, detail="不能领取其他访客的寻宝奖励")

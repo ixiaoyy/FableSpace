@@ -13,6 +13,7 @@ import {
   recordRumorClick,
   recordRumorView,
 } from "../lib/spaces"
+import { spacePath } from "../lib/web-routes"
 
 type RumorBubbleProps = {
   spaceId: string
@@ -41,7 +42,7 @@ function RumorCard({
   onNavigate,
 }: {
   rumor: NeighborhoodRumor
-  onNavigate?: (targetSpaceId: string) => void
+  onNavigate?: (targetSpaceId: string, targetSpaceName: string) => void
 }) {
   async function handleClick() {
     // 记录点击
@@ -52,10 +53,10 @@ function RumorCard({
     }
     // 触发跳转
     if (onNavigate) {
-      onNavigate(rumor.target_space_id)
+      onNavigate(rumor.target_space_id, rumor.target_space_name)
     } else {
       // 默认行为：导航到目标空间
-      window.location.href = `/space/${encodeURIComponent(rumor.target_space_id)}`
+      window.location.href = spacePath({ id: rumor.target_space_id, name: rumor.target_space_name || "空间" })
     }
   }
 
@@ -117,11 +118,11 @@ export function NeighborhoodRumorBubble({ spaceId, limit = 3, onNavigate }: Rumo
   }, [spaceId, limit])
 
   const handleNavigate = useCallback(
-    (targetSpaceId: string) => {
+    (targetSpaceId: string, targetSpaceName: string) => {
       if (onNavigate) {
         onNavigate(targetSpaceId)
       } else {
-        window.location.href = `/space/${encodeURIComponent(targetSpaceId)}`
+        window.location.href = spacePath({ id: targetSpaceId, name: targetSpaceName || "空间" })
       }
     },
     [onNavigate],

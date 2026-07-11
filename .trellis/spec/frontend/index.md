@@ -26,6 +26,7 @@ Current frontend principles:
 ## Read only when touched
 
 - Images/NPC art: `image-asset-guidelines.md`, `npc-art-guidelines.md`
+- Web routes, links, redirects, and public references: `web-routing.md`
 - Focused feature specs were pruned. For feature work, inspect the live route/component/service/hook files and core product docs.
 - Add a new focused spec only when a durable frontend contract genuinely changes.
 

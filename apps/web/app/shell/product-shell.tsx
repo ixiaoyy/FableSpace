@@ -2,25 +2,26 @@ import { ClipboardList, Compass, Home, MapPinned, Sparkles, Store, UserRound } f
 import { NavLink } from "react-router"
 
 import { cn } from "../lib/utils"
+import { WEB_PATHS } from "../lib/web-routes"
 
 // Bottom dock keeps the P0 explorer path within thumb reach.
 // Creation and management are supply-side actions, so mobile does not foreground them.
 const bottomDockOrder = [
-  { to: "/", label: "镜像面", icon: Home },
-  { to: "/discover", label: "发现", icon: Compass },
-  { to: "/quests", label: "游玩", icon: ClipboardList },
-  { to: "/home-me", label: "回访", icon: UserRound },
-  { to: "/discover?view=expanded", label: "更多", icon: MapPinned },
+  { to: WEB_PATHS.home, label: "镜像面", icon: Home },
+  { to: WEB_PATHS.spaces, label: "发现", icon: Compass },
+  { to: WEB_PATHS.quests, label: "游玩", icon: ClipboardList },
+  { to: WEB_PATHS.myHome, label: "回访", icon: UserRound },
+  { to: `${WEB_PATHS.spaces}?view=expanded`, label: "更多", icon: MapPinned },
 ]
 
 // Desktop can expose owner supply-side tools without making them the visitor's main path.
 const topNavItems = [
-  { to: "/", label: "镜像面", icon: Home },
-  { to: "/discover", label: "发现空间", icon: Compass },
-  { to: "/quests", label: "游玩指南", icon: ClipboardList },
-  { to: "/home-me", label: "我的回访", icon: UserRound },
-  { to: "/create", label: "店主开设", icon: Store },
-  { to: "/owner", label: "店主后台", icon: MapPinned },
+  { to: WEB_PATHS.home, label: "镜像面", icon: Home },
+  { to: WEB_PATHS.spaces, label: "发现空间", icon: Compass },
+  { to: WEB_PATHS.quests, label: "游玩指南", icon: ClipboardList },
+  { to: WEB_PATHS.myHome, label: "我的回访", icon: UserRound },
+  { to: WEB_PATHS.createSpace, label: "店主开设", icon: Store },
+  { to: WEB_PATHS.owner, label: "店主后台", icon: MapPinned },
 ]
 
 const MOBILE_CRITICAL_FLOW_GUIDES: Record<string, {
@@ -29,29 +30,29 @@ const MOBILE_CRITICAL_FLOW_GUIDES: Record<string, {
   primaryLabel: string
   href: string
 }> = {
-  Discover: {
+  发现空间: {
     title: "先找到一个想进入的镜像空间",
     helper: "按地点、空间类型和心情筛选；优先进入有坐标、NPC 和第一步动作的空间。",
     primaryLabel: "查看推荐空间",
-    href: "#discover-mainline",
+    href: "#发现主线",
   },
-  Guide: {
+  任务指南: {
     title: "先选一个安全探索方向",
     helper: "探索指南只提供下一步建议，不保存完成记录，不做等级、装备或排名。",
     primaryLabel: "查看探索指南",
-    href: "#guide-mainline",
+    href: "#任务主线",
   },
-  Create: {
+  新建空间: {
     title: "店主后台：先定空间体验",
     helper: "创建是供给侧能力：先确定地理位置背景、空间类型、NPC 职责和第一分钟玩法。",
     primaryLabel: "配置空间体验",
-    href: "#create-mainline",
+    href: "#新建主线",
   },
-  Owner: {
+  店主后台: {
     title: "先处理一个店主待办",
     helper: "先看最近需要处理的事项，再查看经营摘要和回访记录。",
     primaryLabel: "查看待办",
-    href: "#owner-mainline",
+    href: "#店主主线",
   },
 }
 
@@ -67,10 +68,10 @@ export function ProductShell({
   return (
     <main className="relative min-h-screen overflow-hidden bg-theme-bg text-theme-primary">
       {/* Background is now handled in styles.css body::before */}
-      <header className="sticky top-0 z-40 border-b border-theme-border bg-theme-header backdrop-blur-xl" aria-label="FableSpace navigation">
+      <header className="sticky top-0 z-40 border-b border-theme-border bg-theme-header backdrop-blur-xl" aria-label="FableSpace 主导航">
         <div className="mx-auto flex max-w-[1320px] flex-col gap-4 px-4 py-4 sm:px-6 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex items-center justify-between">
-            <NavLink to="/" end className="flex min-h-11 w-fit touch-manipulation items-center gap-3">
+            <NavLink to={WEB_PATHS.home} end className="flex min-h-11 w-fit touch-manipulation items-center gap-3">
               <span className="grid h-10 w-10 place-items-center rounded-full border border-theme-accent-border bg-theme-accent-bg text-sm font-black text-theme-accent-text shadow-[0_0_28px_rgba(0,214,201,0.18)]">
                 FM
               </span>
@@ -82,12 +83,12 @@ export function ProductShell({
           </div>
           
           <div className="flex items-center gap-4">
-            <nav className="-mx-1 hidden max-w-full flex-wrap items-center gap-2 overflow-x-auto px-1 pb-1 lg:flex" aria-label="Primary navigation">
+            <nav className="-mx-1 hidden max-w-full flex-wrap items-center gap-2 overflow-x-auto px-1 pb-1 lg:flex" aria-label="主导航">
               {topNavItems.map((item) => (
                 <NavLink
                   key={item.to}
                   to={item.to}
-                  end={item.to === "/"}
+                  end={item.to === WEB_PATHS.home}
                   className={({ isActive }) =>
                     cn(
                       "inline-flex min-h-11 touch-manipulation items-center rounded-full border px-4 py-2 text-sm font-semibold transition",
@@ -108,13 +109,13 @@ export function ProductShell({
 
       <nav
         className="mobile-bottom-dock fixed inset-x-3 bottom-3 z-50 grid grid-cols-5 gap-1 rounded-[1.5rem] border border-theme-border bg-theme-header p-1.5 shadow-2xl shadow-black/20 backdrop-blur-xl lg:hidden"
-        aria-label="Mobile navigation"
+        aria-label="移动端导航"
       >
         {bottomDockOrder.map((item) => (
           <NavLink
             key={item.to}
             to={item.to}
-            end={item.to === "/"}
+            end={item.to === WEB_PATHS.home}
             className={({ isActive }) =>
               cn(
                 "flex min-h-14 touch-manipulation flex-col items-center justify-center gap-1 rounded-[1.1rem] px-2 text-[0.68rem] font-bold transition",
@@ -139,7 +140,7 @@ export function ProductShell({
           <section
             data-mobile-critical-flow
             className="mb-5 rounded-[1.75rem] border border-theme-accent-border bg-theme-accent-bg p-4 shadow-[0_18px_70px_rgba(34,211,238,0.08)] lg:hidden"
-            aria-label="Mobile critical flow"
+            aria-label="移动端关键流程"
           >
             <p className="text-xs font-black uppercase tracking-[0.2em] text-theme-accent-text opacity-70">移动端提示</p>
             <h2 className="mt-2 text-xl font-black leading-tight text-theme-primary">{mobileGuide.title}</h2>

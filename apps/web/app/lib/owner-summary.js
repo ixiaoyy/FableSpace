@@ -1,4 +1,5 @@
 import { getAffinityStageMeta } from "./affinity.js"
+import { WEB_PATHS } from "./web-routes"
 
 function asArray(value) {
   return Array.isArray(value) ? value : []
@@ -142,7 +143,7 @@ function buildNextActions(metrics, spaces, returningHighlights, latestFeedback) 
       kind: "create_first_space",
       title: "先开出第一间空间",
       detail: "创建一间真实坐标锚定的空间，让发现页有第一个可进入入口。",
-      to: "/create",
+      to: WEB_PATHS.createSpace,
     })
     return actions
   }
@@ -162,7 +163,7 @@ function buildNextActions(metrics, spaces, returningHighlights, latestFeedback) 
       kind: "configure_owner_llm",
       title: "检查店主默认 AI 配置",
       detail: "默认 AI 未配置或不可确认。AI 草稿只是辅助，保存发布仍需要店主确认。",
-      to: "/create",
+      to: WEB_PATHS.createSpace,
     })
   }
 
@@ -189,7 +190,7 @@ function buildNextActions(metrics, spaces, returningHighlights, latestFeedback) 
       kind: "invite_first_visitor",
       title: "让第一个访客完成对话",
       detail: "当前还没有会话记录。可以从发现页进入自己的公开空间，验证首句问候和 NPC 回复。",
-      to: "/discover",
+      to: WEB_PATHS.spaces,
     })
   }
 

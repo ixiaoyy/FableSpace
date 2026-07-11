@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import Any
 from urllib.parse import quote
 
+from .public_reference import build_public_reference
 from .space_policy import clean_text
 
 
@@ -32,14 +33,17 @@ def build_space_share_payload(tavern: Any, *, base_url: str = "") -> dict[str, A
     name = clean_text(getattr(tavern, "name", "") or "未命名空间", max_length=80) or "未命名空间"
     description = clean_text(getattr(tavern, "description", ""), max_length=200)
     short_description = clean_text(getattr(tavern, "description", ""), max_length=80)
-    encoded_id = quote(space_id, safe="")
+    space_reference = build_public_reference("space", space_id)
+    encoded_reference = quote(space_reference, safe="~")
     normalized_base_url = str(base_url or "").rstrip("/")
-    share_url = f"{normalized_base_url}/tavern/{encoded_id}" if normalized_base_url else f"/tavern/{encoded_id}"
+    share_path = f"/空间/{encoded_reference}"
+    share_url = f"{normalized_base_url}{share_path}" if normalized_base_url else share_path
     characters = [_character_payload(character) for character in getattr(tavern, "characters", [])]
     summary = short_description or "店主还没有写下公开简介。"
 
     return {
         "space_id": space_id,
+        "space_ref": space_reference,
         "title": name,
         "description": description,
         "short_description": short_description,

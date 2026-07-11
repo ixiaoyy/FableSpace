@@ -10,13 +10,14 @@ import {
   UsersRound,
 } from "lucide-react"
 import { useState } from "react"
-import { Link, useLoaderData } from "react-router"
+import { Link, replace, useLoaderData } from "react-router"
 import homeBlackHeroVisual from "../assets/fable-space-05-10/home-black/hero-system-visual.png"
 import { SpaceChatWorkbench } from "../features/space-chat-workbench"
 import { resolveHomepageSpaceCover } from "../lib/homepage-spaces"
 import { derivePlaceTypeDisplay } from "../lib/place-types.js"
 import { fallbackRoleplayState } from "../lib/roleplay-state"
 import { buildSpaceFirstMinuteGuide } from "../lib/space-first-minute"
+import { redirectPathForRequest, spacePath, WEB_PATHS } from "../lib/web-routes"
 import {
   DEFAULT_VISITOR_ID,
   errorMessage,
@@ -47,13 +48,19 @@ function getCurrentUserIdFromRequest(request: Request) {
 }
 
 export async function clientLoader({ params, request }: ClientLoaderFunctionArgs): Promise<SpaceLoaderData> {
-  const spaceId = params.spaceId ?? ""
+  const spaceRef = params.spaceRef ?? ""
   const currentUserId = getCurrentUserIdFromRequest(request)
-  if (!spaceId) {
-    return { spaceId, currentUserId, space: null, roleplay: null, error: "缺少空间 ID" }
+  if (!spaceRef) {
+    return { spaceId: "", currentUserId, space: null, roleplay: null, error: "缺少空间引用" }
   }
   try {
-    const space = await getSpace(spaceId, currentUserId, { view: "entry" })
+    const space = await getSpace(spaceRef, currentUserId, { view: "entry" })
+    const spaceId = space.id
+    const url = new URL(request.url)
+    const canonicalPath = spacePath(space)
+    if (url.pathname !== new URL(canonicalPath, url.origin).pathname) {
+      throw replace(redirectPathForRequest(request, canonicalPath))
+    }
     let roleplay: RoleplayState | null = null
     try {
       roleplay = await getRoleplayState(spaceId, currentUserId)
@@ -62,7 +69,8 @@ export async function clientLoader({ params, request }: ClientLoaderFunctionArgs
     }
     return { spaceId, currentUserId, space, roleplay, error: "" }
   } catch (error) {
-    return { spaceId, currentUserId, space: null, roleplay: null, error: errorMessage(error) }
+    if (error instanceof Response) throw error
+    return { spaceId: spaceRef, currentUserId, space: null, roleplay: null, error: errorMessage(error) }
   }
 }
 
@@ -136,7 +144,7 @@ function SpaceTopBar({ space }: { space: Space }) {
    * @returns Promise that resolves after UI status is updated; writes only to clipboard when available.
    */
   async function handleShareClick() {
-    const url = typeof window !== "undefined" ? window.location.href : `/space/${space.id}`
+    const url = typeof window !== "undefined" ? window.location.href : spacePath(space)
     try {
       if (!navigator?.clipboard?.writeText) {
         setShareStatus("复制不可用")
@@ -152,7 +160,7 @@ function SpaceTopBar({ space }: { space: Space }) {
   return (
     <div className="mb-4 flex min-w-0 items-center justify-between gap-3">
       <Link
-        to="/discover"
+        to={WEB_PATHS.spaces}
         className="inline-flex min-h-11 items-center gap-2 rounded-full border border-white/10 bg-white/[0.045] px-3.5 text-sm font-black text-cyan-50 backdrop-blur transition hover:border-cyan-200/30 hover:bg-cyan-300/10"
       >
         <ArrowLeft className="h-4 w-4" />
@@ -238,7 +246,7 @@ function SpaceHeroPanel({ space, isOwner }: { space: Space; isOwner: boolean }) 
 
         <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
           <Link
-            to="/discover"
+            to={WEB_PATHS.spaces}
             className="inline-flex min-h-14 w-full touch-manipulation items-center justify-center gap-2 rounded-[1.05rem] border border-cyan-200/18 bg-slate-950/52 px-7 text-base font-black text-cyan-50 backdrop-blur transition hover:border-cyan-200/38 hover:bg-cyan-300/10 sm:w-auto"
           >
             返回发现
@@ -268,7 +276,7 @@ function SpaceMobileHeader({ space }: { space: Space }) {
   return (
     <header className="mb-4 lg:hidden">
       <div className="flex items-center justify-between gap-3 rounded-[1.2rem] border border-cyan-200/16 bg-[#061126]/86 p-3 shadow-[0_18px_42px_rgba(0,0,0,0.28)]">
-        <Link to="/discover" className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl border border-cyan-200/18 bg-cyan-300/10 text-cyan-50" aria-label="返回发现">
+        <Link to={WEB_PATHS.spaces} className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl border border-cyan-200/18 bg-cyan-300/10 text-cyan-50" aria-label="返回发现">
           <ArrowLeft className="h-5 w-5" />
         </Link>
         <div className="min-w-0 flex-1">
@@ -311,7 +319,7 @@ function SpaceSpacePage({
         <div className="min-w-0 space-y-5">
           <div className="grid min-w-0 gap-4 xl:grid-cols-[minmax(0,0.82fr)_minmax(680px,1.18fr)] xl:items-stretch">
             <SpaceHeroPanel space={space} isOwner={isOwner} />
-            <section id="space-mainline" className="scroll-mt-6 rounded-[1.4rem] border border-cyan-200/16 bg-[#061126]/78 p-3 shadow-[0_30px_86px_rgba(0,0,0,0.30)] sm:p-4 xl:h-[640px] xl:overflow-hidden">
+            <section id="空间主线" className="scroll-mt-6 rounded-[1.4rem] border border-cyan-200/16 bg-[#061126]/78 p-3 shadow-[0_30px_86px_rgba(0,0,0,0.30)] sm:p-4 xl:h-[640px] xl:overflow-hidden">
               <div className="mb-4 flex items-center justify-between gap-4 px-1">
                 <div>
                   <h2 className="text-xl font-black text-white">角色与聊天</h2>
@@ -339,7 +347,7 @@ function SpaceErrorPage({ spaceId, error }: { spaceId: string; error: string }) 
     <main className="relative min-h-screen overflow-hidden bg-[#020710] px-4 py-8 text-white">
       <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(135deg,#061226_0%,#030712_48%,#020710_100%)]" />
       <div className="relative mx-auto max-w-3xl">
-        <Link to="/discover" className="inline-flex min-h-11 items-center gap-2 rounded-2xl border border-cyan-200/18 bg-cyan-300/10 px-4 text-sm font-black text-cyan-50">
+        <Link to={WEB_PATHS.spaces} className="inline-flex min-h-11 items-center gap-2 rounded-2xl border border-cyan-200/18 bg-cyan-300/10 px-4 text-sm font-black text-cyan-50">
           <ArrowLeft className="h-4 w-4" />
           返回发现
         </Link>

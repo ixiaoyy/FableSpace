@@ -1,6 +1,6 @@
 import type { ClientLoaderFunctionArgs } from "react-router"
 import { ArrowRight, DoorOpen, ShieldCheck, Store } from "lucide-react"
-import { Link, useLoaderData } from "react-router"
+import { Link, replace, useLoaderData } from "react-router"
 
 import { SpaceOwnerManagement } from "../features/space-owner-management"
 import {
@@ -11,6 +11,7 @@ import {
   type RoleplayState,
   type Space,
 } from "../lib/spaces"
+import { redirectPathForRequest, spaceManagePath, spacePath, WEB_PATHS } from "../lib/web-routes"
 import { ProductShell } from "../shell/product-shell"
 import { Button } from "../ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card"
@@ -33,19 +34,21 @@ function getOwnerIdFromRequest(request: Request) {
   )
 }
 
-function visitorPreviewPath(spaceId: string) {
-  return `/space/${encodeURIComponent(spaceId)}`
-}
-
 export async function clientLoader({ params, request }: ClientLoaderFunctionArgs): Promise<SpaceManageLoaderData> {
-  const spaceId = params.spaceId ?? ""
+  const spaceRef = params.spaceRef ?? ""
   const currentUserId = getOwnerIdFromRequest(request)
-  if (!spaceId) {
-    return { spaceId, currentUserId, space: null, roleplay: null, isOwner: false, error: "缺少空间 ID" }
+  if (!spaceRef) {
+    return { spaceId: "", currentUserId, space: null, roleplay: null, isOwner: false, error: "缺少空间引用" }
   }
 
   try {
-    const space = await getSpace(spaceId, currentUserId)
+    const space = await getSpace(spaceRef, currentUserId)
+    const spaceId = space.id
+    const url = new URL(request.url)
+    const canonicalPath = spaceManagePath(space)
+    if (url.pathname !== new URL(canonicalPath, url.origin).pathname) {
+      throw replace(redirectPathForRequest(request, canonicalPath))
+    }
     const isOwner = Boolean(space.owner_id && space.owner_id === currentUserId)
     let roleplay: RoleplayState | null = null
     if (isOwner) {
@@ -57,13 +60,14 @@ export async function clientLoader({ params, request }: ClientLoaderFunctionArgs
     }
     return { spaceId, currentUserId, space, roleplay, isOwner, error: "" }
   } catch (error) {
-    return { spaceId, currentUserId, space: null, roleplay: null, isOwner: false, error: errorMessage(error) }
+    if (error instanceof Response) throw error
+    return { spaceId: spaceRef, currentUserId, space: null, roleplay: null, isOwner: false, error: errorMessage(error) }
   }
 }
 
 export default function SpaceManageRoute() {
   const { spaceId, currentUserId, space, roleplay, isOwner, error } = useLoaderData<typeof clientLoader>()
-  const previewPath = visitorPreviewPath(spaceId)
+  const previewPath = space ? spacePath(space) : WEB_PATHS.spaces
 
   return (
     <ProductShell eyebrow="店主管理">
@@ -91,7 +95,7 @@ export default function SpaceManageRoute() {
                       </Link>
                     </Button>
                     <Button asChild>
-                      <Link to={`/owner?owner_id=${encodeURIComponent(currentUserId)}`}>
+                      <Link to={`${WEB_PATHS.owner}?owner_id=${encodeURIComponent(currentUserId)}`}>
                         返回经营看板
                         <ArrowRight className="h-4 w-4" />
                       </Link>
@@ -136,7 +140,7 @@ export default function SpaceManageRoute() {
                 </Link>
               </Button>
               <Button asChild variant="secondary">
-                <Link to="/owner">返回管理入口</Link>
+                <Link to={WEB_PATHS.owner}>返回管理入口</Link>
               </Button>
             </CardContent>
           </Card>

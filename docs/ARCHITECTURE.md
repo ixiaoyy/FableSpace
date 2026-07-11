@@ -96,6 +96,15 @@ FableSpace 同时保留两类 API 面：
 - 产品兼容模块继续使用 `apps/web/app/product/services/`。
 - 不在组件里散落复杂协议转换。
 
+网页路由契约：
+
+- 用户可见页面使用中文资源路径：空间集合 `/空间`、空间详情 `/空间/{spacePublicId}`，例如 `/空间/sbprKxgBpl4`；角色作为空间的子资源，例如 `/空间/{spacePublicId}/角色/{characterPublicId}`；寻宝和店主公开页分别使用 `/寻宝/{routePublicId}`、`/店主/{ownerPublicId}`。
+- public ID 是无前缀的 11 位 base64url 字符串。它由命名空间化的稳定内部身份经 UTF-8 FNV-1a 64-bit 得到 unsigned 值，再按 8-byte big-endian 做 base64url 编码并去掉 padding；展示名称不进入规范 URL。
+- 内部 `space_id` / `character_id` 仍是存储、API 写操作和关联关系的唯一身份，不把中文名称改成主键。
+- 旧 `~{11 位 public ID}`、`{展示名}~{20 位十进制公开码}` 与 `/space/*`、`/tavern/*`、`/npc/*` 等英文网页地址只作为只读兼容入口，通过 308 或 SPA replace redirect 规范化到无前缀 public ID 地址，不维护第二套页面。
+- `/api/v1/*` 保持英文复数资源名；当前只有 Space 主读取、Space share，以及 ClueHunt 公开读取与访客会话流程兼容内部 ID、旧公开引用和 public ID。其它 Space 子资源读取及所有管理写操作继续使用内部 ID。
+- 前端路径生成集中在 `apps/web/app/lib/web-routes.ts`，后端分享/寻宝链接使用同一公开引用算法，禁止在组件和服务里重新拼接页面路径。
+
 ### AI Dialogue Layer
 
 职责：

@@ -30,6 +30,7 @@ import {
 import { buildSpaceFirstMinuteGuide, getSpaceFirstMinuteSearchText } from "../lib/space-first-minute"
 import { buildSpaceIntentTags, getSpaceIntentTagsSearchText } from "../lib/space-intent-tags.js"
 import { errorMessage, listSpaces, type Space, type SpaceCharacter, type SpaceListResponse } from "../lib/spaces"
+import { spacePath } from "../lib/web-routes"
 import { buildMapAnchorCardCopy, formatSpaceAnchorLocation } from "../product/mapAnchorCopy.js"
 import { useTheme } from "../hooks/useTheme"
 import { ProductShell } from "../shell/product-shell"
@@ -456,10 +457,12 @@ type ShortDramaTeaser = NonNullable<ReturnType<typeof buildShortDramaTeaser>>
 
 function ShortDramaTeaserCard({
   teaser,
+  space,
   muted = false,
   compact = false,
 }: {
   teaser: ShortDramaTeaser
+  space: Pick<Space, "id" | "name">
   muted?: boolean
   compact?: boolean
 }) {
@@ -486,7 +489,7 @@ function ShortDramaTeaserCard({
         </div>
         {teaser.spaceId ? (
           <Link
-            to={`/space/${teaser.spaceId}`}
+            to={spacePath(space)}
             className={`inline-flex min-h-11 shrink-0 touch-manipulation items-center justify-center gap-1 rounded-full border px-3 py-2 text-xs font-black transition ${
               muted
                 ? "border-theme-border text-theme-primary/38"
@@ -827,7 +830,7 @@ function RadarEchoCard({ space, index, onPreview }: { space: Space; index: numbe
             {spaceWithTimeStatus.local_time_display ? (
               <span>{isClosed ? "已熄灯" : "亮灯中"} · {spaceWithTimeStatus.local_time_display}</span>
             ) : null}
-            <Link to={`/space/${space.id}`} className="ml-auto inline-flex min-h-11 touch-manipulation items-center gap-1 rounded-full border border-theme-accent-border px-4 py-2 font-bold text-theme-accent-text transition hover:bg-theme-accent-bg">
+            <Link to={spacePath(space)} className="ml-auto inline-flex min-h-11 touch-manipulation items-center gap-1 rounded-full border border-theme-accent-border px-4 py-2 font-bold text-theme-accent-text transition hover:bg-theme-accent-bg">
               进入
               <ArrowRight className="h-3 w-3" />
             </Link>
@@ -939,7 +942,7 @@ function ResultCard({
           </div>
         ) : null}
         {shortDramaTeaser ? (
-          <ShortDramaTeaserCard teaser={shortDramaTeaser} muted={isClosed} />
+          <ShortDramaTeaserCard teaser={shortDramaTeaser} space={space} muted={isClosed} />
         ) : null}
         <div className="flex flex-wrap items-center gap-2 text-xs font-bold">
           <span className="rounded-full border border-theme-accent-border bg-theme-accent-bg px-2.5 py-1 text-theme-accent-text">热度 {echoStrength(space, index)}%</span>
@@ -955,7 +958,7 @@ function ResultCard({
             预览
           </Button>
           <Button asChild size="sm">
-            <Link to={`/space/${space.id}`}>
+            <Link to={spacePath(space)}>
               进入
               <ArrowRight className="h-4 w-4" />
             </Link>
@@ -988,12 +991,12 @@ function DesktopRadarTelemetry({ spaces }: { spaces: Space[] }) {
     : 0
 
   return (
-    <div className="hidden gap-3 xl:grid xl:grid-cols-4" aria-label="Live telemetry">
+    <div className="hidden gap-3 xl:grid xl:grid-cols-4" aria-label="实时概览">
       {[
-        { label: "Live telemetry", value: `${spaces.length}`, helper: "坐标入口" },
-        { label: "Open spaces", value: `${openEchoes}`, helper: "正在亮起" },
-        { label: "Operated nearby", value: `${activeOperationCount}`, helper: "有人经营" },
-        { label: "Avg warmth", value: `${averageEcho}%`, helper: "平均热度" },
+        { label: "实时概览", value: `${spaces.length}`, helper: "坐标入口" },
+        { label: "开放空间", value: `${openEchoes}`, helper: "正在亮起" },
+        { label: "附近经营", value: `${activeOperationCount}`, helper: "有人经营" },
+        { label: "平均热度", value: `${averageEcho}%`, helper: "平均热度" },
       ].map((item) => (
         <div key={item.label} className="rounded-3xl border border-theme-border bg-theme-card p-4 backdrop-blur-xl">
           <p className="text-[0.65rem] font-black uppercase tracking-[0.22em] text-theme-accent-text">{item.label}</p>
@@ -1027,7 +1030,7 @@ function RadarBoard({ spaces, hasFilters, onPreview }: { spaces: Space[]; hasFil
       <div className="relative flex flex-col gap-5 lg:h-full lg:min-h-0">
         <div className="flex flex-col gap-4 rounded-[1.75rem] border border-theme-border bg-theme-card p-5 backdrop-blur-md sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <p className="text-xs font-black uppercase tracking-[0.24em] text-theme-accent-text">Live coordinate radar</p>
+            <p className="text-xs font-black uppercase tracking-[0.24em] text-theme-accent-text">实时坐标雷达</p>
             <h2 className="mt-2 text-3xl font-black text-theme-primary">发现视角</h2>
             <p className="mt-1 text-sm text-theme-muted">感受附近的区域氛围；查找时可切成卡片结果。</p>
           </div>
@@ -1065,7 +1068,7 @@ function CardsBoard({ spaces, hasFilters, onPreview }: { spaces: Space[]; hasFil
       <div className="flex flex-col gap-5 lg:h-full lg:min-h-0">
         <div className="flex flex-col gap-3 rounded-[1.75rem] border border-theme-border bg-theme-card p-5 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <p className="text-xs font-black uppercase tracking-[0.24em] text-theme-primary">Card results</p>
+            <p className="text-xs font-black uppercase tracking-[0.24em] text-theme-primary">空间卡片</p>
             <h2 className="mt-2 text-3xl font-black text-theme-primary">按卡片浏览区域</h2>
             <p className="mt-1 text-sm text-theme-muted">搜索和筛选时优先展示更高效的图片卡片。</p>
           </div>
@@ -1161,7 +1164,7 @@ export default function DiscoverRoute() {
       subtitle: space.description || `${Array.isArray(space.characters) ? space.characters.length : 0} 位角色正在回应`,
       meta: `${index * 5 + 3} 分钟前`,
       image: coversBySpaceId[space.id] || resolveHomepageSpaceCover(space, index),
-      to: `/space/${encodeURIComponent(space.id)}`,
+      to: spacePath(space),
     }))
   }, [filteredSpaces])
   const onlineEntities = useMemo(() => {
@@ -1174,7 +1177,7 @@ export default function DiscoverRoute() {
           location: `在 ${space.name || "某个坐标"}`,
           status: spaceIndex < 2 ? "在线" : `${spaceIndex * 5 + 5} 分钟前`,
           avatar: character.avatar || coversBySpaceId[space.id] || resolveHomepageSpaceCover(space, spaceIndex),
-          to: `/space/${encodeURIComponent(space.id)}`,
+          to: spacePath(space),
         })),
       )
       .slice(0, 3)

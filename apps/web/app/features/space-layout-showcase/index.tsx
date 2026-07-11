@@ -33,6 +33,7 @@ import spaceStreetImage from "../../assets/fable-space-05-10/discover/cards/card
 import { buildSpaceLayoutStats, normalizeSpaceLayoutStyle, SPACE_LAYOUTS } from "../../lib/space-layouts.js"
 import type { RoleplayClaim, RoleplayState, Space, SpaceCharacter } from "../../lib/spaces"
 import { cn } from "../../lib/utils"
+import { WEB_PATHS } from "../../lib/web-routes"
 import { NpcSimulationStatusPanel } from "../npc-simulation-status/NpcSimulationStatusPanel"
 import { Button } from "../../ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../ui/card"
@@ -316,7 +317,7 @@ function LayoutHeader({
           </div>
 
           <div className="grid shrink-0 gap-3 sm:grid-cols-3 xl:w-[24rem] xl:grid-cols-1">
-            <Link to="/discover" className="rounded-3xl border border-cyan-300/20 bg-cyan-300/10 p-4 text-sm font-bold text-cyan-50 transition hover:border-cyan-200/55">
+            <Link to={WEB_PATHS.spaces} className="rounded-3xl border border-cyan-300/20 bg-cyan-300/10 p-4 text-sm font-bold text-cyan-50 transition hover:border-cyan-200/55">
               <MapPinned className="mb-3 h-5 w-5" />
               返回地图发现
             </Link>
@@ -914,7 +915,7 @@ export function SpaceLayoutShowcase(props: SpaceLayoutShowcaseProps) {
           </CardHeader>
           <CardContent>
             <Button asChild>
-              <Link to="/discover">返回发现页</Link>
+              <Link to={WEB_PATHS.spaces}>返回发现页</Link>
             </Button>
           </CardContent>
         </Card>

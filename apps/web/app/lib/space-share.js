@@ -1,3 +1,5 @@
+import { WEB_PATHS, spacePath as canonicalSpacePath } from "./web-routes"
+
 const DEFAULT_SUMMARY = "店主还没有写下公开简介。"
 
 function toText(value) {
@@ -18,9 +20,9 @@ function spaceName(space = {}) {
   return toText(space.name) || "未命名空间"
 }
 
-function spacePath(space = {}) {
+function shareSpacePath(space = {}) {
   const id = toText(space.id)
-  return id ? `/space/${encodeURIComponent(id)}` : "/discover"
+  return id ? canonicalSpacePath({ id, name: spaceName(space) }) : WEB_PATHS.spaces
 }
 
 function formatCoordinate(lat, lon) {
@@ -55,7 +57,7 @@ export function truncateShareText(value, maxLength = 96) {
 export function buildSpaceSharePayload(space = {}, options = {}) {
   const name = spaceName(space)
   const origin = normalizeOrigin(options.origin)
-  const path = spacePath(space)
+  const path = shareSpacePath(space)
   const url = `${origin}${path}`
   const title = `邀请你进入「${name}」`
   const summary = truncateShareText(space.description) || DEFAULT_SUMMARY
@@ -83,7 +85,9 @@ export function buildSpaceShareDisplay(payload = {}) {
   const spaceTitle = toText(payload.title) || "未命名空间"
   const title = toText(payload.share_title) || `邀请你进入「${spaceTitle}」`
   const summary = truncateShareText(payload.short_description || payload.description) || DEFAULT_SUMMARY
-  const url = toText(payload.share_url) || (toText(payload.space_id) ? `/space/${encodeURIComponent(payload.space_id)}` : "/discover")
+  const url = toText(payload.share_url) || (toText(payload.space_id)
+    ? canonicalSpacePath({ id: toText(payload.space_id), name: spaceTitle })
+    : WEB_PATHS.spaces)
   const coordinates = payloadCoordinate(payload)
 
   // Extract character names from payload if available

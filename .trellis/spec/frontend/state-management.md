@@ -19,7 +19,7 @@ Do not add a new state management dependency without user approval.
 | Local UI state | `useState` in component | modal open flags, form drafts, active tab/section |
 | Workflow/session state | custom hooks | `useWorldSession`, `useNearbySession`, `useWritebackSession` |
 | Server state | explicit service calls + loading/error state | `spaceService.listSpaces`, `getSpace`, gameplay session methods |
-| URL state | React Router route matching/navigation | `/discover`, `/templates`, `/owner`, `/space/:spaceId` in `App.jsx` |
+| URL state | React Router route matching/navigation | `/空间`, `/任务`, `/店主`, `/空间/:spaceRef` in `app/routes.ts` |
 | Persisted browser state | `localStorage` via service/helpers | visitor ID/nickname, theme, first-run mode, world session persistence |
 | Derived display state | `useMemo` or pure service functions | `buildAppPanelProps`, `buildWorldSessionViewState`, sorted/filtered spaces |
 
@@ -59,19 +59,15 @@ When changing backend response shape, update:
 
 ## URL and navigation state
 
-`App.jsx` derives the active view from React Router paths:
+React Router Framework registers the canonical resource paths in `app/routes.ts`:
 
-```javascript
-function viewFromPath(pathname = '/') {
-  if (matchPath('/discover', pathname)) return 'map'
-  if (matchPath('/templates', pathname)) return 'templates'
-  if (matchPath('/owner', pathname)) return 'owner'
-  if (matchPath('/space/:spaceId', pathname)) return 'space'
-  return 'home'
-}
+```typescript
+route("空间", "./routes/discover.tsx")
+route("空间/:spaceRef", "./routes/space.tsx")
+route("空间/:spaceRef/角色/:characterRef", "./routes/npc-detail.tsx")
 ```
 
-New top-level routes should fit this route/view model and preserve direct links to spaces where possible.
+All page links must use `app/lib/web-routes.ts`. Public references keep internal IDs out of the address bar while loaders resolve them back to stable resource IDs. See `web-routing.md` for the canonical table and legacy redirect rules.
 
 ---
 
@@ -99,7 +95,7 @@ Prefer pure helpers and `useMemo` for derived state instead of duplicating mutab
 
 ## Real examples to follow
 
-1. `apps/web/app/product/App.jsx`: visitor identity/theme/route state plus top-level space discovery refresh keys.
+1. `apps/web/app/routes.ts`: canonical React Router Framework route registry.
 2. `apps/web/app/product/hooks/useWorldSession.js`: composed workflow state with persisted session restore.
 3. `apps/web/app/product/services/sessionPersistence.js`: isolates localStorage serialization details.
 4. `apps/web/app/product/GameplayManager.jsx`: loads/saves gameplay definitions through `spaceService` and keeps owner editing state local.

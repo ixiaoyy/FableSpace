@@ -5,6 +5,7 @@ import { NotificationCenterPanel } from "../components/NotificationCenterPanel"
 import { RevisitCarePolicyPanel } from "../components/RevisitCarePolicyPanel"
 import { useNotifications } from "../hooks/useNotifications"
 import { DEFAULT_OWNER_ID } from "../lib/spaces"
+import { WEB_PATHS } from "../lib/web-routes"
 import { ProductShell } from "../shell/product-shell"
 import { Button } from "../ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card"
@@ -15,7 +16,7 @@ export default function NotificationsRoute() {
   const notificationState = useNotifications(userId)
 
   return (
-    <ProductShell eyebrow="Notifications">
+    <ProductShell eyebrow="通知">
       <section className="grid gap-6 lg:grid-cols-[0.78fr_1.22fr] lg:items-start">
         <aside className="space-y-5">
           <Card>
@@ -47,13 +48,13 @@ export default function NotificationsRoute() {
 
               <div className="grid gap-3 sm:grid-cols-2">
                 <Button asChild size="lg" variant="secondary">
-                  <Link to={`/owner?owner_id=${encodeURIComponent(userId)}`}>
+                  <Link to={`${WEB_PATHS.owner}?owner_id=${encodeURIComponent(userId)}`}>
                     <BellRing className="h-4 w-4" />
                     回到店主台
                   </Link>
                 </Button>
                 <Button asChild size="lg" variant="secondary">
-                  <Link to="/discover">
+                  <Link to={WEB_PATHS.spaces}>
                     <DoorOpen className="h-4 w-4" />
                     查看发现页
                   </Link>

@@ -4,6 +4,7 @@ import { Link, useLoaderData } from "react-router"
 
 import { buildQuestGuideSummary } from "../lib/quest-guide.js"
 import { DEFAULT_OWNER_ID, errorMessage, listSpaces, type Space } from "../lib/spaces"
+import { WEB_PATHS } from "../lib/web-routes"
 import { ProductShell } from "../shell/product-shell"
 import { Button } from "../ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card"
@@ -32,14 +33,14 @@ export default function QuestsRoute() {
   const { ownerId, errors, summary } = useLoaderData<typeof clientLoader>()
 
   return (
-    <ProductShell eyebrow="Guide">
-      <section id="guide-mainline" className="scroll-mt-28 grid gap-6 lg:grid-cols-[0.82fr_1.18fr] lg:items-start">
+    <ProductShell eyebrow="任务指南">
+      <section id="任务主线" className="scroll-mt-28 grid gap-6 lg:grid-cols-[0.82fr_1.18fr] lg:items-start">
         <aside className="space-y-5">
           <Card className="overflow-hidden">
             <CardHeader>
               <div className="mb-2 inline-flex w-fit items-center gap-2 rounded-full border border-theme-accent-border bg-theme-accent-bg px-3 py-1.5 text-xs font-black text-theme-accent-text">
                 <Compass className="h-3.5 w-3.5" />
-                Explorer guide
+                探索指南
               </div>
               <CardTitle className="text-4xl font-black leading-tight">探索指南</CardTitle>
               <CardDescription className="text-base leading-7">
@@ -49,13 +50,13 @@ export default function QuestsRoute() {
             <CardContent className="space-y-4">
               <div className="grid gap-3 sm:grid-cols-2">
                 <Button asChild size="lg">
-                  <Link to="/discover">
+                  <Link to={WEB_PATHS.spaces}>
                     <MapPinned className="h-4 w-4" />
                     从发现页开始
                   </Link>
                 </Button>
                 <Button asChild size="lg" variant="secondary">
-                  <Link to={`/create?owner_id=${encodeURIComponent(ownerId)}`}>
+                  <Link to={`${WEB_PATHS.createSpace}?owner_id=${encodeURIComponent(ownerId)}`}>
                     <Sparkles className="h-4 w-4" />
                     创建自己的空间
                   </Link>

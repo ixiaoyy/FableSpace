@@ -1,5 +1,5 @@
 import type { ClientLoaderFunctionArgs } from "react-router"
-import { useLoaderData, useNavigate } from "react-router"
+import { replace, useLoaderData, useNavigate } from "react-router"
 import { useState } from "react"
 
 import {
@@ -10,6 +10,7 @@ import {
   type Space,
   type SpaceCharacter,
 } from "../lib/spaces"
+import { matchesPublicReference, promptEditorPath, redirectPathForRequest, spaceManagePath } from "../lib/web-routes"
 import { ProductShell } from "../shell/product-shell"
 import PromptBlockEditor from "../product/PromptBlockEditor"
 
@@ -32,25 +33,38 @@ function getOwnerIdFromRequest(request: Request) {
 }
 
 export async function clientLoader({ params, request }: ClientLoaderFunctionArgs): Promise<PromptEditorLoaderData> {
-  const spaceId = params.spaceId ?? ""
-  const characterId = params.characterId ?? ""
+  const spaceRef = params.spaceRef ?? ""
+  const characterRef = params.characterRef ?? ""
   const currentUserId = getOwnerIdFromRequest(request)
 
-  if (!spaceId || !characterId) {
-    return { spaceId, characterId, currentUserId, space: null, character: null, error: "缺少必要参数" }
+  if (!spaceRef || !characterRef) {
+    return { spaceId: "", characterId: "", currentUserId, space: null, character: null, error: "缺少空间或角色引用" }
   }
 
   try {
-    const space = await getSpace(spaceId, currentUserId)
-    const character = (space.characters || []).find(c => c.id === characterId) || null
-    
-    if (!character) {
-      return { spaceId, characterId, currentUserId, space, character: null, error: "未找到目标角色" }
+    const space = await getSpace(spaceRef, currentUserId)
+    const spaceId = space.id
+    const matches = (space.characters || []).filter((character) => (
+      matchesPublicReference(characterRef, "character", spaceId, character.id)
+    ))
+
+    if (matches.length !== 1) {
+      const error = matches.length > 1 ? "角色公开引用发生冲突" : "未找到目标角色"
+      return { spaceId, characterId: "", currentUserId, space, character: null, error }
+    }
+
+    const character = matches[0]
+    const characterId = character.id
+    const url = new URL(request.url)
+    const canonicalPath = promptEditorPath(space, character)
+    if (url.pathname !== new URL(canonicalPath, url.origin).pathname) {
+      throw replace(redirectPathForRequest(request, canonicalPath))
     }
 
     return { spaceId, characterId, currentUserId, space, character, error: "" }
   } catch (error) {
-    return { spaceId, characterId, currentUserId, space: null, character: null, error: errorMessage(error) }
+    if (error instanceof Response) throw error
+    return { spaceId: spaceRef, characterId: characterRef, currentUserId, space: null, character: null, error: errorMessage(error) }
   }
 }
 
@@ -65,7 +79,7 @@ export default function PromptEditorRoute() {
       await updateCharacter(spaceId, characterId, updatedChar, currentUserId)
       // 保存后返回管理页或保持原位？
       // 保持原位并显示成功提示可能更好，但这里先简单处理
-      navigate(`/space/${spaceId}/manage`)
+      navigate(spaceManagePath(space))
     } catch (err) {
       throw err // 让组件内部捕获并显示错误
     } finally {
@@ -79,7 +93,7 @@ export default function PromptEditorRoute() {
 
   if (error || !space || !character) {
     return (
-      <ProductShell eyebrow="Error">
+      <ProductShell eyebrow="错误">
         <div className="p-8 text-center">
           <p className="text-red-400">{error || "未知错误"}</p>
           <button onClick={handleBack} className="mt-4 text-cyan-400 underline">返回</button>
@@ -89,7 +103,7 @@ export default function PromptEditorRoute() {
   }
 
   return (
-    <ProductShell eyebrow="Prompt Lab">
+    <ProductShell eyebrow="提示词工作台">
       <PromptBlockEditor
         character={character}
         space={space}

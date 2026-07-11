@@ -1,12 +1,13 @@
 import type { ClientLoaderFunctionArgs } from "react-router"
 import { ArrowRight, Globe, MapPinned, Store, Users, Sparkles } from "lucide-react"
-import { Link, useLoaderData } from "react-router"
+import { Link, replace, useLoaderData } from "react-router"
 import { useMemo, useState } from "react"
 
 import spaceNeonImage from "../assets/fable-space-05-10/discover/cards/card-sky-city-square.png"
 import spaceNightImage from "../assets/fable-space-05-10/home-black/hero-system-visual.png"
 import { SpacePreviewModal } from "../components/space-preview-modal"
 import { DEFAULT_OWNER_ID, errorMessage, listSpaces, type Space, type SpaceCharacter, type SpaceListResponse } from "../lib/spaces"
+import { matchesPublicReference, ownerProfilePath, redirectPathForRequest, WEB_PATHS } from "../lib/web-routes"
 import { ProductShell } from "../shell/product-shell"
 import { Button } from "../ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card"
@@ -33,16 +34,39 @@ type CreatorLoaderData = {
   error: string
 }
 
-export async function clientLoader({ params }: ClientLoaderFunctionArgs): Promise<CreatorLoaderData> {
-  const ownerId = params.ownerId || DEFAULT_OWNER_ID
+export async function clientLoader({ params, request }: ClientLoaderFunctionArgs): Promise<CreatorLoaderData> {
+  const ownerRef = params.ownerRef || ""
+  if (!ownerRef) {
+    return { ownerId: DEFAULT_OWNER_ID, result: { spaces: [], count: 0 }, error: "缺少店主引用" }
+  }
+
   try {
-    const result = await listSpaces({ owner_id: ownerId })
-    const spaces = (result.spaces || []).filter(
-      (space) => !space.owner_id || space.owner_id === ownerId
+    const allSpaces = await listSpaces()
+    const ownerIds = Array.from(new Set(
+      (allSpaces.spaces || []).map((space) => space.owner_id || "").filter(Boolean)
+    ))
+    const matches = ownerIds.filter((ownerId) => (
+      matchesPublicReference(ownerRef, "owner", ownerId)
+    ))
+    if (matches.length !== 1) {
+      const error = matches.length > 1 ? "店主公开引用发生冲突" : "未找到目标店主"
+      return { ownerId: "", result: { spaces: [], count: 0 }, error }
+    }
+
+    const ownerId = matches[0]
+    const spaces = (allSpaces.spaces || []).filter(
+      (space) => space.owner_id === ownerId
     )
-    return { ownerId, result: { ...result, spaces }, error: "" }
+    const url = new URL(request.url)
+    const canonicalPath = ownerProfilePath(ownerId)
+    if (url.pathname !== new URL(canonicalPath, url.origin).pathname) {
+      throw replace(redirectPathForRequest(request, canonicalPath))
+    }
+
+    return { ownerId, result: { ...allSpaces, spaces, count: spaces.length }, error: "" }
   } catch (error) {
-    return { ownerId, result: { spaces: [], count: 0 }, error: errorMessage(error) }
+    if (error instanceof Response) throw error
+    return { ownerId: "", result: { spaces: [], count: 0 }, error: errorMessage(error) }
   }
 }
 
@@ -64,7 +88,7 @@ export default function CreatorRoute() {
   }, [result.spaces])
 
   return (
-    <ProductShell eyebrow="Creator">
+    <ProductShell eyebrow="创作者">
       <section className="grid gap-6 lg:grid-cols-[0.72fr_1.28fr] lg:items-stretch">
         {/* Sidebar */}
         <aside className="space-y-5">
@@ -72,7 +96,7 @@ export default function CreatorRoute() {
           <div className="rounded-[2rem] border border-theme-accent-border bg-theme-card p-6 shadow-2xl shadow-black/25 backdrop-blur-xl">
             <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-theme-border bg-theme-bg px-3 py-1.5 text-xs font-black text-theme-primary">
               <Sparkles className="h-3.5 w-3.5" />
-              Public profile
+              公开主页
             </div>
 
             {/* Creator avatar */}
@@ -114,7 +138,7 @@ export default function CreatorRoute() {
 
             <div className="mt-5 flex flex-col gap-3">
               <Button asChild>
-                <Link to="/discover">
+                <Link to={WEB_PATHS.spaces}>
                   <Globe className="h-4 w-4" />
                   浏览全部空间
                 </Link>
@@ -146,7 +170,7 @@ export default function CreatorRoute() {
           <div className="relative flex flex-col gap-5">
             <div className="flex flex-col gap-4 rounded-[1.75rem] border border-theme-border bg-theme-card p-5 backdrop-blur-md sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <p className="text-xs font-black uppercase tracking-[0.24em] text-theme-accent-text">Creator's spaces</p>
+                <p className="text-xs font-black uppercase tracking-[0.24em] text-theme-accent-text">创作者的空间</p>
                 <h2 className="mt-2 text-3xl font-black text-theme-primary">创作者的空间</h2>
                 <p className="mt-1 text-sm text-theme-muted">
                   {result.count} 间空间 · 点击预览 · 进入对话

@@ -1,7 +1,7 @@
 /**
  * NPC 关系胶囊详情页
  *
- * 路由：/npc/:spaceId/:characterId
+ * 路由：/空间/:spaceRef/角色/:characterRef
  *
  * 展示：
  * - NPC 大头像 / 名称 / 空间信息
@@ -15,7 +15,7 @@
 
 import type { ClientLoaderFunctionArgs } from "react-router"
 import { useEffect, useState } from "react"
-import { useLoaderData, useNavigate } from "react-router"
+import { replace, useLoaderData, useNavigate } from "react-router"
 import { MapPin, MessageCircle, ChevronDown, ChevronUp, Heart, Brain } from "lucide-react"
 
 import { AffinityProgress } from "../components/AffinityProgress"
@@ -32,6 +32,7 @@ import {
   type VisitorRelationshipPayload,
 } from "../lib/spaces"
 import { getVisitorBond, type VisitorBondStatus } from "../lib/publicBond"
+import { characterPath, matchesPublicReference, redirectPathForRequest, spacePath } from "../lib/web-routes"
 import {
   getAffinityStageMeta,
   normalizeAffinityStrength,
@@ -64,25 +65,48 @@ export async function clientLoader({
   params,
   request,
 }: ClientLoaderFunctionArgs): Promise<NpcDetailLoaderData> {
-  const spaceId = params.spaceId ?? ""
-  const characterId = params.characterId ?? ""
+  const spaceRef = params.spaceRef ?? ""
+  const characterRef = params.characterRef ?? ""
   const currentUserId = getCurrentUserIdFromRequest(request)
 
-  if (!spaceId || !characterId) {
+  if (!spaceRef || !characterRef) {
     return {
-      spaceId,
-      characterId,
+      spaceId: "",
+      characterId: "",
       currentUserId,
       space: null,
       character: null,
       relationship: null,
-      error: "缺少空间或角色 ID",
+      error: "缺少空间或角色引用",
     }
   }
 
   try {
-    const space = await getSpace(spaceId, currentUserId, { view: "entry" })
-    const character = space?.characters?.find((c) => c.id === characterId) ?? null
+    const space = await getSpace(spaceRef, currentUserId, { view: "entry" })
+    const spaceId = space.id
+    const matches = (space.characters || []).filter((character) => (
+      matchesPublicReference(characterRef, "character", spaceId, character.id)
+    ))
+    const character = matches.length === 1 ? matches[0] : null
+
+    if (!character) {
+      return {
+        spaceId,
+        characterId: "",
+        currentUserId,
+        space,
+        character: null,
+        relationship: null,
+        error: matches.length > 1 ? "角色公开引用发生冲突" : "未找到目标角色",
+      }
+    }
+
+    const characterId = character.id
+    const url = new URL(request.url)
+    const canonicalRoute = characterPath(space, character)
+    if (url.pathname !== new URL(canonicalRoute, url.origin).pathname) {
+      throw replace(redirectPathForRequest(request, canonicalRoute))
+    }
 
     // 访客与该空间的整体关系数据（好感 strength 在 space 返回的 visitor_state 里）
     // 此处 relationship 直接从空间 API 取（已有字段），无需额外请求
@@ -98,9 +122,10 @@ export async function clientLoader({
       error: "",
     }
   } catch (err) {
+    if (err instanceof Response) throw err
     return {
-      spaceId,
-      characterId,
+      spaceId: spaceRef,
+      characterId: characterRef,
       currentUserId,
       space: null,
       character: null,
@@ -344,9 +369,7 @@ export default function NpcDetailRoute() {
           <button
             id="npc-detail-chat"
             type="button"
-            onClick={() =>
-              navigate(`/space/${encodeURIComponent(spaceId)}?character_id=${encodeURIComponent(characterId)}`)
-            }
+            onClick={() => navigate(spacePath(space))}
             className="flex flex-1 items-center justify-center gap-2 rounded-2xl bg-violet-600 py-3.5 text-sm font-semibold text-white shadow-lg shadow-violet-900/40 hover:bg-violet-500 active:bg-violet-700 transition-colors"
           >
             <MessageCircle className="h-4 w-4" aria-hidden="true" />
@@ -357,9 +380,7 @@ export default function NpcDetailRoute() {
             <button
               id="npc-detail-apply-bond"
               type="button"
-              onClick={() =>
-                navigate(`/space/${encodeURIComponent(spaceId)}?character_id=${encodeURIComponent(characterId)}&action=apply_bond`)
-              }
+              onClick={() => navigate(spacePath(space))}
               className="rounded-2xl border border-rose-400/30 bg-rose-500/10 px-4 py-3.5 text-sm font-medium text-rose-300 hover:bg-rose-500/20 transition-colors"
             >
               申请结缘

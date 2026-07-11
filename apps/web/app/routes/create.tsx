@@ -30,6 +30,7 @@ import {
   saveOwnerDefaultLLM,
   type SpaceDraft,
 } from "../lib/spaces"
+import { spacePath } from "../lib/web-routes"
 import { ProductShell } from "../shell/product-shell"
 import { Button } from "../ui/button"
 import {
@@ -299,7 +300,7 @@ export default function CreateRoute() {
         )
       }
       setCreatedId(created.id)
-      navigate(`/space/${encodeURIComponent(created.id)}`)
+      navigate(spacePath(created))
     } catch (err) {
       setError(errorMessage(err))
     } finally {
@@ -308,8 +309,8 @@ export default function CreateRoute() {
   }
 
   return (
-    <ProductShell eyebrow="Create">
-      <section id="create-mainline" className="grid scroll-mt-28 gap-6 lg:grid-cols-[1.05fr_0.95fr] lg:items-start">
+    <ProductShell eyebrow="新建空间">
+      <section id="新建主线" className="grid scroll-mt-28 gap-6 lg:grid-cols-[1.05fr_0.95fr] lg:items-start">
         <div className="rounded-[2.2rem] border border-theme-border bg-theme-card p-5 shadow-2xl shadow-black/30 backdrop-blur-xl sm:p-6">
           <div className="mb-6 flex flex-col gap-4 border-b border-theme-border pb-6 sm:flex-row sm:items-end sm:justify-between">
             <div>
