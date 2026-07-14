@@ -11,7 +11,7 @@ services:
       FABLESPACE_OUTPUT_ROOT: /data
       PYTHONPATH: /app/apps/api/src
     ports:
-      - "8000:8000"
+      - "${FABLESPACE_API_BIND:-8000}:8000"
     volumes:
       - fablespace_data:/data
     healthcheck:
@@ -41,7 +41,7 @@ services:
       backend:
         condition: service_healthy
     ports:
-      - "3000:80"
+      - "${FABLESPACE_WEB_BIND:-3000}:80"
 
 volumes:
   fablespace_data:

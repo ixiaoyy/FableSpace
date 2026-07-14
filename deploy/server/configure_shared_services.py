@@ -76,6 +76,7 @@ def build_updates(parallellines: dict[str, str], database_name: str, redis_db: i
     if missing:
         raise ValueError(f"ParallelLines env is missing: {', '.join(missing)}")
     return {
+        "FABLESPACE_API_BIND": "127.0.0.1:8950",
         "FABLESPACE_STORAGE_BACKEND": "database",
         "FABLESPACE_DATABASE_URL": database_url_for(parallellines["DATABASE_URL"], database_name),
         "FABLESPACE_REDIS_URL": redis_url_for(parallellines["REDIS_URL"], redis_db),
