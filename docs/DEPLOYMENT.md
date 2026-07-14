@@ -79,7 +79,7 @@ sudo python3 deploy/server/configure_shared_services.py --dry-run
 sudo python3 deploy/server/configure_shared_services.py
 ```
 
-配置脚本从 `/opt/parallellines/apps/api/.env` 映射连接信息，写入前会生成 `apps/api/.env.pre-shared-<UTC>` 备份，输出不包含密码或 R2 Key。它同时把后端宿主绑定设为 `127.0.0.1:8950`，避免与 ParallelLines 的 `8000` 端口冲突；容器内 API 端口仍为 `8000`。部署 workflow 不创建或覆盖该环境文件。
+配置脚本从 `/opt/parallellines/apps/api/.env` 映射连接信息，写入前会生成 `apps/api/.env.pre-shared-<UTC>` 备份，输出不包含密码或 R2 Key。API/R2/Redis 凭据写入 `apps/api/.env`；Compose 插值写入仓库根 `.env`，其中后端宿主绑定为 `127.0.0.1:8950`，避免与 ParallelLines 的 `8000` 端口冲突，容器内 API 端口仍为 `8000`。部署 workflow 不创建或覆盖这些环境文件。
 
 在 ParallelLines MySQL 中创建独立库并给现有应用用户授权。实际容器名可用 `docker compose -p parallellines ps` 确认：
 

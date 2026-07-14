@@ -76,7 +76,6 @@ def build_updates(parallellines: dict[str, str], database_name: str, redis_db: i
     if missing:
         raise ValueError(f"ParallelLines env is missing: {', '.join(missing)}")
     return {
-        "FABLESPACE_API_BIND": "127.0.0.1:8950",
         "FABLESPACE_STORAGE_BACKEND": "database",
         "FABLESPACE_DATABASE_URL": database_url_for(parallellines["DATABASE_URL"], database_name),
         "FABLESPACE_REDIS_URL": redis_url_for(parallellines["REDIS_URL"], redis_db),
@@ -96,6 +95,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Configure FableSpace to reuse ParallelLines infrastructure")
     parser.add_argument("--parallellines-env", type=Path, default=Path("/opt/parallellines/apps/api/.env"))
     parser.add_argument("--fablespace-env", type=Path, default=Path("/opt/fablespace/apps/api/.env"))
+    parser.add_argument("--compose-env", type=Path, default=Path("/opt/fablespace/.env"))
     parser.add_argument("--database-name", default="fablespace")
     parser.add_argument("--redis-db", type=int, default=1)
     parser.add_argument("--prefix", default="fablespace")
@@ -112,6 +112,11 @@ def main() -> None:
     shared_values = parse_env(args.parallellines_env)
     original = args.fablespace_env.read_text(encoding="utf-8") if args.fablespace_env.exists() else ""
     updates = build_updates(shared_values, args.database_name, args.redis_db, args.prefix)
+    compose_original = args.compose_env.read_text(encoding="utf-8") if args.compose_env.exists() else ""
+    compose_updates = {
+        "FABLESPACE_API_BIND": "127.0.0.1:8950",
+        "FABLESPACE_SHARED_NETWORK": "parallellines_default",
+    }
     if args.dry_run:
         print(
             f"validated database={args.database_name} redis_db={args.redis_db} "
@@ -126,9 +131,13 @@ def main() -> None:
         shutil.copy2(args.fablespace_env, backup_path)
     args.fablespace_env.write_text(update_env_text(original, updates), encoding="utf-8")
     args.fablespace_env.chmod(0o600)
+    args.compose_env.parent.mkdir(parents=True, exist_ok=True)
+    args.compose_env.write_text(update_env_text(compose_original, compose_updates), encoding="utf-8")
+    args.compose_env.chmod(0o600)
     print(
         f"configured database={args.database_name} redis_db={args.redis_db} "
-        f"prefix={args.prefix.strip('/')} backup={backup_path if backup_path.exists() else 'none'}"
+        f"prefix={args.prefix.strip('/')} api_backup={backup_path if backup_path.exists() else 'none'} "
+        f"compose_env={args.compose_env}"
     )
 
 

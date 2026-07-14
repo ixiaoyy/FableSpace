@@ -38,6 +38,8 @@ demo-output/
 .env.local
 .env
 *.env
+!.env.example
+!**/.env.example
 
 # OS
 .DS_Store
