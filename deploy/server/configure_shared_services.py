@@ -99,6 +99,7 @@ def main() -> None:
     parser.add_argument("--database-name", default="fablespace")
     parser.add_argument("--redis-db", type=int, default=1)
     parser.add_argument("--prefix", default="fablespace")
+    parser.add_argument("--cors-origin", default="https://fable.pingxingxian.space")
     parser.add_argument("--dry-run", action="store_true")
     args = parser.parse_args()
 
@@ -108,10 +109,15 @@ def main() -> None:
         raise SystemExit("redis db must be non-negative")
     if not args.prefix.strip("/") or ".." in args.prefix:
         raise SystemExit("prefix must be a non-empty object-key directory")
+    cors_origin = args.cors_origin.rstrip("/")
+    parsed_origin = urlsplit(cors_origin)
+    if parsed_origin.scheme not in {"http", "https"} or not parsed_origin.netloc or parsed_origin.path:
+        raise SystemExit("cors origin must be an HTTP(S) origin without a path")
 
     shared_values = parse_env(args.parallellines_env)
     original = args.fablespace_env.read_text(encoding="utf-8") if args.fablespace_env.exists() else ""
     updates = build_updates(shared_values, args.database_name, args.redis_db, args.prefix)
+    updates["FABLESPACE_CORS_ORIGINS"] = cors_origin
     compose_original = args.compose_env.read_text(encoding="utf-8") if args.compose_env.exists() else ""
     compose_updates = {
         "FABLESPACE_API_BIND": "127.0.0.1:8950",
@@ -120,7 +126,7 @@ def main() -> None:
     if args.dry_run:
         print(
             f"validated database={args.database_name} redis_db={args.redis_db} "
-            f"prefix={args.prefix.strip('/')} mapped_keys={len(updates)}"
+            f"prefix={args.prefix.strip('/')} cors_origin={cors_origin} mapped_keys={len(updates)}"
         )
         return
 
@@ -136,7 +142,8 @@ def main() -> None:
     args.compose_env.chmod(0o600)
     print(
         f"configured database={args.database_name} redis_db={args.redis_db} "
-        f"prefix={args.prefix.strip('/')} api_backup={backup_path if backup_path.exists() else 'none'} "
+        f"prefix={args.prefix.strip('/')} cors_origin={cors_origin} "
+        f"api_backup={backup_path if backup_path.exists() else 'none'} "
         f"compose_env={args.compose_env}"
     )
 

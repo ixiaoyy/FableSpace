@@ -2,7 +2,7 @@
   "CORSRules": [
     {
       "AllowedOrigins": [
-        "https://your-fablespace-domain.example"
+        "https://fable.pingxingxian.space"
       ],
       "AllowedMethods": [
         "GET",
