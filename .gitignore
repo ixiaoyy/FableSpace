@@ -8,14 +8,6 @@ apps/web/.vite/
 apps/web/.react-router/
 apps/web/build/
 
-# Trellis local harness dependencies/caches
-.trellis/tmp/
-.trellis/tasks/**/artifacts/
-.trellis/workspace/**/*.log
-.trellis/workspace/**/frontend-asset-check/
-.trellis/workspace/**/frontend-layout-unification-check/
-.trellis/workspace/**/light-layout-fix/
-
 # Python
 .pytest_cache/
 tmp_pytest/

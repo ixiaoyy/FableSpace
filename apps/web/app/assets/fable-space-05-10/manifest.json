@@ -1,8 +1,8 @@
 {
-  "generated_from": ".trellis/tasks/05-10-05-10-ui-ux-design-audit-and-polish/reference-designs",
+  "generated_from": "legacy UI/UX reference-design export",
   "pages": {
     "home-black": {
-      "source": ".trellis/tasks/05-10-05-10-ui-ux-design-audit-and-polish/reference-designs/index_black.png",
+      "source": "legacy reference image (source not retained)",
       "source_size": [
         1536,
         1024

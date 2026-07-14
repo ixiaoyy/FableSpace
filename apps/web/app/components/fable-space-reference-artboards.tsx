@@ -18,12 +18,8 @@ import {
   Send,
 } from "lucide-react"
 
-import discoverCardCafe from "../assets/fable-space-05-10/discover/cards/card-cafe-square.png"
 import discoverCardCompass from "../assets/fable-space-05-10/discover/cards/card-compass-square.png"
-import discoverCardLibrarySunlit from "../assets/fable-space-05-10/discover/cards/card-library-sunlit-square.png"
-import discoverCardLibraryWide from "../assets/fable-space-05-10/discover/cards/card-library-wide-square.png"
 import discoverCardPlane from "../assets/fable-space-05-10/discover/cards/card-plane-square.png"
-import discoverCardSeaLane from "../assets/fable-space-05-10/discover/cards/card-sea-lane-square.png"
 import discoverCardSkyCity from "../assets/fable-space-05-10/discover/cards/card-sky-city-square.png"
 import discoverCardTrainPlatform from "../assets/fable-space-05-10/discover/cards/card-train-platform-square.png"
 import discoverWorldStatusBgBlack from "../assets/fable-space-05-10/discover/world-status/bg-black.png"
@@ -32,13 +28,17 @@ import homeBlackGuideDatabaseIcon from "../assets/fable-space-05-10/home-black/g
 import homeBlackGuideProtocolIcon from "../assets/fable-space-05-10/home-black/guide-protocol-icon.png"
 import homeBlackGuideSecurityIcon from "../assets/fable-space-05-10/home-black/guide-security-icon.png"
 import homeBlackHeroVisual from "../assets/fable-space-05-10/home-black/hero-system-visual.png"
-import homeBlackNodeDataHarbor from "../assets/fable-space-05-10/home-black/node-data-harbor.png"
-import homeBlackNodeNeonRuins from "../assets/fable-space-05-10/home-black/node-neon-ruins.png"
-import homeBlackNodeOldPlatform from "../assets/fable-space-05-10/home-black/node-old-platform.png"
-import homeBlackNodeWhiteTower from "../assets/fable-space-05-10/home-black/node-white-tower.png"
 import homeBlackRecentEchoWaveform from "../assets/fable-space-05-10/home-black/recent-echo-waveform.png"
 import homeBlackUserAvatar from "../assets/fable-space-05-10/home-black/user-avatar-node07.png"
 import homeBlackWorldStatsSparkline from "../assets/fable-space-05-10/home-black/world-stats-sparkline.png"
+import sceneBar from "../assets/fable-space-scenes/bar.png"
+import sceneCafe from "../assets/fable-space-scenes/cafe.png"
+import sceneCompany from "../assets/fable-space-scenes/company.png"
+import sceneHotel from "../assets/fable-space-scenes/hotel.png"
+import sceneLibrary from "../assets/fable-space-scenes/library.png"
+import scenePetShop from "../assets/fable-space-scenes/pet-shop.png"
+import sceneSchool from "../assets/fable-space-scenes/school.png"
+import sceneSportsCenter from "../assets/fable-space-scenes/sports-center.png"
 import fableSpaceUserAvatarImage from "../assets/npc-style-cast/portraits-hd/commission-zhideng.png"
 import { buildSpaceFirstMinuteGuide } from "../lib/space-first-minute"
 import type { Space } from "../lib/spaces"
@@ -52,11 +52,7 @@ const lightPlaneIcon = discoverCardPlane
 const lightPulseIcon = homeBlackWorldStatsSparkline
 const lightPlaneWash = homeBlackHeroVisual
 const lightPaperPlaneSoft = homeBlackWorldStatsSparkline
-const lightSeaLane = discoverCardSeaLane
 const lightSkyCityBalcony = homeBlackHeroVisual
-const lightTrainRainPlatform = discoverCardTrainPlatform
-const lightLibrarySunlit = discoverCardLibrarySunlit
-const lightLibraryCafeWide = discoverCardLibraryWide
 const lightGuideStarterBg = homeBlackGuideProtocolIcon
 const lightGuideEnvelopeBg = homeBlackGuideDatabaseIcon
 const lightGuideShieldBg = homeBlackGuideSecurityIcon
@@ -222,81 +218,94 @@ const LIGHT_GUIDE_BACKGROUNDS = [lightGuideStarterBg, lightGuideEnvelopeBg, ligh
 
 const LIGHT_FALLBACK_COORDINATE_CARDS = [
   {
-    name: "雨巷书店",
-    description: "雨声落在旧木窗边，店主的 AI 书童正等你递来一句开场白。",
-    tag: "治愈",
-    image: lightLibrarySunlit,
+    spaceId: "pw_lantern_helpdesk",
+    name: "学校",
+    description: "小刘老师在收作业，光头校长又来巡班，班长林夏悄悄给你留了座位。",
+    tag: "校园",
+    image: sceneSchool,
   },
   {
-    name: "海街的尽头",
-    description: "沿着潮湿的路牌走到尽头，会遇见一个只在傍晚醒来的守望者。",
-    tag: "纽带",
-    image: lightSeaLane,
+    spaceId: "pw_midnight_treehole",
+    name: "酒店",
+    description: "顾姐盯着大堂，小满在前台招手，吴姨刚捡到一把没人认领的伞。",
+    tag: "入住",
+    image: sceneHotel,
   },
   {
-    name: "时光咖啡馆",
-    description: "每张桌子都记得一段回访，适合把今天的心事暂存在这里。",
-    tag: "温暖",
-    image: lightLibraryCafeWide,
+    spaceId: "pw_community_repair",
+    name: "咖啡馆",
+    description: "苏晚在盘账，江野认真冲咖啡，唐梨已经攒好了一肚子附近八卦。",
+    tag: "闲聊",
+    image: sceneCafe,
   },
   {
-    name: "旧车站月台",
-    description: "列车不再进站，但仍有人把未寄出的信交给站台 NPC。",
-    tag: "静谧",
-    image: lightTrainRainPlatform,
+    spaceId: "pw_lost_found_archive",
+    name: "宠物店",
+    description: "程哥正哄柯基，猫娘白桃给猫梳毛，阿乐抱着新来的寄养箱等你帮忙。",
+    tag: "宠物",
+    image: scenePetShop,
   },
+] as const
+
+const BLACK_FALLBACK_COORDINATE_CARDS = [
+  {
+    spaceId: "pw_third_shelf_observatory",
+    name: "图书馆",
+    description: "顾馆长在整书架，许知书帮你找书，穿古风 cosplay 的沈月正在查冷门资料。",
+    tag: "阅读",
+    image: sceneLibrary,
+  },
+  {
+    spaceId: "pw_midnight_commission_board",
+    name: "公司",
+    description: "高冷顾总话少判断快，程主管训人从不留情，小雨已经挪椅子来吐槽和安慰你。",
+    tag: "职场",
+    image: sceneCompany,
+  },
+  {
+    spaceId: "pw_after_school_hero_supply",
+    name: "酒吧",
+    description: "北哥招呼客人，杀马特调酒师陆川在做无酒精特调，驻唱苏晴准备开麦。仅限成年人。",
+    tag: "成年",
+    image: sceneBar,
+  },
+  {
+    spaceId: "pw_jingan_catbell_refuge",
+    name: "体育馆",
+    description: "周野教羽毛球，顾言守着乒乓球台，夏澄在泳池边等你开始训练。",
+    tag: "运动",
+    image: sceneSportsCenter,
+  },
+] as const
+
+const FALLBACK_DISCOVERY_CARDS = [
+  ...LIGHT_FALLBACK_COORDINATE_CARDS,
+  ...BLACK_FALLBACK_COORDINATE_CARDS,
 ] as const
 
 const DISCOVER_CARD_IMAGES = [
-  discoverCardLibrarySunlit,
-  discoverCardSeaLane,
-  discoverCardCafe,
-  discoverCardTrainPlatform,
-  discoverCardSkyCity,
-  discoverCardLibraryWide,
-  discoverCardCompass,
-  discoverCardPlane,
+  sceneSchool,
+  sceneHotel,
+  sceneCafe,
+  scenePetShop,
+  sceneLibrary,
+  sceneCompany,
+  sceneBar,
+  sceneSportsCenter,
 ] as const
 
-const HOME_COORDINATE_CARD_AVATAR_IMAGES = [homeBlackUserAvatar, discoverCardCafe, discoverCardLibrarySunlit, discoverCardPlane] as const
+const HOME_COORDINATE_CARD_AVATAR_IMAGES = [homeBlackUserAvatar, sceneCafe, sceneLibrary, sceneSportsCenter] as const
 const DISCOVER_CARD_AVATAR_IMAGE_SETS = DISCOVER_CARD_IMAGES.map((_, index) => [
   DISCOVER_CARD_IMAGES[(index + 1) % DISCOVER_CARD_IMAGES.length],
   DISCOVER_CARD_IMAGES[(index + 2) % DISCOVER_CARD_IMAGES.length],
   DISCOVER_CARD_IMAGES[(index + 3) % DISCOVER_CARD_IMAGES.length],
 ] as const)
 
-const BLACK_FALLBACK_COORDINATE_CARDS = [
-  {
-    name: "深夜回声屋",
-    description: "适合把今天没说出口的话交给 NPC，下一次回来还能接着整理。",
-    tag: "陪伴",
-    image: homeBlackNodeDataHarbor,
-  },
-  {
-    name: "街角委托铺",
-    description: "小任务、线索和选择会把你带进这个地点背后的另一层故事。",
-    tag: "任务",
-    image: homeBlackNodeNeonRuins,
-  },
-  {
-    name: "旧站台谜室",
-    description: "站台 NPC 会给出第一条线索，适合喜欢调查和轻解谜的探索者。",
-    tag: "探索",
-    image: homeBlackNodeOldPlatform,
-  },
-  {
-    name: "白塔创作间",
-    description: "把灵感、角色和世界书暂存在这里，慢慢形成自己的私密空间。",
-    tag: "创作",
-    image: homeBlackNodeWhiteTower,
-  },
-] as const
-
 const BLACK_NODE_META = [
-  { nodeId: "SPACE_07", entityLabel: "陪伴空间", tone: "active" },
-  { nodeId: "SPACE_21", entityLabel: "任务空间", tone: "active" },
-  { nodeId: "SPACE_19", entityLabel: "探索空间", tone: "unstable" },
-  { nodeId: "SPACE_03", entityLabel: "创作空间", tone: "low" },
+  { nodeId: "SPACE_05", entityLabel: "图书馆", tone: "active" },
+  { nodeId: "SPACE_06", entityLabel: "公司", tone: "active" },
+  { nodeId: "SPACE_07", entityLabel: "酒吧", tone: "active" },
+  { nodeId: "SPACE_08", entityLabel: "体育馆", tone: "active" },
 ] as const
 
 const BLACK_GUIDE_ICONS = [homeBlackGuideProtocolIcon, homeBlackGuideDatabaseIcon, homeBlackGuideSecurityIcon] as const
@@ -505,13 +514,14 @@ function homeCoordinateCardData(slice: HomeReferenceProps["featuredCitySlices"][
   const fallback = variant === "black"
     ? BLACK_FALLBACK_COORDINATE_CARDS[index % BLACK_FALLBACK_COORDINATE_CARDS.length]
     : LIGHT_FALLBACK_COORDINATE_CARDS[index % LIGHT_FALLBACK_COORDINATE_CARDS.length]
-  const visitCount = Number(slice?.visit_count || 0)
+  const matchingSlice = slice?.id === fallback.spaceId ? slice : undefined
+  const visitCount = Number(matchingSlice?.visit_count || 0)
   const blackMeta = BLACK_NODE_META[index % BLACK_NODE_META.length]
   return {
-    id: slice?.id,
-    name: slice?.name || fallback.name,
-    description: slice?.description || fallback.description,
-    tag: slice?.tags?.[0] || fallback.tag,
+    id: fallback.spaceId,
+    name: fallback.name,
+    description: fallback.description,
+    tag: fallback.tag,
     image: fallback.image,
     visitLabel: visitCount > 0 ? `${visitCount} 人在这里` : "等待第一次到访",
     nodeId: variant === "black" ? blackMeta.nodeId : `COORD_${String(index + 1).padStart(2, "0")}`,
@@ -521,24 +531,25 @@ function homeCoordinateCardData(slice: HomeReferenceProps["featuredCitySlices"][
 }
 
 function discoverCardData(space: Space | undefined, index: number) {
-  const fallback = LIGHT_FALLBACK_COORDINATE_CARDS[index % LIGHT_FALLBACK_COORDINATE_CARDS.length]
-  const visitCount = Number(space?.visit_count || 0)
-  const characterCount = space?.characters?.length || 0
+  const fallback = FALLBACK_DISCOVERY_CARDS[index % FALLBACK_DISCOVERY_CARDS.length]
+  const matchingSpace = space?.id === fallback.spaceId ? space : undefined
+  const visitCount = Number(matchingSpace?.visit_count || 0)
+  const characterCount = matchingSpace?.characters?.length || 0
   const minutes = index < 4 ? (index + 1) * 3 + 2 : index * 7
-  const guide = space ? buildSpaceFirstMinuteGuide(space) : null
+  const guide = matchingSpace ? buildSpaceFirstMinuteGuide(matchingSpace) : null
   return {
-    id: space?.id,
-    name: space?.name || fallback.name,
-    description: space?.description || fallback.description,
-    tag: (space as (Space & { tags?: string[] }) | undefined)?.tags?.[0] || fallback.tag,
-    image: DISCOVER_CARD_IMAGES[index % DISCOVER_CARD_IMAGES.length],
+    id: fallback.spaceId,
+    name: fallback.name,
+    description: fallback.description,
+    tag: fallback.tag,
+    image: fallback.image,
     visitLabel: visitCount > 0 ? `${visitCount} 人在这里` : "等待到访",
     characterLabel: characterCount > 0 ? `${characterCount} 位 NPC` : "待配置 NPC",
     favoriteCount: visitCount > 0 ? Math.max(1, Math.round(visitCount * 0.28) + 8 - index) : [23, 17, 11, 9][index % 4],
     timeLabel: minutes < 60 ? `${minutes} 分钟前` : "1 小时前",
     sceneHint: guide?.sceneHint || "真实坐标上的空间。",
     tryPrompt: guide?.tryThisFirst?.[0] || "这里为什么偏偏开在这里？",
-    experienceType: guide?.experienceType || "地点叙事",
+    experienceType: guide?.experienceType || fallback.tag,
   }
 }
 
@@ -1791,7 +1802,7 @@ function FableSpaceHomeCoordinateCard({
   const card = homeCoordinateCardData(slice, index, variant)
   const [x, y, w, h] = box
   const canEnter = Boolean(slice?.id || card.id || isBlack)
-  const target = to || targetFor(slice || card)
+  const target = to || targetFor(card)
   const badgeLabel = isBlack ? card.tag : (canEnter ? card.tag : (isLoading ? "加载中" : "待开放"))
   const toneClass =
     card.tone === "unstable"
@@ -1892,7 +1903,7 @@ function FableSpaceDiscoverCard({
   const [x, y, w, h] = box
   const card = discoverCardData(space, index)
   const isBlack = variant === "black"
-  const isEnterable = Boolean(space?.id)
+  const isEnterable = Boolean(card.id)
   const avatarImages = DISCOVER_CARD_AVATAR_IMAGE_SETS[index % DISCOVER_CARD_AVATAR_IMAGE_SETS.length]
   const className = cx(
     "absolute z-20 flex flex-col overflow-hidden rounded-[1.28rem] border",
@@ -1970,7 +1981,7 @@ function FableSpaceDiscoverCard({
 
   return (
     <Link
-      to={targetFor(space)}
+      to={targetFor(card)}
       data-fable-space-discover-card="real-card"
       data-fable-space-discover-card-layout="image-top"
       data-fable-space-discover-card-state="enterable"
@@ -2158,7 +2169,6 @@ function FableSpaceHomeMainSurface({
           slice={featuredCitySlices[index]}
           index={index}
           variant={variant}
-          to={targetFor(featuredCitySlices[index])}
           isLoading={isLoading && !featuredCitySlices[index]?.id}
         />
       ))}
@@ -2879,7 +2889,7 @@ function FableSpaceDiscoverMobile({
   visitorReduced = false,
   variant,
 }: DiscoverReferenceProps) {
-  const cardCount = visitorReduced ? 3 : 6
+  const cardCount = visitorReduced ? 3 : 8
   const cards = DISCOVER_LAYOUT.cards.map((_, index) => discoverCardData(spaces[index], index)).slice(0, cardCount)
   const isBlack = variant === "black"
   return (
@@ -2914,21 +2924,34 @@ function FableSpaceDiscoverMobile({
           <Link to={WEB_PATHS.createSpace} className={cx("inline-flex min-h-11 touch-manipulation items-center rounded-xl px-2 text-[15px] font-black", isBlack ? "text-cyan-200" : "text-violet-500")}>店主入口 →</Link>
         </div>
         <div className="grid gap-3">
-          {cards.map((card, index) => (
-            <Link key={`${card.name}-${index}`} to={targetFor(card)} data-fable-space-discover-card="real-card" className={cx("flex min-h-28 touch-manipulation gap-3 rounded-[1.25rem] border p-2.5", isBlack ? "border-cyan-300/20 bg-[#061126]/84 shadow-[0_0_22px_rgba(14,165,233,0.12),0_0_26px_rgba(168,85,247,0.10),0_14px_30px_rgba(1,3,10,0.3)]" : "border-white/80 bg-white shadow-[0_14px_30px_rgba(108,123,178,0.12)]")}>
+          {cards.map((card) => (
+            <Link
+              key={card.id || card.name}
+              to={targetFor(card)}
+              data-fable-space-discover-card="real-card"
+              aria-disabled={!card.id}
+              onClick={card.id ? undefined : (event) => event.preventDefault()}
+              className={cx(
+                "flex min-h-32 touch-manipulation gap-3 rounded-[1rem] border p-2.5 outline-none transition focus:ring-4",
+                !card.id && "cursor-wait opacity-80",
+                isBlack
+                  ? "border-cyan-300/20 bg-[#061126]/84 shadow-[0_8px_8px_rgba(1,3,10,0.24)] focus:ring-cyan-300/30"
+                  : "border-white/80 bg-white shadow-[0_8px_8px_rgba(108,123,178,0.10)] focus:ring-violet-400/30",
+              )}
+            >
               <img data-fable-space-discover-square-image="512x512" src={card.image} alt={`${card.name} 封面`} className="h-24 w-24 shrink-0 rounded-[1rem] object-cover" loading="lazy" decoding="async" />
               <span className="flex min-w-0 flex-1 flex-col justify-center py-0.5">
                 <span className={cx("block truncate text-[17px] font-black", isBlack ? "text-white" : "text-slate-800")}>{card.name}</span>
+                <span className={cx("mt-1 line-clamp-2 text-[13px] font-bold leading-5", isBlack ? "text-cyan-100/62" : "text-slate-500")} title={card.description}>
+                  {card.description}
+                </span>
                 <span className="mt-2 flex min-w-0 flex-wrap items-center gap-2">
                   <span className={cx("rounded-full px-2.5 py-1 text-[11px] font-black", isBlack ? "bg-cyan-400/12 text-cyan-100" : "bg-violet-50 text-violet-500")}>
                     {card.experienceType}
                   </span>
-                  <span className={cx("truncate text-xs font-black", isBlack ? "text-violet-200/62" : "text-slate-400")}>
-                    {card.visitLabel}
+                  <span data-fable-space-discover-entry-cta="visitor-primary" className={cx("inline-flex min-h-7 items-center rounded-full px-3 text-[12px] font-black", isBlack ? "bg-cyan-300 text-slate-950" : "bg-violet-500 text-white")}>
+                    {card.id ? "进入 →" : "等待同步"}
                   </span>
-                </span>
-                <span data-fable-space-discover-entry-cta="visitor-primary" className={cx("mt-2 inline-flex min-h-8 w-fit items-center rounded-full px-3 text-[13px] font-black", isBlack ? "bg-[linear-gradient(135deg,#06b6d4_0%,#7c3aed_58%,#d946ef_100%)] text-white shadow-[0_0_20px_rgba(14,165,233,0.22),0_0_22px_rgba(217,70,239,0.18)]" : "bg-violet-50 text-violet-500")}>
-                  进入 →
                 </span>
               </span>
             </Link>
