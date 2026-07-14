@@ -15,7 +15,7 @@ import sys
 from pathlib import Path
 from typing import Any
 
-from sqlalchemy import and_, create_engine, func, inspect, select, text
+from sqlalchemy import MetaData, Table, and_, create_engine, func, inspect, select, text
 from sqlalchemy.engine import Engine, make_url
 
 from fablespace_api.infrastructure.database import Base, Database
@@ -25,6 +25,21 @@ from fablespace_api.infrastructure.storage import redact_database_url
 
 
 DEFAULT_SOURCE_SQLITE = Path(".fablespace-api") / "fablespace.sqlite3"
+
+# Legacy `fablemap` databases used tavern-oriented column names before the API
+# standardized on Space terminology. Migrations preserve those values explicitly.
+LEGACY_SOURCE_COLUMN_ALIASES: dict[str, dict[str, str]] = {
+    "neighborhood_rumors": {
+        "source_space_id": "source_tavern_id",
+        "target_space_id": "target_tavern_id",
+    },
+    "notifications": {"space_id": "tavern_id", "space_name": "tavern_name"},
+    "visitor_notes": {"space_id": "tavern_id"},
+    "visitor_relationship_projections": {"space_id": "tavern_id"},
+    "npc_public_bond_queues": {"space_id": "tavern_id"},
+    "npc_public_bonds": {"space_id": "tavern_id"},
+    "tavern_messages": {"space_id": "tavern_id"},
+}
 
 
 def _resolve_target_url(explicit_url: str = "", *, env_file: Path = DEFAULT_ENV_FILE) -> str:
@@ -107,6 +122,7 @@ def _where_primary_key(table: Any, row: dict[str, Any]) -> Any:
 
 
 def _copy_table(source: Engine, target: Engine, table: Any, *, dry_run: bool = False) -> dict[str, int]:
+    """Copy one reflected source table into the current model using legacy aliases."""
     if not _table_exists(source, table.name):
         return {"source": 0, "inserted": 0, "updated": 0, "skipped": 0}
 
@@ -114,17 +130,24 @@ def _copy_table(source: Engine, target: Engine, table: Any, *, dry_run: bool = F
     if not primary_key_columns:
         return {"source": 0, "inserted": 0, "updated": 0, "skipped": 0}
 
+    source_table = Table(table.name, MetaData(), autoload_with=source)
+    aliases = LEGACY_SOURCE_COLUMN_ALIASES.get(table.name, {})
+    selected_columns = []
+    for target_column in table.columns:
+        source_name = aliases.get(target_column.name, target_column.name)
+        if source_name in source_table.c:
+            selected_columns.append(source_table.c[source_name].label(target_column.name))
+
     with source.connect() as source_conn:
-        source_count = int(source_conn.execute(select(func.count()).select_from(table)).scalar() or 0)
-        rows = [dict(row) for row in source_conn.execute(select(table)).mappings()]
+        source_count = int(source_conn.execute(select(func.count()).select_from(source_table)).scalar() or 0)
+        if dry_run:
+            return {"source": source_count, "inserted": 0, "updated": 0, "skipped": 0}
+        rows = [dict(row) for row in source_conn.execute(select(*selected_columns)).mappings()]
 
     inserted = 0
     updated = 0
     skipped = 0
     column_names = {column.name for column in table.columns}
-
-    if dry_run:
-        return {"source": source_count, "inserted": 0, "updated": 0, "skipped": 0}
 
     with target.begin() as target_conn:
         for source_row in rows:

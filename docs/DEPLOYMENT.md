@@ -87,7 +87,7 @@ sudo python3 deploy/server/configure_shared_services.py
 docker exec parallellines-db-1 sh -c 'mysql -uroot -p"$MYSQL_ROOT_PASSWORD" -e "CREATE DATABASE IF NOT EXISTS fablespace CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci; GRANT ALL PRIVILEGES ON fablespace.* TO '\''$MYSQL_USER'\''@'\''%'\''; FLUSH PRIVILEGES"'
 ```
 
-首次迁移前必须先为旧数据库做逻辑备份，再使用非破坏性迁移器执行 dry-run 和正式迁移。迁移器只建表并按主键 upsert，不删除目标行；实际执行时通过只读 volume 把 `apps/api/.env.pre-shared-*` 映射进临时 backend 容器，再用 `--source-env-file` 和 `--source-env-key FABLEMAP_DATABASE_URL` 读取源连接，避免把密码放进命令行或日志。
+首次迁移前必须先为旧数据库做逻辑备份，再使用非破坏性迁移器执行 dry-run 和正式迁移。迁移器只建表并按主键 upsert，不删除目标行，并显式映射旧库 `tavern_id/tavern_name` 到当前 `space_id/space_name` 字段；实际执行时通过只读 volume 把 `apps/api/.env.pre-shared-*` 映射进临时 backend 容器，再用 `--source-env-file` 和 `--source-env-key FABLEMAP_DATABASE_URL` 读取源连接，避免把密码放进命令行或日志。
 
 后端同时连接 Compose 默认网络与外部 `parallellines_default` 网络；前端仍只在 FableSpace 默认网络内访问 backend。若共享网络名称不同，设置 `FABLESPACE_SHARED_NETWORK`。启动命令必须包含共享覆盖文件：
 
