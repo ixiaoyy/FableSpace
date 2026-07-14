@@ -150,6 +150,7 @@ jobs:
           SAMPLE_PATH="${SAMPLE_FILE#/tmp/fablespace-assets/}"
           curl --fail --silent --show-error \
             --retry 6 --retry-delay 5 --retry-all-errors \
+            --user-agent "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/126.0 Safari/537.36" \
             --header "Origin: ${PUBLIC_SITE_ORIGIN}" \
             --dump-header /tmp/fablespace-cdn-headers.txt \
             --output /dev/null \
