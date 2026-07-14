@@ -73,6 +73,21 @@ def _default_storage_backend() -> str:
     return value if value in {"database", "json"} else "database"
 
 
+def _default_generated_storage_backend() -> str:
+    """Return the generated-file backend, restricted to supported values."""
+    value = _env_value("FABLESPACE_GENERATED_STORAGE_BACKEND", default="local").lower()
+    return value if value in {"local", "s3"} else "local"
+
+
+def _int_from_env(primary: str, default: int) -> int:
+    """Read an integer environment value and fall back when it is invalid."""
+    value = _env_value(primary)
+    try:
+        return int(value) if value else default
+    except ValueError:
+        return default
+
+
 @dataclass(frozen=True)
 class ApiSettings:
     output_root: Path = field(default_factory=_default_output_root)
@@ -84,6 +99,16 @@ class ApiSettings:
     storage_backend: str = field(default_factory=_default_storage_backend)
     database_url: str = field(default_factory=_default_database_url)
     mysql_url: str = field(default_factory=_default_mysql_url)
+    redis_url: str = field(default_factory=lambda: _env_value("FABLESPACE_REDIS_URL"))
+    generated_storage_backend: str = field(default_factory=_default_generated_storage_backend)
+    s3_bucket: str = field(default_factory=lambda: _env_value("FABLESPACE_S3_BUCKET"))
+    s3_region: str = field(default_factory=lambda: _env_value("FABLESPACE_S3_REGION", default="auto"))
+    s3_endpoint_url: str = field(default_factory=lambda: _env_value("FABLESPACE_S3_ENDPOINT_URL"))
+    s3_access_key_id: str = field(default_factory=lambda: _env_value("FABLESPACE_S3_ACCESS_KEY_ID"))
+    s3_secret_access_key: str = field(default_factory=lambda: _env_value("FABLESPACE_S3_SECRET_ACCESS_KEY"))
+    s3_prefix: str = field(default_factory=lambda: _env_value("FABLESPACE_S3_PREFIX", default="fablespace"))
+    cdn_base_url: str = field(default_factory=lambda: _env_value("FABLESPACE_CDN_BASE_URL"))
+    s3_request_timeout_seconds: int = field(default_factory=lambda: _int_from_env("FABLESPACE_S3_REQUEST_TIMEOUT_SECONDS", 20))
 
     def resolved(self) -> "ApiSettings":
         resolved_frontend_root = self.frontend_root.resolve() if self.frontend_root else None
@@ -103,4 +128,14 @@ class ApiSettings:
             storage_backend=self.storage_backend,
             database_url=self.database_url,
             mysql_url=self.mysql_url,
+            redis_url=self.redis_url,
+            generated_storage_backend=self.generated_storage_backend,
+            s3_bucket=self.s3_bucket,
+            s3_region=self.s3_region,
+            s3_endpoint_url=self.s3_endpoint_url,
+            s3_access_key_id=self.s3_access_key_id,
+            s3_secret_access_key=self.s3_secret_access_key,
+            s3_prefix=self.s3_prefix,
+            cdn_base_url=self.cdn_base_url,
+            s3_request_timeout_seconds=self.s3_request_timeout_seconds,
         )

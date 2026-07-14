@@ -11,6 +11,7 @@ Frontend (React Router / Vite)
   -> Application services
   -> Core domain modules
   -> SQLAlchemy database or explicit JSON fallback
+  -> Redis shared cache and optional S3-compatible generated-file storage
 ```
 
 FableSpace 同时保留两类 API 面：
@@ -146,6 +147,9 @@ FableSpace 同时保留两类 API 面：
 - 设置 `FABLESPACE_DATABASE_URL` / `FABLESPACE_MYSQL_URL`：使用对应 SQLAlchemy URL
 - 未设置数据库 URL：使用 `<output-root>/fablespace.sqlite3`
 - 显式 `FABLESPACE_STORAGE_BACKEND=json`：使用旧 JSON 兼容存储
+- 生产环境可复用 ParallelLines MySQL 服务，但使用独立 `fablespace` database。
+- `FABLESPACE_REDIS_URL` 配置共享 Redis；FableSpace 使用独立逻辑 DB 和 `fablespace:` key namespace，Redis 不可用时平台聚合缓存退回进程内 TTL cache。
+- `FABLESPACE_GENERATED_STORAGE_BACKEND=s3` 时，兼容层生成的地图预览写入 `<FABLESPACE_S3_PREFIX>/generated/`，读取经配置的 CDN URL 307 跳转；数据库、对话和敏感配置不进入对象存储。
 
 主要表：
 
@@ -211,6 +215,9 @@ FableSpace 同时保留两类 API 面：
 ## 前端运行与资源边界
 
 - Docker Compose 部署时，`apps/web/Dockerfile` 构建静态前端，nginx 托管页面并把 `/api`、`/generated` 反向代理到后端服务。
+- 生产自动部署由 `.github/workflows/deploy.yml` 驱动：后端通过 SSH + Compose 更新；前端镜像在 GitHub runner 构建并上传服务器，构建期资源同步到 S3 兼容对象存储。
+- 配置 `VITE_ASSET_BASE_URL` 后，Vite import 产生的 JS、CSS 和图片 URL 使用 `CDN_BASE_URL/releases/<git-sha>/` 前缀；release 目录不可变，避免发布间缓存串版本。
+- 对象存储承载公开前端构建资源和兼容层生成的公开地图预览：前者位于 `fablespace/releases/`，后者位于 `fablespace/generated/`。店主 API Key、对话记录、访客状态和数据库不得进入对象存储。部署和 CDN 配置见 [DEPLOYMENT.md](DEPLOYMENT.md)。
 - 非 Docker 一体化运行时，先构建前端，再由 `py -3 -m fablespace_api api` 在默认 `8950` 端口托管页面和兼容 API。
 - Vite 本地开发服务器默认把 `/api` 和 `/generated` 代理到 `127.0.0.1:8950`。
 - Public URL 资源放 `apps/web/public/assets/`

@@ -42,6 +42,15 @@ def _resolve_target_url(explicit_url: str = "", *, env_file: Path = DEFAULT_ENV_
     )
 
 
+def _resolve_source_url(explicit_url: str, *, env_file: Path | None, env_key: str) -> str:
+    """Resolve a source URL from an explicit value or one named env-file key."""
+    if explicit_url.strip():
+        return explicit_url.strip()
+    if env_file is None or not env_key:
+        return ""
+    return parse_env_file(env_file).get(env_key, "").strip()
+
+
 def _sqlite_url(path: Path) -> str:
     return f"sqlite:///{path.resolve().as_posix()}"
 
@@ -189,6 +198,8 @@ def main() -> None:
         default="",
         help="Source SQLAlchemy URL. Defaults to sqlite:///.fablespace-api/fablespace.sqlite3",
     )
+    parser.add_argument("--source-env-file", default="", help="Trusted env file containing the source database URL")
+    parser.add_argument("--source-env-key", default="FABLEMAP_DATABASE_URL", help="Source URL key in --source-env-file")
     parser.add_argument(
         "--source-sqlite",
         default=str(DEFAULT_SOURCE_SQLITE),
@@ -200,7 +211,13 @@ def main() -> None:
     parser.add_argument("--dry-run", action="store_true", help="Count source rows without writing target rows")
     args = parser.parse_args()
 
-    source_url = args.source_url.strip() or _sqlite_url(Path(args.source_sqlite))
+    source_url = _resolve_source_url(
+        args.source_url,
+        env_file=Path(args.source_env_file) if args.source_env_file else None,
+        env_key=args.source_env_key,
+    )
+    if not source_url:
+        source_url = _sqlite_url(Path(args.source_sqlite))
     target_url = _resolve_target_url(args.target_url, env_file=Path(args.env_file))
 
     if source_url.startswith("sqlite:///"):

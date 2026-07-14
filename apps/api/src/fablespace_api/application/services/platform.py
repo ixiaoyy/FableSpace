@@ -1,12 +1,12 @@
 from __future__ import annotations
 
-import threading
-import time
+import os
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
 from fablespace_api.core.space import ChatMessage, Tavern
+from fablespace_api.infrastructure.shared_cache import SharedJsonCache
 
 
 PLATFORM_RECENT_MEMORY_DEFAULT_LIMIT = 5
@@ -22,44 +22,15 @@ def _utc_now_iso() -> str:
     return datetime.now(UTC).replace(microsecond=0).isoformat().replace("+00:00", "Z")
 
 
-class _SimpleCache:
-    """Thread-safe in-memory cache with TTL."""
-
-    def __init__(self):
-        """Create an empty cache guarded by a process-local lock."""
-        self._lock = threading.Lock()
-        self._cache: dict[str, tuple[Any, float]] = {}
-
-    def get(self, key: str) -> Any | None:
-        """Return a cached value when it exists and has not expired."""
-        with self._lock:
-            entry = self._cache.get(key)
-            if entry is None:
-                return None
-            value, expires_at = entry
-            if time.time() > expires_at:
-                del self._cache[key]
-                return None
-            return value
-
-    def set(self, key: str, value: Any, ttl: int) -> None:
-        """Store a cache value for the given number of seconds."""
-        with self._lock:
-            self._cache[key] = (value, time.time() + ttl)
-
-    def invalidate(self, key: str) -> None:
-        """Remove one cache key if it exists."""
-        with self._lock:
-            self._cache.pop(key, None)
-
-    def clear(self) -> None:
-        """Remove all cached values."""
-        with self._lock:
-            self._cache.clear()
+# The module can be imported before apps/api/.env is loaded, so app factories
+# reconfigure this cache after settings resolution.
+_platform_cache = SharedJsonCache("platform", os.environ.get("FABLESPACE_REDIS_URL", ""))
 
 
-# Global cache instance
-_platform_cache = _SimpleCache()
+def configure_platform_cache(redis_url: str) -> None:
+    """Replace the platform cache with a Redis-aware instance for this process."""
+    global _platform_cache
+    _platform_cache = SharedJsonCache("platform", redis_url)
 
 
 def _safe_int(value: Any) -> int:

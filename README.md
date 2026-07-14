@@ -61,6 +61,7 @@ Compose 默认启动两个服务：
 
 - `frontend`：构建 `apps/web/`，由 nginx 暴露 `3000` 端口，并把 `/api`、`/generated` 反向代理到后端。
 - `backend`：运行 `uvicorn fablespace_api.main:app`，暴露 `8000` 端口，数据写入 `/data`。
+- 生产复用 ParallelLines 的 MySQL/Redis 时，使用 `deploy/docker-compose.shared.yml` 覆盖文件；完整初始化、迁移和 R2/CDN 配置见 [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)。
 
 查看日志：
 
@@ -79,6 +80,12 @@ docker compose down
 ```bash
 docker compose up --build -d
 ```
+
+## GitHub Actions 自动部署与 CDN
+
+仓库提供 `.github/workflows/deploy.yml`：推送 `main` 后按前端、后端和部署配置的实际变化选择构建范围。后端通过 SSH + Docker Compose 更新；前端构建产物中的 JS、CSS 和导入图片会先同步到 S3 兼容对象存储（支持 Cloudflare R2），再替换服务器上的前端镜像。
+
+部署默认受 GitHub Actions 仓库变量 `DEPLOY_ENABLED` 保护。服务器、存储桶、CDN 域名和全部 Secret 配置完成后才能启用。完整 Secret 清单、R2/CORS 设置和首次服务器准备步骤见 [自动部署与 CDN](docs/DEPLOYMENT.md)。
 
 ## 配置
 
@@ -103,6 +110,7 @@ docker compose up --build -d
 | `VITE_API_BASE` | 前端构建期 API 基址，留空时使用同源 `/api` |
 | `VITE_AMAP_KEY` | 可选地图服务 Key |
 | `VITE_AMAP_SECURITY_CODE` | 可选地图服务安全码 |
+| `VITE_ASSET_BASE_URL` | 可选的构建资源绝对前缀；生产 workflow 自动设置为提交号隔离的 CDN release 路径 |
 
 店主自己的 LLM API Key 应在 FableSpace 的空间管理界面中配置，不应写入共享环境文件或提交到仓库。
 
@@ -153,6 +161,7 @@ py -3 -m fablespace_api api --host 127.0.0.1 --port 8951 --no-open
 - [世界数据结构](docs/WORLD_SCHEMA.md)
 - [明确不做清单](docs/WHAT_NOT_TO_BUILD.md)
 - [图像资源规范](docs/IMAGE_ASSETS_SPEC.md)
+- [自动部署与 CDN](docs/DEPLOYMENT.md)
 
 ## 安全提醒
 

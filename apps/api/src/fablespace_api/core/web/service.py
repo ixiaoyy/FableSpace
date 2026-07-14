@@ -17,6 +17,10 @@ from fablespace_api.domain.space_package_policy import (
     TAVERN_PACKAGE_VERSION,
 )
 from fablespace_api.domain.space_share_policy import build_space_share_payload
+from fablespace_api.infrastructure.generated_storage import (
+    GeneratedStorageError,
+    create_generated_storage,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -423,6 +427,7 @@ class WebService:
     ):
         self.settings = settings.resolved()
         self.settings.output_root.mkdir(parents=True, exist_ok=True)
+        self.generated_storage = create_generated_storage(self.settings)
         self.writeback = WritebackEngine(writeback_store or WritebackStore(self.settings.output_root / "writeback"))
         self.orchestrator = RuleBasedOrchestrator()
         self.memory_graph = WorldMemoryGraph()
@@ -485,6 +490,10 @@ class WebService:
                 source_file=source_path,
                 refresh=refresh,
             )
+            try:
+                self.generated_storage.publish_directory(self.settings.output_root / run_id, run_id)
+            except GeneratedStorageError as exc:
+                raise HTTPException(status_code=503, detail=str(exc)) from exc
             payload = build_nearby_payload(
                 result=result,
                 base_url=base_url,
@@ -653,10 +662,18 @@ class WebService:
             raise HTTPException(status_code=500, detail=str(exc)) from exc
 
     def generated_file_path(self, file_path: str) -> Path:
+        """Resolve one local generated path and reject traversal or missing files."""
         candidate = (self.settings.output_root / Path(file_path)).resolve()
         if not _is_within_root(candidate, self.settings.output_root) or not candidate.is_file():
             raise HTTPException(status_code=404, detail="generated file not found")
         return candidate
+
+    def generated_file_public_url(self, file_path: str) -> str | None:
+        """Return a CDN URL for one generated path when S3 storage is enabled."""
+        try:
+            return self.generated_storage.public_url(file_path)
+        except GeneratedStorageError as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
 
     def frontend_static_dir(self) -> Path | None:
         candidates = []

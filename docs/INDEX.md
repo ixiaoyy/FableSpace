@@ -12,6 +12,7 @@
 6. [WHAT_NOT_TO_BUILD.md](WHAT_NOT_TO_BUILD.md) — 明确不做的产品/技术方向。
 7. [IMAGE_ASSETS_SPEC.md](IMAGE_ASSETS_SPEC.md) — 图片资产落盘与 prompt sidecar 规则。
 8. [AI参与开发协议.md](AI参与开发协议.md) — 仓库维护者的 AI 协作和验证规则。
+9. [DEPLOYMENT.md](DEPLOYMENT.md) — GitHub Actions、Docker Compose、对象存储和 CDN 发布。
 
 ## 文档职责
 
@@ -25,6 +26,7 @@
 | `WHAT_NOT_TO_BUILD.md` | 作为负面清单，阻止方向漂移。 |
 | `IMAGE_ASSETS_SPEC.md` | 约束图片资产路径、命名、prompt sidecar 与验证。 |
 | `AI参与开发协议.md` | 约束 AI 如何读文档、改代码、留痕和汇报。 |
+| `DEPLOYMENT.md` | 维护生产自动部署、GitHub Secret、对象存储与 CDN 发布契约。 |
 
 ## 维护协作资料
 

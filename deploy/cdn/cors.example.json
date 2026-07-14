@@ -1,0 +1,20 @@
+{
+  "CORSRules": [
+    {
+      "AllowedOrigins": [
+        "https://your-fablespace-domain.example"
+      ],
+      "AllowedMethods": [
+        "GET",
+        "HEAD"
+      ],
+      "AllowedHeaders": [
+        "*"
+      ],
+      "ExposeHeaders": [
+        "ETag"
+      ],
+      "MaxAgeSeconds": 86400
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+services:
+  backend:
+    networks:
+      - default
+      - shared_services
+
+networks:
+  default:
+  shared_services:
+    external: true
+    name: ${FABLESPACE_SHARED_NETWORK:-parallellines_default}

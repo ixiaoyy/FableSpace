@@ -12,6 +12,7 @@ from fablespace_api.api.response_envelope import add_api_response_envelope_middl
 from fablespace_api.api.v1.router import api_router
 from fablespace_api.application.clue_hunts import ClueHuntApplicationService
 from fablespace_api.application.spaces import SpaceApplicationService
+from fablespace_api.application.services.platform import configure_platform_cache
 from fablespace_api.application.territories import TerritoryApplicationService
 from fablespace_api.core.clue_hunt import ClueHuntStore
 from fablespace_api.infrastructure.settings import ApiSettings as NativeApiSettings
@@ -64,7 +65,18 @@ def create_web_app(settings: ApiSettings) -> FastAPI:
         storage_backend=resolved.storage_backend,
         database_url=resolved.database_url,
         mysql_url=resolved.mysql_url,
+        redis_url=resolved.redis_url,
+        generated_storage_backend=resolved.generated_storage_backend,
+        s3_bucket=resolved.s3_bucket,
+        s3_region=resolved.s3_region,
+        s3_endpoint_url=resolved.s3_endpoint_url,
+        s3_access_key_id=resolved.s3_access_key_id,
+        s3_secret_access_key=resolved.s3_secret_access_key,
+        s3_prefix=resolved.s3_prefix,
+        cdn_base_url=resolved.cdn_base_url,
+        s3_request_timeout_seconds=resolved.s3_request_timeout_seconds,
     )
+    configure_platform_cache(resolved.redis_url)
     space_store = create_space_store(native_settings)
     configure_process_stores(native_settings, space_store)
     territory_service = TerritoryApplicationService(

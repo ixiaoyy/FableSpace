@@ -702,6 +702,10 @@ Do not explain. Just output the single emotion word."""
 
     @router.get("/generated/{file_path:path}")
     def get_generated_file(file_path: str):
+        """Serve local generated output or redirect to the configured CDN object."""
+        public_url = service.generated_file_public_url(file_path)
+        if public_url:
+            return RedirectResponse(public_url, status_code=307)
         return FileResponse(service.generated_file_path(file_path))
 
     # ─── SillyTavern proxy routes ────────────────────────────────────────────
