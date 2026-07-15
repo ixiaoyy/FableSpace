@@ -204,10 +204,39 @@ jobs:
           command_timeout: 20m
           script: |
             set -eu
-            cd "${{ vars.DEPLOY_PATH || '/opt/fablespace' }}"
+            FABLESPACE_PATH="${{ vars.DEPLOY_PATH || '/opt/fablespace' }}"
+            cd "${FABLESPACE_PATH}"
             git remote set-url origin "https://github.com/${{ github.repository }}.git"
             git fetch --prune origin main
             git reset --hard origin/main
+
+            CONFIG_OUTPUT="$(sudo python3 deploy/server/configure_shared_services.py --cors-origin https://fable.pingxingxian.space)"
+            printf '%s\n' "${CONFIG_OUTPUT}"
+            case "${CONFIG_OUTPUT}" in
+              *parallellines_changed=true*)
+                cd /opt/parallellines
+                if sudo docker compose version >/dev/null 2>&1; then
+                  PARALLELLINES_COMPOSE="sudo docker compose"
+                else
+                  PARALLELLINES_COMPOSE="sudo docker-compose"
+                fi
+                $PARALLELLINES_COMPOSE up -d --no-deps --force-recreate api worker
+                PARALLELLINES_READY=false
+                for ATTEMPT in $(seq 1 30); do
+                  if $PARALLELLINES_COMPOSE exec -T api python -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/v1/health', timeout=3).read()" >/dev/null 2>&1; then
+                    PARALLELLINES_READY=true
+                    break
+                  fi
+                  sleep 2
+                done
+                if [ "${PARALLELLINES_READY}" != "true" ]; then
+                  $PARALLELLINES_COMPOSE logs --tail=120 api
+                  echo "ParallelLines API health check failed after SSO configuration"
+                  exit 1
+                fi
+                cd "${FABLESPACE_PATH}"
+                ;;
+            esac
 
             if sudo docker compose version >/dev/null 2>&1; then
               COMPOSE="sudo docker compose"

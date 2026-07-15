@@ -38,6 +38,7 @@ demo-output/
 .env.local
 .env
 *.env
+.env.pre-shared-*
 !.env.example
 !**/.env.example
 

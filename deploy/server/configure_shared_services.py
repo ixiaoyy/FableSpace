@@ -1,12 +1,13 @@
-"""Prepare FableSpace env values for ParallelLines shared infrastructure.
+"""Prepare both services for FableSpace on ParallelLines shared infrastructure.
 
-The script only reads the ParallelLines env file and writes FableSpace's env
-file. It never prints database passwords or object-storage credentials.
+The script maps shared storage settings and reconciles the private SSO settings
+in both server-side env files. It never prints credentials or generated secrets.
 """
 
 from __future__ import annotations
 
 import argparse
+import secrets
 import shutil
 from datetime import UTC, datetime
 from pathlib import Path
@@ -17,6 +18,8 @@ LEGACY_DATABASE_ENV_KEYS = {
     "FABLESPACE_MYSQL_URL",
     "FABLEMAP_MYSQL_URL",
 }
+
+MIN_SECRET_LENGTH = 32
 
 
 def parse_env(path: Path) -> dict[str, str]:
@@ -75,6 +78,74 @@ def update_env_text(
     return "\n".join(output).rstrip() + "\n"
 
 
+def shared_sso_secret(
+    parallellines: dict[str, str],
+    fablespace: dict[str, str],
+) -> tuple[str, str]:
+    """Reuse one valid cross-service secret or generate it when both sides are unconfigured.
+
+    The return value contains the secret and a non-sensitive source label. A conflicting
+    pair of valid secrets is rejected instead of silently rotating either running service.
+    """
+
+    parallellines_secret = parallellines.get("FABLESPACE_SSO_SERVICE_SECRET", "").strip()
+    fablespace_secret = fablespace.get(
+        "FABLESPACE_PARALLELLINES_SSO_SERVICE_SECRET",
+        "",
+    ).strip()
+    parallellines_valid = len(parallellines_secret) >= MIN_SECRET_LENGTH
+    fablespace_valid = len(fablespace_secret) >= MIN_SECRET_LENGTH
+    if parallellines_valid and fablespace_valid and parallellines_secret != fablespace_secret:
+        raise ValueError("ParallelLines and FableSpace contain different valid SSO secrets")
+    if parallellines_valid:
+        return parallellines_secret, "existing"
+    if fablespace_valid:
+        return fablespace_secret, "existing"
+    return secrets.token_urlsafe(48), "generated"
+
+
+def session_secret(fablespace: dict[str, str]) -> tuple[str, str]:
+    """Preserve a valid FableSpace session secret or create a new independent value."""
+
+    existing = fablespace.get("FABLESPACE_SESSION_SECRET", "").strip()
+    if len(existing) >= MIN_SECRET_LENGTH:
+        return existing, "existing"
+    return secrets.token_urlsafe(48), "generated"
+
+
+def validate_http_url(value: str, label: str, *, allow_path: bool) -> str:
+    """Normalize and validate one HTTP(S) deployment URL without making a request."""
+
+    normalized = value.rstrip("/")
+    parsed = urlsplit(normalized)
+    if parsed.scheme not in {"http", "https"} or not parsed.netloc:
+        raise ValueError(f"{label} must be an HTTP(S) URL")
+    if not allow_path and parsed.path:
+        raise ValueError(f"{label} must not include a path")
+    return normalized
+
+
+def write_env_if_changed(path: Path, text: str, timestamp: str) -> tuple[bool, Path | None]:
+    """Back up and atomically replace one env file only when its rendered content changed."""
+
+    current = path.read_text(encoding="utf-8") if path.exists() else None
+    if current == text:
+        path.chmod(0o600)
+        return False, None
+
+    backup_path: Path | None = None
+    path.parent.mkdir(parents=True, exist_ok=True)
+    if path.exists():
+        backup_path = path.with_name(f"{path.name}.pre-shared-{timestamp}")
+        shutil.copy2(path, backup_path)
+    temporary_path = path.with_name(f".{path.name}.tmp-{timestamp}")
+    temporary_path.write_text(text, encoding="utf-8")
+    temporary_path.chmod(0o600)
+    temporary_path.replace(path)
+    path.chmod(0o600)
+    return True, backup_path
+
+
 def build_updates(
     parallellines: dict[str, str],
     database_name: str,
@@ -124,7 +195,7 @@ def build_updates(
 
 
 def main() -> None:
-    """Validate shared settings, back up the FableSpace env, and apply mapped values."""
+    """Validate shared settings, back up changed env files, and apply mapped values."""
     parser = argparse.ArgumentParser(description="Configure FableSpace to reuse ParallelLines infrastructure")
     parser.add_argument("--parallellines-env", type=Path, default=Path("/opt/parallellines/apps/api/.env"))
     parser.add_argument("--fablespace-env", type=Path, default=Path("/opt/fablespace/apps/api/.env"))
@@ -133,7 +204,15 @@ def main() -> None:
     parser.add_argument("--redis-db", type=int, default=1)
     parser.add_argument("--prefix", default="fablespace")
     parser.add_argument("--generated-storage", choices=("local", "s3"), default="local")
+    parser.add_argument("--auth-mode", choices=("parallellines", "legacy"), default="parallellines")
     parser.add_argument("--cors-origin", default="https://fable.pingxingxian.space")
+    parser.add_argument("--fablespace-public-url", default="https://fable.pingxingxian.space")
+    parser.add_argument("--parallellines-public-url", default="https://pingxingxian.space")
+    parser.add_argument(
+        "--parallellines-api-url",
+        default="http://api:8000/api/v1",
+        help="ParallelLines API URL reachable from the FableSpace backend container",
+    )
     parser.add_argument("--dry-run", action="store_true")
     args = parser.parse_args()
 
@@ -145,13 +224,34 @@ def main() -> None:
         not args.prefix.strip("/") or ".." in args.prefix
     ):
         raise SystemExit("prefix must be a non-empty object-key directory")
-    cors_origin = args.cors_origin.rstrip("/")
-    parsed_origin = urlsplit(cors_origin)
-    if parsed_origin.scheme not in {"http", "https"} or not parsed_origin.netloc or parsed_origin.path:
-        raise SystemExit("cors origin must be an HTTP(S) origin without a path")
+    if args.auth_mode == "parallellines" and args.generated_storage != "local":
+        raise SystemExit("ParallelLines authentication requires local generated storage")
+    try:
+        cors_origin = validate_http_url(args.cors_origin, "cors origin", allow_path=False)
+        fablespace_public_url = validate_http_url(
+            args.fablespace_public_url,
+            "FableSpace public URL",
+            allow_path=False,
+        )
+        parallellines_public_url = validate_http_url(
+            args.parallellines_public_url,
+            "ParallelLines public URL",
+            allow_path=False,
+        )
+        parallellines_api_url = validate_http_url(
+            args.parallellines_api_url,
+            "ParallelLines API URL",
+            allow_path=True,
+        )
+    except ValueError as exc:
+        raise SystemExit(str(exc)) from exc
 
     shared_values = parse_env(args.parallellines_env)
-    original = args.fablespace_env.read_text(encoding="utf-8") if args.fablespace_env.exists() else ""
+    parallellines_original = args.parallellines_env.read_text(encoding="utf-8")
+    fablespace_original = (
+        args.fablespace_env.read_text(encoding="utf-8") if args.fablespace_env.exists() else ""
+    )
+    fablespace_values = parse_env(args.fablespace_env) if args.fablespace_env.exists() else {}
     updates = build_updates(
         shared_values,
         args.database_name,
@@ -160,6 +260,37 @@ def main() -> None:
         args.generated_storage,
     )
     updates["FABLESPACE_CORS_ORIGINS"] = cors_origin
+    parallellines_updates: dict[str, str] = {}
+    sso_secret_source = "not-managed"
+    cookie_secret_source = "not-managed"
+    if args.auth_mode == "parallellines":
+        try:
+            sso_secret, sso_secret_source = shared_sso_secret(shared_values, fablespace_values)
+            cookie_secret, cookie_secret_source = session_secret(fablespace_values)
+        except ValueError as exc:
+            raise SystemExit(str(exc)) from exc
+
+        parallellines_updates = {
+            "FABLESPACE_BASE_URL": fablespace_public_url,
+            "FABLESPACE_SSO_SERVICE_SECRET": sso_secret,
+            "FABLESPACE_SSO_TICKET_TTL_SECONDS": "60",
+        }
+        updates.update(
+            {
+                "FABLESPACE_AUTH_MODE": "parallellines",
+                "FABLESPACE_GENERATED_STORAGE_BACKEND": "local",
+                "FABLESPACE_PARALLELLINES_API_BASE_URL": parallellines_api_url,
+                "FABLESPACE_PARALLELLINES_PUBLIC_BASE_URL": parallellines_public_url,
+                "FABLESPACE_PARALLELLINES_SSO_SERVICE_SECRET": sso_secret,
+                "FABLESPACE_SESSION_SECRET": cookie_secret,
+                "FABLESPACE_SESSION_COOKIE_SECURE": "true",
+                "FABLESPACE_SESSION_TTL_SECONDS": "3600",
+                "FABLESPACE_AUTH_INTROSPECTION_CACHE_TTL_SECONDS": "30",
+                "FABLESPACE_AUTH_INTROSPECTION_TIMEOUT_SECONDS": "5",
+            }
+        )
+    else:
+        updates["FABLESPACE_AUTH_MODE"] = "legacy"
     compose_original = args.compose_env.read_text(encoding="utf-8") if args.compose_env.exists() else ""
     compose_updates = {
         "FABLESPACE_API_BIND": "127.0.0.1:8950",
@@ -169,28 +300,40 @@ def main() -> None:
         print(
             f"validated database={args.database_name} redis_db={args.redis_db} "
             f"generated_storage={args.generated_storage} prefix={args.prefix.strip('/')} "
-            f"cors_origin={cors_origin} mapped_keys={len(updates)}"
+            f"cors_origin={cors_origin} fablespace_keys={len(updates)} "
+            f"parallellines_keys={len(parallellines_updates)} "
+            f"sso_secret={sso_secret_source} session_secret={cookie_secret_source}"
         )
         return
 
     timestamp = datetime.now(UTC).strftime("%Y%m%dT%H%M%SZ")
-    backup_path = args.fablespace_env.with_name(f"{args.fablespace_env.name}.pre-shared-{timestamp}")
-    args.fablespace_env.parent.mkdir(parents=True, exist_ok=True)
-    if args.fablespace_env.exists():
-        shutil.copy2(args.fablespace_env, backup_path)
-    args.fablespace_env.write_text(
-        update_env_text(original, updates, remove_keys=LEGACY_DATABASE_ENV_KEYS),
-        encoding="utf-8",
+    if parallellines_updates:
+        parallellines_changed, parallellines_backup = write_env_if_changed(
+            args.parallellines_env,
+            update_env_text(parallellines_original, parallellines_updates),
+            timestamp,
+        )
+    else:
+        parallellines_changed, parallellines_backup = False, None
+    fablespace_changed, fablespace_backup = write_env_if_changed(
+        args.fablespace_env,
+        update_env_text(fablespace_original, updates, remove_keys=LEGACY_DATABASE_ENV_KEYS),
+        timestamp,
     )
-    args.fablespace_env.chmod(0o600)
-    args.compose_env.parent.mkdir(parents=True, exist_ok=True)
-    args.compose_env.write_text(update_env_text(compose_original, compose_updates), encoding="utf-8")
-    args.compose_env.chmod(0o600)
+    compose_changed, _ = write_env_if_changed(
+        args.compose_env,
+        update_env_text(compose_original, compose_updates),
+        timestamp,
+    )
     print(
         f"configured database={args.database_name} redis_db={args.redis_db} "
         f"generated_storage={args.generated_storage} prefix={args.prefix.strip('/')} "
         f"cors_origin={cors_origin} "
-        f"api_backup={backup_path if backup_path.exists() else 'none'} "
+        f"parallellines_changed={str(parallellines_changed).lower()} "
+        f"fablespace_changed={str(fablespace_changed).lower()} "
+        f"compose_changed={str(compose_changed).lower()} "
+        f"parallellines_backup={parallellines_backup or 'none'} "
+        f"fablespace_backup={fablespace_backup or 'none'} "
         f"compose_env={args.compose_env}"
     )
 

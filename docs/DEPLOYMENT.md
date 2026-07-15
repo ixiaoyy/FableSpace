@@ -81,7 +81,7 @@ sudo python3 deploy/server/configure_shared_services.py --cors-origin https://fa
 sudo python3 deploy/server/configure_shared_services.py --cors-origin https://fable.pingxingxian.space
 ```
 
-配置脚本从 `/opt/parallellines/apps/api/.env` 映射数据库和 Redis 连接，默认写入 `FABLESPACE_GENERATED_STORAGE_BACKEND=local`；写入前会生成 `apps/api/.env.pre-shared-<UTC>` 备份，输出不包含密码。脚本会保留无关配置，但会删除 `FABLEMAP_DATABASE_URL`、`FABLESPACE_MYSQL_URL`、`FABLEMAP_MYSQL_URL` 这些已由 `FABLESPACE_DATABASE_URL` 取代的数据库别名，避免新旧连接同时残留。Compose 插值写入仓库根 `.env`，其中后端宿主绑定为 `127.0.0.1:8950`，避免与 ParallelLines 的 `8000` 端口冲突，容器内 API 端口仍为 `8000`。部署 workflow 不创建或覆盖这些环境文件。只有独立公开部署才可显式传入 `--generated-storage s3` 映射 R2 配置；该选项与 `FABLESPACE_AUTH_MODE=parallellines` 不兼容。
+配置脚本从 `/opt/parallellines/apps/api/.env` 映射数据库和 Redis 连接，默认写入 `FABLESPACE_GENERATED_STORAGE_BACKEND=local`；同时在两端环境文件中补齐私密联动配置。若两端都没有有效 SSO 密钥，脚本生成一份共享高强度随机值；若任一端已有有效值则复用；若两端已有不同的有效值则拒绝继续，避免静默轮换导致登录中断。FableSpace 会话密钥独立生成或复用，不与 SSO 密钥共享。发生实际变更前会生成 `.env.pre-shared-<UTC>` 备份，输出不包含密码或密钥；配置未变化时不会重复备份。脚本会保留无关配置，但会删除 `FABLEMAP_DATABASE_URL`、`FABLESPACE_MYSQL_URL`、`FABLEMAP_MYSQL_URL` 这些已由 `FABLESPACE_DATABASE_URL` 取代的数据库别名，避免新旧连接同时残留。Compose 插值写入仓库根 `.env`，其中后端宿主绑定为 `127.0.0.1:8950`，避免与 ParallelLines 的 `8000` 端口冲突，容器内 API 端口仍为 `8000`。生产部署 workflow 会幂等执行该脚本，并仅在 ParallelLines 环境实际变化时重建其 API/worker 以加载新值。只有独立公开部署才可传入 `--auth-mode legacy --generated-storage s3` 映射 R2 配置；私密联动模式会拒绝公开生成文件存储。
 
 在 ParallelLines MySQL 中创建独立库并给现有应用用户授权。实际容器名可用 `docker compose -p parallellines ps` 确认：
 
@@ -122,7 +122,7 @@ FABLESPACE_SSO_SERVICE_SECRET=<与 FableSpace 兑换密钥相同>
 FABLESPACE_SSO_TICKET_TTL_SECONDS=60
 ```
 
-两份密钥不得写入仓库、前端构建变量或日志。修改环境后需重建/重启两个后端。FableSpace 在 `parallellines` 模式下若缺少 SSO 服务密钥或会话密钥会拒绝启动，避免部署时静默退回可伪造的旧身份模式。`FABLESPACE_AUTH_INTROSPECTION_CACHE_TTL_SECONDS` 运行时限制为 1–60 秒；缓存过期后续验主站失败会拒绝访问，不使用过期结果兜底。
+两份密钥不得写入仓库、前端构建变量或日志。`configure_shared_services.py` 负责生成或复用密钥并同步两端；手工修改时仍必须重建/重启两个后端。FableSpace 在 `parallellines` 模式下若缺少 SSO 服务密钥或会话密钥会拒绝启动，避免部署时静默退回可伪造的旧身份模式。`FABLESPACE_AUTH_INTROSPECTION_CACHE_TTL_SECONDS` 运行时限制为 1–60 秒；缓存过期后续验主站失败会拒绝访问，不使用过期结果兜底。
 
 ParallelLines 必须为账号返回至少 `fablespace.access` 才能签发并维持会话；全部店主创作与管理写操作、LLM 配置探测及角色卡解析/导出等供给侧工具还需要 `fablespace.creator`，包括新建/更新/删除 Space、Home、Territory、Clue Hunt Route，以及 Space package 导入、NPC、WorldInfo、店主配置、玩法定义、skill packs 和 owner 审批。聊天、进入、访客记忆/状态、通知及玩法/寻宝会话等探索行为不要求 creator；共享写端点只有“当前会话用户操作自己的数据”走 access 分支，代操作其他访客、写空间正史或执行 owner 管理时必须同时具备 creator 并通过对应 Space/Route/Home 的 owner 校验。`fablespace.admin` 隐含全部产品能力，但 admin/operator 仍不能绕过具体资源的 owner 校验。票据兑换响应需要在身份资料之外返回 `capabilities`、`authorization_version`、`access_expires_at`，并提供同一服务密钥保护的 `POST /api/v1/auth/fablespace/introspect`。部署后直接打开 FableSpace 域名应显示关闭入口；只有从 ParallelLines 私密空间卡片完成票据兑换后，业务页面、API 与生成资源才会开放。
 
