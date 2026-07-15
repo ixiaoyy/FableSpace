@@ -16,6 +16,7 @@ from fastapi import APIRouter, HTTPException, Request, WebSocket, WebSocketDisco
 from ...core.notifications import (
     get_notification_store,
 )
+from .auth import resolve_request_user_id
 
 logger = logging.getLogger(__name__)
 
@@ -243,29 +244,10 @@ async def get_unread_count(request: Request) -> dict[str, Any]:
 
 
 def _get_user_id(request: Request) -> str | None:
-    """Extract user ID from request headers or query params."""
-    # Try header first
-    user_id = request.headers.get("X-User-Id") or request.headers.get("X-User-ID")
-    if user_id:
-        return user_id
-
-    # Try query param
-    user_id = request.query_params.get("user_id")
-    if user_id:
-        return user_id
-
-    # Try from userId in request state (if set by auth middleware)
-    return getattr(request.state, "user_id", None)
+    """Resolve notification identity through the shared signed-session policy."""
+    return resolve_request_user_id(request) or None
 
 
 def _get_websocket_user_id(websocket: WebSocket) -> str | None:
-    """Extract claimed user identity for WebSocket connections."""
-    user_id = websocket.headers.get("X-User-Id") or websocket.headers.get("X-User-ID")
-    if user_id:
-        return user_id
-
-    user_id = websocket.query_params.get("user_id")
-    if user_id:
-        return user_id
-
-    return getattr(websocket.state, "user_id", None)
+    """Resolve WebSocket identity from the same cookie or legacy policy as REST."""
+    return resolve_request_user_id(websocket) or None

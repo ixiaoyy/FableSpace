@@ -84,6 +84,12 @@ def _default_generated_storage_backend() -> str:
     return value if value in {"local", "s3"} else "local"
 
 
+def _default_auth_mode() -> str:
+    """Return the supported request-identity mode selected by deployment configuration."""
+    value = _env_value("FABLESPACE_AUTH_MODE", default="legacy").lower()
+    return value if value in {"legacy", "parallellines"} else "legacy"
+
+
 def _int_from_env(primary: str, legacy: str, default: int) -> int:
     value = _env_value(primary, legacy)
     if not value:
@@ -110,6 +116,38 @@ class ApiSettings:
     fixture_file: Path | None = field(default_factory=_default_fixture_file)
     frontend_root: Path | None = field(default_factory=_default_frontend_root)
     sillytavern_url: str = field(default_factory=_default_sillytavern_url)
+
+    # Authentication. `legacy` preserves standalone development; production can
+    # require a signed session issued through ParallelLines SSO.
+    auth_mode: str = field(default_factory=_default_auth_mode)
+    parallellines_api_base_url: str = field(
+        default_factory=lambda: _env_value(
+            "FABLESPACE_PARALLELLINES_API_BASE_URL",
+            default="http://127.0.0.1:8000/api/v1",
+        )
+    )
+    parallellines_public_base_url: str = field(
+        default_factory=lambda: _env_value(
+            "FABLESPACE_PARALLELLINES_PUBLIC_BASE_URL",
+            default="https://pingxingxian.space",
+        )
+    )
+    parallellines_sso_service_secret: str = field(
+        default_factory=lambda: _env_value("FABLESPACE_PARALLELLINES_SSO_SERVICE_SECRET")
+    )
+    session_secret: str = field(default_factory=lambda: _env_value("FABLESPACE_SESSION_SECRET"))
+    session_cookie_name: str = field(
+        default_factory=lambda: _env_value(
+            "FABLESPACE_SESSION_COOKIE_NAME",
+            default="fablespace_session",
+        )
+    )
+    session_cookie_secure: bool = field(
+        default_factory=lambda: _bool_from_env("FABLESPACE_SESSION_COOKIE_SECURE", "", True)
+    )
+    session_ttl_seconds: int = field(
+        default_factory=lambda: _int_from_env("FABLESPACE_SESSION_TTL_SECONDS", "", 3600)
+    )
 
     # Database configuration. `mysql_url` is a legacy alias; `database_url` may also be sqlite:///...
     storage_backend: str = field(default_factory=_default_storage_backend)

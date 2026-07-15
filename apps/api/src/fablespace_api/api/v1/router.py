@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from fastapi import APIRouter
 
-from . import affinity, characters, chat, clue_hunts, engagement, gameplay, memories, notifications, owner_config, owners, platform, public_bond, relationship_graph, relationship_reset, roleplay, runtime, skill_packs, state_cards, utilities, worldinfo
+from . import affinity, auth, characters, chat, clue_hunts, engagement, gameplay, memories, notifications, owner_config, owners, platform, public_bond, relationship_graph, relationship_reset, roleplay, runtime, skill_packs, state_cards, utilities, worldinfo
 from .packages import packages_router, spaces_router as package_spaces_router
 from .system import router as system_router
 from .spaces import router as spaces_router
@@ -11,6 +11,7 @@ from .territories import router as territories_router
 
 api_router = APIRouter(prefix="/api/v1")
 api_router.include_router(system_router, tags=["system"])
+api_router.include_router(auth.router)
 api_router.include_router(affinity.router)
 api_router.include_router(spaces_router)
 api_router.include_router(engagement.router)

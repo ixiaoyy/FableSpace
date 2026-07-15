@@ -9,6 +9,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse, RedirectResponse
 
 from .api.response_envelope import add_api_response_envelope_middleware
+from .api.v1.auth import is_private_access_allowed
 from .application.clue_hunts import ClueHuntApplicationService
 from .application.spaces import SpaceApplicationService
 from .application.services.platform import configure_platform_cache
@@ -28,6 +29,13 @@ from .infrastructure.storage import (
 )
 
 logger = logging.getLogger(__name__)
+PRIVATE_GATE_PUBLIC_PATHS = frozenset(
+    {
+        "/api/v1/health",
+        "/api/v1/auth/parallellines/callback",
+        "/api/v1/auth/status",
+    }
+)
 
 
 def create_store(settings: ApiSettings) -> SpaceStore:
@@ -39,6 +47,20 @@ def create_app(settings: ApiSettings | None = None) -> FastAPI:
     """Create the native enterprise FastAPI application."""
 
     resolved = settings or ApiSettings()
+    if resolved.auth_mode == "parallellines" and (
+        len(resolved.parallellines_sso_service_secret) < 32
+        or len(resolved.session_secret) < 32
+    ):
+        raise RuntimeError(
+            "ParallelLines authentication requires both the SSO service secret and session secret"
+        )
+    if (
+        resolved.auth_mode == "parallellines"
+        and resolved.generated_storage_backend != "local"
+    ):
+        raise RuntimeError(
+            "ParallelLines private mode requires local generated storage to prevent public CDN bypass"
+        )
     configure_platform_cache(resolved.redis_url)
     generated_storage = create_generated_storage(resolved)
 
@@ -87,6 +109,23 @@ def create_app(settings: ApiSettings | None = None) -> FastAPI:
         allow_headers=["*"],
     )
     add_api_response_envelope_middleware(app, path_prefixes=("/api/v1",))
+
+    @app.middleware("http")
+    async def private_space_access_gate(request: Request, call_next):
+        """Validate linked-mode HTTP access, returning 401 or the downstream response."""
+        protected_path = request.url.path.startswith(("/api/v1", "/generated/"))
+        if (
+            request.method != "OPTIONS"
+            and protected_path
+            and request.url.path not in PRIVATE_GATE_PUBLIC_PATHS
+            and not is_private_access_allowed(request)
+        ):
+            return JSONResponse(
+                status_code=401,
+                content={"error": "管理员会话无效或已过期"},
+                headers={"Cache-Control": "no-store"},
+            )
+        return await call_next(request)
 
     @app.exception_handler(HTTPException)
     async def http_exception_handler(_: Request, exc: HTTPException) -> JSONResponse:

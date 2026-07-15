@@ -75,33 +75,52 @@ def update_env_text(
     return "\n".join(output).rstrip() + "\n"
 
 
-def build_updates(parallellines: dict[str, str], database_name: str, redis_db: int, prefix: str) -> dict[str, str]:
-    """Map ParallelLines connection values onto FableSpace-specific env names."""
+def build_updates(
+    parallellines: dict[str, str],
+    database_name: str,
+    redis_db: int,
+    prefix: str,
+    generated_storage: str = "local",
+) -> dict[str, str]:
+    """Map shared services while keeping generated files private unless S3 is explicit."""
     required = [
         "DATABASE_URL",
         "REDIS_URL",
+    ]
+    missing = [key for key in required if not parallellines.get(key)]
+    if missing:
+        raise ValueError(f"ParallelLines env is missing: {', '.join(missing)}")
+    updates = {
+        "FABLESPACE_STORAGE_BACKEND": "database",
+        "FABLESPACE_DATABASE_URL": database_url_for(parallellines["DATABASE_URL"], database_name),
+        "FABLESPACE_REDIS_URL": redis_url_for(parallellines["REDIS_URL"], redis_db),
+        "FABLESPACE_GENERATED_STORAGE_BACKEND": generated_storage,
+    }
+    if generated_storage != "s3":
+        return updates
+
+    s3_keys = [
         "UPLOAD_S3_BUCKET",
         "UPLOAD_S3_ENDPOINT_URL",
         "UPLOAD_S3_ACCESS_KEY_ID",
         "UPLOAD_S3_SECRET_ACCESS_KEY",
         "UPLOAD_CDN_BASE_URL",
     ]
-    missing = [key for key in required if not parallellines.get(key)]
-    if missing:
-        raise ValueError(f"ParallelLines env is missing: {', '.join(missing)}")
-    return {
-        "FABLESPACE_STORAGE_BACKEND": "database",
-        "FABLESPACE_DATABASE_URL": database_url_for(parallellines["DATABASE_URL"], database_name),
-        "FABLESPACE_REDIS_URL": redis_url_for(parallellines["REDIS_URL"], redis_db),
-        "FABLESPACE_GENERATED_STORAGE_BACKEND": "s3",
-        "FABLESPACE_S3_BUCKET": parallellines["UPLOAD_S3_BUCKET"],
-        "FABLESPACE_S3_REGION": parallellines.get("UPLOAD_S3_REGION", "auto") or "auto",
-        "FABLESPACE_S3_ENDPOINT_URL": parallellines["UPLOAD_S3_ENDPOINT_URL"],
-        "FABLESPACE_S3_ACCESS_KEY_ID": parallellines["UPLOAD_S3_ACCESS_KEY_ID"],
-        "FABLESPACE_S3_SECRET_ACCESS_KEY": parallellines["UPLOAD_S3_SECRET_ACCESS_KEY"],
-        "FABLESPACE_S3_PREFIX": prefix.strip("/"),
-        "FABLESPACE_CDN_BASE_URL": parallellines["UPLOAD_CDN_BASE_URL"],
-    }
+    missing_s3 = [key for key in s3_keys if not parallellines.get(key)]
+    if missing_s3:
+        raise ValueError(f"ParallelLines env is missing: {', '.join(missing_s3)}")
+    updates.update(
+        {
+            "FABLESPACE_S3_BUCKET": parallellines["UPLOAD_S3_BUCKET"],
+            "FABLESPACE_S3_REGION": parallellines.get("UPLOAD_S3_REGION", "auto") or "auto",
+            "FABLESPACE_S3_ENDPOINT_URL": parallellines["UPLOAD_S3_ENDPOINT_URL"],
+            "FABLESPACE_S3_ACCESS_KEY_ID": parallellines["UPLOAD_S3_ACCESS_KEY_ID"],
+            "FABLESPACE_S3_SECRET_ACCESS_KEY": parallellines["UPLOAD_S3_SECRET_ACCESS_KEY"],
+            "FABLESPACE_S3_PREFIX": prefix.strip("/"),
+            "FABLESPACE_CDN_BASE_URL": parallellines["UPLOAD_CDN_BASE_URL"],
+        }
+    )
+    return updates
 
 
 def main() -> None:
@@ -113,6 +132,7 @@ def main() -> None:
     parser.add_argument("--database-name", default="fablespace")
     parser.add_argument("--redis-db", type=int, default=1)
     parser.add_argument("--prefix", default="fablespace")
+    parser.add_argument("--generated-storage", choices=("local", "s3"), default="local")
     parser.add_argument("--cors-origin", default="https://fable.pingxingxian.space")
     parser.add_argument("--dry-run", action="store_true")
     args = parser.parse_args()
@@ -121,7 +141,9 @@ def main() -> None:
         raise SystemExit("database name must contain only letters, digits, and underscores")
     if args.redis_db < 0:
         raise SystemExit("redis db must be non-negative")
-    if not args.prefix.strip("/") or ".." in args.prefix:
+    if args.generated_storage == "s3" and (
+        not args.prefix.strip("/") or ".." in args.prefix
+    ):
         raise SystemExit("prefix must be a non-empty object-key directory")
     cors_origin = args.cors_origin.rstrip("/")
     parsed_origin = urlsplit(cors_origin)
@@ -130,7 +152,13 @@ def main() -> None:
 
     shared_values = parse_env(args.parallellines_env)
     original = args.fablespace_env.read_text(encoding="utf-8") if args.fablespace_env.exists() else ""
-    updates = build_updates(shared_values, args.database_name, args.redis_db, args.prefix)
+    updates = build_updates(
+        shared_values,
+        args.database_name,
+        args.redis_db,
+        args.prefix,
+        args.generated_storage,
+    )
     updates["FABLESPACE_CORS_ORIGINS"] = cors_origin
     compose_original = args.compose_env.read_text(encoding="utf-8") if args.compose_env.exists() else ""
     compose_updates = {
@@ -140,7 +168,8 @@ def main() -> None:
     if args.dry_run:
         print(
             f"validated database={args.database_name} redis_db={args.redis_db} "
-            f"prefix={args.prefix.strip('/')} cors_origin={cors_origin} mapped_keys={len(updates)}"
+            f"generated_storage={args.generated_storage} prefix={args.prefix.strip('/')} "
+            f"cors_origin={cors_origin} mapped_keys={len(updates)}"
         )
         return
 
@@ -159,7 +188,8 @@ def main() -> None:
     args.compose_env.chmod(0o600)
     print(
         f"configured database={args.database_name} redis_db={args.redis_db} "
-        f"prefix={args.prefix.strip('/')} cors_origin={cors_origin} "
+        f"generated_storage={args.generated_storage} prefix={args.prefix.strip('/')} "
+        f"cors_origin={cors_origin} "
         f"api_backup={backup_path if backup_path.exists() else 'none'} "
         f"compose_env={args.compose_env}"
     )

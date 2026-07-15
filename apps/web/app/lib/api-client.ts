@@ -3,6 +3,7 @@ type ApiInit = RequestInit & {
 }
 
 const API_BASE = import.meta.env.VITE_API_BASE?.trim() || ""
+export const SESSION_EXPIRED_EVENT = "fablespace:session-expired"
 
 type ApiEnvelope = {
   data?: unknown
@@ -24,6 +25,13 @@ function apiUrl(path: string) {
   return `${API_BASE.replace(/\/$/, "")}${normalizedPath}`
 }
 
+/** Notify the application shell that a protected request lost its session. */
+function notifySessionExpired(response: Response) {
+  if (response.status === 401 && typeof window !== "undefined") {
+    window.dispatchEvent(new Event(SESSION_EXPIRED_EVENT))
+  }
+}
+
 export async function readApiJson<T>(path: string, init: ApiInit = {}): Promise<T> {
   const headers = new Headers(init.headers)
   const userId = String(init.userId || "").trim()
@@ -33,9 +41,11 @@ export async function readApiJson<T>(path: string, init: ApiInit = {}): Promise<
 
   const response = await fetch(apiUrl(path), {
     cache: "no-store",
+    credentials: "include",
     ...init,
     headers,
   })
+  notifySessionExpired(response)
   const text = await response.text()
   let payload: unknown = null
   if (text) {
@@ -65,9 +75,11 @@ export async function readApiBlob(path: string, init: ApiInit = {}): Promise<Blo
 
   const response = await fetch(apiUrl(path), {
     cache: "no-store",
+    credentials: "include",
     ...init,
     headers,
   })
+  notifySessionExpired(response)
   if (!response.ok) {
     let message = `HTTP ${response.status}`
     try {

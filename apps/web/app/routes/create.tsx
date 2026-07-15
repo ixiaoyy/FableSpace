@@ -20,6 +20,7 @@ import {
 } from "../lib/special-space-types.js"
 import { createSpaceDraftRequest, draftResponseToCreateForm } from "../lib/space-drafts.js"
 import { hasExplicitOwnerIdentity } from "../lib/space-runtime-config.js"
+import { getCurrentSessionIdentity } from "../lib/session"
 import {
   addCharacter,
   createSpace,
@@ -114,6 +115,16 @@ export default function CreateRoute() {
   const [showLLMConfig, setShowLLMConfig] = useState(false)
   const [ownerId, setOwnerId] = useState(DEFAULT_OWNER_ID)
   const [llmConfigDraft, setLlmConfigDraft] = useState<Record<string, unknown>>({})
+
+  useEffect(() => {
+    let cancelled = false
+    getCurrentSessionIdentity().then((identity) => {
+      if (!cancelled && identity?.id) setOwnerId(identity.id)
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   // Style tags for draft generation
   const styleTags = isDigitalHumanStudio

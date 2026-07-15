@@ -11,6 +11,7 @@ import {
   type RoleplayState,
   type Space,
 } from "../lib/spaces"
+import { resolveCurrentSessionUserId } from "../lib/session"
 import { redirectPathForRequest, spaceManagePath, spacePath, WEB_PATHS } from "../lib/web-routes"
 import { ProductShell } from "../shell/product-shell"
 import { Button } from "../ui/button"
@@ -36,7 +37,7 @@ function getOwnerIdFromRequest(request: Request) {
 
 export async function clientLoader({ params, request }: ClientLoaderFunctionArgs): Promise<SpaceManageLoaderData> {
   const spaceRef = params.spaceRef ?? ""
-  const currentUserId = getOwnerIdFromRequest(request)
+  const currentUserId = await resolveCurrentSessionUserId(getOwnerIdFromRequest(request))
   if (!spaceRef) {
     return { spaceId: "", currentUserId, space: null, roleplay: null, isOwner: false, error: "缺少空间引用" }
   }

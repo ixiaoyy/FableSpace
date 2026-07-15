@@ -16,6 +16,7 @@ import { SpaceChatWorkbench } from "../features/space-chat-workbench"
 import { resolveHomepageSpaceCover } from "../lib/homepage-spaces"
 import { derivePlaceTypeDisplay } from "../lib/place-types.js"
 import { fallbackRoleplayState } from "../lib/roleplay-state"
+import { resolveCurrentSessionUserId } from "../lib/session"
 import { buildSpaceFirstMinuteGuide } from "../lib/space-first-minute"
 import { redirectPathForRequest, spacePath, WEB_PATHS } from "../lib/web-routes"
 import {
@@ -49,7 +50,7 @@ function getCurrentUserIdFromRequest(request: Request) {
 
 export async function clientLoader({ params, request }: ClientLoaderFunctionArgs): Promise<SpaceLoaderData> {
   const spaceRef = params.spaceRef ?? ""
-  const currentUserId = getCurrentUserIdFromRequest(request)
+  const currentUserId = await resolveCurrentSessionUserId(getCurrentUserIdFromRequest(request))
   if (!spaceRef) {
     return { spaceId: "", currentUserId, space: null, roleplay: null, error: "缺少空间引用" }
   }
@@ -204,14 +205,14 @@ function SpaceHeroPanel({ space, isOwner }: { space: Space; isOwner: boolean }) 
   const characters = Array.isArray(space.characters) ? space.characters : []
 
   return (
-    <section className="relative min-h-[430px] overflow-hidden rounded-[1.4rem] border border-cyan-200/16 bg-[#061126] shadow-[0_30px_90px_rgba(0,0,0,0.34)] xl:min-h-[640px]">
+    <section className="relative min-h-[390px] overflow-hidden rounded-[1.2rem] border border-cyan-200/16 bg-[#061126] shadow-[0_22px_70px_rgba(0,0,0,0.30)] sm:min-h-[430px] xl:min-h-[840px]">
       <div className="absolute inset-0">
         <img src={coverImage} alt="" className="h-full w-full object-cover opacity-[0.88]" loading="eager" decoding="async" />
         <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(2,7,16,0.92)_0%,rgba(2,7,16,0.70)_38%,rgba(2,7,16,0.24)_100%)]" />
         <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(2,7,16,0.08)_0%,rgba(2,7,16,0.34)_62%,rgba(2,7,16,0.88)_100%)]" />
       </div>
 
-      <div className="relative z-10 flex min-h-[430px] max-w-[760px] flex-col justify-between px-5 py-6 sm:px-7 lg:px-8 xl:min-h-[640px]">
+      <div className="relative z-10 flex min-h-[390px] max-w-[760px] flex-col justify-between px-5 py-6 sm:min-h-[430px] sm:px-7 lg:px-8 xl:min-h-[840px]">
         <div className="mb-5 flex flex-wrap items-center gap-2">
           <span className="inline-flex min-h-8 items-center gap-2 rounded-full border border-cyan-200/18 bg-slate-950/42 px-3 text-[0.68rem] font-black text-cyan-100 backdrop-blur">
             <span className="h-1.5 w-1.5 rounded-full bg-cyan-300" />
@@ -228,7 +229,7 @@ function SpaceHeroPanel({ space, isOwner }: { space: Space; isOwner: boolean }) 
           ) : null}
         </div>
 
-        <h1 className="max-w-3xl text-4xl font-black leading-[0.96] text-white drop-shadow-2xl sm:text-5xl lg:text-6xl">
+        <h1 className="max-w-3xl text-4xl font-black leading-[0.98] text-white drop-shadow-2xl sm:text-5xl lg:text-6xl">
           {space.name || "未命名空间"}
         </h1>
         <p className="mt-4 max-w-2xl text-xl font-black leading-7 text-white sm:text-2xl">
@@ -247,14 +248,14 @@ function SpaceHeroPanel({ space, isOwner }: { space: Space; isOwner: boolean }) 
         <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
           <Link
             to={WEB_PATHS.spaces}
-            className="inline-flex min-h-14 w-full touch-manipulation items-center justify-center gap-2 rounded-[1.05rem] border border-cyan-200/18 bg-slate-950/52 px-7 text-base font-black text-cyan-50 backdrop-blur transition hover:border-cyan-200/38 hover:bg-cyan-300/10 sm:w-auto"
+            className="inline-flex min-h-[3.25rem] w-full touch-manipulation items-center justify-center gap-2 rounded-[0.95rem] border border-cyan-200/18 bg-slate-950/52 px-7 text-base font-black text-cyan-50 backdrop-blur transition hover:border-cyan-200/38 hover:bg-cyan-300/10 sm:w-auto"
           >
             返回发现
           </Link>
         </div>
       </div>
 
-      <div className="absolute bottom-5 right-5 hidden max-w-[300px] rounded-[1rem] border border-white/10 bg-slate-950/40 p-3 text-xs font-bold leading-5 text-cyan-50/68 backdrop-blur xl:block">
+      <div className="absolute bottom-5 right-5 hidden max-w-[300px] rounded-[0.9rem] border border-white/10 bg-slate-950/40 p-3 text-xs font-bold leading-5 text-cyan-50/68 backdrop-blur xl:block">
         <MapPin className="mb-2 h-4 w-4 text-cyan-200" />
         {anchor.text !== "坐标待确认" ? anchor.text : `${Number(space.lat).toFixed(4)}, ${Number(space.lon).toFixed(4)}`}
         <span className="mx-1.5 text-cyan-100/28">·</span>
@@ -311,16 +312,16 @@ function SpaceSpacePage({
     <main className="relative min-h-screen overflow-x-hidden bg-[#020710] text-white">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_72%_0%,rgba(37,99,235,0.18),transparent_34rem),linear-gradient(135deg,#061226_0%,#030712_48%,#020710_100%)]" />
       <div className="pointer-events-none absolute inset-0 opacity-38 [background-image:linear-gradient(rgba(103,232,249,0.055)_1px,transparent_1px),linear-gradient(90deg,rgba(103,232,249,0.04)_1px,transparent_1px)] [background-size:56px_56px]" />
-      <div className="relative mx-auto w-full max-w-[1320px] px-3 py-4 pb-8 sm:px-5 lg:px-6 lg:py-6 xl:px-7">
+      <div className="relative mx-auto w-full max-w-[1420px] px-3 py-4 pb-8 sm:px-5 lg:px-6 lg:py-6 xl:px-7">
         <SpaceMobileHeader space={space} />
         <div className="hidden lg:block">
           <SpaceTopBar space={space} />
         </div>
         <div className="min-w-0 space-y-5">
-          <div className="grid min-w-0 gap-4 xl:grid-cols-[minmax(0,0.82fr)_minmax(680px,1.18fr)] xl:items-stretch">
+          <div className="grid min-w-0 gap-5 xl:grid-cols-[minmax(360px,0.74fr)_minmax(720px,1.26fr)] xl:items-stretch">
             <SpaceHeroPanel space={space} isOwner={isOwner} />
-            <section id="空间主线" className="scroll-mt-6 rounded-[1.4rem] border border-cyan-200/16 bg-[#061126]/78 p-3 shadow-[0_30px_86px_rgba(0,0,0,0.30)] sm:p-4 xl:h-[640px] xl:overflow-hidden">
-              <div className="mb-4 flex items-center justify-between gap-4 px-1">
+            <section id="空间主线" className="flex scroll-mt-6 flex-col rounded-[1.2rem] border border-cyan-200/16 bg-[#061126]/78 p-3 shadow-[0_24px_72px_rgba(0,0,0,0.28)] sm:p-4 xl:h-[840px] xl:overflow-hidden">
+              <div className="mb-3 flex items-center justify-between gap-4 px-1">
                 <div>
                   <h2 className="text-xl font-black text-white">角色与聊天</h2>
                   <p className="mt-1 text-sm font-bold text-cyan-100/48">驻场 NPC、当前目标、实时对话。</p>
@@ -329,12 +330,14 @@ function SpaceSpacePage({
                   可互动
                 </span>
               </div>
-              <SpaceChatWorkbench
-                space={space}
-                roleplay={roleplay}
-                currentUserId={currentUserId}
-                isOwner={isOwner}
-              />
+              <div className="min-h-0 flex-1">
+                <SpaceChatWorkbench
+                  space={space}
+                  roleplay={roleplay}
+                  currentUserId={currentUserId}
+                  isOwner={isOwner}
+                />
+              </div>
             </section>
           </div>
         </div>

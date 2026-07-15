@@ -149,7 +149,8 @@ FableSpace 同时保留两类 API 面：
 - 显式 `FABLESPACE_STORAGE_BACKEND=json`：使用旧 JSON 兼容存储
 - 生产环境可复用 ParallelLines MySQL 服务，但使用独立 `fablespace` database。
 - `FABLESPACE_REDIS_URL` 配置共享 Redis；FableSpace 使用独立逻辑 DB 和 `fablespace:` key namespace，Redis 不可用时平台聚合缓存退回进程内 TTL cache。
-- `FABLESPACE_GENERATED_STORAGE_BACKEND=s3` 时，兼容层生成的地图预览写入 `<FABLESPACE_S3_PREFIX>/generated/`，读取经配置的 CDN URL 307 跳转；数据库、对话和敏感配置不进入对象存储。
+- 独立公开部署可设置 `FABLESPACE_GENERATED_STORAGE_BACKEND=s3`，把非敏感地图预览写入 `<FABLESPACE_S3_PREFIX>/generated/` 并通过 CDN 读取。
+- `FABLESPACE_AUTH_MODE=parallellines` 的私密部署强制使用 `FABLESPACE_GENERATED_STORAGE_BACKEND=local`，生成文件保存在持久卷内并统一经过 `/generated/` 会话门禁，避免公开 CDN URL 绕过认证。
 
 主要表：
 
@@ -205,6 +206,10 @@ FableSpace 同时保留两类 API 面：
 
 ## 安全边界
 
+- ParallelLines 联动部署使用一次性短效票据：浏览器只携带 ticket code，FableSpace 后端通过共享网络和服务密钥向 ParallelLines 兑换最小管理员身份，再签发独立、短效、HttpOnly 的本地会话 Cookie。
+- `FABLESPACE_AUTH_MODE=parallellines` 时，HTTP 与 WebSocket 请求统一只信任签名 Cookie，忽略浏览器传入的 `X-User-Id`、`user_id` 和 `owner_id`，避免伪造 owner/admin 身份；`legacy` 仅用于独立开发兼容。
+- 联动模式的总门禁覆盖全部 `/api/v1` 与 `/generated/` 资源，只放行健康检查、票据回调和无敏感数据的登录状态接口；前端根节点在门禁确认前不挂载业务路由，会话失效后立即回到关闭状态。
+- 两个服务共享的是票据兑换密钥，不共享 JWT 或会话密钥；FableSpace Cookie 不包含邮箱、密码、主站令牌、积分或信任等级。
 - `api_key`、owner LLM 配置、token 统计只对 owner 可见。
 - 私密 Space / Home 不进入公开发现。
 - 访客只能读取和修改自己范围内的运行时状态。
@@ -217,7 +222,7 @@ FableSpace 同时保留两类 API 面：
 - Docker Compose 部署时，`apps/web/Dockerfile` 构建静态前端，nginx 托管页面并把 `/api`、`/generated` 反向代理到后端服务。
 - 生产自动部署由 `.github/workflows/deploy.yml` 驱动：后端通过 SSH + Compose 更新；前端镜像在 GitHub runner 构建并上传服务器，构建期资源同步到 S3 兼容对象存储。
 - 配置 `VITE_ASSET_BASE_URL` 后，Vite import 产生的 JS、CSS 和图片 URL 使用 `CDN_BASE_URL/releases/<git-sha>/` 前缀；release 目录不可变，避免发布间缓存串版本。
-- 对象存储承载公开前端构建资源和兼容层生成的公开地图预览：前者位于 `fablespace/releases/`，后者位于 `fablespace/generated/`。店主 API Key、对话记录、访客状态和数据库不得进入对象存储。部署和 CDN 配置见 [DEPLOYMENT.md](DEPLOYMENT.md)。
+- 对象存储始终可承载公开前端构建资源 `fablespace/releases/`；只有独立公开部署才可承载 `fablespace/generated/` 预览。联动私密模式的生成文件、店主 API Key、对话记录、访客状态和数据库不得进入公开对象存储。部署和 CDN 配置见 [DEPLOYMENT.md](DEPLOYMENT.md)。
 - 非 Docker 一体化运行时，先构建前端，再由 `py -3 -m fablespace_api api` 在默认 `8950` 端口托管页面和兼容 API。
 - Vite 本地开发服务器默认把 `/api` 和 `/generated` 代理到 `127.0.0.1:8950`。
 - Public URL 资源放 `apps/web/public/assets/`

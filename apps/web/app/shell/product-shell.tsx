@@ -1,6 +1,13 @@
-import { ClipboardList, Compass, Home, MapPinned, Sparkles, Store, UserRound } from "lucide-react"
+import { ClipboardList, Compass, Home, LogOut, MapPinned, Sparkles, Store, UserRound } from "lucide-react"
+import { useEffect, useState } from "react"
 import { NavLink } from "react-router"
 
+import {
+  DEFAULT_PARALLELLINES_URL,
+  getAccessStatus,
+  logoutCurrentSession,
+  type CurrentSessionIdentity,
+} from "../lib/session"
 import { cn } from "../lib/utils"
 import { WEB_PATHS } from "../lib/web-routes"
 
@@ -64,6 +71,30 @@ export function ProductShell({
   children: React.ReactNode
 }) {
   const mobileGuide = MOBILE_CRITICAL_FLOW_GUIDES[eyebrow]
+  const [sessionIdentity, setSessionIdentity] = useState<CurrentSessionIdentity | null>(null)
+  const [parallellinesUrl, setParallellinesUrl] = useState(DEFAULT_PARALLELLINES_URL)
+
+  useEffect(() => {
+    let cancelled = false
+    getAccessStatus().then((status) => {
+      if (!cancelled) {
+        setSessionIdentity(status.user)
+        setParallellinesUrl(status.parallellines_url || DEFAULT_PARALLELLINES_URL)
+      }
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  /** End only the FableSpace session, then return to the trusted main site. */
+  async function handleLogout() {
+    try {
+      await logoutCurrentSession()
+    } finally {
+      window.location.assign(parallellinesUrl)
+    }
+  }
 
   return (
     <main className="relative min-h-screen overflow-hidden bg-theme-bg text-theme-primary">
@@ -103,6 +134,34 @@ export function ProductShell({
                 </NavLink>
               ))}
             </nav>
+            {sessionIdentity ? (
+              <div className="hidden min-w-0 items-center gap-2.5 rounded-full border border-theme-border bg-theme-card px-2.5 py-2 sm:flex">
+                {sessionIdentity.avatar_url ? (
+                  <img
+                    src={sessionIdentity.avatar_url}
+                    alt=""
+                    className="h-8 w-8 rounded-full object-cover"
+                    referrerPolicy="no-referrer"
+                  />
+                ) : (
+                  <span className="grid h-8 w-8 place-items-center rounded-full bg-theme-accent-bg text-xs font-black text-theme-accent-text">
+                    {(sessionIdentity.display_name || sessionIdentity.username).slice(0, 1)}
+                  </span>
+                )}
+                <span className="max-w-28 truncate text-sm font-bold text-theme-primary">
+                  {sessionIdentity.display_name || sessionIdentity.username}
+                </span>
+                <button
+                  type="button"
+                  className="grid h-8 w-8 place-items-center rounded-full text-theme-muted transition hover:bg-theme-bg hover:text-theme-primary"
+                  title="退出私密空间"
+                  aria-label="退出私密空间"
+                  onClick={() => void handleLogout()}
+                >
+                  <LogOut className="h-4 w-4" />
+                </button>
+              </div>
+            ) : null}
           </div>
         </div>
       </header>

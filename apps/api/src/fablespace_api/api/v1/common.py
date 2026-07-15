@@ -3,6 +3,7 @@ from __future__ import annotations
 from fastapi import Request
 
 from ...application.spaces import TavernApplicationService
+from .auth import resolve_request_user_id
 
 
 def spaces_service(request: Request) -> TavernApplicationService:
@@ -10,9 +11,5 @@ def spaces_service(request: Request) -> TavernApplicationService:
 
 
 def get_user_id(request: Request) -> str:
-    return str(
-        request.headers.get("X-User-Id")
-        or request.query_params.get("user_id")
-        or request.query_params.get("owner_id")
-        or ""
-    ).strip()
+    """Return signed-session identity in SSO mode, retaining legacy claims for standalone use."""
+    return resolve_request_user_id(request)

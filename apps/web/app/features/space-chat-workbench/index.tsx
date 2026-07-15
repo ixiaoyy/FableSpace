@@ -365,19 +365,19 @@ function AmbientActivityPanel({ activity }: { activity: SpaceAmbientActivity }) 
   return (
     <section
       data-space-ambient-activity
-      className="border-b border-cyan-200/10 bg-[#071326]/78 px-3 py-3 sm:px-4"
+      className="border-b border-cyan-200/10 bg-[#061225]/82 px-3 py-2.5 sm:px-4"
       aria-label="空间 NPC 自主活动"
     >
-      <div className="rounded-xl border border-cyan-200/12 bg-slate-950/28 p-3">
+      <div className="rounded-xl border border-cyan-200/12 bg-slate-950/24 px-3 py-2.5">
         <div className="flex min-w-0 items-start gap-3">
-          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-cyan-200/18 bg-cyan-300/[0.09] text-cyan-50">
+          <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl border border-cyan-200/18 bg-cyan-300/[0.09] text-cyan-50">
             <Radio className="h-4 w-4" />
           </span>
           <div className="min-w-0 flex-1">
             <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
               <div className="min-w-0">
                 <p className="text-xs font-black uppercase tracking-[0.16em] text-cyan-100/45">空间脉搏</p>
-                <p className="mt-1 text-sm font-bold leading-6 text-cyan-50/78">{activity.summary}</p>
+                <p className="mt-1 line-clamp-2 text-sm font-bold leading-6 text-cyan-50/78">{activity.summary}</p>
               </div>
               {signals.length ? (
                 <div className="flex shrink-0 flex-wrap gap-1.5 sm:justify-end">
@@ -391,7 +391,7 @@ function AmbientActivityPanel({ activity }: { activity: SpaceAmbientActivity }) 
             </div>
 
             {recent.length ? (
-              <div className="mt-3 grid gap-2" data-space-ambient-recent>
+              <div className="mt-2 grid gap-2" data-space-ambient-recent>
                 {recent.slice(0, 2).map((item) => {
                   const target = item.character_name || "NPC"
                   const source = item.source_name || "某位 NPC"
@@ -409,7 +409,7 @@ function AmbientActivityPanel({ activity }: { activity: SpaceAmbientActivity }) 
                 })}
               </div>
             ) : characterStates.length ? (
-              <div className="mt-3 flex gap-2 overflow-x-auto pb-1" data-space-ambient-character-states>
+              <div className="mt-2 flex gap-2 overflow-x-auto pb-1" data-space-ambient-character-states>
                 {characterStates.slice(0, 6).map((state) => (
                   <span
                     key={state.character_id || state.character_name}
@@ -1297,7 +1297,7 @@ export function SpaceChatWorkbench({
   return (
 
     <section data-chat-workbench="sillytavern-style" data-active-chat-channel={activeChatChannel} className="h-full">
-      <div className="flex h-full min-h-[30rem] overflow-hidden rounded-[1.15rem] border border-cyan-200/12 bg-[linear-gradient(180deg,rgba(7,19,38,0.92)_0%,rgba(5,12,28,0.96)_100%)] shadow-[0_18px_56px_rgba(0,0,0,0.22)]">
+      <div className="flex h-full min-h-[30rem] overflow-hidden rounded-[1rem] border border-cyan-200/12 bg-[linear-gradient(180deg,rgba(6,18,36,0.94)_0%,rgba(4,11,26,0.97)_100%)] shadow-[0_18px_48px_rgba(0,0,0,0.20)]">
         {/* 移除了冗余的 space.name header bar - 标题已在 Hero Panel 展示 */}
 
         {shouldShowDoorway ? (
@@ -1447,9 +1447,9 @@ export function SpaceChatWorkbench({
           </div>
         )}
 
-        <div className="grid h-full min-h-0 w-full grid-cols-1 lg:grid-cols-[16rem_minmax(0,1fr)] lg:items-stretch">
-          <aside className="flex min-h-[18rem] flex-col border-b border-white/10 bg-slate-950/28 lg:min-h-0 lg:overflow-hidden lg:border-b-0 lg:border-r lg:border-cyan-200/10" aria-label="NPC 角色与任务">
-            <div className="shrink-0 p-3 pb-2">
+        <div className="grid h-full min-h-0 w-full grid-cols-1 lg:grid-cols-[15rem_minmax(0,1fr)] xl:grid-cols-[15.5rem_minmax(0,1fr)] lg:items-stretch">
+          <aside className="flex min-h-0 flex-col border-b border-white/10 bg-slate-950/24 lg:overflow-hidden lg:border-b-0 lg:border-r lg:border-cyan-200/10" aria-label="NPC 角色与任务">
+            <div className="shrink-0 px-3 pb-2 pt-3">
               <div className="flex items-center justify-between gap-3">
                 <h2 className="text-base font-black text-white">驻场角色</h2>
                 <span className="rounded-full border border-cyan-300/20 bg-cyan-300/10 px-2.5 py-1 text-xs font-bold text-cyan-100">
@@ -1457,7 +1457,7 @@ export function SpaceChatWorkbench({
                 </span>
               </div>
             </div>
-            <div className="min-h-0 flex-1 space-y-2 overflow-y-auto px-3 pb-3">
+            <div className="flex min-h-0 gap-2 overflow-x-auto px-3 pb-3 lg:block lg:flex-1 lg:space-y-2 lg:overflow-y-auto">
               {characters.length ? (
                 characters.map((character) => {
                   const active = activeChatChannel === "private" && character.id === selectedCharacter?.id
@@ -1469,7 +1469,7 @@ export function SpaceChatWorkbench({
                       data-private-chat-channel
                       aria-pressed={active}
                       onClick={() => selectCharacter(character.id)}
-                      className={`flex w-full min-w-0 items-start gap-3 rounded-2xl border p-3 text-left transition hover:border-cyan-300/35 hover:bg-cyan-300/8 ${
+                      className={`flex w-[15.5rem] min-w-0 shrink-0 items-start gap-3 rounded-2xl border p-3 text-left transition hover:border-cyan-300/35 hover:bg-cyan-300/8 lg:w-full lg:shrink ${
                         active ? "border-cyan-300/45 bg-cyan-300/12 shadow-[0_14px_34px_rgba(8,145,178,0.16)]" : "border-white/10 bg-slate-950/30"
                       }`}
                     >
@@ -1482,12 +1482,12 @@ export function SpaceChatWorkbench({
                   )
                 })
               ) : (
-                <div className="rounded-2xl border border-dashed border-white/15 bg-slate-950/35 p-4 text-sm leading-6 text-violet-50/62">
+                <div className="min-w-[16rem] rounded-2xl border border-dashed border-white/15 bg-slate-950/35 p-4 text-sm leading-6 text-violet-50/62 lg:min-w-0">
                   这间空间还没有 NPC。店主可以在管理入口导入 SillyTavern 兼容角色卡。
                 </div>
               )}
             </div>
-            <div className="shrink-0 space-y-3 border-t border-cyan-200/10 bg-slate-950/30 p-3">
+            <div className="shrink-0 space-y-3 border-t border-cyan-200/10 bg-slate-950/26 p-3">
               {doorwayGameplayDefinitions.length ? (
                 <div className="space-y-2" data-doorway-gameplay-list>
                   <p className="text-xs font-black uppercase tracking-[0.16em] text-cyan-100/54">可接任务</p>
@@ -1546,8 +1546,8 @@ export function SpaceChatWorkbench({
             </div>
           </aside>
 
-          <main className="flex min-h-0 min-w-0 flex-col overflow-hidden bg-[#071326]/68">
-            <div className="border-b border-cyan-200/10 px-3 py-3 sm:px-4">
+          <main className="flex min-h-0 min-w-0 flex-col overflow-hidden bg-[#061225]/70">
+            <div className="border-b border-cyan-200/10 px-3 py-2.5 sm:px-4">
               <div
                 data-current-npc-stage-card
                 aria-label={activeChatChannel === "public" ? "公共聊天" : "当前 NPC"}
@@ -1576,9 +1576,9 @@ export function SpaceChatWorkbench({
                   </div>
                 </div>
                 {openingDigestRows.length ? (
-                  <div className="mt-3 grid gap-2 sm:grid-cols-3">
+                  <div className="mt-3 flex gap-2 overflow-x-auto pb-1 sm:grid sm:grid-cols-3 sm:overflow-visible sm:pb-0">
                     {openingDigestRows.slice(0, 3).map((row) => (
-                      <div key={row.label} className="min-w-0 rounded-xl border border-white/10 bg-slate-950/24 px-3 py-2">
+                      <div key={row.label} className="min-w-[9.5rem] rounded-xl border border-white/10 bg-slate-950/24 px-3 py-2 sm:min-w-0">
                         <p className="text-[0.66rem] font-black uppercase tracking-[0.14em] text-violet-100/42">{row.label}</p>
                         <p className="mt-1 truncate text-xs font-bold text-cyan-50/70">{row.value}</p>
                       </div>
@@ -1650,7 +1650,7 @@ export function SpaceChatWorkbench({
               data-entrance-reactions
               data-chat-log-compact
               aria-label="聊天记录"
-              className="min-h-[10rem] flex-1 space-y-4 overflow-y-auto p-4 sm:p-5"
+              className="min-h-[8rem] flex-1 space-y-3 overflow-y-auto p-3 sm:p-4"
             >
               {visibleMessages.map((line, index) => {
                 const isUser = line.role === "user"
@@ -1665,7 +1665,7 @@ export function SpaceChatWorkbench({
                 return (
                   <div key={line.id || `${line.role}-${index}`} className={`flex min-w-0 ${isUser ? "justify-end" : "justify-start"}`}>
                     <div
-                      className={`max-w-[86%] rounded-[1.35rem] px-4 py-3 text-sm leading-6 shadow-lg ${
+                      className={`max-w-[88%] rounded-[1.2rem] px-4 py-3 text-sm leading-6 shadow-lg ${
                         isUser
                           ? "rounded-br-md bg-cyan-300/18 text-cyan-50 shadow-cyan-950/20"
                           : "rounded-bl-md border border-white/10 bg-white/[0.07] text-violet-50 shadow-black/20"
@@ -1725,7 +1725,7 @@ export function SpaceChatWorkbench({
               </div>
             ) : null}
 
-            <form onSubmit={handleSubmit} data-chat-composer="fast-entry" className="border-t border-cyan-200/10 bg-slate-950/64 p-3 sm:p-4">
+            <form onSubmit={handleSubmit} data-chat-composer="fast-entry" className="border-t border-cyan-200/10 bg-slate-950/62 p-3">
               <div className="flex min-w-0 flex-col gap-3 sm:flex-row">
                 <div ref={mentionRef} className="relative min-w-0 flex-1">
                   <textarea
@@ -1758,29 +1758,31 @@ export function SpaceChatWorkbench({
                     placeholder={activeChatChannel === "public" ? "在这里说点什么…" : `对 ${selectedCharacter?.name || "NPC"} 说点什么…`}
                     className="min-h-14 w-full resize-none rounded-2xl border border-cyan-200/14 bg-white/[0.055] px-4 py-3 text-sm leading-6 text-white outline-none placeholder:text-violet-100/35 focus:border-cyan-300/60 disabled:cursor-not-allowed disabled:opacity-55"
                   />
-                  <div
+                  <details
                     data-roleplay-reply-coach
-                    className={`mt-2 rounded-xl border px-3 py-2 text-xs leading-5 shadow-sm shadow-black/10 ${replyCoachToneClass}`}
+                    className={`group mt-2 rounded-xl border px-3 py-2 text-xs leading-5 shadow-sm shadow-black/10 ${replyCoachToneClass}`}
                   >
-                    <div className="flex flex-col gap-1 sm:flex-row sm:items-baseline sm:justify-between">
-                      <span className="font-black uppercase tracking-[0.16em] text-amber-100/66">{replyCoach.eyebrow}</span>
-                      <strong className="text-sm font-black text-white">{replyCoach.title}</strong>
-                    </div>
-                    <p className="mt-1 text-violet-50/70">{replyCoach.body}</p>
-                    <div className="mt-2 flex flex-wrap gap-1.5">
-                      {replyCoach.checks.map((check) => (
-                        <span
-                          key={check.id}
-                          className={`rounded-full border px-2 py-0.5 font-black ${
-                            check.done
-                              ? "border-emerald-200/25 bg-emerald-300/[0.09] text-emerald-50"
-                              : "border-white/10 bg-white/[0.045] text-violet-100/58"
-                          }`}
-                        >
-                          {check.done ? "✓" : "·"} {check.label}
-                        </span>
-                      ))}
-                    </div>
+                    <summary className="flex cursor-pointer list-none flex-wrap items-center justify-between gap-2">
+                      <span className="flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-1">
+                        <span className="shrink-0 font-black uppercase tracking-[0.16em] text-amber-100/66">{replyCoach.eyebrow}</span>
+                        <strong className="truncate text-sm font-black text-white">{replyCoach.title}</strong>
+                      </span>
+                      <span className="hidden shrink-0 flex-wrap gap-1.5 sm:flex">
+                        {replyCoach.checks.map((check) => (
+                          <span
+                            key={check.id}
+                            className={`rounded-full border px-2 py-0.5 font-black ${
+                              check.done
+                                ? "border-emerald-200/25 bg-emerald-300/[0.09] text-emerald-50"
+                                : "border-white/10 bg-white/[0.045] text-violet-100/58"
+                            }`}
+                          >
+                            {check.done ? "✓" : "·"} {check.label}
+                          </span>
+                        ))}
+                      </span>
+                    </summary>
+                    <p className="mt-2 text-violet-50/70">{replyCoach.body}</p>
                     {replyCoach.showExample ? (
                       <button
                         type="button"
@@ -1797,7 +1799,7 @@ export function SpaceChatWorkbench({
                         借用句式（只填入，不发送）：{replyCoach.example}
                       </button>
                     ) : null}
-                  </div>
+                  </details>
                   {mentionQuery !== null && mentionMatches.length > 0 && activeChatChannel === "public" && (
                     <div className="absolute bottom-full left-0 right-0 mb-2 max-h-60 overflow-y-auto rounded-2xl border border-white/15 bg-slate-950/98 shadow-xl shadow-black/40">
                       <div className="px-4 py-2 text-xs text-violet-100/40 border-b border-white/10">
@@ -1828,16 +1830,16 @@ export function SpaceChatWorkbench({
             {!isOwner && !passwordLocked ? (
               <section
                 data-story-branch-controls
-                className="border-t border-white/10 bg-slate-950/70 px-4 py-3 sm:px-5"
+                className="border-t border-white/10 bg-slate-950/60 px-3 py-2 sm:px-4"
                 aria-label="故事支线控制"
               >
-                <div className="flex flex-col gap-3 rounded-3xl border border-cyan-200/14 bg-cyan-300/[0.055] p-3 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex flex-col gap-2 rounded-2xl border border-cyan-200/14 bg-cyan-300/[0.052] p-2.5 sm:flex-row sm:items-center sm:justify-between">
                   <div className="min-w-0">
                     <p className="text-xs font-black uppercase tracking-[0.16em] text-cyan-100/58">当前支线</p>
-                    <p className="mt-1 text-sm font-black text-white">
+                    <p className="mt-0.5 text-sm font-black text-white">
                       {hasVisitorSentMessage ? "继续这条记忆支线" : "还在开场，可以放心试写第一句"}
                     </p>
-                    <p className="mt-1 text-xs font-bold leading-5 text-violet-50/62">
+                    <p className="mt-1 hidden text-xs font-bold leading-5 text-violet-50/58 sm:block">
                       开新支线只清空本屏草稿和气泡；回访记忆、关系、保存进度保留。
                     </p>
                   </div>
@@ -1846,7 +1848,7 @@ export function SpaceChatWorkbench({
                     data-start-fresh-branch
                     onClick={handleStartFreshEntranceBranch}
                     disabled={busy === "send" || isGameplayBusy}
-                    className="min-h-11 shrink-0 rounded-2xl border border-cyan-200/25 bg-slate-950/34 px-4 py-2 text-sm font-black text-cyan-50 transition hover:border-cyan-200/48 hover:bg-cyan-300/[0.10] disabled:cursor-not-allowed disabled:opacity-55"
+                    className="min-h-10 shrink-0 rounded-xl border border-cyan-200/25 bg-slate-950/34 px-4 py-2 text-sm font-black text-cyan-50 transition hover:border-cyan-200/48 hover:bg-cyan-300/[0.10] disabled:cursor-not-allowed disabled:opacity-55"
                   >
                     从门口开新支线
                   </button>

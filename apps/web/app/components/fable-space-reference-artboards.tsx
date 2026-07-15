@@ -1804,12 +1804,7 @@ function FableSpaceHomeCoordinateCard({
   const canEnter = Boolean(slice?.id || card.id || isBlack)
   const target = to || targetFor(card)
   const badgeLabel = isBlack ? card.tag : (canEnter ? card.tag : (isLoading ? "加载中" : "待开放"))
-  const toneClass =
-    card.tone === "unstable"
-      ? "border-rose-400/45 bg-rose-500/14 text-rose-300 shadow-[0_0_16px_rgba(244,63,94,0.18)]"
-      : card.tone === "low"
-        ? "border-amber-300/38 bg-amber-300/12 text-amber-200 shadow-[0_0_16px_rgba(251,191,36,0.14)]"
-        : "border-cyan-300/38 bg-cyan-300/18 text-cyan-100 shadow-[0_0_16px_rgba(34,211,238,0.18)]"
+  const toneClass = "border-cyan-300/38 bg-cyan-300/18 text-cyan-100 shadow-[0_0_16px_rgba(34,211,238,0.18)]"
   const className = cx(
     "absolute z-20 flex min-h-11 flex-col overflow-hidden rounded-[0.72rem] border outline-none transition",
     canEnter ? "touch-manipulation hover:-translate-y-0.5 focus:ring-4" : "cursor-wait select-none opacity-86",

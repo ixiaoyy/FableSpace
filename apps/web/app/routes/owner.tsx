@@ -27,6 +27,7 @@ import {
   formatOwnerSummaryTime,
 } from "../lib/owner-summary.js"
 import { hasExplicitOwnerIdentity } from "../lib/space-runtime-config.js"
+import { resolveCurrentSessionUserId } from "../lib/session"
 import {
   DEFAULT_OWNER_ID,
   createClueHuntRoute,
@@ -86,7 +87,9 @@ function ownerSpaceManagePath(spaceId: string, ownerId: string, spaceName = "空
 
 export async function clientLoader({ request }: ClientLoaderFunctionArgs): Promise<OwnerLoaderData> {
   const url = new URL(request.url)
-  const ownerId = url.searchParams.get("owner_id")?.trim() || DEFAULT_OWNER_ID
+  const ownerId = await resolveCurrentSessionUserId(
+    url.searchParams.get("owner_id")?.trim() || DEFAULT_OWNER_ID,
+  )
   const errors: string[] = []
   let spaces: Space[] = []
   let sessions: ChatSession[] = []
