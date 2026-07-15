@@ -4,6 +4,9 @@ import { ThemeProvider } from "./hooks/useTheme"
 
 import "./styles.css"
 
+const ASSET_BASE_URL = import.meta.env.VITE_ASSET_BASE_URL?.trim() || ""
+const ASSET_ORIGIN = ASSET_BASE_URL ? new URL(ASSET_BASE_URL).origin : ""
+
 export const meta: MetaFunction = () => [
   { title: "FableSpace｜世界的镜像面" },
   {
@@ -23,6 +26,8 @@ export function Layout({ children }: { children: React.ReactNode }) {
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
+        {ASSET_ORIGIN ? <link rel="preconnect" href={ASSET_ORIGIN} crossOrigin="anonymous" /> : null}
+        {ASSET_ORIGIN ? <link rel="dns-prefetch" href={ASSET_ORIGIN} /> : null}
         <Meta />
         <Links />
       </head>

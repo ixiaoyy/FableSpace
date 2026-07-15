@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react"
+import type { LinksFunction } from "react-router"
 
+import homeBlackHeroVisual from "../assets/fable-space-05-10/home-black/hero-system-visual.webp"
 import { FableSpaceHomeReference } from "../components/fable-space-reference-artboards"
 import { useTheme } from "../hooks/useTheme"
 import { buildHomepageView } from "../lib/homepage-spaces"
@@ -8,6 +10,16 @@ import { errorMessage, listSpaces, type SpaceListResponse } from "../lib/spaces"
 const HOMEPAGE_SPACE_LIST_LIMIT = 12
 
 const EMPTY_LIST_RESULT: SpaceListResponse = { spaces: [], count: 0 }
+
+export const links: LinksFunction = () => [
+  {
+    rel: "preload",
+    as: "image",
+    href: homeBlackHeroVisual,
+    type: "image/webp",
+    fetchPriority: "high",
+  },
+]
 
 export default function HomeRoute() {
   const [result, setResult] = useState<SpaceListResponse>(EMPTY_LIST_RESULT)

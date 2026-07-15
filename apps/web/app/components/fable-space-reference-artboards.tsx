@@ -2087,6 +2087,8 @@ function FableSpaceHomeMainSurface({
               alt=""
               className="absolute inset-0 h-full w-full object-cover object-center opacity-95"
               draggable={false}
+              loading="eager"
+              fetchPriority="high"
               decoding="async"
             />
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_68%_42%,rgba(34,211,238,0.12),transparent_32%)]" />
@@ -2203,7 +2205,7 @@ function FableSpaceHomeMobile({
         {isBlack ? (
           <>
             <div aria-hidden="true" className="absolute inset-0 bg-[#020817]" />
-            <img src={homeBlackHeroVisual} alt="" aria-hidden="true" className="absolute inset-0 h-full w-full object-cover opacity-54 saturate-150" loading="lazy" decoding="async" />
+            <img src={homeBlackHeroVisual} alt="" aria-hidden="true" className="absolute inset-0 h-full w-full object-cover opacity-54 saturate-150" loading="eager" fetchPriority="high" decoding="async" />
           </>
         ) : (
           <img src={lightSkyCityBalcony} alt="" aria-hidden="true" className="absolute inset-0 h-full w-full object-cover opacity-34" loading="lazy" decoding="async" />
