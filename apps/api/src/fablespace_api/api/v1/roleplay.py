@@ -5,6 +5,7 @@ from typing import Any
 from fastapi import APIRouter, Request
 
 from ...contracts.roleplay import RoleplayClaimDecisionRequest, RoleplayClaimRequest, RoleplayConfigRequest
+from .auth import CREATOR_CAPABILITY, require_session_capability
 from .common import get_user_id, spaces_service
 
 router = APIRouter(prefix="/spaces", tags=["roleplay"])
@@ -17,6 +18,7 @@ def get_roleplay(request: Request, space_id: str) -> dict[str, Any]:
 
 @router.put("/{space_id}/roleplay")
 def save_roleplay_config(request: Request, space_id: str, data: RoleplayConfigRequest) -> dict[str, Any]:
+    require_session_capability(request, CREATOR_CAPABILITY)
     return spaces_service(request).save_roleplay_config(space_id, data.to_payload(), get_user_id(request))
 
 
@@ -32,4 +34,5 @@ def decide_character_claim(
     claim_id: str,
     data: RoleplayClaimDecisionRequest,
 ) -> dict[str, Any]:
+    require_session_capability(request, CREATOR_CAPABILITY)
     return spaces_service(request).decide_character_claim(space_id, claim_id, data.to_payload(), get_user_id(request))

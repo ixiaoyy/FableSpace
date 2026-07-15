@@ -8,6 +8,7 @@ from typing import Any
 
 from fastapi import APIRouter, Request
 
+from .auth import CREATOR_CAPABILITY, require_session_capability
 from .common import get_user_id
 
 
@@ -36,6 +37,7 @@ def get_engagement_config(request: Request, space_id: str) -> dict[str, Any]:
 @router.put("/config")
 def update_engagement_config(request: Request, space_id: str, data: dict[str, Any]) -> dict[str, Any]:
     """Update engagement config (owner only)."""
+    require_session_capability(request, CREATOR_CAPABILITY)
     owner_id = get_user_id(request)
     return _engagement_service(request).update_config(space_id, owner_id, data)
 

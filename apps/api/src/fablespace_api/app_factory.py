@@ -9,7 +9,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse, RedirectResponse
 
 from .api.response_envelope import add_api_response_envelope_middleware
-from .api.v1.auth import is_private_access_allowed
+from .api.v1.auth import ParallelLinesAccessVerifier, is_private_access_allowed
 from .application.clue_hunts import ClueHuntApplicationService
 from .application.spaces import SpaceApplicationService
 from .application.services.platform import configure_platform_cache
@@ -34,6 +34,7 @@ PRIVATE_GATE_PUBLIC_PATHS = frozenset(
         "/api/v1/health",
         "/api/v1/auth/parallellines/callback",
         "/api/v1/auth/status",
+        "/api/v1/auth/logout",
     }
 )
 
@@ -48,8 +49,8 @@ def create_app(settings: ApiSettings | None = None) -> FastAPI:
 
     resolved = settings or ApiSettings()
     if resolved.auth_mode == "parallellines" and (
-        len(resolved.parallellines_sso_service_secret) < 32
-        or len(resolved.session_secret) < 32
+        len(resolved.parallellines_sso_service_secret.strip()) < 32
+        or len(resolved.session_secret.strip()) < 32
     ):
         raise RuntimeError(
             "ParallelLines authentication requires both the SSO service secret and session secret"
@@ -100,6 +101,7 @@ def create_app(settings: ApiSettings | None = None) -> FastAPI:
     app.state.clue_hunts = clue_hunt_service
     app.state.simulation_worker = simulation_worker
     app.state.generated_storage = generated_storage
+    app.state.access_verifier = ParallelLinesAccessVerifier(resolved)
 
     app.add_middleware(
         CORSMiddleware,
@@ -118,11 +120,11 @@ def create_app(settings: ApiSettings | None = None) -> FastAPI:
             request.method != "OPTIONS"
             and protected_path
             and request.url.path not in PRIVATE_GATE_PUBLIC_PATHS
-            and not is_private_access_allowed(request)
+            and not await is_private_access_allowed(request)
         ):
             return JSONResponse(
                 status_code=401,
-                content={"error": "管理员会话无效或已过期"},
+                content={"error": "FableSpace 访问资格无效或已过期"},
                 headers={"Cache-Control": "no-store"},
             )
         return await call_next(request)

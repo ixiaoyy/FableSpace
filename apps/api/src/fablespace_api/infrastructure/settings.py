@@ -148,6 +148,20 @@ class ApiSettings:
     session_ttl_seconds: int = field(
         default_factory=lambda: _int_from_env("FABLESPACE_SESSION_TTL_SECONDS", "", 3600)
     )
+    auth_introspection_cache_ttl_seconds: int = field(
+        default_factory=lambda: _int_from_env(
+            "FABLESPACE_AUTH_INTROSPECTION_CACHE_TTL_SECONDS",
+            "",
+            30,
+        )
+    )
+    auth_introspection_timeout_seconds: int = field(
+        default_factory=lambda: _int_from_env(
+            "FABLESPACE_AUTH_INTROSPECTION_TIMEOUT_SECONDS",
+            "",
+            5,
+        )
+    )
 
     # Database configuration. `mysql_url` is a legacy alias; `database_url` may also be sqlite:///...
     storage_backend: str = field(default_factory=_default_storage_backend)

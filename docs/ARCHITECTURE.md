@@ -206,10 +206,13 @@ FableSpace 同时保留两类 API 面：
 
 ## 安全边界
 
-- ParallelLines 联动部署使用一次性短效票据：浏览器只携带 ticket code，FableSpace 后端通过共享网络和服务密钥向 ParallelLines 兑换最小管理员身份，再签发独立、短效、HttpOnly 的本地会话 Cookie。
-- `FABLESPACE_AUTH_MODE=parallellines` 时，HTTP 与 WebSocket 请求统一只信任签名 Cookie，忽略浏览器传入的 `X-User-Id`、`user_id` 和 `owner_id`，避免伪造 owner/admin 身份；`legacy` 仅用于独立开发兼容。
-- 联动模式的总门禁覆盖全部 `/api/v1` 与 `/generated/` 资源，只放行健康检查、票据回调和无敏感数据的登录状态接口；前端根节点在门禁确认前不挂载业务路由，会话失效后立即回到关闭状态。
-- 两个服务共享的是票据兑换密钥，不共享 JWT 或会话密钥；FableSpace Cookie 不包含邮箱、密码、主站令牌、积分或信任等级。
+- ParallelLines 联动部署使用一次性短效票据：浏览器只携带 ticket code，FableSpace 后端通过共享网络和服务密钥兑换最小身份、`capabilities`、`authorization_version` 与可选 `access_expires_at`，再签发独立、短效、HttpOnly 的本地会话 Cookie。
+- `FABLESPACE_AUTH_MODE=parallellines` 时，HTTP 与 WebSocket 请求统一只信任签名 Cookie，忽略浏览器传入的 `X-User-Id`、`user_id` 和 `owner_id`；`legacy` 仅用于独立开发兼容。
+- 联动模式的总门禁覆盖全部 `/api/v1` 与 `/generated/` 资源，只放行健康检查、票据回调和无敏感数据的登录状态接口。总门禁要求 `fablespace.access`；`fablespace.admin` 等价于拥有全部 FableSpace 能力。
+- FableSpace 通过 `POST /api/v1/auth/fablespace/introspect` 定期续验主站账号状态、能力版本和授权期限。成功结果只在进程内短暂缓存，最长 60 秒；缓存过期后主站不可达时 fail closed。主站返回更高授权版本时，当前请求直接采用最新能力和期限，因此降级后仍可保留体验权限但创作操作立即受限，延长有效期也不要求重新登录；撤销、封禁、真实到期、用户不一致或授权版本回退会关闭已有会话。通知 WebSocket 在建连和存活期间执行相同续验。
+- `fablespace.creator` 控制全部店主创作与管理写操作及供给侧工具：除 Space、Home、Territory、Clue Hunt Route 新建外，还覆盖 Space package 导入、Space 更新/删除、NPC、WorldInfo、店主配置、玩法定义、skill packs、领地/家庭成员/空间关系与 owner 审批等写入口，以及 LLM 配置探测、角色卡解析/导出等创作工具；聊天、进入空间、访客记忆/状态、通知和玩法/寻宝会话等探索行为只需要 `fablespace.access`。`fablespace.operator` 和 `fablespace.admin` 都不绕过 owner 资源边界，能力校验通过后仍必须通过原有 owner 校验；`legacy` 模式保持独立部署的既有兼容行为，不执行产品能力拦截。
+- owner 与访客共用的写端点按签名会话用户分支：访客只能操作自己的 chat/group-chat、memory atom、StateCard、visitor note、gameplay/clue-hunt session、Home visit、public-bond application 和 engagement reward；当 payload 或目标记录属于其他访客、空间正史或 owner 管理范围时，联动模式同时要求 `fablespace.creator` 和对应 Space/Route/Home 的 owner 校验，不能仅凭 creator/admin/operator 跨 owner 操作。
+- 两个服务共享的是 SSO 服务密钥，不共享 JWT、会话密钥或数据库；FableSpace Cookie 不包含邮箱、密码、主站令牌、积分或信任等级。
 - `api_key`、owner LLM 配置、token 统计只对 owner 可见。
 - 私密 Space / Home 不进入公开发现。
 - 访客只能读取和修改自己范围内的运行时状态。

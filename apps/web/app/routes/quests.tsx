@@ -1,7 +1,8 @@
 import type { ClientLoaderFunctionArgs } from "react-router"
-import { ArrowRight, Compass, MapPinned, ShieldCheck, Sparkles } from "lucide-react"
+import { ArrowRight, Compass, MapPinned, Play, ShieldCheck } from "lucide-react"
 import { Link, useLoaderData } from "react-router"
 
+import { useCreatorAccess } from "../hooks/useCreatorAccess"
 import { buildQuestGuideSummary } from "../lib/quest-guide.js"
 import { DEFAULT_OWNER_ID, errorMessage, listSpaces, type Space } from "../lib/spaces"
 import { WEB_PATHS } from "../lib/web-routes"
@@ -30,7 +31,13 @@ export async function clientLoader({ request }: ClientLoaderFunctionArgs) {
 }
 
 export default function QuestsRoute() {
-  const { ownerId, errors, summary } = useLoaderData<typeof clientLoader>()
+  const { errors, summary } = useLoaderData<typeof clientLoader>()
+  const { allowed: showCreatorTools } = useCreatorAccess()
+  const visibleGuides = showCreatorTools
+    ? summary.quests
+    : summary.quests.filter((guide) => guide.type !== "creation")
+  const directGameplayGuide = visibleGuides.find((guide) => guide.availabilityLabel === "可直接开始")
+  const readyGuideCount = visibleGuides.filter((guide) => guide.availability === "ready").length
 
   return (
     <ProductShell eyebrow="任务指南">
@@ -42,34 +49,34 @@ export default function QuestsRoute() {
                 <Compass className="h-3.5 w-3.5" />
                 探索指南
               </div>
-              <CardTitle className="text-4xl font-black leading-tight">探索指南</CardTitle>
+              <CardTitle className="text-4xl font-black leading-tight">现在就玩</CardTitle>
               <CardDescription className="text-base leading-7">
-                这是给新手的轻量导览：帮你找到下一间真实坐标空间、认识 NPC，并把回访提示留在具体空间里。
+                这是给新手的轻量导览：找到真实坐标空间、认识 NPC，或直接开始店主已经发布的玩法。
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid gap-3 sm:grid-cols-2">
                 <Button asChild size="lg">
-                  <Link to={WEB_PATHS.spaces}>
-                    <MapPinned className="h-4 w-4" />
-                    从发现页开始
+                  <Link to={directGameplayGuide?.ctaTo || WEB_PATHS.spaces}>
+                    <Play className="h-4 w-4" />
+                    {directGameplayGuide ? "直接开始玩法" : "寻找可玩空间"}
                   </Link>
                 </Button>
                 <Button asChild size="lg" variant="secondary">
-                  <Link to={`${WEB_PATHS.createSpace}?owner_id=${encodeURIComponent(ownerId)}`}>
-                    <Sparkles className="h-4 w-4" />
-                    创建自己的空间
+                  <Link to={WEB_PATHS.spaces}>
+                    <MapPinned className="h-4 w-4" />
+                    浏览更多空间
                   </Link>
                 </Button>
               </div>
 
-              <div className="rounded-3xl border border-emerald-300/16 bg-emerald-300/[0.07] p-4">
-                <p className="flex items-center gap-2 text-xs font-black uppercase tracking-[0.2em] text-emerald-100/75">
+              <div className="rounded-[1.25rem] border border-theme-accent-border bg-theme-accent-bg p-4">
+                <p className="flex items-center gap-2 text-xs font-black uppercase tracking-[0.2em] text-theme-accent-text">
                   <ShieldCheck className="h-3.5 w-3.5" />
-                  边界说明
+                  进度归属
                 </p>
                 <p className="mt-2 text-sm leading-7 text-theme-muted">
-                  这里只给出探索建议，不记录完成进度，不发放奖励，也不展示排名。
+                  玩法进度和回访提示保存在所属空间；平台不做等级、装备或竞争排名。
                 </p>
               </div>
 
@@ -107,23 +114,23 @@ export default function QuestsRoute() {
           <div className="grid gap-4 sm:grid-cols-3">
             <Card className="p-5">
               <p className="text-xs font-black uppercase tracking-[0.2em] text-theme-accent-text">指南卡片</p>
-              <p className="mt-3 text-3xl font-black text-theme-primary">{summary.guideCount}</p>
-              <p className="mt-2 text-sm text-theme-muted">不保存为访客任务记录</p>
+              <p className="mt-3 text-3xl font-black text-theme-primary">{visibleGuides.length}</p>
+              <p className="mt-2 text-sm text-theme-muted">帮助你找到下一段真实体验</p>
             </Card>
             <Card className="p-5">
               <p className="text-xs font-black uppercase tracking-[0.2em] text-theme-primary">可直接进入</p>
-              <p className="mt-3 text-3xl font-black text-theme-primary">{summary.readyGuideCount}</p>
+              <p className="mt-3 text-3xl font-black text-theme-primary">{readyGuideCount}</p>
               <p className="mt-2 text-sm text-theme-muted">基于当前公开空间数据</p>
             </Card>
             <Card className="p-5">
-              <p className="text-xs font-black uppercase tracking-[0.2em] text-emerald-100/62">玩法空间</p>
-              <p className="mt-3 text-3xl font-black text-theme-primary">{summary.metrics.questPlaySpaces}</p>
-              <p className="mt-2 text-sm text-theme-muted">含探索布局或已发布玩法</p>
+              <p className="text-xs font-black uppercase tracking-[0.2em] text-theme-accent-text">可直接玩法</p>
+              <p className="mt-3 text-3xl font-black text-theme-primary">{summary.metrics.publishedGameplays}</p>
+              <p className="mt-2 text-sm text-theme-muted">公开开放空间中的已发布玩法</p>
             </Card>
           </div>
 
           <section className="grid gap-4">
-            {summary.quests.map((guide) => (
+            {visibleGuides.map((guide) => (
               <Card key={guide.id} className="overflow-hidden p-5">
                 <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
                   <div className="min-w-0">
@@ -139,16 +146,16 @@ export default function QuestsRoute() {
                     <p className="mt-3 max-w-3xl text-sm leading-6 text-theme-muted">{guide.description}</p>
                   </div>
 
-                  <span className="inline-flex w-fit items-center gap-2 rounded-full border border-theme-border bg-theme-card px-3 py-1 text-xs font-black text-violet-50">
+                  <span className="inline-flex w-fit items-center gap-2 rounded-full border border-theme-border bg-theme-card px-3 py-1 text-xs font-black text-theme-primary">
                     {guide.availabilityLabel}
                   </span>
                 </div>
 
                 <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                   <p className="text-sm leading-6 text-theme-muted">
-                    {guide.echoLabel}：<strong className="text-violet-50">{guide.echoCount}</strong> · {guide.helperText}
+                    {guide.echoLabel}：<strong className="text-theme-primary">{guide.echoCount}</strong> · {guide.helperText}
                   </p>
-                  <Button asChild size="sm" variant="ghost">
+                  <Button asChild size="sm" variant={guide.availabilityLabel === "可直接开始" ? "primary" : "ghost"}>
                     <Link to={guide.ctaTo}>
                       {guide.ctaLabel}
                       <ArrowRight className="h-4 w-4" />

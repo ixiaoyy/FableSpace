@@ -365,7 +365,7 @@ function AmbientActivityPanel({ activity }: { activity: SpaceAmbientActivity }) 
   return (
     <section
       data-space-ambient-activity
-      className="border-b border-cyan-200/10 bg-[#061225]/82 px-3 py-2.5 sm:px-4"
+      className="border-b border-cyan-200/10 bg-[#170c27]/82 px-3 py-2.5 sm:px-4"
       aria-label="空间 NPC 自主活动"
     >
       <div className="rounded-xl border border-cyan-200/12 bg-slate-950/24 px-3 py-2.5">
@@ -658,7 +658,7 @@ export function SpaceChatWorkbench({
   const [error, setError] = useState("")
   const chatLogRef = useRef<HTMLDivElement | null>(null)
   const chatInitializationKeyRef = useRef("")
-  const [searchParams] = useSearchParams()
+  const [searchParams, setSearchParams] = useSearchParams()
   const [pendingReplyTargetName, setPendingReplyTargetName] = useState("")
 
   const [gameplayDefinitions, setGameplayDefinitions] = useState<any[]>([])
@@ -666,13 +666,21 @@ export function SpaceChatWorkbench({
   const [gameplayScene, setGameplayScene] = useState<any>({})
   const [isGameplayBusy, setIsGameplayBusy] = useState(false)
   const [activeGameplayDefinitionId, setActiveGameplayDefinitionId] = useState("")
+  const gameplayDeepLinkRequestRef = useRef("")
+  const preferredGameplayIdRef = useRef("")
 
   const [coinBalance, setCoinBalance] = useState<number | null>(null)
   const [lastGift, setLastGift] = useState<{ coins: number; items: string } | null>(null)
   const revisitMode = String(searchParams.get("revisit") || "")
+  const requestedGameplayId = String(searchParams.get("gameplay_id") || "").trim()
   const [hasPassedDoorway, setHasPassedDoorway] = useState(() => Boolean(isOwner || revisitMode === "continue"))
 
   const access = String(space.access || "public")
+  const canStartDeepLinkedGameplay = (
+    access === "public" &&
+    String(space.status || "") === "open" &&
+    space.is_open !== false
+  )
 
   const passwordLocked = access === "password" && !isOwner && !hasEnteredPasswordSpace
   const firstMinuteGuide = useMemo(() => buildSpaceFirstMinuteGuide(space), [space])
@@ -833,6 +841,7 @@ export function SpaceChatWorkbench({
 
   useEffect(() => {
     if (passwordLocked) return
+    if (!requestedGameplayId) gameplayDeepLinkRequestRef.current = ""
 
     // Load gameplays and sessions
     let cancelled = false
@@ -840,13 +849,49 @@ export function SpaceChatWorkbench({
       try {
         const [defsRes, sessionsRes] = await Promise.all([
           getGameplays(space.id, visitorId),
-          listGameplaySessions(space.id, { state: "active", visitor_id: visitorId }, visitorId),
+          requestedGameplayId
+            ? Promise.resolve({ sessions: [], count: 0 })
+            : listGameplaySessions(space.id, { state: "active", visitor_id: visitorId }, visitorId),
         ])
         if (cancelled) return
         const definitions = defsRes.gameplays || defsRes.gameplay_definitions || []
         setGameplayDefinitions(definitions)
+
+        if (requestedGameplayId) {
+          const requestKey = `${space.id}:${requestedGameplayId}`
+          if (gameplayDeepLinkRequestRef.current === requestKey) return
+          gameplayDeepLinkRequestRef.current = requestKey
+
+          const nextSearchParams = new URLSearchParams(searchParams)
+          nextSearchParams.delete("gameplay_id")
+
+          if (!canStartDeepLinkedGameplay) {
+            setError("该玩法所在空间当前未公开开放，不能从任务指南直接开始。")
+            setSearchParams(nextSearchParams, { replace: true, preventScrollReset: true })
+            return
+          }
+
+          const requestedDefinition = definitions.find((definition: any) => (
+            String(definition?.id || "") === requestedGameplayId &&
+            String(definition?.status || "").toLowerCase() === "published"
+          ))
+          if (!requestedDefinition) {
+            setError("指定玩法不存在、未发布或已停用。")
+            setSearchParams(nextSearchParams, { replace: true, preventScrollReset: true })
+            return
+          }
+
+          preferredGameplayIdRef.current = requestedGameplayId
+          await handleStartGameplay(requestedDefinition)
+          if (!cancelled) setSearchParams(nextSearchParams, { replace: true, preventScrollReset: true })
+          return
+        }
+
         if (sessionsRes.sessions?.length > 0) {
-          const session = sessionsRes.sessions[0]
+          const preferredGameplayId = preferredGameplayIdRef.current
+          const session = sessionsRes.sessions.find((candidate) => (
+            String(candidate?.gameplay_id || candidate?.definition_id || "") === preferredGameplayId
+          )) || sessionsRes.sessions[0]
           setActiveSession(session)
           const sessionRecord = session as Record<string, any>
           const sessionGameplayId = String(sessionRecord.gameplay_id || sessionRecord.definition_id || "")
@@ -856,6 +901,14 @@ export function SpaceChatWorkbench({
           setGameplayScene(lastEvent?.scene || sceneFromGameplayDefinition(definition, sessionRecord.current_node_id))
         }
       } catch (err) {
+        if (cancelled) return
+        if (requestedGameplayId) {
+          const nextSearchParams = new URLSearchParams(searchParams)
+          nextSearchParams.delete("gameplay_id")
+          setError(`无法打开指定玩法：${errorMessage(err)}`)
+          setSearchParams(nextSearchParams, { replace: true, preventScrollReset: true })
+          return
+        }
         console.error("Failed to load gameplay data:", err)
       }
     }
@@ -863,7 +916,7 @@ export function SpaceChatWorkbench({
     return () => {
       cancelled = true
     }
-  }, [space.id, visitorId, passwordLocked])
+  }, [space.id, visitorId, passwordLocked, requestedGameplayId, searchParams, setSearchParams, canStartDeepLinkedGameplay])
 
   useEffect(() => {
 
@@ -1191,13 +1244,15 @@ export function SpaceChatWorkbench({
   async function handleStartGameplay(definition: any) {
     setIsGameplayBusy(true)
     setError("")
-    setActiveGameplayDefinitionId(String(definition?.id || ""))
+    const gameplayId = String(definition?.id || "")
+    preferredGameplayIdRef.current = gameplayId
+    setActiveGameplayDefinitionId(gameplayId)
     try {
       const res = await startGameplaySession(space.id, {
         gameplay_id: definition.id,
         visitor_id: visitorId,
         visitor_name: visitorName,
-      })
+      }, visitorId)
       const responseSession = res.session as Record<string, any> | undefined
       const session = responseSession || { ...res, id: res.session_id, gameplay_id: definition.id }
       setActiveSession(session)
@@ -1297,7 +1352,7 @@ export function SpaceChatWorkbench({
   return (
 
     <section data-chat-workbench="sillytavern-style" data-active-chat-channel={activeChatChannel} className="h-full">
-      <div className="flex h-full min-h-[30rem] overflow-hidden rounded-[1rem] border border-cyan-200/12 bg-[linear-gradient(180deg,rgba(6,18,36,0.94)_0%,rgba(4,11,26,0.97)_100%)] shadow-[0_18px_48px_rgba(0,0,0,0.20)]">
+      <div className="flex h-full min-h-[30rem] overflow-hidden rounded-[1rem] border border-cyan-200/12 bg-[linear-gradient(180deg,rgba(23,12,39,0.94)_0%,rgba(12,6,22,0.97)_100%)] shadow-[0_18px_48px_rgba(0,0,0,0.20)]">
         {/* 移除了冗余的 space.name header bar - 标题已在 Hero Panel 展示 */}
 
         {shouldShowDoorway ? (
@@ -1307,7 +1362,7 @@ export function SpaceChatWorkbench({
             className="grid gap-5 p-4 sm:p-6 lg:grid-cols-[1.05fr_0.95fr] lg:items-stretch"
           >
             {/* 左侧：场景 + 动作入口 */}
-            <div className="rounded-[1.75rem] border border-cyan-200/18 bg-cyan-300/[0.075] p-5 shadow-[0_18px_48px_rgba(8,145,178,0.08)] max-lg:mb-20">
+            <div className="rounded-[1.75rem] border border-cyan-200/18 bg-cyan-300/[0.075] p-5 shadow-[0_18px_48px_rgba(219,39,119,0.08)] max-lg:mb-20">
               {/* 场景提示作为主标题 */}
               <h2 className="text-3xl font-black leading-tight text-white">{firstMinuteGuide.sceneHint}</h2>
               {/* 锚点信息 */}
@@ -1470,7 +1525,7 @@ export function SpaceChatWorkbench({
                       aria-pressed={active}
                       onClick={() => selectCharacter(character.id)}
                       className={`flex w-[15.5rem] min-w-0 shrink-0 items-start gap-3 rounded-2xl border p-3 text-left transition hover:border-cyan-300/35 hover:bg-cyan-300/8 lg:w-full lg:shrink ${
-                        active ? "border-cyan-300/45 bg-cyan-300/12 shadow-[0_14px_34px_rgba(8,145,178,0.16)]" : "border-white/10 bg-slate-950/30"
+                        active ? "border-cyan-300/45 bg-cyan-300/12 shadow-[0_14px_34px_rgba(219,39,119,0.16)]" : "border-white/10 bg-slate-950/30"
                       }`}
                     >
                       <CharacterAvatar character={character} active={active} />
@@ -1546,7 +1601,7 @@ export function SpaceChatWorkbench({
             </div>
           </aside>
 
-          <main className="flex min-h-0 min-w-0 flex-col overflow-hidden bg-[#061225]/70">
+          <main className="flex min-h-0 min-w-0 flex-col overflow-hidden bg-[#170c27]/70">
             <div className="border-b border-cyan-200/10 px-3 py-2.5 sm:px-4">
               <div
                 data-current-npc-stage-card

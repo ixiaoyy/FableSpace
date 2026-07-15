@@ -78,7 +78,7 @@ type EntryStatusDisplay = {
 }
 
 const CATEGORIES: Category[] = [
-  { label: "异星街角", tags: ["外星人", "便利店"], color: "text-green-300 border-green-300/30 bg-green-300/10" },
+  { label: "异星街角", tags: ["外星人", "便利店"], color: "text-violet-200 border-violet-300/30 bg-violet-300/10" },
   { label: "委托故事", tags: ["文游", "委托板"], color: "text-amber-300 border-amber-300/30 bg-amber-300/10" },
   { label: "社区据点", tags: ["社区"], color: "text-cyan-300 border-cyan-300/30 bg-theme-accent-bg" },
   { label: "陪伴树洞", tags: ["陪伴", "树洞"], color: "text-rose-300 border-rose-300/30 bg-rose-300/10" },
@@ -165,7 +165,7 @@ function compactDisplayText(value: unknown, fallback: string, maxLength = 34) {
 function previewBackgroundImage(image: string) {
   return [
     "linear-gradient(180deg, rgba(3, 7, 18, 0.08), rgba(3, 7, 18, 0.26))",
-    "radial-gradient(circle at 28% 34%, rgba(34, 211, 238, 0.24), transparent 38%)",
+    "radial-gradient(circle at 28% 34%, rgba(244,114,182, 0.24), transparent 38%)",
     "radial-gradient(circle at 72% 62%, rgba(217, 70, 239, 0.22), transparent 42%)",
     `url("${image}")`,
   ].join(", ")
@@ -235,7 +235,7 @@ function buildEntryEchoes(space: SpaceWithTimeStatus | Space, placeType: ReturnT
       label: "回访",
       value: visitCount ? `${visitCount} 次到访` : "新入口",
       helper: visitCount ? "聚合到访热度" : "等待第一位旅客",
-      className: "border-emerald-300/22 bg-emerald-300/10 text-emerald-50",
+      className: "border-theme-accent-border bg-theme-accent-bg text-theme-accent-text",
     },
   ]
 }
@@ -531,7 +531,7 @@ function ViewModeToggle({ activeViewMode, onChange }: { activeViewMode: Discover
             onClick={() => onChange(item.mode)}
             className={`inline-flex min-h-11 touch-manipulation items-center justify-center gap-2 rounded-xl px-3 py-2 text-xs font-black transition ${
               active
-                ? "bg-cyan-300/16 text-theme-accent-text shadow-[0_0_22px_rgba(0,214,201,0.16)]"
+                ? "bg-cyan-300/16 text-theme-accent-text shadow-[0_0_22px_rgba(244,114,182,0.16)]"
                 : "text-theme-muted hover:bg-theme-card hover:text-theme-primary"
             }`}
           >
@@ -581,7 +581,7 @@ function FilterPanel({
   return (
     <div
       data-discover-filter-shell="mobile-lifted"
-      className="space-y-4 rounded-[2rem] border border-theme-accent-border bg-[radial-gradient(circle_at_top_right,rgba(34,211,238,0.14),transparent_36%),linear-gradient(135deg,rgba(255,255,255,0.075),rgba(139,92,246,0.05))] p-5 shadow-[0_0_36px_rgba(34,211,238,0.08)]"
+      className="space-y-4 rounded-[2rem] border border-theme-accent-border bg-[radial-gradient(circle_at_top_right,rgba(244,114,182,0.14),transparent_36%),linear-gradient(135deg,rgba(255,255,255,0.075),rgba(139,92,246,0.05))] p-5 shadow-[0_0_36px_rgba(244,114,182,0.08)]"
     >
       <div className="flex flex-wrap items-center justify-between gap-3">
         <span className="inline-flex items-center gap-2 text-xs font-black uppercase tracking-widest text-theme-accent-text">
@@ -1022,10 +1022,10 @@ function RadarBoard({ spaces, hasFilters, onPreview }: { spaces: Space[]; hasFil
         loading="eager"
         decoding="async"
       />
-      <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(3,5,18,0.88),rgba(3,5,18,0.50)_45%,rgba(3,5,18,0.82)),radial-gradient(circle_at_52%_42%,rgba(0,214,201,0.18),transparent_20rem)]" />
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_24%_28%,rgba(0,214,201,0.24),transparent_17rem),radial-gradient(circle_at_74%_68%,rgba(217,70,239,0.20),transparent_20rem)]" />
+      <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(12,5,20,0.88),rgba(12,5,20,0.50)_45%,rgba(12,5,20,0.82)),radial-gradient(circle_at_52%_42%,rgba(244,114,182,0.18),transparent_20rem)]" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_24%_28%,rgba(244,114,182,0.24),transparent_17rem),radial-gradient(circle_at_74%_68%,rgba(217,70,239,0.20),transparent_20rem)]" />
       <div className="absolute inset-5 rounded-[1.8rem] border border-theme-accent-border bg-[linear-gradient(rgba(255,255,255,0.04)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.04)_1px,transparent_1px)] bg-[size:44px_44px]" />
-      <div className="absolute left-1/2 top-44 hidden h-80 w-80 -translate-x-1/2 rounded-full border border-cyan-300/16 shadow-[0_0_120px_rgba(0,214,201,0.14)] lg:block" />
+      <div className="absolute left-1/2 top-44 hidden h-80 w-80 -translate-x-1/2 rounded-full border border-cyan-300/16 shadow-[0_0_120px_rgba(244,114,182,0.14)] lg:block" />
       <div className="absolute left-1/2 top-52 hidden h-48 w-48 -translate-x-1/2 rounded-full border border-fuchsia-300/14 lg:block" />
 
       <div className="relative flex flex-col gap-5 lg:h-full lg:min-h-0">

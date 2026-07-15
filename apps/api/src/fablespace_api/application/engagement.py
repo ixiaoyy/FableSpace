@@ -94,12 +94,12 @@ class EngagementService:
 
         tavern = self._get_visible_tavern(space_id, visitor_id)
         config = self._resolved_config(tavern)
-        progress = self._load_progress(space_id, visitor_id)
         session = self._store.get_gameplay_session(space_id, safe_session_id)
         if not session:
             raise HTTPException(status_code=404, detail="玩法会话不存在")
-        if session.visitor_id != visitor_id and not self._tavern_service._is_owner(tavern, visitor_id):
+        if session.visitor_id != visitor_id:
             raise HTTPException(status_code=403, detail="不能领取其他访客的纪念币奖励")
+        progress = self._load_progress(space_id, visitor_id)
         if str(session.state or "") != "completed":
             raise HTTPException(status_code=400, detail="只有已完成玩法才能领取纪念币奖励")
 

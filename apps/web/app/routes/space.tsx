@@ -93,14 +93,16 @@ function entryStatusDisplay(space: Space) {
   if (isClosed) {
     return {
       label: "今日熄灯",
+      interactionLabel: "仅预览",
       helper: "可预览，稍后再进入",
-      className: "border-slate-400/20 bg-slate-400/10 text-slate-100",
+      className: "border-violet-300/20 bg-violet-300/10 text-violet-100",
     }
   }
 
   if (access === "password") {
     return {
       label: "口令门扉",
+      interactionLabel: "口令进入",
       helper: "带口令进入，不公开扩散",
       className: "border-amber-200/28 bg-amber-300/12 text-amber-50",
     }
@@ -109,6 +111,7 @@ function entryStatusDisplay(space: Space) {
   if (access === "private") {
     return {
       label: "主人私域",
+      interactionLabel: "授权可见",
       helper: "仅主人或授权访客可见",
       className: "border-violet-200/28 bg-violet-300/12 text-violet-50",
     }
@@ -116,6 +119,7 @@ function entryStatusDisplay(space: Space) {
 
   return {
     label: "公开入口",
+    interactionLabel: "可互动",
     helper: "可直接进入和 NPC 对话",
     className: "border-cyan-200/30 bg-cyan-300/14 text-cyan-50",
   }
@@ -194,18 +198,26 @@ function SpaceTopBar({ space }: { space: Space }) {
  * Renders the full-bleed visual hero for every shared space homepage.
  * @param space Public space payload for title, copy, metrics, and cover art.
  * @param isOwner Whether the current viewer owns this space, used only for a visible badge.
+ * @param status Shared entry-status display used by both the hero and interaction panel.
  * @returns Homepage hero section; anchors scroll to the chat workbench and do not persist data.
  */
-function SpaceHeroPanel({ space, isOwner }: { space: Space; isOwner: boolean }) {
+function SpaceHeroPanel({
+  space,
+  isOwner,
+  status,
+}: {
+  space: Space
+  isOwner: boolean
+  status: ReturnType<typeof entryStatusDisplay>
+}) {
   const coverImage = resolveSpaceHomeImage(space, 0)
   const firstMinute = buildSpaceFirstMinuteGuide(space)
   const placeType = derivePlaceTypeDisplay(space)
   const anchor = formatSpaceAnchorLocation(space)
-  const status = entryStatusDisplay(space)
   const characters = Array.isArray(space.characters) ? space.characters : []
 
   return (
-    <section className="relative min-h-[390px] overflow-hidden rounded-[1.2rem] border border-cyan-200/16 bg-[#061126] shadow-[0_22px_70px_rgba(0,0,0,0.30)] sm:min-h-[430px] xl:min-h-[840px]">
+    <section className="relative min-h-[390px] overflow-hidden rounded-[1.2rem] border border-cyan-200/16 bg-[#160b25] shadow-[0_22px_70px_rgba(0,0,0,0.30)] sm:min-h-[430px] xl:min-h-[840px]">
       <div className="absolute inset-0">
         <img src={coverImage} alt="" className="h-full w-full object-cover opacity-[0.88]" loading="eager" decoding="async" />
         <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(2,7,16,0.92)_0%,rgba(2,7,16,0.70)_38%,rgba(2,7,16,0.24)_100%)]" />
@@ -216,7 +228,7 @@ function SpaceHeroPanel({ space, isOwner }: { space: Space; isOwner: boolean }) 
         <div className="mb-5 flex flex-wrap items-center gap-2">
           <span className="inline-flex min-h-8 items-center gap-2 rounded-full border border-cyan-200/18 bg-slate-950/42 px-3 text-[0.68rem] font-black text-cyan-100 backdrop-blur">
             <span className="h-1.5 w-1.5 rounded-full bg-cyan-300" />
-            {characters.length || 2} 位活跃角色
+            {characters.length} 位活跃角色
           </span>
           <span className={cx("inline-flex min-h-8 items-center gap-2 rounded-full border px-3 text-[0.68rem] font-black backdrop-blur", status.className)}>
             <DoorOpen className="h-3.5 w-3.5" />
@@ -276,7 +288,7 @@ function SpaceMobileHeader({ space }: { space: Space }) {
   const status = entryStatusDisplay(space)
   return (
     <header className="mb-4 lg:hidden">
-      <div className="flex items-center justify-between gap-3 rounded-[1.2rem] border border-cyan-200/16 bg-[#061126]/86 p-3 shadow-[0_18px_42px_rgba(0,0,0,0.28)]">
+      <div className="flex items-center justify-between gap-3 rounded-[1.2rem] border border-cyan-200/16 bg-[#160b25]/86 p-3 shadow-[0_18px_42px_rgba(0,0,0,0.28)]">
         <Link to={WEB_PATHS.spaces} className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl border border-cyan-200/18 bg-cyan-300/10 text-cyan-50" aria-label="返回发现">
           <ArrowLeft className="h-5 w-5" />
         </Link>
@@ -307,11 +319,12 @@ function SpaceSpacePage({
   currentUserId: string
   isOwner: boolean
 }) {
+  const status = entryStatusDisplay(space)
 
   return (
-    <main className="relative min-h-screen overflow-x-hidden bg-[#020710] text-white">
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_72%_0%,rgba(37,99,235,0.18),transparent_34rem),linear-gradient(135deg,#061226_0%,#030712_48%,#020710_100%)]" />
-      <div className="pointer-events-none absolute inset-0 opacity-38 [background-image:linear-gradient(rgba(103,232,249,0.055)_1px,transparent_1px),linear-gradient(90deg,rgba(103,232,249,0.04)_1px,transparent_1px)] [background-size:56px_56px]" />
+    <main className="relative min-h-screen overflow-x-hidden bg-[#0b0512] text-white">
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_72%_0%,rgba(37,99,235,0.18),transparent_34rem),linear-gradient(135deg,#170c29_0%,#0d0618_48%,#0b0512_100%)]" />
+      <div className="pointer-events-none absolute inset-0 opacity-38 [background-image:linear-gradient(rgba(251,207,232,0.055)_1px,transparent_1px),linear-gradient(90deg,rgba(251,207,232,0.04)_1px,transparent_1px)] [background-size:56px_56px]" />
       <div className="relative mx-auto w-full max-w-[1420px] px-3 py-4 pb-8 sm:px-5 lg:px-6 lg:py-6 xl:px-7">
         <SpaceMobileHeader space={space} />
         <div className="hidden lg:block">
@@ -319,15 +332,19 @@ function SpaceSpacePage({
         </div>
         <div className="min-w-0 space-y-5">
           <div className="grid min-w-0 gap-5 xl:grid-cols-[minmax(360px,0.74fr)_minmax(720px,1.26fr)] xl:items-stretch">
-            <SpaceHeroPanel space={space} isOwner={isOwner} />
-            <section id="空间主线" className="flex scroll-mt-6 flex-col rounded-[1.2rem] border border-cyan-200/16 bg-[#061126]/78 p-3 shadow-[0_24px_72px_rgba(0,0,0,0.28)] sm:p-4 xl:h-[840px] xl:overflow-hidden">
+            <SpaceHeroPanel space={space} isOwner={isOwner} status={status} />
+            <section id="空间主线" className="flex scroll-mt-6 flex-col rounded-[1.2rem] border border-cyan-200/16 bg-[#160b25]/78 p-3 shadow-[0_24px_72px_rgba(0,0,0,0.28)] sm:p-4 xl:h-[840px] xl:overflow-hidden">
               <div className="mb-3 flex items-center justify-between gap-4 px-1">
                 <div>
                   <h2 className="text-xl font-black text-white">角色与聊天</h2>
-                  <p className="mt-1 text-sm font-bold text-cyan-100/48">驻场 NPC、当前目标、实时对话。</p>
+                  <p className="mt-1 text-sm font-bold text-cyan-100/48">
+                    {status.interactionLabel === "仅预览"
+                      ? "空间当前熄灯，可先浏览驻场角色与玩法。"
+                      : "驻场 NPC、当前目标、实时对话。"}
+                  </p>
                 </div>
                 <span className="hidden rounded-full border border-cyan-200/14 bg-cyan-300/8 px-3 py-1 text-xs font-black text-cyan-100/62 sm:inline-flex">
-                  可互动
+                  {status.interactionLabel}
                 </span>
               </div>
               <div className="min-h-0 flex-1">
@@ -347,8 +364,8 @@ function SpaceSpacePage({
 }
 function SpaceErrorPage({ spaceId, error }: { spaceId: string; error: string }) {
   return (
-    <main className="relative min-h-screen overflow-hidden bg-[#020710] px-4 py-8 text-white">
-      <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(135deg,#061226_0%,#030712_48%,#020710_100%)]" />
+    <main className="relative min-h-screen overflow-hidden bg-[#0b0512] px-4 py-8 text-white">
+      <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(135deg,#170c29_0%,#0d0618_48%,#0b0512_100%)]" />
       <div className="relative mx-auto max-w-3xl">
         <Link to={WEB_PATHS.spaces} className="inline-flex min-h-11 items-center gap-2 rounded-2xl border border-cyan-200/18 bg-cyan-300/10 px-4 text-sm font-black text-cyan-50">
           <ArrowLeft className="h-4 w-4" />

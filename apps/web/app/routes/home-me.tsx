@@ -7,6 +7,7 @@ import { ArrowRight, Clock3, Coins, Compass, DoorOpen, Gift, Home as HomeIcon, M
 import { useEffect, useMemo, useRef, useState } from "react"
 import { Link, useLoaderData } from "react-router"
 
+import { useCreatorAccess } from "../hooks/useCreatorAccess"
 import { getVisitorEngagement, type VisitorEngagement } from "../lib/engagement"
 import { formatSpaceAnchorLocation } from "../product/mapAnchorCopy.js"
 import { DEFAULT_VISITOR_ID, errorMessage, listMemories, listSpaces, type MemoryAtom, type Space } from "../lib/spaces"
@@ -494,9 +495,11 @@ export async function clientLoader({ request }: ClientLoaderFunctionArgs): Promi
 
 export default function HomeMePage() {
   const { ownerId, viewerId, viewerRole } = useLoaderData<typeof clientLoader>()
+  const { allowed: showCreatorTools } = useCreatorAccess()
   const homePlaceHref = buildHomePlaceHref(ownerId)
   const ownerHref = ownerId ? `${WEB_PATHS.owner}?owner_id=${encodeURIComponent(ownerId)}` : WEB_PATHS.owner
   const isOwnerView = viewerRole === "owner"
+  const showOwnerControls = showCreatorTools && isOwnerView
 
   return (
     <ProductShell eyebrow="我的家">
@@ -519,23 +522,37 @@ export default function HomeMePage() {
               你的回访与空间入口
             </h1>
             <p className="mt-4 max-w-2xl text-base leading-8 text-theme-muted">
-              先接回你和空间 / NPC 的关系线，再查看资产或进入店主入口。想聊天时，请从具体空间继续。
+              {showCreatorTools
+                ? "先接回你和空间 / NPC 的关系线，再查看资产或进入店主入口。想聊天时，请从具体空间继续。"
+                : "先接回你和空间 / NPC 的关系线，再查看资产或继续探索。想聊天时，请从具体空间继续。"}
             </p>
 
             <div className="mt-7 flex flex-col gap-3 sm:flex-row">
-              <Button asChild size="lg" className="min-h-14">
-                <Link to={homePlaceHref}>
-                  <HomeIcon className="h-5 w-5" />
-                  创建自己的空间
-                  <ArrowRight className="h-5 w-5" />
-                </Link>
-              </Button>
-              <Button asChild variant="secondary" size="lg" className="min-h-14">
-                <Link to={ownerHref}>
-                  <UserRound className="h-5 w-5" />
-                  管理已有空间
-                </Link>
-              </Button>
+              {showCreatorTools ? (
+                <>
+                  <Button asChild size="lg" className="min-h-14">
+                    <Link to={homePlaceHref}>
+                      <HomeIcon className="h-5 w-5" />
+                      创建自己的空间
+                      <ArrowRight className="h-5 w-5" />
+                    </Link>
+                  </Button>
+                  <Button asChild variant="secondary" size="lg" className="min-h-14">
+                    <Link to={ownerHref}>
+                      <UserRound className="h-5 w-5" />
+                      管理已有空间
+                    </Link>
+                  </Button>
+                </>
+              ) : (
+                <Button asChild size="lg" className="min-h-14">
+                  <Link to={WEB_PATHS.spaces}>
+                    <Compass className="h-5 w-5" />
+                    发现公开空间
+                    <ArrowRight className="h-5 w-5" />
+                  </Link>
+                </Button>
+              )}
             </div>
           </div>
 
@@ -544,7 +561,9 @@ export default function HomeMePage() {
               {
                 icon: MapPinned,
                 title: "我的坐标",
-                text: "想开一间自己的空间时，先选择真实地点，再填写内容。",
+                text: showCreatorTools
+                  ? "想开一间自己的空间时，先选择真实地点，再填写内容。"
+                  : "从真实坐标发现可以进入和回访的空间。",
               },
               {
                 icon: ShieldCheck,
@@ -575,15 +594,15 @@ export default function HomeMePage() {
 
           <Card className="border-theme-accent-border bg-theme-accent-bg">
             <CardHeader>
-              <CardTitle>{isOwnerView ? "店主入口" : "继续探索"}</CardTitle>
+              <CardTitle>{showOwnerControls ? "店主入口" : "继续探索"}</CardTitle>
               <CardDescription>
-                {isOwnerView
+                {showOwnerControls
                   ? "你可以继续创建或管理自己的空间。"
                   : "从这里回到发现页，或使用朋友分享的空间链接进入。"}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4 text-sm leading-6 text-theme-muted">
-              {isOwnerView ? (
+              {showOwnerControls ? (
                 <>
                   <p>继续完善你的空间，或回到店主管理页查看回访情况。</p>
                   <div className="grid gap-2">
@@ -620,7 +639,7 @@ export default function HomeMePage() {
                 <li>• 空间内容仍由店主自己确认和发布。</li>
               </ul>
               <div className="mt-5 rounded-2xl border border-theme-border bg-theme-card p-3 text-xs leading-5 text-theme-muted">
-                当前身份：{isOwnerView ? "店主" : "访客"} · {(viewerId || ownerId) ? "已识别" : "旅人"}
+                当前身份：{showOwnerControls ? "店主" : "访客"} · {(viewerId || ownerId) ? "已识别" : "旅人"}
               </div>
             </CardContent>
           </Card>

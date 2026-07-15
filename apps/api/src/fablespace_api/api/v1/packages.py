@@ -5,6 +5,7 @@ from typing import Any
 from fastapi import APIRouter, Request
 
 from ...contracts.packages import SpacePackageImportRequest
+from .auth import CREATOR_CAPABILITY, require_session_capability
 from .common import get_user_id, spaces_service
 
 packages_router = APIRouter(prefix="/space-packages", tags=["space-packages"])
@@ -25,6 +26,7 @@ def import_space_package(request: Request, data: SpacePackageImportRequest) -> d
     Side effects:
         Persists the imported space through the configured application service.
     """
+    require_session_capability(request, CREATOR_CAPABILITY)
     return spaces_service(request).import_tavern_package(data.to_payload(), get_user_id(request))
 
 

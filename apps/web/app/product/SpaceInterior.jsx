@@ -32,7 +32,7 @@ const LAYOUT_BACKGROUNDS = {
   },
   'hybrid-room': {
     gradient: 'linear-gradient(135deg, rgba(20, 30, 40, 0.95), rgba(40, 60, 80, 0.9))',
-    accent: '#06b6d4',
+    accent: '#ec4899',
     icon: '🏠',
   },
 }

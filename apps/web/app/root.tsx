@@ -4,7 +4,13 @@ import { useCallback, useEffect, useState } from "react"
 import { Links, Meta, Navigate, Outlet, Scripts, ScrollRestoration, useLocation } from "react-router"
 import { ThemeProvider } from "./hooks/useTheme"
 import { SESSION_EXPIRED_EVENT } from "./lib/api-client"
-import { DEFAULT_PARALLELLINES_URL, getAccessStatus, type AccessStatus } from "./lib/session"
+import {
+  ACCESS_STATUS_REFRESH_INTERVAL_MS,
+  DEFAULT_PARALLELLINES_URL,
+  getAccessStatus,
+  PARALLELLINES_AUTH_MODE,
+  type AccessStatus,
+} from "./lib/session"
 
 import "./styles.css"
 
@@ -78,17 +84,20 @@ function PrivateAccessGate({ children }: { children: React.ReactNode }) {
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(true)
 
-  // Refreshes the backend gate decision; forceRefresh discards a cached session result.
-  const refreshAccess = useCallback(async (forceRefresh = false) => {
-    setLoading(true)
-    setError("")
+  // Refreshes the backend gate decision; background checks keep the current tree mounted while pending.
+  const refreshAccess = useCallback(async (forceRefresh = false, background = false) => {
+    if (!background) {
+      setLoading(true)
+      setError("")
+    }
     try {
       setStatus(await getAccessStatus(forceRefresh))
+      setError("")
     } catch {
-      setStatus(null)
+      if (!background) setStatus(null)
       setError("暂时无法确认私密空间状态")
     } finally {
-      setLoading(false)
+      if (!background) setLoading(false)
     }
   }, [])
 
@@ -99,6 +108,14 @@ function PrivateAccessGate({ children }: { children: React.ReactNode }) {
     window.addEventListener(SESSION_EXPIRED_EVENT, handleSessionExpired)
     return () => window.removeEventListener(SESSION_EXPIRED_EVENT, handleSessionExpired)
   }, [refreshAccess])
+
+  useEffect(() => {
+    if (status?.auth_mode !== PARALLELLINES_AUTH_MODE) return
+    const intervalId = window.setInterval(() => {
+      void refreshAccess(true, true)
+    }, ACCESS_STATUS_REFRESH_INTERVAL_MS)
+    return () => window.clearInterval(intervalId)
+  }, [refreshAccess, status?.auth_mode])
 
   if (loading) {
     return <div className="app-loading">正在确认私密空间入口...</div>

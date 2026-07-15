@@ -16,7 +16,7 @@ from fastapi import APIRouter, HTTPException, Request, WebSocket, WebSocketDisco
 from ...core.notifications import (
     get_notification_store,
 )
-from .auth import resolve_request_user_id
+from .auth import is_private_access_allowed, resolve_request_user_id
 
 logger = logging.getLogger(__name__)
 
@@ -70,6 +70,11 @@ async def websocket_notifications(websocket: WebSocket, user_id: str):
     - Listens for ping messages
     - Broadcasts new notifications in real-time
     """
+    if not await is_private_access_allowed(websocket):
+        await websocket.accept()
+        await websocket.close(code=1008, reason="FableSpace 访问资格无效或已过期")
+        return
+
     claimed_user_id = _get_websocket_user_id(websocket)
     if not claimed_user_id or claimed_user_id != user_id:
         await websocket.accept()
@@ -101,14 +106,16 @@ async def websocket_notifications(websocket: WebSocket, user_id: str):
                 return_when=asyncio.FIRST_COMPLETED,
             )
 
-            if not done:
-                for task in pending:
-                    task.cancel()
-                await websocket.send_json({"type": "ping"})
-                continue
-
             for task in pending:
                 task.cancel()
+
+            if not await is_private_access_allowed(websocket):
+                await websocket.close(code=1008, reason="FableSpace 访问资格无效或已过期")
+                return
+
+            if not done:
+                await websocket.send_json({"type": "ping"})
+                continue
 
             if notification_task in done:
                 await websocket.send_json({

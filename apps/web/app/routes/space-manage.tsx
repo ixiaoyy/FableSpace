@@ -11,7 +11,7 @@ import {
   type RoleplayState,
   type Space,
 } from "../lib/spaces"
-import { resolveCurrentSessionUserId } from "../lib/session"
+import { requireCreatorTools, resolveCurrentSessionUserId } from "../lib/session"
 import { redirectPathForRequest, spaceManagePath, spacePath, WEB_PATHS } from "../lib/web-routes"
 import { ProductShell } from "../shell/product-shell"
 import { Button } from "../ui/button"
@@ -36,6 +36,7 @@ function getOwnerIdFromRequest(request: Request) {
 }
 
 export async function clientLoader({ params, request }: ClientLoaderFunctionArgs): Promise<SpaceManageLoaderData> {
+  await requireCreatorTools()
   const spaceRef = params.spaceRef ?? ""
   const currentUserId = await resolveCurrentSessionUserId(getOwnerIdFromRequest(request))
   if (!spaceRef) {
@@ -75,7 +76,7 @@ export default function SpaceManageRoute() {
       <section data-space-owner-management="dedicated-route" className="scroll-mt-28 space-y-6">
         {space && isOwner ? (
           <>
-            <Card className="overflow-hidden border-theme-accent-border bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.18),transparent_34%),linear-gradient(135deg,rgba(15,23,42,0.9),rgba(30,27,75,0.62))]">
+            <Card className="overflow-hidden border-theme-accent-border bg-[radial-gradient(circle_at_top_left,rgba(244,114,182,0.18),transparent_34%),linear-gradient(135deg,rgba(15,23,42,0.9),rgba(30,27,75,0.62))]">
               <CardHeader>
                 <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                   <div className="min-w-0">

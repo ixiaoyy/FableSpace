@@ -12,6 +12,7 @@ from ...contracts.rumor import (
     RumorGenerateRequest,
     RumorListResponse,
 )
+from .auth import CREATOR_CAPABILITY, require_session_capability
 from .common import get_user_id, spaces_service
 
 router = APIRouter(prefix="/rumors", tags=["rumors"])
@@ -38,8 +39,12 @@ def generate_rumor(
     data: RumorGenerateRequest,
 ) -> dict[str, Any]:
     """生成一条传闻"""
+    require_session_capability(request, CREATOR_CAPABILITY)
     user_id = get_user_id(request)
-    return spaces_service(request).generate_rumor(
+    service = spaces_service(request)
+    if request.app.state.settings.auth_mode == "parallellines":
+        service._ensure_owner(service._get_tavern_or_404(data.source_space_id), user_id)
+    return service.generate_rumor(
         source_space_id=data.source_space_id,
         target_space_id=data.target_space_id,
         target_tavern_name=data.target_tavern_name,
@@ -75,5 +80,6 @@ def delete_rumor(
     rumor_id: str,
 ) -> dict[str, Any]:
     """删除传闻"""
+    require_session_capability(request, CREATOR_CAPABILITY)
     user_id = get_user_id(request)
     return spaces_service(request).delete_rumor(rumor_id, user_id)

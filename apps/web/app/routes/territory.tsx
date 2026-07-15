@@ -5,6 +5,7 @@ import { CircleDotDashed, MapPinned, ShieldCheck } from "lucide-react"
 
 import TerritoryClaimPanel from "../components/TerritoryClaimPanel"
 import TerritoryManagementPanel from "../components/TerritoryManagementPanel"
+import { requireCreatorTools, resolveCurrentSessionUserId } from "../lib/session"
 import { ProductShell } from "../shell/product-shell"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card"
 
@@ -25,9 +26,10 @@ function finiteNumber(value: string | null, fallback: number) {
 }
 
 export async function clientLoader({ request }: ClientLoaderFunctionArgs): Promise<TerritoryLoaderData> {
+  await requireCreatorTools()
   const url = new URL(request.url)
   return {
-    currentUserId: url.searchParams.get("owner_id")?.trim() || DEFAULT_OWNER_ID,
+    currentUserId: await resolveCurrentSessionUserId(url.searchParams.get("owner_id")?.trim() || DEFAULT_OWNER_ID),
     spaceId: url.searchParams.get("space_id")?.trim() || "",
     lat: finiteNumber(url.searchParams.get("lat"), DEFAULT_LAT),
     lon: finiteNumber(url.searchParams.get("lon"), DEFAULT_LON),

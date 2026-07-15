@@ -3,6 +3,7 @@ import { Link, useSearchParams } from "react-router"
 
 import { NotificationCenterPanel } from "../components/NotificationCenterPanel"
 import { RevisitCarePolicyPanel } from "../components/RevisitCarePolicyPanel"
+import { useCreatorAccess } from "../hooks/useCreatorAccess"
 import { useNotifications } from "../hooks/useNotifications"
 import { DEFAULT_OWNER_ID } from "../lib/spaces"
 import { WEB_PATHS } from "../lib/web-routes"
@@ -12,6 +13,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui
 
 export default function NotificationsRoute() {
   const [searchParams] = useSearchParams()
+  const { allowed: showCreatorTools } = useCreatorAccess()
   const userId = searchParams.get("user_id")?.trim() || searchParams.get("owner_id")?.trim() || DEFAULT_OWNER_ID
   const notificationState = useNotifications(userId)
 
@@ -47,12 +49,14 @@ export default function NotificationsRoute() {
               </form>
 
               <div className="grid gap-3 sm:grid-cols-2">
-                <Button asChild size="lg" variant="secondary">
-                  <Link to={`${WEB_PATHS.owner}?owner_id=${encodeURIComponent(userId)}`}>
-                    <BellRing className="h-4 w-4" />
-                    回到店主台
-                  </Link>
-                </Button>
+                {showCreatorTools ? (
+                  <Button asChild size="lg" variant="secondary">
+                    <Link to={`${WEB_PATHS.owner}?owner_id=${encodeURIComponent(userId)}`}>
+                      <BellRing className="h-4 w-4" />
+                      回到店主台
+                    </Link>
+                  </Button>
+                ) : null}
                 <Button asChild size="lg" variant="secondary">
                   <Link to={WEB_PATHS.spaces}>
                     <DoorOpen className="h-4 w-4" />

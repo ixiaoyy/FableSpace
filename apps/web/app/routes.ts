@@ -1,18 +1,20 @@
-import { index, route, type RouteConfig } from "@react-router/dev/routes"
+import { index, layout, route, type RouteConfig } from "@react-router/dev/routes"
 
 export default [
   index("./routes/home.tsx"),
   route("空间", "./routes/discover.tsx"),
-  route("空间/新建", "./routes/create.tsx"),
-  route("空间/:spaceRef/管理", "./routes/space-manage.tsx"),
-  route("空间/:spaceRef/角色/:characterRef/提示词", "./routes/prompt-editor.tsx"),
+  layout("./routes/creator-capability-layout.tsx", [
+    route("空间/新建", "./routes/create.tsx"),
+    route("空间/:spaceRef/管理", "./routes/space-manage.tsx"),
+    route("空间/:spaceRef/角色/:characterRef/提示词", "./routes/prompt-editor.tsx"),
+    route("店主", "./routes/owner.tsx"),
+    route("领地", "./routes/territory.tsx"),
+  ]),
   route("空间/:spaceRef/角色/:characterRef", "./routes/npc-detail.tsx"),
   route("空间/:spaceRef", "./routes/space.tsx"),
   route("任务", "./routes/quests.tsx"),
   route("寻宝/:routeRef", "./routes/clue-hunt.tsx"),
-  route("店主", "./routes/owner.tsx"),
   route("店主/:ownerRef", "./routes/creator.$ownerId.tsx"),
-  route("领地", "./routes/territory.tsx"),
   route("通知", "./routes/notifications.tsx"),
   route("我的家", "./routes/home-me.tsx"),
 

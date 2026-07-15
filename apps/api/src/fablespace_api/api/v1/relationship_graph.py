@@ -5,6 +5,7 @@ from typing import Any
 from fastapi import APIRouter, Request
 from pydantic import BaseModel, Field
 
+from .auth import CREATOR_CAPABILITY, require_session_capability
 from .common import get_user_id, spaces_service
 
 router = APIRouter(prefix="/spaces/{space_id}/relationship-edges", tags=["relationship-graph"])
@@ -71,6 +72,7 @@ def create_relationship_edge(
     space_id: str,
     data: RelationshipEdgeWriteRequest,
 ) -> dict[str, Any]:
+    require_session_capability(request, CREATOR_CAPABILITY)
     return spaces_service(request).create_relationship_edge(space_id, data.to_payload(), get_user_id(request))
 
 
@@ -81,6 +83,7 @@ def update_relationship_edge(
     edge_id: str,
     data: RelationshipEdgeUpdateRequest,
 ) -> dict[str, Any]:
+    require_session_capability(request, CREATOR_CAPABILITY)
     return spaces_service(request).update_relationship_edge(space_id, edge_id, data.to_payload(), get_user_id(request))
 
 
@@ -91,4 +94,5 @@ def decide_relationship_edge(
     edge_id: str,
     data: RelationshipEdgeDecisionRequest,
 ) -> dict[str, Any]:
+    require_session_capability(request, CREATOR_CAPABILITY)
     return spaces_service(request).decide_relationship_edge(space_id, edge_id, data.to_payload(), get_user_id(request))

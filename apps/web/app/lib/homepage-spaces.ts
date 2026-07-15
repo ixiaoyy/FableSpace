@@ -1,7 +1,7 @@
 import { resolveSpaceAtmosphereImage } from "../product/services/atmosphereAssets.js"
 import { FALLBACK_ATMOSPHERE_IMAGES, GENERIC_ATMOSPHERE_KEYS } from "./space-runtime-config.js"
 
-import type { PlatformStats, Space, SpaceListResponse } from "./spaces"
+import type { PlatformStats, Space, SpaceCharacter, SpaceListResponse } from "./spaces"
 
 export type HomepageMetricId = "coordinates" | "characters" | "encounters" | "open"
 
@@ -14,10 +14,13 @@ export type HomepageMetric = {
 export type HomepageCitySlice = {
   image: string
   name: string
+  description: string
   location: string
   entryMeta: string
   tags: string[]
   id: string
+  visit_count: number
+  characterAvatars: string[]
 }
 
 export type HomepageView = {
@@ -37,6 +40,21 @@ function safeSpaces(result?: Partial<SpaceListResponse> | null): Space[] {
 
 function safeCharacters(space: Space) {
   return Array.isArray(space.characters) ? space.characters : []
+}
+
+/**
+ * Resolve the best public portrait available for a homepage NPC.
+ * @param character Character payload returned with a public space.
+ * @returns A public image URL, or an empty string when the character has no portrait. This function has no side effects.
+ */
+function homepageCharacterAvatar(character: SpaceCharacter) {
+  return (
+    character?.sprites?.neutral
+    || character?.avatar
+    || character?.image_url
+    || Object.values(character?.sprites || {}).find(Boolean)
+    || ""
+  )
 }
 
 function toPositiveNumber(value: unknown) {
@@ -183,10 +201,16 @@ export function buildFeaturedCitySlices(spaces: Space[], limit = 3): HomepageCit
   return featuredSpaces.map((space) => ({
     image: coversBySpaceId[space.id] || resolveHomepageSpaceCover(space),
     name: compactText(space.name, "未命名入口", 18),
+    description: compactText(space.description, formatHomepageLocation(space), 72),
     location: formatHomepageLocation(space),
-    entryMeta: space.status === "open" || space.is_open === true ? "灯牌亮着" : "可预览",
+    entryMeta: space.status === "closed" || space.is_open === false ? "可预览" : "灯牌亮着",
     tags: buildEntryTags(space),
     id: space.id,
+    visit_count: toPositiveNumber(space.visit_count),
+    characterAvatars: safeCharacters(space)
+      .map(homepageCharacterAvatar)
+      .filter((avatar): avatar is string => Boolean(avatar))
+      .slice(0, 4),
   }))
 }
 

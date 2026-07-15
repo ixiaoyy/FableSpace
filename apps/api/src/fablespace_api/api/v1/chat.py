@@ -13,6 +13,7 @@ from ...contracts.chat import (
     GroupChatConfigRequest,
     GroupChatRequest,
 )
+from .auth import CREATOR_CAPABILITY, require_session_capability
 from .common import get_user_id, spaces_service
 
 router = APIRouter(prefix="/spaces", tags=["chat"])
@@ -40,11 +41,14 @@ def get_chat_history(
 @router.post("/{space_id}/chat")
 def send_chat(request: Request, space_id: str, data: ChatRequest) -> dict[str, Any]:
     user_id = get_user_id(request)
+    visitor_id = str(data.visitor_id or user_id).strip()
+    if visitor_id != user_id:
+        require_session_capability(request, CREATOR_CAPABILITY)
     return spaces_service(request).send_chat(
         space_id,
         character_id=data.character_id,
         message=data.message,
-        visitor_id=data.visitor_id or user_id,
+        visitor_id=visitor_id,
         visitor_name=data.visitor_name,
         visitor_gender=data.visitor_gender,
         user_id=user_id,
@@ -60,16 +64,20 @@ def get_group_chat_config(request: Request, space_id: str) -> dict[str, Any]:
 
 @router.put("/{space_id}/group-chat/config")
 def update_group_chat_config(request: Request, space_id: str, data: GroupChatConfigRequest) -> dict[str, Any]:
+    require_session_capability(request, CREATOR_CAPABILITY)
     return spaces_service(request).update_group_chat_config(space_id, data.to_payload(), get_user_id(request))
 
 
 @router.post("/{space_id}/group-chat")
 def send_group_chat(request: Request, space_id: str, data: GroupChatRequest) -> dict[str, Any]:
     user_id = get_user_id(request)
+    visitor_id = str(data.visitor_id or user_id).strip()
+    if visitor_id != user_id:
+        require_session_capability(request, CREATOR_CAPABILITY)
     return spaces_service(request).send_group_chat(
         space_id,
         message=data.message,
-        visitor_id=data.visitor_id or user_id,
+        visitor_id=visitor_id,
         visitor_name=data.visitor_name,
         visitor_gender=data.visitor_gender,
         user_id=user_id,
@@ -99,6 +107,7 @@ def update_character_talkativeness(
     character_id: str,
     data: CharacterTalkativenessRequest,
 ) -> dict[str, Any]:
+    require_session_capability(request, CREATOR_CAPABILITY)
     return spaces_service(request).update_character_talkativeness(
         space_id,
         character_id,

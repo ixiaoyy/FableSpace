@@ -40,8 +40,10 @@ import scenePetShop from "../assets/fable-space-scenes/pet-shop.webp"
 import sceneSchool from "../assets/fable-space-scenes/school.webp"
 import sceneSportsCenter from "../assets/fable-space-scenes/sports-center.webp"
 import fableSpaceUserAvatarImage from "../assets/npc-style-cast/portraits-hd/commission-zhideng.png"
+import { useCreatorAccess } from "../hooks/useCreatorAccess"
+import { resolveHomepageSpaceCover } from "../lib/homepage-spaces"
 import { buildSpaceFirstMinuteGuide } from "../lib/space-first-minute"
-import type { Space } from "../lib/spaces"
+import type { Space, SpaceCharacter } from "../lib/spaces"
 import { WEB_PATHS, spacePath } from "../lib/web-routes"
 
 const homeLightInviteCard = homeBlackInviteCard
@@ -67,7 +69,17 @@ type FableSpaceHeroCoordinate = {
 
 type HomeReferenceProps = {
   variant: Variant
-  featuredCitySlices: { id?: string; name?: string; description?: string; visit_count?: number; image?: string; tags?: string[] }[]
+  featuredCitySlices: {
+    id?: string
+    name?: string
+    description?: string
+    visit_count?: number
+    image?: string
+    tags?: string[]
+    location?: string
+    entryMeta?: string
+    characterAvatars?: string[]
+  }[]
   isLoading?: boolean
   heroCoordinate?: FableSpaceHeroCoordinate
   worldPulseItems?: FableSpaceFeedItem[]
@@ -216,90 +228,14 @@ const WORLD_TIME_FORMATTER = new Intl.DateTimeFormat("zh-CN", {
 
 const LIGHT_GUIDE_BACKGROUNDS = [lightGuideStarterBg, lightGuideEnvelopeBg, lightGuideShieldBg] as const
 
-const LIGHT_FALLBACK_COORDINATE_CARDS = [
-  {
-    spaceId: "pw_lantern_helpdesk",
-    name: "学校",
-    description: "小刘老师在收作业，光头校长又来巡班，班长林夏悄悄给你留了座位。",
-    tag: "校园",
-    image: sceneSchool,
-  },
-  {
-    spaceId: "pw_midnight_treehole",
-    name: "酒店",
-    description: "顾姐盯着大堂，小满在前台招手，吴姨刚捡到一把没人认领的伞。",
-    tag: "入住",
-    image: sceneHotel,
-  },
-  {
-    spaceId: "pw_community_repair",
-    name: "咖啡馆",
-    description: "苏晚在盘账，江野认真冲咖啡，唐梨已经攒好了一肚子附近八卦。",
-    tag: "闲聊",
-    image: sceneCafe,
-  },
-  {
-    spaceId: "pw_lost_found_archive",
-    name: "宠物店",
-    description: "程哥正哄柯基，猫娘白桃给猫梳毛，阿乐抱着新来的寄养箱等你帮忙。",
-    tag: "宠物",
-    image: scenePetShop,
-  },
-] as const
+const LIGHT_FALLBACK_COORDINATE_CARD_IMAGES = [sceneSchool, sceneHotel, sceneCafe, scenePetShop] as const
 
-const BLACK_FALLBACK_COORDINATE_CARDS = [
-  {
-    spaceId: "pw_third_shelf_observatory",
-    name: "图书馆",
-    description: "顾馆长在整书架，许知书帮你找书，穿古风 cosplay 的沈月正在查冷门资料。",
-    tag: "阅读",
-    image: sceneLibrary,
-  },
-  {
-    spaceId: "pw_midnight_commission_board",
-    name: "公司",
-    description: "高冷顾总话少判断快，程主管训人从不留情，小雨已经挪椅子来吐槽和安慰你。",
-    tag: "职场",
-    image: sceneCompany,
-  },
-  {
-    spaceId: "pw_after_school_hero_supply",
-    name: "酒吧",
-    description: "北哥招呼客人，杀马特调酒师陆川在做无酒精特调，驻唱苏晴准备开麦。仅限成年人。",
-    tag: "成年",
-    image: sceneBar,
-  },
-  {
-    spaceId: "pw_jingan_catbell_refuge",
-    name: "体育馆",
-    description: "周野教羽毛球，顾言守着乒乓球台，夏澄在泳池边等你开始训练。",
-    tag: "运动",
-    image: sceneSportsCenter,
-  },
-] as const
+const BLACK_FALLBACK_COORDINATE_CARD_IMAGES = [sceneLibrary, sceneCompany, sceneBar, sceneSportsCenter] as const
 
-const FALLBACK_DISCOVERY_CARDS = [
-  ...LIGHT_FALLBACK_COORDINATE_CARDS,
-  ...BLACK_FALLBACK_COORDINATE_CARDS,
+const FALLBACK_DISCOVERY_CARD_IMAGES = [
+  ...LIGHT_FALLBACK_COORDINATE_CARD_IMAGES,
+  ...BLACK_FALLBACK_COORDINATE_CARD_IMAGES,
 ] as const
-
-const DISCOVER_CARD_IMAGES = [
-  sceneSchool,
-  sceneHotel,
-  sceneCafe,
-  scenePetShop,
-  sceneLibrary,
-  sceneCompany,
-  sceneBar,
-  sceneSportsCenter,
-] as const
-
-const HOME_COORDINATE_CARD_AVATAR_IMAGES = [homeBlackUserAvatar, sceneCafe, sceneLibrary, sceneSportsCenter] as const
-const DISCOVER_CARD_AVATAR_IMAGE_SETS = DISCOVER_CARD_IMAGES.map((_, index) => [
-  DISCOVER_CARD_IMAGES[(index + 1) % DISCOVER_CARD_IMAGES.length],
-  DISCOVER_CARD_IMAGES[(index + 2) % DISCOVER_CARD_IMAGES.length],
-  DISCOVER_CARD_IMAGES[(index + 3) % DISCOVER_CARD_IMAGES.length],
-] as const)
 
 const BLACK_NODE_META = [
   { nodeId: "SPACE_05", entityLabel: "图书馆", tone: "active" },
@@ -314,7 +250,7 @@ const HOME_BLACK: Artboard = {
   width: 1536,
   height: 1024,
   marker: "home-black-real-dom-1536x1024",
-  background: "#020710",
+  background: "#0b0512",
   slices: [],
 }
 
@@ -322,7 +258,7 @@ const DISCOVER_BLACK: Artboard = {
   width: 1536,
   height: 1024,
   marker: "discover-black-real-dom-1536x1024",
-  background: "#030712",
+  background: "#0d0618",
   slices: [],
 }
 
@@ -439,12 +375,6 @@ const DISCOVER_FILTER_GROUPS = [
   },
 ] as const
 
-const DISCOVER_RIGHT_QUOTES = [
-  "在这里，我第一次放下了过去。",
-  "如果你也在等一个人，就来这里吧。",
-  "这本书里藏着一个秘密，等你发现。",
-] as const
-
 function pct(value: number, total: number) {
   return `${(value / total) * 100}%`
 }
@@ -505,51 +435,107 @@ function targetFor(space?: { id?: string; name?: string }) {
   return space?.id ? spacePath({ id: space.id, name: space.name || "空间" }) : WEB_PATHS.spaces
 }
 
+/**
+ * Resolve the best public portrait available for a discover-card NPC.
+ * @param character Character payload returned with a public space.
+ * @returns A public image URL, or an empty string when no portrait is configured. This function has no side effects.
+ */
+function discoverCharacterAvatar(character: SpaceCharacter) {
+  return (
+    character.sprites?.neutral
+    || character.avatar
+    || character.image_url
+    || Object.values(character.sprites || {}).find(Boolean)
+    || ""
+  )
+}
+
 /** Build a stable local favorite key while fallback cards do not have persisted ids. */
 function discoverFavoriteKey(kind: "echo" | "footprint", cardId: string | undefined, index: number) {
   return `${kind}:${cardId || `pending-${index}`}`
 }
 
+/**
+ * Adapt one real homepage slice into the fixed artboard card model.
+ * @param slice Homepage data derived from a persisted space, when available.
+ * @param index Stable artboard slot index used only for neutral placeholder art and labels.
+ * @param variant Current visual variant used to select placeholder art.
+ * @returns Card data whose id is empty whenever no real space exists. This function has no side effects.
+ */
 function homeCoordinateCardData(slice: HomeReferenceProps["featuredCitySlices"][number] | undefined, index: number, variant: Variant) {
-  const fallback = variant === "black"
-    ? BLACK_FALLBACK_COORDINATE_CARDS[index % BLACK_FALLBACK_COORDINATE_CARDS.length]
-    : LIGHT_FALLBACK_COORDINATE_CARDS[index % LIGHT_FALLBACK_COORDINATE_CARDS.length]
-  const matchingSlice = slice?.id === fallback.spaceId ? slice : undefined
-  const visitCount = Number(matchingSlice?.visit_count || 0)
+  const fallbackImages = variant === "black"
+    ? BLACK_FALLBACK_COORDINATE_CARD_IMAGES
+    : LIGHT_FALLBACK_COORDINATE_CARD_IMAGES
+  const fallbackImage = fallbackImages[index % fallbackImages.length]
   const blackMeta = BLACK_NODE_META[index % BLACK_NODE_META.length]
+  const hasRealSlice = Boolean(slice?.id)
+  const visitCount = Number(slice?.visit_count || 0)
+
   return {
-    id: fallback.spaceId,
-    name: fallback.name,
-    description: fallback.description,
-    tag: fallback.tag,
-    image: fallback.image,
-    visitLabel: visitCount > 0 ? `${visitCount} 人在这里` : "等待第一次到访",
+    id: hasRealSlice ? String(slice?.id) : "",
+    name: hasRealSlice ? (slice?.name?.trim() || "未命名入口") : `等待真实空间 ${index + 1}`,
+    description: hasRealSlice
+      ? (slice?.description?.trim() || slice?.location?.trim() || "真实坐标上的空间。")
+      : "真实空间数据返回后，这里会显示主人设置的名称、简介和入口。",
+    tag: hasRealSlice ? (slice?.tags?.find(Boolean) || slice?.entryMeta || "可进入") : "待同步",
+    image: hasRealSlice && slice?.image ? slice.image : fallbackImage,
+    visitLabel: hasRealSlice ? (visitCount > 0 ? `${visitCount} 人在这里` : "暂无到访记录") : "等待同步",
     nodeId: variant === "black" ? blackMeta.nodeId : `COORD_${String(index + 1).padStart(2, "0")}`,
-    entityLabel: variant === "black" ? blackMeta.entityLabel : visitCount > 0 ? `${visitCount} visits` : "new space",
-    tone: variant === "black" ? blackMeta.tone : "active",
+    entityLabel: hasRealSlice ? (slice?.entryMeta || (visitCount > 0 ? `${visitCount} 次到访` : "新入口")) : "等待同步",
+    tone: hasRealSlice ? blackMeta.tone : "pending",
+    avatarImages: hasRealSlice ? (slice?.characterAvatars || []).filter(Boolean).slice(0, 4) : [],
   }
 }
 
+/**
+ * Adapt one persisted space into the discover-card model.
+ * @param space Public space payload, when a real search result exists.
+ * @param index Stable artboard slot index used only for neutral placeholder art.
+ * @returns Truthful card data whose id is empty for placeholders. This function has no side effects.
+ */
 function discoverCardData(space: Space | undefined, index: number) {
-  const fallback = FALLBACK_DISCOVERY_CARDS[index % FALLBACK_DISCOVERY_CARDS.length]
-  const matchingSpace = space?.id === fallback.spaceId ? space : undefined
-  const visitCount = Number(matchingSpace?.visit_count || 0)
-  const characterCount = matchingSpace?.characters?.length || 0
-  const minutes = index < 4 ? (index + 1) * 3 + 2 : index * 7
-  const guide = matchingSpace ? buildSpaceFirstMinuteGuide(matchingSpace) : null
+  const fallbackImage = FALLBACK_DISCOVERY_CARD_IMAGES[index % FALLBACK_DISCOVERY_CARD_IMAGES.length]
+  if (!space?.id) {
+    return {
+      id: "",
+      name: `等待真实空间 ${index + 1}`,
+      description: "真实空间数据返回后，这里会显示主人设置的名称、简介和入口。",
+      tag: "待同步",
+      image: fallbackImage,
+      visitLabel: "暂无到访记录",
+      characterLabel: "等待角色数据",
+      favoriteCount: 0,
+      timeLabel: "等待同步",
+      sceneHint: "等待真实空间数据。",
+      tryPrompt: "空间同步后再进入。",
+      experienceType: "待同步",
+      avatarImages: [] as string[],
+    }
+  }
+
+  const visitCount = Number(space.visit_count || 0)
+  const characterCount = space.characters?.length || 0
+  const guide = buildSpaceFirstMinuteGuide(space)
+  const isClosed = space.is_open === false || String(space.status || "open").toLowerCase() === "closed"
+  const avatarImages = (space.characters || [])
+    .map(discoverCharacterAvatar)
+    .filter((avatar): avatar is string => Boolean(avatar))
+    .slice(0, 3)
+
   return {
-    id: fallback.spaceId,
-    name: fallback.name,
-    description: fallback.description,
-    tag: fallback.tag,
-    image: fallback.image,
-    visitLabel: visitCount > 0 ? `${visitCount} 人在这里` : "等待到访",
+    id: space.id,
+    name: space.name?.trim() || "未命名入口",
+    description: space.description?.trim() || guide.sceneHint || "真实坐标上的空间。",
+    tag: guide.experienceType || String(space.place_type || "真实空间"),
+    image: resolveHomepageSpaceCover(space, index),
+    visitLabel: visitCount > 0 ? `${visitCount} 人在这里` : "暂无到访记录",
     characterLabel: characterCount > 0 ? `${characterCount} 位 NPC` : "待配置 NPC",
-    favoriteCount: visitCount > 0 ? Math.max(1, Math.round(visitCount * 0.28) + 8 - index) : [23, 17, 11, 9][index % 4],
-    timeLabel: minutes < 60 ? `${minutes} 分钟前` : "1 小时前",
-    sceneHint: guide?.sceneHint || "真实坐标上的空间。",
-    tryPrompt: guide?.tryThisFirst?.[0] || "这里为什么偏偏开在这里？",
-    experienceType: guide?.experienceType || fallback.tag,
+    favoriteCount: 0,
+    timeLabel: isClosed ? "当前熄灯" : "当前可进入",
+    sceneHint: guide.sceneHint || "真实坐标上的空间。",
+    tryPrompt: guide.tryThisFirst?.[0] || "这里为什么偏偏开在这里？",
+    experienceType: guide.experienceType || String(space.place_type || "真实空间"),
+    avatarImages,
   }
 }
 
@@ -661,17 +647,19 @@ function FableSpaceSidebar({
   variant,
   active,
   onToggleTheme,
+  showCreatorTools,
 }: {
   artboard: Artboard
   variant: Variant
   active: "home" | "discover"
   onToggleTheme: () => void
+  showCreatorTools: boolean
 }) {
   const sidebar = HOME_LAYOUT.sidebar
   const panel = sidebar.panel
   const isBlack = variant === "black"
   const panelClass = isBlack
-    ? "border-cyan-300/20 bg-[#020710] shadow-[inset_-1px_0_0_rgba(34,211,238,0.2),0_0_34px_rgba(0,255,255,0.08)]"
+    ? "border-cyan-300/20 bg-[#0b0512] shadow-[inset_-1px_0_0_rgba(244,114,182,0.2),0_0_34px_rgba(0,255,255,0.08)]"
     : "border-white/70 bg-gradient-to-b from-white via-white to-white/95 shadow-[24px_0_70px_rgba(104,126,190,0.16),inset_-1px_0_0_rgba(148,163,184,0.16)] backdrop-blur-xl"
   const activeItemClass = variant === "black"
     ? "bg-cyan-300/14 text-cyan-100"
@@ -703,7 +691,7 @@ function FableSpaceSidebar({
       </Link>
 
       <nav aria-label="FableSpace 主导航" className="absolute inset-0">
-        {sidebar.navItems.map((item) => {
+        {sidebar.navItems.filter((item) => showCreatorTools || item.id !== "create").map((item) => {
           const selected = item.id === active
           return (
             <Link
@@ -742,7 +730,7 @@ function FableSpaceSidebar({
         className={cx(
           "absolute overflow-hidden rounded-[0.9rem] border px-4 py-4",
           isBlack
-            ? "border-cyan-300/16 bg-[#061226]/76 text-cyan-100 shadow-[inset_0_1px_0_rgba(255,255,255,0.03),0_0_24px_rgba(34,211,238,0.08)]"
+            ? "border-cyan-300/16 bg-[#170c29]/76 text-cyan-100 shadow-[inset_0_1px_0_rgba(255,255,255,0.03),0_0_24px_rgba(244,114,182,0.08)]"
             : "border-white/80 bg-white/84 text-slate-700",
         )}
         style={panelBoxStyle(panel, sidebar.status.x, sidebar.status.y, sidebar.status.w, sidebar.status.h)}
@@ -751,7 +739,7 @@ function FableSpaceSidebar({
         <p className="mt-1 text-[11px] font-bold text-cyan-100/48">空间状态</p>
         <div className="mt-4 h-px w-full bg-cyan-300/16" />
         <p className="mt-5 flex items-center gap-2 text-[12px] font-black text-cyan-300">
-          <span aria-hidden="true" className="h-2 w-2 rounded-full bg-cyan-300 shadow-[0_0_10px_rgba(34,211,238,0.8)]" />
+          <span aria-hidden="true" className="h-2 w-2 rounded-full bg-cyan-300 shadow-[0_0_10px_rgba(244,114,182,0.8)]" />
           MIRROR READY
         </p>
         <p className="mt-1 pl-4 text-[11px] font-bold text-cyan-100/48">镜像空间可进入</p>
@@ -869,7 +857,7 @@ function FableSpaceWorldTimeCard({ variant }: { variant: Variant }) {
       className={cx(
         "flex h-full min-w-0 cursor-default items-center gap-[5%] overflow-hidden rounded-[1.15rem] border px-[6%] text-left",
         isBlack
-          ? "border-cyan-300/14 bg-[#061226]/72 text-cyan-50 shadow-[inset_0_1px_0_rgba(255,255,255,0.035),0_14px_32px_rgba(0,0,0,0.26)]"
+          ? "border-cyan-300/14 bg-[#170c29]/72 text-cyan-50 shadow-[inset_0_1px_0_rgba(255,255,255,0.035),0_14px_32px_rgba(0,0,0,0.26)]"
           : "border-white/90 bg-white/86 text-slate-700 shadow-[0_14px_32px_rgba(86,105,166,0.12)] backdrop-blur-xl",
       )}
     >
@@ -919,7 +907,7 @@ function FableSpaceTopStatusBar({
         className={cx(
           "flex h-full min-w-0 touch-manipulation items-center gap-[4%] overflow-hidden rounded-[1.15rem] border px-[4%] outline-none transition focus:ring-4",
           isBlack
-            ? "border-cyan-300/14 bg-[#061226]/76 shadow-[inset_0_1px_0_rgba(255,255,255,0.035),0_14px_34px_rgba(0,0,0,0.28)] focus:ring-cyan-300/30"
+            ? "border-cyan-300/14 bg-[#170c29]/76 shadow-[inset_0_1px_0_rgba(255,255,255,0.035),0_14px_34px_rgba(0,0,0,0.28)] focus:ring-cyan-300/30"
             : "border-white/90 bg-white/88 shadow-[0_14px_34px_rgba(86,105,166,0.12)] backdrop-blur-xl focus:ring-violet-400/30",
         )}
       >
@@ -957,7 +945,7 @@ function FableSpaceUserCluster({
         "absolute z-30 flex items-center gap-[4%] rounded-[1.75rem] border p-[0.55%] pr-[0.75%]",
         forceVisible ? "opacity-100" : "opacity-0",
         isBlack
-          ? "border-cyan-300/16 bg-[#020710]/96 shadow-[0_0_30px_rgba(0,255,255,0.1)]"
+          ? "border-cyan-300/16 bg-[#0b0512]/96 shadow-[0_0_30px_rgba(0,255,255,0.1)]"
           : "border-white/80 bg-white/92 shadow-[0_14px_36px_rgba(83,103,166,0.13)] backdrop-blur-xl",
       )}
       style={boxStyle(artboard, box.x, box.y, box.w, box.h)}
@@ -999,7 +987,7 @@ function FableSpaceDiscoverRailUserCard({
       className={cx(
         "pointer-events-auto absolute flex min-w-0 touch-manipulation items-center gap-4 overflow-hidden rounded-[1.15rem] border px-5 outline-none transition focus:ring-4",
         isBlack
-          ? "border-cyan-300/14 bg-[#061226]/82 shadow-[inset_0_1px_0_rgba(255,255,255,0.035),0_14px_34px_rgba(0,0,0,0.28)] focus:ring-cyan-300/30"
+          ? "border-cyan-300/14 bg-[#170c29]/82 shadow-[inset_0_1px_0_rgba(255,255,255,0.035),0_14px_34px_rgba(0,0,0,0.28)] focus:ring-cyan-300/30"
           : "border-white/90 bg-white/90 shadow-[0_14px_34px_rgba(86,105,166,0.12)] backdrop-blur-xl focus:ring-violet-400/30",
       )}
       style={style}
@@ -1031,7 +1019,7 @@ function fallbackFeedItemsFromSpaces(spaces: Space[]): FableSpaceFeedItem[] {
     title: space.name || `坐标 ${index + 1}`,
     subtitle: space.description || "这间空间正在整理新的记忆",
     meta: `${index * 5 + 3} 分钟前`,
-    image: space.characters?.[0]?.avatar || DEFAULT_FABLE_SPACE_USER.avatar,
+    image: (space.characters?.[0] ? discoverCharacterAvatar(space.characters[0]) : "") || DEFAULT_FABLE_SPACE_USER.avatar,
     to: targetFor(space),
   }))
 }
@@ -1049,17 +1037,15 @@ function fallbackOnlineEntitiesFromFeed(items: FableSpaceFeedItem[]): FableSpace
 }
 
 function withDiscoverSquareFeedImages(items: FableSpaceFeedItem[]): FableSpaceFeedItem[] {
-  return items.map((item, index) => ({
+  return items.map((item) => ({
     ...item,
-    image: DISCOVER_CARD_IMAGES[(index + 4) % DISCOVER_CARD_IMAGES.length],
     squareImage: true,
   }))
 }
 
 function withDiscoverSquareOnlineImages(entities: FableSpaceOnlineEntity[]): FableSpaceOnlineEntity[] {
-  return entities.map((entity, index) => ({
+  return entities.map((entity) => ({
     ...entity,
-    avatar: DISCOVER_CARD_IMAGES[(index + 6) % DISCOVER_CARD_IMAGES.length],
     squareImage: true,
   }))
 }
@@ -1108,7 +1094,7 @@ function FableSpacePanelShell({
         "absolute z-30 rounded-[1.55rem] border p-[1.55%]",
         forceVisible ? "opacity-100" : "pointer-events-none opacity-0",
         isBlack
-          ? "rounded-[0.55rem] border-cyan-300/14 bg-[#020710]/96 text-cyan-50 shadow-[0_0_0_1px_rgba(34,211,238,0.04)]"
+          ? "rounded-[0.55rem] border-cyan-300/14 bg-[#0b0512]/96 text-cyan-50 shadow-[0_0_0_1px_rgba(244,114,182,0.04)]"
           : "border-white/80 bg-white text-slate-700 shadow-[0_18px_44px_rgba(85,103,160,0.13)]",
         className,
       )}
@@ -1715,7 +1701,7 @@ function OverlayInput({
 }) {
   const shellToneClass =
     variant === "black"
-      ? "border-cyan-300/28 bg-[#061226] text-cyan-100 shadow-[0_0_22px_rgba(34,211,238,0.14),inset_0_0_0_1px_rgba(103,232,249,0.1)]"
+      ? "border-cyan-300/28 bg-[#170c29] text-cyan-100 shadow-[0_0_22px_rgba(244,114,182,0.14),inset_0_0_0_1px_rgba(251,207,232,0.1)]"
       : "border-white/70 bg-white text-[#99a4d3] shadow-[0_10px_28px_rgba(74,98,176,0.12),inset_0_0_0_1px_rgba(255,255,255,0.78)]"
   const inputToneClass =
     variant === "black"
@@ -1801,15 +1787,15 @@ function FableSpaceHomeCoordinateCard({
   const isBlack = variant === "black"
   const card = homeCoordinateCardData(slice, index, variant)
   const [x, y, w, h] = box
-  const canEnter = Boolean(slice?.id || card.id || isBlack)
+  const canEnter = Boolean(card.id)
   const target = to || targetFor(card)
   const badgeLabel = isBlack ? card.tag : (canEnter ? card.tag : (isLoading ? "加载中" : "待开放"))
-  const toneClass = "border-cyan-300/38 bg-cyan-300/18 text-cyan-100 shadow-[0_0_16px_rgba(34,211,238,0.18)]"
+  const toneClass = "border-cyan-300/38 bg-cyan-300/18 text-cyan-100 shadow-[0_0_16px_rgba(244,114,182,0.18)]"
   const className = cx(
     "absolute z-20 flex min-h-11 flex-col overflow-hidden rounded-[0.72rem] border outline-none transition",
     canEnter ? "touch-manipulation hover:-translate-y-0.5 focus:ring-4" : "cursor-wait select-none opacity-86",
     isBlack
-      ? "border-cyan-300/18 bg-[#06111f]/88 text-cyan-50 shadow-[0_16px_34px_rgba(0,0,0,0.36),inset_0_1px_0_rgba(255,255,255,0.035)] focus:ring-cyan-300/28"
+      ? "border-cyan-300/18 bg-[#140a22]/88 text-cyan-50 shadow-[0_16px_34px_rgba(0,0,0,0.36),inset_0_1px_0_rgba(255,255,255,0.035)] focus:ring-cyan-300/28"
       : "border-white/90 bg-white text-slate-800 shadow-[0_18px_42px_rgba(108,123,178,0.14)] focus:ring-violet-400/35",
   )
   const content = (
@@ -1823,7 +1809,7 @@ function FableSpaceHomeCoordinateCard({
           loading="lazy"
           decoding="async"
         />
-        {isBlack ? <span aria-hidden="true" className="absolute inset-0 bg-gradient-to-t from-[#06111f]/72 via-transparent to-transparent" /> : null}
+        {isBlack ? <span aria-hidden="true" className="absolute inset-0 bg-gradient-to-t from-[#140a22]/72 via-transparent to-transparent" /> : null}
         <span className={cx("absolute left-4 top-3 rounded-md border px-3 py-1 text-[10px] font-black uppercase tracking-[0.08em]", toneClass)}>
           {badgeLabel}
         </span>
@@ -1839,8 +1825,8 @@ function FableSpaceHomeCoordinateCard({
         <p className={cx("mt-5 line-clamp-2 text-[13px] font-bold leading-6", isBlack ? "text-cyan-100/48" : "text-slate-400")} title={card.description}>{card.description}</p>
         <div className="mt-auto flex items-center justify-between gap-3">
           <span data-fable-space-active-node-avatars="replaceable-images" className="flex -space-x-1.5">
-            {HOME_COORDINATE_CARD_AVATAR_IMAGES.map((image, avatarIndex) => (
-              <img key={`${card.name}-node-avatar-${avatarIndex}`} src={image} alt="" aria-hidden="true" className={cx("h-5 w-5 rounded-full border object-cover", isBlack ? "border-[#06111f]" : "border-white")} loading="lazy" decoding="async" />
+            {card.avatarImages.map((image, avatarIndex) => (
+              <img key={`${card.name}-node-avatar-${avatarIndex}`} src={image} alt="" aria-hidden="true" className={cx("h-5 w-5 rounded-full border object-cover", isBlack ? "border-[#140a22]" : "border-white")} loading="lazy" decoding="async" />
             ))}
           </span>
           <span className={cx("shrink-0 text-[12px] font-black uppercase tracking-[0.08em]", isBlack ? "text-cyan-300/70" : "text-violet-400")}>
@@ -1899,17 +1885,17 @@ function FableSpaceDiscoverCard({
   const card = discoverCardData(space, index)
   const isBlack = variant === "black"
   const isEnterable = Boolean(card.id)
-  const avatarImages = DISCOVER_CARD_AVATAR_IMAGE_SETS[index % DISCOVER_CARD_AVATAR_IMAGE_SETS.length]
+  const avatarImages = card.avatarImages
   const className = cx(
     "absolute z-20 flex flex-col overflow-hidden rounded-[1.28rem] border",
     isEnterable
       ? "touch-manipulation outline-none transition duration-300 hover:scale-[1.015] hover:-translate-y-0.5 focus:ring-4"
       : "cursor-wait select-none opacity-86",
     isBlack
-      ? "border-cyan-300/14 bg-[#061226]/92 text-cyan-50 shadow-[0_18px_38px_rgba(0,0,0,0.35),0_0_26px_rgba(34,211,238,0.08)]"
+      ? "border-cyan-300/14 bg-[#170c29]/92 text-cyan-50 shadow-[0_18px_38px_rgba(0,0,0,0.35),0_0_26px_rgba(244,114,182,0.08)]"
       : "border-white/90 bg-white/96 text-slate-800 shadow-[0_12px_32px_rgba(108,123,178,0.12)]",
     isEnterable && (isBlack
-      ? "hover:border-cyan-300/26 hover:shadow-[0_22px_46px_rgba(0,0,0,0.42),0_0_40px_rgba(34,211,238,0.18)] focus:ring-cyan-300/35"
+      ? "hover:border-cyan-300/26 hover:shadow-[0_22px_46px_rgba(0,0,0,0.42),0_0_40px_rgba(244,114,182,0.18)] focus:ring-cyan-300/35"
       : "hover:shadow-[0_16px_48px_rgba(108,123,178,0.22)] focus:ring-violet-400/35"),
   )
   const content = (
@@ -1939,7 +1925,7 @@ function FableSpaceDiscoverCard({
           </span>
           <span aria-hidden="true" className="ml-auto flex shrink-0 -space-x-1.5">
             {avatarImages.map((image, avatarIndex) => (
-              <img key={`${card.name}-avatar-${avatarIndex}`} src={image} alt="" className={cx("h-5 w-5 rounded-full border object-cover", isBlack ? "border-[#061226]" : "border-white")} loading="lazy" decoding="async" />
+              <img key={`${card.name}-avatar-${avatarIndex}`} src={image} alt="" className={cx("h-5 w-5 rounded-full border object-cover", isBlack ? "border-[#170c29]" : "border-white")} loading="lazy" decoding="async" />
             ))}
           </span>
           <span className={cx("inline-flex shrink-0 items-center", isBlack ? "text-cyan-300/72" : "text-violet-400")} aria-label={`收藏 ${card.favoriteCount}`}>
@@ -2009,7 +1995,7 @@ function HomeCurrentCoordinateBadge({
       className={cx(
         "absolute z-10 rounded-[1.25rem] border px-5 py-4",
         isBlack
-          ? "border-cyan-300/18 bg-[#020710]/78 shadow-[0_0_28px_rgba(34,211,238,0.1)]"
+          ? "border-cyan-300/18 bg-[#0b0512]/78 shadow-[0_0_28px_rgba(244,114,182,0.1)]"
           : "border-white/90 bg-white/88 shadow-[0_18px_42px_rgba(118,133,190,0.16)]",
       )}
       style={boxStyle(artboard, box.x, box.y, box.w, box.h)}
@@ -2059,7 +2045,7 @@ function FableSpaceHomeMainSurface({
       <div aria-hidden="true" className="absolute inset-0 z-0 overflow-hidden">
         {isBlack ? (
           <>
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_48%_26%,rgba(34,211,238,0.18),transparent_34%),linear-gradient(180deg,#06111f_0%,#020710_60%,#020710_100%)]" />
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_48%_26%,rgba(244,114,182,0.18),transparent_34%),linear-gradient(180deg,#140a22_0%,#0b0512_60%,#0b0512_100%)]" />
             <div className="absolute left-[28%] top-0 h-[72%] w-[48%] rounded-full bg-cyan-300/10 blur-3xl" />
           </>
         ) : (
@@ -2070,13 +2056,13 @@ function FableSpaceHomeMainSurface({
         aria-hidden="true"
         className={cx(
           "absolute z-0 overflow-hidden rounded-[2rem] border shadow-[0_24px_80px_rgba(116,135,190,0.14)]",
-          isBlack ? "rounded-[0.45rem] border-transparent bg-[#020710] shadow-[0_0_34px_rgba(34,211,238,0.08)]" : "border-transparent bg-white",
+          isBlack ? "rounded-[0.45rem] border-transparent bg-[#0b0512] shadow-[0_0_34px_rgba(244,114,182,0.08)]" : "border-transparent bg-white",
         )}
         style={boxStyle(artboard, heroBox.x, heroBox.y, heroBox.w, heroBox.h)}
       >
         {isBlack ? (
           <>
-            <div className="absolute inset-0 bg-[#020710]" />
+            <div className="absolute inset-0 bg-[#0b0512]" />
             <img
               src={homeBlackHeroVisual}
               alt=""
@@ -2086,7 +2072,7 @@ function FableSpaceHomeMainSurface({
               fetchPriority="high"
               decoding="async"
             />
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_68%_42%,rgba(34,211,238,0.12),transparent_32%)]" />
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_68%_42%,rgba(244,114,182,0.12),transparent_32%)]" />
           </>
         ) : (
           <img
@@ -2097,14 +2083,14 @@ function FableSpaceHomeMainSurface({
             decoding="async"
           />
         )}
-        <div className={cx("absolute inset-0", isBlack ? "bg-gradient-to-r from-[#020710]/96 via-[#020710]/44 to-[#020710]/6" : "bg-gradient-to-r from-white/92 via-white/72 to-white/22")} />
+        <div className={cx("absolute inset-0", isBlack ? "bg-gradient-to-r from-[#0b0512]/96 via-[#0b0512]/44 to-[#0b0512]/6" : "bg-gradient-to-r from-white/92 via-white/72 to-white/22")} />
       </div>
       <div
         aria-hidden="true"
-        className={cx("absolute z-0 overflow-hidden rounded-[1.75rem]", isBlack ? "bg-[#020710]" : "bg-white/92")}
+        className={cx("absolute z-0 overflow-hidden rounded-[1.75rem]", isBlack ? "bg-[#0b0512]" : "bg-white/92")}
         style={boxStyle(artboard, rightRailSurface.x, rightRailSurface.y, rightRailSurface.w, rightRailSurface.h)}
       >
-        <div className={cx("absolute inset-0", isBlack ? "bg-gradient-to-b from-cyan-300/8 via-[#020710]/70 to-[#020710]" : "bg-white/72")} />
+        <div className={cx("absolute inset-0", isBlack ? "bg-gradient-to-b from-cyan-300/8 via-[#0b0512]/70 to-[#0b0512]" : "bg-white/72")} />
       </div>
       {isBlack ? (
         <>
@@ -2144,7 +2130,7 @@ function FableSpaceHomeMainSurface({
       {!isBlack ? <HomeCurrentCoordinateBadge artboard={artboard} variant={variant} coordinate={heroCoordinate} /> : null}
       <div className="absolute z-10 flex items-center justify-between" style={boxStyle(artboard, recommendedHeaderBox.x, recommendedHeaderBox.y, recommendedHeaderBox.w, recommendedHeaderBox.h)}>
         <span className="flex items-center gap-4">
-          <span aria-hidden="true" className="h-10 w-[3px] rounded-full bg-cyan-300 shadow-[0_0_14px_rgba(34,211,238,0.72)]" />
+          <span aria-hidden="true" className="h-10 w-[3px] rounded-full bg-cyan-300 shadow-[0_0_14px_rgba(244,114,182,0.72)]" />
           <span>
             <h2 className={cx("text-[18px] font-black uppercase leading-none tracking-[0.14em]", isBlack ? "text-cyan-300" : "text-slate-800")}>{isBlack ? "MIRROR SPACES" : "为你推荐的空间"}</h2>
             <span className={cx("mt-1 block text-[12px] font-bold", isBlack ? "text-cyan-100/50" : "text-slate-400")}>{isBlack ? "不同类型的 AI 空间" : "基于地理位置的空间"}</span>
@@ -2152,7 +2138,7 @@ function FableSpaceHomeMainSurface({
         </span>
         <span className="flex items-center gap-4">
           {["ALL 全部", "FILTER 筛选"].map((label) => (
-            <Link key={label} to={WEB_PATHS.spaces} onMouseDown={suppressMouseFocus} className={cx("inline-flex min-h-9 touch-manipulation items-center gap-2 rounded-md border px-4 text-[12px] font-black uppercase tracking-[0.08em] outline-none transition focus:ring-4", isBlack ? "border-cyan-300/14 bg-[#061226]/72 text-cyan-100/62 hover:text-cyan-100 focus:ring-cyan-300/28" : "border-slate-200 bg-white/70 text-slate-500 focus:ring-violet-400/35")}>
+            <Link key={label} to={WEB_PATHS.spaces} onMouseDown={suppressMouseFocus} className={cx("inline-flex min-h-9 touch-manipulation items-center gap-2 rounded-md border px-4 text-[12px] font-black uppercase tracking-[0.08em] outline-none transition focus:ring-4", isBlack ? "border-cyan-300/14 bg-[#170c29]/72 text-cyan-100/62 hover:text-cyan-100 focus:ring-cyan-300/28" : "border-slate-200 bg-white/70 text-slate-500 focus:ring-violet-400/35")}>
               {label} <ChevronDown size={13} strokeWidth={3} />
             </Link>
           ))}
@@ -2187,35 +2173,35 @@ function FableSpaceHomeMobile({
   const isBlack = variant === "black"
   const cards = HOME_LAYOUT.cards.map((_, index) => homeCoordinateCardData(featuredCitySlices[index], index, variant))
   return (
-    <div className={cx("relative z-40 min-h-screen px-4 py-5 md:hidden", isBlack ? "bg-[radial-gradient(circle_at_16%_-8%,rgba(14,165,233,0.22),transparent_32%),radial-gradient(circle_at_88%_0%,rgba(217,70,239,0.24),transparent_30%),linear-gradient(180deg,#07162c_0%,#030918_54%,#01030a_100%)]" : "bg-[linear-gradient(180deg,#f4f8ff_0%,#eef4ff_46%,#fff_100%)]")}>
-      <header className={cx("flex items-center justify-between rounded-[1.5rem] border p-3", isBlack ? "border-cyan-300/24 bg-[#061126]/88 shadow-[0_0_24px_rgba(14,165,233,0.16),0_0_32px_rgba(168,85,247,0.12),0_18px_42px_rgba(1,3,10,0.38)]" : "border-white/80 bg-white/86 shadow-[0_18px_42px_rgba(108,123,178,0.14)]")}>
+    <div className={cx("relative z-40 min-h-screen px-4 py-5 md:hidden", isBlack ? "bg-[radial-gradient(circle_at_16%_-8%,rgba(168,85,247,0.22),transparent_32%),radial-gradient(circle_at_88%_0%,rgba(217,70,239,0.24),transparent_30%),linear-gradient(180deg,#1b0d30_0%,#0f071b_54%,#07030c_100%)]" : "bg-[linear-gradient(180deg,#f4f8ff_0%,#eef4ff_46%,#fff_100%)]")}>
+      <header className={cx("flex items-center justify-between rounded-[1.5rem] border p-3", isBlack ? "border-cyan-300/24 bg-[#160b25]/88 shadow-[0_0_24px_rgba(168,85,247,0.16),0_0_32px_rgba(168,85,247,0.12),0_18px_42px_rgba(1,3,10,0.38)]" : "border-white/80 bg-white/86 shadow-[0_18px_42px_rgba(108,123,178,0.14)]")}>
         <Link to="/" className="flex min-h-11 touch-manipulation flex-col justify-center rounded-2xl outline-none focus:ring-4 focus:ring-violet-400/35">
           <span className={cx("text-xl font-black leading-none", isBlack ? "text-white" : "text-slate-900")}>FableSpace</span>
           <span className={cx("mt-1 text-xs font-bold", isBlack ? "text-cyan-100/62" : "text-slate-500")}>世界的镜像面</span>
         </Link>
-        <button type="button" onClick={onToggleTheme} className={cx("grid h-11 w-11 touch-manipulation place-items-center rounded-2xl border", isBlack ? "border-cyan-300/28 bg-cyan-400/10 text-cyan-100 shadow-[0_0_18px_rgba(14,165,233,0.18)]" : "border-violet-100 bg-violet-50 text-violet-500")} aria-label="切换主题">
+        <button type="button" onClick={onToggleTheme} className={cx("grid h-11 w-11 touch-manipulation place-items-center rounded-2xl border", isBlack ? "border-cyan-300/28 bg-cyan-400/10 text-cyan-100 shadow-[0_0_18px_rgba(168,85,247,0.18)]" : "border-violet-100 bg-violet-50 text-violet-500")} aria-label="切换主题">
           ?        </button>
       </header>
-      <section className={cx("relative mt-4 overflow-hidden rounded-[1.5rem] border p-4", isBlack ? "border-cyan-300/24 bg-[#061126]/82 shadow-[0_0_28px_rgba(14,165,233,0.16),0_0_34px_rgba(217,70,239,0.10),0_18px_42px_rgba(1,3,10,0.34)]" : "border-white/80 bg-white/80 shadow-[0_18px_44px_rgba(108,123,178,0.14)]")}>
+      <section className={cx("relative mt-4 overflow-hidden rounded-[1.5rem] border p-4", isBlack ? "border-cyan-300/24 bg-[#160b25]/82 shadow-[0_0_28px_rgba(168,85,247,0.16),0_0_34px_rgba(217,70,239,0.10),0_18px_42px_rgba(1,3,10,0.34)]" : "border-white/80 bg-white/80 shadow-[0_18px_44px_rgba(108,123,178,0.14)]")}>
         {isBlack ? (
           <>
-            <div aria-hidden="true" className="absolute inset-0 bg-[#020817]" />
+            <div aria-hidden="true" className="absolute inset-0 bg-[#0c0615]" />
             <img src={homeBlackHeroVisual} alt="" aria-hidden="true" className="absolute inset-0 h-full w-full object-cover opacity-54 saturate-150" loading="eager" fetchPriority="high" decoding="async" />
           </>
         ) : (
           <img src={lightSkyCityBalcony} alt="" aria-hidden="true" className="absolute inset-0 h-full w-full object-cover opacity-34" loading="lazy" decoding="async" />
         )}
-        <div aria-hidden="true" className={cx("absolute inset-0", isBlack ? "bg-[linear-gradient(135deg,rgba(3,15,34,0.72),rgba(2,3,12,0.62))]" : "bg-white/78")} />
+        <div aria-hidden="true" className={cx("absolute inset-0", isBlack ? "bg-[linear-gradient(135deg,rgba(24,10,39,0.72),rgba(9,4,15,0.62))]" : "bg-white/78")} />
         <p className={cx("relative z-10 text-[11px] font-black uppercase tracking-[0.22em]", isBlack ? "text-cyan-200" : "text-violet-400")}>Mirror</p>
         <h1
           data-fable-space-home-title-mobile="real-text"
-          className={cx("relative z-10 mt-2 text-2xl font-black leading-tight tracking-[-0.03em]", isBlack ? "text-white drop-shadow-[0_0_14px_rgba(14,165,233,0.34)]" : "text-slate-800")}
+          className={cx("relative z-10 mt-2 text-2xl font-black leading-tight tracking-[-0.03em]", isBlack ? "text-white drop-shadow-[0_0_14px_rgba(168,85,247,0.34)]" : "text-slate-800")}
         >
           {isBlack ? "进入镜像空间" : "找到私密空间"}
         </h1>
         <div className="relative z-10 mt-4 flex gap-3">
-          <Link to={WEB_PATHS.spaces} className={cx("inline-flex min-h-11 flex-1 touch-manipulation items-center justify-center rounded-[1.15rem] px-4 text-sm font-black", isBlack ? "bg-[linear-gradient(135deg,#06b6d4_0%,#7c3aed_58%,#d946ef_100%)] text-white shadow-[0_0_24px_rgba(14,165,233,0.28),0_0_28px_rgba(217,70,239,0.22)]" : "bg-violet-500 text-white shadow-[0_14px_28px_rgba(118,91,255,0.22)]")}>发现空间</Link>
-          <Link to={WEB_PATHS.myHome} className={cx("inline-flex min-h-11 flex-1 touch-manipulation items-center justify-center rounded-[1.15rem] border px-4 text-sm font-black", isBlack ? "border-cyan-300/26 bg-cyan-400/8 text-cyan-100 shadow-[inset_0_0_16px_rgba(14,165,233,0.08)]" : "border-violet-100 bg-white text-violet-500")}>我的回访</Link>
+          <Link to={WEB_PATHS.spaces} className={cx("inline-flex min-h-11 flex-1 touch-manipulation items-center justify-center rounded-[1.15rem] px-4 text-sm font-black", isBlack ? "bg-[linear-gradient(135deg,#ec4899_0%,#7c3aed_58%,#d946ef_100%)] text-white shadow-[0_0_24px_rgba(168,85,247,0.28),0_0_28px_rgba(217,70,239,0.22)]" : "bg-violet-500 text-white shadow-[0_14px_28px_rgba(118,91,255,0.22)]")}>发现空间</Link>
+          <Link to={WEB_PATHS.myHome} className={cx("inline-flex min-h-11 flex-1 touch-manipulation items-center justify-center rounded-[1.15rem] border px-4 text-sm font-black", isBlack ? "border-cyan-300/26 bg-cyan-400/8 text-cyan-100 shadow-[inset_0_0_16px_rgba(168,85,247,0.08)]" : "border-violet-100 bg-white text-violet-500")}>我的回访</Link>
         </div>
       </section>
       <section className="mt-4">
@@ -2230,7 +2216,7 @@ function FableSpaceHomeMobile({
             const cardClassName = cx(
               "flex min-h-24 gap-3 rounded-[1.25rem] border p-2.5",
               isEnterable ? "touch-manipulation" : "cursor-wait select-none opacity-86",
-              isBlack ? "border-cyan-300/20 bg-[#061126]/84 shadow-[0_0_22px_rgba(14,165,233,0.12),0_0_26px_rgba(168,85,247,0.10),0_14px_30px_rgba(1,3,10,0.3)]" : "border-white/80 bg-white shadow-[0_14px_34px_rgba(108,123,178,0.12)]",
+              isBlack ? "border-cyan-300/20 bg-[#160b25]/84 shadow-[0_0_22px_rgba(168,85,247,0.12),0_0_26px_rgba(168,85,247,0.10),0_14px_30px_rgba(1,3,10,0.3)]" : "border-white/80 bg-white shadow-[0_14px_34px_rgba(108,123,178,0.12)]",
             )
             const content = (
               <>
@@ -2287,10 +2273,10 @@ function HomeHeroActions({ artboard, variant, forceVisible = false }: { artboard
   const playIconStrokeWidth = 2.75
   const actions = HOME_LAYOUT.heroActions
   const primaryClass = isBlack
-    ? "border-cyan-200/50 bg-cyan-300 text-slate-950 shadow-[0_0_28px_rgba(34,211,238,0.28)]"
+    ? "border-cyan-200/50 bg-cyan-300 text-slate-950 shadow-[0_0_28px_rgba(244,114,182,0.28)]"
     : "border-violet-300/45 bg-[#8e83ff] text-white shadow-[0_14px_28px_rgba(126,111,255,0.22)]"
   const secondaryClass = isBlack
-    ? "border-cyan-300/35 bg-[#061226]/88 text-cyan-50 shadow-[0_0_18px_rgba(34,211,238,0.12)]"
+    ? "border-cyan-300/35 bg-[#170c29]/88 text-cyan-50 shadow-[0_0_18px_rgba(244,114,182,0.12)]"
     : "border-slate-300/60 bg-white/86 text-slate-700 shadow-[0_10px_24px_rgba(74,98,176,0.1)]"
 
   return (
@@ -2364,7 +2350,7 @@ function DiscoverFilterChip({
         isBlack
           ? muted
             ? "border-cyan-300/18 bg-cyan-400/[0.055] text-cyan-100/58 hover:border-cyan-300/32 hover:text-cyan-50"
-            : "border-cyan-300/30 bg-cyan-400/[0.095] text-white shadow-[0_0_20px_rgba(14,165,233,0.16),0_0_24px_rgba(168,85,247,0.10),0_10px_26px_rgba(1,3,10,0.24)] hover:-translate-y-0.5 hover:border-cyan-200/52 hover:text-white"
+            : "border-cyan-300/30 bg-cyan-400/[0.095] text-white shadow-[0_0_20px_rgba(168,85,247,0.16),0_0_24px_rgba(168,85,247,0.10),0_10px_26px_rgba(1,3,10,0.24)] hover:-translate-y-0.5 hover:border-cyan-200/52 hover:text-white"
           : muted
             ? "border-slate-200 bg-white/50 text-slate-400 hover:border-violet-100 hover:text-violet-500"
             : "border-white/90 bg-white/84 text-[#66719c] shadow-[0_10px_26px_rgba(92,110,170,0.08)] hover:-translate-y-0.5 hover:text-violet-500",
@@ -2422,7 +2408,7 @@ function FableSpaceDiscoverFilterPanel({
         data-fable-space-discover-filter-panel="real-dom"
         className={cx(
           "absolute z-20 grid grid-cols-[1.65fr_1.05fr_1fr] gap-5 rounded-[1.45rem] border p-5 shadow-[0_18px_54px_rgba(87,107,166,0.12)] backdrop-blur-xl",
-          isBlack ? "border-cyan-300/14 bg-[#061226]/82 text-cyan-100" : "border-white/90 bg-white/86 text-slate-700",
+          isBlack ? "border-cyan-300/14 bg-[#170c29]/82 text-cyan-100" : "border-white/90 bg-white/86 text-slate-700",
         )}
         style={boxStyle(artboard, 252, 178, 766, 166)}
       >
@@ -2460,7 +2446,7 @@ function FableSpaceDiscoverFilterPanel({
         data-fable-space-discover-hint-card="background-image"
         className={cx(
           "absolute z-20 overflow-hidden rounded-[1.45rem] border shadow-[0_18px_46px_rgba(99,118,172,0.14)]",
-          isBlack ? "border-cyan-300/14 bg-[#061226]/76" : "border-white/90 bg-white/72",
+          isBlack ? "border-cyan-300/14 bg-[#170c29]/76" : "border-white/90 bg-white/72",
         )}
         style={boxStyle(artboard, 1024, 178, 180, 166)}
       >
@@ -2483,7 +2469,7 @@ function FableSpaceDiscoverFilterPanel({
           className={cx(
             "absolute inset-0",
             isBlack
-              ? "bg-[linear-gradient(180deg,rgba(6,18,38,0.14)_0%,rgba(6,18,38,0.52)_100%)]"
+              ? "bg-[linear-gradient(180deg,rgba(23,12,41,0.14)_0%,rgba(23,12,41,0.52)_100%)]"
               : "bg-[linear-gradient(180deg,rgba(255,255,255,0.18)_0%,rgba(248,251,255,0.64)_100%)]",
           )}
         />
@@ -2512,7 +2498,7 @@ function FableSpaceDiscoverSortControls({ variant }: { variant: Variant }) {
   const isBlack = variant === "black"
   const mutedText = isBlack ? "text-cyan-100/48" : "text-[#90a0bb]"
   const activePill = isBlack
-    ? "bg-cyan-300/12 text-cyan-300 shadow-[0_0_18px_rgba(34,211,238,0.1)]"
+    ? "bg-cyan-300/12 text-cyan-300 shadow-[0_0_18px_rgba(244,114,182,0.1)]"
     : "bg-[#f0ecff] text-[#a36bff] shadow-[0_8px_22px_rgba(144,113,255,0.1)]"
   return (
     <div data-fable-space-discover-sort-controls="real-dom" className={cx("ml-auto flex items-center justify-end gap-4 text-[13px] font-black leading-none", mutedText)}>
@@ -2544,14 +2530,16 @@ function FableSpaceDiscoverRightRail({
   spaces,
   variant,
   isLoading = false,
+  showCreatorTools,
 }: {
   artboard: Artboard
   spaces: Space[]
   variant: Variant
   isLoading?: boolean
+  showCreatorTools: boolean
 }) {
   const cards = DISCOVER_LAYOUT.cards.map((_, index) => discoverCardData(spaces[index], index))
-  const recommendedQuotes = DISCOVER_RIGHT_QUOTES.slice(0, 3)
+  const recommendedCards = cards.slice(0, 3)
   const footprintCards = cards.slice(0, 3)
   const railPanel = DISCOVER_RIGHT_RAIL_PANEL
   const isBlack = variant === "black"
@@ -2582,7 +2570,7 @@ function FableSpaceDiscoverRightRail({
   const worldStatus = discoverWorldStatusFromSpaces(spaces)
   const worldStatusBg = discoverWorldStatusBgBlack
   const panelClass = isBlack
-    ? "border-cyan-300/14 bg-[#061226]/90 text-cyan-50 shadow-[0_18px_50px_rgba(0,0,0,0.34),0_0_28px_rgba(34,211,238,0.07)]"
+    ? "border-cyan-300/14 bg-[#170c29]/90 text-cyan-50 shadow-[0_18px_50px_rgba(0,0,0,0.34),0_0_28px_rgba(244,114,182,0.07)]"
     : "border-white/90 bg-white/92 text-slate-800 shadow-[0_18px_50px_rgba(86,105,166,0.12)]"
   const subtleLinkClass = isBlack
     ? "text-cyan-300 outline-none focus:ring-4 focus:ring-cyan-300/30"
@@ -2646,21 +2634,21 @@ function FableSpaceDiscoverRightRail({
           <Link to={WEB_PATHS.myHome} onMouseDown={suppressMouseFocus} className={cx("text-[11px] font-black", subtleLinkClass)}>查看全部 →</Link>
         </header>
         <div className="space-y-[clamp(4px,0.65vw,10px)]">
-          {recommendedQuotes.map((quote, index) => {
-            const card = cards[index]
-            const key = discoverFavoriteKey("echo", card?.id, index)
+          {recommendedCards.map((card, index) => {
+            const quote = card.id ? card.tryPrompt : "坐标记录同步中"
+            const key = discoverFavoriteKey("echo", card.id, index)
             const isFavorite = favoriteKeys.has(key)
-            const canEnter = Boolean(card?.id)
-            const favoriteCount = (card?.favoriteCount || 0) + (isFavorite ? 1 : 0)
+            const canEnter = Boolean(card.id)
+            const favoriteCount = card.favoriteCount + (isFavorite ? 1 : 0)
             const entryCopy = (
               <span className="min-w-0">
                 <span className={cx("block truncate text-[clamp(7px,0.78vw,12px)] font-black leading-[1.15]", isBlack ? "text-cyan-100" : "text-slate-600")}>“{isInitialLoading ? "坐标记录同步中" : quote}”</span>
-                <span className={cx("mt-0.5 block truncate text-[clamp(6px,0.65vw,10px)] font-bold leading-[1.15]", isBlack ? "text-cyan-100/45" : "text-slate-400")}>来自 {isInitialLoading ? "正在同步坐标" : (card?.name || "某个坐标")} · {isInitialLoading ? "加载中" : `${index * 5 + 2} 分钟前`}</span>
+                <span className={cx("mt-0.5 block truncate text-[clamp(6px,0.65vw,10px)] font-bold leading-[1.15]", isBlack ? "text-cyan-100/45" : "text-slate-400")}>来自 {isInitialLoading ? "正在同步坐标" : card.name} · {isInitialLoading ? "加载中" : card.timeLabel}</span>
               </span>
             )
             return (
               <div
-                key={quote}
+                key={card.id || card.name}
                 data-fable-space-right-rail-entry="recommended-echo"
                 data-fable-space-right-rail-entry-state={canEnter ? "enterable" : "loading"}
                 className={cx(
@@ -2725,7 +2713,7 @@ function FableSpaceDiscoverRightRail({
             )
             return (
               <div
-                key={`${card.name}-${index}`}
+                key={card.id || card.name}
                 data-fable-space-right-rail-entry="footprint"
                 data-fable-space-right-rail-entry-state={canEnter ? "enterable" : "loading"}
                 className={cx(
@@ -2767,24 +2755,26 @@ function FableSpaceDiscoverRightRail({
         </div>
       </section>
 
-      <Link
-        to={WEB_PATHS.createSpace}
-        onMouseDown={suppressMouseFocus}
-        className="pointer-events-auto absolute overflow-hidden rounded-[1.35rem] border border-indigo-950/20 bg-indigo-950 p-4 text-white shadow-[0_20px_56px_rgba(26,30,80,0.24)] outline-none transition hover:-translate-y-0.5 focus:ring-4 focus:ring-violet-400/30"
-        style={panelBoxStyle(railPanel, 12, 852, 286, 140)}
-      >
-        <span aria-hidden="true" className="absolute inset-0 bg-[radial-gradient(circle_at_18%_18%,rgba(141,130,255,0.42),transparent_34%),linear-gradient(135deg,#17204d_0%,#11173b_52%,#29205d_100%)]" />
-        <span className="relative z-10 grid h-full grid-cols-[4.75rem_1fr] items-center gap-4">
-          <img data-fable-space-discover-square-image="512x512" src={discoverCardTrainPlatform} alt="" aria-hidden="true" className="h-[4.75rem] w-[4.75rem] rounded-[1.1rem] object-cover shadow-[0_16px_32px_rgba(0,0,0,0.22)]" loading="lazy" decoding="async" />
-          <span className="min-w-0">
-            <span className="block text-[17px] font-black">店主开设空间</span>
-            <span className="mt-2 block truncate text-[12px] font-bold text-white/70">配置地理位置背景、NPC 与第一分钟玩法</span>
-            <span className="mt-3 inline-flex w-max items-center gap-2 rounded-xl bg-[#8d82ff] px-4 py-1.5 text-[13px] font-black">
-              进入店主开设 <ArrowUpRight size={13} strokeWidth={3} />
+      {showCreatorTools ? (
+        <Link
+          to={WEB_PATHS.createSpace}
+          onMouseDown={suppressMouseFocus}
+          className="pointer-events-auto absolute overflow-hidden rounded-[1.35rem] border border-indigo-950/20 bg-indigo-950 p-4 text-white shadow-[0_20px_56px_rgba(26,30,80,0.24)] outline-none transition hover:-translate-y-0.5 focus:ring-4 focus:ring-violet-400/30"
+          style={panelBoxStyle(railPanel, 12, 852, 286, 140)}
+        >
+          <span aria-hidden="true" className="absolute inset-0 bg-[radial-gradient(circle_at_18%_18%,rgba(141,130,255,0.42),transparent_34%),linear-gradient(135deg,#17204d_0%,#11173b_52%,#29205d_100%)]" />
+          <span className="relative z-10 grid h-full grid-cols-[4.75rem_1fr] items-center gap-4">
+            <img data-fable-space-discover-square-image="512x512" src={discoverCardTrainPlatform} alt="" aria-hidden="true" className="h-[4.75rem] w-[4.75rem] rounded-[1.1rem] object-cover shadow-[0_16px_32px_rgba(0,0,0,0.22)]" loading="lazy" decoding="async" />
+            <span className="min-w-0">
+              <span className="block text-[17px] font-black">店主开设空间</span>
+              <span className="mt-2 block truncate text-[12px] font-bold text-white/70">配置地理位置背景、NPC 与第一分钟玩法</span>
+              <span className="mt-3 inline-flex w-max items-center gap-2 rounded-xl bg-[#8d82ff] px-4 py-1.5 text-[13px] font-black">
+                进入店主开设 <ArrowUpRight size={13} strokeWidth={3} />
+              </span>
             </span>
           </span>
-        </span>
-      </Link>
+        </Link>
+      ) : null}
     </aside>
   )
 }
@@ -2812,10 +2802,10 @@ function FableSpaceDiscoverSurface({
       : `${Math.max(spaces.length, DISCOVER_LAYOUT.cards.length)} 个坐标`
   return (
     <>
-      <div aria-hidden="true" className={cx("absolute inset-0 z-0 overflow-hidden", isBlack ? "bg-[#030712]" : "bg-[linear-gradient(180deg,#f6f9ff_0%,#eef4ff_48%,#f7fbff_100%)]")}>
+      <div aria-hidden="true" className={cx("absolute inset-0 z-0 overflow-hidden", isBlack ? "bg-[#0d0618]" : "bg-[linear-gradient(180deg,#f6f9ff_0%,#eef4ff_48%,#f7fbff_100%)]")}>
         {isBlack ? (
           <>
-            <span className="absolute inset-0 bg-[radial-gradient(circle_at_34%_17%,rgba(34,211,238,0.16),transparent_27%),radial-gradient(circle_at_74%_22%,rgba(99,102,241,0.16),transparent_29%),linear-gradient(135deg,#061226_0%,#030712_52%,#020710_100%)]" />
+            <span className="absolute inset-0 bg-[radial-gradient(circle_at_34%_17%,rgba(244,114,182,0.16),transparent_27%),radial-gradient(circle_at_74%_22%,rgba(99,102,241,0.16),transparent_29%),linear-gradient(135deg,#170c29_0%,#0d0618_52%,#0b0512_100%)]" />
             <span className="absolute left-[22%] top-[5%] h-[36%] w-[50%] rounded-full bg-cyan-300/8 blur-3xl" />
             <span className="absolute right-[8%] top-[18%] h-[42%] w-[25%] rounded-full bg-violet-500/10 blur-3xl" />
           </>
@@ -2885,15 +2875,16 @@ function FableSpaceDiscoverMobile({
   onToggleTheme,
   visitorReduced = false,
   variant,
-}: DiscoverReferenceProps) {
+  showCreatorTools,
+}: DiscoverReferenceProps & { showCreatorTools: boolean }) {
   const cardCount = visitorReduced ? 3 : 8
   const cards = DISCOVER_LAYOUT.cards.map((_, index) => discoverCardData(spaces[index], index)).slice(0, cardCount)
   const isBlack = variant === "black"
   return (
-    <div className={cx("relative z-40 min-h-screen px-4 py-5 md:hidden", isBlack ? "bg-[radial-gradient(circle_at_16%_-8%,rgba(14,165,233,0.22),transparent_32%),radial-gradient(circle_at_88%_0%,rgba(217,70,239,0.24),transparent_30%),linear-gradient(180deg,#07162c_0%,#030918_54%,#01030a_100%)]" : "bg-[linear-gradient(180deg,#f4f8ff_0%,#eef4ff_45%,#fff_100%)]")}>
-      <header className={cx("flex items-center justify-between rounded-[1.5rem] border p-3", isBlack ? "border-cyan-300/24 bg-[#061126]/88 shadow-[0_0_24px_rgba(14,165,233,0.16),0_0_32px_rgba(168,85,247,0.12),0_18px_42px_rgba(1,3,10,0.38)]" : "border-white/80 bg-white/88 shadow-[0_18px_42px_rgba(108,123,178,0.14)]")}>
+    <div className={cx("relative z-40 min-h-screen px-4 py-5 md:hidden", isBlack ? "bg-[radial-gradient(circle_at_16%_-8%,rgba(168,85,247,0.22),transparent_32%),radial-gradient(circle_at_88%_0%,rgba(217,70,239,0.24),transparent_30%),linear-gradient(180deg,#1b0d30_0%,#0f071b_54%,#07030c_100%)]" : "bg-[linear-gradient(180deg,#f4f8ff_0%,#eef4ff_45%,#fff_100%)]")}>
+      <header className={cx("flex items-center justify-between rounded-[1.5rem] border p-3", isBlack ? "border-cyan-300/24 bg-[#160b25]/88 shadow-[0_0_24px_rgba(168,85,247,0.16),0_0_32px_rgba(168,85,247,0.12),0_18px_42px_rgba(1,3,10,0.38)]" : "border-white/80 bg-white/88 shadow-[0_18px_42px_rgba(108,123,178,0.14)]")}>
         <Link to="/" className="flex min-h-11 touch-manipulation items-center gap-3 rounded-2xl outline-none focus:ring-4 focus:ring-violet-400/35">
-          <span className={cx("grid h-11 w-11 shrink-0 place-items-center rounded-2xl", isBlack ? "bg-cyan-400/10 text-cyan-100 shadow-[0_0_18px_rgba(14,165,233,0.16)]" : "bg-violet-50 text-violet-500")}>
+          <span className={cx("grid h-11 w-11 shrink-0 place-items-center rounded-2xl", isBlack ? "bg-cyan-400/10 text-cyan-100 shadow-[0_0_18px_rgba(168,85,247,0.16)]" : "bg-violet-50 text-violet-500")}>
             <Compass size={22} strokeWidth={2.6} />
           </span>
           <span>
@@ -2901,11 +2892,11 @@ function FableSpaceDiscoverMobile({
             <span className={cx("block text-[13px] font-bold", isBlack ? "text-cyan-100/62" : "text-slate-400")}>查找真实坐标里的 AI 空间</span>
           </span>
         </Link>
-        <button type="button" onClick={onToggleTheme} className={cx("grid h-11 w-11 touch-manipulation place-items-center rounded-2xl border", isBlack ? "border-cyan-300/28 bg-cyan-400/10 text-cyan-100 shadow-[0_0_18px_rgba(14,165,233,0.18)]" : "border-violet-100 bg-violet-50 text-violet-500")} aria-label="切换主题">
+        <button type="button" onClick={onToggleTheme} className={cx("grid h-11 w-11 touch-manipulation place-items-center rounded-2xl border", isBlack ? "border-cyan-300/28 bg-cyan-400/10 text-cyan-100 shadow-[0_0_18px_rgba(168,85,247,0.18)]" : "border-violet-100 bg-violet-50 text-violet-500")} aria-label="切换主题">
           🌓
         </button>
       </header>
-      <label data-fable-space-search={onSearchChange ? "real-input" : undefined} className={cx("relative mt-5 flex min-h-12 items-center rounded-2xl border px-4", isBlack ? "border-cyan-300/22 bg-[#061126]/84 shadow-[0_0_22px_rgba(14,165,233,0.14),0_16px_38px_rgba(1,3,10,0.3)]" : "border-white/80 bg-white shadow-[0_16px_38px_rgba(108,123,178,0.14)]")}>
+      <label data-fable-space-search={onSearchChange ? "real-input" : undefined} className={cx("relative mt-5 flex min-h-12 items-center rounded-2xl border px-4", isBlack ? "border-cyan-300/22 bg-[#160b25]/84 shadow-[0_0_22px_rgba(168,85,247,0.14),0_16px_38px_rgba(1,3,10,0.3)]" : "border-white/80 bg-white shadow-[0_16px_38px_rgba(108,123,178,0.14)]")}>
         <span className="sr-only">搜索地点、角色、记忆或关键字</span>
         <Search size={18} strokeWidth={2.8} className={isBlack ? "text-cyan-200" : "text-violet-400"} />
         <input value={search} onChange={(event) => onSearchChange(event.target.value)} placeholder="搜索地点、角色、记忆或关键字..." className={cx("min-h-12 flex-1 bg-transparent px-3 text-base font-bold outline-none", isBlack ? "text-white placeholder:text-cyan-100/48" : "text-slate-800 placeholder:text-slate-400")} />
@@ -2918,41 +2909,53 @@ function FableSpaceDiscoverMobile({
       <section className="mt-5">
         <div className="mb-3 flex items-center justify-between">
           <h2 className={cx("text-lg font-black", isBlack ? "text-white" : "text-slate-800")}>探索结果</h2>
-          <Link to={WEB_PATHS.createSpace} className={cx("inline-flex min-h-11 touch-manipulation items-center rounded-xl px-2 text-[15px] font-black", isBlack ? "text-cyan-200" : "text-violet-500")}>店主入口 →</Link>
+          {showCreatorTools ? (
+            <Link to={WEB_PATHS.createSpace} className={cx("inline-flex min-h-11 touch-manipulation items-center rounded-xl px-2 text-[15px] font-black", isBlack ? "text-cyan-200" : "text-violet-500")}>店主入口 →</Link>
+          ) : null}
         </div>
         <div className="grid gap-3">
-          {cards.map((card) => (
-            <Link
-              key={card.id || card.name}
-              to={targetFor(card)}
-              data-fable-space-discover-card="real-card"
-              aria-disabled={!card.id}
-              onClick={card.id ? undefined : (event) => event.preventDefault()}
-              className={cx(
-                "flex min-h-32 touch-manipulation gap-3 rounded-[1rem] border p-2.5 outline-none transition focus:ring-4",
-                !card.id && "cursor-wait opacity-80",
-                isBlack
-                  ? "border-cyan-300/20 bg-[#061126]/84 shadow-[0_8px_8px_rgba(1,3,10,0.24)] focus:ring-cyan-300/30"
-                  : "border-white/80 bg-white shadow-[0_8px_8px_rgba(108,123,178,0.10)] focus:ring-violet-400/30",
-              )}
-            >
-              <img data-fable-space-discover-square-image="512x512" src={card.image} alt={`${card.name} 封面`} className="h-24 w-24 shrink-0 rounded-[1rem] object-cover" loading="lazy" decoding="async" />
-              <span className="flex min-w-0 flex-1 flex-col justify-center py-0.5">
-                <span className={cx("block truncate text-[17px] font-black", isBlack ? "text-white" : "text-slate-800")}>{card.name}</span>
-                <span className={cx("mt-1 line-clamp-2 text-[13px] font-bold leading-5", isBlack ? "text-cyan-100/62" : "text-slate-500")} title={card.description}>
-                  {card.description}
-                </span>
-                <span className="mt-2 flex min-w-0 flex-wrap items-center gap-2">
-                  <span className={cx("rounded-full px-2.5 py-1 text-[11px] font-black", isBlack ? "bg-cyan-400/12 text-cyan-100" : "bg-violet-50 text-violet-500")}>
-                    {card.experienceType}
+          {cards.map((card, index) => {
+            const cardClassName = cx(
+              "flex min-h-32 gap-3 rounded-[1rem] border p-2.5",
+              card.id ? "touch-manipulation outline-none transition focus:ring-4" : "cursor-wait opacity-80",
+              isBlack
+                ? "border-cyan-300/20 bg-[#160b25]/84 shadow-[0_8px_8px_rgba(1,3,10,0.24)] focus:ring-cyan-300/30"
+                : "border-white/80 bg-white shadow-[0_8px_8px_rgba(108,123,178,0.10)] focus:ring-violet-400/30",
+            )
+            const content = (
+              <>
+                <img data-fable-space-discover-square-image="512x512" src={card.image} alt={`${card.name} 封面`} className="h-24 w-24 shrink-0 rounded-[1rem] object-cover" loading="lazy" decoding="async" />
+                <span className="flex min-w-0 flex-1 flex-col justify-center py-0.5">
+                  <span className={cx("block truncate text-[17px] font-black", isBlack ? "text-white" : "text-slate-800")}>{card.name}</span>
+                  <span className={cx("mt-1 line-clamp-2 text-[13px] font-bold leading-5", isBlack ? "text-cyan-100/62" : "text-slate-500")} title={card.description}>
+                    {card.description}
                   </span>
-                  <span data-fable-space-discover-entry-cta="visitor-primary" className={cx("inline-flex min-h-7 items-center rounded-full px-3 text-[12px] font-black", isBlack ? "bg-cyan-300 text-slate-950" : "bg-violet-500 text-white")}>
-                    {card.id ? "进入 →" : "等待同步"}
+                  <span className="mt-2 flex min-w-0 flex-wrap items-center gap-2">
+                    <span className={cx("rounded-full px-2.5 py-1 text-[11px] font-black", isBlack ? "bg-cyan-400/12 text-cyan-100" : "bg-violet-50 text-violet-500")}>
+                      {card.experienceType}
+                    </span>
+                    <span data-fable-space-discover-entry-cta="visitor-primary" className={cx("inline-flex min-h-7 items-center rounded-full px-3 text-[12px] font-black", isBlack ? "bg-cyan-300 text-slate-950" : "bg-violet-500 text-white")}>
+                      {card.id ? "进入 →" : "等待同步"}
+                    </span>
                   </span>
                 </span>
-              </span>
-            </Link>
-          ))}
+              </>
+            )
+
+            if (!card.id) {
+              return (
+                <div key={card.name} data-fable-space-discover-card="real-card" aria-disabled="true" className={cardClassName}>
+                  {content}
+                </div>
+              )
+            }
+
+            return (
+              <Link key={card.id} to={targetFor(card)} data-fable-space-discover-card="real-card" className={cardClassName}>
+                {content}
+              </Link>
+            )
+          })}
         </div>
       </section>
     </div>
@@ -3030,12 +3033,20 @@ export function FableSpaceHomeReference({
   onSearchSubmit,
   onToggleTheme,
 }: HomeReferenceProps) {
+  const { allowed: showCreatorTools } = useCreatorAccess()
   const artboard = HOME_BLACK
   const resolvedWorldPulseItems = worldPulseItems?.length ? worldPulseItems : fallbackFeedItemsFromHome(featuredCitySlices)
   const resolvedOnlineEntities = onlineEntities?.length ? onlineEntities : fallbackOnlineEntitiesFromFeed(resolvedWorldPulseItems)
   const resolvedRecentMemories = recentMemories?.length ? recentMemories : fallbackRecentMemoriesFromHome(featuredCitySlices)
   const rightRail = HOME_LAYOUT.rightRail
   const searchBox = HOME_LAYOUT.search
+  const visibleGuideCards = showCreatorTools
+    ? guideCards
+    : guideCards.filter((card) => (
+        card.to !== WEB_PATHS.createSpace
+        && card.to !== WEB_PATHS.owner
+        && card.to !== WEB_PATHS.territory
+      ))
   return (
     <ArtboardShell artboard={artboard} variant={variant} kind="home">
       <FableSpaceHomeMobile featuredCitySlices={featuredCitySlices} isLoading={isLoading} onToggleTheme={onToggleTheme} variant={variant} />
@@ -3047,7 +3058,7 @@ export function FableSpaceHomeReference({
           isLoading={isLoading}
           heroCoordinate={heroCoordinate}
         />
-        <FableSpaceSidebar artboard={artboard} variant={variant} active="home" onToggleTheme={onToggleTheme} />
+        <FableSpaceSidebar artboard={artboard} variant={variant} active="home" onToggleTheme={onToggleTheme} showCreatorTools={showCreatorTools} />
         <HomeHeroActions artboard={artboard} variant={variant} forceVisible />
         <FableSpaceFeedPanel
           artboard={artboard}
@@ -3062,7 +3073,7 @@ export function FableSpaceHomeReference({
         <FableSpaceDailyQuotePanel artboard={artboard} variant={variant} box={rightRail.dailyQuote} quote={dailyQuote} forceVisible />
         <FableSpaceOnlineEntitiesPanel artboard={artboard} variant={variant} box={rightRail.onlineEntities} entities={resolvedOnlineEntities} forceVisible />
         <FableSpaceRecentMemoriesPanel artboard={artboard} variant={variant} memories={resolvedRecentMemories} forceVisible />
-        <FableSpaceGuidePanel artboard={artboard} variant={variant} cards={guideCards} forceVisible />
+        <FableSpaceGuidePanel artboard={artboard} variant={variant} cards={visibleGuideCards} forceVisible />
         <FableSpaceWorldStatsPanel artboard={artboard} variant={variant} stats={worldStats} forceVisible />
       </div>
     </ArtboardShell>
@@ -3070,6 +3081,7 @@ export function FableSpaceHomeReference({
 }
 
 export function FableSpaceDiscoverReference(props: DiscoverReferenceProps) {
+  const { allowed: showCreatorTools } = useCreatorAccess()
   const artboard = DISCOVER_BLACK
   const visitorSpaces = props.visitorReduced ? props.spaces.slice(0, 3) : props.spaces
   const displayProps: DiscoverReferenceProps = { ...props, spaces: visitorSpaces }
@@ -3079,10 +3091,10 @@ export function FableSpaceDiscoverReference(props: DiscoverReferenceProps) {
   const discoverOnlineEntities = withDiscoverSquareOnlineImages(resolvedOnlineEntities)
   return (
     <ArtboardShell artboard={artboard} variant={props.variant} kind="discover">
-      <FableSpaceDiscoverMobile {...displayProps} />
+      <FableSpaceDiscoverMobile {...displayProps} showCreatorTools={showCreatorTools} />
       <div className="relative hidden h-full md:block">
         <FableSpaceDiscoverSurface artboard={artboard} {...displayProps} />
-        <FableSpaceSidebar artboard={artboard} variant={props.variant} active="discover" onToggleTheme={props.onToggleTheme} />
+        <FableSpaceSidebar artboard={artboard} variant={props.variant} active="discover" onToggleTheme={props.onToggleTheme} showCreatorTools={showCreatorTools} />
         <>
           <FableSpaceFeedPanel
             artboard={artboard}
@@ -3094,7 +3106,7 @@ export function FableSpaceDiscoverReference(props: DiscoverReferenceProps) {
             actionLabel="查看全部"
           />
           <FableSpaceOnlineEntitiesPanel artboard={artboard} variant={props.variant} box={DISCOVER_RIGHT_RAIL.onlineEntities} entities={discoverOnlineEntities} />
-          <FableSpaceDiscoverRightRail artboard={artboard} spaces={props.spaces} variant={props.variant} isLoading={props.isLoading} />
+          <FableSpaceDiscoverRightRail artboard={artboard} spaces={props.spaces} variant={props.variant} isLoading={props.isLoading} showCreatorTools={showCreatorTools} />
         </>
         <DiscoverCardLinks
           artboard={artboard}

@@ -230,7 +230,7 @@ export function RelationshipGraphPanel({
     : "跨 owner 关系默认是单边视角，只代表当前空间 source-side 立场。"
 
   return (
-    <Card className="min-w-0 overflow-hidden border-cyan-300/18 bg-[radial-gradient(circle_at_top_right,rgba(34,211,238,0.12),transparent_34%),linear-gradient(135deg,rgba(15,23,42,0.92),rgba(30,41,59,0.66))]">
+    <Card className="min-w-0 overflow-hidden border-cyan-300/18 bg-[radial-gradient(circle_at_top_right,rgba(244,114,182,0.12),transparent_34%),linear-gradient(135deg,rgba(15,23,42,0.92),rgba(30,41,59,0.66))]">
       <CardHeader>
         <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
           <div className="min-w-0">

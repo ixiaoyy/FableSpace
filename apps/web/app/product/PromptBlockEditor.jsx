@@ -227,7 +227,7 @@ export default function PromptBlockEditor({
             </div>
           </div>
           
-          <div className="flex-1 overflow-y-auto p-6 custom-scrollbar bg-[radial-gradient(circle_at_top_right,rgba(34,211,238,0.03),transparent_50%)]">
+          <div className="flex-1 overflow-y-auto p-6 custom-scrollbar bg-[radial-gradient(circle_at_top_right,rgba(244,114,182,0.03),transparent_50%)]">
             <div className="max-w-2xl mx-auto space-y-6 pb-20">
               {fullPromptSegments.map((segment, idx) => (
                 <div key={idx} className="relative group">

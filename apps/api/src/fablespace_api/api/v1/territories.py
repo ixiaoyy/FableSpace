@@ -12,6 +12,7 @@ from ...contracts.territories import (
     TerritoryClaimRequest,
     TerritoryUpdateRequest,
 )
+from .auth import CREATOR_CAPABILITY, require_session_capability
 from .common import get_user_id
 
 router = APIRouter(prefix="/territories", tags=["territories"])
@@ -38,6 +39,7 @@ def check_territory_availability(
 @router.post("")
 def claim_territory(request: Request, data: TerritoryClaimRequest) -> dict[str, Any]:
     """申领新领地。"""
+    require_session_capability(request, CREATOR_CAPABILITY)
     service = territory_service(request)
     user_id = get_user_id(request)
     if not user_id:
@@ -110,6 +112,7 @@ def update_territory(
     data: TerritoryUpdateRequest,
 ) -> dict[str, Any]:
     """更新领地。"""
+    require_session_capability(request, CREATOR_CAPABILITY)
     service = territory_service(request)
     user_id = get_user_id(request)
     if not user_id:
@@ -120,6 +123,7 @@ def update_territory(
 @router.delete("/{territory_id}")
 def delete_territory(request: Request, territory_id: str) -> dict[str, Any]:
     """废弃领地。"""
+    require_session_capability(request, CREATOR_CAPABILITY)
     service = territory_service(request)
     user_id = get_user_id(request)
     if not user_id:

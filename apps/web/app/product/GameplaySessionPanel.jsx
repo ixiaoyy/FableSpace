@@ -102,6 +102,7 @@ export default function GameplaySessionPanel({ session, scene = {}, gameplay = n
   const goal = gameplay?.owner_brief?.goal || ''
   const progress = gameplayProgress(gameplay, scene, session)
   const labels = gameplayPanelLabels(gameplay)
+  const gameplayTitle = String(gameplay?.title || gameplay?.name || '').trim()
   const progressStep = completed ? progress.total : Math.min(progress.currentIndex + 1, progress.total || Number(session.turn_count || 0) + 1)
 
   function handleSubmit(event) {
@@ -115,8 +116,9 @@ export default function GameplaySessionPanel({ session, scene = {}, gameplay = n
   return (
     <section className={`gameplay-session-panel ${completed ? 'is-complete' : ''}`} aria-label="玩法会话">
       <div className="gameplay-session-panel__header">
-        <div>
+        <div className="gameplay-session-panel__identity">
           <span className="mini-label">{completed ? labels.completeLabel : labels.activeLabel}</span>
+          {gameplayTitle ? <span className="gameplay-session-panel__title">{gameplayTitle}</span> : null}
           <strong>{progress.total ? `${progressStep} / ${progress.total} · ${progress.stages[Math.max(0, progressStep - 1)]?.label || '推进中'}` : (completed ? '已完成' : `第 ${Number(session.turn_count || 0) + 1} 步`)}</strong>
         </div>
         {!completed ? (

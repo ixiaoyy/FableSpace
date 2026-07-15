@@ -140,7 +140,7 @@ const accentClasses: Record<string, { active: string; chip: string; icon: string
     glow: "from-amber-300/22 via-transparent to-cyan-300/10",
   },
   cyan: {
-    active: "border-cyan-300/65 bg-cyan-300/14 text-cyan-50 shadow-[0_0_28px_rgba(34,211,238,0.16)]",
+    active: "border-cyan-300/65 bg-cyan-300/14 text-cyan-50 shadow-[0_0_28px_rgba(244,114,182,0.16)]",
     chip: "border-cyan-300/24 bg-cyan-300/10 text-cyan-100",
     icon: "border-cyan-300/30 bg-cyan-300/12 text-cyan-100",
     glow: "from-cyan-300/22 via-transparent to-fuchsia-300/10",
@@ -599,7 +599,7 @@ function LobbyLayout(props: LayoutProps) {
                 </ul>
               </div>
               <div className="rounded-3xl border border-cyan-300/20 bg-slate-950/60 p-4 backdrop-blur-md">
-                <div className="min-h-36 rounded-2xl border border-cyan-300/12 bg-[radial-gradient(circle_at_62%_42%,rgba(34,211,238,0.45),transparent_4rem),linear-gradient(135deg,rgba(8,47,73,0.86),rgba(15,23,42,0.86))] p-4">
+                <div className="min-h-36 rounded-2xl border border-cyan-300/12 bg-[radial-gradient(circle_at_62%_42%,rgba(244,114,182,0.45),transparent_4rem),linear-gradient(135deg,rgba(8,47,73,0.86),rgba(15,23,42,0.86))] p-4">
                   <MapPinned className="h-9 w-9 text-cyan-100" />
                   <p className="mt-6 text-sm font-black text-white">{space.address || "真实坐标锚点"}</p>
                   <p className="mt-1 text-xs text-cyan-100/74">{stats.location}</p>

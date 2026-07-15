@@ -8,6 +8,7 @@ from ...contracts.owner_config import (
     OwnerDefaultLLMRequest,
     SpaceDraftGenerateRequest,
 )
+from .auth import CREATOR_CAPABILITY, require_session_capability
 from .common import get_user_id, spaces_service
 
 router = APIRouter(prefix="/owners", tags=["owners"])
@@ -23,6 +24,7 @@ def save_owner_default_llm(
     request: Request,
     data: OwnerDefaultLLMRequest,
 ) -> dict[str, Any]:
+    require_session_capability(request, CREATOR_CAPABILITY)
     return spaces_service(request).save_owner_default_llm(data.to_payload(), get_user_id(request))
 
 
@@ -43,4 +45,5 @@ def generate_space_draft(
     Side effects:
         May call the configured owner LLM through the application service.
     """
+    require_session_capability(request, CREATOR_CAPABILITY)
     return spaces_service(request).generate_tavern_draft(data.to_payload(), get_user_id(request))

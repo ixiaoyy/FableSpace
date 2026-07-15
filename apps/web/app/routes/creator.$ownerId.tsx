@@ -165,7 +165,7 @@ export default function CreatorRoute() {
 
         {/* Main content */}
         <section className="relative min-h-[620px] overflow-hidden rounded-[2.2rem] border border-theme-border bg-theme-card p-5 shadow-2xl shadow-black/30 backdrop-blur-xl">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_24%_28%,rgba(0,214,201,0.24),transparent_17rem),radial-gradient(circle_at_74%_68%,rgba(217,70,239,0.20),transparent_20rem)]" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_24%_28%,rgba(244,114,182,0.24),transparent_17rem),radial-gradient(circle_at_74%_68%,rgba(217,70,239,0.20),transparent_20rem)]" />
           <div className="absolute inset-5 rounded-[1.8rem] border border-theme-accent-border bg-[linear-gradient(rgba(255,255,255,0.035)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.035)_1px,transparent_1px)] bg-[size:44px_44px]" />
           <div className="relative flex flex-col gap-5">
             <div className="flex flex-col gap-4 rounded-[1.75rem] border border-theme-border bg-theme-card p-5 backdrop-blur-md sm:flex-row sm:items-center sm:justify-between">

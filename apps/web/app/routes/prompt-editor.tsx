@@ -10,6 +10,7 @@ import {
   type Space,
   type SpaceCharacter,
 } from "../lib/spaces"
+import { requireCreatorTools, resolveCurrentSessionUserId } from "../lib/session"
 import { matchesPublicReference, promptEditorPath, redirectPathForRequest, spaceManagePath } from "../lib/web-routes"
 import { ProductShell } from "../shell/product-shell"
 import PromptBlockEditor from "../product/PromptBlockEditor"
@@ -33,9 +34,10 @@ function getOwnerIdFromRequest(request: Request) {
 }
 
 export async function clientLoader({ params, request }: ClientLoaderFunctionArgs): Promise<PromptEditorLoaderData> {
+  await requireCreatorTools()
   const spaceRef = params.spaceRef ?? ""
   const characterRef = params.characterRef ?? ""
-  const currentUserId = getOwnerIdFromRequest(request)
+  const currentUserId = await resolveCurrentSessionUserId(getOwnerIdFromRequest(request))
 
   if (!spaceRef || !characterRef) {
     return { spaceId: "", characterId: "", currentUserId, space: null, character: null, error: "缺少空间或角色引用" }

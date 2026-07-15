@@ -11,6 +11,7 @@ from ...contracts.runtime import (
     VoiceGreetingPreviewRequest,
     VisualSouvenirPreviewRequest,
 )
+from .auth import CREATOR_CAPABILITY, require_session_capability
 from .common import get_user_id, spaces_service
 
 llm_router = APIRouter(prefix="/llm", tags=["llm"])
@@ -19,6 +20,7 @@ router = APIRouter(prefix="/spaces", tags=["runtime"])
 
 @llm_router.post("/test-config")
 def test_llm_config(request: Request, data: LLMConfigTestRequest) -> dict[str, Any]:
+    require_session_capability(request, CREATOR_CAPABILITY)
     return spaces_service(request).test_llm_config(data.to_payload())
 
 
@@ -37,6 +39,7 @@ def test_space_llm(request: Request, space_id: str, data: LLMConfigTestRequest) 
     Side effects:
         May send a short validation request to the selected LLM provider.
     """
+    require_session_capability(request, CREATOR_CAPABILITY)
     return spaces_service(request).test_tavern_llm(space_id, data.to_payload(), get_user_id(request))
 
 
@@ -47,6 +50,7 @@ def get_voice_config(request: Request, space_id: str) -> dict[str, Any]:
 
 @router.put("/{space_id}/voice")
 def save_voice_config(request: Request, space_id: str, data: VoiceConfigRequest) -> dict[str, Any]:
+    require_session_capability(request, CREATOR_CAPABILITY)
     return spaces_service(request).save_voice_config(space_id, data.to_payload(), get_user_id(request))
 
 

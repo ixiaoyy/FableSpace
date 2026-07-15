@@ -52,11 +52,11 @@ const NPC_VISUAL_STYLES: NpcVisualStyle[] = [
     label: "雨衣机能服 · 霓虹目镜",
     spaceCue: "雨夜窗、故障招牌、湿地面反光和低频蓝紫光。",
     portraitCue: "适合夜班主持、机修师、末班站台或硬核都市 NPC。",
-    accent: "#22d3ee",
-    accentSoft: "rgba(34, 211, 238, 0.18)",
+    accent: "#f472b6",
+    accentSoft: "rgba(244,114,182, 0.18)",
     secondary: "#c084fc",
     surface: "linear-gradient(135deg, rgba(8, 47, 73, 0.98), rgba(30, 27, 75, 0.9))",
-    backdrop: "radial-gradient(circle at 78% 18%, rgba(34, 211, 238, 0.32), transparent 32%), linear-gradient(135deg, rgba(4, 8, 20, 0.96), rgba(30, 12, 54, 0.94))",
+    backdrop: "radial-gradient(circle at 78% 18%, rgba(244,114,182, 0.32), transparent 32%), linear-gradient(135deg, rgba(4, 8, 20, 0.96), rgba(30, 12, 54, 0.94))",
     body: "linear-gradient(160deg, #082f49 0%, #111827 46%, #581c87 100%)",
     badge: "霓",
     preferredArchetypes: ["guardian", "wanderer", "merchant"],
@@ -101,7 +101,7 @@ const NPC_VISUAL_STYLES: NpcVisualStyle[] = [
 
 const DEFAULT_STYLE = NPC_VISUAL_STYLES[0]
 const NPC_PORTRAIT_FRAME_CLASS =
-  "relative mx-auto aspect-square w-full max-w-[16rem] overflow-hidden rounded-[1.75rem] border border-white/18 shadow-[0_0_34px_rgba(34,211,238,0.16)]"
+  "relative mx-auto aspect-square w-full max-w-[16rem] overflow-hidden rounded-[1.75rem] border border-white/18 shadow-[0_0_34px_rgba(244,114,182,0.16)]"
 
 interface SpaceNpcStageProps {
   space: Space

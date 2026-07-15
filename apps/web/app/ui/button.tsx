@@ -5,11 +5,11 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "../lib/utils"
 
 const buttonVariants = cva(
-  "inline-flex min-h-11 touch-manipulation items-center justify-center gap-2 rounded-full text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300 disabled:pointer-events-none disabled:opacity-50",
+  "inline-flex min-h-11 touch-manipulation items-center justify-center gap-2 rounded-xl text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--theme-accent-border)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--theme-bg)] disabled:pointer-events-none disabled:opacity-50",
   {
     variants: {
       variant: {
-        primary: "border border-[var(--btn-primary-border)] bg-[var(--btn-primary-bg)] px-5 py-2.5 text-[var(--btn-primary-text)] shadow-[0_0_28px_rgba(0,214,201,0.1)] dark:shadow-[0_0_28px_rgba(0,214,201,0.18)] hover:bg-[var(--btn-primary-hover)]",
+        primary: "border border-[var(--btn-primary-border)] bg-[var(--btn-primary-bg)] px-5 py-2.5 text-[var(--btn-primary-text)] shadow-[0_10px_30px_var(--theme-glow)] hover:bg-[var(--btn-primary-hover)]",
         secondary: "border border-[var(--btn-secondary-border)] bg-[var(--btn-secondary-bg)] px-5 py-2.5 text-[var(--btn-secondary-text)] hover:bg-[var(--btn-secondary-hover)]",
         ghost: "px-3 py-2 text-[var(--btn-ghost-text)] hover:bg-[var(--btn-ghost-hover)] hover:text-[var(--theme-primary)]",
       },

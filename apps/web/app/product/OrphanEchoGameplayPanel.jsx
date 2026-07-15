@@ -155,7 +155,7 @@ export default function OrphanEchoGameplayPanel({
   return (
     <section className="oe-terminal" aria-label="Orphan Echo Console">
       <div className="oe-terminal-content">
-        <header className="oe-footer" style={{ borderBottom: '1px solid var(--oe-border)', background: 'rgba(34, 211, 238, 0.08)', padding: '4px 12px' }}>
+        <header className="oe-footer" style={{ borderBottom: '1px solid var(--oe-border)', background: 'rgba(244,114,182, 0.08)', padding: '4px 12px' }}>
           <div className="oe-label" style={{ fontSize: '0.6rem' }}>
             <span style={{ color: '#fff' }}>COORD:</span> {session?.space?.lat?.toFixed(4) || '??.????'}N / {session?.space?.lon?.toFixed(4) || '??.????'}E
           </div>
@@ -239,7 +239,7 @@ export default function OrphanEchoGameplayPanel({
           </aside>
 
           {/* COMMS Column */}
-          <main className="oe-column" style={{ background: 'rgba(34, 211, 238, 0.02)' }}>
+          <main className="oe-column" style={{ background: 'rgba(244,114,182, 0.02)' }}>
             <div className="oe-label">COMMS</div>
             <div className="oe-comms-display">
               {booting ? (

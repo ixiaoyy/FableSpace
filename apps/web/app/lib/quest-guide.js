@@ -1,4 +1,4 @@
-import { WEB_PATHS } from "./web-routes"
+import { spacePath, WEB_PATHS } from "./web-routes"
 
 const QUEST_TYPES = {
   exploration: '探索引导',
@@ -49,11 +49,11 @@ export const PLATFORM_QUEST_GUIDES = [
     title: '试一间探索玩法空间',
     type: 'gameplay',
     icon: '📜',
-    description: '体验店主发布的轻量文本玩法；只记录完成与回访提示，不引入战斗、数值成长或竞赛榜单。',
+    description: '体验店主发布的轻量文本玩法；玩法会话只属于当前访客和所在空间。',
     ctaLabel: '寻找玩法空间',
     ctaTo: WEB_PATHS.spaces,
     echoLabel: '玩法空间',
-    helperText: '玩法入口只做轻量文本互动和回访提示，不做等级、装备、奖励或访客竞争。',
+    helperText: '玩法入口只做轻量文本互动和回访提示，不做等级、装备或访客竞争。',
     measure: ({ questPlaySpaces }) => questPlaySpaces,
   },
   {
@@ -75,43 +75,76 @@ function asArray(value) {
 }
 
 function isPublishedGameplay(definition) {
-  return definition && typeof definition === 'object' && definition.status === 'published'
+  return Boolean(
+    definition &&
+    typeof definition === 'object' &&
+    definition.status === 'published' &&
+    String(definition.id || '').trim()
+  )
 }
 
 function questPlayCandidate(space = {}) {
-  if (space.layout_style === 'quest-play') return true
   return asArray(space.gameplay_definitions).some(isPublishedGameplay)
 }
 
 export function buildQuestGuideSummary({ spaces = [], ownerId = '' } = {}) {
   const safeSpaces = asArray(spaces)
-  const openSpaces = safeSpaces.filter((space) => space.status === 'open' && space.access !== 'private')
+  const openSpaces = safeSpaces.filter((space) => (
+    space.status === 'open' &&
+    space.access === 'public' &&
+    space.is_open !== false
+  ))
+  const playableGameplays = openSpaces
+    .flatMap((space) => asArray(space.gameplay_definitions)
+      .filter(isPublishedGameplay)
+      .map((definition) => ({ space, definition })))
+    .sort((left, right) => {
+      const nodeDifference = asArray(right.definition.nodes).length - asArray(left.definition.nodes).length
+      if (nodeDifference) return nodeDifference
+      return `${left.space.id}:${left.definition.id}`.localeCompare(`${right.space.id}:${right.definition.id}`)
+    })
+  const featuredGameplay = playableGameplays[0] || null
   const metrics = {
     spaces: safeSpaces.length,
     openSpaces: openSpaces.length,
     npcCount: openSpaces.reduce((sum, space) => sum + asArray(space.characters).length, 0),
     questPlaySpaces: openSpaces.filter(questPlayCandidate).length,
+    publishedGameplays: playableGameplays.length,
     ownerSpaces: ownerId ? safeSpaces.filter((space) => space.owner_id === ownerId).length : 0,
   }
 
   const quests = PLATFORM_QUEST_GUIDES.map((quest) => {
     const current = Math.max(0, Number(quest.measure(metrics)) || 0)
+    const directGameplay = quest.id === 'try-quest-play-space' ? featuredGameplay : null
+    const gameplayTitle = String(directGameplay?.definition?.title || directGameplay?.definition?.name || '').trim()
+    const gameplaySummary = String(
+      directGameplay?.definition?.summary || directGameplay?.definition?.description || '',
+    ).trim()
+    const gameplayId = String(directGameplay?.definition?.id || '').trim()
+    const directGameplayPath = directGameplay
+      ? `${spacePath(directGameplay.space)}?gameplay_id=${encodeURIComponent(gameplayId)}#空间主线`
+      : ''
+
     return {
       id: quest.id,
-      title: quest.title,
+      title: directGameplay ? gameplayTitle || quest.title : quest.title,
       type: quest.type,
       typeLabel: QUEST_TYPES[quest.type] || quest.type,
       icon: quest.icon,
-      description: quest.description,
-      ctaLabel: quest.ctaLabel,
-      ctaTo: quest.ctaTo,
-      echoLabel: quest.echoLabel,
-      echoCount: current,
+      description: directGameplay
+        ? `${directGameplay.space.name}：${gameplaySummary || '进入空间后，从店主发布的第一幕开始。'}`
+        : quest.description,
+      ctaLabel: directGameplay ? '开始这个玩法' : quest.ctaLabel,
+      ctaTo: directGameplay ? directGameplayPath : quest.ctaTo,
+      echoLabel: directGameplay ? '当前已发布玩法' : quest.echoLabel,
+      echoCount: directGameplay ? metrics.publishedGameplays : current,
       availability: current > 0 ? 'ready' : 'guide',
-      availabilityLabel: current > 0 ? '已有可参考入口' : '建议从这里开始',
-      helperText: quest.helperText,
+      availabilityLabel: directGameplay ? '可直接开始' : current > 0 ? '已有可参考入口' : '建议从这里开始',
+      helperText: directGameplay
+        ? `来自「${directGameplay.space.name}」；进入后会从第一幕开始，已有进度则继续。`
+        : quest.helperText,
     }
-  })
+  }).sort((left, right) => Number(right.availabilityLabel === '可直接开始') - Number(left.availabilityLabel === '可直接开始'))
 
   return {
     metrics,

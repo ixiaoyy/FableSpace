@@ -11,6 +11,7 @@ from ...contracts.memories import (
     MemorySummarizeRequest,
     MemoryTruncateRequest,
 )
+from .auth import CREATOR_CAPABILITY, require_session_capability
 from .common import get_user_id, spaces_service
 
 router = APIRouter(prefix="/spaces", tags=["memories"])
@@ -88,7 +89,17 @@ def list_memory_atoms(
 
 @router.post("/{space_id}/memory-atoms")
 def create_memory_atom(request: Request, space_id: str, data: MemoryAtomWriteRequest) -> dict[str, Any]:
-    return spaces_service(request).create_memory_atom(space_id, data.to_payload(), get_user_id(request))
+    payload = data.to_payload()
+    user_id = get_user_id(request)
+    scope = str(payload.get("scope") or "visitor_tavern").strip()
+    visitor_id = str(payload.get("visitor_id") or payload.get("subject") or user_id).strip()
+    owner_operation = scope in {"tavern_public", "place"} or (visitor_id and visitor_id != user_id)
+    service = spaces_service(request)
+    if owner_operation:
+        require_session_capability(request, CREATOR_CAPABILITY)
+        if request.app.state.settings.auth_mode == "parallellines":
+            service._ensure_owner(service._get_tavern_or_404(space_id), user_id)
+    return service.create_memory_atom(space_id, payload, user_id)
 
 
 @router.get("/{space_id}/memory-atoms/{memory_id}")
@@ -103,7 +114,31 @@ def update_memory_atom(
     memory_id: str,
     data: MemoryAtomWriteRequest,
 ) -> dict[str, Any]:
-    return spaces_service(request).update_memory_atom(space_id, memory_id, data.to_payload(), get_user_id(request))
+    service = spaces_service(request)
+    user_id = get_user_id(request)
+    atom = service.store.get_memory_atom(space_id, memory_id)
+    payload = data.to_payload()
+    target_scope = str(payload.get("scope") or (atom.scope if atom else "")).strip()
+    target_visibility = str(payload.get("visibility") or (atom.visibility if atom else "private")).strip()
+    target_visitor_id = str(
+        payload.get("visitor_id") if "visitor_id" in payload else (atom.visitor_id if atom else "")
+    ).strip()
+    if not target_visitor_id and target_visibility == "private":
+        target_visitor_id = user_id
+    if not target_visitor_id and target_scope.startswith("visitor_"):
+        target_subject = payload.get("subject") if "subject" in payload else (atom.subject if atom else "")
+        target_visitor_id = str(target_subject or user_id).strip()
+    owner_operation = bool(atom) and (
+        not atom.scope.startswith("visitor_")
+        or ((atom.visitor_id or atom.subject) and (atom.visitor_id or atom.subject) != user_id)
+    )
+    owner_operation = owner_operation or target_scope in {"tavern_public", "place"}
+    owner_operation = owner_operation or bool(target_visitor_id and target_visitor_id != user_id)
+    if owner_operation:
+        require_session_capability(request, CREATOR_CAPABILITY)
+        if request.app.state.settings.auth_mode == "parallellines":
+            service._ensure_owner(service._get_tavern_or_404(space_id), user_id)
+    return service.update_memory_atom(space_id, memory_id, payload, user_id)
 
 
 @router.post("/{space_id}/memory-atoms/{memory_id}/feedback")
@@ -113,9 +148,31 @@ def feedback_memory_atom(
     memory_id: str,
     data: MemoryAtomFeedbackRequest,
 ) -> dict[str, Any]:
-    return spaces_service(request).feedback_memory_atom(space_id, memory_id, data.to_payload(), get_user_id(request))
+    service = spaces_service(request)
+    user_id = get_user_id(request)
+    atom = service.store.get_memory_atom(space_id, memory_id)
+    owner_operation = bool(atom) and (
+        not atom.scope.startswith("visitor_")
+        or ((atom.visitor_id or atom.subject) and (atom.visitor_id or atom.subject) != user_id)
+    )
+    if owner_operation:
+        require_session_capability(request, CREATOR_CAPABILITY)
+        if request.app.state.settings.auth_mode == "parallellines":
+            service._ensure_owner(service._get_tavern_or_404(space_id), user_id)
+    return service.feedback_memory_atom(space_id, memory_id, data.to_payload(), user_id)
 
 
 @router.delete("/{space_id}/memory-atoms/{memory_id}")
 def delete_memory_atom(request: Request, space_id: str, memory_id: str) -> dict[str, Any]:
-    return spaces_service(request).delete_memory_atom(space_id, memory_id, get_user_id(request))
+    service = spaces_service(request)
+    user_id = get_user_id(request)
+    atom = service.store.get_memory_atom(space_id, memory_id)
+    owner_operation = bool(atom) and (
+        not atom.scope.startswith("visitor_")
+        or ((atom.visitor_id or atom.subject) and (atom.visitor_id or atom.subject) != user_id)
+    )
+    if owner_operation:
+        require_session_capability(request, CREATOR_CAPABILITY)
+        if request.app.state.settings.auth_mode == "parallellines":
+            service._ensure_owner(service._get_tavern_or_404(space_id), user_id)
+    return service.delete_memory_atom(space_id, memory_id, user_id)

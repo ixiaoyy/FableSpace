@@ -5,6 +5,7 @@ from typing import Any
 from fastapi import APIRouter, Body, Request
 
 from ...contracts.gameplay import GameplaySessionRequest, GameplayWriteRequest
+from .auth import CREATOR_CAPABILITY, require_session_capability
 from .common import get_user_id, spaces_service
 
 router = APIRouter(prefix="/spaces", tags=["gameplay"])
@@ -17,6 +18,7 @@ def list_gameplays(request: Request, space_id: str) -> dict[str, Any]:
 
 @router.put("/{space_id}/gameplays")
 def save_gameplays(request: Request, space_id: str, data: GameplayWriteRequest) -> dict[str, Any]:
+    require_session_capability(request, CREATOR_CAPABILITY)
     return spaces_service(request).save_gameplays(space_id, data.to_payload(), get_user_id(request))
 
 
@@ -47,9 +49,19 @@ def advance_gameplay_session(
     session_id: str,
     data: dict[str, Any] = Body(default_factory=dict),
 ) -> dict[str, Any]:
-    return spaces_service(request).advance_gameplay_session(space_id, session_id, data, get_user_id(request))
+    service = spaces_service(request)
+    user_id = get_user_id(request)
+    session = service.store.get_gameplay_session(space_id, session_id)
+    if session and session.visitor_id != user_id:
+        require_session_capability(request, CREATOR_CAPABILITY)
+    return service.advance_gameplay_session(space_id, session_id, data, user_id)
 
 
 @router.post("/{space_id}/gameplay-sessions/{session_id}/abandon")
 def abandon_gameplay_session(request: Request, space_id: str, session_id: str) -> dict[str, Any]:
-    return spaces_service(request).abandon_gameplay_session(space_id, session_id, get_user_id(request))
+    service = spaces_service(request)
+    user_id = get_user_id(request)
+    session = service.store.get_gameplay_session(space_id, session_id)
+    if session and session.visitor_id != user_id:
+        require_session_capability(request, CREATOR_CAPABILITY)
+    return service.abandon_gameplay_session(space_id, session_id, user_id)

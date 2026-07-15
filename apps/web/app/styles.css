@@ -2,6 +2,20 @@
 
 @theme {
   --font-sans: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+
+  /* Legacy cyan utilities are the product accent. Keep the utility contract while
+   * moving every existing screen onto the shared cyber-violet / hot-pink palette. */
+  --color-cyan-50: oklch(0.97 0.025 344);
+  --color-cyan-100: oklch(0.93 0.055 344);
+  --color-cyan-200: oklch(0.86 0.11 345);
+  --color-cyan-300: oklch(0.78 0.17 346);
+  --color-cyan-400: oklch(0.7 0.23 348);
+  --color-cyan-500: oklch(0.63 0.27 350);
+  --color-cyan-600: oklch(0.55 0.25 352);
+  --color-cyan-700: oklch(0.47 0.21 354);
+  --color-cyan-800: oklch(0.39 0.16 356);
+  --color-cyan-900: oklch(0.31 0.11 358);
+  --color-cyan-950: oklch(0.22 0.07 0);
   
   --color-theme-bg: var(--theme-bg);
   --color-theme-header: var(--theme-header);
@@ -13,37 +27,40 @@
   --color-theme-accent-border: var(--theme-accent-border);
   --color-theme-accent-text: var(--theme-accent-text);
   
-  --color-anime-blue: #4f46e5;
-  --color-anime-pink: #ec4899;
-  --color-anime-gold: #fbbf24;
+  --color-anime-blue: oklch(0.58 0.24 293);
+  --color-anime-pink: oklch(0.65 0.27 350);
+  --color-anime-gold: oklch(0.8 0.16 82);
 }
 
 @layer base {
   :root {
-    /* Default is dark theme */
+    /* Cyber violet is the shared product surface; pink marks play and interaction. */
     color-scheme: dark;
-    --theme-bg: #030512;
-    --theme-header: rgba(5, 6, 21, 0.9);
-    --theme-card: rgba(255, 255, 255, 0.045);
-    --theme-primary: #f5f3ff;
-    --theme-muted: rgba(237, 233, 254, 0.45);
-    --theme-border: rgba(255, 255, 255, 0.1);
-    --theme-accent-bg: rgba(103, 232, 249, 0.15);
-    --theme-accent-border: rgba(103, 232, 249, 0.6);
-    --theme-accent-text: #67e8f9;
+    --theme-bg: oklch(0.12 0.035 305);
+    --theme-header: oklch(0.15 0.045 310 / 0.92);
+    --theme-card: oklch(0.19 0.05 314 / 0.86);
+    --theme-primary: oklch(0.96 0.018 328);
+    --theme-muted: oklch(0.76 0.045 318);
+    --theme-border: oklch(0.72 0.12 326 / 0.2);
+    --theme-accent-bg: oklch(0.65 0.27 350 / 0.14);
+    --theme-accent-border: oklch(0.72 0.23 348 / 0.7);
+    --theme-accent-text: oklch(0.84 0.15 346);
+    --theme-glow: oklch(0.65 0.27 350 / 0.2);
+    --theme-violet-glow: oklch(0.58 0.24 293 / 0.24);
+    --theme-shadow: oklch(0.06 0.03 300 / 0.48);
     
-    --btn-primary-bg: rgba(103, 232, 249, 0.15);
-    --btn-primary-border: rgba(103, 232, 249, 0.7);
-    --btn-primary-text: #f5f3ff;
-    --btn-primary-hover: rgba(103, 232, 249, 0.25);
+    --btn-primary-bg: oklch(0.65 0.27 350);
+    --btn-primary-border: oklch(0.76 0.2 346 / 0.85);
+    --btn-primary-text: oklch(0.13 0.035 310);
+    --btn-primary-hover: oklch(0.71 0.24 348);
     
-    --btn-secondary-bg: rgba(255, 255, 255, 0.08);
-    --btn-secondary-border: rgba(255, 255, 255, 0.15);
-    --btn-secondary-text: #ede9fe;
-    --btn-secondary-hover: rgba(255, 255, 255, 0.12);
+    --btn-secondary-bg: oklch(0.27 0.1 303 / 0.62);
+    --btn-secondary-border: oklch(0.68 0.17 302 / 0.42);
+    --btn-secondary-text: oklch(0.91 0.06 320);
+    --btn-secondary-hover: oklch(0.33 0.13 307 / 0.76);
     
-    --btn-ghost-text: rgba(237, 233, 254, 0.75);
-    --btn-ghost-hover: rgba(255, 255, 255, 0.1);
+    --btn-ghost-text: oklch(0.8 0.055 319);
+    --btn-ghost-hover: oklch(0.65 0.27 350 / 0.1);
     
     background: var(--theme-bg);
     color: var(--theme-primary);
@@ -51,28 +68,31 @@
 
   .light {
     color-scheme: light;
-    --theme-bg: #f8fafc;
-    --theme-header: rgba(255, 255, 255, 0.8);
-    --theme-card: #ffffff;
-    --theme-primary: #0f172a;
-    --theme-muted: #475569;
-    --theme-border: rgba(15, 23, 42, 0.08);
-    --theme-accent-bg: rgba(59, 130, 246, 0.08);
-    --theme-accent-border: #818cf8;
-    --theme-accent-text: #4338ca;
+    --theme-bg: oklch(0.97 0.02 326);
+    --theme-header: oklch(0.99 0.012 330 / 0.88);
+    --theme-card: oklch(0.995 0.008 330 / 0.94);
+    --theme-primary: oklch(0.25 0.09 305);
+    --theme-muted: oklch(0.46 0.07 314);
+    --theme-border: oklch(0.53 0.17 318 / 0.2);
+    --theme-accent-bg: oklch(0.65 0.27 350 / 0.09);
+    --theme-accent-border: oklch(0.63 0.24 349 / 0.58);
+    --theme-accent-text: oklch(0.46 0.22 351);
+    --theme-glow: oklch(0.65 0.27 350 / 0.15);
+    --theme-violet-glow: oklch(0.58 0.24 293 / 0.14);
+    --theme-shadow: oklch(0.3 0.1 310 / 0.14);
 
-    --btn-primary-bg: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
-    --btn-primary-border: #4f46e5;
-    --btn-primary-text: #ffffff;
-    --btn-primary-hover: #4338ca;
+    --btn-primary-bg: oklch(0.57 0.25 351);
+    --btn-primary-border: oklch(0.52 0.24 352);
+    --btn-primary-text: oklch(0.99 0.006 330);
+    --btn-primary-hover: oklch(0.51 0.24 352);
 
-    --btn-secondary-bg: rgba(255, 255, 255, 0.9);
-    --btn-secondary-border: #c7d2fe;
-    --btn-secondary-text: #4f46e5;
-    --btn-secondary-hover: #e0e7ff;
+    --btn-secondary-bg: oklch(0.99 0.01 330 / 0.92);
+    --btn-secondary-border: oklch(0.67 0.15 305 / 0.38);
+    --btn-secondary-text: oklch(0.39 0.18 306);
+    --btn-secondary-hover: oklch(0.92 0.05 317);
 
-    --btn-ghost-text: #6366f1;
-    --btn-ghost-hover: rgba(99, 102, 241, 0.05);
+    --btn-ghost-text: oklch(0.43 0.17 315);
+    --btn-ghost-hover: oklch(0.65 0.27 350 / 0.07);
   }
 
   /* ── dvh / svh CSS Custom Properties with Fallback ──
@@ -124,7 +144,7 @@
     background: var(--theme-bg);
   }
   
-  /* Retain the glowing background blobs for dark mode, hidden in light mode */
+  /* The same two brand lights follow every route, preventing page-level palette drift. */
   body::before {
     content: '';
     position: fixed;
@@ -132,16 +152,16 @@
     pointer-events: none;
     z-index: -1;
     background:
-      radial-gradient(circle at 15% 15%, rgba(122, 92, 255, 0.26), transparent 28rem),
-      radial-gradient(circle at 80% 20%, rgba(0, 214, 201, 0.18), transparent 24rem),
-      linear-gradient(135deg, #080914 0%, #151026 100%);
+      radial-gradient(circle at 15% 12%, var(--theme-violet-glow), transparent 30rem),
+      radial-gradient(circle at 82% 18%, var(--theme-glow), transparent 25rem),
+      linear-gradient(135deg, oklch(0.1 0.035 302) 0%, oklch(0.16 0.055 320) 100%);
   }
   
   .light body::before {
     background:
-      radial-gradient(circle at 15% 15%, rgba(122, 92, 255, 0.05), transparent 28rem),
-      radial-gradient(circle at 80% 20%, rgba(0, 214, 201, 0.05), transparent 24rem),
-      linear-gradient(135deg, #f8f9fe 0%, #e2e8f0 100%);
+      radial-gradient(circle at 15% 12%, var(--theme-violet-glow), transparent 30rem),
+      radial-gradient(circle at 82% 18%, var(--theme-glow), transparent 25rem),
+      linear-gradient(135deg, oklch(0.98 0.016 318) 0%, oklch(0.94 0.035 335) 100%);
   }
 
   a {

@@ -17,13 +17,13 @@ export const DialogContent = React.forwardRef<
     <DialogPrimitive.Content
       ref={ref}
       className={cn(
-        "fixed left-1/2 top-1/2 z-50 w-[min(92vw,560px)] -translate-x-1/2 -translate-y-1/2 rounded-[2rem] border border-white/12 bg-slate-950 p-6 shadow-2xl shadow-black/40 focus:outline-none",
+        "fixed left-1/2 top-1/2 z-50 w-[min(92vw,560px)] -translate-x-1/2 -translate-y-1/2 rounded-[1.25rem] border border-theme-border bg-theme-card p-6 text-theme-primary shadow-[0_24px_80px_var(--theme-shadow)] backdrop-blur-xl focus:outline-none",
         className,
       )}
       {...props}
     >
       {children}
-      <DialogPrimitive.Close className="absolute right-5 top-5 rounded-full p-2 text-violet-100/60 hover:bg-white/10 hover:text-white">
+      <DialogPrimitive.Close className="absolute right-5 top-5 rounded-xl p-2 text-theme-muted transition hover:bg-theme-accent-bg hover:text-theme-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--theme-accent-border)]">
         <X className="h-4 w-4" />
         <span className="sr-only">关闭</span>
       </DialogPrimitive.Close>
@@ -40,7 +40,7 @@ export const DialogTitle = React.forwardRef<
   React.ElementRef<typeof DialogPrimitive.Title>,
   React.ComponentPropsWithoutRef<typeof DialogPrimitive.Title>
 >(({ className, ...props }, ref) => (
-  <DialogPrimitive.Title ref={ref} className={cn("text-2xl font-bold text-white", className)} {...props} />
+  <DialogPrimitive.Title ref={ref} className={cn("text-2xl font-bold text-theme-primary", className)} {...props} />
 ))
 DialogTitle.displayName = DialogPrimitive.Title.displayName
 
@@ -48,6 +48,6 @@ export const DialogDescription = React.forwardRef<
   React.ElementRef<typeof DialogPrimitive.Description>,
   React.ComponentPropsWithoutRef<typeof DialogPrimitive.Description>
 >(({ className, ...props }, ref) => (
-  <DialogPrimitive.Description ref={ref} className={cn("text-sm leading-6 text-violet-100/65", className)} {...props} />
+  <DialogPrimitive.Description ref={ref} className={cn("text-sm leading-6 text-theme-muted", className)} {...props} />
 ))
 DialogDescription.displayName = DialogPrimitive.Description.displayName

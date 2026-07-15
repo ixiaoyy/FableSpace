@@ -21,6 +21,7 @@ from ...contracts.homes import (
     HomeVisitResponse,
 )
 from ...infrastructure.home_store import get_home_store
+from .auth import CREATOR_CAPABILITY, require_session_capability
 from .common import get_user_id
 
 router = APIRouter(prefix="/homes", tags=["homes"])
@@ -44,6 +45,7 @@ def get_my_home(request: Request):
 @router.post("", response_model=dict[str, Any])
 def create_home(request: Request, data: HomeCreateRequest):
     """创建 Home"""
+    require_session_capability(request, CREATOR_CAPABILITY)
     user_id = get_user_id(request)
     home = _get_store().create_home(
         owner_id=user_id,
@@ -68,6 +70,7 @@ def get_home(request: Request, home_id: str):
 @router.patch("/{home_id}", response_model=dict[str, Any] | None)
 def update_home(request: Request, home_id: str, data: HomeUpdateRequest):
     """更新 Home"""
+    require_session_capability(request, CREATOR_CAPABILITY)
     user_id = get_user_id(request)
     home = _get_store().get_home(home_id)
 
@@ -94,6 +97,7 @@ def update_home(request: Request, home_id: str, data: HomeUpdateRequest):
 @router.delete("/{home_id}")
 def delete_home(request: Request, home_id: str):
     """删除 Home"""
+    require_session_capability(request, CREATOR_CAPABILITY)
     user_id = get_user_id(request)
     home = _get_store().get_home(home_id)
 
@@ -125,6 +129,7 @@ def list_homes(request: Request):
 @router.post("/{home_id}/members", response_model=dict[str, Any] | None)
 def add_member(request: Request, home_id: str, data: HomeMemberWriteRequest):
     """添加 Home 成员"""
+    require_session_capability(request, CREATOR_CAPABILITY)
     user_id = get_user_id(request)
     home = _get_store().get_home(home_id)
 
@@ -144,6 +149,7 @@ def add_member(request: Request, home_id: str, data: HomeMemberWriteRequest):
 @router.patch("/{home_id}/members/{member_id}", response_model=dict[str, Any] | None)
 def update_member(request: Request, home_id: str, member_id: str, data: HomeMemberWriteRequest):
     """更新 Home 成员"""
+    require_session_capability(request, CREATOR_CAPABILITY)
     user_id = get_user_id(request)
     home = _get_store().get_home(home_id)
 
@@ -163,6 +169,7 @@ def update_member(request: Request, home_id: str, member_id: str, data: HomeMemb
 @router.delete("/{home_id}/members/{member_id}")
 def remove_member(request: Request, home_id: str, member_id: str):
     """移除 Home 成员"""
+    require_session_capability(request, CREATOR_CAPABILITY)
     user_id = get_user_id(request)
     home = _get_store().get_home(home_id)
 
@@ -184,7 +191,8 @@ def remove_member(request: Request, home_id: str, member_id: str):
 @router.post("/{home_id}/visit", response_model=HomeVisitResponse)
 def visit_home(request: Request, home_id: str, data: HomeVisitRequest):
     """拜访 Home"""
-    visitor_id = data.visitor_id or get_user_id(request)
+    user_id = get_user_id(request)
+    visitor_id = str(data.visitor_id or user_id).strip()
     home = _get_store().get_home(home_id)
 
     if not home:
@@ -196,6 +204,12 @@ def visit_home(request: Request, home_id: str, data: HomeVisitRequest):
             can_enter=False,
             message="Home not found",
         )
+
+    if visitor_id != user_id:
+        require_session_capability(request, CREATOR_CAPABILITY)
+        if request.app.state.settings.auth_mode == "parallellines" and home.owner_id != user_id:
+            from fastapi import HTTPException, status
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized")
 
     # 检查是否可以进入
     can_enter = home.status == "open"

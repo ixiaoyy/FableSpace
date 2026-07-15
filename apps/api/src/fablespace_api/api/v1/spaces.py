@@ -16,6 +16,7 @@ from ...contracts.spaces import (
     VisitorNoteCreateRequest,
     VisitorNoteListResponse,
 )
+from .auth import CREATOR_CAPABILITY, require_session_capability
 from .common import get_user_id, spaces_service
 
 router = APIRouter(prefix="/spaces", tags=["spaces"])
@@ -55,6 +56,7 @@ def list_spaces(
 
 @router.post("")
 def create_space(request: Request, data: SpaceCreateRequest) -> dict[str, Any]:
+    require_session_capability(request, CREATOR_CAPABILITY)
     return spaces_service(request).create_space(data.to_payload(), get_user_id(request))
 
 
@@ -86,16 +88,19 @@ def get_space_share(request: Request, space_id: str) -> dict[str, Any]:
 
 @router.put("/{space_id}")
 def update_space(request: Request, space_id: str, data: SpaceUpdateRequest) -> dict[str, Any]:
+    require_session_capability(request, CREATOR_CAPABILITY)
     return spaces_service(request).update_space(space_id, data.to_payload(), get_user_id(request))
 
 
 @router.delete("/{space_id}")
 def delete_space(request: Request, space_id: str) -> dict[str, Any]:
+    require_session_capability(request, CREATOR_CAPABILITY)
     return spaces_service(request).delete_space(space_id, get_user_id(request))
 
 
 @router.post("/{space_id}/home-members")
 def add_home_member(request: Request, space_id: str, data: HomeMemberWriteRequest) -> dict[str, Any]:
+    require_session_capability(request, CREATOR_CAPABILITY)
     return spaces_service(request).add_home_member(space_id, data.to_payload(), get_user_id(request))
 
 
@@ -106,11 +111,13 @@ def list_school_members(request: Request, space_id: str) -> dict[str, Any]:
 
 @router.post("/{space_id}/relationships/school-enrollments")
 def create_school_enrollment(request: Request, space_id: str, data: SchoolEnrollmentRequest) -> dict[str, Any]:
+    require_session_capability(request, CREATOR_CAPABILITY)
     return spaces_service(request).create_school_enrollment(space_id, data.to_payload(), get_user_id(request))
 
 
 @router.post("/{space_id}/relationships")
 def create_place_relationship(request: Request, space_id: str, data: PlaceRelationshipRequest) -> dict[str, Any]:
+    require_session_capability(request, CREATOR_CAPABILITY)
     return spaces_service(request).create_place_relationship(space_id, data.to_payload(), get_user_id(request))
 
 
@@ -121,6 +128,7 @@ def decide_place_relationship(
     relationship_id: str,
     data: RelationshipDecisionRequest,
 ) -> dict[str, Any]:
+    require_session_capability(request, CREATOR_CAPABILITY)
     return spaces_service(request).decide_place_relationship(
         space_id,
         relationship_id,
@@ -234,8 +242,14 @@ def delete_visitor_note(
     space_id: str,
     note_id: str,
 ) -> dict[str, Any]:
-    return spaces_service(request).delete_visitor_note(
+    service = spaces_service(request)
+    user_id = get_user_id(request)
+    note_store = service.visitor_note_store
+    note = note_store.get_note(space_id, note_id) if note_store else None
+    if note and note.get("visitor_id") != user_id:
+        require_session_capability(request, CREATOR_CAPABILITY)
+    return service.delete_visitor_note(
         space_id,
         note_id,
-        get_user_id(request),
+        user_id,
     )

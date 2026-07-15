@@ -100,7 +100,7 @@ function RoleplayPanel({
   }
 
   return (
-    <Card className="relative min-w-0 overflow-hidden border-cyan-300/18 bg-[radial-gradient(circle_at_top_right,rgba(34,211,238,0.16),transparent_34%),linear-gradient(135deg,rgba(15,23,42,0.92),rgba(30,27,75,0.68))]">
+    <Card className="relative min-w-0 overflow-hidden border-cyan-300/18 bg-[radial-gradient(circle_at_top_right,rgba(244,114,182,0.16),transparent_34%),linear-gradient(135deg,rgba(15,23,42,0.92),rgba(30,27,75,0.68))]">
       <div className="pointer-events-none absolute inset-x-6 top-0 h-px bg-gradient-to-r from-transparent via-cyan-200/55 to-transparent" />
       <CardHeader className="relative">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
@@ -381,7 +381,7 @@ function PlayPackPanel({ space }: { space: Space }) {
 
             <section
               data-cultivation-breakthrough-preview
-              className="rounded-[1.75rem] border border-cyan-300/14 bg-[linear-gradient(180deg,rgba(34,211,238,0.08),rgba(15,23,42,0.34))] p-4"
+              className="rounded-[1.75rem] border border-cyan-300/14 bg-[linear-gradient(180deg,rgba(244,114,182,0.08),rgba(15,23,42,0.34))] p-4"
             >
               <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                 <div>
@@ -408,7 +408,7 @@ function PlayPackPanel({ space }: { space: Space }) {
                       </div>
                       <div className="mt-2 h-2 rounded-full bg-white/10">
                         <div
-                          className="h-full rounded-full bg-[linear-gradient(90deg,rgba(251,191,36,0.95),rgba(34,211,238,0.92),rgba(167,139,250,0.9))]"
+                          className="h-full rounded-full bg-[linear-gradient(90deg,rgba(251,191,36,0.95),rgba(244,114,182,0.92),rgba(167,139,250,0.9))]"
                           style={{ width: `${percent}%` }}
                         />
                       </div>
@@ -925,7 +925,7 @@ export function SpaceOwnerManagement({
 
   return (
     <div data-owner-only-panel data-space-owner-management-panels className="space-y-5">
-      <Card className="min-w-0 overflow-hidden border-cyan-300/18 bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.14),transparent_34%),rgba(15,23,42,0.74)]">
+      <Card className="min-w-0 overflow-hidden border-cyan-300/18 bg-[radial-gradient(circle_at_top_left,rgba(244,114,182,0.14),transparent_34%),rgba(15,23,42,0.74)]">
         <CardHeader>
           <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
             <div>

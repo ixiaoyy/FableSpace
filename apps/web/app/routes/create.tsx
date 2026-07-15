@@ -355,7 +355,7 @@ export default function CreateRoute() {
                   aria-current={active ? "step" : undefined}
                   className={`min-h-11 touch-manipulation rounded-2xl border p-3 text-left transition ${
                     active
-                      ? "border-theme-accent-border bg-theme-accent-bg text-theme-accent-text shadow-[0_0_24px_rgba(0,214,201,0.14)]"
+                      ? "border-theme-accent-border bg-theme-accent-bg text-theme-accent-text shadow-[0_0_24px_rgba(244,114,182,0.14)]"
                       : "border-theme-border bg-theme-card text-theme-muted hover:border-theme-border hover:bg-theme-card"
                   }`}
                 >
@@ -370,7 +370,7 @@ export default function CreateRoute() {
             })}
           </nav>
 
-          <div className="mb-6 rounded-[1.85rem] border border-theme-accent-border bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.14),transparent_32%),rgba(255,255,255,0.035)] p-4">
+          <div className="mb-6 rounded-[1.85rem] border border-theme-accent-border bg-[radial-gradient(circle_at_top_left,rgba(244,114,182,0.14),transparent_32%),rgba(255,255,255,0.035)] p-4">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div className="min-w-0">
                 <p className="text-xs font-black uppercase tracking-[0.22em] text-theme-accent-text">当前筑梦步骤</p>
@@ -465,7 +465,7 @@ export default function CreateRoute() {
                       onClick={() => setPlaceType(type.id)}
                       className={`min-h-24 touch-manipulation rounded-2xl border p-3 text-left transition hover:-translate-y-0.5 ${
                         active
-                          ? `${type.cardClass || "border-theme-accent-border bg-theme-accent-bg text-theme-accent-text"} shadow-[0_0_28px_rgba(0,214,201,0.12)]`
+                          ? `${type.cardClass || "border-theme-accent-border bg-theme-accent-bg text-theme-accent-text"} shadow-[0_0_28px_rgba(244,114,182,0.12)]`
                           : "border-theme-border bg-theme-card text-theme-muted hover:border-theme-border hover:bg-theme-card"
                       }`}
                       aria-pressed={active}

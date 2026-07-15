@@ -28,6 +28,7 @@ from typing import Any
 
 from fastapi import APIRouter, HTTPException, Request
 
+from .auth import CREATOR_CAPABILITY, require_session_capability
 from .common import get_user_id, spaces_service
 
 router = APIRouter(prefix="/spaces", tags=["public-bond"])
@@ -65,11 +66,15 @@ def get_visitor_bond(
     - visitor_strength: 访客对该 NPC 的好感度强度（可选，默认 0.0）
     """
     user_id = get_user_id(request)
-    visitor_id = request.query_params.get("visitor_id") or user_id
+    visitor_id = str(request.query_params.get("visitor_id") or user_id).strip()
     visitor_strength = float(request.query_params.get("visitor_strength", 0.0))
 
     if not visitor_id:
         raise HTTPException(401, "缺少访客身份")
+    if visitor_id != user_id:
+        require_session_capability(request, CREATOR_CAPABILITY)
+        if request.app.state.settings.auth_mode == "parallellines":
+            _check_owner_authority(request, space_id)
 
     service = spaces_service(request)
     return service.get_visitor_bond(space_id, character_id, visitor_id, visitor_strength)
@@ -80,6 +85,7 @@ def apply_public_bond(
     request: Request,
     space_id: str,
     character_id: str,
+    data: dict[str, Any],
 ) -> dict[str, Any]:
     """访客申请与 NPC 建立公开关系。
 
@@ -96,12 +102,16 @@ def apply_public_bond(
     - visitor_gender: 访客性别（可选）
     """
     user_id = get_user_id(request)
-    visitor_id = request.query_params.get("visitor_id") or user_id
+    visitor_id = str(request.query_params.get("visitor_id") or user_id).strip()
 
     if not visitor_id:
         raise HTTPException(401, "缺少访客身份")
+    if visitor_id != user_id:
+        require_session_capability(request, CREATOR_CAPABILITY)
+        if request.app.state.settings.auth_mode == "parallellines":
+            _check_owner_authority(request, space_id)
 
-    body = request.json()
+    body = data
     bond_type = body.get("bond_type")
     visitor_note = body.get("visitor_note")
     visitor_strength = float(body.get("visitor_strength", 0.0))
@@ -142,7 +152,7 @@ def get_public_bonds_for_character(
 # ─── 店主/管理员审批端点 ──────────────────────────────────────────────────
 
 def _check_owner_authority(request: Request, space_id: str) -> str:
-    """验证当前用户是否为空间主人或平台管理员。"""
+    """验证当前用户是否为空间主人；产品管理员也不能绕过资源归属。"""
     user_id = get_user_id(request)
     service = spaces_service(request)
     tavern = service._get_tavern_or_404(space_id)
@@ -156,14 +166,16 @@ def approve_public_bond(
     space_id: str,
     character_id: str,
     bond_id: str,
+    data: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
-    """店主/管理员审批通过一条申请。
+    """店主审批通过一条申请。
 
     JSON Body：
     - owner_note: 审批备注（可选）
     """
+    require_session_capability(request, CREATOR_CAPABILITY)
     approver_id = _check_owner_authority(request, space_id)
-    body = request.json()
+    body = data or {}
     owner_note = body.get("owner_note")
 
     service = spaces_service(request)
@@ -182,14 +194,16 @@ def reject_public_bond(
     space_id: str,
     character_id: str,
     bond_id: str,
+    data: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
-    """店主/管理员拒绝一条申请。
+    """店主拒绝一条申请。
 
     JSON Body：
     - owner_note: 拒绝原因（可选）
     """
+    require_session_capability(request, CREATOR_CAPABILITY)
     approver_id = _check_owner_authority(request, space_id)
-    body = request.json()
+    body = data or {}
     owner_note = body.get("owner_note")
 
     service = spaces_service(request)
@@ -208,16 +222,18 @@ def revoke_public_bond(
     space_id: str,
     character_id: str,
     bond_id: str,
+    data: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
-    """店主/管理员撤销一条活跃关系。
+    """店主撤销一条活跃关系。
 
     撤销后，若 NPC 有等待队列，第一个等待申请自动晋升为 active。
 
     JSON Body：
     - revoke_reason: 撤销原因（可选）
     """
+    require_session_capability(request, CREATOR_CAPABILITY)
     revoker_id = _check_owner_authority(request, space_id)
-    body = request.json()
+    body = data or {}
     revoke_reason = body.get("revoke_reason")
 
     service = spaces_service(request)

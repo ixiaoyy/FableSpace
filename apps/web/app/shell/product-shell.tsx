@@ -3,9 +3,12 @@ import { useEffect, useState } from "react"
 import { NavLink } from "react-router"
 
 import {
+  canAccessCreatorTools,
   DEFAULT_PARALLELLINES_URL,
   getAccessStatus,
   logoutCurrentSession,
+  subscribeAccessStatus,
+  type AccessStatus,
   type CurrentSessionIdentity,
 } from "../lib/session"
 import { cn } from "../lib/utils"
@@ -27,8 +30,8 @@ const topNavItems = [
   { to: WEB_PATHS.spaces, label: "发现空间", icon: Compass },
   { to: WEB_PATHS.quests, label: "游玩指南", icon: ClipboardList },
   { to: WEB_PATHS.myHome, label: "我的回访", icon: UserRound },
-  { to: WEB_PATHS.createSpace, label: "店主开设", icon: Store },
-  { to: WEB_PATHS.owner, label: "店主后台", icon: MapPinned },
+  { to: WEB_PATHS.createSpace, label: "店主开设", icon: Store, creatorOnly: true },
+  { to: WEB_PATHS.owner, label: "店主后台", icon: MapPinned, creatorOnly: true },
 ]
 
 const MOBILE_CRITICAL_FLOW_GUIDES: Record<string, {
@@ -44,9 +47,9 @@ const MOBILE_CRITICAL_FLOW_GUIDES: Record<string, {
     href: "#发现主线",
   },
   任务指南: {
-    title: "先选一个安全探索方向",
-    helper: "探索指南只提供下一步建议，不保存完成记录，不做等级、装备或排名。",
-    primaryLabel: "查看探索指南",
+    title: "选一个真实玩法，直接进入空间",
+    helper: "从开放空间的已发布玩法开始；体验留在所属空间，平台不做等级、装备或排名。",
+    primaryLabel: "查看可玩内容",
     href: "#任务主线",
   },
   新建空间: {
@@ -73,17 +76,30 @@ export function ProductShell({
   const mobileGuide = MOBILE_CRITICAL_FLOW_GUIDES[eyebrow]
   const [sessionIdentity, setSessionIdentity] = useState<CurrentSessionIdentity | null>(null)
   const [parallellinesUrl, setParallellinesUrl] = useState(DEFAULT_PARALLELLINES_URL)
+  const [showCreatorTools, setShowCreatorTools] = useState(false)
 
   useEffect(() => {
     let cancelled = false
-    getAccessStatus().then((status) => {
+
+    /** Synchronizes shell identity and creator navigation from one shared status response. */
+    const applyStatus = (status: AccessStatus) => {
       if (!cancelled) {
         setSessionIdentity(status.user)
         setParallellinesUrl(status.parallellines_url || DEFAULT_PARALLELLINES_URL)
+        setShowCreatorTools(canAccessCreatorTools(status))
+      }
+    }
+
+    const unsubscribe = subscribeAccessStatus(applyStatus)
+    getAccessStatus().catch(() => {
+      if (!cancelled) {
+        setSessionIdentity(null)
+        setShowCreatorTools(false)
       }
     })
     return () => {
       cancelled = true
+      unsubscribe()
     }
   }, [])
 
@@ -103,7 +119,7 @@ export function ProductShell({
         <div className="mx-auto flex max-w-[1320px] flex-col gap-4 px-4 py-4 sm:px-6 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex items-center justify-between">
             <NavLink to={WEB_PATHS.home} end className="flex min-h-11 w-fit touch-manipulation items-center gap-3">
-              <span className="grid h-10 w-10 place-items-center rounded-full border border-theme-accent-border bg-theme-accent-bg text-sm font-black text-theme-accent-text shadow-[0_0_28px_rgba(0,214,201,0.18)]">
+              <span className="grid h-10 w-10 place-items-center rounded-xl border border-theme-accent-border bg-theme-accent-bg text-sm font-black text-theme-accent-text shadow-[0_0_28px_var(--theme-glow)]">
                 FM
               </span>
               <div>
@@ -115,7 +131,7 @@ export function ProductShell({
           
           <div className="flex items-center gap-4">
             <nav className="-mx-1 hidden max-w-full flex-wrap items-center gap-2 overflow-x-auto px-1 pb-1 lg:flex" aria-label="主导航">
-              {topNavItems.map((item) => (
+              {topNavItems.filter((item) => !item.creatorOnly || showCreatorTools).map((item) => (
                 <NavLink
                   key={item.to}
                   to={item.to}
@@ -124,7 +140,7 @@ export function ProductShell({
                     cn(
                       "inline-flex min-h-11 touch-manipulation items-center rounded-full border px-4 py-2 text-sm font-semibold transition",
                       isActive
-                        ? "border-theme-accent-border bg-theme-accent-bg text-theme-accent-text shadow-[0_0_28px_rgba(0,214,201,0.18)]"
+                        ? "border-theme-accent-border bg-theme-accent-bg text-theme-accent-text shadow-[0_0_28px_var(--theme-glow)]"
                         : "border-theme-border bg-theme-card text-theme-muted hover:bg-theme-bg hover:text-theme-primary",
                     )
                   }
@@ -179,7 +195,7 @@ export function ProductShell({
               cn(
                 "flex min-h-14 touch-manipulation flex-col items-center justify-center gap-1 rounded-[1.1rem] px-2 text-[0.68rem] font-bold transition",
                 isActive
-                  ? "bg-theme-accent-bg text-theme-accent-text shadow-[0_0_26px_rgba(0,214,201,0.18)]"
+                  ? "bg-theme-accent-bg text-theme-accent-text shadow-[0_0_26px_var(--theme-glow)]"
                   : "text-theme-muted hover:bg-theme-bg hover:text-theme-primary",
               )
             }
@@ -198,7 +214,7 @@ export function ProductShell({
         {mobileGuide ? (
           <section
             data-mobile-critical-flow
-            className="mb-5 rounded-[1.75rem] border border-theme-accent-border bg-theme-accent-bg p-4 shadow-[0_18px_70px_rgba(34,211,238,0.08)] lg:hidden"
+            className="mb-5 rounded-[1.25rem] border border-theme-accent-border bg-theme-accent-bg p-4 shadow-[0_18px_70px_var(--theme-glow)] lg:hidden"
             aria-label="移动端关键流程"
           >
             <p className="text-xs font-black uppercase tracking-[0.2em] text-theme-accent-text opacity-70">移动端提示</p>
@@ -206,7 +222,7 @@ export function ProductShell({
             <p className="mt-2 text-sm leading-6 text-theme-muted">{mobileGuide.helper}</p>
             <a
               href={mobileGuide.href}
-              className="mt-4 inline-flex min-h-14 w-full touch-manipulation items-center justify-center rounded-2xl border border-theme-accent-border bg-theme-accent-bg px-4 text-sm font-black text-theme-accent-text shadow-[0_0_28px_rgba(0,214,201,0.12)]"
+              className="mt-4 inline-flex min-h-14 w-full touch-manipulation items-center justify-center rounded-xl border border-theme-accent-border bg-[var(--btn-primary-bg)] px-4 text-sm font-black text-[var(--btn-primary-text)] shadow-[0_0_28px_var(--theme-glow)]"
             >
               {mobileGuide.primaryLabel}
             </a>

@@ -460,7 +460,7 @@ function SimulationStatusBars({ state, isVisitor, currentSpaceType, lat, lon }) 
   const stats = [
     { key: 'energy', icon: '⚡', color: '#fbbf24', label: '能量' },
     { key: 'hunger', icon: '🍔', color: '#f97316', label: '饱腹' },
-    { key: 'thirst', icon: '💧', color: '#22d3ee', label: '渴觉' },
+    { key: 'thirst', icon: '💧', color: '#f472b6', label: '渴觉' },
     { key: 'social', icon: '💬', color: '#a855f7', label: '社交' },
     { key: 'entertainment', icon: '🎮', color: '#4ade80', label: '娱乐' },
   ]

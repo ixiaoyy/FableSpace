@@ -4,6 +4,7 @@ from typing import Any
 
 from fastapi import APIRouter, Body, Request
 
+from .auth import CREATOR_CAPABILITY, require_session_capability
 from .common import get_user_id, spaces_service
 
 
@@ -21,4 +22,5 @@ def update_skill_packs(
     space_id: str,
     data: dict[str, Any] = Body(...),
 ) -> dict[str, Any]:
+    require_session_capability(request, CREATOR_CAPABILITY)
     return spaces_service(request).update_skill_packs(space_id, data, get_user_id(request))

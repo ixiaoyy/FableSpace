@@ -126,7 +126,7 @@ export function NotificationCenterPanel({
                 className={`rounded-3xl border p-4 transition ${
                   item.read
                     ? "border-white/10 bg-white/[0.025]"
-                    : "border-cyan-300/24 bg-cyan-300/[0.07] shadow-[0_20px_70px_rgba(34,211,238,0.08)]"
+                    : "border-cyan-300/24 bg-cyan-300/[0.07] shadow-[0_20px_70px_rgba(244,114,182,0.08)]"
                 }`}
               >
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
