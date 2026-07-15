@@ -30,7 +30,8 @@ https://<cdn-domain>/fablespace/releases/<git-sha>/assets/<built-file>
 
 | 名称 | 必填 | 示例 | 说明 |
 |------|------|------|------|
-| `DEPLOY_ENABLED` | 是 | `true` | 总开关；未设为 `true` 时只做变更检测，不部署 |
+| `DEPLOY_ENABLED` | 是 | `true` | 部署意图开关；未设为 `true` 时只做变更检测，不部署 |
+| `DEPLOY_CONFIGURED` | 是 | `true` | 配置就绪开关；服务器、CDN 和全部 Secret 验证完成后才可设为 `true` |
 | `DEPLOY_PATH` | 否 | `/opt/fablespace` | 服务器仓库目录，默认 `/opt/fablespace` |
 | `CDN_S3_REGION` | 否 | `auto` | R2 使用 `auto`，AWS S3 使用实际 region |
 | `CDN_S3_PREFIX` | 否 | `fablespace` | 同一桶内的项目目录，默认 `fablespace` |
@@ -53,7 +54,7 @@ https://<cdn-domain>/fablespace/releases/<git-sha>/assets/<built-file>
 | `VITE_AMAP_KEY` | 否 | 浏览器端地图 Key |
 | `VITE_AMAP_SECURITY_CODE` | 否 | 地图安全码 |
 
-配置顺序应为：先保持 `DEPLOY_ENABLED` 未启用，完成服务器、桶、CDN 和 Secret 配置；最后把 `DEPLOY_ENABLED` 设为 `true`，再手动触发一次 `Deploy` workflow。
+配置顺序应为：先保持 `DEPLOY_ENABLED` 或 `DEPLOY_CONFIGURED` 未启用，完成服务器、桶、CDN 和 Secret 配置；最后把两个开关都设为 `true`，再手动触发一次 `Deploy` workflow。双开关用于避免只打开部署意图、但生产凭据尚未齐全时误触发发布。
 
 ## R2 / S3 与 CDN
 

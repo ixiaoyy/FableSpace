@@ -51,6 +51,7 @@ jobs:
     needs: changes
     if: |
       vars.DEPLOY_ENABLED == 'true' &&
+      vars.DEPLOY_CONFIGURED == 'true' &&
       (github.event_name == 'workflow_dispatch' || needs.changes.outputs.frontend == 'true' || needs.changes.outputs.infrastructure == 'true')
     steps:
       - uses: actions/checkout@v4
@@ -178,6 +179,7 @@ jobs:
     needs: changes
     if: |
       vars.DEPLOY_ENABLED == 'true' &&
+      vars.DEPLOY_CONFIGURED == 'true' &&
       (github.event_name == 'workflow_dispatch' || needs.changes.outputs.backend == 'true' || needs.changes.outputs.infrastructure == 'true')
     steps:
       - name: Validate server configuration
@@ -223,7 +225,7 @@ jobs:
                 $PARALLELLINES_COMPOSE up -d --no-deps --force-recreate api worker
                 PARALLELLINES_READY=false
                 for ATTEMPT in $(seq 1 30); do
-                  if $PARALLELLINES_COMPOSE exec -T api python -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/v1/health', timeout=3).read()" >/dev/null 2>&1; then
+                  if $PARALLELLINES_COMPOSE exec -T api python -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/healthz', timeout=3).read()" >/dev/null 2>&1; then
                     PARALLELLINES_READY=true
                     break
                   fi
@@ -271,6 +273,7 @@ jobs:
     if: |
       always() &&
       vars.DEPLOY_ENABLED == 'true' &&
+      vars.DEPLOY_CONFIGURED == 'true' &&
       (github.event_name == 'workflow_dispatch' || needs.changes.outputs.frontend == 'true' || needs.changes.outputs.infrastructure == 'true') &&
       needs.build-frontend.result == 'success' &&
       (needs.deploy-backend.result == 'success' || needs.deploy-backend.result == 'skipped')
