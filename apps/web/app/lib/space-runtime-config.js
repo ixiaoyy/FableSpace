@@ -1,3 +1,14 @@
+import atmosphereEmberImage from "../assets/place-atmosphere-hd/atmosphere-ember.webp"
+import atmosphereGroveImage from "../assets/place-atmosphere-hd/atmosphere-grove.webp"
+import atmosphereHealingImage from "../assets/place-atmosphere-hd/atmosphere-healing.webp"
+import atmosphereJudgementImage from "../assets/place-atmosphere-hd/atmosphere-judgement.webp"
+import atmosphereLoreImage from "../assets/place-atmosphere-hd/atmosphere-lore.webp"
+import atmosphereMarketImage from "../assets/place-atmosphere-hd/atmosphere-market.webp"
+import atmosphereShrineImage from "../assets/place-atmosphere-hd/atmosphere-shrine.webp"
+import atmosphereSpiritImage from "../assets/place-atmosphere-hd/atmosphere-spirit.webp"
+import atmosphereSupplyImage from "../assets/place-atmosphere-hd/atmosphere-supply.webp"
+import atmosphereTransitImage from "../assets/place-atmosphere-hd/atmosphere-transit.webp"
+
 export const SPACE_IDENTITY_STORAGE_KEYS = Object.freeze({
   ownerId: "fablespace.ownerIdentity",
   visitorId: "fablespace.anonymousVisitorIdentity",
@@ -92,62 +103,62 @@ export function normalizePublicWelfareNpcAssetPath(src) {
 }
 
 const ATMOSPHERE_BY_TYPE = Object.freeze({
-  healing_sanctum: "/place-atmosphere-hd/atmosphere-healing.png",
-  healing: "/place-atmosphere-hd/atmosphere-healing.png",
-  clinic_circle: "/place-atmosphere-hd/atmosphere-healing.png",
-  supply_outpost: "/place-atmosphere-hd/atmosphere-supply.png",
-  supply: "/place-atmosphere-hd/atmosphere-supply.png",
-  transit_node: "/place-atmosphere-hd/atmosphere-transit.png",
-  transit: "/place-atmosphere-hd/atmosphere-transit.png",
-  judgement_tower: "/place-atmosphere-hd/atmosphere-judgement.png",
-  judgement: "/place-atmosphere-hd/atmosphere-judgement.png",
-  order_bureau: "/place-atmosphere-hd/atmosphere-judgement.png",
-  ember_parlor: "/place-atmosphere-hd/atmosphere-ember.png",
-  ember: "/place-atmosphere-hd/atmosphere-ember.png",
-  lobby: "/place-atmosphere-hd/atmosphere-ember.png",
-  lore_academy: "/place-atmosphere-hd/atmosphere-lore.png",
-  lore: "/place-atmosphere-hd/atmosphere-lore.png",
-  archive_stack: "/place-atmosphere-hd/atmosphere-lore.png",
-  memory_collective: "/place-atmosphere-hd/atmosphere-lore.png",
-  whispering_grove: "/place-atmosphere-hd/atmosphere-grove.png",
-  grove: "/place-atmosphere-hd/atmosphere-grove.png",
-  spirit_anchor: "/place-atmosphere-hd/atmosphere-spirit.png",
-  spirit: "/place-atmosphere-hd/atmosphere-spirit.png",
-  forgotten_shrine: "/place-atmosphere-hd/atmosphere-shrine.png",
-  shrine: "/place-atmosphere-hd/atmosphere-shrine.png",
-  market_hall: "/place-atmosphere-hd/atmosphere-market.png",
-  market: "/place-atmosphere-hd/atmosphere-market.png",
-  market_gate: "/place-atmosphere-hd/atmosphere-market.png",
-  hospital: "/place-atmosphere-hd/atmosphere-healing.png",
-  school: "/place-atmosphere-hd/atmosphere-lore.png",
-  bookstore: "/place-atmosphere-hd/atmosphere-lore.png",
-  restaurant: "/place-atmosphere-hd/atmosphere-market.png",
-  cafe: "/place-atmosphere-hd/atmosphere-ember.png",
-  milk_tea_shop: "/place-atmosphere-hd/atmosphere-ember.png",
-  convenience_store: "/place-atmosphere-hd/atmosphere-supply.png",
-  home: "/place-atmosphere-hd/atmosphere-ember.png",
+  healing_sanctum: atmosphereHealingImage,
+  healing: atmosphereHealingImage,
+  clinic_circle: atmosphereHealingImage,
+  supply_outpost: atmosphereSupplyImage,
+  supply: atmosphereSupplyImage,
+  transit_node: atmosphereTransitImage,
+  transit: atmosphereTransitImage,
+  judgement_tower: atmosphereJudgementImage,
+  judgement: atmosphereJudgementImage,
+  order_bureau: atmosphereJudgementImage,
+  ember_parlor: atmosphereEmberImage,
+  ember: atmosphereEmberImage,
+  lobby: atmosphereEmberImage,
+  lore_academy: atmosphereLoreImage,
+  lore: atmosphereLoreImage,
+  archive_stack: atmosphereLoreImage,
+  memory_collective: atmosphereLoreImage,
+  whispering_grove: atmosphereGroveImage,
+  grove: atmosphereGroveImage,
+  spirit_anchor: atmosphereSpiritImage,
+  spirit: atmosphereSpiritImage,
+  forgotten_shrine: atmosphereShrineImage,
+  shrine: atmosphereShrineImage,
+  market_hall: atmosphereMarketImage,
+  market: atmosphereMarketImage,
+  market_gate: atmosphereMarketImage,
+  hospital: atmosphereHealingImage,
+  school: atmosphereLoreImage,
+  bookstore: atmosphereLoreImage,
+  restaurant: atmosphereMarketImage,
+  cafe: atmosphereEmberImage,
+  milk_tea_shop: atmosphereEmberImage,
+  convenience_store: atmosphereSupplyImage,
+  home: atmosphereEmberImage,
 })
 
 const ATMOSPHERE_BY_LAYOUT = Object.freeze({
-  lobby: "/place-atmosphere-hd/atmosphere-ember.png",
-  "quest-play": "/place-atmosphere-hd/atmosphere-supply.png",
-  "npc-chat": "/place-atmosphere-hd/atmosphere-lore.png",
-  "hybrid-room": "/place-atmosphere-hd/atmosphere-spirit.png",
+  lobby: atmosphereEmberImage,
+  "quest-play": atmosphereSupplyImage,
+  "npc-chat": atmosphereLoreImage,
+  "hybrid-room": atmosphereSpiritImage,
 })
 
-export const DEFAULT_ATMOSPHERE_IMAGE = "/place-atmosphere-hd/atmosphere-ember.png"
+export const DEFAULT_ATMOSPHERE_IMAGE = atmosphereEmberImage
 
 export const FALLBACK_ATMOSPHERE_IMAGES = Object.freeze([
   DEFAULT_ATMOSPHERE_IMAGE,
-  "/place-atmosphere-hd/atmosphere-healing.png",
-  "/place-atmosphere-hd/atmosphere-market.png",
-  "/place-atmosphere-hd/atmosphere-lore.png",
-  "/place-atmosphere-hd/atmosphere-grove.png",
-  "/place-atmosphere-hd/atmosphere-spirit.png",
-  "/place-atmosphere-hd/atmosphere-transit.png",
-  "/place-atmosphere-hd/atmosphere-supply.png",
-  "/place-atmosphere-hd/atmosphere-shrine.png",
-  "/place-atmosphere-hd/atmosphere-judgement.png",
+  atmosphereHealingImage,
+  atmosphereMarketImage,
+  atmosphereLoreImage,
+  atmosphereGroveImage,
+  atmosphereSpiritImage,
+  atmosphereTransitImage,
+  atmosphereSupplyImage,
+  atmosphereShrineImage,
+  atmosphereJudgementImage,
 ])
 
 export const GENERIC_ATMOSPHERE_KEYS = new Set(["", "space", "lobby"])

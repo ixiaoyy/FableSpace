@@ -15,6 +15,7 @@ import { Link, useSearchParams } from "react-router"
 import { useEffect, useMemo, useState } from "react"
 
 import discoverRadarSurfaceImage from "../assets/fable-space-05-10/discover/cards/card-compass-square.png"
+import discoverAtmosphereLoreImage from "../assets/place-atmosphere-hd/atmosphere-lore.webp"
 import { DiscoveryLivelinessStrip } from "../components/DiscoveryLivelinessStrip"
 import { FableSpaceDiscoverReference } from "../components/fable-space-reference-artboards"
 import { SpacePreviewModal } from "../components/space-preview-modal"
@@ -85,7 +86,7 @@ const CATEGORIES: Category[] = [
 
 const previewCards = [
   { image: discoverRadarSurfaceImage, title: "雷达地表", text: "真实坐标上的区域会在开放时段亮起。" },
-  { image: "/place-atmosphere-hd/atmosphere-lore.png", title: "隐藏入口", text: "进入后遇见主人配置的 AI 角色与记忆线索。" },
+  { image: discoverAtmosphereLoreImage, title: "隐藏入口", text: "进入后遇见主人配置的 AI 角色与记忆线索。" },
 ]
 
 const DISCOVER_DESKTOP_BOARD_FRAME =

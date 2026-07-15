@@ -12,6 +12,12 @@ from datetime import UTC, datetime
 from pathlib import Path
 from urllib.parse import urlsplit, urlunsplit
 
+LEGACY_DATABASE_ENV_KEYS = {
+    "FABLEMAP_DATABASE_URL",
+    "FABLESPACE_MYSQL_URL",
+    "FABLEMAP_MYSQL_URL",
+}
+
 
 def parse_env(path: Path) -> dict[str, str]:
     """Parse simple KEY=VALUE entries from one trusted server-side env file."""
@@ -41,14 +47,22 @@ def redis_url_for(source_url: str, database_number: int) -> str:
     return urlunsplit((parsed.scheme, parsed.netloc, f"/{database_number}", parsed.query, ""))
 
 
-def update_env_text(original: str, updates: dict[str, str]) -> str:
-    """Replace known env assignments and append missing values without reformatting others."""
+def update_env_text(
+    original: str,
+    updates: dict[str, str],
+    *,
+    remove_keys: set[str] | None = None,
+) -> str:
+    """Apply env updates and remove explicitly obsolete keys while preserving unrelated lines."""
     remaining = dict(updates)
+    removals = remove_keys or set()
     output: list[str] = []
     for line in original.splitlines():
         stripped = line.strip()
         if stripped and not stripped.startswith("#") and "=" in stripped:
             key = stripped.split("=", 1)[0].strip()
+            if key in removals:
+                continue
             if key in remaining:
                 output.append(f"{key}={remaining.pop(key)}")
                 continue
@@ -135,7 +149,10 @@ def main() -> None:
     args.fablespace_env.parent.mkdir(parents=True, exist_ok=True)
     if args.fablespace_env.exists():
         shutil.copy2(args.fablespace_env, backup_path)
-    args.fablespace_env.write_text(update_env_text(original, updates), encoding="utf-8")
+    args.fablespace_env.write_text(
+        update_env_text(original, updates, remove_keys=LEGACY_DATABASE_ENV_KEYS),
+        encoding="utf-8",
+    )
     args.fablespace_env.chmod(0o600)
     args.compose_env.parent.mkdir(parents=True, exist_ok=True)
     args.compose_env.write_text(update_env_text(compose_original, compose_updates), encoding="utf-8")

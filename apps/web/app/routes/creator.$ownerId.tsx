@@ -4,7 +4,7 @@ import { Link, replace, useLoaderData } from "react-router"
 import { useMemo, useState } from "react"
 
 import spaceNeonImage from "../assets/fable-space-05-10/discover/cards/card-sky-city-square.png"
-import spaceNightImage from "../assets/fable-space-05-10/home-black/hero-system-visual.png"
+import spaceNightImage from "../assets/fable-space-05-10/home-black/hero-system-visual.webp"
 import { SpacePreviewModal } from "../components/space-preview-modal"
 import { DEFAULT_OWNER_ID, errorMessage, listSpaces, type Space, type SpaceCharacter, type SpaceListResponse } from "../lib/spaces"
 import { matchesPublicReference, ownerProfilePath, redirectPathForRequest, WEB_PATHS } from "../lib/web-routes"

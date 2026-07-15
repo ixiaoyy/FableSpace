@@ -28,7 +28,7 @@ import { Link } from "react-router"
 
 import npcDialogueImage from "../../assets/fable-space-05-10/discover/cards/card-library-wide-square.png"
 import spaceNeonImage from "../../assets/fable-space-05-10/discover/cards/card-sky-city-square.png"
-import spaceNightImage from "../../assets/fable-space-05-10/home-black/hero-system-visual.png"
+import spaceNightImage from "../../assets/fable-space-05-10/home-black/hero-system-visual.webp"
 import spaceStreetImage from "../../assets/fable-space-05-10/discover/cards/card-library-wide-square.png"
 import { buildSpaceLayoutStats, normalizeSpaceLayoutStyle, SPACE_LAYOUTS } from "../../lib/space-layouts.js"
 import type { RoleplayClaim, RoleplayState, Space, SpaceCharacter } from "../../lib/spaces"

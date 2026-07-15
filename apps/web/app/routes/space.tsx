@@ -11,7 +11,7 @@ import {
 } from "lucide-react"
 import { useState } from "react"
 import { Link, replace, useLoaderData } from "react-router"
-import homeBlackHeroVisual from "../assets/fable-space-05-10/home-black/hero-system-visual.png"
+import homeBlackHeroVisual from "../assets/fable-space-05-10/home-black/hero-system-visual.webp"
 import { SpaceChatWorkbench } from "../features/space-chat-workbench"
 import { resolveHomepageSpaceCover } from "../lib/homepage-spaces"
 import { derivePlaceTypeDisplay } from "../lib/place-types.js"
