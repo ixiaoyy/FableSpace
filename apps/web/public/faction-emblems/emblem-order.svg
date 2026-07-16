@@ -1,5 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-label="order bureau emblem">
-  <defs><radialGradient id="bg" cx="50%" cy="35%" r="70%"><stop offset="0" stop-color="#dce7f3"/><stop offset="1" stop-color="#45515f"/></radialGradient></defs>
-  <circle cx="32" cy="32" r="29" fill="url(#bg)" stroke="#c9d6e2" stroke-width="2"/>
-  <circle cx="32" cy="31" r="12" fill="none" stroke="#f8fbff" stroke-width="4"/><path d="M32 12v8M32 42v8M13 31h8M43 31h8M19 18l6 6M45 18l-6 6M19 44l6-6M45 44l-6-6" stroke="#f8fbff" stroke-width="3" stroke-linecap="round"/><path d="M24 48c9-13 16-21 21-31 2 12-1 22-14 34" fill="#eef6ff" opacity=".95"/>
-</svg>

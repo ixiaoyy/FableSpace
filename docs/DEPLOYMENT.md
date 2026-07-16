@@ -49,7 +49,6 @@ https://<cdn-domain>/fablespace/media/v1/<object-key>
 | `CDN_S3_ENDPOINT_URL` | 是 | S3 endpoint；R2 形如 `https://<account-id>.r2.cloudflarestorage.com` |
 | `CDN_S3_ACCESS_KEY_ID` | 是 | 仅允许写目标桶的访问 Key |
 | `CDN_S3_SECRET_ACCESS_KEY` | 是 | 对应 Secret Key |
-| `PUBLIC_SITE_ORIGIN` | 是 | 正式站点 origin，当前生产环境为 `https://fable.pingxingxian.space`，用于校验 CDN CORS |
 | `VITE_API_BASE` | 否 | 前后端分离时的 API 基址；同源部署留空 |
 | `VITE_AMAP_KEY` | 否 | 浏览器端地图 Key |
 | `VITE_AMAP_SECURITY_CODE` | 否 | 地图安全码 |
@@ -62,11 +61,11 @@ https://<cdn-domain>/fablespace/media/v1/<object-key>
 
 1. 创建私有写入凭据，权限限制到目标桶的对象读写和列举。
 2. 为桶绑定公开 HTTPS 域名，把该域名写入 `CDN_BASE_URL`。
-3. 为前端正式站点配置 GET/HEAD CORS。示例见 [`deploy/cdn/cors.example.json`](../deploy/cdn/cors.example.json)，使用前替换域名。
+3. 当前页面通过 `<img>`、CSS 背景和只读 Canvas 绘制图片，不要求 CDN 返回 CORS 响应头；未来如需读取像素或导出 Canvas，再按 [`deploy/cdn/cors.example.json`](../deploy/cdn/cors.example.json) 配置 GET/HEAD CORS。
 4. 确认 CDN 不覆盖源站的 `Cache-Control`；`fablespace/media/v1/` 使用长期缓存。
 5. 不要对仍在 `deploy/cdn/media-manifest.json` 中的对象设置过期规则；删除或替换对象前必须先确认没有代码、seed 或文档 URL 引用。
 
-Workflow 会比较清单中每个对象的 key 与字节数，并通过 `CDN_BASE_URL` 实际下载抽样图片。对象缺失、大小不符、公开域名、CORS 或 CDN 回源未生效时，发布会在替换服务器前失败。
+Workflow 会比较清单中每个对象的 key 与字节数，并通过 `CDN_BASE_URL` 实际下载抽样图片。对象缺失、大小不符、公开域名或 CDN 回源未生效时，发布会在替换服务器前失败。
 
 ## 服务器首次准备
 

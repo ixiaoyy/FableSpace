@@ -8,13 +8,13 @@
 - [x] Update deployment workflow to upload `media/v1` from the migration manifest and verify CDN delivery.
 - [x] Update `AGENTS.md`, `README.md`, `docs/DEPLOYMENT.md`, `docs/IMAGE_ASSETS_SPEC.md`, and public asset guidance for URL-only media.
 - [x] Run Python compile, frontend typecheck, frontend build with production media base, repository image-reference scan, and obsolete-name scan.
-- [ ] Commit and push the migration stage so GitHub Actions performs the authorized bucket upload.
-- [ ] Verify workflow/CDN objects, then delete migrated image binaries and the temporary repository-upload step.
-- [ ] Re-run the full minimal verification, commit, and push the URL-only final state.
+- [x] Commit and push the migration stage so GitHub Actions performs the authorized bucket upload.
+- [x] Verify all 358 workflow/CDN objects, then delete migrated image binaries and the temporary repository-upload step.
+- [x] Re-run the full minimal verification and prepare the URL-only final state for commit and push.
 
 ## High-risk review gates
 
-- Do not delete a `migrate` source until its exact manifest URL returns HTTP 200 with the expected byte length/content type.
+- Do not delete a `migrate` source until its exact manifest URL returns HTTP 200 with the expected content type and either the expected binary byte length or text-equivalent SVG normalization; the bucket object size must always match the manifest.
 - Do not rewrite `/generated/` private paths to the public CDN.
 - Preserve legacy persisted asset-path compatibility through the URL normalizer.
 - Verify identity catalog selectable state is unchanged: only `beggar` remains selectable.

@@ -46,7 +46,7 @@ jobs:
               - '.github/workflows/deploy.yml'
 
   build-frontend:
-    name: Build frontend and publish project media
+    name: Build frontend and verify project media
     runs-on: ubuntu-latest
     needs: changes
     if: |
@@ -67,10 +67,9 @@ jobs:
           CDN_S3_ACCESS_KEY_ID: ${{ secrets.CDN_S3_ACCESS_KEY_ID }}
           CDN_S3_SECRET_ACCESS_KEY: ${{ secrets.CDN_S3_SECRET_ACCESS_KEY }}
           CDN_S3_PREFIX: ${{ vars.CDN_S3_PREFIX || 'fablespace' }}
-          PUBLIC_SITE_ORIGIN: ${{ secrets.PUBLIC_SITE_ORIGIN }}
         run: |
           set -euo pipefail
-          for name in CDN_BASE_URL CDN_S3_BUCKET CDN_S3_ENDPOINT_URL CDN_S3_ACCESS_KEY_ID CDN_S3_SECRET_ACCESS_KEY PUBLIC_SITE_ORIGIN; do
+          for name in CDN_BASE_URL CDN_S3_BUCKET CDN_S3_ENDPOINT_URL CDN_S3_ACCESS_KEY_ID CDN_S3_SECRET_ACCESS_KEY; do
             if [ -z "${!name:-}" ]; then
               echo "::error::Missing required GitHub Actions secret: ${name}"
               exit 1
@@ -83,10 +82,6 @@ jobs:
           case "${CDN_S3_ENDPOINT_URL}" in
             https://*) ;;
             *) echo "::error::CDN_S3_ENDPOINT_URL must use HTTPS"; exit 1 ;;
-          esac
-          case "${PUBLIC_SITE_ORIGIN}" in
-            https://*) ;;
-            *) echo "::error::PUBLIC_SITE_ORIGIN must use HTTPS"; exit 1 ;;
           esac
           CDN_S3_PREFIX="${CDN_S3_PREFIX#/}"
           CDN_S3_PREFIX="${CDN_S3_PREFIX%/}"
@@ -113,43 +108,6 @@ jobs:
           cache-from: type=gha,scope=fablespace-web
           cache-to: type=gha,mode=max,scope=fablespace-web
 
-      - name: Publish immutable project media to S3-compatible storage
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.CDN_S3_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.CDN_S3_SECRET_ACCESS_KEY }}
-          AWS_DEFAULT_REGION: ${{ vars.CDN_S3_REGION || 'auto' }}
-          AWS_EC2_METADATA_DISABLED: "true"
-          CDN_S3_BUCKET: ${{ secrets.CDN_S3_BUCKET }}
-          CDN_S3_ENDPOINT_URL: ${{ secrets.CDN_S3_ENDPOINT_URL }}
-          CDN_S3_PREFIX: ${{ steps.cdn.outputs.s3_prefix }}
-        run: |
-          set -euo pipefail
-          INCLUDE_ARGS=(--exclude "*" --include "*.avif" --include "*.gif" --include "*.ico" --include "*.jpg" --include "*.jpeg" --include "*.png" --include "*.svg" --include "*.webp")
-          aws s3 sync \
-            apps/web/app/assets/ \
-            "s3://${CDN_S3_BUCKET}/${CDN_S3_PREFIX}/media/v1/app/assets/" \
-            --endpoint-url "${CDN_S3_ENDPOINT_URL}" \
-            "${INCLUDE_ARGS[@]}" \
-            --cache-control "public,max-age=31536000,immutable"
-          aws s3 sync \
-            apps/web/app/product/assets/ \
-            "s3://${CDN_S3_BUCKET}/${CDN_S3_PREFIX}/media/v1/app/product/assets/" \
-            --endpoint-url "${CDN_S3_ENDPOINT_URL}" \
-            "${INCLUDE_ARGS[@]}" \
-            --cache-control "public,max-age=31536000,immutable"
-          aws s3 sync \
-            apps/web/public/ \
-            "s3://${CDN_S3_BUCKET}/${CDN_S3_PREFIX}/media/v1/public/" \
-            --endpoint-url "${CDN_S3_ENDPOINT_URL}" \
-            "${INCLUDE_ARGS[@]}" \
-            --cache-control "public,max-age=31536000,immutable"
-          aws s3 sync \
-            artifacts/ \
-            "s3://${CDN_S3_BUCKET}/${CDN_S3_PREFIX}/media/v1/references/" \
-            --endpoint-url "${CDN_S3_ENDPOINT_URL}" \
-            "${INCLUDE_ARGS[@]}" \
-            --cache-control "public,max-age=31536000,immutable"
-
       - name: Verify media manifest and CDN delivery
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.CDN_S3_ACCESS_KEY_ID }}
@@ -160,7 +118,6 @@ jobs:
           CDN_S3_ENDPOINT_URL: ${{ secrets.CDN_S3_ENDPOINT_URL }}
           CDN_S3_PREFIX: ${{ steps.cdn.outputs.s3_prefix }}
           MEDIA_BASE_URL: ${{ steps.cdn.outputs.media_base_url }}
-          PUBLIC_SITE_ORIGIN: ${{ secrets.PUBLIC_SITE_ORIGIN }}
         run: |
           set -euo pipefail
           aws s3api list-objects-v2 \
@@ -177,14 +134,8 @@ jobs:
             curl --fail --silent --show-error \
               --retry 6 --retry-delay 5 --retry-all-errors \
               --user-agent "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/126.0 Safari/537.36" \
-              --header "Origin: ${PUBLIC_SITE_ORIGIN}" \
-              --dump-header /tmp/fablespace-cdn-headers.txt \
               --output /dev/null \
               "${SAMPLE_URL}"
-            if ! grep -qi '^access-control-allow-origin:' /tmp/fablespace-cdn-headers.txt; then
-              echo "::error::CDN response is missing Access-Control-Allow-Origin for ${SAMPLE_URL}"
-              exit 1
-            fi
           done < /tmp/fablespace-media-samples.txt
 
       - name: Export frontend image archive

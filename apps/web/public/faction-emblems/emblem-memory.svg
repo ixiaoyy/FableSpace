@@ -1,5 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-label="memory collective emblem">
-  <defs><radialGradient id="bg" cx="50%" cy="35%" r="70%"><stop offset="0" stop-color="#9ed0ff"/><stop offset="1" stop-color="#223d79"/></radialGradient></defs>
-  <circle cx="32" cy="32" r="29" fill="url(#bg)" stroke="#8db8ff" stroke-width="2"/>
-  <path d="M17 19c7-4 13-3 15 2 2-5 8-6 15-2v28c-7-3-12-2-15 3-3-5-8-6-15-3z" fill="#e8f3ff" stroke="#ffffff" stroke-width="2"/><path d="M32 21v29M21 27h7M21 34h7M36 27h7M36 34h7" stroke="#315aa2" stroke-width="2" stroke-linecap="round"/><path d="M32 13c5 6 5 11 0 15-5-4-5-9 0-15z" fill="#ffd782" stroke="#fff2b8" stroke-width="1.5"/>
-</svg>

@@ -35,10 +35,10 @@ https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-wel
 1. 在仓库外准备候选图片，确认尺寸、格式和内容合规。
 2. 选择未被占用的对象 key，上传时设置 `Cache-Control: public,max-age=31536000,immutable` 和正确 `Content-Type`。
 3. 在 `deploy/cdn/media-manifest.json` 登记 URL、字节数和 SHA-256。
-4. 通过 CDN URL 读取文件，核对状态码、字节数、CORS 和清单记录。
+4. 通过 CDN URL 读取文件，核对状态码、内容与清单记录；只有像素读取或 Canvas 导出等场景才要求 CORS。
 5. 更新代码、seed、sidecar 或文档引用；提交前确认 Git 跟踪图片数为零。
 
-迁移和部署校验脚本位于 `deploy/cdn/`。部署会逐项比较清单与桶内对象的 key 和字节数，并通过 CDN 实际读取抽样资源。
+部署校验脚本位于 `deploy/cdn/`。部署会逐项比较清单与桶内对象的 key 和字节数，并通过 CDN 实际读取抽样资源。
 
 ## NPC prompt sidecar
 

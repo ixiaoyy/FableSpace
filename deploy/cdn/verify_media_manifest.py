@@ -20,9 +20,9 @@ def main(argv: Sequence[str] | None = None) -> int:
     manifest = _read_json(args.manifest)
     objects_payload = _read_json(args.objects)
 
-    entries = [entry for entry in manifest.get("entries", []) if entry.get("disposition") == "migrate"]
+    entries = list(manifest.get("entries", []))
     if not entries:
-        raise ValueError("media manifest contains no migrated entries")
+        raise ValueError("media manifest contains no entries")
     if objects_payload.get("IsTruncated"):
         raise ValueError("S3 object listing was truncated; verification requires the complete media namespace")
 
