@@ -1,5 +1,5 @@
 ---
-asset: apps/web/app/assets/npc-style-cast/portraits-hd/cat-accountant-yinpiao.png
+asset: https://img.pingxingxian.space/fablespace/media/v1/app/assets/npc-style-cast/portraits-hd/cat-accountant-yinpiao.png
 prompt_type: reference-only
 source_type: project-local-upscale
 width: 512
@@ -7,12 +7,12 @@ height: 512
 sha256: 75a70d6ec9ea2d554a28abf363b5f8ad482362ee6c1bba925602bdac70452bcf
 updated_at: "2026-05-10T23:59:00+08:00"
 can_regenerate_higher_quality: true
-source_asset: ../portraits/cat-accountant-yinpiao.png
+source_asset: https://img.pingxingxian.space/fablespace/media/v1/app/assets/npc-style-cast/portraits/cat-accountant-yinpiao.png
 ---
 
 ## Final prompt
 
-Reference-only HD upscale derived from the existing project portrait `D:/work/ai-/apps/web/app/assets/npc-style-cast/portraits/cat-accountant-yinpiao.png`. The original generation prompt was not available, so this sidecar is not a regeneration prompt.
+Reference-only HD upscale derived from the existing project portrait `https://img.pingxingxian.space/fablespace/media/v1/app/assets/npc-style-cast/portraits/cat-accountant-yinpiao.png`. The original generation prompt was not available, so this sidecar is not a regeneration prompt.
 
 ## Negative constraints
 

@@ -59,7 +59,6 @@ def create_web_app(settings: ApiSettings) -> FastAPI:
     resolved = settings.resolved()
     native_settings = NativeApiSettings(
         output_root=resolved.output_root,
-        fixture_file=resolved.fixture_file,
         frontend_root=resolved.frontend_root,
         sillytavern_url=resolved.sillytavern_url,
         storage_backend=resolved.storage_backend,

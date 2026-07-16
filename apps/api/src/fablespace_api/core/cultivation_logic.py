@@ -163,7 +163,7 @@ def grant_cultivation_card(visitor_state: Any, card_type: str, title: str, summa
         "type": card_type, # retreat | mind | message | clue | stage
         "title": title,
         "summary": summary,
-        "image": image or "/assets/cultivation/cards/default_card.webp",
+        "image": image or "",
         "timestamp": datetime.now(UTC).isoformat()
     }
     

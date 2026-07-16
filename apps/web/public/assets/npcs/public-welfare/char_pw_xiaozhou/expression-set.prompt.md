@@ -1,7 +1,7 @@
 ---
 prompt_scope: npc-expression-set
-asset_group: apps/web/public/assets/npcs/public-welfare/char_pw_xiaozhou/
-assets: apps/web/public/assets/npcs/public-welfare/char_pw_xiaozhou/neutral.png; apps/web/public/assets/npcs/public-welfare/char_pw_xiaozhou/joy.png; apps/web/public/assets/npcs/public-welfare/char_pw_xiaozhou/anger.png; apps/web/public/assets/npcs/public-welfare/char_pw_xiaozhou/embarrassment.png; apps/web/public/assets/npcs/public-welfare/char_pw_xiaozhou/curiosity.png
+asset_group: https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_xiaozhou/
+assets: https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_xiaozhou/neutral.png; https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_xiaozhou/joy.png; https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_xiaozhou/anger.png; https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_xiaozhou/embarrassment.png; https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_xiaozhou/curiosity.png
 expressions: neutral, joy, anger, embarrassment, curiosity
 asset_count: 5
 prompt_type: original-final
@@ -25,11 +25,11 @@ Expression suffix (neutral): neutral expression, attentive but relaxed, mouth cl
 
 ## Expression assets
 
-- `apps/web/public/assets/npcs/public-welfare/char_pw_xiaozhou/neutral.png` — `neutral`
-- `apps/web/public/assets/npcs/public-welfare/char_pw_xiaozhou/joy.png` — `joy`
-- `apps/web/public/assets/npcs/public-welfare/char_pw_xiaozhou/anger.png` — `anger`
-- `apps/web/public/assets/npcs/public-welfare/char_pw_xiaozhou/embarrassment.png` — `embarrassment`
-- `apps/web/public/assets/npcs/public-welfare/char_pw_xiaozhou/curiosity.png` — `curiosity`
+- `https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_xiaozhou/neutral.png` — `neutral`
+- `https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_xiaozhou/joy.png` — `joy`
+- `https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_xiaozhou/anger.png` — `anger`
+- `https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_xiaozhou/embarrassment.png` — `embarrassment`
+- `https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_xiaozhou/curiosity.png` — `curiosity`
 
 ## Negative constraints
 

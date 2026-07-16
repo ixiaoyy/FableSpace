@@ -2,11 +2,11 @@ import { ArrowRight, CheckCircle2, KeyRound, MapPinned, ShieldCheck, Sparkles, U
 import { useState, useEffect, type FormEvent } from "react"
 import { useNavigate, useSearchParams } from "react-router"
 
-import spaceStreetImage from "../assets/fable-space-05-10/discover/cards/card-train-platform-square.png"
 import { DEFAULT_NPC_PREVIEW_PORTRAIT } from "../features/space-npc-stage/portraitCatalogConfig"
 import { readCreatePrefill } from "../lib/creator-conversion.js"
 import { buildAiDraftLifecycle } from "../lib/ai-draft-lifecycle.js"
 import { normalizeCreatePlacePayload } from "../lib/place-home.js"
+import { mediaAssetUrl } from "../lib/media-assets"
 import { derivePlaceTypeDisplay, normalizePlaceTypeId, PLACE_TYPES } from "../lib/place-types.js"
 import {
   DIGITAL_HUMAN_DRAFT_STYLE_TAGS,
@@ -44,6 +44,8 @@ import {
 } from "../ui/dialog"
 import LLMConfigForm from "../product/LLMConfigForm.jsx"
 import { SPACE_INTENT_TEMPLATES, deriveSpaceIntent } from "../product/spaceIntentTemplates.js"
+
+const spaceStreetImage = mediaAssetUrl("app/assets/fable-space-05-10/discover/cards/card-train-platform-square.png")
 
 const CREATE_WIZARD_STEPS = [
   { id: "anchor", number: "01", icon: MapPinned, title: "真实坐标", text: "先钉住地图锚点、地点类型和入口规则。" },

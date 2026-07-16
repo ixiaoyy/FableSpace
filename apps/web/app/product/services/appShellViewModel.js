@@ -72,7 +72,7 @@ export function buildHeroMetrics({
         value: originLabel,
         detail: mapReady
           ? `地图已铺开 · ${visibleLayerCount} / ${mapLayerOptions.length} 层亮着`
-          : `${form.radius}m 范围 · ${form.mode === 'fixture' ? '样例街区' : '真实街区'}`,
+          : `${form.radius}m 范围 · 真实街区`,
       },
       {
         id: 'memory',

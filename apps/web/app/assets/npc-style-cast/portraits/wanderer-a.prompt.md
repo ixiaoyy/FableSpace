@@ -1,5 +1,5 @@
 ---
-asset: apps/web/app/assets/npc-style-cast/portraits/wanderer-a.png
+asset: https://img.pingxingxian.space/fablespace/media/v1/app/assets/npc-style-cast/portraits/wanderer-a.png
 prompt_type: reverse-engineered
 source_type: reverse-engineered-current-asset
 width: 256

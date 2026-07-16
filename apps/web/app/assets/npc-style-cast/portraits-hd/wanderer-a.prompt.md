@@ -1,5 +1,5 @@
 ---
-asset: apps/web/app/assets/npc-style-cast/portraits-hd/wanderer-a.png
+asset: https://img.pingxingxian.space/fablespace/media/v1/app/assets/npc-style-cast/portraits-hd/wanderer-a.png
 prompt_type: reference-only
 source_type: project-local-upscale
 width: 512
@@ -7,12 +7,12 @@ height: 512
 sha256: 59bed81be0d75f65e04fd12499334b97a1859b19cf2bbbd3457fdd7cc1898d06
 updated_at: "2026-05-10T23:59:00+08:00"
 can_regenerate_higher_quality: true
-source_asset: ../portraits/wanderer-a.png
+source_asset: https://img.pingxingxian.space/fablespace/media/v1/app/assets/npc-style-cast/portraits/wanderer-a.png
 ---
 
 ## Final prompt
 
-Reference-only HD upscale derived from the existing project portrait `D:/work/ai-/apps/web/app/assets/npc-style-cast/portraits/wanderer-a.png`. The original generation prompt was not available, so this sidecar is not a regeneration prompt.
+Reference-only HD upscale derived from the existing project portrait `https://img.pingxingxian.space/fablespace/media/v1/app/assets/npc-style-cast/portraits/wanderer-a.png`. The original generation prompt was not available, so this sidecar is not a regeneration prompt.
 
 ## Negative constraints
 

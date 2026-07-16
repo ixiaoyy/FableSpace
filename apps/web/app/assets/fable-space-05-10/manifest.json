@@ -10,7 +10,7 @@
       "slices": {},
       "assets": {
         "hero-system-visual": {
-          "path": "apps/web/app/assets/fable-map-05-10/home-black/hero-system-visual.png",
+          "path": "https://img.pingxingxian.space/fablespace/media/v1/app/assets/fable-space-05-10/home-black/hero-system-visual.png",
           "size": [
             1672,
             941
@@ -18,7 +18,7 @@
           "sha256": "c92edf7fd641c09297220a4e9153a249f44bce27734684bb9823ce08b1984acd"
         },
         "node-data-harbor": {
-          "path": "apps/web/app/assets/fable-map-05-10/home-black/node-data-harbor.png",
+          "path": "https://img.pingxingxian.space/fablespace/media/v1/app/assets/fable-space-05-10/home-black/node-data-harbor.png",
           "size": [
             1736,
             906
@@ -26,7 +26,7 @@
           "sha256": "3ae685a9f522f2391ffc7a00c9496b095853434c06dccffcde62e870373591d3"
         },
         "node-neon-ruins": {
-          "path": "apps/web/app/assets/fable-map-05-10/home-black/node-neon-ruins.png",
+          "path": "https://img.pingxingxian.space/fablespace/media/v1/app/assets/fable-space-05-10/home-black/node-neon-ruins.png",
           "size": [
             1733,
             907
@@ -34,7 +34,7 @@
           "sha256": "644bf999d41cfba3466bdd21cf89cd96611b526312e7e8112ccbf8cafc3a8d1d"
         },
         "node-old-platform": {
-          "path": "apps/web/app/assets/fable-map-05-10/home-black/node-old-platform.png",
+          "path": "https://img.pingxingxian.space/fablespace/media/v1/app/assets/fable-space-05-10/home-black/node-old-platform.png",
           "size": [
             1734,
             907
@@ -42,7 +42,7 @@
           "sha256": "86f149b9e7d4919e66b0e4aec293e04c9806dcb225936190ed66bf9a083571e2"
         },
         "node-white-tower": {
-          "path": "apps/web/app/assets/fable-map-05-10/home-black/node-white-tower.png",
+          "path": "https://img.pingxingxian.space/fablespace/media/v1/app/assets/fable-space-05-10/home-black/node-white-tower.png",
           "size": [
             1733,
             908
@@ -50,7 +50,7 @@
           "sha256": "87aab954be338298c877cb0527bcd1265db94e78b1a4dec1bc6d51defbc544ee"
         },
         "recent-echo-waveform": {
-          "path": "apps/web/app/assets/fable-map-05-10/home-black/recent-echo-waveform.png",
+          "path": "https://img.pingxingxian.space/fablespace/media/v1/app/assets/fable-space-05-10/home-black/recent-echo-waveform.png",
           "size": [
             1676,
             939
@@ -58,7 +58,7 @@
           "sha256": "b9dd8f442d86cb351943414499a8ec192555b39048c5db0d65eeb277d5d088ed"
         },
         "world-stats-sparkline": {
-          "path": "apps/web/app/assets/fable-map-05-10/home-black/world-stats-sparkline.png",
+          "path": "https://img.pingxingxian.space/fablespace/media/v1/app/assets/fable-space-05-10/home-black/world-stats-sparkline.png",
           "size": [
             2037,
             772
@@ -66,7 +66,7 @@
           "sha256": "fb95e8d0db93524f018cbc3219672a3cc446f99a88fa6c6a0f06daa7d2294a01"
         },
         "user-avatar-node07": {
-          "path": "apps/web/app/assets/fable-map-05-10/home-black/user-avatar-node07.png",
+          "path": "https://img.pingxingxian.space/fablespace/media/v1/app/assets/fable-space-05-10/home-black/user-avatar-node07.png",
           "size": [
             1024,
             1024
@@ -74,7 +74,7 @@
           "sha256": "b9848cfa9bad572d2e656e83dac747110e01362ab65315b8270b6b69e693c92d"
         },
         "guide-protocol-icon": {
-          "path": "apps/web/app/assets/fable-map-05-10/home-black/guide-protocol-icon.png",
+          "path": "https://img.pingxingxian.space/fablespace/media/v1/app/assets/fable-space-05-10/home-black/guide-protocol-icon.png",
           "size": [
             1024,
             1024
@@ -82,7 +82,7 @@
           "sha256": "e36dda7bc5f95c7446a546b855af0f82be22f99ec5fadb2bb9f6b2d63fb3dbff"
         },
         "guide-database-icon": {
-          "path": "apps/web/app/assets/fable-map-05-10/home-black/guide-database-icon.png",
+          "path": "https://img.pingxingxian.space/fablespace/media/v1/app/assets/fable-space-05-10/home-black/guide-database-icon.png",
           "size": [
             1024,
             1024
@@ -90,7 +90,7 @@
           "sha256": "a690759cb6f96044e245de3e353e5f0394b223df1539b503398e28014303e303"
         },
         "guide-security-icon": {
-          "path": "apps/web/app/assets/fable-map-05-10/home-black/guide-security-icon.png",
+          "path": "https://img.pingxingxian.space/fablespace/media/v1/app/assets/fable-space-05-10/home-black/guide-security-icon.png",
           "size": [
             1024,
             1024
@@ -98,7 +98,7 @@
           "sha256": "0ee8ae406268c67f0e203f51d2cfeddba68daf58f261dcab20018cf0c2a06c93"
         },
         "invite-card": {
-          "path": "apps/web/app/assets/fable-map-05-10/home-black/invite-card.png",
+          "path": "https://img.pingxingxian.space/fablespace/media/v1/app/assets/fable-space-05-10/home-black/invite-card.png",
           "size": [
             1182,
             1331
@@ -110,7 +110,7 @@
   },
   "brand": {
     "soullink-logo-low": {
-      "path": "apps/web/app/assets/fable-map-05-10/brand/soullink-logo-low.png",
+      "path": "https://img.pingxingxian.space/fablespace/media/v1/app/assets/fable-space-05-10/brand/soullink-logo-low.png",
       "size": [
         328,
         124
@@ -125,14 +125,14 @@
   },
   "reference": {
     "soullink-static-base-1536x1024": {
-      "path": "apps/web/app/assets/fable-map-05-10/reference/soullink-static-base-1536x1024.png",
+      "path": "https://img.pingxingxian.space/fablespace/media/v1/app/assets/fable-space-05-10/reference/soullink-static-base-1536x1024.png",
       "size": [
         1536,
         1024
       ],
       "sha256": "b0c22e9953c365ed1f0028e636cc9f69fb3c93ff5b705a843b46b2ae92776f5d",
       "usage": "Desktop SoulLink static background/card layer with dynamic/data text stripped; dynamic text is rendered as DOM overlays.",
-      "source": "D:/work/ai-/设计问题/index.png"
+      "source": "user-provided reference (not retained)"
     }
   }
 }

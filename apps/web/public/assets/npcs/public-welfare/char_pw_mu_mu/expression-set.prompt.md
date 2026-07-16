@@ -1,7 +1,7 @@
 ---
 prompt_scope: npc-expression-set
-asset_group: apps/web/public/assets/npcs/public-welfare/char_pw_mu_mu/
-assets: apps/web/public/assets/npcs/public-welfare/char_pw_mu_mu/neutral.png; apps/web/public/assets/npcs/public-welfare/char_pw_mu_mu/joy.png; apps/web/public/assets/npcs/public-welfare/char_pw_mu_mu/anger.png; apps/web/public/assets/npcs/public-welfare/char_pw_mu_mu/embarrassment.png; apps/web/public/assets/npcs/public-welfare/char_pw_mu_mu/curiosity.png
+asset_group: https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_mu_mu/
+assets: https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_mu_mu/neutral.png; https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_mu_mu/joy.png; https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_mu_mu/anger.png; https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_mu_mu/embarrassment.png; https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_mu_mu/curiosity.png
 expressions: neutral, joy, anger, embarrassment, curiosity
 asset_count: 5
 prompt_type: original-final
@@ -25,11 +25,11 @@ Expression suffix (neutral): neutral expression, attentive but relaxed, mouth cl
 
 ## Expression assets
 
-- `apps/web/public/assets/npcs/public-welfare/char_pw_mu_mu/neutral.png` — `neutral`
-- `apps/web/public/assets/npcs/public-welfare/char_pw_mu_mu/joy.png` — `joy`
-- `apps/web/public/assets/npcs/public-welfare/char_pw_mu_mu/anger.png` — `anger`
-- `apps/web/public/assets/npcs/public-welfare/char_pw_mu_mu/embarrassment.png` — `embarrassment`
-- `apps/web/public/assets/npcs/public-welfare/char_pw_mu_mu/curiosity.png` — `curiosity`
+- `https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_mu_mu/neutral.png` — `neutral`
+- `https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_mu_mu/joy.png` — `joy`
+- `https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_mu_mu/anger.png` — `anger`
+- `https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_mu_mu/embarrassment.png` — `embarrassment`
+- `https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_mu_mu/curiosity.png` — `curiosity`
 
 ## Negative constraints
 
@@ -46,7 +46,7 @@ Expression suffix (neutral): neutral expression, attentive but relaxed, mouth cl
 
 ## Style recipe / Style DNA source
 
-- art_style_and_genre: high-contrast digital industrial glitch anime/game concept portrait, convenience-store sci-fi comedy rather than horror; palette_color_science: thermal-paper off-white, cool gray, deep black linework, acid green/violet scan accents, tiny warm oden-lamp amber only as local highlight; lighting_signature: cold fluorescent shelf light mixed with narrow scanner glow; crisp hard rim light, no generic teal wooden bar glow; medium_texture: receipt-scan noise, copier grain, subtle pixel sorting, thin vector inventory marks, clean cel-shaded character core; mood: absurd, observant, slightly awkward, safe and welcoming; not threatening, not horror; era_context: post-digital convenience-store anthropology, low-budget zine sci-fi, public-welfare tavern demo; detail_density: medium-high around props/shelves/receipt fragments, clean readable face and silhouette; post_processing: controlled chromatic edge offsets, thermal-print speckles, no messy overglitch; symbolic_motifs: ['receipt fragments', 'inventory scan windows', 'abstract shelf labels', 'oden steam glyphs', 'tiny map-coordinate stickers']
+- art_style_and_genre: high-contrast digital industrial glitch anime/game concept portrait, convenience-store sci-fi comedy rather than horror; palette_color_science: thermal-paper off-white, cool gray, deep black linework, acid green/violet scan accents, tiny warm oden-lamp amber only as local highlight; lighting_signature: cold fluorescent shelf light mixed with narrow scanner glow; crisp hard rim light, no generic teal wooden bar glow; medium_texture: receipt-scan noise, copier grain, subtle pixel sorting, thin vector inventory marks, clean cel-shaded character core; mood: absurd, observant, slightly awkward, safe and welcoming; not threatening, not horror; era_context: post-digital convenience-store anthropology, low-budget zine sci-fi, public-welfare tavern concept; detail_density: medium-high around props/shelves/receipt fragments, clean readable face and silhouette; post_processing: controlled chromatic edge offsets, thermal-print speckles, no messy overglitch; symbolic_motifs: ['receipt fragments', 'inventory scan windows', 'abstract shelf labels', 'oden steam glyphs', 'tiny map-coordinate stickers']
 
 ## Identity locks
 

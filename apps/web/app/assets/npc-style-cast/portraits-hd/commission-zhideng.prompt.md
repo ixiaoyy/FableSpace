@@ -1,5 +1,5 @@
 ---
-asset: apps/web/app/assets/npc-style-cast/portraits-hd/commission-zhideng.png
+asset: https://img.pingxingxian.space/fablespace/media/v1/app/assets/npc-style-cast/portraits-hd/commission-zhideng.png
 prompt_type: reference-only
 source_type: project-local-upscale
 width: 512
@@ -7,12 +7,12 @@ height: 512
 sha256: c6fef08b3f8e958c4589fbd73f5a7fa621316c04b96146857ff42d496a5fe66b
 updated_at: "2026-05-10T23:59:00+08:00"
 can_regenerate_higher_quality: true
-source_asset: ../portraits/commission-zhideng.png
+source_asset: https://img.pingxingxian.space/fablespace/media/v1/app/assets/npc-style-cast/portraits/commission-zhideng.png
 ---
 
 ## Final prompt
 
-Reference-only HD upscale derived from the existing project portrait `D:/work/ai-/apps/web/app/assets/npc-style-cast/portraits/commission-zhideng.png`. The original generation prompt was not available, so this sidecar is not a regeneration prompt.
+Reference-only HD upscale derived from the existing project portrait `https://img.pingxingxian.space/fablespace/media/v1/app/assets/npc-style-cast/portraits/commission-zhideng.png`. The original generation prompt was not available, so this sidecar is not a regeneration prompt.
 
 ## Negative constraints
 

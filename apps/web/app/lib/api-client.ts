@@ -1,3 +1,5 @@
+import { normalizeMediaPayload } from "./media-assets"
+
 type ApiInit = RequestInit & {
   userId?: string
 }
@@ -63,7 +65,7 @@ export async function readApiJson<T>(path: string, init: ApiInit = {}): Promise<
     const message = apiErrorMessage(payload, response.status)
     throw new Error(message)
   }
-  return unwrapApiPayload<T>(payload)
+  return normalizeMediaPayload(unwrapApiPayload<T>(payload))
 }
 
 export async function readApiBlob(path: string, init: ApiInit = {}): Promise<Blob> {

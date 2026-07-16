@@ -1,7 +1,7 @@
 ---
 prompt_scope: npc-expression-set
-asset_group: apps/web/public/assets/npcs/public-welfare/char_pw_wenjian/
-assets: apps/web/public/assets/npcs/public-welfare/char_pw_wenjian/neutral.png; apps/web/public/assets/npcs/public-welfare/char_pw_wenjian/joy.png; apps/web/public/assets/npcs/public-welfare/char_pw_wenjian/anger.png; apps/web/public/assets/npcs/public-welfare/char_pw_wenjian/embarrassment.png; apps/web/public/assets/npcs/public-welfare/char_pw_wenjian/curiosity.png
+asset_group: https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_wenjian/
+assets: https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_wenjian/neutral.png; https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_wenjian/joy.png; https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_wenjian/anger.png; https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_wenjian/embarrassment.png; https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_wenjian/curiosity.png
 expressions: neutral, joy, anger, embarrassment, curiosity
 asset_count: 5
 prompt_type: original-final
@@ -25,11 +25,11 @@ Expression suffix (neutral): neutral expression, attentive but relaxed, mouth cl
 
 ## Expression assets
 
-- `apps/web/public/assets/npcs/public-welfare/char_pw_wenjian/neutral.png` — `neutral`
-- `apps/web/public/assets/npcs/public-welfare/char_pw_wenjian/joy.png` — `joy`
-- `apps/web/public/assets/npcs/public-welfare/char_pw_wenjian/anger.png` — `anger`
-- `apps/web/public/assets/npcs/public-welfare/char_pw_wenjian/embarrassment.png` — `embarrassment`
-- `apps/web/public/assets/npcs/public-welfare/char_pw_wenjian/curiosity.png` — `curiosity`
+- `https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_wenjian/neutral.png` — `neutral`
+- `https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_wenjian/joy.png` — `joy`
+- `https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_wenjian/anger.png` — `anger`
+- `https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_wenjian/embarrassment.png` — `embarrassment`
+- `https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_wenjian/curiosity.png` — `curiosity`
 
 ## Negative constraints
 

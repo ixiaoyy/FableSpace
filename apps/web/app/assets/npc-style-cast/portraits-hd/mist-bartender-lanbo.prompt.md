@@ -1,5 +1,5 @@
 ---
-asset: apps/web/app/assets/npc-style-cast/portraits-hd/mist-bartender-lanbo.png
+asset: https://img.pingxingxian.space/fablespace/media/v1/app/assets/npc-style-cast/portraits-hd/mist-bartender-lanbo.png
 prompt_type: reference-only
 source_type: project-local-upscale
 width: 512
@@ -7,12 +7,12 @@ height: 512
 sha256: ec3c9004d688c89f349b0006a9dd7b6085f4c38b8d9e751d6aa191201c63db6a
 updated_at: "2026-05-10T23:59:00+08:00"
 can_regenerate_higher_quality: true
-source_asset: ../portraits/mist-bartender-lanbo.png
+source_asset: https://img.pingxingxian.space/fablespace/media/v1/app/assets/npc-style-cast/portraits/mist-bartender-lanbo.png
 ---
 
 ## Final prompt
 
-Reference-only HD upscale derived from the existing project portrait `D:/work/ai-/apps/web/app/assets/npc-style-cast/portraits/mist-bartender-lanbo.png`. The original generation prompt was not available, so this sidecar is not a regeneration prompt.
+Reference-only HD upscale derived from the existing project portrait `https://img.pingxingxian.space/fablespace/media/v1/app/assets/npc-style-cast/portraits/mist-bartender-lanbo.png`. The original generation prompt was not available, so this sidecar is not a regeneration prompt.
 
 ## Negative constraints
 

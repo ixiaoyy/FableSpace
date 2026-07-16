@@ -11,9 +11,9 @@ import {
 } from "lucide-react"
 import { useState } from "react"
 import { Link, Navigate, replace, useLoaderData } from "react-router"
-import homeBlackHeroVisual from "../assets/fable-space-05-10/home-black/hero-system-visual.webp"
 import { SpaceChatWorkbench } from "../features/space-chat-workbench"
 import { resolveHomepageSpaceCover } from "../lib/homepage-spaces"
+import { mediaAssetUrl } from "../lib/media-assets"
 import { derivePlaceTypeDisplay } from "../lib/place-types.js"
 import { fallbackRoleplayState } from "../lib/roleplay-state"
 import { resolveCurrentSessionUserId } from "../lib/session"
@@ -30,6 +30,8 @@ import {
 } from "../lib/spaces"
 import { formatSpaceAnchorLocation } from "../product/mapAnchorCopy.js"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card"
+
+const homeBlackHeroVisual = mediaAssetUrl("app/assets/fable-space-05-10/home-black/hero-system-visual.webp")
 
 type SpaceLoaderData = {
   spaceId: string

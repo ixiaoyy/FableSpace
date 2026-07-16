@@ -7,20 +7,20 @@
 ```text
 push main
   -> 检测 apps/api / apps/web / 部署配置变化
-  -> 前端构建时写入 release-scoped CDN base
-  -> build/client/assets 同步到对象存储
-  -> 通过 CDN 域名读取一个 JS/CSS 文件做真实校验
+  -> 前端构建时写入稳定媒体 CDN base
+  -> 对照 media-manifest.json 核对桶内全部图片对象
+  -> 通过 CDN 域名读取抽样图片做真实校验
   -> 前端 Docker 镜像上传到服务器并替换 frontend
   -> 后端变化时在服务器重建 backend 并检查 /api/v1/health
 ```
 
-前端资源路径使用：
+项目图片路径使用：
 
 ```text
-https://<cdn-domain>/fablespace/releases/<git-sha>/assets/<built-file>
+https://<cdn-domain>/fablespace/media/v1/<object-key>
 ```
 
-每次发布使用独立提交号目录，文件响应头为 `public,max-age=31536000,immutable`。因此正常发布不需要清 CDN 缓存，新旧 HTML 也不会引用到彼此的构建资源。
+图片对象使用稳定、不可变 key，文件响应头为 `public,max-age=31536000,immutable`。内容变化时发布新 key 并更新清单和代码 URL，不覆盖旧对象，也不依赖清 CDN 缓存。JS/CSS 保持在前端站点同源部署。
 
 ## GitHub 配置
 
@@ -58,19 +58,19 @@ https://<cdn-domain>/fablespace/releases/<git-sha>/assets/<built-file>
 
 ## R2 / S3 与 CDN
 
-本节默认只用于公开的前端 release 资源。ParallelLines 私密联动模式的运行时生成文件必须保留在本地持久卷，不进入公开 CDN。
+本节默认只用于公开的项目图片。ParallelLines 私密联动模式的运行时生成文件必须保留在本地持久卷，不进入公开 CDN。
 
 1. 创建私有写入凭据，权限限制到目标桶的对象读写和列举。
 2. 为桶绑定公开 HTTPS 域名，把该域名写入 `CDN_BASE_URL`。
 3. 为前端正式站点配置 GET/HEAD CORS。示例见 [`deploy/cdn/cors.example.json`](../deploy/cdn/cors.example.json)，使用前替换域名。
-4. 确认 CDN 不覆盖源站的 `Cache-Control`；release 目录允许长期缓存。
-5. 在桶侧配置生命周期规则，例如保留最近 60 至 90 天的 `fablespace/releases/`。不要在发布 workflow 中立即删旧版本，以免仍打开的旧页面失去资源。
+4. 确认 CDN 不覆盖源站的 `Cache-Control`；`fablespace/media/v1/` 使用长期缓存。
+5. 不要对仍在 `deploy/cdn/media-manifest.json` 中的对象设置过期规则；删除或替换对象前必须先确认没有代码、seed 或文档 URL 引用。
 
-Workflow 会在同步后通过 `CDN_BASE_URL` 实际下载一个构建文件。桶写入成功但公开域名、CORS 或 CDN 回源未生效时，发布会在替换服务器前失败。
+Workflow 会比较清单中每个对象的 key 与字节数，并通过 `CDN_BASE_URL` 实际下载抽样图片。对象缺失、大小不符、公开域名、CORS 或 CDN 回源未生效时，发布会在替换服务器前失败。
 
 ## 服务器首次准备
 
-服务器需要 Git、Docker 和 Docker Compose。生产方案复用 ParallelLines 的 MySQL、Redis，以及前端 release 使用的 R2 bucket/CDN；FableSpace 分别使用 `fablespace` database 和 Redis DB `1`，私密运行时生成文件保存在 `fablespace_data` 持久卷。
+服务器需要 Git、Docker 和 Docker Compose。生产方案复用 ParallelLines 的 MySQL、Redis，以及项目图片使用的 R2 bucket/CDN；FableSpace 分别使用 `fablespace` database 和 Redis DB `1`，私密运行时生成文件保存在 `fablespace_data` 持久卷。
 
 先准备仓库和环境文件：
 
@@ -129,17 +129,17 @@ ParallelLines 必须为账号返回至少 `fablespace.access` 才能签发并维
 
 ## 回滚
 
-推荐 revert 问题提交并推送 `main`。新提交会产生新的 release 目录并重新部署，旧 CDN 资源保持可用。若只在服务器手工切换镜像，仓库状态与后端版本可能不一致，不作为标准回滚流程。
+推荐 revert 问题提交并推送 `main`。旧的不可变媒体对象保持可用，因此回滚后的 URL 仍可读取。若只在服务器手工切换镜像，仓库状态与后端版本可能不一致，不作为标准回滚流程。
 
 ## 本地验证 CDN base
 
 PowerShell：
 
 ```powershell
-$env:VITE_ASSET_BASE_URL = "https://cdn.example.com/releases/local-check"
+$env:VITE_MEDIA_BASE_URL = "https://cdn.example.com/fablespace/media/v1"
 npm --prefix .\apps\web run build
-Select-String -Path .\apps\web\build\client\index.html -Pattern "cdn.example.com/releases/local-check"
-Remove-Item Env:VITE_ASSET_BASE_URL
+rg "cdn.example.com/fablespace/media/v1" .\apps\web\build\client
+Remove-Item Env:VITE_MEDIA_BASE_URL
 ```
 
-该变量只改变 Vite 构建资源地址，不改变 `/api`、`/generated` 或运行时上传数据的归属。
+该变量只改变项目图片基址，不改变 `/api`、`/generated` 或运行时上传数据的归属。

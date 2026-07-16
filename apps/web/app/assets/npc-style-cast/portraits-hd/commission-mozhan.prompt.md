@@ -1,5 +1,5 @@
 ---
-asset: apps/web/app/assets/npc-style-cast/portraits-hd/commission-mozhan.png
+asset: https://img.pingxingxian.space/fablespace/media/v1/app/assets/npc-style-cast/portraits-hd/commission-mozhan.png
 prompt_type: reference-only
 source_type: project-local-upscale
 width: 512
@@ -7,12 +7,12 @@ height: 512
 sha256: 32fdae42ac172a95b351941a9e9a365d4addda1c7419a82bf2d45c0e9067a173
 updated_at: "2026-05-10T23:59:00+08:00"
 can_regenerate_higher_quality: true
-source_asset: ../portraits/commission-mozhan.png
+source_asset: https://img.pingxingxian.space/fablespace/media/v1/app/assets/npc-style-cast/portraits/commission-mozhan.png
 ---
 
 ## Final prompt
 
-Reference-only HD upscale derived from the existing project portrait `D:/work/ai-/apps/web/app/assets/npc-style-cast/portraits/commission-mozhan.png`. The original generation prompt was not available, so this sidecar is not a regeneration prompt.
+Reference-only HD upscale derived from the existing project portrait `https://img.pingxingxian.space/fablespace/media/v1/app/assets/npc-style-cast/portraits/commission-mozhan.png`. The original generation prompt was not available, so this sidecar is not a regeneration prompt.
 
 ## Negative constraints
 

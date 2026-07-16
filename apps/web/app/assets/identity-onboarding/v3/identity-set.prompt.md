@@ -1,6 +1,6 @@
 # Visitor identity onboarding v3 assets
 
-- Source design reference: `artifacts/design-references/visitor-identity-onboarding-v3.png`
+- Source design reference: `https://img.pingxingxian.space/fablespace/media/v1/references/design-references/visitor-identity-onboarding-v3.png`
 - Generator: built-in ImageGen
 - Generated on: 2026-07-16 (Asia/Shanghai)
 - Purpose: private visitor identity onboarding; these images are identity previews, not NPC cards.
@@ -9,10 +9,10 @@
 
 | Path | Identity | Dimensions | SHA-256 |
 | --- | --- | ---: | --- |
-| `beggar.webp` | 乞丐 | 1024 × 1536 | `C5B7447F7203777DE89AA3533B495607B8DD36E2535F5BE1DB93AA920BA289C6` |
-| `eunuch.webp` | 太监 | 760 × 1267 | `95BD960D3EDA77AD83E64782FFA5B16C3A81CC7F9EB9E3B48E5D8D21C4568807` |
-| `radish-spirit.webp` | 萝卜精 | 760 × 1267 | `32A7FC5EA8C183CA510456865A6413BF1EE35C74382D321C1AB63B7DBA26217B` |
-| `puppy.webp` | 小奶狗 | 800 × 1000 | `0D885B0DF0DD0805744243556A8E01E62D5CFED38BE3D73A73479BE2A77F1998` |
+| `https://img.pingxingxian.space/fablespace/media/v1/app/assets/identity-onboarding/v3/beggar.webp` | 乞丐 | 1024 × 1536 | `C5B7447F7203777DE89AA3533B495607B8DD36E2535F5BE1DB93AA920BA289C6` |
+| `https://img.pingxingxian.space/fablespace/media/v1/app/assets/identity-onboarding/v3/eunuch.webp` | 太监 | 760 × 1267 | `95BD960D3EDA77AD83E64782FFA5B16C3A81CC7F9EB9E3B48E5D8D21C4568807` |
+| `https://img.pingxingxian.space/fablespace/media/v1/app/assets/identity-onboarding/v3/radish-spirit.webp` | 萝卜精 | 760 × 1267 | `32A7FC5EA8C183CA510456865A6413BF1EE35C74382D321C1AB63B7DBA26217B` |
+| `https://img.pingxingxian.space/fablespace/media/v1/app/assets/identity-onboarding/v3/puppy.webp` | 小奶狗 | 800 × 1000 | `0D885B0DF0DD0805744243556A8E01E62D5CFED38BE3D73A73479BE2A77F1998` |
 
 The `.png` siblings are the untouched built-in ImageGen source files. The `.webp` files above are the production references, resized only where the card slot did not need the full source resolution and encoded at quality 88.
 

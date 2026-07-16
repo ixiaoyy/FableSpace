@@ -1,5 +1,5 @@
 ---
-asset: apps/web/public/faction-emblems/emblem-clinic.svg
+asset: https://img.pingxingxian.space/fablespace/media/v1/public/faction-emblems/emblem-clinic.svg
 prompt_type: reference-only
 source_type: svg-reference
 width: 64

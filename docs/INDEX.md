@@ -10,7 +10,7 @@
 4. [WORLD_SCHEMA.md](WORLD_SCHEMA.md) — 核心数据结构与约束。
 5. [WHAT_NOT_TO_BUILD.md](WHAT_NOT_TO_BUILD.md) — 明确不做的产品/技术方向。
 6. [DEPLOYMENT.md](DEPLOYMENT.md) — GitHub Actions、Docker Compose、对象存储和 CDN 发布。
-7. [IMAGE_ASSETS_SPEC.md](IMAGE_ASSETS_SPEC.md) — 图片资产落盘与 prompt sidecar 规则。
+7. [IMAGE_ASSETS_SPEC.md](IMAGE_ASSETS_SPEC.md) — 图片对象存储、URL、清单与 prompt sidecar 规则。
 
 ## 文档职责
 
@@ -22,7 +22,7 @@
 | `FABLESPACE_SPACE_PLATFORM.md` | 定义 P0 空间平台主线和产品边界。 |
 | `WORLD_SCHEMA.md` | 维护 Space / NPC / 访客状态 / 玩法 / 关系等核心 Schema 约束。 |
 | `WHAT_NOT_TO_BUILD.md` | 作为负面清单，阻止方向漂移。 |
-| `IMAGE_ASSETS_SPEC.md` | 约束图片资产路径、命名、prompt sidecar 与验证。 |
+| `IMAGE_ASSETS_SPEC.md` | 约束图片对象 key、URL、清单、prompt sidecar 与验证。 |
 | `DEPLOYMENT.md` | 维护生产自动部署、GitHub Secret、对象存储与 CDN 发布契约。 |
 
 ## 维护协作资料

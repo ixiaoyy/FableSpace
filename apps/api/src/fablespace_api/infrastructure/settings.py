@@ -6,7 +6,6 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[5]
 DEFAULT_OUTPUT_ROOT = REPO_ROOT / ".fablespace-api"
-DEFAULT_FIXTURE_FILE = Path(__file__).resolve().parents[1] / "core" / "demo_assets" / "overpass_demo.json"
 DEFAULT_FRONTEND_ROOT = REPO_ROOT / "apps" / "web"
 
 
@@ -38,10 +37,6 @@ def _optional_path_from_env(primary: str, legacy: str, default: Path | None) -> 
 
 def _default_output_root() -> Path:
     return _path_from_env("FABLESPACE_OUTPUT_ROOT", "FABLEMAP_OUTPUT_ROOT", DEFAULT_OUTPUT_ROOT)
-
-
-def _default_fixture_file() -> Path | None:
-    return _optional_path_from_env("FABLESPACE_FIXTURE_FILE", "FABLEMAP_FIXTURE_FILE", DEFAULT_FIXTURE_FILE)
 
 
 def _default_frontend_root() -> Path | None:
@@ -113,7 +108,6 @@ class ApiSettings:
     api_version: str = "0.1.0-enterprise-native"
     cors_origins: list[str] = field(default_factory=_default_cors_origins)
     output_root: Path = field(default_factory=_default_output_root)
-    fixture_file: Path | None = field(default_factory=_default_fixture_file)
     frontend_root: Path | None = field(default_factory=_default_frontend_root)
     sillytavern_url: str = field(default_factory=_default_sillytavern_url)
 

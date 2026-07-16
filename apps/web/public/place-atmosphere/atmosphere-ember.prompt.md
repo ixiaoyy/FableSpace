@@ -1,5 +1,5 @@
 ---
-asset: apps/web/public/place-atmosphere/atmosphere-ember.png
+asset: https://img.pingxingxian.space/fablespace/media/v1/public/place-atmosphere/atmosphere-ember.png
 prompt_type: reference-only
 source_type: docs-image-assets-spec
 width: 512

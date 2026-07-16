@@ -84,7 +84,7 @@ export default function WorldEntryPanel({
             >
               <span className="preset-title">{preset.title}</span>
               <span className="preset-subtitle">{preset.subtitle}</span>
-              <span className="preset-meta">{preset.mode === 'fixture' ? '离线演示' : '实时地图'} · {preset.radius}m</span>
+              <span className="preset-meta">实时地图 · {preset.radius}m</span>
             </button>
           )
         })}
@@ -131,11 +131,8 @@ export default function WorldEntryPanel({
 
           <div className="row-2">
             <div>
-              <label htmlFor="mode">地点来源</label>
-              <select id="mode" value={form.mode} onChange={(event) => updateForm('mode', event.target.value)}>
-                <option value="live">实时 OSM</option>
-                <option value="fixture">离线演示样例</option>
-              </select>
+              <label htmlFor="location-source">地点来源</label>
+              <input id="location-source" value="实时 OSM" readOnly />
             </div>
             <div>
               <label htmlFor="seed">种子</label>

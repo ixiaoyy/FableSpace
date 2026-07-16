@@ -17,33 +17,36 @@ import {
   Send,
 } from "lucide-react"
 
-import discoverCardCompass from "../assets/fable-space-05-10/discover/cards/card-compass-square.png"
-import discoverCardPlane from "../assets/fable-space-05-10/discover/cards/card-plane-square.png"
-import discoverCardSkyCity from "../assets/fable-space-05-10/discover/cards/card-sky-city-square.png"
-import discoverCardTrainPlatform from "../assets/fable-space-05-10/discover/cards/card-train-platform-square.png"
-import discoverWorldStatusBgBlack from "../assets/fable-space-05-10/discover/world-status/bg-black.png"
-import homeBlackInviteCard from "../assets/fable-space-05-10/home-black/invite-card.webp"
-import homeBlackGuideDatabaseIcon from "../assets/fable-space-05-10/home-black/guide-database-icon.webp"
-import homeBlackGuideProtocolIcon from "../assets/fable-space-05-10/home-black/guide-protocol-icon.webp"
-import homeBlackGuideSecurityIcon from "../assets/fable-space-05-10/home-black/guide-security-icon.webp"
-import homeBlackHeroVisual from "../assets/fable-space-05-10/home-black/hero-system-visual.webp"
-import homeBlackRecentEchoWaveform from "../assets/fable-space-05-10/home-black/recent-echo-waveform.webp"
-import homeBlackUserAvatar from "../assets/fable-space-05-10/home-black/user-avatar-node07.webp"
-import homeBlackWorldStatsSparkline from "../assets/fable-space-05-10/home-black/world-stats-sparkline.webp"
-import sceneBar from "../assets/fable-space-scenes/bar.webp"
-import sceneCafe from "../assets/fable-space-scenes/cafe.webp"
-import sceneCompany from "../assets/fable-space-scenes/company.webp"
-import sceneHotel from "../assets/fable-space-scenes/hotel.webp"
-import sceneLibrary from "../assets/fable-space-scenes/library.webp"
-import scenePetShop from "../assets/fable-space-scenes/pet-shop.webp"
-import sceneSchool from "../assets/fable-space-scenes/school.webp"
-import sceneSportsCenter from "../assets/fable-space-scenes/sports-center.webp"
-import fableSpaceUserAvatarImage from "../assets/npc-style-cast/portraits-hd/commission-zhideng.png"
 import { useCreatorAccess } from "../hooks/useCreatorAccess"
 import { resolveHomepageSpaceCover } from "../lib/homepage-spaces"
+import { mediaAssetUrl } from "../lib/media-assets"
 import { buildSpaceFirstMinuteGuide } from "../lib/space-first-minute"
 import type { Space, SpaceCharacter } from "../lib/spaces"
 import { characterPath, WEB_PATHS, spacePath } from "../lib/web-routes"
+
+const appAssetUrl = (path: string) => mediaAssetUrl(`app/assets/${path}`)
+const discoverCardCompass = appAssetUrl("fable-space-05-10/discover/cards/card-compass-square.png")
+const discoverCardPlane = appAssetUrl("fable-space-05-10/discover/cards/card-plane-square.png")
+const discoverCardSkyCity = appAssetUrl("fable-space-05-10/discover/cards/card-sky-city-square.png")
+const discoverCardTrainPlatform = appAssetUrl("fable-space-05-10/discover/cards/card-train-platform-square.png")
+const discoverWorldStatusBgBlack = appAssetUrl("fable-space-05-10/discover/world-status/bg-black.png")
+const homeBlackInviteCard = appAssetUrl("fable-space-05-10/home-black/invite-card.webp")
+const homeBlackGuideDatabaseIcon = appAssetUrl("fable-space-05-10/home-black/guide-database-icon.webp")
+const homeBlackGuideProtocolIcon = appAssetUrl("fable-space-05-10/home-black/guide-protocol-icon.webp")
+const homeBlackGuideSecurityIcon = appAssetUrl("fable-space-05-10/home-black/guide-security-icon.webp")
+const homeBlackHeroVisual = appAssetUrl("fable-space-05-10/home-black/hero-system-visual.webp")
+const homeBlackRecentEchoWaveform = appAssetUrl("fable-space-05-10/home-black/recent-echo-waveform.webp")
+const homeBlackUserAvatar = appAssetUrl("fable-space-05-10/home-black/user-avatar-node07.webp")
+const homeBlackWorldStatsSparkline = appAssetUrl("fable-space-05-10/home-black/world-stats-sparkline.webp")
+const sceneBar = appAssetUrl("fable-space-scenes/bar.webp")
+const sceneCafe = appAssetUrl("fable-space-scenes/cafe.webp")
+const sceneCompany = appAssetUrl("fable-space-scenes/company.webp")
+const sceneHotel = appAssetUrl("fable-space-scenes/hotel.webp")
+const sceneLibrary = appAssetUrl("fable-space-scenes/library.webp")
+const scenePetShop = appAssetUrl("fable-space-scenes/pet-shop.webp")
+const sceneSchool = appAssetUrl("fable-space-scenes/school.webp")
+const sceneSportsCenter = appAssetUrl("fable-space-scenes/sports-center.webp")
+const fableSpaceUserAvatarImage = appAssetUrl("npc-style-cast/portraits-hd/commission-zhideng.png")
 
 const homeLightInviteCard = homeBlackInviteCard
 const homeLightInviteCard2x = homeBlackInviteCard

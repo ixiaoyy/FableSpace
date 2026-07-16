@@ -45,11 +45,6 @@ def add_arguments(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
         action="store_true",
         help="Ignore cached live payloads and fetch fresh Overpass data.",
     )
-    parser.add_argument(
-        "--source-file",
-        type=Path,
-        help="Optional local Overpass-style JSON fixture for offline generation and testing.",
-    )
     return parser
 
 
@@ -79,7 +74,6 @@ def run_nearby(args: argparse.Namespace) -> int:
             request_retries=args.request_retries,
             cache_dir=args.cache_dir,
             refresh=args.refresh,
-            source_file=args.source_file,
         )
         print(json.dumps(result, ensure_ascii=False, indent=2))
         return 0
@@ -99,26 +93,17 @@ def generate_nearby_preview(
     request_retries: int = 1,
     cache_dir: Path | None = None,
     refresh: bool = False,
-    source_file: Path | None = None,
 ) -> dict[str, Any]:
-    source_data = None
     provider = "overpass"
-    resolved_cache_dir = None
-    cache_status = "disabled"
-    if source_file:
-        source_data = json.loads(source_file.read_text(encoding="utf-8"))
-        provider = "fixture"
-        cache_status = "fixture"
-    else:
-        resolved_cache_dir = cache_dir or default_cache_dir()
-        cache_status = "refreshed" if refresh else "enabled"
+    resolved_cache_dir = cache_dir or default_cache_dir()
+    cache_status = "refreshed" if refresh else "enabled"
 
     world = build_world(
         lat=lat,
         lon=lon,
         radius=radius,
         seed=seed,
-        source_data=source_data,
+        source_data=None,
         provider=provider,
         fetch_timeout_seconds=request_timeout,
         fetch_max_retries=request_retries,
@@ -148,7 +133,6 @@ def generate_nearby_preview(
         "source_lat": source_lat,
         "source_lon": source_lon,
         "source_radius_m": source.get("radius_m"),
-        "source_file": str(source_file.resolve()) if source_file is not None else None,
         "osm_url": _openstreetmap_url(source_lat, source_lon) if source_lat is not None and source_lon is not None else None,
         "region_name": region.get("name"),
         "region_theme": region.get("theme"),

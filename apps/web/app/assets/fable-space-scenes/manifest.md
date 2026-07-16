@@ -14,14 +14,14 @@ Generated and reviewed on 2026-07-14 for the eight frontend fallback scene cards
 
 | Asset | Generated source | SHA-256 |
 | --- | --- | --- |
-| `school.png` | `exec-6b755cde-0bcb-4bfd-acfb-99f50016db6e.png` | `CEEF5AB3C33922439DCD215AE6FE8DD5A9614ABF05B3E21F471969AAB4A552E1` |
-| `hotel.png` | `exec-32b5f0c1-aeb8-4bce-87f0-2ca4c12a04b5.png` | `A14AAB576FC8216BBC6511717E1E804383A4DCD021FAAE421126ED39E3EEED27` |
-| `cafe.png` | `exec-eeb574f9-8f47-48d4-b73d-6f4752bb82d6.png` | `7BCA2EDEE11F6AD7B138850A4CB203DD55804E2AFBD1D8F983635886B723B3F8` |
-| `pet-shop.png` | `exec-21df08da-f12f-45cc-afbc-f439e0267f32.png` | `B52F994EE5486E7C369B0B4D10B79DABB8CAB69D5B84F5D8A08C79DB86A6E557` |
-| `library.png` | `exec-055328fb-8dc1-40b0-a9b0-80995ef763c6.png` | `E8690042D68B0D8368D6BFE6625295E362CCC8495D0E93C9C1D3FE2C0935D8AD` |
-| `company.png` | `exec-f1cfa2d1-3761-4bb4-8414-744eb4d8984b.png` | `AA149969AE6993C855FABAFA121D0AFFA088861F8548358E93A00DCC2F835A15` |
-| `bar.png` | `exec-ee0d0dc4-46de-4e5d-b429-b8658887f47f.png` | `AB4D30C04230C88C0E979121CE32740D6D5642F267849BED1EDFB175038F5DE4` |
-| `sports-center.png` | `exec-400c4724-e903-4c33-b534-b74ad9079c96.png` | `F40633766087873ECF1B0F3FB378280395D0282DA879B19D5486CA40E388972F` |
+| `https://img.pingxingxian.space/fablespace/media/v1/app/assets/fable-space-scenes/school.png` | `exec-6b755cde-0bcb-4bfd-acfb-99f50016db6e.png` | `CEEF5AB3C33922439DCD215AE6FE8DD5A9614ABF05B3E21F471969AAB4A552E1` |
+| `https://img.pingxingxian.space/fablespace/media/v1/app/assets/fable-space-scenes/hotel.png` | `exec-32b5f0c1-aeb8-4bce-87f0-2ca4c12a04b5.png` | `A14AAB576FC8216BBC6511717E1E804383A4DCD021FAAE421126ED39E3EEED27` |
+| `https://img.pingxingxian.space/fablespace/media/v1/app/assets/fable-space-scenes/cafe.png` | `exec-eeb574f9-8f47-48d4-b73d-6f4752bb82d6.png` | `7BCA2EDEE11F6AD7B138850A4CB203DD55804E2AFBD1D8F983635886B723B3F8` |
+| `https://img.pingxingxian.space/fablespace/media/v1/app/assets/fable-space-scenes/pet-shop.png` | `exec-21df08da-f12f-45cc-afbc-f439e0267f32.png` | `B52F994EE5486E7C369B0B4D10B79DABB8CAB69D5B84F5D8A08C79DB86A6E557` |
+| `https://img.pingxingxian.space/fablespace/media/v1/app/assets/fable-space-scenes/library.png` | `exec-055328fb-8dc1-40b0-a9b0-80995ef763c6.png` | `E8690042D68B0D8368D6BFE6625295E362CCC8495D0E93C9C1D3FE2C0935D8AD` |
+| `https://img.pingxingxian.space/fablespace/media/v1/app/assets/fable-space-scenes/company.png` | `exec-f1cfa2d1-3761-4bb4-8414-744eb4d8984b.png` | `AA149969AE6993C855FABAFA121D0AFFA088861F8548358E93A00DCC2F835A15` |
+| `https://img.pingxingxian.space/fablespace/media/v1/app/assets/fable-space-scenes/bar.png` | `exec-ee0d0dc4-46de-4e5d-b429-b8658887f47f.png` | `AB4D30C04230C88C0E979121CE32740D6D5642F267849BED1EDFB175038F5DE4` |
+| `https://img.pingxingxian.space/fablespace/media/v1/app/assets/fable-space-scenes/sports-center.png` | `exec-400c4724-e903-4c33-b534-b74ad9079c96.png` | `F40633766087873ECF1B0F3FB378280395D0282DA879B19D5486CA40E388972F` |
 
 Original generated sources remain under `%USERPROFILE%\.codex\generated_images\019f5b04-623d-7a01-822a-ba3d229c7637\` as required by the image-generation workflow.
 

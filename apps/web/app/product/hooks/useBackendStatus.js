@@ -39,7 +39,7 @@ export function useBackendStatus({ api, apiBase, restoredSession, setForm }) {
       setStatusOk(true)
       setStatusText(`FastAPI 已连接 · ${meta.project || 'FableSpace'}`)
       setStatusDetail(
-        `api=${meta.api_base || apiBase} · frontend_mode=${meta.frontend_mode} · fixture_available=${health.fixture_available}`
+        `api=${meta.api_base || apiBase} · frontend_mode=${meta.frontend_mode}`
       )
     } catch (error) {
       setStatusOk(false)

@@ -19,7 +19,6 @@ REPO_ROOT = Path(__file__).resolve().parents[5]
 DEFAULT_HOST = "127.0.0.1"
 DEFAULT_PORT = 8765
 DEFAULT_OUTPUT_ROOT = REPO_ROOT / ".fablespace-page"
-DEFAULT_FIXTURE_FILE = Path(__file__).resolve().parent / "demo_assets" / "overpass_demo.json"
 
 
 def add_arguments(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
@@ -30,12 +29,6 @@ def add_arguments(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
         type=Path,
         default=DEFAULT_OUTPUT_ROOT,
         help="Directory where page-generated previews will be written.",
-    )
-    parser.add_argument(
-        "--fixture-file",
-        type=Path,
-        default=DEFAULT_FIXTURE_FILE,
-        help="Fixture file used by the page when the UI selects offline mode.",
     )
     parser.add_argument(
         "--no-open",
@@ -61,12 +54,10 @@ def main(argv: Sequence[str] | None = None) -> int:
 
 def run_page(args: argparse.Namespace) -> int:
     try:
-        fixture_file = args.fixture_file.resolve() if args.fixture_file else None
         server = create_server(
             args.host,
             args.port,
             output_root=args.output_root.resolve(),
-            fixture_file=fixture_file,
         )
         page_url = f"{_public_base_url(args.host, server.server_address[1])}/"
         print(
@@ -77,7 +68,6 @@ def run_page(args: argparse.Namespace) -> int:
                     "host": args.host,
                     "port": server.server_address[1],
                     "output_root": str(args.output_root.resolve()),
-                    "fixture_available": bool(fixture_file and fixture_file.exists()),
                 },
                 ensure_ascii=False,
                 indent=2,
@@ -103,16 +93,14 @@ def create_server(
     port: int,
     *,
     output_root: Path = DEFAULT_OUTPUT_ROOT,
-    fixture_file: Path | None = DEFAULT_FIXTURE_FILE,
 ) -> ThreadingHTTPServer:
     resolved_output_root = output_root.resolve()
     resolved_output_root.mkdir(parents=True, exist_ok=True)
-    resolved_fixture = fixture_file.resolve() if fixture_file else None
-    handler_class = _build_handler(REPO_ROOT, resolved_output_root, resolved_fixture)
+    handler_class = _build_handler(REPO_ROOT, resolved_output_root)
     return ThreadingHTTPServer((host, port), handler_class)
 
 
-def _build_handler(repo_root: Path, output_root: Path, fixture_file: Path | None) -> type[BaseHTTPRequestHandler]:
+def _build_handler(repo_root: Path, output_root: Path) -> type[BaseHTTPRequestHandler]:
     class PageHandler(BaseHTTPRequestHandler):
         def do_GET(self) -> None:  # noqa: N802
             parsed = urlparse(self.path)
@@ -124,7 +112,6 @@ def _build_handler(repo_root: Path, output_root: Path, fixture_file: Path | None
                     HTTPStatus.OK,
                     {
                         "status": "ok",
-                        "fixture_available": bool(fixture_file and fixture_file.exists()),
                         "output_root": str(output_root),
                     },
                 )
@@ -151,16 +138,8 @@ def _build_handler(repo_root: Path, output_root: Path, fixture_file: Path | None
                 radius = int(_form_value(form, "radius", "300"))
                 if radius <= 0:
                     raise ValueError("radius must be a positive integer")
-                mode = _form_value(form, "mode", "live").lower()
-                if mode not in {"fixture", "live"}:
-                    raise ValueError("mode must be 'fixture' or 'live'")
                 seed = _form_value(form, "seed", "") or None
                 refresh = _form_value(form, "refresh", "false").lower() == "true"
-                source_file = None
-                if mode == "fixture":
-                    if not fixture_file or not fixture_file.exists():
-                        raise ValueError("fixture mode is unavailable because the fixture file is missing")
-                    source_file = fixture_file
                 run_id = f"run-{uuid.uuid4().hex[:12]}"
                 result = generate_nearby_preview(
                     lat=lat,
@@ -168,13 +147,12 @@ def _build_handler(repo_root: Path, output_root: Path, fixture_file: Path | None
                     radius=radius,
                     output_dir=output_root / run_id,
                     seed=seed,
-                    source_file=source_file,
                     refresh=refresh,
                 )
                 base_url = self._base_url()
                 result.update(
                     {
-                        "mode": mode,
+                        "mode": "live",
                         "run_id": run_id,
                         "preview_url": f"{base_url}/generated/{run_id}/bundle/index.html",
                         "manifest_url": f"{base_url}/generated/{run_id}/bundle/manifest.json",
@@ -272,12 +250,10 @@ def _fallback_root_page_html() -> str:
       <option value="en">English</option>
     </select>
     <button id="use-location" type="button">使用当前位置</button>
-    <button type="button" data-preset="fixture-demo">fixture-demo</button>
     <form id="nearby-form" method="post" action="/api/nearby">
       <input name="lat" value="35.6580" />
       <input name="lon" value="139.7016" />
       <input name="radius" value="300" />
-      <input name="mode" value="fixture" />
       <button type="submit">生成预览</button>
     </form>
   </main>

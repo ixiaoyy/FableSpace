@@ -2,7 +2,7 @@
 
 This module keeps public-welfare rule keywords and response copy out of service
 methods so runtime orchestration can stay generic.  The copy is a built-in
-local rules fixture for no-network public-welfare taverns; it is not a schema
+deterministic local fallback for public-welfare taverns; it is not a schema
 contract and should stay in NPC/tavern voice instead of exposing prompt text.
 """
 

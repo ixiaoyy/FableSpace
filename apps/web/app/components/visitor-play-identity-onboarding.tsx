@@ -14,15 +14,7 @@ import {
 } from "lucide-react"
 import { useState } from "react"
 
-import beggarIdentityArt from "../assets/identity-onboarding/v3/beggar.webp"
-import eunuchIdentityArt from "../assets/identity-onboarding/v3/eunuch.webp"
-import hunterIdentityArt from "../assets/identity-onboarding/v3/monster-hunter.png"
-import palaceMaidIdentityArt from "../assets/identity-onboarding/v3/palace-maid.png"
-import puppyIdentityArt from "../assets/identity-onboarding/v3/puppy.webp"
-import radishSpiritIdentityArt from "../assets/identity-onboarding/v3/radish-spirit.webp"
-import topStudentIdentityArt from "../assets/identity-onboarding/v3/top-student.png"
-import underachieverIdentityArt from "../assets/identity-onboarding/v3/underachiever.png"
-import marketBackdrop from "../assets/place-atmosphere-hd/atmosphere-market.webp"
+import { mediaAssetUrl } from "../lib/media-assets"
 import {
   VISITOR_PLAY_GENDERS,
   VISITOR_PLAY_IDENTITIES,
@@ -36,7 +28,7 @@ type VisitorPlayIdentityOnboardingProps = {
 }
 
 type OnboardingStep = "identity" | "details"
-type IdentityFilter = "all" | "fantasy" | "modern" | "creature"
+type IdentityFilter = "all" | "fantasy" | "modern"
 type IdentitySort = "default" | "name"
 
 type IdentityPreview = {
@@ -49,6 +41,8 @@ type IdentityPreview = {
   playIdentityId?: VisitorPlayIdentityId
 }
 
+const BEGGAR_IDENTITY_ART = mediaAssetUrl("app/assets/identity-onboarding/v3/beggar.webp")
+
 /**
  * Describe the reference-aligned identity catalog without widening the server-supported contract.
  * Entries without playIdentityId are preview-only and cannot be submitted.
@@ -58,45 +52,47 @@ const IDENTITY_PREVIEWS: IdentityPreview[] = [
     id: "beggar",
     label: "乞丐",
     summary: "身无长物，懂观察、开口和交换一点善意继续前行。",
-    image: beggarIdentityArt,
+    image: BEGGAR_IDENTITY_ART,
     category: "grounded",
+    categoryLabel: "古代",
     playIdentityId: "beggar",
   },
   {
     id: "eunuch",
     label: "太监",
     summary: "在深宫之中，靠眼力、分寸和表情活下去。",
-    image: eunuchIdentityArt,
+    image: mediaAssetUrl("app/assets/identity-onboarding/v3/eunuch.webp"),
     category: "grounded",
+    categoryLabel: "古代",
   },
   {
     id: "palace-maid",
     label: "宫女",
     summary: "在深宫之中，靠细心、隐忍和运气生存。",
-    image: palaceMaidIdentityArt,
+    image: mediaAssetUrl("app/assets/identity-onboarding/v3/palace-maid.png"),
     category: "grounded",
   },
   {
     id: "radish-spirit",
     label: "萝卜精",
     summary: "一颗成精的小萝卜，有点呆萌，爱吃爱睡。",
-    image: radishSpiritIdentityArt,
-    category: "creature",
+    image: mediaAssetUrl("app/assets/identity-onboarding/v3/radish-spirit.webp"),
+    category: "fantasy",
     categoryLabel: "奇幻生物",
   },
   {
     id: "puppy",
     label: "小奶狗",
     summary: "一只奶里奶气的小狗，对世界充满好奇和依赖。",
-    image: puppyIdentityArt,
-    category: "creature",
+    image: mediaAssetUrl("app/assets/identity-onboarding/v3/puppy.webp"),
+    category: "fantasy",
     categoryLabel: "奇幻生物",
   },
   {
     id: "monster-hunter",
     label: "捉妖师",
     summary: "行走人间，斩妖除魔，守护世间平衡。",
-    image: hunterIdentityArt,
+    image: mediaAssetUrl("app/assets/identity-onboarding/v3/monster-hunter.png"),
     category: "fantasy",
     categoryLabel: "幻想",
   },
@@ -104,7 +100,7 @@ const IDENTITY_PREVIEWS: IdentityPreview[] = [
     id: "underachiever",
     label: "学渣",
     summary: "学习全靠临时抱佛脚，日常摸鱼王者。",
-    image: underachieverIdentityArt,
+    image: mediaAssetUrl("app/assets/identity-onboarding/v3/underachiever.png"),
     category: "modern",
     categoryLabel: "现代",
   },
@@ -112,7 +108,7 @@ const IDENTITY_PREVIEWS: IdentityPreview[] = [
     id: "top-student",
     label: "学霸",
     summary: "天生自律，知识就是力量，目标是顶尖。",
-    image: topStudentIdentityArt,
+    image: mediaAssetUrl("app/assets/identity-onboarding/v3/top-student.png"),
     category: "modern",
     categoryLabel: "现代",
   },
@@ -122,7 +118,6 @@ const IDENTITY_FILTERS: Array<{ id: IdentityFilter; label: string }> = [
   { id: "all", label: "全部" },
   { id: "fantasy", label: "幻想" },
   { id: "modern", label: "现代" },
-  { id: "creature", label: "奇幻生物" },
 ]
 
 const BEGGAR_STORY_EFFECTS = [
@@ -216,7 +211,7 @@ export function VisitorPlayIdentityOnboarding({ onConfirm }: VisitorPlayIdentity
           <section className="flex min-h-0 flex-1 flex-col" aria-labelledby="identity-directory-title">
             <div className="relative min-h-0 flex-1 overflow-y-auto">
               <div aria-hidden="true" className="absolute inset-x-0 top-0 h-[330px] overflow-hidden">
-                <img src={marketBackdrop} alt="" className="h-full w-full object-cover object-center opacity-75" />
+                <img src={mediaAssetUrl("app/assets/place-atmosphere-hd/atmosphere-market.webp")} alt="" className="h-full w-full object-cover object-center opacity-75" />
                 <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(8,4,18,0.92)_0%,rgba(20,8,40,0.72)_46%,rgba(20,8,40,0.18)_100%),linear-gradient(180deg,rgba(8,4,18,0.08),#090512_94%)]" />
                 <div className="absolute inset-0 bg-violet-700/16 mix-blend-color" />
               </div>
@@ -294,21 +289,22 @@ export function VisitorPlayIdentityOnboarding({ onConfirm }: VisitorPlayIdentity
                           src={identity.image}
                           alt=""
                           aria-hidden="true"
-                          className={`absolute inset-0 h-full w-full object-cover object-center transition duration-300 ${selectable ? "group-hover:scale-[1.025]" : "saturate-[0.86]"}`}
+                          className={`absolute inset-0 h-full w-full object-cover object-center transition duration-300 ${selectable ? "group-hover:scale-[1.025]" : "opacity-45 saturate-[0.72]"}`}
                           loading="eager"
                           decoding="async"
                         />
                         <span aria-hidden="true" className="absolute inset-0 bg-[linear-gradient(180deg,transparent_38%,rgba(8,4,18,0.36)_58%,rgba(8,4,18,0.98)_100%)]" />
+                        {!selectable ? <span aria-hidden="true" className="absolute inset-0 bg-[#090513]/46 backdrop-saturate-50" /> : null}
                         {selected ? (
                           <span className="absolute right-3 top-3 grid h-7 w-7 place-items-center rounded-full bg-fuchsia-300 text-violet-950 shadow-lg" aria-hidden="true">
                             <Check className="h-4 w-4" />
                           </span>
-                        ) : (
-                          <span className="absolute right-3 top-3 grid h-7 w-7 place-items-center rounded-full border border-violet-200/14 bg-[#11091f]/76 text-violet-100/68 backdrop-blur-sm" aria-label="即将开放">
-                            <LockKeyhole className="h-3.5 w-3.5" aria-hidden="true" />
+                        ) : !selectable ? (
+                          <span className="absolute left-1/2 top-1/2 z-20 grid h-16 w-16 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full border border-violet-100/28 bg-[#11091f]/78 text-violet-50 shadow-[0_16px_42px_rgba(8,4,18,0.52)] backdrop-blur-md" aria-label="即将开放">
+                            <LockKeyhole className="h-7 w-7" aria-hidden="true" />
                           </span>
-                        )}
-                        <span className="absolute inset-x-0 bottom-0 px-3 pb-3">
+                        ) : null}
+                        <span className="absolute inset-x-0 bottom-0 z-10 px-3 pb-3">
                           <span className="flex flex-wrap items-center gap-2">
                             <span className="text-lg font-black text-white">{identity.label}</span>
                             {identity.categoryLabel ? (
@@ -355,7 +351,7 @@ export function VisitorPlayIdentityOnboarding({ onConfirm }: VisitorPlayIdentity
           <section className="grid min-h-0 flex-1 overflow-y-auto md:grid-cols-[0.82fr_1.18fr] md:overflow-hidden" aria-labelledby="identity-details-title">
             <div className="relative min-h-[430px] overflow-hidden md:min-h-0">
               <img
-                src={selectedPreview?.image || beggarIdentityArt}
+                src={selectedPreview?.image || BEGGAR_IDENTITY_ART}
                 alt={`${selectedIdentity.label}身份主视觉`}
                 className="absolute inset-0 h-full w-full object-cover object-[52%_44%]"
                 loading="eager"

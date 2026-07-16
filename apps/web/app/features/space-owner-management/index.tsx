@@ -73,7 +73,7 @@ function RoleplayPanel({
 }) {
   const [ownerId, setOwnerId] = useState(space.owner_id || DEFAULT_OWNER_ID)
   const [visitorId, setVisitorId] = useState(DEFAULT_VISITOR_ID)
-  const [playerName, setPlayerName] = useState("Demo performer")
+  const [playerName, setPlayerName] = useState("Guest performer")
   const [mode, setMode] = useState(String(roleplay.roleplay_mode || "ai_only"))
   const [characterId, setCharacterId] = useState(characters[0]?.id || "")
   const [busy, setBusy] = useState("")

@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react"
 import type { LinksFunction } from "react-router"
 
-import homeBlackHeroVisual from "../assets/fable-space-05-10/home-black/hero-system-visual.webp"
 import { FableSpaceHomeReference } from "../components/fable-space-reference-artboards"
 import { VisitorPlayIdentityOnboarding } from "../components/visitor-play-identity-onboarding"
 import { useTheme } from "../hooks/useTheme"
 import { buildHomepageView } from "../lib/homepage-spaces"
+import { mediaAssetUrl } from "../lib/media-assets"
 import { errorMessage, listSpaces, type SpaceListResponse } from "../lib/spaces"
 import {
   clearVisitorPlayIdentity,
@@ -14,6 +14,8 @@ import {
   visitorPlayIdentityLabel,
   type VisitorPlayIdentity,
 } from "../lib/visitor-play-identity"
+
+const homeBlackHeroVisual = mediaAssetUrl("app/assets/fable-space-05-10/home-black/hero-system-visual.webp")
 
 const HOMEPAGE_SPACE_LIST_LIMIT = 12
 

@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react"
 import { Links, Meta, Navigate, Outlet, Scripts, ScrollRestoration, useLocation } from "react-router"
 import { ThemeProvider } from "./hooks/useTheme"
 import { SESSION_EXPIRED_EVENT } from "./lib/api-client"
+import { MEDIA_ORIGIN } from "./lib/media-assets"
 import {
   ACCESS_STATUS_REFRESH_INTERVAL_MS,
   DEFAULT_PARALLELLINES_URL,
@@ -13,9 +14,6 @@ import {
 } from "./lib/session"
 
 import "./styles.css"
-
-const ASSET_BASE_URL = import.meta.env.VITE_ASSET_BASE_URL?.trim() || ""
-const ASSET_ORIGIN = ASSET_BASE_URL ? new URL(ASSET_BASE_URL).origin : ""
 
 export const meta: MetaFunction = () => [
   { title: "FableSpace｜世界的镜像面" },
@@ -36,8 +34,8 @@ export function Layout({ children }: { children: React.ReactNode }) {
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        {ASSET_ORIGIN ? <link rel="preconnect" href={ASSET_ORIGIN} crossOrigin="anonymous" /> : null}
-        {ASSET_ORIGIN ? <link rel="dns-prefetch" href={ASSET_ORIGIN} /> : null}
+        <link rel="preconnect" href={MEDIA_ORIGIN} crossOrigin="anonymous" />
+        <link rel="dns-prefetch" href={MEDIA_ORIGIN} />
         <Meta />
         <Links />
       </head>

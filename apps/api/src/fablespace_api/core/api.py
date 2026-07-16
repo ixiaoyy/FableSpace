@@ -11,7 +11,6 @@ from fastapi import FastAPI
 
 from .web.app import create_web_app
 from .web.config import (
-    DEFAULT_FIXTURE_FILE,
     DEFAULT_FRONTEND_ROOT,
     DEFAULT_HOST,
     DEFAULT_OUTPUT_ROOT,
@@ -28,12 +27,6 @@ def add_arguments(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
         type=Path,
         default=DEFAULT_OUTPUT_ROOT,
         help="Directory where API-generated previews will be written.",
-    )
-    parser.add_argument(
-        "--fixture-file",
-        type=Path,
-        default=DEFAULT_FIXTURE_FILE,
-        help="Fixture file used when the API receives fixture mode requests.",
     )
     parser.add_argument(
         "--frontend-root",
@@ -86,7 +79,6 @@ def run_api(args: argparse.Namespace) -> int:
 
         settings = ApiSettings(
             output_root=args.output_root,
-            fixture_file=args.fixture_file,
             frontend_root=args.frontend_root,
         ).resolved()
         app = create_web_app(settings)
@@ -103,7 +95,6 @@ def run_api(args: argparse.Namespace) -> int:
                     "host": args.host,
                     "port": args.port,
                     "output_root": str(settings.output_root),
-                    "fixture_available": bool(settings.fixture_file and settings.fixture_file.exists()),
                     "frontend_available": frontend_available,
                     "meta_url": f"{base_url}/api/meta",
                 },
@@ -127,12 +118,10 @@ def create_server(
     port: int,
     *,
     output_root: Path = DEFAULT_OUTPUT_ROOT,
-    fixture_file: Path | None = DEFAULT_FIXTURE_FILE,
     frontend_root: Path | None = DEFAULT_FRONTEND_ROOT,
 ) -> ApiServerHandle:
     app = create_app(
         output_root=output_root,
-        fixture_file=fixture_file,
         frontend_root=frontend_root,
     )
     return ApiServerHandle(app=app, host=host, port=port)
@@ -142,12 +131,10 @@ def create_server(
 def create_app(
     *,
     output_root: Path = DEFAULT_OUTPUT_ROOT,
-    fixture_file: Path | None = DEFAULT_FIXTURE_FILE,
     frontend_root: Path | None = DEFAULT_FRONTEND_ROOT,
 ) -> FastAPI:
     settings = ApiSettings(
         output_root=output_root,
-        fixture_file=fixture_file,
         frontend_root=frontend_root,
         storage_backend="json",
     )

@@ -34,7 +34,7 @@ const EXPERIENCE_BY_PLACE_TYPE: Record<string, { label: string; helper: string }
   space: { label: "地点叙事", helper: "门牌 / NPC / 闲聊" },
 }
 
-const EXPLANATORY_SEED_COPY_PATTERN = /demo seed|AI 草稿|边界批准|默认示例空间|不代表平台|未经店主确认/i
+const EXPLANATORY_SEED_COPY_PATTERN = /AI 草稿|边界批准|默认示例空间|不代表平台|未经店主确认/i
 
 function compactText(value: unknown, fallback: string, maxLength = 46) {
   const text = typeof value === "string" ? value.trim().replace(/\s+/g, " ") : ""

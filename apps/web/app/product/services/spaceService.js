@@ -1,4 +1,5 @@
 import { normalizeGender } from '../../lib/gender.js'
+import { normalizeMediaPayload } from '../../lib/media-assets'
 
 /**
  * FableSpace Space Service — 兼容层 (Legacy)
@@ -62,7 +63,7 @@ async function readJson(response) {
     err.errorType = response.status
     throw err
   }
-  return unwrapApiPayload(payload)
+  return normalizeMediaPayload(unwrapApiPayload(payload))
 }
 
 function buildHeaders(userId = '', extra = {}) {

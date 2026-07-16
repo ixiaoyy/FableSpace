@@ -16,6 +16,7 @@ from fablespace_api.domain.space_package_policy import (
     SUPPORTED_SPACE_PACKAGE_TYPES,
     TAVERN_PACKAGE_VERSION,
 )
+from fablespace_api.core.media import public_media_url
 from fablespace_api.domain.space_share_policy import build_space_share_payload
 from fablespace_api.infrastructure.generated_storage import (
     GeneratedStorageError,
@@ -437,7 +438,6 @@ class WebService:
 
     def health_payload(self) -> dict[str, Any]:
         return build_health_payload(
-            fixture_file=self.settings.fixture_file,
             frontend_root=self.settings.frontend_root,
             output_root=self.settings.output_root,
         )
@@ -461,7 +461,6 @@ class WebService:
         lat: float,
         lon: float,
         radius: int,
-        mode: str,
         seed: str,
         refresh: bool,
         base_url: str,
@@ -469,17 +468,7 @@ class WebService:
         if radius <= 0:
             raise HTTPException(status_code=400, detail="radius must be a positive integer")
 
-        normalized_mode = mode.lower()
-        if normalized_mode not in {"fixture", "live"}:
-            raise HTTPException(status_code=400, detail="mode must be 'fixture' or 'live'")
-
-        source_file = None
-        if normalized_mode == "fixture":
-            if not self.settings.fixture_file or not self.settings.fixture_file.exists():
-                raise HTTPException(status_code=400, detail="fixture mode is unavailable because the fixture file is missing")
-            source_file = self.settings.fixture_file
-
-        def _build_payload(effective_mode: str, source_path: Path | None, fallback_meta: dict[str, Any] | None = None) -> dict[str, Any]:
+        def _build_payload() -> dict[str, Any]:
             run_id = f"run-{uuid.uuid4().hex[:12]}"
             result = generate_nearby_preview(
                 lat=lat,
@@ -487,7 +476,6 @@ class WebService:
                 radius=radius,
                 output_dir=self.settings.output_root / run_id,
                 seed=seed or None,
-                source_file=source_path,
                 refresh=refresh,
             )
             try:
@@ -497,43 +485,16 @@ class WebService:
             payload = build_nearby_payload(
                 result=result,
                 base_url=base_url,
-                mode=effective_mode,
+                mode="live",
                 run_id=run_id,
             )
-            if fallback_meta:
-                payload.update(fallback_meta)
             self._inject_managed_spaces(payload, lat, lon, radius)
             return payload
 
         try:
-            return _build_payload(normalized_mode, source_file)
+            return _build_payload()
         except OverpassError as exc:
-            if normalized_mode != "live":
-                raise HTTPException(status_code=502, detail=str(exc)) from exc
-            if not self.settings.fixture_file or not self.settings.fixture_file.exists():
-                raise HTTPException(
-                    status_code=502,
-                    detail=f"{exc} Fixture fallback is unavailable because the fixture file is missing.",
-                ) from exc
-
-            logger.warning("Live Overpass request failed; falling back to fixture preview: %s", exc)
-            fallback_meta = {
-                "requested_mode": "live",
-                "fallback_mode": "fixture",
-                "fallback_reason": str(exc),
-                "fallback_notice": "实时 OSM 暂时不可用，已使用离线演示样例生成。",
-            }
-            try:
-                return _build_payload("fixture", self.settings.fixture_file, fallback_meta)
-            except ValueError as fallback_exc:
-                raise HTTPException(status_code=400, detail=str(fallback_exc)) from fallback_exc
-            except HTTPException:
-                raise
-            except Exception as fallback_exc:
-                raise HTTPException(
-                    status_code=500,
-                    detail=f"{exc} Fixture fallback also failed: {fallback_exc}",
-                ) from fallback_exc
+            raise HTTPException(status_code=502, detail=str(exc)) from exc
         except ValueError as exc:
             raise HTTPException(status_code=400, detail=str(exc)) from exc
         except HTTPException:
@@ -579,7 +540,7 @@ class WebService:
                     "top": int(tile.get("top") or 0),
                     "width": int(tile.get("width") or 0),
                     "height": int(tile.get("height") or 0),
-                    "file": f"/assets/map-snapshots/{normalized_snapshot_id}/{filename}",
+                    "file": public_media_url(f"public/assets/map-snapshots/{normalized_snapshot_id}/{filename}"),
                     "source": src,
                 }
             )

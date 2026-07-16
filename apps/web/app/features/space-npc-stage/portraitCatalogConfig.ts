@@ -1,16 +1,18 @@
-import guardianA from "../../assets/npc-style-cast/portraits-hd/guardian-a.png"
-import guardianB from "../../assets/npc-style-cast/portraits-hd/guardian-b.png"
-import healerA from "../../assets/npc-style-cast/portraits-hd/healer-a.png"
-import healerB from "../../assets/npc-style-cast/portraits-hd/healer-b.png"
-import merchantA from "../../assets/npc-style-cast/portraits-hd/merchant-a.png"
-import merchantB from "../../assets/npc-style-cast/portraits-hd/merchant-b.png"
-import scholarA from "../../assets/npc-style-cast/portraits-hd/scholar-a.png"
-import scholarB from "../../assets/npc-style-cast/portraits-hd/scholar-b.png"
-import spiritA from "../../assets/npc-style-cast/portraits-hd/spirit-a.png"
-import spiritB from "../../assets/npc-style-cast/portraits-hd/spirit-b.png"
-import wandererA from "../../assets/npc-style-cast/portraits-hd/wanderer-a.png"
-import wandererB from "../../assets/npc-style-cast/portraits-hd/wanderer-b.png"
+import { mediaAssetUrl } from "../../lib/media-assets"
 
+const portraitUrl = (name: string) => mediaAssetUrl(`app/assets/npc-style-cast/portraits-hd/${name}.png`)
+const guardianA = portraitUrl("guardian-a")
+const guardianB = portraitUrl("guardian-b")
+const healerA = portraitUrl("healer-a")
+const healerB = portraitUrl("healer-b")
+const merchantA = portraitUrl("merchant-a")
+const merchantB = portraitUrl("merchant-b")
+const scholarA = portraitUrl("scholar-a")
+const scholarB = portraitUrl("scholar-b")
+const spiritA = portraitUrl("spirit-a")
+const spiritB = portraitUrl("spirit-b")
+const wandererA = portraitUrl("wanderer-a")
+const wandererB = portraitUrl("wanderer-b")
 
 export type NpcPortraitArchetype =
   | "merchant"

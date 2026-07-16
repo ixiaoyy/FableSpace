@@ -14,13 +14,12 @@ import {
 import { Link, useSearchParams } from "react-router"
 import { useEffect, useMemo, useState } from "react"
 
-import discoverRadarSurfaceImage from "../assets/fable-space-05-10/discover/cards/card-compass-square.png"
-import discoverAtmosphereLoreImage from "../assets/place-atmosphere-hd/atmosphere-lore.webp"
 import { DiscoveryLivelinessStrip } from "../components/DiscoveryLivelinessStrip"
 import { FableSpaceDiscoverReference } from "../components/fable-space-reference-artboards"
 import { SpacePreviewModal } from "../components/space-preview-modal"
 import { buildDiscoveryLiveliness, getDiscoveryLivelinessSearchText } from "../lib/discovery-liveliness.js"
 import { resolveHomepageSpaceCover, resolveUniqueHomepageSpaceCovers } from "../lib/homepage-spaces"
+import { mediaAssetUrl } from "../lib/media-assets"
 import { DISCOVERABLE_PLACE_TYPES, derivePlaceTypeDisplay, placeTypeMatchesSpace } from "../lib/place-types.js"
 import { buildShortDramaTeaser, getShortDramaTeaserSearchText } from "../lib/short-drama-teasers.js"
 import {
@@ -36,6 +35,9 @@ import { buildMapAnchorCardCopy, formatSpaceAnchorLocation } from "../product/ma
 import { useTheme } from "../hooks/useTheme"
 import { ProductShell } from "../shell/product-shell"
 import { Button } from "../ui/button"
+
+const discoverRadarSurfaceImage = mediaAssetUrl("app/assets/fable-space-05-10/discover/cards/card-compass-square.png")
+const discoverAtmosphereLoreImage = mediaAssetUrl("app/assets/place-atmosphere-hd/atmosphere-lore.webp")
 
 type DiscoverViewMode = "radar" | "cards"
 

@@ -1,3 +1,5 @@
+import { mediaAssetUrl } from '../lib/media-assets'
+
 const PACKAGE_TYPE = 'fablespace_space_package'
 const PACKAGE_VERSION = '1.0'
 
@@ -509,7 +511,7 @@ export const SPACE_TEMPLATES = [
       tags: ['桌游', '剧本杀', '推理', '多人扮演'],
       space: {
         name: '雾都疑影·剧本杀馆',
-        cover: '/assets/scenes/mystery-noir-room.png',
+        cover: mediaAssetUrl('public/assets/scenes/mystery-noir-room.png'),
         description: '壁炉里火光摇曳，桌上散落着泛黄的卷宗。这里的每一件物品都可能是致命的证据。',
         scene_prompt: '这是一个硬核推理剧本杀场景。NPC 分别扮演不同嫌疑人。主持人会引导访客搜证、质询。保持严肃、逻辑严密的推理氛围，不要提前泄露凶手。',
       },
@@ -517,7 +519,7 @@ export const SPACE_TEMPLATES = [
         {
           id: 'char_mystery_host',
           name: '探长·格雷',
-          avatar: '/assets/characters/detective-gray.png',
+          avatar: mediaAssetUrl('public/assets/characters/detective-gray.png'),
           description: '剧本杀主持人，负责维持规则和发放线索。',
           personality: '严谨、观察力强、语气冷峻，会适时给出“终端指令”提示。',
           system_prompt: '你扮演剧本杀主持人格雷。你负责推进剧情，每轮给出【当前案件进度】【搜证结果】【可选嫌疑人】。',
@@ -527,7 +529,7 @@ export const SPACE_TEMPLATES = [
         {
           id: 'char_mystery_lady',
           name: '塞琳娜夫人',
-          avatar: '/assets/characters/selina-widow.png',
+          avatar: mediaAssetUrl('public/assets/characters/selina-widow.png'),
           description: '优雅但深藏不露的遗孀。',
           personality: '高傲、谜语人、在证词中会混入谎言。',
           system_prompt: '你扮演塞琳娜夫人。你对丈夫的死表现出悲伤但并不同情。你的证词中包含关于“旧钥匙”的谎言。',
@@ -564,7 +566,7 @@ export const SPACE_TEMPLATES = [
       tags: ['桌游', '狼人杀', '博弈', '多人社交'],
       space: {
         name: '月圆之夜·狼人杀营地',
-        cover: '/assets/scenes/werewolf-campfire.png',
+        cover: mediaAssetUrl('public/assets/scenes/werewolf-campfire.png'),
         description: '营火噼啪作响，四周树影婆娑。今晚，谁在说谎，谁在狩猎？',
         scene_prompt: '这是一个狼人杀扮演场景。NPC 会表现出对跳、穿衣服、互踩等战术。访客作为“外来者”参与讨论。保持紧张、多疑、逻辑导向的社交氛围。',
       },
@@ -572,7 +574,7 @@ export const SPACE_TEMPLATES = [
         {
           id: 'char_werewolf_seer',
           name: '预言家·白',
-          avatar: '/assets/characters/seer-white.png',
+          avatar: mediaAssetUrl('public/assets/characters/seer-white.png'),
           description: '神职人员，语气坚定，正试图通过逻辑说服大家。',
           personality: '正气、固执、喜欢复盘，被指责时会强烈反击。',
           system_prompt: '你扮演预言家。你昨晚查验了“塞缪尔”是狼人。你需要说服访客相信你，并警惕悍跳狼。',
@@ -582,7 +584,7 @@ export const SPACE_TEMPLATES = [
         {
           id: 'char_werewolf_samuel',
           name: '村民·塞缪尔',
-          avatar: '/assets/characters/samuel-villager.png',
+          avatar: mediaAssetUrl('public/assets/characters/samuel-villager.png'),
           description: '被指责的“村民”，实际身份可能是狼。',
           personality: '无辜感、煽动性强、擅长泼脏水。',
           system_prompt: '你扮演塞缪尔。你实际上是狼人，但你要悍跳预言家，指责白才是真正的狼人。',
@@ -619,7 +621,7 @@ export const SPACE_TEMPLATES = [
       tags: ['桌游', '麻将', '市井', '八卦'],
       space: {
         name: '四方城·弄堂麻将馆',
-        cover: '/assets/scenes/shanghai-mahjong-alley.png',
+        cover: mediaAssetUrl('public/assets/scenes/shanghai-mahjong-alley.png'),
         description: '自动麻将机的洗牌声此起彼伏，空气中飘着浓茶和点心的香气。',
         scene_prompt: '这是一个充满市井气息的社交场景。对话核心不在于赢牌，而在于牌桌上的八卦交流。NPC 喜欢谈论邻里、坐标周边的传闻。',
       },
@@ -627,7 +629,7 @@ export const SPACE_TEMPLATES = [
         {
           id: 'char_mahjong_auntie',
           name: '张阿姨',
-          avatar: '/assets/characters/auntie-zhang.png',
+          avatar: mediaAssetUrl('public/assets/characters/auntie-zhang.png'),
           description: '弄堂里的情报中心，手气好，嘴巴更快。',
           personality: '热情、碎碎念、喜欢打听访客的个人小趣闻（但不问隐私）。',
           system_prompt: '你扮演张阿姨。你一边打牌一边聊八卦。你会提到这个坐标附近“最近新开的店”或“多年前的趣事”。',
@@ -664,7 +666,7 @@ export const SPACE_TEMPLATES = [
       tags: ['桌游', '纸牌', '心理博弈', '高级感'],
       space: {
         name: '至尊·纸牌屋俱乐部',
-        cover: '/assets/scenes/poker-club-lounge.png',
+        cover: mediaAssetUrl('public/assets/scenes/poker-club-lounge.png'),
         description: '绿丝绒桌布在柔和灯光下显得厚重，在这里，沉默比言语更有力量。',
         scene_prompt: '这是一个极具电影感的心理博弈场景。NPC 语言精炼、富有磁性。重点在于访客的情绪控制与角力。',
       },
@@ -672,7 +674,7 @@ export const SPACE_TEMPLATES = [
         {
           id: 'char_cards_dealer',
           name: '荷官·莫妮卡',
-          avatar: '/assets/characters/dealer-monica.png',
+          avatar: mediaAssetUrl('public/assets/characters/dealer-monica.png'),
           description: '冷酷优雅的洗牌者，仿佛能看穿所有人的底牌。',
           personality: '绝对理性、专业、偶尔给出一句富有哲理的评价。',
           system_prompt: '你扮演荷官莫妮卡。你不仅主持发牌，还负责对访客的选择进行心理侧写。',

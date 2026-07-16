@@ -47,11 +47,6 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Ignore cached live payloads and fetch fresh Overpass data.",
     )
-    generate_parser.add_argument(
-        "--source-file",
-        type=Path,
-        help="Optional local Overpass-style JSON fixture for offline generation and testing.",
-    )
 
     from .nearby import add_arguments as add_nearby_arguments
 
@@ -142,24 +137,16 @@ def main(argv: Sequence[str] | None = None) -> int:
 
 
 def _run_generate(args: argparse.Namespace) -> int:
-    source_data = None
     provider = "overpass"
-    cache_dir = None
-    cache_status = "disabled"
-    if args.source_file:
-        source_data = json.loads(args.source_file.read_text(encoding="utf-8"))
-        provider = "fixture"
-        cache_status = "fixture"
-    else:
-        cache_dir = args.cache_dir or default_cache_dir()
-        cache_status = "refreshed" if args.refresh else "enabled"
+    cache_dir = args.cache_dir or default_cache_dir()
+    cache_status = "refreshed" if args.refresh else "enabled"
 
     world = build_world(
         lat=args.lat,
         lon=args.lon,
         radius=args.radius,
         seed=args.seed,
-        source_data=source_data,
+        source_data=None,
         provider=provider,
         fetch_timeout_seconds=args.request_timeout,
         fetch_max_retries=args.request_retries,

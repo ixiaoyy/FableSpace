@@ -1,13 +1,16 @@
-import atmosphereEmberImage from "../assets/place-atmosphere-hd/atmosphere-ember.webp"
-import atmosphereGroveImage from "../assets/place-atmosphere-hd/atmosphere-grove.webp"
-import atmosphereHealingImage from "../assets/place-atmosphere-hd/atmosphere-healing.webp"
-import atmosphereJudgementImage from "../assets/place-atmosphere-hd/atmosphere-judgement.webp"
-import atmosphereLoreImage from "../assets/place-atmosphere-hd/atmosphere-lore.webp"
-import atmosphereMarketImage from "../assets/place-atmosphere-hd/atmosphere-market.webp"
-import atmosphereShrineImage from "../assets/place-atmosphere-hd/atmosphere-shrine.webp"
-import atmosphereSpiritImage from "../assets/place-atmosphere-hd/atmosphere-spirit.webp"
-import atmosphereSupplyImage from "../assets/place-atmosphere-hd/atmosphere-supply.webp"
-import atmosphereTransitImage from "../assets/place-atmosphere-hd/atmosphere-transit.webp"
+import { mediaAssetUrl } from "./media-assets"
+
+const atmosphereUrl = (name) => mediaAssetUrl(`app/assets/place-atmosphere-hd/${name}.webp`)
+const atmosphereEmberImage = atmosphereUrl("atmosphere-ember")
+const atmosphereGroveImage = atmosphereUrl("atmosphere-grove")
+const atmosphereHealingImage = atmosphereUrl("atmosphere-healing")
+const atmosphereJudgementImage = atmosphereUrl("atmosphere-judgement")
+const atmosphereLoreImage = atmosphereUrl("atmosphere-lore")
+const atmosphereMarketImage = atmosphereUrl("atmosphere-market")
+const atmosphereShrineImage = atmosphereUrl("atmosphere-shrine")
+const atmosphereSpiritImage = atmosphereUrl("atmosphere-spirit")
+const atmosphereSupplyImage = atmosphereUrl("atmosphere-supply")
+const atmosphereTransitImage = atmosphereUrl("atmosphere-transit")
 
 export const SPACE_IDENTITY_STORAGE_KEYS = Object.freeze({
   ownerId: "fablespace.ownerIdentity",
@@ -97,9 +100,9 @@ const PUBLIC_WELFARE_NPC_EXPRESSION_ALIASES = Object.freeze({
 export function normalizePublicWelfareNpcAssetPath(src) {
   const value = String(src || "").trim()
   const match = value.match(/^\/assets\/npcs\/(char_pw_.+)-(neutral|joy|happy|anger|angry|curiosity|curious|embarrassment|shy)\.png$/)
-  if (!match) return value
+  if (!match) return mediaAssetUrl(value)
   const expression = PUBLIC_WELFARE_NPC_EXPRESSION_ALIASES[match[2]] || match[2]
-  return `/assets/npcs/public-welfare/${match[1]}/${expression}.png`
+  return mediaAssetUrl(`public/assets/npcs/public-welfare/${match[1]}/${expression}.png`)
 }
 
 const ATMOSPHERE_BY_TYPE = Object.freeze({

@@ -35,7 +35,6 @@ const TAG_LABELS_ZH = {
 
 const PROVIDER_LABELS_ZH = {
   live: '实时地图',
-  fixture: '离线样例',
   unknown: '未知来源',
 }
 

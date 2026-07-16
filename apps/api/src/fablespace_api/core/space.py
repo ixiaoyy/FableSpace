@@ -137,9 +137,9 @@ class SpaceSpriteSet:
 
     格式示例（JSON）：
     {
-        "neutral": "/sprites/char1/neutral.png",
-        "joy": "/sprites/char1/joy.png",
-        "anger": "/sprites/char1/anger.png",
+        "neutral": "https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/character/neutral.png",
+        "joy": "https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/character/joy.png",
+        "anger": "https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/character/anger.png",
         ...
     }
     """
@@ -1664,7 +1664,7 @@ class SpaceStore:
             ) or config
             return res
 
-        # Built-in/public demo taverns can use a non-secret local backend that is
+        # System-seeded public spaces can use a non-secret local backend that is
         # stored in taverns.json only. Never resurrect unconfigured remote keys.
         space_data = self._load_taverns(include_seed_fallback=True).get(space_id, {})
         fallback = space_data.get("llm_config", {}) if isinstance(space_data, dict) else {}

@@ -46,9 +46,9 @@ FableSpace 是一个真实坐标锚定的角色故事平台：玩家先选择私
 - 一个改动尽量只做一类事情：协议变更、功能变更、内容变更不要混在一起。
 - 不要未经用户确认移动、删除或重命名既有 `docs/` 文档。
 - 每次功能/bug/重构级改动都要在最终汇报中留下可追踪说明；涉及长期产品、Schema、部署、架构边界或开发约束时，同步更新 README、对应权威文档或本文件。
-- 任何要被项目引用或验收的 AI 生成图片，不能只停留在 `%USERPROFILE%\.codex\generated_images\`、临时目录或聊天预览里；必须在完成前复制/转换到仓库内的规范资源路径（如 `apps/web/public/...`、`apps/web/app/assets/...`、`artifacts/...`），并让代码/文档引用仓库内路径。
-- 生成的 NPC 图片资产必须同目录保留 prompt sidecar：单张 NPC 头像 / 立绘 / 精灵图推荐命名为 `<image-stem>.prompt.md`；NPC 同一角色的一组表情图可共用一个 `expression-set.prompt.md`，但必须列出组内每张图片路径、expression、尺寸、SHA-256、prompt 类型、负面约束、风格来源、identity locks 与核验时间。组级 sidecar 的 `## Final prompt` 只保留自然/neutral 单图 prompt，不要把五个表情 prompt 都写进去，以免生图时生成五表情同框；其它表情只作为资产清单/哈希覆盖记录。若找不到原始最终 prompt，必须用反向解析生成 `reverse-engineered` sidecar，并明确标注“不是原始生成 prompt”。非 NPC 的页面切图、UI 参考图、模块插画、审计截图或用户提供/裁切替换素材，不强制同目录 prompt sidecar；如需记录来源/处理方式，可写入任务记录、manifest、README 或最终汇报。
-- 图片类任务完成前必须核对 `.codex/generated_images` 中本轮生成物是否已进入当前项目；未搬入的生成图要明确标记为废稿/参考图，或搬入合适的项目目录。
+- 任何要被项目引用或验收的 AI 生成图片，不能只停留在 `%USERPROFILE%\.codex\generated_images\`、临时目录或聊天预览里；必须在完成前上传到对象存储的 `fablespace/media/v1/` 不可变命名空间，登记 `deploy/cdn/media-manifest.json`，并让代码/文档引用 HTTPS URL。Git 不保存图片二进制。
+- 生成的 NPC 图片资产必须保留 prompt sidecar：单张 NPC 头像 / 立绘 / 精灵图推荐命名为 `<image-stem>.prompt.md`；NPC 同一角色的一组表情图可共用一个 `expression-set.prompt.md`，但必须列出组内每张图片 URL、expression、尺寸、SHA-256、prompt 类型、负面约束、风格来源、identity locks 与核验时间。组级 sidecar 的 `## Final prompt` 只保留自然/neutral 单图 prompt，不要把五个表情 prompt 都写进去，以免生图时生成五表情同框；其它表情只作为资产清单/哈希覆盖记录。若找不到原始最终 prompt，必须用反向解析生成 `reverse-engineered` sidecar，并明确标注“不是原始生成 prompt”。非 NPC 的页面切图、UI 参考图、模块插画、审计截图或用户提供/裁切替换素材，不强制 sidecar；如需记录来源/处理方式，可写入任务记录、manifest、README 或最终汇报。
+- 图片类任务完成前必须核对 `.codex/generated_images` 中本轮生成物是否已上传并进入媒体清单；未采用的生成图要明确标记为废稿/参考图，不得被项目引用。
 
 ## 禁止事项
 
@@ -76,7 +76,7 @@ FableSpace 是一个真实坐标锚定的角色故事平台：玩家先选择私
 - 不要无批准引入大型 UI 框架、状态管理库或地图渲染依赖。
 - 组件改动应保持服务层边界：新路由 API 调用优先放在 `apps/web/app/lib/`；产品兼容模块 API 调用放在 `apps/web/app/product/services/`；可复用逻辑优先放在 hooks / utility 模块。
 - 前端 UI 改动要考虑移动端和窄屏体验；涉及视觉/交互的改动应至少做 build，并在用户明确要求或确有验收需要时进行浏览器人工验证。Playwright 自检不作为交付前置要求。
-- 前端图片资源改动必须遵守 `docs/IMAGE_ASSETS_SPEC.md`：生成图先落到项目资源目录，再更新引用和验证，不允许报告“已替换”但实际仍引用旧图。
+- 前端图片资源改动必须遵守 `docs/IMAGE_ASSETS_SPEC.md`：生成图先上传对象存储并登记清单，再更新 URL 引用和验证，不允许报告“已替换”但实际仍引用旧图。
 
 ### 数据与兼容
 
@@ -101,7 +101,7 @@ npm --prefix .\apps\web run build
 验证选择规则：
 
 - 只改文档：检查目标文件内容与链接路径，通常无需跑全量测试。
-- 只改图片资源：检查目标图片文件路径、尺寸/格式、hash 或修改时间；如果前端会加载该资源，运行 `npm --prefix .\apps\web run build`。
+- 只改图片资源：检查对象 key、CDN URL、尺寸/格式和 hash，确认 Git 跟踪图片数为零；如果前端会加载该资源，运行 `npm --prefix .\apps\web run build`。
 - 改 Python：至少运行 `py -3 -m compileall -q apps/api/src`；当前仓库不保留 pytest 套件，除非用户明确恢复测试体系，不要新增或引用 pytest 验证入口。
 - 改前端：至少运行 `npm --prefix .\apps\web run build`；类型或 API client 改动运行 `npm --prefix .\apps\web run typecheck`；当前 `apps/web/package.json` 不保留 `test` 脚本，不要新增或引用前端测试入口；浏览器人工验收和截图仅在用户明确要求或任务确有需要时执行，不以 Playwright 自检作为前置门槛。
 - **高风险/视觉验收**：涉及 UI 还原度、用户提供素材映射或 source-of-truth 存在争议时，必须在完成前对照原始参考图 / Schema 进行对抗式自审，并记录 Verdict（PASS / FAIL / BLOCKED）与证据；当前环境没有专用自审技能时，仍按同一标准人工完成。

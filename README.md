@@ -83,7 +83,7 @@ docker compose up --build -d
 
 ## GitHub Actions 自动部署与 CDN
 
-仓库提供 `.github/workflows/deploy.yml`：推送 `main` 后按前端、后端和部署配置的实际变化选择构建范围。后端通过 SSH + Docker Compose 更新；前端构建产物中的 JS、CSS 和导入图片会先同步到 S3 兼容对象存储（支持 Cloudflare R2），再替换服务器上的前端镜像。
+仓库提供 `.github/workflows/deploy.yml`：推送 `main` 后按前端、后端和部署配置的实际变化选择构建范围。后端通过 SSH + Docker Compose 更新；前端图片只从 S3 兼容对象存储的稳定媒体命名空间读取，workflow 会在替换服务器镜像前逐项核对媒体清单并通过 CDN 做真实读取验证。
 
 部署默认受 GitHub Actions 仓库变量 `DEPLOY_ENABLED` 保护。服务器、存储桶、CDN 域名和全部 Secret 配置完成后才能启用。完整 Secret 清单、R2/CORS 设置和首次服务器准备步骤见 [自动部署与 CDN](docs/DEPLOYMENT.md)。
 
@@ -110,7 +110,7 @@ docker compose up --build -d
 | `VITE_API_BASE` | 前端构建期 API 基址，留空时使用同源 `/api` |
 | `VITE_AMAP_KEY` | 可选地图服务 Key |
 | `VITE_AMAP_SECURITY_CODE` | 可选地图服务安全码 |
-| `VITE_ASSET_BASE_URL` | 可选的构建资源绝对前缀；生产 workflow 自动设置为提交号隔离的 CDN release 路径 |
+| `VITE_MEDIA_BASE_URL` | 项目图片的稳定 HTTPS 基址，默认 `https://img.pingxingxian.space/fablespace/media/v1` |
 
 店主自己的 LLM API Key 应在 FableSpace 的空间管理界面中配置，不应写入共享环境文件或提交到仓库。
 

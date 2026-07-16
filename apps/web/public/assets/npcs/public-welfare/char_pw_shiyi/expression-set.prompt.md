@@ -1,7 +1,7 @@
 ---
 prompt_scope: npc-expression-set
-asset_group: apps/web/public/assets/npcs/public-welfare/char_pw_shiyi/
-assets: apps/web/public/assets/npcs/public-welfare/char_pw_shiyi/neutral.png; apps/web/public/assets/npcs/public-welfare/char_pw_shiyi/joy.png; apps/web/public/assets/npcs/public-welfare/char_pw_shiyi/anger.png; apps/web/public/assets/npcs/public-welfare/char_pw_shiyi/embarrassment.png; apps/web/public/assets/npcs/public-welfare/char_pw_shiyi/curiosity.png
+asset_group: https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_shiyi/
+assets: https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_shiyi/neutral.png; https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_shiyi/joy.png; https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_shiyi/anger.png; https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_shiyi/embarrassment.png; https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_shiyi/curiosity.png
 expressions: neutral, joy, anger, embarrassment, curiosity
 asset_count: 5
 prompt_type: reverse-engineered
@@ -22,11 +22,11 @@ Reverse-engineered FableMap public-welfare NPC expression sprite for char_pw_shi
 
 ## Expression assets
 
-- `apps/web/public/assets/npcs/public-welfare/char_pw_shiyi/neutral.png` — `neutral`
-- `apps/web/public/assets/npcs/public-welfare/char_pw_shiyi/joy.png` — `joy`
-- `apps/web/public/assets/npcs/public-welfare/char_pw_shiyi/anger.png` — `anger`
-- `apps/web/public/assets/npcs/public-welfare/char_pw_shiyi/embarrassment.png` — `embarrassment`
-- `apps/web/public/assets/npcs/public-welfare/char_pw_shiyi/curiosity.png` — `curiosity`
+- `https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_shiyi/neutral.png` — `neutral`
+- `https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_shiyi/joy.png` — `joy`
+- `https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_shiyi/anger.png` — `anger`
+- `https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_shiyi/embarrassment.png` — `embarrassment`
+- `https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_shiyi/curiosity.png` — `curiosity`
 
 ## Negative constraints
 

@@ -8,7 +8,6 @@ REPO_ROOT = Path(__file__).resolve().parents[6]
 DEFAULT_HOST = "127.0.0.1"
 DEFAULT_PORT = 8950
 DEFAULT_OUTPUT_ROOT = REPO_ROOT / ".fablespace-api"
-DEFAULT_FIXTURE_FILE = Path(__file__).resolve().parents[1] / "demo_assets" / "overpass_demo.json"
 DEFAULT_FRONTEND_ROOT = REPO_ROOT / "apps" / "web"
 DEFAULT_FRONTEND_BUILD_CLIENT_DIR = Path("build") / "client"
 DEFAULT_FRONTEND_PUBLIC_DIRNAME = "public"
@@ -42,10 +41,6 @@ def _optional_path_from_env(primary: str, legacy: str, default: Path | None) -> 
 
 def _default_output_root() -> Path:
     return _path_from_env("FABLESPACE_OUTPUT_ROOT", "FABLEMAP_OUTPUT_ROOT", DEFAULT_OUTPUT_ROOT)
-
-
-def _default_fixture_file() -> Path | None:
-    return _optional_path_from_env("FABLESPACE_FIXTURE_FILE", "FABLEMAP_FIXTURE_FILE", DEFAULT_FIXTURE_FILE)
 
 
 def _default_frontend_root() -> Path | None:
@@ -91,7 +86,6 @@ def _int_from_env(primary: str, default: int) -> int:
 @dataclass(frozen=True)
 class ApiSettings:
     output_root: Path = field(default_factory=_default_output_root)
-    fixture_file: Path | None = field(default_factory=_default_fixture_file)
     frontend_root: Path | None = field(default_factory=_default_frontend_root)
     frontend_dist: Path | None = None
     frontend_public: Path | None = None
@@ -120,7 +114,6 @@ class ApiSettings:
             resolved_frontend_public = resolved_frontend_root / DEFAULT_FRONTEND_PUBLIC_DIRNAME
         return ApiSettings(
             output_root=self.output_root.resolve(),
-            fixture_file=self.fixture_file.resolve() if self.fixture_file else None,
             frontend_root=resolved_frontend_root,
             frontend_dist=resolved_frontend_dist,
             frontend_public=resolved_frontend_public,

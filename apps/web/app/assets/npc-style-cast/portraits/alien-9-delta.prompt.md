@@ -1,5 +1,5 @@
 ---
-asset: apps/web/app/assets/npc-style-cast/portraits/alien-9-delta.png
+asset: https://img.pingxingxian.space/fablespace/media/v1/app/assets/npc-style-cast/portraits/alien-9-delta.png
 prompt_type: reverse-engineered
 source_type: reverse-engineered-current-asset
 width: 256

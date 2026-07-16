@@ -17,22 +17,13 @@ export const LOCATION_PRESETS = [
     radius: '360',
     mode: 'live',
   },
-  {
-    id: 'fixture-demo',
-    title: '离线演示样例',
-    subtitle: '离线可用，仅用于确认生成链路，不代表国内风格',
-    lat: '35.6580',
-    lon: '139.7016',
-    radius: '300',
-    mode: 'fixture',
-  },
 ]
 
 export const INITIAL_FORM = {
   lat: '35.6580',
   lon: '139.7016',
   radius: '300',
-  mode: 'fixture',
+  mode: 'live',
   seed: '',
 }
 
@@ -42,7 +33,7 @@ export const INITIAL_WRITEBACK_FORM = {
   visibility: 'private',
   targetType: 'poi',
   targetId: 'poi_clocktower_01',
-  sliceId: 'slice_demo_shibuya',
+  sliceId: 'slice_shibuya_core',
   zoneId: 'zone_shibuya_core',
   intensity: '1',
   tag: 'safe',

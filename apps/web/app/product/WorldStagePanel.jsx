@@ -231,7 +231,7 @@ export default function WorldStagePanel({
                   <p className="shared-task-gen-meta">
                     {result
                       ? `${result.poi_count ?? 0} 个候选地点 · ${result.road_count ?? 0} 条路径 · ${formatTagLabel(result.dominant_faction, '未知势力')}`
-                      : `${originLabel} · ${form.radius}m · ${form.mode === 'fixture' ? '离线样例' : '实时地图'}`
+                      : `${originLabel} · ${form.radius}m · 实时地图`
                     }
                   </p>
                   {!result ? (

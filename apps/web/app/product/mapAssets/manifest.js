@@ -1,45 +1,47 @@
-import packAScene from '../assets/map-packs/pack_a/scene/scene_01.png'
-import packAQuestIcon from '../assets/map-packs/pack_a/icons/quest.png'
-import packAShopIcon from '../assets/map-packs/pack_a/icons/shop.png'
-import packABossIcon from '../assets/map-packs/pack_a/icons/boss.png'
-import packAHomeIcon from '../assets/map-packs/pack_a/icons/home.png'
-import packAEchoIcon from '../assets/map-packs/pack_a/icons/echo.png'
-import packAEventIcon from '../assets/map-packs/pack_a/icons/event.png'
-import packATileRoad01 from '../assets/map-packs/pack_a/tiles/road_01.png'
-import packATileRoad02 from '../assets/map-packs/pack_a/tiles/road_02.png'
-import packATileGround01 from '../assets/map-packs/pack_a/tiles/ground_01.png'
-import packATileGround02 from '../assets/map-packs/pack_a/tiles/ground_02.png'
-import packATileWater01 from '../assets/map-packs/pack_a/tiles/water_01.png'
-import packATileMagic01 from '../assets/map-packs/pack_a/tiles/magic_01.png'
-import packABuildingHouse01 from '../assets/map-packs/pack_a/buildings/house_01.png'
-import packABuildingSanctum01 from '../assets/map-packs/pack_a/buildings/sanctum_01.png'
-import packABuildingShop01 from '../assets/map-packs/pack_a/buildings/shop_01.png'
-import packABuildingTower01 from '../assets/map-packs/pack_a/buildings/tower_01.png'
-import packADecoTree01 from '../assets/map-packs/pack_a/decorations/tree_01.png'
-import packADecoLamp01 from '../assets/map-packs/pack_a/decorations/lamp_01.png'
-
-import packBScene from '../assets/map-packs/pack_b/scene/scene_01.png'
-import packBQuestIcon from '../assets/map-packs/pack_b/icons/quest.png'
-import packBShopIcon from '../assets/map-packs/pack_b/icons/shop.png'
-import packBBossIcon from '../assets/map-packs/pack_b/icons/boss.png'
-import packBHomeIcon from '../assets/map-packs/pack_b/icons/home.png'
-import packBEchoIcon from '../assets/map-packs/pack_b/icons/echo.png'
-import packBEventIcon from '../assets/map-packs/pack_b/icons/event.png'
-import packBTileRoad01 from '../assets/map-packs/pack_b/tiles/road_01.png'
-import packBTileRoad02 from '../assets/map-packs/pack_b/tiles/road_02.png'
-import packBTileGround01 from '../assets/map-packs/pack_b/tiles/ground_01.png'
-import packBTileGround02 from '../assets/map-packs/pack_b/tiles/ground_02.png'
-import packBTileWater01 from '../assets/map-packs/pack_b/tiles/water_01.png'
-import packBTileGarden01 from '../assets/map-packs/pack_b/tiles/garden_01.png'
-import packBBuildingHouse01 from '../assets/map-packs/pack_b/buildings/house_01.png'
-import packBBuildingSanctum01 from '../assets/map-packs/pack_b/buildings/sanctum_01.png'
-import packBBuildingShop01 from '../assets/map-packs/pack_b/buildings/shop_01.png'
-import packBBuildingTower01 from '../assets/map-packs/pack_b/buildings/tower_01.png'
-import packBDecoTree01 from '../assets/map-packs/pack_b/decorations/tree_01.png'
-import packBDecoLamp01 from '../assets/map-packs/pack_b/decorations/lamp_01.png'
-
+import { mediaAssetUrl } from '../../lib/media-assets'
 import { getAssetIconKey } from './iconMapping.js'
 import { getAssetPackKey } from './packSelector.js'
+
+const mapAssetUrl = (pack, path) => mediaAssetUrl(`app/product/assets/map-packs/${pack}/${path}.png`)
+const packAScene = mapAssetUrl('pack_a', 'scene/scene_01')
+const packAQuestIcon = mapAssetUrl('pack_a', 'icons/quest')
+const packAShopIcon = mapAssetUrl('pack_a', 'icons/shop')
+const packABossIcon = mapAssetUrl('pack_a', 'icons/boss')
+const packAHomeIcon = mapAssetUrl('pack_a', 'icons/home')
+const packAEchoIcon = mapAssetUrl('pack_a', 'icons/echo')
+const packAEventIcon = mapAssetUrl('pack_a', 'icons/event')
+const packATileRoad01 = mapAssetUrl('pack_a', 'tiles/road_01')
+const packATileRoad02 = mapAssetUrl('pack_a', 'tiles/road_02')
+const packATileGround01 = mapAssetUrl('pack_a', 'tiles/ground_01')
+const packATileGround02 = mapAssetUrl('pack_a', 'tiles/ground_02')
+const packATileWater01 = mapAssetUrl('pack_a', 'tiles/water_01')
+const packATileMagic01 = mapAssetUrl('pack_a', 'tiles/magic_01')
+const packABuildingHouse01 = mapAssetUrl('pack_a', 'buildings/house_01')
+const packABuildingSanctum01 = mapAssetUrl('pack_a', 'buildings/sanctum_01')
+const packABuildingShop01 = mapAssetUrl('pack_a', 'buildings/shop_01')
+const packABuildingTower01 = mapAssetUrl('pack_a', 'buildings/tower_01')
+const packADecoTree01 = mapAssetUrl('pack_a', 'decorations/tree_01')
+const packADecoLamp01 = mapAssetUrl('pack_a', 'decorations/lamp_01')
+
+const packBScene = mapAssetUrl('pack_b', 'scene/scene_01')
+const packBQuestIcon = mapAssetUrl('pack_b', 'icons/quest')
+const packBShopIcon = mapAssetUrl('pack_b', 'icons/shop')
+const packBBossIcon = mapAssetUrl('pack_b', 'icons/boss')
+const packBHomeIcon = mapAssetUrl('pack_b', 'icons/home')
+const packBEchoIcon = mapAssetUrl('pack_b', 'icons/echo')
+const packBEventIcon = mapAssetUrl('pack_b', 'icons/event')
+const packBTileRoad01 = mapAssetUrl('pack_b', 'tiles/road_01')
+const packBTileRoad02 = mapAssetUrl('pack_b', 'tiles/road_02')
+const packBTileGround01 = mapAssetUrl('pack_b', 'tiles/ground_01')
+const packBTileGround02 = mapAssetUrl('pack_b', 'tiles/ground_02')
+const packBTileWater01 = mapAssetUrl('pack_b', 'tiles/water_01')
+const packBTileGarden01 = mapAssetUrl('pack_b', 'tiles/garden_01')
+const packBBuildingHouse01 = mapAssetUrl('pack_b', 'buildings/house_01')
+const packBBuildingSanctum01 = mapAssetUrl('pack_b', 'buildings/sanctum_01')
+const packBBuildingShop01 = mapAssetUrl('pack_b', 'buildings/shop_01')
+const packBBuildingTower01 = mapAssetUrl('pack_b', 'buildings/tower_01')
+const packBDecoTree01 = mapAssetUrl('pack_b', 'decorations/tree_01')
+const packBDecoLamp01 = mapAssetUrl('pack_b', 'decorations/lamp_01')
 
 export const MAP_ASSET_PACKS = {
   pack_a: {
