@@ -185,8 +185,15 @@ class TavernManagementApplicationMixin:
         password: str = "",
         user_id: str = "",
         visitor_gender: str = "",
+        play_identity_id: str | None = None,
     ) -> dict[str, Any]:
-        return self.taverns.enter_space(space_id, password, user_id, visitor_gender)
+        return self.taverns.enter_space(
+            space_id,
+            password,
+            user_id,
+            visitor_gender,
+            play_identity_id,
+        )
 
     def get_tavern_metrics(self, space_id: str, user_id: str = "") -> dict[str, Any]:
         return self.taverns.get_tavern_metrics(space_id, user_id)

@@ -63,10 +63,14 @@ def _seed_default_public_welfare_enabled() -> bool:
 def _seed_database_default_public_welfare_taverns(store: Any) -> int:
     if not _seed_default_public_welfare_enabled():
         return 0
-    from fablespace_api.core.default_spaces import default_public_welfare_spaces
+    from fablespace_api.core.default_spaces import (
+        RETIRED_PUBLIC_WELFARE_TAVERN_IDS,
+        default_public_welfare_spaces,
+    )
 
     seeded = 0
     refreshed = 0
+    retired = 0
     for payload in default_public_welfare_spaces():
         space_id = str(payload.get("id") or "").strip()
         if not space_id:
@@ -87,11 +91,21 @@ def _seed_database_default_public_welfare_taverns(store: Any) -> int:
             tavern.status = "open"
             store.update_space(tavern)
         seeded += 1
-    if seeded or refreshed:
+    for retired_space_id in RETIRED_PUBLIC_WELFARE_TAVERN_IDS:
+        existing = store.get_space(retired_space_id)
+        if not existing:
+            continue
+        existing_payload = existing.to_dict()
+        if not SpaceStore._retire_public_welfare_seed_record(existing_payload):
+            continue
+        store.update_space(Space.from_dict(existing_payload))
+        retired += 1
+    if seeded or refreshed or retired:
         logger.info(
-            "Seeded %s and refreshed %s default public welfare taverns into database storage",
+            "Seeded %s, refreshed %s, and retired %s default public welfare taverns in database storage",
             seeded,
             refreshed,
+            retired,
         )
     return seeded
 

@@ -21,6 +21,11 @@ export type HomepageCitySlice = {
   id: string
   visit_count: number
   characterAvatars: string[]
+  characterId: string
+  characterName: string
+  characterDescription: string
+  characterAvatar: string
+  characterTags: string[]
 }
 
 export type HomepageView = {
@@ -183,7 +188,7 @@ function buildEntryTags(space: Space) {
 }
 
 export function buildFeaturedCitySlices(spaces: Space[], limit = 3): HomepageCitySlice[] {
-  const featuredSpaces = [...spaces]
+  const rankedSpaces = [...spaces]
     .sort((left, right) => {
       const leftOpen = left.status === "open" || left.is_open === true ? 1 : 0
       const rightOpen = right.status === "open" || right.is_open === true ? 1 : 0
@@ -195,15 +200,29 @@ export function buildFeaturedCitySlices(spaces: Space[], limit = 3): HomepageCit
 
       return toPositiveNumber(right.visit_count) - toPositiveNumber(left.visit_count)
     })
-    .slice(0, limit)
-  const coversBySpaceId = resolveUniqueHomepageSpaceCovers(featuredSpaces)
+  const coversBySpaceId = resolveUniqueHomepageSpaceCovers(rankedSpaces)
+  const featuredCharacters: Array<{ space: Space; character: SpaceCharacter }> = []
+  const maxCharacterCount = rankedSpaces.reduce(
+    (maximum, space) => Math.max(maximum, safeCharacters(space).length),
+    0,
+  )
 
-  return featuredSpaces.map((space) => ({
+  // Round-robin across spaces so one crowded location cannot fill every homepage character slot.
+  for (let characterIndex = 0; characterIndex < maxCharacterCount && featuredCharacters.length < limit; characterIndex += 1) {
+    for (const space of rankedSpaces) {
+      const character = safeCharacters(space)[characterIndex]
+      if (!character?.id) continue
+      featuredCharacters.push({ space, character })
+      if (featuredCharacters.length >= limit) break
+    }
+  }
+
+  return featuredCharacters.map(({ space, character }) => ({
     image: coversBySpaceId[space.id] || resolveHomepageSpaceCover(space),
     name: compactText(space.name, "未命名入口", 18),
     description: compactText(space.description, formatHomepageLocation(space), 72),
     location: formatHomepageLocation(space),
-    entryMeta: space.status === "closed" || space.is_open === false ? "可预览" : "灯牌亮着",
+    entryMeta: space.status === "closed" || space.is_open === false ? "今日熄灯" : "所在空间可进入",
     tags: buildEntryTags(space),
     id: space.id,
     visit_count: toPositiveNumber(space.visit_count),
@@ -211,6 +230,19 @@ export function buildFeaturedCitySlices(spaces: Space[], limit = 3): HomepageCit
       .map(homepageCharacterAvatar)
       .filter((avatar): avatar is string => Boolean(avatar))
       .slice(0, 4),
+    characterId: character.id,
+    characterName: compactText(character.name, "未命名角色", 18),
+    characterDescription: compactText(
+      character.description || character.personality || character.first_mes,
+      "TA 正在这个坐标背后的空间里。",
+      72,
+    ),
+    characterAvatar: homepageCharacterAvatar(character),
+    characterTags: [
+      ...(Array.isArray(character.tags) ? character.tags : []),
+      ...(Array.isArray(character.traits) ? character.traits : []),
+      ...(Array.isArray(character.hobbies) ? character.hobbies : []),
+    ].filter((item): item is string => Boolean(item)).slice(0, 3),
   }))
 }
 

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, Literal
 
 from pydantic import BaseModel, Field
 
@@ -14,6 +14,7 @@ class ChatRequest(BaseModel):
     visitor_id: str = ""
     visitor_name: str = ""
     visitor_gender: str = ""
+    play_identity_id: Literal["beggar"] | None = None
     extra_context: list[dict[str, Any]] | None = None
     display_message: str = ""
 
@@ -29,6 +30,7 @@ class GroupChatRequest(BaseModel):
     visitor_id: str = ""
     visitor_name: str = ""
     visitor_gender: str = ""
+    play_identity_id: Literal["beggar"] | None = None
     display_message: str = ""
 
 

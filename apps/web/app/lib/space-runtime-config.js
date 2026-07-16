@@ -75,8 +75,8 @@ export function hasExplicitOwnerIdentity(ownerId) {
 }
 
 export const NEWCOMER_SPACE_CONFIG = Object.freeze({
-  spaceId: "pw_lantern_helpdesk",
-  query: "社区",
+  spaceId: "story_palace_snow_edict",
+  query: "故事",
 })
 
 export const PUBLIC_WELFARE_NPC_EXPRESSION_PREVIEW_KEYS = Object.freeze([

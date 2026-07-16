@@ -3,9 +3,17 @@ import type { LinksFunction } from "react-router"
 
 import homeBlackHeroVisual from "../assets/fable-space-05-10/home-black/hero-system-visual.webp"
 import { FableSpaceHomeReference } from "../components/fable-space-reference-artboards"
+import { VisitorPlayIdentityOnboarding } from "../components/visitor-play-identity-onboarding"
 import { useTheme } from "../hooks/useTheme"
 import { buildHomepageView } from "../lib/homepage-spaces"
 import { errorMessage, listSpaces, type SpaceListResponse } from "../lib/spaces"
+import {
+  clearVisitorPlayIdentity,
+  readVisitorPlayIdentity,
+  saveVisitorPlayIdentity,
+  visitorPlayIdentityLabel,
+  type VisitorPlayIdentity,
+} from "../lib/visitor-play-identity"
 
 const HOMEPAGE_SPACE_LIST_LIMIT = 12
 
@@ -24,10 +32,16 @@ export const links: LinksFunction = () => [
 export default function HomeRoute() {
   const [result, setResult] = useState<SpaceListResponse>(EMPTY_LIST_RESULT)
   const [error, setError] = useState("")
-  const [loading, setLoading] = useState(true)
+  const [playIdentity, setPlayIdentity] = useState<VisitorPlayIdentity | null>(() => readVisitorPlayIdentity())
+  const [loading, setLoading] = useState(Boolean(playIdentity))
   const { toggleTheme } = useTheme()
 
   useEffect(() => {
+    if (!playIdentity) {
+      setLoading(false)
+      return
+    }
+
     let cancelled = false
     setLoading(true)
     setError("")
@@ -46,7 +60,29 @@ export default function HomeRoute() {
     return () => {
       cancelled = true
     }
-  }, [])
+  }, [playIdentity])
+
+  /**
+   * Persist an explicit first-run identity before revealing character discovery.
+   * @param identity Valid v1 role and self-declared gender selected by the visitor.
+   * @returns Nothing. This handler writes the versioned identity to browser storage and updates local UI state.
+   */
+  function handleIdentityConfirm(identity: VisitorPlayIdentity) {
+    setPlayIdentity(saveVisitorPlayIdentity(identity))
+  }
+
+  /**
+   * Return to the required identity selector without altering chat or space data.
+   * @returns Nothing. This handler removes one browser-local identity key and updates local UI state.
+   */
+  function handleIdentityReselect() {
+    clearVisitorPlayIdentity()
+    setPlayIdentity(null)
+  }
+
+  if (!playIdentity) {
+    return <VisitorPlayIdentityOnboarding onConfirm={handleIdentityConfirm} />
+  }
 
   const homepage = buildHomepageView(result, error)
 
@@ -55,6 +91,8 @@ export default function HomeRoute() {
       variant="black"
       featuredCitySlices={homepage.featuredCitySlices}
       isLoading={loading}
+      visitorIdentityLabel={visitorPlayIdentityLabel(playIdentity)}
+      onReselectIdentity={handleIdentityReselect}
       onToggleTheme={toggleTheme}
     />
   )

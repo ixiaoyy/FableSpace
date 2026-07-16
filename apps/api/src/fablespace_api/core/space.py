@@ -24,12 +24,17 @@ from fablespace_api.core.default_spaces import (
     DEFAULT_PUBLIC_WELFARE_MODEL,
     DEFAULT_PUBLIC_WELFARE_OWNER_ID,
     DEFAULT_PUBLIC_WELFARE_TAVERN_IDS,
+    RETIRED_PUBLIC_WELFARE_TAVERN_IDS,
     default_public_welfare_spaces,
 )
 from fablespace_api.core.memory import MemoryAtom
 from fablespace_api.core.skill_packs import normalize_skill_pack_settings
 from fablespace_api.core.time_context import build_time_context
 from fablespace_api.core.cultivation_logic import is_cultivation_space, calculate_cultivation_receipt_with_card
+from fablespace_api.core.visitor_play_identity import (
+    merge_play_identity_metadata,
+    validate_requested_play_identity,
+)
 
 # ─────────────────────────────────────────
 # 类型别名
@@ -1236,6 +1241,9 @@ class SpaceStore:
             existing = data.get(space_id)
             if self._merge_public_welfare_seed_defaults(existing, tavern):
                 changed = True
+        for retired_space_id in RETIRED_PUBLIC_WELFARE_TAVERN_IDS:
+            if self._retire_public_welfare_seed_record(data.get(retired_space_id)):
+                changed = True
         if changed:
             self._save_taverns(data)
 
@@ -1342,6 +1350,23 @@ class SpaceStore:
         return changed
 
     @staticmethod
+    def _retire_public_welfare_seed_record(existing: Any) -> bool:
+        """Hide an obsolete system seed while preserving its conversations and memories."""
+        if not isinstance(existing, dict):
+            return False
+        if str(existing.get("owner_id") or "") != DEFAULT_PUBLIC_WELFARE_OWNER_ID:
+            return False
+
+        changed = False
+        if existing.get("access") != "private":
+            existing["access"] = "private"
+            changed = True
+        if existing.get("status") != "closed":
+            existing["status"] = "closed"
+            changed = True
+        return changed
+
+    @staticmethod
     def _refresh_public_welfare_seed_copy(existing: dict[str, Any], default: dict[str, Any]) -> bool:
         """Refresh canonical user-facing copy for system-owned built-in seeds.
 
@@ -1373,30 +1398,6 @@ class SpaceStore:
         return changed
 
     @staticmethod
-    def _deprecated_public_welfare_seed_item_ids(space_id: str, key: str) -> set[str]:
-        """Return stale built-in seed item ids that should be removed on refresh.
-
-        This is intentionally tavern-specific and only applies to system-owned
-        public-welfare records. It lets a renamed/repositioned built-in space
-        stop exposing old gameplay/world-info entries without deleting unknown
-        locally-added items from other taverns.
-        """
-        deprecated_by_tavern_and_key = {
-            ("pw_community_repair", "world_info"): {
-                "wi_pw_repair_notice",
-                "wi_pw_repair_toolbox",
-            },
-            ("pw_community_repair", "bookmarks"): {
-                "bm_pw_repair",
-            },
-            ("pw_community_repair", "gameplay_definitions"): {
-                "gp_pw_repair_one_small_fix",
-                "gp_pw_repair_role_triage",
-            },
-        }
-        return set(deprecated_by_tavern_and_key.get((space_id, key), set()))
-
-    @staticmethod
     def _refresh_public_welfare_seed_items(existing: dict[str, Any], default: dict[str, Any], key: str) -> bool:
         default_items = default.get(key)
         existing_items = existing.get(key)
@@ -1404,22 +1405,6 @@ class SpaceStore:
             return False
 
         changed = False
-        space_id = str(existing.get("id") or default.get("id") or "").strip()
-        deprecated_ids = TavernStore._deprecated_public_welfare_seed_item_ids(space_id, key)
-        if deprecated_ids:
-            filtered_items = [
-                item
-                for item in existing_items
-                if not (
-                    isinstance(item, dict)
-                    and str(item.get("id") or "").strip() in deprecated_ids
-                )
-            ]
-            if len(filtered_items) != len(existing_items):
-                existing[key] = filtered_items
-                existing_items = filtered_items
-                changed = True
-
         default_by_id = {
             str(item.get("id") or "").strip(): item
             for item in default_items
@@ -2753,6 +2738,7 @@ class SpaceService:
         password: str = "",
         user_id: str = "",
         visitor_gender: str = "",
+        play_identity_id: str | None = None,
     ) -> dict[str, Any]:
         """进入空间（验证密码）"""
         tavern = self.store.get_space(space_id)
@@ -2769,6 +2755,14 @@ class SpaceService:
         # 私人空间只允许主人进入
         if tavern.access == "private" and tavern.owner_id != user_id:
             raise HTTPException(status_code=403, detail="此空间是私人的")
+
+        try:
+            selected_identity_id, selected_gender = validate_requested_play_identity(
+                play_identity_id,
+                visitor_gender,
+            )
+        except ValueError as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
 
         # 更新访客状态。有明确访客身份时才写入，避免匿名空 ID 污染回访面板。
         now = _utc_now_iso()
@@ -2787,7 +2781,13 @@ class SpaceService:
             if not visitor_state.first_visit:
                 visitor_state.first_visit = now
             visitor_state.last_visit = now
-            if visitor_gender:
+            if selected_identity_id:
+                visitor_state.gender = selected_gender
+                visitor_state.metadata = merge_play_identity_metadata(
+                    visitor_state.metadata,
+                    selected_identity_id,
+                )
+            elif visitor_gender:
                 visitor_state.gender = _normalize_gender(visitor_gender)
             visitor_state.relationship_stage = _visitor_relationship_stage(
                 visitor_state.relationship_strength,

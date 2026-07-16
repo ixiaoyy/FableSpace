@@ -10,7 +10,7 @@ import {
   UsersRound,
 } from "lucide-react"
 import { useState } from "react"
-import { Link, replace, useLoaderData } from "react-router"
+import { Link, Navigate, replace, useLoaderData } from "react-router"
 import homeBlackHeroVisual from "../assets/fable-space-05-10/home-black/hero-system-visual.webp"
 import { SpaceChatWorkbench } from "../features/space-chat-workbench"
 import { resolveHomepageSpaceCover } from "../lib/homepage-spaces"
@@ -18,6 +18,7 @@ import { derivePlaceTypeDisplay } from "../lib/place-types.js"
 import { fallbackRoleplayState } from "../lib/roleplay-state"
 import { resolveCurrentSessionUserId } from "../lib/session"
 import { buildSpaceFirstMinuteGuide } from "../lib/space-first-minute"
+import { readVisitorPlayIdentity } from "../lib/visitor-play-identity"
 import { redirectPathForRequest, spacePath, WEB_PATHS } from "../lib/web-routes"
 import {
   DEFAULT_VISITOR_ID,
@@ -352,7 +353,6 @@ function SpaceSpacePage({
                   space={space}
                   roleplay={roleplay}
                   currentUserId={currentUserId}
-                  isOwner={isOwner}
                 />
               </div>
             </section>
@@ -391,11 +391,13 @@ function SpaceErrorPage({ spaceId, error }: { spaceId: string; error: string }) 
 
 export default function SpaceRoute() {
   const { spaceId, currentUserId, space, roleplay, error } = useLoaderData<typeof clientLoader>()
+  const hasPlayIdentity = Boolean(readVisitorPlayIdentity())
   const characters = space?.characters || []
   const effectiveRoleplay = space ? roleplay || fallbackRoleplayState(space, characters) : null
   const isOwner = Boolean(space?.owner_id && space.owner_id === currentUserId)
 
   if (!space) return <SpaceErrorPage spaceId={spaceId} error={error} />
+  if (!hasPlayIdentity) return <Navigate to={WEB_PATHS.home} replace />
 
   return (
     <SpaceSpacePage

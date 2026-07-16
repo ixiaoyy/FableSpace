@@ -32,7 +32,7 @@ import {
   type VisitorRelationshipPayload,
 } from "../lib/spaces"
 import { getVisitorBond, type VisitorBondStatus } from "../lib/publicBond"
-import { characterPath, matchesPublicReference, redirectPathForRequest, spacePath } from "../lib/web-routes"
+import { characterPath, characterSpacePath, matchesPublicReference, redirectPathForRequest } from "../lib/web-routes"
 import {
   getAffinityStageMeta,
   normalizeAffinityStrength,
@@ -369,18 +369,18 @@ export default function NpcDetailRoute() {
           <button
             id="npc-detail-chat"
             type="button"
-            onClick={() => navigate(spacePath(space))}
+            onClick={() => navigate(characterSpacePath(space, character))}
             className="flex flex-1 items-center justify-center gap-2 rounded-2xl bg-violet-600 py-3.5 text-sm font-semibold text-white shadow-lg shadow-violet-900/40 hover:bg-violet-500 active:bg-violet-700 transition-colors"
           >
             <MessageCircle className="h-4 w-4" aria-hidden="true" />
-            开始聊天
+            去角色所在空间
           </button>
 
           {bondStatus?.can_apply && !hasActiveBond && !hasPendingBond && (
             <button
               id="npc-detail-apply-bond"
               type="button"
-              onClick={() => navigate(spacePath(space))}
+              onClick={() => navigate(characterSpacePath(space, character))}
               className="rounded-2xl border border-rose-400/30 bg-rose-500/10 px-4 py-3.5 text-sm font-medium text-rose-300 hover:bg-rose-500/20 transition-colors"
             >
               申请结缘

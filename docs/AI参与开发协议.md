@@ -26,7 +26,7 @@
 
 - Python：`py -3 -m compileall -q apps/api/src`。当前仓库不保留 pytest 套件，不新增 `test_*.py` 或 pytest 入口。
 - Frontend：UI/build 变化跑 `npm --prefix .\apps\web run build`；类型或 API client 变化跑 `npm --prefix .\apps\web run typecheck`。当前 `apps/web/package.json` 不保留 `test` 脚本，不新增前端测试入口。
-- 视觉验收/Playwright：仅在视觉还原、用户指定验收或高风险 UI 时使用。
+- 浏览器视觉验收：仅在用户明确要求或任务确有验收需要时使用，不要求先运行 Playwright 自检。
 - 不要为简单文案/布局增加大量 brittle 断言。
 
 ## 禁止

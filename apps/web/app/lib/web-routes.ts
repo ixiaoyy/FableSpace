@@ -134,6 +134,17 @@ export function characterPath(space: NamedRouteEntity, character: NamedRouteEnti
   return `${spacePath(space)}/角色/${encodePathSegment(reference)}`
 }
 
+/**
+ * Build a public space deep-link that preserves the visitor's selected NPC target.
+ * @param space Hosting space used to construct the canonical public space path.
+ * @param character Target NPC encoded as a public reference rather than an internal id.
+ * @returns A space URL that selects the target NPC and scrolls to the interaction surface. This function has no side effects.
+ */
+export function characterSpacePath(space: NamedRouteEntity, character: NamedRouteEntity) {
+  const reference = publicReference(character.name, "character", space.id, character.id)
+  return `${spacePath(space)}?character_ref=${encodePathSegment(reference)}#空间主线`
+}
+
 export function promptEditorPath(space: NamedRouteEntity, character: NamedRouteEntity) {
   return `${characterPath(space, character)}/提示词`
 }

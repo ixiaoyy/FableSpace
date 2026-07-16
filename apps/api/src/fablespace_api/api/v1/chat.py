@@ -51,6 +51,7 @@ def send_chat(request: Request, space_id: str, data: ChatRequest) -> dict[str, A
         visitor_id=visitor_id,
         visitor_name=data.visitor_name,
         visitor_gender=data.visitor_gender,
+        play_identity_id=data.play_identity_id,
         user_id=user_id,
         extra_context=data.extra_context,
         display_message=data.display_message,
@@ -80,6 +81,7 @@ def send_group_chat(request: Request, space_id: str, data: GroupChatRequest) -> 
         visitor_id=visitor_id,
         visitor_name=data.visitor_name,
         visitor_gender=data.visitor_gender,
+        play_identity_id=data.play_identity_id,
         user_id=user_id,
         display_message=data.display_message,
     )

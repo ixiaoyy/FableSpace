@@ -80,9 +80,11 @@ FableSpace 同时保留两类 API 面：
 
 职责：
 
-- 空间发现、入场、空间内部、聊天、玩法、店主管理。
+- 游玩身份选择、角色优先发现、角色所属空间入场、空间内部、聊天、玩法、店主管理。
 - 按移动端和桌面提供可用界面。
 - 区分访客视图、店主视图和公开分享视图。
+
+首页以角色优先发现为产品主线：角色详情和互动仍通过所属 Space 进入；每个 Space 作为正史、规则、事件与记忆独立的完整世界，同时保留真实坐标锚点和访问控制。店主 / 创作者配置属于兼容管理面，不参与当前访客主链路。首版身份选择只开放 `play_identity_id=beggar`（服务端定义为古代乞丐），自声明性别界面只开放 `male` / `female`。
 
 关键路径：
 
@@ -111,6 +113,7 @@ FableSpace 同时保留两类 API 面：
 职责：
 
 - 构建 Prompt。
+- 从服务端白名单解析 `play_identity_id`，把访客私有游玩身份和自声明性别作为运行时 Prompt 块注入单聊与群聊；跨时空判断直接读取当前 Prompt 中既有 Space 场景和 NPC 角色卡字段。
 - 选择 LLM 客户端。
 - 处理对话、世界知识注入、输出规则、token 统计。
 - 支持 AI Director、fallback 玩法推进和 dry-run 预览。
@@ -126,6 +129,9 @@ FableSpace 同时保留两类 API 面：
 原则：
 
 - 店主 API Key 不经过访客前端。
+- 客户端只能提交身份 ID，不能提交任意身份 Prompt；首版 `beggar`（古代乞丐）的版本化 Prompt 由后端维护。
+- Prompt 组合顺序必须保持平台安全与访问规则、已发布的 Space/NPC 正史、访客游玩身份、私有关系与记忆、当前消息之间的边界。Space 是当前独立世界的正史边界；其他世界的权威、物品、能力与常识不得自动生效。游玩身份只能影响 NPC 对访客的运行时反应，不能覆盖角色卡或空间内容。
+- 自声明性别仅来自明确选择；不得从姓名、头像或对话推断，也不得据此推断性格、能力、道德、资源或关系。
 - Prompt dry-run 默认不写历史、不写记忆、不消耗 token。
 - AI 返回必须校验后再进入结构化记录。
 
@@ -164,6 +170,10 @@ FableSpace 同时保留两类 API 面：
 
 说明：对外 API、领域类和前端均使用 Space 命名；当前数据库物理表仍保留 legacy `taverns` 表名以避免无迁移的破坏性 Schema 改动。
 
+系统默认故事由 `core/default_spaces.py` 提供，并由两类存储在初始化时幂等对齐：JSON 兼容存储通过 `SpaceStore._seed_default_public_welfare_taverns`，数据库存储通过 `infrastructure/storage.py::_seed_database_default_public_welfare_taverns`。当前公开种子是 3 个全新故事 Space。旧系统种子 ID 只在记录仍属于 `system_public_welfare` 时被迁移为 `private + closed`；迁移不得删除聊天、记忆、状态或覆盖用户所有权记录。
+
+首版游玩身份不新增物理表：进入空间和聊天协议使用统一字段 `play_identity_id`，后端验证后写入该访客当前 Space 的 `VisitorState.metadata.play_identity={"id":"beggar","version":1}`。`beggar` 的古代来源由服务端版本化定义解析；NPC 的原生时代与当前场景继续复用已有角色卡和 Space Prompt，不新增 Schema 字段。自声明性别继续写入 `VisitorState.gender`。这些信息都属于访客私有运行时状态，不进入公开 Space payload。
+
 ## API 面分组
 
 ### 空间与角色
@@ -179,6 +189,7 @@ FableSpace 同时保留两类 API 面：
 
 - 单 NPC chat。
 - group chat。
+- Space 入场、单聊和群聊请求使用统一的 `play_identity_id`；正常前台同时传递玩家明确选择的 `visitor_gender`。Prompt 构建必须在首轮模型调用前使用规范化后的本轮值。
 - chat session、export、search。
 - memory atoms、visitor notes、state cards。
 - output rules、prompt blocks、runtime presets。
@@ -236,7 +247,7 @@ FableSpace 同时保留两类 API 面：
 
 新实现应满足：
 
-- 强化坐标 -> 空间 -> NPC -> 互动 -> 记忆 -> 回访链路。
+- 强化游玩身份 -> 角色发现 -> 角色所属完整空间 -> 身份感知互动 -> 记忆 -> 回访链路，并继续以真实坐标锚定 Space。
 - 不绕过店主确认。
 - 有清晰 API 权限和存储归属。
 - 可落库、可回放、可测试。

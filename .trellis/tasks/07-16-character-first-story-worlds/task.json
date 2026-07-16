@@ -1,0 +1,31 @@
+{
+  "id": "character-first-story-worlds",
+  "name": "character-first-story-worlds",
+  "title": "角色优先三世界改造",
+  "description": "将首页改为身份选择与角色优先入口，首发皇宫、鬼怪、校园三座原创故事世界，并分阶段清理旧默认内容。",
+  "status": "review",
+  "dev_type": null,
+  "scope": null,
+  "package": null,
+  "priority": "P0",
+  "creator": "fable",
+  "assignee": "fable",
+  "createdAt": "2026-07-16",
+  "completedAt": null,
+  "branch": null,
+  "base_branch": "main",
+  "worktree_path": null,
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [
+    "07-16-visitor-identity-character-entry",
+    "07-16-three-world-six-character-seeds",
+    "07-16-legacy-default-content-cleanup",
+    "07-16-story-continuity-visual-qa"
+  ],
+  "parent": null,
+  "relatedFiles": [],
+  "notes": "",
+  "meta": {}
+}

@@ -150,6 +150,7 @@ def enter_space(
         password=data.password if data else "",
         user_id=user_id,
         visitor_gender=data.visitor_gender if data else "",
+        play_identity_id=data.play_identity_id if data else None,
     )
 
     # Trigger notification for tavern owner

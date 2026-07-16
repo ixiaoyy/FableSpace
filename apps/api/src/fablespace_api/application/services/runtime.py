@@ -74,6 +74,13 @@ from fablespace_api.core.prompt_builder import (
 from fablespace_api.core.hobbies import get_hobby_label, normalize_hobbies
 from fablespace_api.core.npc_voice import build_rules_identity_phrase
 from fablespace_api.core.item_economy import process_npc_response as process_item_gifts
+from fablespace_api.core.visitor_play_identity import (
+    build_play_identity_system_prompt,
+    merge_play_identity_metadata,
+    playable_gender,
+    play_identity_id_from_metadata,
+    validate_requested_play_identity,
+)
 
 from ...domain.group_chat_policy import (
     clamp_chat_history_limit,
@@ -248,6 +255,7 @@ class RuntimeApplicationMixin:
         visitor_id: str,
         visitor_name: str = "",
         visitor_gender: str = "",
+        play_identity_id: str | None = None,
         user_id: str = "",
         extra_context: list[dict[str, Any]] | None = None,
         display_message: str = "",
@@ -289,6 +297,13 @@ class RuntimeApplicationMixin:
         clean_message = clean_text(message, max_length=1600)
         if not clean_message:
             raise HTTPException(status_code=400, detail="消息不能为空")
+
+        prompt_visitor_state = self._prepare_prompt_visitor_state(
+            space_id,
+            visitor_id,
+            play_identity_id=play_identity_id,
+            visitor_gender=visitor_gender,
+        )
 
         # ── LLM Config Resolution: Prefer Tavern Config, Fallback to User Global ──
         llm_config = self._get_runtime_llm_config(space_id) or tavern.llm_config
@@ -338,7 +353,6 @@ class RuntimeApplicationMixin:
                 reason="llm_not_configured",
             )
 
-        prompt_visitor_state = self.store.get_visitor_state(space_id, visitor_id)
         degradation: dict[str, Any] | None = None
         try:
             response_text = self._chat_response_text(
@@ -644,6 +658,7 @@ class RuntimeApplicationMixin:
         visitor_id: str,
         visitor_name: str = "",
         visitor_gender: str = "",
+        play_identity_id: str | None = None,
         user_id: str = "",
         display_message: str = "",
     ) -> dict[str, Any]:
@@ -662,6 +677,13 @@ class RuntimeApplicationMixin:
         clean_message = clean_text(message, max_length=1600)
         if not clean_message:
             raise HTTPException(status_code=400, detail="消息不能为空")
+
+        prompt_visitor_state = self._prepare_prompt_visitor_state(
+            space_id,
+            visitor_id,
+            play_identity_id=play_identity_id,
+            visitor_gender=visitor_gender,
+        )
         if tavern.status != "open":
             return {"messages": [], "error": "空间正在歇业", "degraded": True}
 
@@ -718,7 +740,6 @@ class RuntimeApplicationMixin:
 
         active_character_ids = [member.character_id for member in manager.members if not member.is_user and not member.is_narrator and member.talkativeness > 0]
         self._seed_group_round_robin_selector(manager, active_character_ids, history)
-        prompt_visitor_state = self.store.get_visitor_state(space_id, visitor_id)
         responses: list[dict[str, Any]] = []
         total_token_count = 0
         turn_degraded = False
@@ -1228,6 +1249,43 @@ class RuntimeApplicationMixin:
         content = f"{name}: {message.content}" if name else message.content
         return {"role": message.role, "content": clean_text(content, max_length=800)}
 
+    def _prepare_prompt_visitor_state(
+        self,
+        space_id: str,
+        visitor_id: str,
+        *,
+        play_identity_id: str | None = None,
+        visitor_gender: str = "",
+    ) -> VisitorState | None:
+        """Validate and persist private play identity before any NPC prompt is built.
+
+        Legacy clients that omit ``play_identity_id`` remain read-only here: their
+        existing visitor state is returned without inventing a role or gender.
+        A submitted identity is stored only in private VisitorState metadata and
+        does not increment visits, affinity, or change space access decisions.
+        """
+
+        try:
+            selected_identity_id, selected_gender = validate_requested_play_identity(
+                play_identity_id,
+                visitor_gender,
+            )
+        except ValueError as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+        state = self.store.get_visitor_state(space_id, visitor_id)
+        if not selected_identity_id:
+            return state
+
+        state = state or VisitorState(visitor_id=visitor_id, space_id=space_id)
+        state.gender = selected_gender
+        state.metadata = merge_play_identity_metadata(
+            state.metadata,
+            selected_identity_id,
+        )
+        self.store.update_visitor_state(space_id, state)
+        return state
+
     def _chat_response_text(
         self,
         *,
@@ -1253,6 +1311,12 @@ class RuntimeApplicationMixin:
         hobbies: list[str] | None = None,
     ) -> str:
         visitor_id = str(prompt_visitor_id or (visitor_state.visitor_id if visitor_state else "") or "").strip()
+        play_identity_prompt = build_play_identity_system_prompt(
+            play_identity_id_from_metadata(visitor_state.metadata if visitor_state else {}),
+            playable_gender(visitor_state.gender if visitor_state else ""),
+            character_name=character_name,
+            space_name=tavern.name,
+        )
 
         # 1. Fetch relevant state cards (needed for both rules and LLM backends)
         all_cards = self.store.list_state_cards(space_id=tavern.id)
@@ -1270,6 +1334,12 @@ class RuntimeApplicationMixin:
                 character_name=character_name,
                 space_name=tavern.name,
                 first_mes=first_mes,
+                is_revisit=bool(
+                    (visitor_state and visitor_state.visit_count > 1)
+                    or top_cards
+                    or (visitor_state and visitor_state.relationship_stage != "stranger")
+                ),
+                revisit_cue=top_cards[0].title if top_cards else "",
             )
             if res:
                 return res
@@ -1401,6 +1471,7 @@ class RuntimeApplicationMixin:
             tavern_lon=tavern.lon,
             co_present_characters=self._co_present_character_prompt_roster(tavern, character_id),
             user_name=visitor_name or "旅人",
+            user_persona=play_identity_prompt,
             visitor_relationship_stage=visitor_state.relationship_stage if visitor_state else "",
             visitor_relationship_strength=visitor_state.relationship_strength if visitor_state else 0.0,
             visitor_visit_count=visitor_state.visit_count if visitor_state else 0,
@@ -1416,6 +1487,27 @@ class RuntimeApplicationMixin:
 
         builder = PromptBuilder(config)
         prompt_data = builder.build(history_messages, message)
+
+        # Presets do not have to reference {{persona}}. Keep the private identity
+        # as a dedicated system message so every LLM-backed NPC receives it.
+        prompt_messages = prompt_data.get("messages")
+        if play_identity_prompt and isinstance(prompt_messages, list):
+            already_present = any(
+                isinstance(item, dict) and item.get("content") == play_identity_prompt
+                for item in prompt_messages
+            )
+            if not already_present:
+                insert_at = 0
+                while (
+                    insert_at < len(prompt_messages)
+                    and isinstance(prompt_messages[insert_at], dict)
+                    and prompt_messages[insert_at].get("role") == "system"
+                ):
+                    insert_at += 1
+                prompt_messages.insert(
+                    insert_at,
+                    {"role": "system", "content": play_identity_prompt},
+                )
 
         response_text = clean_text(client.complete(prompt_data["messages"]).content, max_length=2400)
         if not response_text:

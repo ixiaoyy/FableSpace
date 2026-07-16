@@ -15,6 +15,8 @@ import { useSearchParams } from "react-router"
 
 import { normalizePublicWelfareNpcAssetPath } from "../../lib/space-runtime-config.js"
 import { buildSpaceFirstMinuteGuide, type SpaceFirstMinuteAction } from "../../lib/space-first-minute"
+import { matchesPublicReference } from "../../lib/web-routes"
+import { readVisitorPlayIdentity, visitorPlayIdentityLabel } from "../../lib/visitor-play-identity"
 
 import {
   enterSpace,
@@ -432,7 +434,6 @@ type SpaceChatWorkbenchProps = {
   space: Space
   roleplay?: RoleplayState | null
   currentUserId: string
-  isOwner: boolean
   publicPanel?: ReactNode
   visitorState?: any // Added for relationship context
 }
@@ -627,7 +628,6 @@ function CharacterAvatar({ character, active }: { character?: SpaceCharacter; ac
 export function SpaceChatWorkbench({
   space,
   currentUserId,
-  isOwner,
   publicPanel,
 }: SpaceChatWorkbenchProps) {
   const characters = useMemo(() => (Array.isArray(space.characters) ? space.characters : []), [space.characters])
@@ -635,14 +635,22 @@ export function SpaceChatWorkbench({
     () => new Map(characters.map((character) => [character.id, character.name || character.id || "NPC"])),
     [characters],
   )
-  const [selectedCharacterId, setSelectedCharacterId] = useState(characters[0]?.id || "")
+  const [searchParams, setSearchParams] = useSearchParams()
+  const requestedCharacterRef = String(searchParams.get("character_ref") || "").trim()
+  const requestedCharacter = requestedCharacterRef
+    ? characters.find((character) => matchesPublicReference(requestedCharacterRef, "character", space.id, character.id))
+    : undefined
+  const [selectedCharacterId, setSelectedCharacterId] = useState(requestedCharacter?.id || characters[0]?.id || "")
   const selectedCharacter = useMemo(
     () => characters.find((character) => character.id === selectedCharacterId) || characters[0],
     [characters, selectedCharacterId],
   )
-  const [visitorId] = useState(currentUserId)
-  const visitorName = isOwner ? "店主" : "旅人"
-  const visitorGender = "unspecified"
+  const visitorId = currentUserId
+  const [visitorPlayIdentity] = useState(() => readVisitorPlayIdentity())
+  const visitorName = "旅人"
+  const visitorGender = visitorPlayIdentity?.gender || "unspecified"
+  const playIdentityId = visitorPlayIdentity?.playIdentityId || ""
+  const playIdentityLabel = visitorPlayIdentity ? visitorPlayIdentityLabel(visitorPlayIdentity) : ""
   const [message, setMessage] = useState("")
   const [mentionQuery, setMentionQuery] = useState<string | null>(null)
   const [mentionIndex, setMentionIndex] = useState(0)
@@ -658,7 +666,6 @@ export function SpaceChatWorkbench({
   const [error, setError] = useState("")
   const chatLogRef = useRef<HTMLDivElement | null>(null)
   const chatInitializationKeyRef = useRef("")
-  const [searchParams, setSearchParams] = useSearchParams()
   const [pendingReplyTargetName, setPendingReplyTargetName] = useState("")
 
   const [gameplayDefinitions, setGameplayDefinitions] = useState<any[]>([])
@@ -671,9 +678,7 @@ export function SpaceChatWorkbench({
 
   const [coinBalance, setCoinBalance] = useState<number | null>(null)
   const [lastGift, setLastGift] = useState<{ coins: number; items: string } | null>(null)
-  const revisitMode = String(searchParams.get("revisit") || "")
   const requestedGameplayId = String(searchParams.get("gameplay_id") || "").trim()
-  const [hasPassedDoorway, setHasPassedDoorway] = useState(() => Boolean(isOwner || revisitMode === "continue"))
 
   const access = String(space.access || "public")
   const canStartDeepLinkedGameplay = (
@@ -682,7 +687,7 @@ export function SpaceChatWorkbench({
     space.is_open !== false
   )
 
-  const passwordLocked = access === "password" && !isOwner && !hasEnteredPasswordSpace
+  const passwordLocked = access === "password" && !hasEnteredPasswordSpace
   const firstMinuteGuide = useMemo(() => buildSpaceFirstMinuteGuide(space), [space])
   const ambientActivity = useMemo(() => resolveAmbientActivity(space, characters), [space, characters])
   const doorwayHost = selectedCharacter || characters[0]
@@ -697,19 +702,9 @@ export function SpaceChatWorkbench({
     () => {
       const publishedDefinitions = gameplayDefinitions
         .filter((definition) => String(definition?.status || "published").toLowerCase() === "published")
-      if (String(space.id || "") === "pw_midnight_commission_board") {
-        return publishedDefinitions
-          .filter((definition) => String(definition?.id || "") === "gp_pw_commission_clue_case")
-          .slice(0, 1)
-      }
-      if (String(space.id || "") === "pw_community_repair") {
-        return publishedDefinitions
-          .filter((definition) => String(definition?.id || "") === "gp_pw_secret_flowerbed_seed_cycle")
-          .slice(0, 1)
-      }
       return publishedDefinitions.slice(0, 3)
     },
-    [gameplayDefinitions, space.id],
+    [gameplayDefinitions],
   )
   const doorwayEntryActions = firstMinuteGuide.quickActions.slice(0, 3)
   const visibleMessages = activeChatChannel === "public"
@@ -743,24 +738,20 @@ export function SpaceChatWorkbench({
     return characters.filter((char) => (char.name || char.id || "").toLowerCase().includes(query))
   }, [characters, mentionQuery])
   useEffect(() => {
+    if (requestedCharacter?.id && requestedCharacter.id !== selectedCharacterId) {
+      setSelectedCharacterId(requestedCharacter.id)
+      return
+    }
     if (characters.length && !characters.some((character) => character.id === selectedCharacterId)) {
       setSelectedCharacterId(characters[0].id)
     }
-  }, [characters, selectedCharacterId])
+  }, [characters, requestedCharacter, selectedCharacterId])
 
   useEffect(() => {
-    if (isOwner) setHasPassedDoorway(true)
-  }, [isOwner])
-
-  useEffect(() => {
-    if (access === "password" && isOwner) {
-      setHasEnteredPasswordSpace(true)
-      return
-    }
     if (access === "password") return
 
     let cancelled = false
-    enterSpace(space.id, "", visitorId, visitorGender)
+    enterSpace(space.id, "", visitorId, visitorGender, playIdentityId)
       .then((res) => {
         if (cancelled) return
         if (res.visitor_state) {
@@ -774,7 +765,7 @@ export function SpaceChatWorkbench({
     return () => {
       cancelled = true
     }
-  }, [access, isOwner, space.id, visitorId])
+  }, [access, playIdentityId, space.id, visitorGender, visitorId])
 
   useEffect(() => {
     if (passwordLocked) {
@@ -933,7 +924,7 @@ export function SpaceChatWorkbench({
     setBusy("enter")
     setError("")
     try {
-      await enterSpace(space.id, password.trim(), visitorId, visitorGender)
+      await enterSpace(space.id, password.trim(), visitorId, visitorGender, playIdentityId)
       setHasEnteredPasswordSpace(true)
       setPassword("")
     } catch (err) {
@@ -1033,6 +1024,7 @@ export function SpaceChatWorkbench({
       visitor_id: visitorId,
       visitor_name: visitorName,
       visitor_gender: visitorGender,
+      play_identity_id: playIdentityId,
       message: cleanMessage,
       display_message: cleanMessage,
     })
@@ -1066,6 +1058,7 @@ export function SpaceChatWorkbench({
         visitor_id: visitorId,
         visitor_name: visitorName,
         visitor_gender: visitorGender,
+        play_identity_id: playIdentityId,
         message: mention?.message || cleanMessage,
         display_message: cleanMessage,
       })
@@ -1093,6 +1086,7 @@ export function SpaceChatWorkbench({
         visitor_id: visitorId,
         visitor_name: visitorName,
         visitor_gender: visitorGender,
+        play_identity_id: playIdentityId,
         display_message: cleanMessage,
       })
       const replyLines = mapGroupResponseMessages(result)
@@ -1214,7 +1208,6 @@ export function SpaceChatWorkbench({
     setMentionQuery(null)
     setMentionIndex(0)
     setError("")
-    setHasPassedDoorway(true)
     window.requestAnimationFrame(() => {
       textareaRef.current?.focus()
       textareaRef.current?.scrollIntoView({ block: "center", behavior: "smooth" })
@@ -1234,7 +1227,6 @@ export function SpaceChatWorkbench({
    * uses the existing gameplay session API and never sends a chat message.
    */
   async function handleDoorwayStartGameplay(definition: GameplayDefinitionRecord) {
-    setHasPassedDoorway(true)
     setMessage("")
     setMentionQuery(null)
     setMentionIndex(0)
@@ -1313,7 +1305,6 @@ export function SpaceChatWorkbench({
     setGameplayScene({})
     setActiveGameplayDefinitionId("")
     setError("")
-    setHasPassedDoorway(false)
   }
 
   /**
@@ -1335,7 +1326,6 @@ export function SpaceChatWorkbench({
     setGameplayScene({})
     setActiveGameplayDefinitionId("")
     setError("")
-    setHasPassedDoorway(false)
     window.requestAnimationFrame(() => {
       chatLogRef.current?.scrollTo({ top: 0, behavior: "smooth" })
     })
@@ -1506,7 +1496,10 @@ export function SpaceChatWorkbench({
           <aside className="flex min-h-0 flex-col border-b border-white/10 bg-slate-950/24 lg:overflow-hidden lg:border-b-0 lg:border-r lg:border-cyan-200/10" aria-label="NPC 角色与任务">
             <div className="shrink-0 px-3 pb-2 pt-3">
               <div className="flex items-center justify-between gap-3">
-                <h2 className="text-base font-black text-white">驻场角色</h2>
+                <span className="min-w-0">
+                  <h2 className="text-base font-black text-white">驻场角色</h2>
+                  {playIdentityLabel ? <span className="mt-1 block truncate text-[11px] font-bold text-cyan-300/72">你以 {playIdentityLabel} 身份进入</span> : null}
+                </span>
                 <span className="rounded-full border border-cyan-300/20 bg-cyan-300/10 px-2.5 py-1 text-xs font-bold text-cyan-100">
                   {characters.length}
                 </span>
@@ -1882,7 +1875,7 @@ export function SpaceChatWorkbench({
               </div>
             </form>
 
-            {!isOwner && !passwordLocked ? (
+            {!passwordLocked ? (
               <section
                 data-story-branch-controls
                 className="border-t border-white/10 bg-slate-950/60 px-3 py-2 sm:px-4"

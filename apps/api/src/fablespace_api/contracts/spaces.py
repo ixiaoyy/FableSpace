@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, Literal
 
 from pydantic import BaseModel
 
@@ -140,6 +140,7 @@ class MetricsResponse(BaseModel):
 class EnterSpaceRequest(BaseModel):
     password: str = ""
     visitor_gender: str = ""
+    play_identity_id: Literal["beggar"] | None = None
 
 
 class VisitorNoteCreateRequest(FlexibleBody):

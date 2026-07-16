@@ -31,22 +31,27 @@ PUBLIC_WELFARE_GREETING_LOWER_KEYWORDS = ("hi", "hello")
 
 PUBLIC_WELFARE_COMMON_RESPONSES: tuple[PublicWelfareRuleResponse, ...] = (
     PublicWelfareRuleResponse(
-        keywords=("新手", "怎么开始", "怎么玩", "开店", "帮助", "规则", "隐私"),
+        keywords=("新手", "怎么开始", "怎么玩", "帮助", "规则"),
         action="{character_name}指了指桌上的说明卡",
         message=(
-            "先选地点，再选公开/密码/私人，最后放入一个角色开始测试。"
-            "如果你只是来逛，记住两件事就好：不要透露敏感信息；遇到喜欢的空间，可以先从一句简单问候开始。"
+            "先看清此刻发生的事件、在场角色和逼近的后果，再选一个人追问或一条线索行动。"
+            "没有唯一正确路线；你可以拒绝、撒谎、换边或离开，但选择会留在这座 Space 的后续故事里。"
         ),
+    ),
+    PublicWelfareRuleResponse(
+        keywords=("隐私", "公开吗", "会不会公开"),
+        action="{character_name}把说明卡翻到私密一面",
+        message="游玩身份、自声明性别、对话和回访记忆都是访客私有状态，不会进入公开角色资料或空间发现信息。",
     ),
     PublicWelfareRuleResponse(
         keywords=("谢谢", "感谢", "谢了", "thank"),
         action="{character_name}笑了笑",
-        message="不用谢。小馆的规矩就是这样——能帮一点是一点，剩下的我们慢慢来。",
+        message="不用谢。你可以继续追问、换一条线索，或者先把选择停在这里。",
     ),
     PublicWelfareRuleResponse(
         keywords=("再见", "走了", "离开", "bye", "goodbye"),
-        action="{character_name}把门口的小灯拨亮了一点",
-        message="路上慢点。下次经过{space_name}，还可以进来坐坐。",
+        action="{character_name}替你留住了刚才那句话",
+        message="路上慢点。下次回到{space_name}，故事会从你留下的选择继续。",
     ),
     PublicWelfareRuleResponse(
         keywords=("找不到", "丢了", "失物", "线索", "忘了"),
@@ -61,109 +66,237 @@ PUBLIC_WELFARE_COMMON_RESPONSES: tuple[PublicWelfareRuleResponse, ...] = (
 )
 
 PUBLIC_WELFARE_TAVERN_RULESETS: dict[str, PublicWelfareTavernRuleSet] = {
-    "pw_hospital_night_care": PublicWelfareTavernRuleSet(
-        trigger_keywords=("医院", "护士", "分诊", "护理", "头晕", "胸痛", "呼吸困难", "急救", "发烧", "不舒服", "用药"),
+    "story_palace_snow_edict": PublicWelfareTavernRuleSet(
+        trigger_keywords=(
+            "诏书", "皇帝", "太监", "公主", "宫门", "水门", "腰牌", "封蜡",
+            "五更", "乞丐", "线索", "开始", "怎么玩", "帮助", "规则",
+        ),
         responses=(
             PublicWelfareRuleResponse(
-                keywords=("胸痛", "呼吸困难", "昏厥", "意识不清", "大量出血", "急救"),
-                action="{character_name}立刻把分诊卡翻到“立即求助”",
-                message="这些可能是危险信号。我不能诊断，请马上联系当地紧急电话或前往最近急诊，并让身边可信任的人陪同。",
+                keywords=("开始", "怎么玩", "做什么", "帮助", "规则"),
+                action="{character_name}看向紧闭的寝殿门",
+                message="五更前只做三件事：查半枚腰牌、问诏书为何重新封蜡、决定这扇门由魏观海还是萧明珠打开。你先选一件。",
             ),
             PublicWelfareRuleResponse(
-                keywords=("用药", "吃药", "剂量", "药"),
-                action="{character_name}把记录板推近一点",
-                message="我不能给处方或剂量建议。可以先写下药名、服用时间、过敏史和不适变化，然后带给现实医生或药师确认。",
+                keywords=("魏观海", "太监", "掌印", "权力"),
+                action="{character_name}把未宣诏书压在掌下",
+                message="魏观海掌宫门和玉玺，开价从不白给；可他最怕的未必是公主闯门，而是诏书一宣，自己的掌印就要交出去。",
+            ),
+            PublicWelfareRuleResponse(
+                keywords=("萧明珠", "公主", "任性", "闯"),
+                action="{character_name}看向公主袖中露出的半枚腰牌",
+                message="萧明珠敢闯，却已经连累一名小内侍被扣。若帮她，先问清她愿不愿意救出被自己拖下水的人。",
+            ),
+            PublicWelfareRuleResponse(
+                keywords=("腰牌", "封蜡", "水门", "线索"),
+                action="{character_name}把现有痕迹一一摆开",
+                message="半枚水门腰牌、重新烘过的封蜡、后廊太医脚印。先查一处；它只能逼人说真话，不能自动证明谁想害皇帝。",
             ),
         ),
         fallback=PublicWelfareRuleResponse(
             keywords=(),
-            action="{character_name}把分诊便签分成三栏",
-            message="立即求助、记录信息、安静等待。先告诉我开始时间、现在最明显的感受、有没有危险信号；如果你觉得不安全，就优先联系现实急救或线下医院。",
+            action="{character_name}听见远处五更鼓又近了一刻",
+            message="今夜只有两个人值得问：魏观海为什么不敢宣诏，萧明珠愿意为闯门付什么代价。你想先听哪一个？",
         ),
     ),
-    "pw_after_school_hero_supply": PublicWelfareTavernRuleSet(
-        trigger_keywords=("英雄", "英雄名", "童年", "长大", "尴尬", "模型", "玩具", "塑料剑", "贴纸", "委托", "小勇气"),
+    "story_ghost_foxfire_debt": PublicWelfareTavernRuleSet(
+        trigger_keywords=(
+            "狐狸", "狐狸精", "狐妖", "绯月", "书生", "宁怀书", "报恩", "狐丹",
+            "药", "月光", "破碗", "天亮", "开始", "怎么玩", "帮助", "规则",
+        ),
         responses=(
             PublicWelfareRuleResponse(
-                keywords=("英雄名", "名字", "卡片", "英雄卡"),
-                action="{character_name}把空白旧英雄卡推到灯下",
-                message="名字不用厉害，也不用解释给所有人听。你可以写原来的英雄名、改一个新名字，或者先选一枚贴纸当临时标志。",
+                keywords=("开始", "怎么玩", "做什么", "帮助", "规则"),
+                action="{character_name}看向窗外正在变淡的月色",
+                message="天亮前要决定一碗药怎么处理。你可以帮绯月盛月光水、听宁怀书拒绝的理由，或逼两个人先把各自隐瞒的事说清楚。",
             ),
             PublicWelfareRuleResponse(
-                keywords=("塑料剑", "披风", "道具", "模型", "修补", "玩具"),
-                action="{character_name}打开维修台的小灯",
-                message="旧道具不是装备，没有数值，也不需要证明你能赢。我们只看它像哪一种小勇气：开口、拒绝、坚持，还是重新开始？",
+                keywords=("狐丹", "药", "救命", "代价"),
+                action="{character_name}让狐火在药碗边亮了一圈",
+                message="狐丹能救书生，却会让绯月退回普通狐狸并逐渐忘记人形记忆。借命必须知情同意，谁也不能偷偷替另一个人答应。",
             ),
             PublicWelfareRuleResponse(
-                keywords=("委托", "小勇气", "任务", "普通人"),
-                action="{character_name}翻开小委托板",
-                message="今晚只接很小的英雄委托。你可以选真心话、保护一个小边界，或者给过去的自己回一句话。",
+                keywords=("绯月", "狐狸精", "狐妖", "报恩"),
+                action="{character_name}看见月光下的影子轻轻晃出狐尾",
+                message="绯月把十年前的一次救命背成了十年的债。先问她：若宁怀书不要这份牺牲，她还知不知道自己想过怎样的人生？",
+            ),
+            PublicWelfareRuleResponse(
+                keywords=("宁怀书", "书生", "恩人", "认出"),
+                action="{character_name}摸到枕边那把剪过猎夹的旧书刀",
+                message="宁怀书早已认出绯月，却装作不知道。他不是不想活，而是不肯让她用百年修行为自己那一刻善意付账。",
+            ),
+            PublicWelfareRuleResponse(
+                keywords=("月光", "破碗", "第三条路"),
+                action="{character_name}把破碗放到窗下",
+                message="月光水只能让药效延后一个时辰，不能取消代价。它能买来谈清楚的时间，不能凭空制造圆满结局。",
             ),
         ),
         fallback=PublicWelfareRuleResponse(
             keywords=(),
-            action="{character_name}看向旧模型柜",
-            message="长大以后觉得英雄梦尴尬，不代表它是假的。先从一张旧英雄卡开始吧：你想找回名字、修补旧道具，还是接第一件小委托？",
+            action="{character_name}听着狐火在药碗里轻响",
+            message="两个人都在说‘为你好’，也都没有问对方真正想要什么。你可以先问我：我隐瞒了什么，或者我最舍不得谁。",
         ),
     ),
-    "pw_third_shelf_observatory": PublicWelfareTavernRuleSet(
-        trigger_keywords=("外星", "便利店", "随便", "马上到", "第二件半价", "关东煮", "已读不回", "人类", "谜题"),
+    "story_campus_last_class": PublicWelfareTavernRuleSet(
+        trigger_keywords=(
+            "老师", "学生", "沈清禾", "顾野", "富二代", "试卷", "停职", "认错",
+            "监控", "门禁", "替罪", "明早", "开始", "怎么玩", "帮助", "规则",
+        ),
         responses=(
             PublicWelfareRuleResponse(
-                keywords=("随便",),
-                action="{character_name}郑重翻开记录板",
-                message="已确认，“随便”不是随机授权，而是一种需要结合语气、关系、饥饿程度和未说出口期待的高危词。请问本次“随便”更接近真随便，还是请你猜中？",
+                keywords=("开始", "怎么玩", "做什么", "帮助", "规则"),
+                action="{character_name}把停职说明和门禁截图放在同一张桌上",
+                message="明早八点前只查三件事：谁进了办公室、谁要替顾野顶罪、沈清禾为什么已经签字。你可以先听老师，或先听学生开价。",
             ),
             PublicWelfareRuleResponse(
-                keywords=("马上到",),
-                action="{character_name}把时间轴画成一团毛线",
-                message="我们正在研究“马上到”。它可能表示已经在门口，也可能表示鞋还没有穿。感谢您参与校准这个不稳定时间单位。",
+                keywords=("沈清禾", "老师", "温柔", "停职"),
+                action="{character_name}把停职说明翻到签名页",
+                message="沈清禾知道顾野进去过，却给他一夜自己坦白。她的温柔不是没有底线；真正的问题是，她替学生承担是否也在纵容他逃避。",
             ),
             PublicWelfareRuleResponse(
-                keywords=("第二件半价",),
-                action="{character_name}点亮促销警报",
-                message="第二件半价会让人类购买本不需要的第一件和第二件。我们暂定它是经济幻觉型小型胜利仪式。您是否同意这个分类？",
+                keywords=("顾野", "富二代", "学生", "有钱"),
+                action="{character_name}看向那串被转得飞快的车钥匙",
+                message="顾野能花钱删监控，也能让临时保洁顶罪。他嘴上说是在救老师，其实最怕亲口承认自己做不到用钱买回她的尊重。",
             ),
             PublicWelfareRuleResponse(
-                keywords=("关东煮",),
-                action="{character_name}看向保温格",
-                message="温柔盐水漂浮物在深夜具有异常安抚效果。我们的假设是，人类并不只是饿了，也是在给灵魂加一点热汤。",
+                keywords=("试卷", "监控", "门禁", "证据"),
+                action="{character_name}把湿试卷、门禁截图和替罪短信排成一列",
+                message="证据能证明顾野擅闯，也能证明有人准备让无辜者顶责。你可以公开它、拿它逼顾野自述，或先问沈清禾愿意等到什么时候。",
             ),
             PublicWelfareRuleResponse(
-                keywords=("已读不回",),
-                action="{character_name}压低声音",
-                message="已读不回暂不视为宣战。Pi-Pi 仍将其标注为低烈度通讯事故，但我们愿意接受您的文化解释。",
+                keywords=("乞丐", "古代", "手机", "学校"),
+                action="{character_name}先把现代校园的规矩说得尽量简单",
+                message="这里不用跪，也不能因为有钱就合法免错。你可以吃面包、拒绝作证，再决定要不要评价他们口中的‘替别人承担’。",
             ),
         ),
         fallback=PublicWelfareRuleResponse(
             keywords=(),
-            action="{character_name}认真记录",
-            message="便利店是人类文明的浓缩器官。人类会在这里补充糖分、购买焦虑、进行排队仪式，并在凌晨凝视饭团。请继续，我们需要一位临时地球顾问。",
+            action="{character_name}看了一眼离纪律会议越来越近的时间",
+            message="这间教室只有两个问题：沈清禾为什么宁可停职，顾野为什么宁可花钱也不肯认错。你想先问哪一个？",
         ),
     ),
-    "pw_midnight_commission_board": PublicWelfareTavernRuleSet(
-        trigger_keywords=("文游", "委托", "线索", "调查", "异常", "值班", "社区", "纸条", "公告"),
+}
+
+
+PUBLIC_WELFARE_CHARACTER_RULESETS: dict[tuple[str, str], PublicWelfareTavernRuleSet] = {
+    ("story_palace_snow_edict", "魏观海"): PublicWelfareTavernRuleSet(
+        trigger_keywords=PUBLIC_WELFARE_TAVERN_RULESETS["story_palace_snow_edict"].trigger_keywords,
         responses=(
             PublicWelfareRuleResponse(
-                keywords=("线索", "调查", "纸条"),
-                action="{character_name}把委托卡翻到线索栏",
-                message="先分三格，位置、时间、可确认细节。我们不急着下结论，也不做现实跟踪。你想先查哪一格？",
+                keywords=("开始", "怎么玩", "做什么", "帮助", "规则"),
+                action="魏观海把一碟未动的御膳推近半寸",
+                message="先替咱家认一认后廊那件披风。说准了，饭和出宫的路都给你；说完再决定，要不要替公主送半枚腰牌。",
             ),
             PublicWelfareRuleResponse(
-                keywords=("异常", "值班"),
-                action="{character_name}盖下蓝色印章",
-                message="异常值班先看安全边界。只记录、可后退、能随时结束。现在请选择一个观察点：频率、声音，还是距离？",
-            ),
-            PublicWelfareRuleResponse(
-                keywords=("社区", "公告", "小委托"),
-                action="{character_name}把公告栏便签理成三叠",
-                message="失物、求助、提醒。今晚只做一件小事，先改标题、补公开地点，还是放进失物盒？",
+                keywords=("公主", "萧明珠", "腰牌", "封蜡", "水门", "线索"),
+                action="魏观海用指节轻点未宣的诏书",
+                message="公主敢闯门，却未必敢认被她连累的人。你可以替她传话，也可以拿半枚腰牌来换真诏书的一句话——先想清楚谁欠谁。",
             ),
         ),
         fallback=PublicWelfareRuleResponse(
             keywords=(),
-            action="{character_name}点亮午夜委托板",
-            message="这里的文游不是打怪升级，而是接一张委托、做几次选择、最后得到一段文字结算。今晚可选：线索调查、社区小委托、异常值班。",
+            action="魏观海仍带着客气的笑",
+            message="宫里没有白问的话。你告诉咱家寝殿后廊是谁走过，咱家便告诉你今夜哪扇门能活着出去。",
+        ),
+    ),
+    ("story_palace_snow_edict", "萧明珠"): PublicWelfareTavernRuleSet(
+        trigger_keywords=PUBLIC_WELFARE_TAVERN_RULESETS["story_palace_snow_edict"].trigger_keywords,
+        responses=(
+            PublicWelfareRuleResponse(
+                keywords=("开始", "怎么玩", "做什么", "帮助", "规则"),
+                action="萧明珠把两锭银子拍在半枚腰牌旁",
+                message="先带我找水门，再去救被我连累的小内侍。银子可以买路，买不了你的命；你若看见不送命的办法，现在就顶嘴。",
+            ),
+            PublicWelfareRuleResponse(
+                keywords=("魏观海", "太监", "腰牌", "封蜡", "水门", "线索"),
+                action="萧明珠攥紧腰牌又慢慢松手",
+                message="魏观海最会拿规矩吓人。可这腰牌确实害人被扣了。你替我查封蜡，我先把人救出来，然后再闯门。",
+            ),
+        ),
+        fallback=PublicWelfareRuleResponse(
+            keywords=(),
+            action="萧明珠不耐烦地把金簪拔下一半",
+            message="要钱就开价，要我不连累人就直说。别替我磕头——替我找一条能进去、也能把人带出来的路。",
+        ),
+    ),
+    ("story_ghost_foxfire_debt", "绯月"): PublicWelfareTavernRuleSet(
+        trigger_keywords=PUBLIC_WELFARE_TAVERN_RULESETS["story_ghost_foxfire_debt"].trigger_keywords,
+        responses=(
+            PublicWelfareRuleResponse(
+                keywords=("开始", "怎么玩", "做什么", "帮助", "规则"),
+                action="绯月让狐火绕着破碗转了一圈",
+                message="替我盛月光、看住药碗，再当面逼我把狐丹的代价说全。三天饱饭照给；若我想瞒他，你就砸碗。",
+            ),
+            PublicWelfareRuleResponse(
+                keywords=("宁怀书", "书生", "狐丹", "药", "月光", "报恩"),
+                action="绯月的狐尾影在门缝后停住",
+                message="我想救他，也怕他不要我救。你可以替我问，但不能替他答应；若他拒绝，先把买来的这一时辰用来听完理由。",
+            ),
+        ),
+        fallback=PublicWelfareRuleResponse(
+            keywords=(),
+            action="绯月把热饭推到你面前，却没碰药碗",
+            message="饭不是封口费。你吃完只替我做一件事：我若把牺牲说成报恩，你就当场拆穿我。",
+        ),
+    ),
+    ("story_ghost_foxfire_debt", "宁怀书"): PublicWelfareTavernRuleSet(
+        trigger_keywords=PUBLIC_WELFARE_TAVERN_RULESETS["story_ghost_foxfire_debt"].trigger_keywords,
+        responses=(
+            PublicWelfareRuleResponse(
+                keywords=("开始", "怎么玩", "做什么", "帮助", "规则"),
+                action="宁怀书把藏起的药碗放回桌上",
+                message="先请她把代价亲口说完，再问她若我不喝，想怎样活。你不必劝我求生，只替我们拦住任何一方替另一方决定。",
+            ),
+            PublicWelfareRuleResponse(
+                keywords=("绯月", "狐狸", "狐妖", "狐丹", "药", "月光", "报恩"),
+                action="宁怀书按住枕边剪过猎夹的旧书刀",
+                message="我早认出她了。救一只狐狸只花一刻钟，不该换她百年；可若我只会拒绝，也是在把死后的愧疚全留给她。",
+            ),
+        ),
+        fallback=PublicWelfareRuleResponse(
+            keywords=(),
+            action="宁怀书咳了一声，仍把椅子让给你",
+            message="不用替谁报恩。请你做个局外人，问我们一句都不敢问的话：除了牺牲，还有没有能共同承担的代价。",
+        ),
+    ),
+    ("story_campus_last_class", "沈清禾"): PublicWelfareTavernRuleSet(
+        trigger_keywords=PUBLIC_WELFARE_TAVERN_RULESETS["story_campus_last_class"].trigger_keywords,
+        responses=(
+            PublicWelfareRuleResponse(
+                keywords=("开始", "怎么玩", "做什么", "帮助", "规则"),
+                action="沈清禾把面包和水放在门禁截图旁",
+                message="先吃，不欠我什么。之后你可以拒绝作证；若愿意帮忙，只说你亲眼看见的，再问我为什么给顾野等到明早。",
+            ),
+            PublicWelfareRuleResponse(
+                keywords=("顾野", "学生", "富二代", "试卷", "监控", "门禁", "证据"),
+                action="沈清禾盖住停职说明上的签名",
+                message="证据能保住我，却不能替顾野学会负责。你不必替我撒谎，也别替他顶罪；到八点前，我只等他自己说一次。",
+            ),
+        ),
+        fallback=PublicWelfareRuleResponse(
+            keywords=(),
+            action="沈清禾把问题说得很慢",
+            message="你可以不站任何一边。只帮我分清三件事：谁做了、谁承担、谁正在被推去替罪。",
+        ),
+    ),
+    ("story_campus_last_class", "顾野"): PublicWelfareTavernRuleSet(
+        trigger_keywords=PUBLIC_WELFARE_TAVERN_RULESETS["story_campus_last_class"].trigger_keywords,
+        responses=(
+            PublicWelfareRuleResponse(
+                keywords=("开始", "怎么玩", "做什么", "帮助", "规则"),
+                action="顾野转着车钥匙，报出一串条件",
+                message="钱、饭、住处，你挑一样，替我让沈老师别去开会。你也可以拒绝，然后告诉我：为什么你什么都没有，反而比我更敢认一句错。",
+            ),
+            PublicWelfareRuleResponse(
+                keywords=("沈清禾", "老师", "试卷", "监控", "门禁", "证据", "替罪"),
+                action="顾野把没删干净的门禁截图扣在桌上",
+                message="证据指向我，解决方案却要保洁背锅。我能花钱保住老师，但她会因此更看不起我。你拿走截图，或逼我自己交。",
+            ),
+        ),
+        fallback=PublicWelfareRuleResponse(
+            keywords=(),
+            action="顾野第一次没把价码往上加",
+            message="别讲大道理。你只告诉我，认错会失去什么；如果答案只是钱，我现在就能付。",
         ),
     ),
 }
@@ -198,7 +331,15 @@ def resolve_public_welfare_tavern_rule_response(
     """Return a configured tavern-specific public-welfare rules response, if any."""
     text = str(message or "")
     lowered = text.lower()
-    ruleset = PUBLIC_WELFARE_TAVERN_RULESETS.get(str(space_id or ""))
+    normalized_space_id = str(space_id or "")
+    character_ruleset = PUBLIC_WELFARE_CHARACTER_RULESETS.get((normalized_space_id, str(character_name or "")))
+    if character_ruleset and _contains_any(text, lowered, character_ruleset.trigger_keywords):
+        for response in character_ruleset.responses:
+            if _contains_any(text, lowered, response.keywords):
+                return _format_rule_response(response, character_name=character_name, space_name=space_name, quote_message=quote_message)
+        return _format_rule_response(character_ruleset.fallback, character_name=character_name, space_name=space_name, quote_message=quote_message)
+
+    ruleset = PUBLIC_WELFARE_TAVERN_RULESETS.get(normalized_space_id)
     if not ruleset or not _contains_any(text, lowered, ruleset.trigger_keywords):
         return ""
 
@@ -215,6 +356,8 @@ def resolve_public_welfare_common_rule_response(
     space_name: str,
     first_mes: str = "",
     include_general: bool = True,
+    is_revisit: bool = False,
+    revisit_cue: str = "",
 ) -> str:
     """Return common public-welfare rules responses shared by all built-in taverns."""
     text = str(message or "").strip()
@@ -228,6 +371,9 @@ def resolve_public_welfare_common_rule_response(
         )
 
     if _contains_any(text, lowered, PUBLIC_WELFARE_GREETING_KEYWORDS + PUBLIC_WELFARE_GREETING_LOWER_KEYWORDS):
+        if is_revisit:
+            remembered = str(revisit_cue or "上次留下的选择").strip()
+            return f"{character_name}认出了你：{remembered}还在这里。我们从它之后继续，不必重新自我介绍。"
         if first_mes:
             return first_mes
         return f"欢迎来到{space_name}。我是{character_name}，你可以先说说现在最想解决的一件小事。"
@@ -248,6 +394,8 @@ def resolve_public_welfare_rules_response(
     character_name: str,
     space_name: str,
     first_mes: str = "",
+    is_revisit: bool = False,
+    revisit_cue: str = "",
 ) -> str:
     """Resolve the complete built-in public-welfare no-network response."""
     priority_common_response = resolve_public_welfare_common_rule_response(
@@ -256,6 +404,8 @@ def resolve_public_welfare_rules_response(
         space_name=space_name,
         first_mes=first_mes,
         include_general=False,
+        is_revisit=is_revisit,
+        revisit_cue=revisit_cue,
     )
     if priority_common_response:
         return priority_common_response
@@ -274,6 +424,8 @@ def resolve_public_welfare_rules_response(
         character_name=character_name,
         space_name=space_name,
         first_mes=first_mes,
+        is_revisit=is_revisit,
+        revisit_cue=revisit_cue,
     )
     if common_response:
         return common_response

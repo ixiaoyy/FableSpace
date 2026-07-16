@@ -1,5 +1,6 @@
 import { jsonInit, readApiBlob, readApiJson } from "./api-client"
 import { getOrCreateVisitorIdentity } from "./space-runtime-config.js"
+import type { VisitorPlayIdentityId } from "./visitor-play-identity"
 
 export const DEFAULT_OWNER_ID: string = ""
 export const DEFAULT_VISITOR_ID: string = getOrCreateVisitorIdentity()
@@ -1083,10 +1084,11 @@ export function enterSpace(
   password = "",
   userId = DEFAULT_VISITOR_ID,
   visitorGender: Gender | string = "",
+  playIdentityId: VisitorPlayIdentityId | "" = "",
 ) {
   return readApiJson<{ ok: boolean; first_mes?: string; visitor_state?: VisitorStatePayload | null }>(
     `/api/v1/spaces/${encodeURIComponent(spaceId)}/enter`,
-    jsonInit("POST", { password, visitor_gender: visitorGender }, userId),
+    jsonInit("POST", { password, visitor_gender: visitorGender, play_identity_id: playIdentityId }, userId),
   )
 }
 
@@ -1384,6 +1386,7 @@ export function sendSpaceChat(
     visitor_id: string
     visitor_name?: string
     visitor_gender?: Gender | string
+    play_identity_id?: VisitorPlayIdentityId | ""
     display_message?: string
     extra_context?: Array<Record<string, unknown>>
   },
@@ -1426,7 +1429,7 @@ export function saveGroupChatConfig(
 
 export function sendGroupChat(
   spaceId: string,
-  data: { message: string; visitor_id: string; visitor_name?: string; visitor_gender?: Gender | string; display_message?: string },
+  data: { message: string; visitor_id: string; visitor_name?: string; visitor_gender?: Gender | string; play_identity_id?: VisitorPlayIdentityId | ""; display_message?: string },
 ) {
   return readApiJson<GroupChatResponse>(
     `/api/v1/spaces/${encodeURIComponent(spaceId)}/group-chat`,

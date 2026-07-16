@@ -1,9 +1,3 @@
-import alien9Delta from "../../assets/npc-style-cast/portraits-hd/alien-9-delta.png"
-import alienMuMu from "../../assets/npc-style-cast/portraits-hd/alien-mu-mu.png"
-import alienPiPi from "../../assets/npc-style-cast/portraits-hd/alien-pi-pi.png"
-import alienV17 from "../../assets/npc-style-cast/portraits-hd/alien-v17.png"
-import commissionMozhan from "../../assets/npc-style-cast/portraits-hd/commission-mozhan.png"
-import commissionZhideng from "../../assets/npc-style-cast/portraits-hd/commission-zhideng.png"
 import guardianA from "../../assets/npc-style-cast/portraits-hd/guardian-a.png"
 import guardianB from "../../assets/npc-style-cast/portraits-hd/guardian-b.png"
 import healerA from "../../assets/npc-style-cast/portraits-hd/healer-a.png"
@@ -48,14 +42,7 @@ export type NpcPortraitMatch = {
 export const DEFAULT_NPC_PREVIEW_PORTRAIT = merchantA
 export const HOMEPAGE_NPC_PREVIEW_PORTRAITS = [merchantA, scholarA, spiritA, guardianA]
 
-export const NPC_CHARACTER_PORTRAITS: Record<string, NpcPortraitMatch> = {
-  char_pw_9_delta: { archetype: "scholar", variant: "a", src: alien9Delta },
-  char_pw_mu_mu: { archetype: "merchant", variant: "a", src: alienMuMu },
-  char_pw_v17: { archetype: "scholar", variant: "b", src: alienV17 },
-  char_pw_pi_pi: { archetype: "merchant", variant: "b", src: alienPiPi },
-  char_pw_mozhan: { archetype: "scholar", variant: "a", src: commissionMozhan },
-  char_pw_zhideng: { archetype: "guardian", variant: "a", src: commissionZhideng },
-}
+export const NPC_CHARACTER_PORTRAITS: Record<string, NpcPortraitMatch> = {}
 
 export const NPC_PORTRAIT_CATALOG: NpcPortraitEntry[] = [
   {
