@@ -10,7 +10,7 @@
 ## Frontend Flow
 
 1. `visitor-play-identity.ts` validates and reads/writes the local selection.
-2. `visitor-play-identity-onboarding.tsx` collects explicit identity and gender.
+2. `visitor-play-identity-onboarding.tsx` uses a two-step flow based on the selected visual reference: a full-width, searchable identity catalog with a fixed action footer, followed by a large selected-identity visual beside details, gender, privacy context, and confirmation. The v3 reference catalog contains 乞丐、太监、宫女、萝卜精、小奶狗、捉妖师、学渣、学霸; only 乞丐 has a server-supported identity ID and every other card is visibly locked.
 3. Homepage character cards link to character detail or the owning Space.
 4. `characterSpacePath` encodes a stable `character_ref`.
 5. `SpaceChatWorkbench` resolves the requested character and adds identity fields to all visitor interaction requests.
@@ -27,3 +27,5 @@
 - The new visitor-facing route does not expose an owner/internal bypass for missing identity.
 - Invalid client values fail validation instead of silently becoming a custom prompt.
 - Existing visitor state without identity remains readable.
+- Identity count changes only the directory grid and optional search; it does not change the confirmation-step layout.
+- Catalog previews without a server-supported `playIdentityId` are disabled presentation data and never widen the API contract.

@@ -13,8 +13,7 @@ export const VISITOR_PLAY_IDENTITIES = [
   {
     id: "beggar" as const,
     label: "乞丐",
-    eraLabel: "古代",
-    shortDescription: "来自古代，身无长物；靠观察、开口和交换一点善意继续前行。",
+    shortDescription: "来自市井，身无长物，靠观察与交谈寻找出路。",
   },
 ]
 
@@ -95,9 +94,9 @@ export function clearVisitorPlayIdentity(storage: Storage | null = browserStorag
 /**
  * Format a concise visible label for the selected role and self-declared gender.
  * @param identity Valid visitor play identity.
- * @returns A Chinese UI label such as “男 · 古代乞丐”. This function has no side effects.
+ * @returns A Chinese UI label such as “男 · 乞丐”. This function has no side effects.
  */
 export function visitorPlayIdentityLabel(identity: VisitorPlayIdentity): string {
   const gender = identity.gender === "female" ? "女" : "男"
-  return `${gender} · 古代乞丐`
+  return `${gender} · 乞丐`
 }
