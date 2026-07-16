@@ -26,7 +26,7 @@ FableSpace 是一个基于真实地理位置的角色故事平台。玩家选择
 |------|------|
 | `apps/api/` | FastAPI 后端、配置示例、SQL 和迁移工具 |
 | `apps/web/` | React Router + Vite 前端应用 |
-| `docs/` | 产品定义、架构、数据结构和资源规范 |
+| `docs/` | 产品定义、数据契约、部署和资源规范 |
 | `docker-compose.yml` | 默认自托管部署编排 |
 
 ## Docker Compose 部署
@@ -155,9 +155,9 @@ py -3 -m fablespace_api api --host 127.0.0.1 --port 8951 --no-open
 
 ## 项目文档
 
+- [文档索引](docs/INDEX.md)
 - [产品概述](docs/PRODUCT_BRIEF.md)
 - [空间平台设计](docs/FABLESPACE_SPACE_PLATFORM.md)
-- [系统架构](docs/ARCHITECTURE.md)
 - [世界数据结构](docs/WORLD_SCHEMA.md)
 - [明确不做清单](docs/WHAT_NOT_TO_BUILD.md)
 - [图像资源规范](docs/IMAGE_ASSETS_SPEC.md)

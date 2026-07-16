@@ -16,11 +16,13 @@ import { useState } from "react"
 
 import beggarIdentityArt from "../assets/identity-onboarding/v3/beggar.webp"
 import eunuchIdentityArt from "../assets/identity-onboarding/v3/eunuch.webp"
+import hunterIdentityArt from "../assets/identity-onboarding/v3/monster-hunter.png"
+import palaceMaidIdentityArt from "../assets/identity-onboarding/v3/palace-maid.png"
 import puppyIdentityArt from "../assets/identity-onboarding/v3/puppy.webp"
 import radishSpiritIdentityArt from "../assets/identity-onboarding/v3/radish-spirit.webp"
+import topStudentIdentityArt from "../assets/identity-onboarding/v3/top-student.png"
+import underachieverIdentityArt from "../assets/identity-onboarding/v3/underachiever.png"
 import marketBackdrop from "../assets/place-atmosphere-hd/atmosphere-market.webp"
-import palaceMaidIdentityArt from "../assets/npc-style-cast/portraits-hd/spirit-b.png"
-import hunterIdentityArt from "../assets/npc-style-cast/portraits-hd/wanderer-b.png"
 import {
   VISITOR_PLAY_GENDERS,
   VISITOR_PLAY_IDENTITIES,
@@ -102,7 +104,7 @@ const IDENTITY_PREVIEWS: IdentityPreview[] = [
     id: "underachiever",
     label: "学渣",
     summary: "学习全靠临时抱佛脚，日常摸鱼王者。",
-    image: "/assets/npcs/public-welfare/char_pw_xiaozhou/neutral.png",
+    image: underachieverIdentityArt,
     category: "modern",
     categoryLabel: "现代",
   },
@@ -110,7 +112,7 @@ const IDENTITY_PREVIEWS: IdentityPreview[] = [
     id: "top-student",
     label: "学霸",
     summary: "天生自律，知识就是力量，目标是顶尖。",
-    image: "/assets/npcs/public-welfare/char_pw_qingyou_records/neutral.png",
+    image: topStudentIdentityArt,
     category: "modern",
     categoryLabel: "现代",
   },

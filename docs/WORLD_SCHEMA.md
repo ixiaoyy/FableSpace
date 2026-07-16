@@ -152,7 +152,7 @@ AffinityStage：`stranger`、`acquaintance`、`familiar`、`friend`、`close_fri
 - 访客性别只作用于 `space_id + visitor_id`，不得扩展为全局资料或公开社交筛选。
 - 当前身份选择界面只开放自声明 `male` / `female`；既有 Gender 枚举和旧数据仍保持兼容。缺失时保留 `unspecified`，不得从姓名、头像、对话或身份类型推断。
 - 入场、单聊和群聊请求统一使用 `play_identity_id`；后端只接受服务端白名单 ID，并将规范化结果写入 `metadata.play_identity`。客户端不得传入任意 Prompt 文本。
-- 首版唯一身份为 `beggar`（古代乞丐），版本为 `1`；古代来源是该服务端身份定义的一部分，不另增字段。它是玩家主动选择的虚构扮演上下文，不是账号权限、现实经济状况或公开资料。
+- 首版唯一身份为 `beggar`（前台显示“乞丐”），版本为 `1`；古代来源是该服务端身份定义的一部分，不另增字段，也不在前台单独展示。它是玩家主动选择的虚构扮演上下文，不是账号权限、现实经济状况或公开资料。
 - `metadata.play_identity` 与 `gender` 必须在首轮 Prompt 构建前可用，保证所有 NPC 都能结合所属 Space 和自身已确认人设形成身份感知回应。
 - 游玩身份不得改变 Space 真实坐标、访问控制、已发布正史或 NPC 角色卡，也不得进入公开 Space payload。
 - VisitorState 是访客私有运行时状态，不进入公开 Space payload。
@@ -351,7 +351,7 @@ NpcPublicBond 是访客与 NPC 的公开长期关系申请 / 审批记录。
 
 ## 版本与维护
 
-- 新增字段、枚举或语义变化必须同步本文、相关 API contract 和测试。
+- 新增字段、枚举或语义变化必须同步本文、相关 API contract 和最小真实验证依据。
 - 旧数据读取必须向后兼容；缺失字段应有明确默认值。
 - 不要把一次性 brainstorm、实现日志或历史长版本塞回本文。
 - 详细版本历史如需保留，放在提交、合并请求或发布说明中，而不是主线 Schema 文档。
