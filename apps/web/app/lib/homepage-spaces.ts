@@ -188,28 +188,17 @@ function buildEntryTags(space: Space) {
 }
 
 export function buildFeaturedCitySlices(spaces: Space[], limit = 3): HomepageCitySlice[] {
-  const rankedSpaces = [...spaces]
-    .sort((left, right) => {
-      const leftOpen = left.status === "open" || left.is_open === true ? 1 : 0
-      const rightOpen = right.status === "open" || right.is_open === true ? 1 : 0
-      if (leftOpen !== rightOpen) return rightOpen - leftOpen
-
-      const rightCharacters = safeCharacters(right).length
-      const leftCharacters = safeCharacters(left).length
-      if (leftCharacters !== rightCharacters) return rightCharacters - leftCharacters
-
-      return toPositiveNumber(right.visit_count) - toPositiveNumber(left.visit_count)
-    })
-  const coversBySpaceId = resolveUniqueHomepageSpaceCovers(rankedSpaces)
+  const orderedSpaces = [...spaces]
+  const coversBySpaceId = resolveUniqueHomepageSpaceCovers(orderedSpaces)
   const featuredCharacters: Array<{ space: Space; character: SpaceCharacter }> = []
-  const maxCharacterCount = rankedSpaces.reduce(
+  const maxCharacterCount = orderedSpaces.reduce(
     (maximum, space) => Math.max(maximum, safeCharacters(space).length),
     0,
   )
 
   // Round-robin across spaces so one crowded location cannot fill every homepage character slot.
   for (let characterIndex = 0; characterIndex < maxCharacterCount && featuredCharacters.length < limit; characterIndex += 1) {
-    for (const space of rankedSpaces) {
+    for (const space of orderedSpaces) {
       const character = safeCharacters(space)[characterIndex]
       if (!character?.id) continue
       featuredCharacters.push({ space, character })
@@ -255,7 +244,7 @@ export function buildHomepageView(
 
   return {
     metrics: buildHomepageMetrics(spaces, options.stats),
-    featuredCitySlices: buildFeaturedCitySlices(spaces, 4),
+    featuredCitySlices: buildFeaturedCitySlices(spaces, 6),
     error,
   }
 }

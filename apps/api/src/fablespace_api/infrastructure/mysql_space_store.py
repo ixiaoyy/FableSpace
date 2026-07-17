@@ -31,6 +31,10 @@ from fablespace_api.core.space import (
     _system_public_welfare_rules_fallback,
 )
 from fablespace_api.core.memory import MemoryAtom
+from fablespace_api.core.fixture_retirement import (
+    HistoricalFixtureSignature,
+    matches_historical_fixture,
+)
 
 from .database import Database
 from .models import (
@@ -314,6 +318,45 @@ class MySQLSpaceStore:
             if token_usage:
                 tavern.llm_config.token_used = token_usage
             return tavern
+
+    def retire_matching_historical_fixture(
+        self,
+        signature: HistoricalFixtureSignature,
+    ) -> bool:
+        """Close one exact historical fixture without rewriting its related records."""
+        with self.db.session_scope() as session:
+            model = (
+                session.query(TavernModel)
+                .filter(TavernModel.id == signature.space_id)
+                .with_for_update()
+                .first()
+            )
+            if model is None:
+                return False
+
+            characters = (
+                session.query(CharacterModel.id, CharacterModel.name)
+                .filter(CharacterModel.space_id == signature.space_id)
+                .with_for_update()
+                .all()
+            )
+            record = {
+                "id": model.id,
+                "owner_id": model.owner_id,
+                "name": model.name,
+                "access": model.access,
+                "status": model.status,
+                "characters": [
+                    {"id": character.id, "name": character.name}
+                    for character in characters
+                ],
+            }
+            if not matches_historical_fixture(record, signature):
+                return False
+
+            model.access = "private"
+            model.status = "closed"
+            return True
 
     def create_space(self, tavern: Tavern) -> Tavern:
         """创建空间"""

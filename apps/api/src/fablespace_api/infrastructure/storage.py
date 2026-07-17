@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Any
 
 from fablespace_api.core.space import Space, SpaceStore
+from fablespace_api.core.fixture_retirement import HISTORICAL_FIXTURE_RETIREMENT_SIGNATURES
 
 logger = logging.getLogger(__name__)
 
@@ -70,7 +71,8 @@ def _seed_database_default_public_welfare_taverns(store: Any) -> int:
 
     seeded = 0
     refreshed = 0
-    retired = 0
+    retired_system_seeds = 0
+    retired_historical_fixtures = 0
     for payload in default_public_welfare_spaces():
         space_id = str(payload.get("id") or "").strip()
         if not space_id:
@@ -99,13 +101,17 @@ def _seed_database_default_public_welfare_taverns(store: Any) -> int:
         if not SpaceStore._retire_public_welfare_seed_record(existing_payload):
             continue
         store.update_space(Space.from_dict(existing_payload))
-        retired += 1
-    if seeded or refreshed or retired:
+        retired_system_seeds += 1
+    for signature in HISTORICAL_FIXTURE_RETIREMENT_SIGNATURES:
+        if store.retire_matching_historical_fixture(signature):
+            retired_historical_fixtures += 1
+    if seeded or refreshed or retired_system_seeds or retired_historical_fixtures:
         logger.info(
-            "Seeded %s, refreshed %s, and retired %s default public welfare taverns in database storage",
+            "Seeded %s, refreshed %s, retired %s obsolete system seeds, and retired %s historical fixtures in database storage",
             seeded,
             refreshed,
-            retired,
+            retired_system_seeds,
+            retired_historical_fixtures,
         )
     return seeded
 

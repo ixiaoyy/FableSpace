@@ -3,19 +3,45 @@
 @theme {
   --font-sans: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 
-  /* Legacy cyan utilities are the product accent. Keep the utility contract while
-   * moving every existing screen onto the shared cyber-violet / hot-pink palette. */
-  --color-cyan-50: oklch(0.97 0.025 344);
-  --color-cyan-100: oklch(0.93 0.055 344);
-  --color-cyan-200: oklch(0.86 0.11 345);
-  --color-cyan-300: oklch(0.78 0.17 346);
-  --color-cyan-400: oklch(0.7 0.23 348);
-  --color-cyan-500: oklch(0.63 0.27 350);
-  --color-cyan-600: oklch(0.55 0.25 352);
-  --color-cyan-700: oklch(0.47 0.21 354);
-  --color-cyan-800: oklch(0.39 0.16 356);
-  --color-cyan-900: oklch(0.31 0.11 358);
-  --color-cyan-950: oklch(0.22 0.07 0);
+  /* Legacy cyan utilities remain API-compatible, but now follow the restrained
+   * blue-violet brand ramp instead of acting as a hot-pink neon alias. */
+  --color-cyan-50: #f3f0ff;
+  --color-cyan-100: #e6def2;
+  --color-cyan-200: #d0b4e3;
+  --color-cyan-300: #aaa3df;
+  --color-cyan-400: #8e86d8;
+  --color-cyan-500: #6e78c9;
+  --color-cyan-600: #5966bb;
+  --color-cyan-700: #4e5aaa;
+  --color-cyan-800: #303861;
+  --color-cyan-900: #1b2144;
+  --color-cyan-950: #0d1226;
+
+  /* Keep existing violet and relationship-state rose utilities inside the
+   * same semantic system instead of leaking Tailwind's saturated defaults. */
+  --color-violet-50: #f3f0ff;
+  --color-violet-100: #e6def2;
+  --color-violet-200: #d0b4e3;
+  --color-violet-300: #aaa3df;
+  --color-violet-400: #8e86d8;
+  --color-violet-500: #6e78c9;
+  --color-violet-600: #5966bb;
+  --color-violet-700: #4e5aaa;
+  --color-violet-800: #303861;
+  --color-violet-900: #1b2144;
+  --color-violet-950: #0d1226;
+
+  --color-rose-50: #fff4f8;
+  --color-rose-100: #f9e3ed;
+  --color-rose-200: #f1c8db;
+  --color-rose-300: #e8a4c3;
+  --color-rose-400: #df8bb5;
+  --color-rose-500: #d977a8;
+  --color-rose-600: #c46596;
+  --color-rose-700: #a64f7e;
+  --color-rose-800: #843f66;
+  --color-rose-900: #61324d;
+  --color-rose-950: #3b1b2e;
   
   --color-theme-bg: var(--theme-bg);
   --color-theme-header: var(--theme-header);
@@ -27,40 +53,84 @@
   --color-theme-accent-border: var(--theme-accent-border);
   --color-theme-accent-text: var(--theme-accent-text);
   
-  --color-anime-blue: oklch(0.58 0.24 293);
-  --color-anime-pink: oklch(0.65 0.27 350);
+  --color-anime-blue: #5966bb;
+  --color-anime-pink: #d977a8;
   --color-anime-gold: oklch(0.8 0.16 82);
 }
 
 @layer base {
   :root {
-    /* Cyber violet is the shared product surface; pink marks play and interaction. */
     color-scheme: dark;
-    --theme-bg: oklch(0.12 0.035 305);
-    --theme-header: oklch(0.15 0.045 310 / 0.92);
-    --theme-card: oklch(0.19 0.05 314 / 0.86);
-    --theme-primary: oklch(0.96 0.018 328);
-    --theme-muted: oklch(0.76 0.045 318);
-    --theme-border: oklch(0.72 0.12 326 / 0.2);
-    --theme-accent-bg: oklch(0.65 0.27 350 / 0.14);
-    --theme-accent-border: oklch(0.72 0.23 348 / 0.7);
-    --theme-accent-text: oklch(0.84 0.15 346);
-    --theme-glow: oklch(0.65 0.27 350 / 0.2);
-    --theme-violet-glow: oklch(0.58 0.24 293 / 0.24);
-    --theme-shadow: oklch(0.06 0.03 300 / 0.48);
+
+    /* FableSpace semantic palette: deep navy owns the surfaces, blue-violet
+     * carries interaction, lavender catches light, and romance pink stays rare. */
+    --color-bg-page: #0d1226;
+    --color-bg-sidebar: #151a38;
+    --color-bg-surface: #1b2144;
+    --color-bg-elevated: #252a52;
+    --color-bg-hover: #303861;
+
+    --color-primary: #5966bb;
+    --color-primary-hover: #6e78c9;
+    /* Preserve the brighter hover color for edges and highlights; this slightly
+     * darker fill keeps #f3f0ff button labels above the WCAG AA threshold. */
+    --color-primary-fill-hover: #5a67bc;
+    --color-primary-active: #4e5aaa;
+    --color-primary-soft: rgba(89, 102, 187, 0.16);
+
+    --color-lavender: #8e86d8;
+    --color-lavender-light: #d0b4e3;
+    --color-lavender-soft: rgba(142, 134, 216, 0.14);
+
+    --color-romance: #d977a8;
+    --color-romance-hover: #e8a4c3;
+    --color-romance-soft: rgba(217, 119, 168, 0.14);
+
+    --color-text-primary: #f3f0ff;
+    --color-text-secondary: #d0cae5;
+    --color-text-muted: #9697b5;
+    --color-text-disabled: #6e708c;
+
+    --color-border: rgba(174, 169, 230, 0.22);
+    --color-divider: rgba(232, 228, 255, 0.1);
+    --color-focus-ring: rgba(142, 134, 216, 0.48);
+
+    --shadow-surface: 0 16px 48px rgba(4, 7, 22, 0.42);
+    --shadow-primary-glow: 0 0 32px rgba(89, 102, 187, 0.2);
+    --shadow-romance-glow: 0 0 24px rgba(217, 119, 168, 0.14);
+
+    --gradient-page:
+      radial-gradient(circle at 78% 18%, rgba(103, 113, 213, 0.32), transparent 38%),
+      radial-gradient(circle at 58% 72%, rgba(178, 123, 188, 0.12), transparent 30%),
+      linear-gradient(135deg, #0d1226 0%, #151a38 48%, #2b2e5a 100%);
+    --gradient-primary: linear-gradient(100deg, #5966bb 0%, #7c79d0 58%, #8e86d8 100%);
+    --gradient-romance: linear-gradient(100deg, #8e86d8 0%, #bd87c6 58%, #d977a8 100%);
+
+    --theme-bg: var(--color-bg-page);
+    --theme-header: rgba(21, 26, 56, 0.92);
+    --theme-card: rgba(27, 33, 68, 0.86);
+    --theme-primary: var(--color-text-primary);
+    --theme-muted: var(--color-text-secondary);
+    --theme-border: var(--color-border);
+    --theme-accent-bg: var(--color-primary-soft);
+    --theme-accent-border: var(--color-focus-ring);
+    --theme-accent-text: var(--color-lavender-light);
+    --theme-glow: rgba(89, 102, 187, 0.2);
+    --theme-violet-glow: var(--color-lavender-soft);
+    --theme-shadow: rgba(4, 7, 22, 0.48);
     
-    --btn-primary-bg: oklch(0.65 0.27 350);
-    --btn-primary-border: oklch(0.76 0.2 346 / 0.85);
-    --btn-primary-text: oklch(0.13 0.035 310);
-    --btn-primary-hover: oklch(0.71 0.24 348);
+    --btn-primary-bg: var(--color-primary);
+    --btn-primary-border: rgba(208, 180, 227, 0.2);
+    --btn-primary-text: var(--color-text-primary);
+    --btn-primary-hover: var(--color-primary-fill-hover);
     
-    --btn-secondary-bg: oklch(0.27 0.1 303 / 0.62);
-    --btn-secondary-border: oklch(0.68 0.17 302 / 0.42);
-    --btn-secondary-text: oklch(0.91 0.06 320);
-    --btn-secondary-hover: oklch(0.33 0.13 307 / 0.76);
+    --btn-secondary-bg: var(--color-bg-elevated);
+    --btn-secondary-border: var(--color-border);
+    --btn-secondary-text: var(--color-text-secondary);
+    --btn-secondary-hover: var(--color-bg-hover);
     
-    --btn-ghost-text: oklch(0.8 0.055 319);
-    --btn-ghost-hover: oklch(0.65 0.27 350 / 0.1);
+    --btn-ghost-text: var(--color-text-secondary);
+    --btn-ghost-hover: var(--color-primary-soft);
     
     background: var(--theme-bg);
     color: var(--theme-primary);
@@ -68,31 +138,34 @@
 
   .light {
     color-scheme: light;
-    --theme-bg: oklch(0.97 0.02 326);
-    --theme-header: oklch(0.99 0.012 330 / 0.88);
-    --theme-card: oklch(0.995 0.008 330 / 0.94);
-    --theme-primary: oklch(0.25 0.09 305);
-    --theme-muted: oklch(0.46 0.07 314);
-    --theme-border: oklch(0.53 0.17 318 / 0.2);
-    --theme-accent-bg: oklch(0.65 0.27 350 / 0.09);
-    --theme-accent-border: oklch(0.63 0.24 349 / 0.58);
-    --theme-accent-text: oklch(0.46 0.22 351);
-    --theme-glow: oklch(0.65 0.27 350 / 0.15);
-    --theme-violet-glow: oklch(0.58 0.24 293 / 0.14);
-    --theme-shadow: oklch(0.3 0.1 310 / 0.14);
+    --theme-bg: #f7f6fc;
+    --theme-header: rgba(243, 240, 255, 0.9);
+    --theme-card: rgba(255, 255, 255, 0.94);
+    --theme-primary: #1b2144;
+    --theme-muted: #5f617e;
+    --theme-border: rgba(75, 72, 132, 0.18);
+    --theme-accent-bg: rgba(89, 102, 187, 0.09);
+    --theme-accent-border: rgba(89, 102, 187, 0.44);
+    --theme-accent-text: #4e5aaa;
+    --theme-glow: rgba(89, 102, 187, 0.12);
+    --theme-violet-glow: rgba(142, 134, 216, 0.12);
+    --theme-shadow: rgba(27, 33, 68, 0.14);
 
-    --btn-primary-bg: oklch(0.57 0.25 351);
-    --btn-primary-border: oklch(0.52 0.24 352);
-    --btn-primary-text: oklch(0.99 0.006 330);
-    --btn-primary-hover: oklch(0.51 0.24 352);
+    --btn-primary-bg: #5966bb;
+    --btn-primary-border: #4e5aaa;
+    --btn-primary-text: #f3f0ff;
+    --btn-primary-hover: #4e5aaa;
 
-    --btn-secondary-bg: oklch(0.99 0.01 330 / 0.92);
-    --btn-secondary-border: oklch(0.67 0.15 305 / 0.38);
-    --btn-secondary-text: oklch(0.39 0.18 306);
-    --btn-secondary-hover: oklch(0.92 0.05 317);
+    --btn-secondary-bg: rgba(255, 255, 255, 0.92);
+    --btn-secondary-border: rgba(75, 72, 132, 0.24);
+    --btn-secondary-text: #303861;
+    --btn-secondary-hover: #eeeaf7;
 
-    --btn-ghost-text: oklch(0.43 0.17 315);
-    --btn-ghost-hover: oklch(0.65 0.27 350 / 0.07);
+    --btn-ghost-text: #4e5aaa;
+    --btn-ghost-hover: rgba(89, 102, 187, 0.08);
+    --gradient-page:
+      radial-gradient(circle at 78% 18%, rgba(142, 134, 216, 0.16), transparent 38%),
+      linear-gradient(135deg, #f7f6fc 0%, #efedf8 52%, #e5e2f3 100%);
   }
 
   /* ── dvh / svh CSS Custom Properties with Fallback ──
@@ -144,24 +217,18 @@
     background: var(--theme-bg);
   }
   
-  /* The same two brand lights follow every route, preventing page-level palette drift. */
+  /* The same restrained, asymmetric twilight follows every route. */
   body::before {
     content: '';
     position: fixed;
     inset: 0;
     pointer-events: none;
     z-index: -1;
-    background:
-      radial-gradient(circle at 15% 12%, var(--theme-violet-glow), transparent 30rem),
-      radial-gradient(circle at 82% 18%, var(--theme-glow), transparent 25rem),
-      linear-gradient(135deg, oklch(0.1 0.035 302) 0%, oklch(0.16 0.055 320) 100%);
+    background: var(--gradient-page);
   }
   
   .light body::before {
-    background:
-      radial-gradient(circle at 15% 12%, var(--theme-violet-glow), transparent 30rem),
-      radial-gradient(circle at 82% 18%, var(--theme-glow), transparent 25rem),
-      linear-gradient(135deg, oklch(0.98 0.016 318) 0%, oklch(0.94 0.035 335) 100%);
+    background: var(--gradient-page);
   }
 
   a {
@@ -179,28 +246,28 @@
     }
   }
 
-  /* Ornate Anime Styles */
+  /* Shared decorative surfaces reuse the same restrained brand light. */
   .ornate-frame {
-    @apply relative rounded-2xl border-2 border-[var(--theme-accent-border)] bg-[var(--theme-card)] shadow-[0_8px_32px_rgba(99,102,241,0.12)];
+    @apply relative rounded-2xl border-2 border-[var(--theme-accent-border)] bg-[var(--theme-card)] shadow-[0_8px_32px_rgba(89,102,187,0.12)];
   }
 
   .light .ornate-frame {
-    @apply border-[#818cf8]/40 shadow-[0_12px_40px_rgba(99,102,241,0.1)];
+    @apply border-[#8e86d8]/40 shadow-[0_12px_40px_rgba(89,102,187,0.10)];
     background: linear-gradient(to bottom right, #ffffff, #f5f7ff);
   }
 
   .ornate-corner {
-    @apply absolute h-6 w-6 border-indigo-400/40;
+    @apply absolute h-6 w-6 border-[#8e86d8]/40;
   }
 
   .light .ornate-corner {
-    @apply border-indigo-400/60;
+    @apply border-[#5966bb]/50;
   }
 
   .sparkle-text {
     @apply font-black tracking-tight;
     font-family: 'Noto Serif SC', serif;
-    background: linear-gradient(135deg, #1e1b4b 0%, #4338ca 100%);
+    background: linear-gradient(135deg, #303861 0%, #5966bb 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
   }
@@ -210,18 +277,18 @@
   }
 
   .magical-glow {
-    box-shadow: 0 0 40px rgba(99, 102, 241, 0.2);
+    box-shadow: 0 0 40px rgba(89, 102, 187, 0.2);
   }
 
   .ornate-card {
     @apply relative bg-white/80 backdrop-blur-xl border-2 border-indigo-100 rounded-[1.2rem];
-    box-shadow: 0 10px 40px rgba(99, 102, 241, 0.08);
+    box-shadow: 0 10px 40px rgba(89, 102, 187, 0.08);
   }
 
   .ornate-card::before {
     content: '';
     @apply absolute -inset-[2px] rounded-[1.2rem] border-2 border-transparent pointer-events-none;
-    background: linear-gradient(135deg, rgba(129, 140, 248, 0.4), rgba(244, 114, 182, 0.2)) border-box;
+    background: linear-gradient(135deg, rgba(142, 134, 216, 0.34), rgba(208, 180, 227, 0.18)) border-box;
     mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
     mask-composite: exclude;
     /* Safari < 17 fallback */
@@ -230,37 +297,40 @@
 }
 
 @layer components {
-  /* Entry surfaces use a dusk-blue film grade: cool ambient light, warm practical
-   * highlights, and explicit surface steps instead of a uniform neon-purple wash. */
+  /* Entry surfaces inherit the project palette so selection and CTA states stay
+   * blue-violet while romance pink remains a small, semantic privacy accent. */
   .cinematic-entry {
-    --entry-canvas: oklch(0.095 0.021 274);
-    --entry-frame: oklch(0.135 0.032 275);
-    --entry-surface: oklch(0.17 0.035 275);
-    --entry-surface-raised: oklch(0.205 0.038 275);
-    --entry-ink: oklch(0.955 0.02 277);
-    --entry-muted: oklch(0.79 0.04 276);
-    --entry-quiet: oklch(0.69 0.045 276);
-    --entry-border: oklch(0.75 0.07 274 / 0.18);
-    --entry-border-strong: oklch(0.8 0.08 274 / 0.38);
-    --entry-cool: oklch(0.78 0.1 274);
-    --entry-cool-strong: oklch(0.52 0.12 274);
-    --entry-cool-wash: oklch(0.58 0.09 274 / 0.16);
-    --entry-warm: oklch(0.78 0.1 25);
-    --entry-warm-hover: oklch(0.82 0.09 25);
-    --entry-warm-wash: oklch(0.7 0.09 25 / 0.18);
-    --entry-warm-ink: oklch(0.15 0.025 275);
-    --entry-focus: oklch(0.78 0.1 274 / 0.28);
-    --entry-shadow: oklch(0.025 0.015 275 / 0.44);
+    --entry-canvas: var(--color-bg-page);
+    --entry-frame: var(--color-bg-sidebar);
+    --entry-surface: var(--color-bg-surface);
+    --entry-surface-raised: var(--color-bg-elevated);
+    --entry-surface-hover: var(--color-bg-hover);
+    --entry-ink: var(--color-text-primary);
+    --entry-muted: var(--color-text-secondary);
+    --entry-quiet: var(--color-text-muted);
+    --entry-disabled: var(--color-text-disabled);
+    --entry-border: var(--color-border);
+    --entry-border-strong: rgba(208, 180, 227, 0.38);
+    --entry-primary: var(--color-primary);
+    --entry-primary-hover: var(--color-primary-fill-hover);
+    --entry-primary-active: var(--color-primary-active);
+    --entry-primary-soft: var(--color-primary-soft);
+    --entry-lavender: var(--color-lavender);
+    --entry-lavender-light: var(--color-lavender-light);
+    --entry-lavender-soft: var(--color-lavender-soft);
+    --entry-romance: var(--color-romance);
+    --entry-romance-hover: var(--color-romance-hover);
+    --entry-romance-soft: var(--color-romance-soft);
+    --entry-primary-ink: var(--color-text-primary);
+    --entry-focus: var(--color-focus-ring);
+    --entry-shadow: rgba(4, 7, 22, 0.44);
     isolation: isolate;
     background: var(--entry-canvas);
     color: var(--entry-ink);
   }
 
   .cinematic-entry__ambient {
-    background:
-      radial-gradient(circle at 78% 4%, oklch(0.69 0.1 273 / 0.22), transparent 32rem),
-      radial-gradient(circle at 10% 88%, oklch(0.67 0.08 25 / 0.1), transparent 28rem),
-      linear-gradient(145deg, oklch(0.17 0.04 274) 0%, var(--entry-canvas) 72%);
+    background: var(--gradient-page);
   }
 
   .identity-onboarding__frame {
@@ -275,17 +345,17 @@
 
   .identity-onboarding__hero-overlay {
     background:
-      linear-gradient(90deg, oklch(0.105 0.03 274 / 0.94) 0%, oklch(0.15 0.04 274 / 0.68) 46%, oklch(0.22 0.05 270 / 0.1) 100%),
-      linear-gradient(180deg, transparent 18%, var(--entry-frame) 94%);
+      linear-gradient(90deg, rgba(13, 18, 38, 0.96) 0%, rgba(21, 26, 56, 0.76) 46%, rgba(48, 56, 97, 0.12) 100%),
+      linear-gradient(180deg, transparent 18%, #151a38 94%);
   }
 
   .identity-onboarding__card-overlay {
-    background: linear-gradient(180deg, transparent 34%, oklch(0.105 0.026 274 / 0.48) 62%, oklch(0.075 0.02 274 / 0.98) 100%);
+    background: linear-gradient(180deg, transparent 34%, rgba(13, 18, 38, 0.48) 62%, rgba(9, 13, 29, 0.98) 100%);
   }
 
   .identity-onboarding__footer {
     border-color: var(--entry-border);
-    background: oklch(0.145 0.032 275 / 0.97);
+    background: rgba(13, 18, 38, 0.97);
   }
 
   .identity-onboarding__detail-image {
@@ -294,13 +364,13 @@
 
   .identity-onboarding__detail-overlay {
     background:
-      linear-gradient(180deg, oklch(0.12 0.03 274 / 0.04), transparent 52%, oklch(0.09 0.022 274 / 0.76)),
-      linear-gradient(90deg, transparent 55%, oklch(0.12 0.03 274 / 0.24));
+      linear-gradient(180deg, rgba(13, 18, 38, 0.04), transparent 52%, rgba(13, 18, 38, 0.76)),
+      linear-gradient(90deg, transparent 55%, rgba(21, 26, 56, 0.28));
   }
 
   .identity-onboarding__detail-panel {
     background:
-      radial-gradient(circle at 18% 0%, oklch(0.57 0.09 274 / 0.13), transparent 25rem),
+      radial-gradient(circle at 18% 0%, rgba(103, 113, 213, 0.16), transparent 25rem),
       var(--entry-frame);
   }
 }

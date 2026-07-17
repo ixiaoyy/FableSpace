@@ -11,14 +11,17 @@ import {
   Waves,
   X,
 } from "lucide-react"
-import { Link, useSearchParams } from "react-router"
+import { Link, useLoaderData, useNavigation, useRevalidator, useSearchParams } from "react-router"
 import { useEffect, useMemo, useState } from "react"
 
 import { DiscoveryLivelinessStrip } from "../components/DiscoveryLivelinessStrip"
 import { FableSpaceDiscoverReference } from "../components/fable-space-reference-artboards"
 import { SpacePreviewModal } from "../components/space-preview-modal"
+import { useSessionAccount } from "../hooks/useSessionAccount"
+import { useTheme } from "../hooks/useTheme"
 import { buildDiscoveryLiveliness, getDiscoveryLivelinessSearchText } from "../lib/discovery-liveliness.js"
 import { resolveHomepageSpaceCover, resolveUniqueHomepageSpaceCovers } from "../lib/homepage-spaces"
+import { loadLaunchStorySpaces } from "../lib/launch-story-spaces"
 import { mediaAssetUrl } from "../lib/media-assets"
 import { DISCOVERABLE_PLACE_TYPES, derivePlaceTypeDisplay, placeTypeMatchesSpace } from "../lib/place-types.js"
 import { buildShortDramaTeaser, getShortDramaTeaserSearchText } from "../lib/short-drama-teasers.js"
@@ -30,9 +33,8 @@ import {
 import { buildSpaceFirstMinuteGuide, getSpaceFirstMinuteSearchText } from "../lib/space-first-minute"
 import { buildSpaceIntentTags, getSpaceIntentTagsSearchText } from "../lib/space-intent-tags.js"
 import { errorMessage, listSpaces, type Space, type SpaceCharacter, type SpaceListResponse } from "../lib/spaces"
-import { spacePath } from "../lib/web-routes"
+import { characterSpacePath, spacePath } from "../lib/web-routes"
 import { buildMapAnchorCardCopy, formatSpaceAnchorLocation } from "../product/mapAnchorCopy.js"
-import { useTheme } from "../hooks/useTheme"
 import { ProductShell } from "../shell/product-shell"
 import { Button } from "../ui/button"
 
@@ -98,6 +100,7 @@ const DISCOVER_DESKTOP_BOARD_SCROLL =
   "lg:min-h-0 lg:overflow-y-auto lg:pr-2 lg:[scrollbar-gutter:stable]"
 
 const DISCOVER_SPACE_LIST_LIMIT = 100
+const EMPTY_DISCOVER_RESULT: SpaceListResponse = { spaces: [], count: 0 }
 
 function cleanSearchParam(value: string | null) {
   return typeof value === "string" ? value.trim() : ""
@@ -105,6 +108,7 @@ function cleanSearchParam(value: string | null) {
 
 function discoverListFiltersFromRequest(request: Request): Record<string, string | number> {
   const url = new URL(request.url)
+  // owner_id is intentionally not forwarded: a URL value cannot authorize private owner content.
   const filters: Record<string, string | number> = {
     limit: DISCOVER_SPACE_LIST_LIMIT,
     offset: 0,
@@ -121,6 +125,24 @@ function discoverListFiltersFromRequest(request: Request): Record<string, string
   if (placeType) filters.place_type = placeType
   if (specialType) filters.special_type = specialType
   return filters
+}
+
+export async function clientLoader({ request }: ClientLoaderFunctionArgs): Promise<DiscoverLoaderData> {
+  const expandedDiscovery = new URL(request.url).searchParams.get("view") === "expanded"
+
+  try {
+    return {
+      result: expandedDiscovery
+        ? await listSpaces(discoverListFiltersFromRequest(request))
+        : await loadLaunchStorySpaces(),
+      error: "",
+    }
+  } catch (error) {
+    return {
+      result: EMPTY_DISCOVER_RESULT,
+      error: errorMessage(error),
+    }
+  }
 }
 
 function characterAvatar(character: SpaceCharacter) {
@@ -180,8 +202,8 @@ function entryStatusDisplay(space: SpaceWithTimeStatus | Space): EntryStatusDisp
 
   if (isClosed) {
     return {
-      label: "今日熄灯",
-      helper: "可预览，稍后再入店",
+      label: "当前熄灯",
+      helper: "当前不可进入",
       className: "border-theme-border bg-theme-card text-theme-primary/52",
     }
   }
@@ -203,10 +225,20 @@ function entryStatusDisplay(space: SpaceWithTimeStatus | Space): EntryStatusDisp
   }
 
   return {
-    label: "公开入店",
+    label: "可进入",
     helper: "可直接进入和 NPC 对话",
     className: "border-theme-accent-border bg-theme-accent-bg text-theme-accent-text",
   }
+}
+
+function discoveryEntryMeta(space: SpaceWithTimeStatus | Space) {
+  if ((space as SpaceWithTimeStatus).is_open === false || space.status === "closed") {
+    return "当前熄灯"
+  }
+  if (space.access === "public" && space.status === "open") {
+    return "可进入"
+  }
+  return ""
 }
 
 function buildEntryEchoes(space: SpaceWithTimeStatus | Space, placeType: ReturnType<typeof derivePlaceTypeDisplay>): EntryEcho[] {
@@ -1103,22 +1135,22 @@ function CardsBoard({ spaces, hasFilters, onPreview }: { spaces: Space[]; hasFil
 }
 
 export default function DiscoverRoute() {
-  const [result, setResult] = useState<SpaceListResponse>({ spaces: [], count: 0 })
-  const [error, setError] = useState("")
-  const [loading, setLoading] = useState(true)
-
+  const loaderData = useLoaderData<typeof clientLoader>()
+  const navigation = useNavigation()
+  const revalidator = useRevalidator()
   const [searchParams, setSearchParams] = useSearchParams()
-
-  useEffect(() => {
-    let cancelled = false
-    setLoading(true)
-    listSpaces(discoverListFiltersFromRequest(new Request(window.location.href)))
-      .then((data) => { if (!cancelled) { setResult(data); setLoading(false); } })
-      .catch((err) => { if (!cancelled) { setError(errorMessage(err)); setLoading(false); } })
-    return () => { cancelled = true }
-  }, [searchParams])
-
+  const sessionAccount = useSessionAccount()
   const { toggleTheme } = useTheme()
+  const isLoading = navigation.state === "loading" || revalidator.state === "loading"
+  const result = isLoading ? EMPTY_DISCOVER_RESULT : loaderData.result
+  const loadError = isLoading ? "" : loaderData.error
+  const loadState = isLoading
+    ? "loading"
+    : loadError
+      ? "error"
+      : result.spaces.length
+        ? "ready"
+        : "empty"
 
   const initialSearch = searchParams.get("search") ?? searchParams.get("q") ?? ""
   const [search, setSearch] = useState(initialSearch)
@@ -1150,7 +1182,7 @@ export default function DiscoverRoute() {
 
   const hasFilters = Boolean(search.trim()) || activePlaceTypes.size > 0 || activeSpecialTypes.size > 0 || activeCategories.size > 0 || publicOnly || openOnly
   const activeViewMode: DiscoverViewMode = manualViewMode ?? (hasFilters ? "cards" : "radar")
-  const expandedDiscovery = searchParams.get("view") === "expanded" || Boolean(searchParams.get("owner_id"))
+  const expandedDiscovery = searchParams.get("view") === "expanded"
   const visitorReduced = !expandedDiscovery
 
   const filteredSpaces = useMemo(() => {
@@ -1164,8 +1196,8 @@ export default function DiscoverRoute() {
     return previewSpaces.map((space, index) => ({
       id: space.id,
       title: space.name || `坐标 ${index + 1}`,
-      subtitle: space.description || `${Array.isArray(space.characters) ? space.characters.length : 0} 位角色正在回应`,
-      meta: `${index * 5 + 3} 分钟前`,
+      subtitle: space.description || `${Array.isArray(space.characters) ? space.characters.length : 0} 位角色可查看`,
+      meta: discoveryEntryMeta(space),
       image: coversBySpaceId[space.id] || resolveHomepageSpaceCover(space, index),
       to: spacePath(space),
     }))
@@ -1178,9 +1210,9 @@ export default function DiscoverRoute() {
           id: `${space.id}-${character.id || characterIndex}`,
           name: character.name || `角色 ${spaceIndex + 1}`,
           location: `在 ${space.name || "某个坐标"}`,
-          status: spaceIndex < 2 ? "在线" : `${spaceIndex * 5 + 5} 分钟前`,
-          avatar: character.avatar || coversBySpaceId[space.id] || resolveHomepageSpaceCover(space, spaceIndex),
-          to: spacePath(space),
+          status: "查看角色",
+          avatar: characterAvatar(character) || coversBySpaceId[space.id] || resolveHomepageSpaceCover(space, spaceIndex),
+          to: characterSpacePath(space, character),
         })),
       )
       .slice(0, 3)
@@ -1243,7 +1275,11 @@ export default function DiscoverRoute() {
       variant="black"
       search={search}
       spaces={filteredSpaces}
-      isLoading={loading}
+      isLoading={isLoading}
+      loadState={loadState}
+      loadError={loadError}
+      onRetry={() => revalidator.revalidate()}
+      sessionAccount={sessionAccount}
       visitorReduced={visitorReduced}
       sideFeedItems={sideFeedItems}
       onlineEntities={onlineEntities}

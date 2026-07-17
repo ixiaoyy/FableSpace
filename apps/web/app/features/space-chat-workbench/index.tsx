@@ -367,7 +367,7 @@ function AmbientActivityPanel({ activity }: { activity: SpaceAmbientActivity }) 
   return (
     <section
       data-space-ambient-activity
-      className="border-b border-cyan-200/10 bg-[#170c27]/82 px-3 py-2.5 sm:px-4"
+      className="border-b border-cyan-200/10 bg-[#151a38]/82 px-3 py-2.5 sm:px-4"
       aria-label="空间 NPC 自主活动"
     >
       <div className="rounded-xl border border-cyan-200/12 bg-slate-950/24 px-3 py-2.5">
@@ -1342,7 +1342,7 @@ export function SpaceChatWorkbench({
   return (
 
     <section data-chat-workbench="sillytavern-style" data-active-chat-channel={activeChatChannel} className="h-full">
-      <div className="flex h-full min-h-[30rem] overflow-hidden rounded-[1rem] border border-cyan-200/12 bg-[linear-gradient(180deg,rgba(23,12,39,0.94)_0%,rgba(12,6,22,0.97)_100%)] shadow-[0_18px_48px_rgba(0,0,0,0.20)]">
+      <div className="flex h-full min-h-[30rem] overflow-hidden rounded-[1rem] border border-cyan-200/12 bg-[linear-gradient(180deg,rgba(27,33,68,0.94)_0%,rgba(13,18,38,0.97)_100%)] shadow-[0_18px_48px_rgba(4,7,22,0.32)]">
         {/* 移除了冗余的 space.name header bar - 标题已在 Hero Panel 展示 */}
 
         {shouldShowDoorway ? (
@@ -1352,7 +1352,7 @@ export function SpaceChatWorkbench({
             className="grid gap-5 p-4 sm:p-6 lg:grid-cols-[1.05fr_0.95fr] lg:items-stretch"
           >
             {/* 左侧：场景 + 动作入口 */}
-            <div className="rounded-[1.75rem] border border-cyan-200/18 bg-cyan-300/[0.075] p-5 shadow-[0_18px_48px_rgba(219,39,119,0.08)] max-lg:mb-20">
+            <div className="rounded-[1.75rem] border border-cyan-200/18 bg-cyan-300/[0.075] p-5 shadow-[0_18px_48px_rgba(89,102,187,0.16)] max-lg:mb-20">
               {/* 场景提示作为主标题 */}
               <h2 className="text-3xl font-black leading-tight text-white">{firstMinuteGuide.sceneHint}</h2>
               {/* 锚点信息 */}
@@ -1518,7 +1518,7 @@ export function SpaceChatWorkbench({
                       aria-pressed={active}
                       onClick={() => selectCharacter(character.id)}
                       className={`flex w-[15.5rem] min-w-0 shrink-0 items-start gap-3 rounded-2xl border p-3 text-left transition hover:border-cyan-300/35 hover:bg-cyan-300/8 lg:w-full lg:shrink ${
-                        active ? "border-cyan-300/45 bg-cyan-300/12 shadow-[0_14px_34px_rgba(219,39,119,0.16)]" : "border-white/10 bg-slate-950/30"
+                        active ? "border-cyan-300/45 bg-cyan-300/12 shadow-[0_14px_34px_rgba(89,102,187,0.20)]" : "border-white/10 bg-slate-950/30"
                       }`}
                     >
                       <CharacterAvatar character={character} active={active} />
@@ -1594,7 +1594,7 @@ export function SpaceChatWorkbench({
             </div>
           </aside>
 
-          <main className="flex min-h-0 min-w-0 flex-col overflow-hidden bg-[#170c27]/70">
+          <main className="flex min-h-0 min-w-0 flex-col overflow-hidden bg-[#151a38]/70">
             <div className="border-b border-cyan-200/10 px-3 py-2.5 sm:px-4">
               <div
                 data-current-npc-stage-card

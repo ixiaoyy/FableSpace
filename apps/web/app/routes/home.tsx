@@ -1,12 +1,14 @@
-import { useEffect, useState } from "react"
-import type { LinksFunction } from "react-router"
+import { useState } from "react"
+import { useLoaderData, useNavigation, useRevalidator, type LinksFunction } from "react-router"
 
 import { FableSpaceHomeReference } from "../components/fable-space-reference-artboards"
 import { VisitorPlayIdentityOnboarding } from "../components/visitor-play-identity-onboarding"
+import { useSessionAccount } from "../hooks/useSessionAccount"
 import { useTheme } from "../hooks/useTheme"
 import { buildHomepageView } from "../lib/homepage-spaces"
+import { loadLaunchStorySpaces } from "../lib/launch-story-spaces"
 import { mediaAssetUrl } from "../lib/media-assets"
-import { errorMessage, listSpaces, type SpaceListResponse } from "../lib/spaces"
+import { errorMessage, type SpaceListResponse } from "../lib/spaces"
 import {
   clearVisitorPlayIdentity,
   readVisitorPlayIdentity,
@@ -17,9 +19,12 @@ import {
 
 const homeBlackHeroVisual = mediaAssetUrl("app/assets/fable-space-05-10/home-black/hero-system-visual.webp")
 
-const HOMEPAGE_SPACE_LIST_LIMIT = 12
-
 const EMPTY_LIST_RESULT: SpaceListResponse = { spaces: [], count: 0 }
+
+type HomeLoaderData = {
+  result: SpaceListResponse
+  error: string
+}
 
 export const links: LinksFunction = () => [
   {
@@ -27,42 +32,41 @@ export const links: LinksFunction = () => [
     as: "image",
     href: homeBlackHeroVisual,
     type: "image/webp",
-    fetchPriority: "high",
   },
 ]
 
+export async function clientLoader(): Promise<HomeLoaderData> {
+  try {
+    return {
+      result: await loadLaunchStorySpaces(),
+      error: "",
+    }
+  } catch (error) {
+    return {
+      result: EMPTY_LIST_RESULT,
+      error: errorMessage(error),
+    }
+  }
+}
+
 export default function HomeRoute() {
-  const [result, setResult] = useState<SpaceListResponse>(EMPTY_LIST_RESULT)
-  const [error, setError] = useState("")
+  const loaderData = useLoaderData<typeof clientLoader>()
+  const navigation = useNavigation()
+  const revalidator = useRevalidator()
   const [playIdentity, setPlayIdentity] = useState<VisitorPlayIdentity | null>(() => readVisitorPlayIdentity())
-  const [loading, setLoading] = useState(Boolean(playIdentity))
+  const sessionAccount = useSessionAccount()
   const { toggleTheme } = useTheme()
-
-  useEffect(() => {
-    if (!playIdentity) {
-      setLoading(false)
-      return
-    }
-
-    let cancelled = false
-    setLoading(true)
-    setError("")
-
-    listSpaces({ limit: HOMEPAGE_SPACE_LIST_LIMIT, offset: 0 })
-      .then((data) => {
-        if (!cancelled) setResult(data)
-      })
-      .catch((err) => {
-        if (!cancelled) setError(errorMessage(err))
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false)
-      })
-
-    return () => {
-      cancelled = true
-    }
-  }, [playIdentity])
+  const isLoading = navigation.state === "loading" || revalidator.state === "loading"
+  const result = isLoading ? EMPTY_LIST_RESULT : loaderData.result
+  const loadError = isLoading ? "" : loaderData.error
+  const homepage = buildHomepageView(result, loadError)
+  const loadState = isLoading
+    ? "loading"
+    : loadError
+      ? "error"
+      : homepage.featuredCitySlices.length === 6
+        ? "ready"
+        : "empty"
 
   /**
    * Persist an explicit first-run identity before revealing character discovery.
@@ -86,13 +90,15 @@ export default function HomeRoute() {
     return <VisitorPlayIdentityOnboarding onConfirm={handleIdentityConfirm} />
   }
 
-  const homepage = buildHomepageView(result, error)
-
   return (
     <FableSpaceHomeReference
       variant="black"
       featuredCitySlices={homepage.featuredCitySlices}
-      isLoading={loading}
+      isLoading={isLoading}
+      loadState={loadState}
+      loadError={loadError}
+      onRetry={() => revalidator.revalidate()}
+      sessionAccount={sessionAccount}
       visitorIdentityLabel={visitorPlayIdentityLabel(playIdentity)}
       onReselectIdentity={handleIdentityReselect}
       onToggleTheme={toggleTheme}

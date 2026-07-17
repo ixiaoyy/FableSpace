@@ -1,0 +1,33 @@
+{
+  "id": "home-user-real-characters",
+  "name": "home-user-real-characters",
+  "title": "首页真实角色、ASCII 路由与数据状态",
+  "description": "收敛三空间六角色，迁移所有对外 URL 为 ASCII，并重做空间 loading / empty / error / ready 状态。",
+  "status": "in_progress",
+  "dev_type": null,
+  "scope": null,
+  "package": null,
+  "priority": "P1",
+  "creator": "fable",
+  "assignee": "fable",
+  "createdAt": "2026-07-18",
+  "completedAt": null,
+  "branch": null,
+  "base_branch": "main",
+  "worktree_path": null,
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [],
+  "parent": null,
+  "relatedFiles": [
+    "apps/web/app/routes.ts",
+    "apps/web/app/lib/web-routes.ts",
+    "apps/web/app/routes/legacy-web-route.tsx",
+    "apps/web/app/routes/home.tsx",
+    "apps/web/app/routes/discover.tsx",
+    "apps/web/app/components/fable-space-reference-artboards.tsx"
+  ],
+  "notes": "2026-07-18 scope added: ASCII-only canonical browser routes, no visitor-controlled catalog widening, and truthful collection states. Planning only; do not implement until user approval.",
+  "meta": {}
+}

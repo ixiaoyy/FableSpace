@@ -240,7 +240,7 @@ export default function NpcDetailRoute() {
     <ProductShell eyebrow="NPC">
       <div id="npc-detail-page" className="mx-auto max-w-md">
         {/* ── 顶部导航 ──────────────────────────────────────────────────── */}
-        <div className="sticky top-0 z-10 flex items-center justify-between bg-[#0d0a1a]/80 px-4 py-3 backdrop-blur-md">
+        <div className="sticky top-0 z-10 flex items-center justify-between bg-[#0d1226]/88 px-4 py-3 backdrop-blur-md">
           <button
             id="npc-detail-back"
             type="button"
@@ -261,7 +261,7 @@ export default function NpcDetailRoute() {
             className="pointer-events-none absolute inset-x-0 top-0 h-40 opacity-30"
             style={{
               background:
-                "radial-gradient(ellipse at center top, rgba(139,92,246,0.4) 0%, transparent 70%)",
+                "radial-gradient(ellipse at center top, rgba(89,102,187,0.32) 0%, transparent 70%)",
             }}
             aria-hidden="true"
           />
@@ -272,17 +272,17 @@ export default function NpcDetailRoute() {
               <img
                 src={avatarUrl}
                 alt={`${character.name} 的头像`}
-                className="h-24 w-24 rounded-full border-2 border-violet-400/30 object-cover shadow-lg shadow-violet-900/50"
+                className="h-24 w-24 rounded-full border-2 border-[#8e86d8]/30 object-cover shadow-[0_12px_34px_rgba(89,102,187,0.22)]"
               />
             ) : (
-              <div className="flex h-24 w-24 items-center justify-center rounded-full border-2 border-violet-400/30 bg-violet-900/40 text-4xl shadow-lg">
+              <div className="flex h-24 w-24 items-center justify-center rounded-full border-2 border-[#8e86d8]/30 bg-[#1b2144] text-4xl shadow-[0_12px_34px_rgba(89,102,187,0.22)]">
                 🌟
               </div>
             )}
             {/* 在线/开放指示 */}
             {space.status === "open" && (
               <span
-                className="absolute bottom-1 right-1 h-4 w-4 rounded-full border-2 border-[#0d0a1a] bg-emerald-400"
+                className="absolute bottom-1 right-1 h-4 w-4 rounded-full border-2 border-[#0d1226] bg-emerald-400"
                 title="空间开放中"
                 aria-label="空间开放中"
               />
@@ -309,7 +309,7 @@ export default function NpcDetailRoute() {
               {character.tags.slice(0, 5).map((tag) => (
                 <span
                   key={tag}
-                  className="rounded-full bg-violet-500/15 px-2.5 py-0.5 text-xs text-violet-300/80"
+                  className="rounded-full bg-[rgba(89,102,187,0.16)] px-2.5 py-0.5 text-xs text-[#d0cae5]"
                 >
                   {tag}
                 </span>
@@ -323,7 +323,7 @@ export default function NpcDetailRoute() {
           {/* 好感阶段 */}
           <div className="mb-3 flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Heart className="h-4 w-4 text-rose-400" aria-hidden="true" />
+              <Heart className="h-4 w-4 text-[#d977a8]" aria-hidden="true" />
               <span className="text-sm font-semibold text-white">
                 {affinityMeta.name_zh}
               </span>
@@ -342,7 +342,7 @@ export default function NpcDetailRoute() {
               </span>
             )}
             {!hasActiveBond && !hasPendingBond && !bondLoading && bondStatus?.can_apply && (
-              <span className="rounded-full bg-violet-500/15 px-2.5 py-0.5 text-xs text-violet-300">
+              <span className="rounded-full border border-[rgba(217,119,168,0.24)] bg-[rgba(217,119,168,0.14)] px-2.5 py-0.5 text-xs text-[#e8a4c3]">
                 可申请结缘
               </span>
             )}
@@ -353,7 +353,7 @@ export default function NpcDetailRoute() {
 
           {/* TA 记得 */}
           <div className="mt-3 flex items-center gap-2 text-sm text-white/50">
-            <Brain className="h-3.5 w-3.5 text-violet-400" aria-hidden="true" />
+            <Brain className="h-3.5 w-3.5 text-[#d977a8]" aria-hidden="true" />
             <span>
               {memoryCount === null
                 ? "读取记忆中…"
@@ -370,7 +370,7 @@ export default function NpcDetailRoute() {
             id="npc-detail-chat"
             type="button"
             onClick={() => navigate(characterSpacePath(space, character))}
-            className="flex flex-1 items-center justify-center gap-2 rounded-2xl bg-violet-600 py-3.5 text-sm font-semibold text-white shadow-lg shadow-violet-900/40 hover:bg-violet-500 active:bg-violet-700 transition-colors"
+            className="flex flex-1 items-center justify-center gap-2 rounded-2xl border border-[rgba(208,180,227,0.20)] bg-[#5966bb] py-3.5 text-sm font-semibold text-[#f3f0ff] shadow-[0_0_32px_rgba(89,102,187,0.20)] transition-colors hover:bg-[#5a67bc] active:bg-[#4e5aaa]"
           >
             <MessageCircle className="h-4 w-4" aria-hidden="true" />
             去角色所在空间
@@ -381,7 +381,7 @@ export default function NpcDetailRoute() {
               id="npc-detail-apply-bond"
               type="button"
               onClick={() => navigate(characterSpacePath(space, character))}
-              className="rounded-2xl border border-rose-400/30 bg-rose-500/10 px-4 py-3.5 text-sm font-medium text-rose-300 hover:bg-rose-500/20 transition-colors"
+              className="rounded-2xl border border-[rgba(217,119,168,0.24)] bg-[rgba(217,119,168,0.14)] px-4 py-3.5 text-sm font-medium text-[#e8a4c3] transition-colors hover:bg-[rgba(217,119,168,0.22)]"
             >
               申请结缘
             </button>
@@ -424,12 +424,12 @@ export default function NpcDetailRoute() {
 
         {/* ── 私密记忆条 ────────────────────────────────────────────────── */}
         {(memoryCount ?? 0) > 0 && (
-          <div className="mx-4 mb-4 rounded-3xl border border-violet-500/15 bg-violet-500/5 p-5">
+          <div className="mx-4 mb-4 rounded-3xl border border-[rgba(217,119,168,0.24)] bg-[rgba(217,119,168,0.08)] p-5">
             <button
               id="npc-detail-memories-toggle"
               type="button"
               onClick={() => setMemoriesOpen((v) => !v)}
-              className="flex w-full items-center justify-between text-sm font-semibold text-violet-300"
+              className="flex w-full items-center justify-between text-sm font-semibold text-[#e8a4c3]"
               aria-expanded={memoriesOpen}
             >
               <span className="flex items-center gap-2">
@@ -448,7 +448,7 @@ export default function NpcDetailRoute() {
                 {recentMemories.map((m) => (
                   <li
                     key={m.id}
-                    className="rounded-2xl border border-violet-500/10 bg-white/3 p-3 text-xs leading-5 text-white/60"
+                    className="rounded-2xl border border-[rgba(217,119,168,0.14)] bg-[#1b2144]/58 p-3 text-xs leading-5 text-white/60"
                   >
                     {m.content}
                   </li>
@@ -462,12 +462,12 @@ export default function NpcDetailRoute() {
         )}
 
         {/* ── 重置关系危险区 ────────────────────────────────────────────── */}
-        <div className="mx-4 mb-8 rounded-3xl border border-rose-500/15 bg-rose-500/5 p-5">
+        <div className="mx-4 mb-8 rounded-3xl border border-[rgba(217,119,168,0.18)] bg-[rgba(217,119,168,0.07)] p-5">
           <button
             id="npc-detail-danger-toggle"
             type="button"
             onClick={() => setDangerOpen((v) => !v)}
-            className="flex w-full items-center justify-between text-sm font-medium text-rose-300/70"
+            className="flex w-full items-center justify-between text-sm font-medium text-[#e8a4c3]/70"
             aria-expanded={dangerOpen}
           >
             <span>⚙️ 重置与 TA 的关系</span>
@@ -491,7 +491,7 @@ export default function NpcDetailRoute() {
                   setResetResult("")
                   setShowResetModal(true)
                 }}
-                className="w-full rounded-2xl border border-rose-500/30 bg-rose-500/10 py-2.5 text-sm font-medium text-rose-300 hover:bg-rose-500/20 transition-colors"
+                className="w-full rounded-2xl border border-[rgba(217,119,168,0.30)] bg-[rgba(217,119,168,0.10)] py-2.5 text-sm font-medium text-[#e8a4c3] transition-colors hover:bg-[rgba(217,119,168,0.20)]"
               >
                 和 {character.name} 道别
               </button>

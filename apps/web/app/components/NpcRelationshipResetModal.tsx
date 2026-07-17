@@ -51,14 +51,14 @@ export function NpcRelationshipResetModal({
       aria-modal="true"
       aria-labelledby="reset-modal-title"
     >
-      <div className="relative w-full max-w-sm rounded-t-3xl bg-[#1a1025] p-6 shadow-2xl sm:rounded-3xl">
+      <div className="relative w-full max-w-sm rounded-t-3xl border border-[rgba(174,169,230,0.22)] bg-[#1b2144] p-6 shadow-[0_16px_48px_rgba(4,7,22,0.42)] sm:rounded-3xl">
         {/* 顶部拖拽指示（移动端） */}
         <div className="mx-auto mb-5 h-1 w-10 rounded-full bg-white/20 sm:hidden" aria-hidden="true" />
 
         {/* 标题区 */}
         <div className="mb-4 flex items-start gap-3">
           <span
-            className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-rose-500/20 text-xl"
+            className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-[rgba(217,119,168,0.14)] text-xl"
             aria-hidden="true"
           >
             💔
@@ -74,7 +74,7 @@ export function NpcRelationshipResetModal({
         {/* 影响说明 */}
         <ul className="mb-4 space-y-2 text-sm text-white/70">
           <li className="flex items-start gap-2">
-            <span className="mt-0.5 text-rose-400" aria-hidden="true">•</span>
+            <span className="mt-0.5 text-[#d977a8]" aria-hidden="true">•</span>
             <span>好感归零，重回陌生人阶段</span>
           </li>
           <li className="flex items-start gap-2">
@@ -83,7 +83,7 @@ export function NpcRelationshipResetModal({
           </li>
           {hasActiveBond && (
             <li className="flex items-start gap-2">
-              <span className="mt-0.5 text-violet-400" aria-hidden="true">•</span>
+              <span className="mt-0.5 text-[#d977a8]" aria-hidden="true">•</span>
               <span>你们之间的结缘关系将同步结束</span>
             </li>
           )}
@@ -106,7 +106,7 @@ export function NpcRelationshipResetModal({
             disabled={busy}
             className={cn(
               "w-full resize-none rounded-2xl border border-white/10 bg-white/5 px-3.5 py-2.5 text-sm text-white/80 outline-none placeholder:text-white/20",
-              "focus:border-rose-400/50 focus:bg-white/8",
+              "focus:border-[#d977a8]/50 focus:bg-white/8",
               "transition-colors duration-150",
               busy && "opacity-50 cursor-not-allowed",
             )}
@@ -134,8 +134,8 @@ export function NpcRelationshipResetModal({
             onClick={handleConfirm}
             disabled={busy}
             className={cn(
-              "flex-1 rounded-2xl bg-rose-500/80 py-3 text-sm font-semibold text-white",
-              "hover:bg-rose-500 active:bg-rose-600 transition-colors",
+              "flex-1 rounded-2xl bg-[#d977a8] py-3 text-sm font-semibold text-[#0d1226]",
+              "hover:bg-[#e8a4c3] active:bg-[#c46596] transition-colors",
               "disabled:opacity-60 disabled:cursor-not-allowed",
             )}
           >

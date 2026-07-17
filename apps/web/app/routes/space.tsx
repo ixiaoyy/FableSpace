@@ -220,7 +220,7 @@ function SpaceHeroPanel({
   const characters = Array.isArray(space.characters) ? space.characters : []
 
   return (
-    <section className="relative min-h-[390px] overflow-hidden rounded-[1.2rem] border border-cyan-200/16 bg-[#160b25] shadow-[0_22px_70px_rgba(0,0,0,0.30)] sm:min-h-[430px] xl:min-h-[840px]">
+    <section className="relative min-h-[390px] overflow-hidden rounded-[1.2rem] border border-cyan-200/16 bg-[#1b2144] shadow-[0_22px_70px_rgba(4,7,22,0.42)] sm:min-h-[430px] xl:min-h-[840px]">
       <div className="absolute inset-0">
         <img src={coverImage} alt="" className="h-full w-full object-cover opacity-[0.88]" loading="eager" decoding="async" />
         <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(2,7,16,0.92)_0%,rgba(2,7,16,0.70)_38%,rgba(2,7,16,0.24)_100%)]" />
@@ -291,7 +291,7 @@ function SpaceMobileHeader({ space }: { space: Space }) {
   const status = entryStatusDisplay(space)
   return (
     <header className="mb-4 lg:hidden">
-      <div className="flex items-center justify-between gap-3 rounded-[1.2rem] border border-cyan-200/16 bg-[#160b25]/86 p-3 shadow-[0_18px_42px_rgba(0,0,0,0.28)]">
+      <div className="flex items-center justify-between gap-3 rounded-[1.2rem] border border-cyan-200/16 bg-[#151a38]/90 p-3 shadow-[0_18px_42px_rgba(4,7,22,0.38)]">
         <Link to={WEB_PATHS.spaces} className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl border border-cyan-200/18 bg-cyan-300/10 text-cyan-50" aria-label="返回发现">
           <ArrowLeft className="h-5 w-5" />
         </Link>
@@ -325,9 +325,9 @@ function SpaceSpacePage({
   const status = entryStatusDisplay(space)
 
   return (
-    <main className="relative min-h-screen overflow-x-hidden bg-[#0b0512] text-white">
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_72%_0%,rgba(37,99,235,0.18),transparent_34rem),linear-gradient(135deg,#170c29_0%,#0d0618_48%,#0b0512_100%)]" />
-      <div className="pointer-events-none absolute inset-0 opacity-38 [background-image:linear-gradient(rgba(251,207,232,0.055)_1px,transparent_1px),linear-gradient(90deg,rgba(251,207,232,0.04)_1px,transparent_1px)] [background-size:56px_56px]" />
+    <main className="relative min-h-screen overflow-x-hidden bg-[#0d1226] text-white">
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_78%_18%,rgba(103,113,213,0.28),transparent_34rem),radial-gradient(circle_at_58%_72%,rgba(178,123,188,0.08),transparent_26rem),linear-gradient(135deg,#0d1226_0%,#151a38_48%,#2b2e5a_100%)]" />
+      <div className="pointer-events-none absolute inset-0 opacity-38 [background-image:linear-gradient(rgba(174,169,230,0.045)_1px,transparent_1px),linear-gradient(90deg,rgba(174,169,230,0.035)_1px,transparent_1px)] [background-size:56px_56px]" />
       <div className="relative mx-auto w-full max-w-[1420px] px-3 py-4 pb-8 sm:px-5 lg:px-6 lg:py-6 xl:px-7">
         <SpaceMobileHeader space={space} />
         <div className="hidden lg:block">
@@ -336,7 +336,7 @@ function SpaceSpacePage({
         <div className="min-w-0 space-y-5">
           <div className="grid min-w-0 gap-5 xl:grid-cols-[minmax(360px,0.74fr)_minmax(720px,1.26fr)] xl:items-stretch">
             <SpaceHeroPanel space={space} isOwner={isOwner} status={status} />
-            <section id="空间主线" className="flex scroll-mt-6 flex-col rounded-[1.2rem] border border-cyan-200/16 bg-[#160b25]/78 p-3 shadow-[0_24px_72px_rgba(0,0,0,0.28)] sm:p-4 xl:h-[840px] xl:overflow-hidden">
+            <section id="空间主线" className="flex scroll-mt-6 flex-col rounded-[1.2rem] border border-cyan-200/16 bg-[#1b2144]/82 p-3 shadow-[0_24px_72px_rgba(4,7,22,0.38)] sm:p-4 xl:h-[840px] xl:overflow-hidden">
               <div className="mb-3 flex items-center justify-between gap-4 px-1">
                 <div>
                   <h2 className="text-xl font-black text-white">角色与聊天</h2>
@@ -366,8 +366,8 @@ function SpaceSpacePage({
 }
 function SpaceErrorPage({ spaceId, error }: { spaceId: string; error: string }) {
   return (
-    <main className="relative min-h-screen overflow-hidden bg-[#0b0512] px-4 py-8 text-white">
-      <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(135deg,#170c29_0%,#0d0618_48%,#0b0512_100%)]" />
+    <main className="relative min-h-screen overflow-hidden bg-[#0d1226] px-4 py-8 text-white">
+      <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(135deg,#0d1226_0%,#151a38_48%,#2b2e5a_100%)]" />
       <div className="relative mx-auto max-w-3xl">
         <Link to={WEB_PATHS.spaces} className="inline-flex min-h-11 items-center gap-2 rounded-2xl border border-cyan-200/18 bg-cyan-300/10 px-4 text-sm font-black text-cyan-50">
           <ArrowLeft className="h-4 w-4" />
@@ -381,7 +381,7 @@ function SpaceErrorPage({ spaceId, error }: { spaceId: string; error: string }) 
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <p className="rounded-2xl border border-theme-border bg-theme-card p-4 text-sm leading-6 text-violet-50/70">
+            <p className="rounded-2xl border border-theme-border bg-theme-card p-4 text-sm leading-6 text-cyan-50/70">
               请确认空间链接是否正确，或让店主重新分享入口。
             </p>
           </CardContent>

@@ -189,7 +189,7 @@ export function VisitorPlayIdentityOnboarding({ onConfirm }: VisitorPlayIdentity
         <header className="absolute inset-x-0 top-0 z-30 flex min-h-16 items-center justify-between gap-4 px-5 sm:px-6">
           {activeStep === "identity" ? (
             <span className="flex items-center gap-2 text-lg font-black tracking-[-0.02em]">
-              <Sparkles className="h-5 w-5 text-[var(--entry-cool)]" aria-hidden="true" />
+              <Sparkles className="h-5 w-5 text-[var(--entry-lavender)]" aria-hidden="true" />
               FableSpace
             </span>
           ) : (
@@ -209,7 +209,7 @@ export function VisitorPlayIdentityOnboarding({ onConfirm }: VisitorPlayIdentity
 
         {activeStep === "identity" ? (
           <section className="flex min-h-0 flex-1 flex-col" aria-labelledby="identity-directory-title">
-            <div className="relative min-h-0 flex-1 overflow-y-auto">
+            <div className="relative min-h-0 flex-1 overscroll-contain overflow-y-auto">
               <div aria-hidden="true" className="absolute inset-x-0 top-0 h-[330px] overflow-hidden">
                 <img src={mediaAssetUrl("app/assets/place-atmosphere-hd/atmosphere-market.webp")} alt="" className="identity-onboarding__hero-image h-full w-full object-cover object-center" />
                 <div className="identity-onboarding__hero-overlay absolute inset-0" />
@@ -218,14 +218,14 @@ export function VisitorPlayIdentityOnboarding({ onConfirm }: VisitorPlayIdentity
               <div className="relative mx-auto max-w-[1120px] px-5 pb-6 pt-20 sm:px-8">
                 <div className="max-w-2xl sm:ml-8">
                   <h1 id="identity-directory-title" className="max-w-[680px] text-4xl font-black leading-[1.22] tracking-[-0.04em] sm:text-[38px]">
-                    同一个人，<br />会被每个角色<span className="text-[var(--entry-warm)]">不同地看见。</span>
+                    同一个人，<br />会被每个角色<span className="text-[var(--entry-lavender-light)]">不同地看见。</span>
                   </h1>
                   <p className="mt-3 text-sm font-bold text-[var(--entry-muted)] sm:text-base">
                     选择一个身份进入世界，开启属于你的故事。
                   </p>
                 </div>
 
-                <label className="mt-6 flex min-h-11 w-full items-center gap-3 rounded-xl border border-[var(--entry-border)] bg-[var(--entry-surface)] px-4 text-[var(--entry-ink)] backdrop-blur-md focus-within:border-[var(--entry-cool)] focus-within:ring-4 focus-within:ring-[var(--entry-focus)]">
+                <label className="mt-6 flex min-h-11 w-full items-center gap-3 rounded-xl border border-[var(--entry-border)] bg-[var(--entry-surface)] px-4 text-[var(--entry-ink)] backdrop-blur-md focus-within:border-[var(--entry-lavender)] focus-within:ring-4 focus-within:ring-[var(--entry-focus)]">
                   <Search className="h-4 w-4 shrink-0 text-[var(--entry-quiet)]" aria-hidden="true" />
                   <span className="sr-only">搜索身份</span>
                   <input
@@ -247,7 +247,7 @@ export function VisitorPlayIdentityOnboarding({ onConfirm }: VisitorPlayIdentity
                           type="button"
                           aria-pressed={active}
                           onClick={() => setIdentityFilter(filter.id)}
-                          className={`min-h-9 touch-manipulation rounded-full px-4 text-xs font-black outline-none transition focus:ring-4 focus:ring-[var(--entry-focus)] ${active ? "bg-[var(--entry-cool-strong)] text-[var(--entry-ink)]" : "border border-transparent text-[var(--entry-muted)] hover:border-[var(--entry-border)] hover:text-[var(--entry-ink)]"}`}
+                          className={`min-h-9 touch-manipulation rounded-full px-4 text-xs font-black outline-none transition focus:ring-4 focus:ring-[var(--entry-focus)] ${active ? "bg-[var(--entry-primary)] text-[var(--entry-primary-ink)]" : "border border-transparent text-[var(--entry-muted)] hover:border-[var(--entry-border)] hover:text-[var(--entry-ink)]"}`}
                         >
                           {filter.label}
                         </button>
@@ -259,7 +259,7 @@ export function VisitorPlayIdentityOnboarding({ onConfirm }: VisitorPlayIdentity
                     <select
                       value={identitySort}
                       onChange={(event) => setIdentitySort(event.target.value as IdentitySort)}
-                      className="h-10 w-full appearance-none rounded-xl border border-[var(--entry-border)] bg-[var(--entry-surface)] px-4 pr-10 text-xs font-black text-[var(--entry-muted)] outline-none focus:border-[var(--entry-cool)] focus:ring-4 focus:ring-[var(--entry-focus)]"
+                      className="h-10 w-full appearance-none rounded-xl border border-[var(--entry-border)] bg-[var(--entry-surface)] px-4 pr-10 text-xs font-black text-[var(--entry-muted)] outline-none focus:border-[var(--entry-lavender)] focus:ring-4 focus:ring-[var(--entry-focus)]"
                     >
                       <option value="default">默认排序</option>
                       <option value="name">按名称排序</option>
@@ -282,7 +282,7 @@ export function VisitorPlayIdentityOnboarding({ onConfirm }: VisitorPlayIdentity
                         disabled={!selectable}
                         title={selectable ? undefined : `${identity.label}即将开放`}
                         onClick={() => identity.playIdentityId && setPlayIdentityId(identity.playIdentityId)}
-                        className={`group relative h-60 touch-manipulation overflow-hidden rounded-xl border text-left outline-none transition focus:ring-4 focus:ring-[var(--entry-focus)] lg:h-[260px] ${selected ? "border-[var(--entry-warm)] ring-1 ring-[var(--entry-warm)]" : selectable ? "border-[var(--entry-border)] hover:border-[var(--entry-border-strong)]" : "cursor-not-allowed border-[var(--entry-border)] opacity-75"}`}
+                        className={`group relative h-56 touch-manipulation overflow-hidden rounded-xl border text-left outline-none transition focus:ring-4 focus:ring-[var(--entry-focus)] sm:h-[clamp(220px,30dvh,260px)] ${selected ? "border-[var(--entry-lavender)] ring-1 ring-[var(--entry-primary)]" : selectable ? "border-[var(--entry-border)] hover:border-[var(--entry-border-strong)]" : "cursor-not-allowed border-[var(--entry-border)] opacity-75"}`}
                       >
                         <img
                           src={identity.image}
@@ -295,7 +295,7 @@ export function VisitorPlayIdentityOnboarding({ onConfirm }: VisitorPlayIdentity
                         <span aria-hidden="true" className="identity-onboarding__card-overlay absolute inset-0" />
                         {!selectable ? <span aria-hidden="true" className="absolute inset-0 bg-[var(--entry-canvas)]/50 backdrop-saturate-50" /> : null}
                         {selected ? (
-                          <span className="absolute right-3 top-3 grid h-7 w-7 place-items-center rounded-full bg-[var(--entry-warm)] text-[var(--entry-warm-ink)]" aria-hidden="true">
+                          <span className="absolute right-3 top-3 grid h-7 w-7 place-items-center rounded-full bg-[var(--entry-primary)] text-[var(--entry-primary-ink)]" aria-hidden="true">
                             <Check className="h-4 w-4" />
                           </span>
                         ) : !selectable ? (
@@ -327,19 +327,19 @@ export function VisitorPlayIdentityOnboarding({ onConfirm }: VisitorPlayIdentity
               </div>
             </div>
 
-            <footer className="identity-onboarding__footer flex shrink-0 flex-col gap-4 border-t px-5 py-4 backdrop-blur-md sm:flex-row sm:items-center sm:px-8 sm:py-7">
-              <p className="flex min-w-0 flex-1 items-center gap-2 text-xs font-bold leading-5 text-[var(--entry-muted)]">
-                <ShieldCheck className="h-4 w-4 shrink-0 text-[var(--entry-warm)]" aria-hidden="true" />
-                身份与称谓是私有游玩设定，不会公开展示，也不会改写任何 NPC 角色卡。
+            <footer className="identity-onboarding__footer grid shrink-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-3 border-t px-4 py-3 sm:flex sm:flex-row sm:gap-4 sm:px-8 sm:py-4">
+              <p className="flex min-w-0 items-start gap-2 text-[11px] font-bold leading-4 text-[var(--entry-muted)] sm:flex-1 sm:items-center sm:text-xs sm:leading-5">
+                <ShieldCheck className="h-4 w-4 shrink-0 text-[var(--entry-romance)]" aria-hidden="true" />
+                身份与性别是私有游玩设定，不会公开展示，也不会改写任何 NPC 角色卡。
               </p>
-              <p className="shrink-0 text-sm font-bold text-[var(--entry-muted)]" aria-live="polite">
+              <p className="shrink-0 text-xs font-bold text-[var(--entry-muted)] sm:text-sm" aria-live="polite">
                 已选择：<span className="font-black text-[var(--entry-ink)]">{selectedIdentity?.label || "尚未选择"}</span>
               </p>
               <button
                 type="button"
                 onClick={() => setStep("details")}
                 disabled={!canAdvance}
-                className="inline-flex min-h-14 w-full shrink-0 touch-manipulation items-center justify-center gap-2 rounded-xl bg-[var(--entry-warm)] px-7 font-black text-[var(--entry-warm-ink)] outline-none transition hover:bg-[var(--entry-warm-hover)] focus:ring-4 focus:ring-[var(--entry-focus)] disabled:cursor-not-allowed disabled:opacity-35 sm:w-auto"
+                className="col-span-2 inline-flex min-h-12 w-full shrink-0 touch-manipulation items-center justify-center gap-2 rounded-xl bg-[var(--entry-primary)] px-7 font-black text-[var(--entry-primary-ink)] outline-none transition hover:bg-[var(--entry-primary-hover)] active:bg-[var(--entry-primary-active)] focus:ring-4 focus:ring-[var(--entry-focus)] disabled:cursor-not-allowed disabled:opacity-35 sm:col-auto sm:min-h-14 sm:w-auto"
               >
                 下一步：确认身份
                 <ArrowRight className="h-4 w-4" aria-hidden="true" />
@@ -377,7 +377,7 @@ export function VisitorPlayIdentityOnboarding({ onConfirm }: VisitorPlayIdentity
                       const EffectIcon = effect.icon
                       return (
                         <li key={effect.title} className="flex gap-3">
-                          <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-[var(--entry-cool-wash)] text-[var(--entry-cool)]">
+                          <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-[var(--entry-lavender-soft)] text-[var(--entry-lavender)]">
                             <EffectIcon className="h-4 w-4" aria-hidden="true" />
                           </span>
                           <span className="min-w-0">
@@ -391,9 +391,10 @@ export function VisitorPlayIdentityOnboarding({ onConfirm }: VisitorPlayIdentity
                 </section>
 
                 <fieldset className="mt-4 rounded-xl border border-[var(--entry-border)] bg-[var(--entry-frame)] p-4">
-                  <legend className="text-sm font-black text-[var(--entry-ink)]">故事中的称谓</legend>
-                  <p className="mt-1 text-xs font-bold leading-5 text-[var(--entry-quiet)]">选择角色在故事中称呼你的方式。</p>
-                  <div className="mt-4 grid grid-cols-3 gap-2" role="radiogroup" aria-label="游玩性别">
+                  <legend className="sr-only">故事中的性别</legend>
+                  <p aria-hidden="true" className="text-sm font-black text-[var(--entry-ink)]">故事中的性别</p>
+                  <p className="mt-1 text-xs font-bold leading-5 text-[var(--entry-quiet)]">选择你希望在故事中使用的性别。平台不会自行推断。</p>
+                  <div className="mt-4 grid grid-cols-2 gap-2" role="radiogroup" aria-label="故事中的性别">
                     {VISITOR_PLAY_GENDERS.map((option) => {
                       const selected = gender === option.id
                       return (
@@ -403,29 +404,13 @@ export function VisitorPlayIdentityOnboarding({ onConfirm }: VisitorPlayIdentity
                           role="radio"
                           aria-checked={selected}
                           onClick={() => setGender(option.id)}
-                          className={`flex min-h-11 touch-manipulation items-center justify-center gap-2 rounded-lg border px-4 text-sm font-black outline-none transition focus:ring-4 focus:ring-[var(--entry-focus)] ${selected ? "border-[var(--entry-warm)] bg-[var(--entry-warm-wash)] text-[var(--entry-ink)]" : "border-[var(--entry-border)] bg-[var(--entry-surface)] text-[var(--entry-muted)] hover:border-[var(--entry-border-strong)]"}`}
+                          className={`flex min-h-11 touch-manipulation items-center justify-center gap-2 rounded-lg border px-4 text-sm font-black outline-none transition focus:ring-4 focus:ring-[var(--entry-focus)] ${selected ? "border-[var(--entry-primary)] bg-[var(--entry-primary-soft)] text-[var(--entry-ink)]" : "border-[var(--entry-border)] bg-[var(--entry-surface)] text-[var(--entry-muted)] hover:border-[var(--entry-border-strong)]"}`}
                         >
                           <UserRound className="h-4 w-4" aria-hidden="true" />
                           {option.label}
                         </button>
                       )
                     })}
-                    <button
-                      type="button"
-                      disabled
-                      aria-label="自定义称谓即将开放"
-                      className="flex min-h-11 cursor-not-allowed items-center justify-center gap-1.5 rounded-lg border border-[var(--entry-border)] bg-[var(--entry-surface)] px-2 text-xs font-black text-[var(--entry-quiet)] opacity-60"
-                    >
-                      <LockKeyhole className="h-3.5 w-3.5" aria-hidden="true" />
-                      自定义
-                    </button>
-                  </div>
-                  <div className="mt-3 rounded-lg border border-[var(--entry-border)] bg-[var(--entry-surface)] p-3 text-[var(--entry-quiet)] opacity-60" aria-disabled="true">
-                    <p className="text-xs font-black">你希望被如何称呼</p>
-                    <div className="mt-2 flex items-center justify-between gap-3 text-[11px] font-bold">
-                      <span>自定义称呼即将开放</span>
-                      <span>0/12</span>
-                    </div>
                   </div>
                 </fieldset>
 
@@ -433,7 +418,7 @@ export function VisitorPlayIdentityOnboarding({ onConfirm }: VisitorPlayIdentity
                   type="button"
                   onClick={handleConfirm}
                   disabled={!canContinue}
-                  className="mt-5 flex min-h-14 w-full touch-manipulation items-center justify-center gap-2 rounded-xl bg-[var(--entry-warm)] px-5 font-black text-[var(--entry-warm-ink)] outline-none transition hover:bg-[var(--entry-warm-hover)] focus:ring-4 focus:ring-[var(--entry-focus)] disabled:cursor-not-allowed disabled:opacity-35"
+                  className="mt-5 flex min-h-14 w-full touch-manipulation items-center justify-center gap-2 rounded-xl bg-[var(--entry-primary)] px-5 font-black text-[var(--entry-primary-ink)] outline-none transition hover:bg-[var(--entry-primary-hover)] active:bg-[var(--entry-primary-active)] focus:ring-4 focus:ring-[var(--entry-focus)] disabled:cursor-not-allowed disabled:opacity-35"
                 >
                   以这个身份进入世界
                   <ArrowRight className="h-4 w-4" aria-hidden="true" />
@@ -442,7 +427,7 @@ export function VisitorPlayIdentityOnboarding({ onConfirm }: VisitorPlayIdentity
 
               <p className="mt-4 flex items-start gap-2 px-2 text-xs font-bold leading-5 text-[var(--entry-quiet)]">
                 <LockKeyhole className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-                进入世界后，你可以在设置中更换身份与称谓。
+                确认后，可在首页通过“重选”更改身份与性别。
               </p>
             </div>
           </section>

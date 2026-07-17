@@ -155,15 +155,15 @@ function AccessClosedPanel({
   href?: string
   onAction?: () => void
 }) {
-  const actionClass = "mt-7 inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-[var(--entry-warm)] px-6 text-sm font-black text-[var(--entry-warm-ink)] outline-none transition hover:bg-[var(--entry-warm-hover)] focus-visible:ring-4 focus-visible:ring-[var(--entry-focus)]"
+  const actionClass = "mt-7 inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-[var(--entry-primary)] px-6 text-sm font-black text-[var(--entry-primary-ink)] outline-none transition hover:bg-[var(--entry-primary-hover)] active:bg-[var(--entry-primary-active)] focus-visible:ring-4 focus-visible:ring-[var(--entry-focus)]"
   return (
     <main className="cinematic-entry relative grid min-h-screen place-items-center overflow-hidden px-5">
       <div className="cinematic-entry__ambient pointer-events-none absolute inset-0" />
       <section className="relative w-full max-w-lg overflow-hidden rounded-2xl border border-[var(--entry-border)] bg-[var(--entry-surface-raised)] p-8 text-center backdrop-blur-xl sm:p-11">
-        <span className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-[var(--entry-cool-wash)] text-[var(--entry-cool)]">
+        <span className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-[var(--entry-lavender-soft)] text-[var(--entry-lavender)]">
           <LockKeyhole className="h-6 w-6" />
         </span>
-        <p className="mt-6 text-xs font-black uppercase tracking-[0.28em] text-[var(--entry-warm)]">FableSpace</p>
+        <p className="mt-6 text-xs font-black uppercase tracking-[0.28em] text-[var(--entry-lavender-light)]">FableSpace</p>
         <h1 className="mt-3 text-3xl font-black tracking-tight sm:text-4xl">{title}</h1>
         <p className="mx-auto mt-4 max-w-sm text-sm font-semibold leading-7 text-[var(--entry-muted)]">{description}</p>
         {href ? (

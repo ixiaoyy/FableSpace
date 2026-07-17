@@ -27,6 +27,10 @@ from fablespace_api.core.default_spaces import (
     RETIRED_PUBLIC_WELFARE_TAVERN_IDS,
     default_public_welfare_spaces,
 )
+from fablespace_api.core.fixture_retirement import (
+    HISTORICAL_FIXTURE_RETIREMENT_SIGNATURES,
+    matches_historical_fixture,
+)
 from fablespace_api.core.memory import MemoryAtom
 from fablespace_api.core.skill_packs import normalize_skill_pack_settings
 from fablespace_api.core.time_context import build_time_context
@@ -1244,6 +1248,13 @@ class SpaceStore:
         for retired_space_id in RETIRED_PUBLIC_WELFARE_TAVERN_IDS:
             if self._retire_public_welfare_seed_record(data.get(retired_space_id)):
                 changed = True
+        for signature in HISTORICAL_FIXTURE_RETIREMENT_SIGNATURES:
+            existing = data.get(signature.space_id)
+            if not matches_historical_fixture(existing, signature):
+                continue
+            existing["access"] = "private"
+            existing["status"] = "closed"
+            changed = True
         if changed:
             self._save_taverns(data)
 
