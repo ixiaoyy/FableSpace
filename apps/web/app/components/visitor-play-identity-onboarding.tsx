@@ -182,27 +182,27 @@ export function VisitorPlayIdentityOnboarding({ onConfirm }: VisitorPlayIdentity
   }
 
   return (
-    <main className="relative flex min-h-[var(--dvh)] items-center overflow-hidden bg-[#05030e] p-2.5 text-white sm:p-5">
-      <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_8%,rgba(124,58,237,0.22),transparent_30rem),radial-gradient(circle_at_82%_16%,rgba(217,70,239,0.12),transparent_27rem),linear-gradient(145deg,#090518_0%,#04020b_72%)]" />
+    <main className="cinematic-entry relative flex min-h-[var(--dvh)] items-center overflow-hidden p-2.5 sm:p-5">
+      <div aria-hidden="true" className="cinematic-entry__ambient pointer-events-none absolute inset-0" />
 
-      <div className="relative mx-auto flex h-[calc(var(--dvh)-1.25rem)] min-h-[620px] max-h-[970px] w-full max-w-[1280px] flex-col overflow-hidden rounded-2xl border border-violet-300/24 bg-[#090512] shadow-[0_0_48px_rgba(168,85,247,0.08)] sm:h-[calc(var(--dvh)-2.5rem)]">
+      <div className="identity-onboarding__frame relative mx-auto flex h-[calc(var(--dvh)-1.25rem)] min-h-[620px] max-h-[970px] w-full max-w-[1280px] flex-col overflow-hidden rounded-2xl border sm:h-[calc(var(--dvh)-2.5rem)]">
         <header className="absolute inset-x-0 top-0 z-30 flex min-h-16 items-center justify-between gap-4 px-5 sm:px-6">
           {activeStep === "identity" ? (
             <span className="flex items-center gap-2 text-lg font-black tracking-[-0.02em]">
-              <Sparkles className="h-5 w-5 text-fuchsia-300" aria-hidden="true" />
+              <Sparkles className="h-5 w-5 text-[var(--entry-cool)]" aria-hidden="true" />
               FableSpace
             </span>
           ) : (
             <button
               type="button"
               onClick={() => setStep("identity")}
-              className="inline-flex min-h-11 touch-manipulation items-center gap-2 rounded-xl bg-[#100a20]/72 px-3 text-sm font-black text-violet-50/78 outline-none backdrop-blur-md transition hover:text-white focus:ring-4 focus:ring-fuchsia-300/25"
+              className="inline-flex min-h-11 touch-manipulation items-center gap-2 rounded-xl bg-[var(--entry-surface)] px-3 text-sm font-black text-[var(--entry-muted)] outline-none backdrop-blur-md transition hover:text-[var(--entry-ink)] focus:ring-4 focus:ring-[var(--entry-focus)]"
             >
               <ArrowLeft className="h-4 w-4" aria-hidden="true" />
               返回选择
             </button>
           )}
-          <span className="rounded-full border border-violet-300/16 bg-[#160d2c]/78 px-3 py-1.5 text-xs font-black text-violet-50/82 backdrop-blur-md">
+          <span className="rounded-full border border-[var(--entry-border)] bg-[var(--entry-surface)] px-3 py-1.5 text-xs font-black text-[var(--entry-muted)] backdrop-blur-md">
             首次进入 · {activeStep === "identity" ? "1/2" : "2/2"}
           </span>
         </header>
@@ -211,30 +211,29 @@ export function VisitorPlayIdentityOnboarding({ onConfirm }: VisitorPlayIdentity
           <section className="flex min-h-0 flex-1 flex-col" aria-labelledby="identity-directory-title">
             <div className="relative min-h-0 flex-1 overflow-y-auto">
               <div aria-hidden="true" className="absolute inset-x-0 top-0 h-[330px] overflow-hidden">
-                <img src={mediaAssetUrl("app/assets/place-atmosphere-hd/atmosphere-market.webp")} alt="" className="h-full w-full object-cover object-center opacity-75" />
-                <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(8,4,18,0.92)_0%,rgba(20,8,40,0.72)_46%,rgba(20,8,40,0.18)_100%),linear-gradient(180deg,rgba(8,4,18,0.08),#090512_94%)]" />
-                <div className="absolute inset-0 bg-violet-700/16 mix-blend-color" />
+                <img src={mediaAssetUrl("app/assets/place-atmosphere-hd/atmosphere-market.webp")} alt="" className="identity-onboarding__hero-image h-full w-full object-cover object-center" />
+                <div className="identity-onboarding__hero-overlay absolute inset-0" />
               </div>
 
               <div className="relative mx-auto max-w-[1120px] px-5 pb-6 pt-20 sm:px-8">
                 <div className="max-w-2xl sm:ml-8">
-                  <h1 id="identity-directory-title" className="max-w-[680px] text-4xl font-black leading-[1.22] tracking-[-0.045em] sm:text-[38px]">
-                    同一个人，<br />会被每个角色<span className="text-fuchsia-300">不同地看见。</span>
+                  <h1 id="identity-directory-title" className="max-w-[680px] text-4xl font-black leading-[1.22] tracking-[-0.04em] sm:text-[38px]">
+                    同一个人，<br />会被每个角色<span className="text-[var(--entry-warm)]">不同地看见。</span>
                   </h1>
-                  <p className="mt-3 text-sm font-bold text-violet-50/66 sm:text-base">
+                  <p className="mt-3 text-sm font-bold text-[var(--entry-muted)] sm:text-base">
                     选择一个身份进入世界，开启属于你的故事。
                   </p>
                 </div>
 
-                <label className="mt-6 flex min-h-11 w-full items-center gap-3 rounded-xl border border-violet-300/14 bg-[#160e2b]/82 px-4 text-violet-50 shadow-[0_12px_40px_rgba(5,2,13,0.24)] backdrop-blur-md focus-within:border-fuchsia-300 focus-within:ring-4 focus-within:ring-fuchsia-300/16">
-                  <Search className="h-4 w-4 shrink-0 text-violet-50/38" aria-hidden="true" />
+                <label className="mt-6 flex min-h-11 w-full items-center gap-3 rounded-xl border border-[var(--entry-border)] bg-[var(--entry-surface)] px-4 text-[var(--entry-ink)] backdrop-blur-md focus-within:border-[var(--entry-cool)] focus-within:ring-4 focus-within:ring-[var(--entry-focus)]">
+                  <Search className="h-4 w-4 shrink-0 text-[var(--entry-quiet)]" aria-hidden="true" />
                   <span className="sr-only">搜索身份</span>
                   <input
                     type="search"
                     value={identityQuery}
                     onChange={(event) => setIdentityQuery(event.target.value)}
                     placeholder="搜索身份名称或关键词"
-                    className="min-w-0 flex-1 bg-transparent text-sm font-bold text-white outline-none placeholder:text-violet-50/36"
+                    className="min-w-0 flex-1 bg-transparent text-sm font-bold text-[var(--entry-ink)] outline-none placeholder:text-[var(--entry-quiet)]"
                   />
                 </label>
 
@@ -248,7 +247,7 @@ export function VisitorPlayIdentityOnboarding({ onConfirm }: VisitorPlayIdentity
                           type="button"
                           aria-pressed={active}
                           onClick={() => setIdentityFilter(filter.id)}
-                          className={`min-h-9 touch-manipulation rounded-full px-4 text-xs font-black outline-none transition focus:ring-4 focus:ring-fuchsia-300/22 ${active ? "bg-gradient-to-r from-fuchsia-400 to-violet-500 text-white shadow-[0_8px_24px_rgba(168,85,247,0.24)]" : "border border-transparent text-violet-50/62 hover:border-violet-300/18 hover:text-white"}`}
+                          className={`min-h-9 touch-manipulation rounded-full px-4 text-xs font-black outline-none transition focus:ring-4 focus:ring-[var(--entry-focus)] ${active ? "bg-[var(--entry-cool-strong)] text-[var(--entry-ink)]" : "border border-transparent text-[var(--entry-muted)] hover:border-[var(--entry-border)] hover:text-[var(--entry-ink)]"}`}
                         >
                           {filter.label}
                         </button>
@@ -260,12 +259,12 @@ export function VisitorPlayIdentityOnboarding({ onConfirm }: VisitorPlayIdentity
                     <select
                       value={identitySort}
                       onChange={(event) => setIdentitySort(event.target.value as IdentitySort)}
-                      className="h-10 w-full appearance-none rounded-xl border border-violet-300/16 bg-[#130c24] px-4 pr-10 text-xs font-black text-violet-50/72 outline-none focus:border-fuchsia-300 focus:ring-4 focus:ring-fuchsia-300/18"
+                      className="h-10 w-full appearance-none rounded-xl border border-[var(--entry-border)] bg-[var(--entry-surface)] px-4 pr-10 text-xs font-black text-[var(--entry-muted)] outline-none focus:border-[var(--entry-cool)] focus:ring-4 focus:ring-[var(--entry-focus)]"
                     >
                       <option value="default">默认排序</option>
                       <option value="name">按名称排序</option>
                     </select>
-                    <ChevronDown className="pointer-events-none absolute right-3 h-4 w-4 text-violet-50/42" aria-hidden="true" />
+                    <ChevronDown className="pointer-events-none absolute right-3 h-4 w-4 text-[var(--entry-quiet)]" aria-hidden="true" />
                   </label>
                 </div>
 
@@ -283,7 +282,7 @@ export function VisitorPlayIdentityOnboarding({ onConfirm }: VisitorPlayIdentity
                         disabled={!selectable}
                         title={selectable ? undefined : `${identity.label}即将开放`}
                         onClick={() => identity.playIdentityId && setPlayIdentityId(identity.playIdentityId)}
-                        className={`group relative h-60 touch-manipulation overflow-hidden rounded-xl border text-left outline-none transition focus:ring-4 focus:ring-fuchsia-300/24 lg:h-[260px] ${selected ? "border-fuchsia-300 shadow-[0_0_0_1px_rgba(244,114,182,0.48),0_16px_40px_rgba(76,29,149,0.24)]" : selectable ? "border-violet-300/20 hover:border-fuchsia-200/52" : "cursor-not-allowed border-violet-300/15 opacity-82"}`}
+                        className={`group relative h-60 touch-manipulation overflow-hidden rounded-xl border text-left outline-none transition focus:ring-4 focus:ring-[var(--entry-focus)] lg:h-[260px] ${selected ? "border-[var(--entry-warm)] ring-1 ring-[var(--entry-warm)]" : selectable ? "border-[var(--entry-border)] hover:border-[var(--entry-border-strong)]" : "cursor-not-allowed border-[var(--entry-border)] opacity-75"}`}
                       >
                         <img
                           src={identity.image}
@@ -293,54 +292,54 @@ export function VisitorPlayIdentityOnboarding({ onConfirm }: VisitorPlayIdentity
                           loading="eager"
                           decoding="async"
                         />
-                        <span aria-hidden="true" className="absolute inset-0 bg-[linear-gradient(180deg,transparent_38%,rgba(8,4,18,0.36)_58%,rgba(8,4,18,0.98)_100%)]" />
-                        {!selectable ? <span aria-hidden="true" className="absolute inset-0 bg-[#090513]/46 backdrop-saturate-50" /> : null}
+                        <span aria-hidden="true" className="identity-onboarding__card-overlay absolute inset-0" />
+                        {!selectable ? <span aria-hidden="true" className="absolute inset-0 bg-[var(--entry-canvas)]/50 backdrop-saturate-50" /> : null}
                         {selected ? (
-                          <span className="absolute right-3 top-3 grid h-7 w-7 place-items-center rounded-full bg-fuchsia-300 text-violet-950 shadow-lg" aria-hidden="true">
+                          <span className="absolute right-3 top-3 grid h-7 w-7 place-items-center rounded-full bg-[var(--entry-warm)] text-[var(--entry-warm-ink)]" aria-hidden="true">
                             <Check className="h-4 w-4" />
                           </span>
                         ) : !selectable ? (
-                          <span className="absolute left-1/2 top-1/2 z-20 grid h-16 w-16 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full border border-violet-100/28 bg-[#11091f]/78 text-violet-50 shadow-[0_16px_42px_rgba(8,4,18,0.52)] backdrop-blur-md" aria-label="即将开放">
+                          <span className="absolute left-1/2 top-1/2 z-20 grid h-16 w-16 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full border border-[var(--entry-border-strong)] bg-[var(--entry-surface)] text-[var(--entry-muted)] backdrop-blur-md" aria-label="即将开放">
                             <LockKeyhole className="h-7 w-7" aria-hidden="true" />
                           </span>
                         ) : null}
                         <span className="absolute inset-x-0 bottom-0 z-10 px-3 pb-3">
                           <span className="flex flex-wrap items-center gap-2">
-                            <span className="text-lg font-black text-white">{identity.label}</span>
+                            <span className="text-lg font-black text-[var(--entry-ink)]">{identity.label}</span>
                             {identity.categoryLabel ? (
-                              <span className="rounded-full border border-violet-200/16 bg-[#1b1130]/84 px-2 py-0.5 text-[10px] font-black text-violet-50/78">
+                              <span className="rounded-full border border-[var(--entry-border)] bg-[var(--entry-surface)] px-2 py-0.5 text-[10px] font-black text-[var(--entry-muted)]">
                                 {identity.categoryLabel}
                               </span>
                             ) : null}
                           </span>
-                          <span className="mt-1 block line-clamp-2 text-xs font-bold leading-5 text-violet-50/68">
+                          <span className="mt-1 block line-clamp-2 text-xs font-bold leading-5 text-[var(--entry-muted)]">
                             {identity.summary}
                           </span>
                         </span>
                       </button>
                     )
                   }) : (
-                    <div className="col-span-full grid min-h-44 place-items-center rounded-xl border border-dashed border-violet-300/16 px-6 text-center">
-                      <p className="text-sm font-bold text-violet-50/48">没有找到匹配的身份。</p>
+                    <div className="col-span-full grid min-h-44 place-items-center rounded-xl border border-dashed border-[var(--entry-border)] px-6 text-center">
+                      <p className="text-sm font-bold text-[var(--entry-quiet)]">没有找到匹配的身份。</p>
                     </div>
                   )}
                 </div>
               </div>
             </div>
 
-            <footer className="flex shrink-0 flex-col gap-4 border-t border-violet-300/14 bg-[#10091d]/96 px-5 py-4 backdrop-blur-md sm:flex-row sm:items-center sm:px-8 sm:py-7">
-              <p className="flex min-w-0 flex-1 items-center gap-2 text-xs font-bold leading-5 text-violet-50/52">
-                <ShieldCheck className="h-4 w-4 shrink-0 text-fuchsia-300" aria-hidden="true" />
+            <footer className="identity-onboarding__footer flex shrink-0 flex-col gap-4 border-t px-5 py-4 backdrop-blur-md sm:flex-row sm:items-center sm:px-8 sm:py-7">
+              <p className="flex min-w-0 flex-1 items-center gap-2 text-xs font-bold leading-5 text-[var(--entry-muted)]">
+                <ShieldCheck className="h-4 w-4 shrink-0 text-[var(--entry-warm)]" aria-hidden="true" />
                 身份与称谓是私有游玩设定，不会公开展示，也不会改写任何 NPC 角色卡。
               </p>
-              <p className="shrink-0 text-sm font-bold text-violet-50/58" aria-live="polite">
-                已选择：<span className="font-black text-white">{selectedIdentity?.label || "尚未选择"}</span>
+              <p className="shrink-0 text-sm font-bold text-[var(--entry-muted)]" aria-live="polite">
+                已选择：<span className="font-black text-[var(--entry-ink)]">{selectedIdentity?.label || "尚未选择"}</span>
               </p>
               <button
                 type="button"
                 onClick={() => setStep("details")}
                 disabled={!canAdvance}
-                className="inline-flex min-h-14 w-full shrink-0 touch-manipulation items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-pink-400 via-fuchsia-500 to-violet-600 px-7 font-black text-white shadow-[0_10px_28px_rgba(168,85,247,0.28)] outline-none transition hover:brightness-110 focus:ring-4 focus:ring-fuchsia-300/30 disabled:cursor-not-allowed disabled:opacity-35 sm:w-auto"
+                className="inline-flex min-h-14 w-full shrink-0 touch-manipulation items-center justify-center gap-2 rounded-xl bg-[var(--entry-warm)] px-7 font-black text-[var(--entry-warm-ink)] outline-none transition hover:bg-[var(--entry-warm-hover)] focus:ring-4 focus:ring-[var(--entry-focus)] disabled:cursor-not-allowed disabled:opacity-35 sm:w-auto"
               >
                 下一步：确认身份
                 <ArrowRight className="h-4 w-4" aria-hidden="true" />
@@ -353,37 +352,37 @@ export function VisitorPlayIdentityOnboarding({ onConfirm }: VisitorPlayIdentity
               <img
                 src={selectedPreview?.image || BEGGAR_IDENTITY_ART}
                 alt={`${selectedIdentity.label}身份主视觉`}
-                className="absolute inset-0 h-full w-full object-cover object-[52%_44%]"
+                className="identity-onboarding__detail-image absolute inset-0 h-full w-full object-cover object-[52%_44%]"
                 loading="eager"
                 decoding="async"
               />
-              <div aria-hidden="true" className="absolute inset-0 bg-[linear-gradient(180deg,rgba(8,3,18,0.06),rgba(8,3,18,0.03)_58%,rgba(8,3,18,0.68))]" />
+              <div aria-hidden="true" className="identity-onboarding__detail-overlay absolute inset-0" />
             </div>
 
-            <div className="min-h-0 bg-[radial-gradient(circle_at_20%_0%,rgba(124,58,237,0.12),transparent_26rem),#090512] p-4 pt-20 sm:p-6 sm:pt-20 md:overflow-y-auto md:p-5 md:pt-[72px] lg:p-7 lg:pt-[72px]">
-              <div className="rounded-2xl border border-violet-300/17 bg-[#100a20]/92 p-4 shadow-[0_24px_70px_rgba(2,1,8,0.32)] sm:p-5 md:px-5 md:pb-5 md:pt-7">
+            <div className="identity-onboarding__detail-panel min-h-0 p-4 pt-20 sm:p-6 sm:pt-20 md:overflow-y-auto md:p-5 md:pt-[72px] lg:p-7 lg:pt-[72px]">
+              <div className="rounded-2xl border border-[var(--entry-border)] bg-[var(--entry-surface-raised)] p-4 sm:p-5 md:px-5 md:pb-5 md:pt-7">
                 <div className="px-1">
-                  <h1 id="identity-details-title" className="text-3xl font-black tracking-[-0.035em] text-white sm:text-4xl">
+                  <h1 id="identity-details-title" className="text-3xl font-black tracking-[-0.035em] text-[var(--entry-ink)] sm:text-4xl">
                     {selectedIdentity.label}
                   </h1>
-                  <p className="mt-2 text-xs font-bold leading-5 text-violet-50/62">
+                  <p className="mt-2 text-xs font-bold leading-5 text-[var(--entry-muted)]">
                     {selectedPreview?.summary}
                   </p>
                 </div>
 
-                <section className="mt-4 rounded-xl border border-violet-300/14 bg-[#0b0615]/88 px-4 py-5" aria-labelledby="identity-story-effects-title">
-                  <h2 id="identity-story-effects-title" className="text-sm font-black text-white">这个身份会如何影响故事</h2>
+                <section className="mt-4 rounded-xl border border-[var(--entry-border)] bg-[var(--entry-frame)] px-4 py-5" aria-labelledby="identity-story-effects-title">
+                  <h2 id="identity-story-effects-title" className="text-sm font-black text-[var(--entry-ink)]">这个身份会如何影响故事</h2>
                   <ul className="mt-4 grid gap-5">
                     {BEGGAR_STORY_EFFECTS.map((effect) => {
                       const EffectIcon = effect.icon
                       return (
                         <li key={effect.title} className="flex gap-3">
-                          <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-violet-400/14 text-violet-200">
+                          <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-[var(--entry-cool-wash)] text-[var(--entry-cool)]">
                             <EffectIcon className="h-4 w-4" aria-hidden="true" />
                           </span>
                           <span className="min-w-0">
-                            <span className="block text-sm font-black text-white">{effect.title}</span>
-                            <span className="mt-0.5 block text-xs font-bold leading-5 text-violet-50/46">{effect.description}</span>
+                            <span className="block text-sm font-black text-[var(--entry-ink)]">{effect.title}</span>
+                            <span className="mt-0.5 block text-xs font-bold leading-5 text-[var(--entry-quiet)]">{effect.description}</span>
                           </span>
                         </li>
                       )
@@ -391,9 +390,9 @@ export function VisitorPlayIdentityOnboarding({ onConfirm }: VisitorPlayIdentity
                   </ul>
                 </section>
 
-                <fieldset className="mt-4 rounded-xl border border-violet-300/14 bg-[#0b0615]/88 p-4">
-                  <legend className="text-sm font-black text-white">故事中的称谓</legend>
-                  <p className="mt-1 text-xs font-bold leading-5 text-violet-50/46">选择角色在故事中称呼你的方式。</p>
+                <fieldset className="mt-4 rounded-xl border border-[var(--entry-border)] bg-[var(--entry-frame)] p-4">
+                  <legend className="text-sm font-black text-[var(--entry-ink)]">故事中的称谓</legend>
+                  <p className="mt-1 text-xs font-bold leading-5 text-[var(--entry-quiet)]">选择角色在故事中称呼你的方式。</p>
                   <div className="mt-4 grid grid-cols-3 gap-2" role="radiogroup" aria-label="游玩性别">
                     {VISITOR_PLAY_GENDERS.map((option) => {
                       const selected = gender === option.id
@@ -404,7 +403,7 @@ export function VisitorPlayIdentityOnboarding({ onConfirm }: VisitorPlayIdentity
                           role="radio"
                           aria-checked={selected}
                           onClick={() => setGender(option.id)}
-                          className={`flex min-h-11 touch-manipulation items-center justify-center gap-2 rounded-lg border px-4 text-sm font-black outline-none transition focus:ring-4 focus:ring-fuchsia-300/25 ${selected ? "border-fuchsia-300 bg-gradient-to-r from-fuchsia-500/38 to-violet-500/38 text-white shadow-[0_8px_24px_rgba(168,85,247,0.18)]" : "border-violet-300/16 bg-[#10091d] text-violet-50/72 hover:border-violet-200/34"}`}
+                          className={`flex min-h-11 touch-manipulation items-center justify-center gap-2 rounded-lg border px-4 text-sm font-black outline-none transition focus:ring-4 focus:ring-[var(--entry-focus)] ${selected ? "border-[var(--entry-warm)] bg-[var(--entry-warm-wash)] text-[var(--entry-ink)]" : "border-[var(--entry-border)] bg-[var(--entry-surface)] text-[var(--entry-muted)] hover:border-[var(--entry-border-strong)]"}`}
                         >
                           <UserRound className="h-4 w-4" aria-hidden="true" />
                           {option.label}
@@ -415,13 +414,13 @@ export function VisitorPlayIdentityOnboarding({ onConfirm }: VisitorPlayIdentity
                       type="button"
                       disabled
                       aria-label="自定义称谓即将开放"
-                      className="flex min-h-11 cursor-not-allowed items-center justify-center gap-1.5 rounded-lg border border-violet-300/12 bg-[#10091d] px-2 text-xs font-black text-violet-50/34"
+                      className="flex min-h-11 cursor-not-allowed items-center justify-center gap-1.5 rounded-lg border border-[var(--entry-border)] bg-[var(--entry-surface)] px-2 text-xs font-black text-[var(--entry-quiet)] opacity-60"
                     >
                       <LockKeyhole className="h-3.5 w-3.5" aria-hidden="true" />
                       自定义
                     </button>
                   </div>
-                  <div className="mt-3 rounded-lg border border-violet-300/10 bg-[#10091d]/78 p-3 text-violet-50/36" aria-disabled="true">
+                  <div className="mt-3 rounded-lg border border-[var(--entry-border)] bg-[var(--entry-surface)] p-3 text-[var(--entry-quiet)] opacity-60" aria-disabled="true">
                     <p className="text-xs font-black">你希望被如何称呼</p>
                     <div className="mt-2 flex items-center justify-between gap-3 text-[11px] font-bold">
                       <span>自定义称呼即将开放</span>
@@ -434,14 +433,14 @@ export function VisitorPlayIdentityOnboarding({ onConfirm }: VisitorPlayIdentity
                   type="button"
                   onClick={handleConfirm}
                   disabled={!canContinue}
-                  className="mt-5 flex min-h-14 w-full touch-manipulation items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-pink-400 via-fuchsia-500 to-violet-600 px-5 font-black text-white shadow-[0_12px_32px_rgba(168,85,247,0.3)] outline-none transition hover:brightness-110 focus:ring-4 focus:ring-fuchsia-300/30 disabled:cursor-not-allowed disabled:opacity-35"
+                  className="mt-5 flex min-h-14 w-full touch-manipulation items-center justify-center gap-2 rounded-xl bg-[var(--entry-warm)] px-5 font-black text-[var(--entry-warm-ink)] outline-none transition hover:bg-[var(--entry-warm-hover)] focus:ring-4 focus:ring-[var(--entry-focus)] disabled:cursor-not-allowed disabled:opacity-35"
                 >
                   以这个身份进入世界
                   <ArrowRight className="h-4 w-4" aria-hidden="true" />
                 </button>
               </div>
 
-              <p className="mt-4 flex items-start gap-2 px-2 text-xs font-bold leading-5 text-violet-50/42">
+              <p className="mt-4 flex items-start gap-2 px-2 text-xs font-bold leading-5 text-[var(--entry-quiet)]">
                 <LockKeyhole className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
                 进入世界后，你可以在设置中更换身份与称谓。
               </p>

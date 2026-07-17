@@ -155,17 +155,17 @@ function AccessClosedPanel({
   href?: string
   onAction?: () => void
 }) {
-  const actionClass = "mt-7 inline-flex min-h-12 items-center justify-center gap-2 rounded-full border border-fuchsia-200/35 bg-gradient-to-r from-fuchsia-500/24 to-violet-500/24 px-6 text-sm font-black text-white shadow-[0_14px_46px_rgba(217,70,239,0.18)] transition hover:border-fuchsia-100/55 hover:brightness-110"
+  const actionClass = "mt-7 inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-[var(--entry-warm)] px-6 text-sm font-black text-[var(--entry-warm-ink)] outline-none transition hover:bg-[var(--entry-warm-hover)] focus-visible:ring-4 focus-visible:ring-[var(--entry-focus)]"
   return (
-    <main className="relative grid min-h-screen place-items-center overflow-hidden bg-[#090515] px-5 text-white">
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(244,114,182,0.18),transparent_30rem),radial-gradient(circle_at_76%_70%,rgba(139,92,246,0.20),transparent_34rem)]" />
-      <section className="relative w-full max-w-lg overflow-hidden rounded-[2rem] border border-fuchsia-100/15 bg-white/[0.055] p-8 text-center shadow-[0_30px_100px_rgba(46,16,101,0.34)] backdrop-blur-xl sm:p-11">
-        <span className="mx-auto grid h-14 w-14 place-items-center rounded-full border border-fuchsia-200/25 bg-fuchsia-300/10 text-fuchsia-100">
+    <main className="cinematic-entry relative grid min-h-screen place-items-center overflow-hidden px-5">
+      <div className="cinematic-entry__ambient pointer-events-none absolute inset-0" />
+      <section className="relative w-full max-w-lg overflow-hidden rounded-2xl border border-[var(--entry-border)] bg-[var(--entry-surface-raised)] p-8 text-center backdrop-blur-xl sm:p-11">
+        <span className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-[var(--entry-cool-wash)] text-[var(--entry-cool)]">
           <LockKeyhole className="h-6 w-6" />
         </span>
-        <p className="mt-6 text-xs font-black uppercase tracking-[0.28em] text-fuchsia-200/58">FableSpace</p>
+        <p className="mt-6 text-xs font-black uppercase tracking-[0.28em] text-[var(--entry-warm)]">FableSpace</p>
         <h1 className="mt-3 text-3xl font-black tracking-tight sm:text-4xl">{title}</h1>
-        <p className="mx-auto mt-4 max-w-sm text-sm font-semibold leading-7 text-violet-100/58">{description}</p>
+        <p className="mx-auto mt-4 max-w-sm text-sm font-semibold leading-7 text-[var(--entry-muted)]">{description}</p>
         {href ? (
           <a className={actionClass} href={href}>{actionLabel}</a>
         ) : (
