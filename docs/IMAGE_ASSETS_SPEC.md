@@ -34,7 +34,7 @@ https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-wel
 
 1. 在仓库外准备候选图片，确认尺寸、格式和内容合规。
 2. 选择未被占用的对象 key，上传时设置 `Cache-Control: public,max-age=31536000,immutable` 和正确 `Content-Type`。
-3. 在 `deploy/cdn/media-manifest.json` 登记 URL、字节数和 SHA-256。
+3. 在 `deploy/cdn/media-manifest.json` 登记 URL、字节数和 SHA-256。SVG 等文本格式必须以 Git 和 Linux 部署环境使用的 LF 字节计算大小与哈希；根目录 `.gitattributes` 固定 `*.svg` 为 LF，不得直接采用 Windows CRLF 工作区的统计结果。
 4. 通过 CDN URL 读取文件，核对状态码、内容与清单记录；只有像素读取或 Canvas 导出等场景才要求 CORS。
 5. 更新代码、seed、sidecar 或文档引用；提交前确认 Git 跟踪图片数为零。
 

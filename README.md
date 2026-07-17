@@ -83,7 +83,7 @@ docker compose up --build -d
 
 ## GitHub Actions 自动部署与 CDN
 
-仓库提供 `.github/workflows/deploy.yml`：推送 `main` 后按前端、后端和部署配置的实际变化选择构建范围。后端通过 SSH + Docker Compose 更新；前端图片只从 S3 兼容对象存储的稳定媒体命名空间读取，workflow 会在替换服务器镜像前逐项核对媒体清单并通过 CDN 做真实读取验证。
+仓库提供 `.github/workflows/deploy.yml`：推送 `main` 后按前端、后端、媒体和部署配置的实际变化选择构建范围。后端通过 SSH + Docker Compose 更新；前端图片只从 S3 兼容对象存储的稳定媒体命名空间读取。媒体/CDN 配置或部署工作流变化及手动部署会在替换服务器镜像前逐项核对媒体清单并通过 CDN 做真实读取验证，普通前端代码变更不执行全量桶扫描。
 
 部署默认受 GitHub Actions 仓库变量 `DEPLOY_ENABLED` 保护。服务器、存储桶、CDN 域名和全部 Secret 配置完成后才能启用。完整 Secret 清单、R2/CORS 设置和首次服务器准备步骤见 [自动部署与 CDN](docs/DEPLOYMENT.md)。
 

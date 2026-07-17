@@ -3,7 +3,7 @@
   "generated_at": "2026-07-16T10:45:11+00:00",
   "media_base_url": "https://img.pingxingxian.space/fablespace/media/v1",
   "tracked_image_count": 358,
-  "tracked_image_bytes": 148522794,
+  "tracked_image_bytes": 148522769,
   "migrate_count": 358,
   "delete_count": 0,
   "entries": [
@@ -2791,8 +2791,8 @@
     {
       "source": "apps/web/public/faction-emblems/emblem-clinic.svg",
       "disposition": "migrate",
-      "bytes": 673,
-      "sha256": "3c138d41db9d22385acddb6e39d77aa4c005f7a66f9ff2db42b485fcaddbbe73",
+      "bytes": 668,
+      "sha256": "e55f2550fd8c52a5dc80c1a4e8639ee449fbb19ce85acaddb3c99147cd24b284",
       "content_type": "image/svg+xml",
       "object_key": "public/faction-emblems/emblem-clinic.svg",
       "url": "https://img.pingxingxian.space/fablespace/media/v1/public/faction-emblems/emblem-clinic.svg"
@@ -2800,8 +2800,8 @@
     {
       "source": "apps/web/public/faction-emblems/emblem-memory.svg",
       "disposition": "migrate",
-      "bytes": 727,
-      "sha256": "bb6075126593fa497758b6f7c131d6162fa75294e37e87818fba771d9c146f44",
+      "bytes": 722,
+      "sha256": "05bca68be45721ef14f4f1dbacdd7b1515146889b10aa38ea37ce1ec8378355d",
       "content_type": "image/svg+xml",
       "object_key": "public/faction-emblems/emblem-memory.svg",
       "url": "https://img.pingxingxian.space/fablespace/media/v1/public/faction-emblems/emblem-memory.svg"
@@ -2809,8 +2809,8 @@
     {
       "source": "apps/web/public/faction-emblems/emblem-night.svg",
       "disposition": "migrate",
-      "bytes": 741,
-      "sha256": "872ef68d763c98f114be902563eb4c663a57d582b255f7254837c20a1276f214",
+      "bytes": 736,
+      "sha256": "d7564844b3ff88091cf8ac163bb422c55ad2a3f21d8da7bd40ae239652e7c6ce",
       "content_type": "image/svg+xml",
       "object_key": "public/faction-emblems/emblem-night.svg",
       "url": "https://img.pingxingxian.space/fablespace/media/v1/public/faction-emblems/emblem-night.svg"
@@ -2818,8 +2818,8 @@
     {
       "source": "apps/web/public/faction-emblems/emblem-order.svg",
       "disposition": "migrate",
-      "bytes": 690,
-      "sha256": "168f46a0e84fb8db3ad1b9afd65f765f7dde5a570f198c92135e2042e53b0041",
+      "bytes": 685,
+      "sha256": "0360c8bbd782ff415a314834a2ae53ddaa6dd87822620437c3a57eb45ac7cce1",
       "content_type": "image/svg+xml",
       "object_key": "public/faction-emblems/emblem-order.svg",
       "url": "https://img.pingxingxian.space/fablespace/media/v1/public/faction-emblems/emblem-order.svg"
@@ -2827,8 +2827,8 @@
     {
       "source": "apps/web/public/faction-emblems/emblem-trade.svg",
       "disposition": "migrate",
-      "bytes": 872,
-      "sha256": "9342231becbebed1d525bd104cde64b2f6d4f52c2d14db288c62561bbb11bab4",
+      "bytes": 867,
+      "sha256": "f40588035df0829dab9e554c6b0f256b3b5993c1a0e15fb2e9f17bc86564d21f",
       "content_type": "image/svg+xml",
       "object_key": "public/faction-emblems/emblem-trade.svg",
       "url": "https://img.pingxingxian.space/fablespace/media/v1/public/faction-emblems/emblem-trade.svg"

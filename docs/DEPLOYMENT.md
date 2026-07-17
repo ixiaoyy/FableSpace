@@ -8,8 +8,8 @@
 push main
   -> 检测 apps/api / apps/web / 部署配置变化
   -> 前端构建时写入稳定媒体 CDN base
-  -> 对照 media-manifest.json 核对桶内全部图片对象
-  -> 通过 CDN 域名读取抽样图片做真实校验
+  -> 媒体/CDN 配置或部署工作流变化时，对照 media-manifest.json 核对桶内全部图片对象
+  -> 全量媒体校验触发时，通过 CDN 域名读取抽样图片做真实校验
   -> 前端 Docker 镜像上传到服务器并替换 frontend
   -> 后端变化时在服务器重建 backend 并检查 /api/v1/health
 ```
@@ -65,7 +65,7 @@ https://<cdn-domain>/fablespace/media/v1/<object-key>
 4. 确认 CDN 不覆盖源站的 `Cache-Control`；`fablespace/media/v1/` 使用长期缓存。
 5. 不要对仍在 `deploy/cdn/media-manifest.json` 中的对象设置过期规则；删除或替换对象前必须先确认没有代码、seed 或文档 URL 引用。
 
-Workflow 会比较清单中每个对象的 key 与字节数，并通过 `CDN_BASE_URL` 实际下载抽样图片。对象缺失、大小不符、公开域名或 CDN 回源未生效时，发布会在替换服务器前失败。
+当 `deploy/cdn/**` 或部署工作流变化，或手动触发部署时，Workflow 会比较清单中每个对象的 key 与字节数，并通过 `CDN_BASE_URL` 实际下载抽样图片；普通前端代码变更不执行全量桶扫描，避免被无关的历史媒体漂移阻塞。全量校验触发后，对象缺失、大小不符、公开域名或 CDN 回源未生效仍会在替换服务器前阻止发布。
 
 ## 服务器首次准备
 

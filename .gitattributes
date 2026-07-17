@@ -1,0 +1,2 @@
+# Keep text-based image assets byte-stable across Windows and Linux.
+*.svg text eol=lf

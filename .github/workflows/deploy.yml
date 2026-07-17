@@ -30,6 +30,7 @@ jobs:
       backend: ${{ steps.filter.outputs.backend }}
       frontend: ${{ steps.filter.outputs.frontend }}
       infrastructure: ${{ steps.filter.outputs.infrastructure }}
+      media: ${{ steps.filter.outputs.media }}
     steps:
       - uses: actions/checkout@v4
       - uses: dorny/paths-filter@v3
@@ -41,18 +42,22 @@ jobs:
             frontend:
               - 'apps/web/**'
             infrastructure:
-              - 'deploy/**'
+              - 'deploy/server/**'
+              - 'deploy/docker-compose.shared.yml'
               - 'docker-compose.yml'
+              - '.github/workflows/deploy.yml'
+            media:
+              - 'deploy/cdn/**'
               - '.github/workflows/deploy.yml'
 
   build-frontend:
-    name: Build frontend and verify project media
+    name: Build frontend
     runs-on: ubuntu-latest
     needs: changes
     if: |
       vars.DEPLOY_ENABLED == 'true' &&
       vars.DEPLOY_CONFIGURED == 'true' &&
-      (github.event_name == 'workflow_dispatch' || needs.changes.outputs.frontend == 'true' || needs.changes.outputs.infrastructure == 'true')
+      (github.event_name == 'workflow_dispatch' || needs.changes.outputs.frontend == 'true' || needs.changes.outputs.infrastructure == 'true' || needs.changes.outputs.media == 'true')
     steps:
       - uses: actions/checkout@v4
 
@@ -67,27 +72,34 @@ jobs:
           CDN_S3_ACCESS_KEY_ID: ${{ secrets.CDN_S3_ACCESS_KEY_ID }}
           CDN_S3_SECRET_ACCESS_KEY: ${{ secrets.CDN_S3_SECRET_ACCESS_KEY }}
           CDN_S3_PREFIX: ${{ vars.CDN_S3_PREFIX || 'fablespace' }}
+          VERIFY_MEDIA: ${{ github.event_name == 'workflow_dispatch' || needs.changes.outputs.media == 'true' }}
         run: |
           set -euo pipefail
-          for name in CDN_BASE_URL CDN_S3_BUCKET CDN_S3_ENDPOINT_URL CDN_S3_ACCESS_KEY_ID CDN_S3_SECRET_ACCESS_KEY; do
-            if [ -z "${!name:-}" ]; then
-              echo "::error::Missing required GitHub Actions secret: ${name}"
-              exit 1
-            fi
-          done
+          if [ -z "${CDN_BASE_URL:-}" ]; then
+            echo "::error::Missing required GitHub Actions secret: CDN_BASE_URL"
+            exit 1
+          fi
           case "${CDN_BASE_URL}" in
             https://*) ;;
             *) echo "::error::CDN_BASE_URL must use HTTPS"; exit 1 ;;
-          esac
-          case "${CDN_S3_ENDPOINT_URL}" in
-            https://*) ;;
-            *) echo "::error::CDN_S3_ENDPOINT_URL must use HTTPS"; exit 1 ;;
           esac
           CDN_S3_PREFIX="${CDN_S3_PREFIX#/}"
           CDN_S3_PREFIX="${CDN_S3_PREFIX%/}"
           if [ -z "${CDN_S3_PREFIX}" ] || [[ "${CDN_S3_PREFIX}" == *".."* ]]; then
             echo "::error::CDN_S3_PREFIX must be a non-empty object-key directory"
             exit 1
+          fi
+          if [ "${VERIFY_MEDIA}" = "true" ]; then
+            for name in CDN_S3_BUCKET CDN_S3_ENDPOINT_URL CDN_S3_ACCESS_KEY_ID CDN_S3_SECRET_ACCESS_KEY; do
+              if [ -z "${!name:-}" ]; then
+                echo "::error::Missing required GitHub Actions secret for media verification: ${name}"
+                exit 1
+              fi
+            done
+            case "${CDN_S3_ENDPOINT_URL}" in
+              https://*) ;;
+              *) echo "::error::CDN_S3_ENDPOINT_URL must use HTTPS"; exit 1 ;;
+            esac
           fi
           MEDIA_BASE_URL="${CDN_BASE_URL%/}/${CDN_S3_PREFIX}/media/v1"
           echo "media_base_url=${MEDIA_BASE_URL}" >> "${GITHUB_OUTPUT}"
@@ -109,6 +121,7 @@ jobs:
           cache-to: type=gha,mode=max,scope=fablespace-web
 
       - name: Verify media manifest and CDN delivery
+        if: github.event_name == 'workflow_dispatch' || needs.changes.outputs.media == 'true'
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.CDN_S3_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.CDN_S3_SECRET_ACCESS_KEY }}
@@ -251,7 +264,7 @@ jobs:
       always() &&
       vars.DEPLOY_ENABLED == 'true' &&
       vars.DEPLOY_CONFIGURED == 'true' &&
-      (github.event_name == 'workflow_dispatch' || needs.changes.outputs.frontend == 'true' || needs.changes.outputs.infrastructure == 'true') &&
+      (github.event_name == 'workflow_dispatch' || needs.changes.outputs.frontend == 'true' || needs.changes.outputs.infrastructure == 'true' || needs.changes.outputs.media == 'true') &&
       needs.build-frontend.result == 'success' &&
       (needs.deploy-backend.result == 'success' || needs.deploy-backend.result == 'skipped')
     steps:
