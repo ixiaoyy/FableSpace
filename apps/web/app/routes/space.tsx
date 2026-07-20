@@ -347,14 +347,7 @@ function SpaceSpacePage({
             </div>
             <section id="空间主线" className="space-mobile-chat-first order-1 flex w-full min-w-0 max-w-full scroll-mt-6 flex-col rounded-[1.2rem] border border-cyan-200/16 bg-[#1b2144]/82 p-3 shadow-[0_24px_72px_rgba(4,7,22,0.38)] sm:p-4 xl:order-2 xl:h-[840px] xl:overflow-hidden">
               <div className="mb-3 flex items-center justify-between gap-4 px-1">
-                <div>
-                  <h2 className="text-xl font-black text-white">角色与聊天</h2>
-                  <p className="mt-1 text-sm font-bold text-cyan-100/48">
-                    {status.interactionLabel === "仅预览"
-                      ? "空间当前熄灯，可先浏览驻场角色与玩法。"
-                      : "驻场 NPC、当前目标、实时对话。"}
-                  </p>
-                </div>
+                <h2 className="text-xl font-black text-white">聊天</h2>
                 <span className="hidden rounded-full border border-cyan-200/14 bg-cyan-300/8 px-3 py-1 text-xs font-black text-cyan-100/62 sm:inline-flex">
                   {status.interactionLabel}
                 </span>

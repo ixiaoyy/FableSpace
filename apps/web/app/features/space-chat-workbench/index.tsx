@@ -16,7 +16,7 @@ import { useSearchParams } from "react-router"
 import { normalizePublicWelfareNpcAssetPath } from "../../lib/space-runtime-config.js"
 import { buildSpaceFirstMinuteGuide, type SpaceFirstMinuteAction } from "../../lib/space-first-minute"
 import { matchesPublicReference } from "../../lib/web-routes"
-import { readVisitorPlayIdentity, visitorPlayIdentityLabel } from "../../lib/visitor-play-identity"
+import { readVisitorPlayIdentity } from "../../lib/visitor-play-identity"
 
 import {
   enterSpace,
@@ -61,24 +61,6 @@ type RoleplayStarterPrompt = {
   prompt: string
 }
 
-type ReplyCoachTone = "idle" | "guide" | "warning" | "ready"
-
-type ReplyCoachCheck = {
-  id: string
-  label: string
-  done: boolean
-}
-
-type ReplyCoachView = {
-  tone: ReplyCoachTone
-  eyebrow: string
-  title: string
-  body: string
-  example: string
-  showExample: boolean
-  checks: ReplyCoachCheck[]
-}
-
 const ROLEPLAY_STARTER_PROMPTS: RoleplayStarterPrompt[] = [
   {
     id: "outsider",
@@ -113,85 +95,6 @@ const ROLEPLAY_STARTER_PROMPTS: RoleplayStarterPrompt[] = [
 function compactSceneLine(value: unknown, fallback = "", maxLength = 72) {
   const text = String(value ?? "").trim().replace(/\s+/g, " ") || fallback
   return text.length > maxLength ? `${text.slice(0, maxLength)}…` : text
-}
-
-/**
- * Detects whether a visitor draft contains an action or stage-direction cue.
- * @param text Current composer text authored by the visitor.
- * @returns True when the text looks like in-scene action/dialogue; has no side effects.
- */
-function hasRoleplayActionCue(text: string) {
-  return /[*＊][^*＊]{2,}[*＊]|（[^）]{2,}）|\([^)]{2,}\)|我(?:走|看|伸|拉|拿|递|环顾|坐|站|停|靠|皱|笑|点头|压低|深吸|检查|握|推|敲)|轻轻|慢慢|突然|低声/.test(text)
-}
-
-/**
- * Builds a local reply-coach view model for the chat composer.
- * @param draft Current visitor composer text; this is never rewritten automatically.
- * @param targetName NPC or space-facing target used only in the selectable example.
- * @param hasVisitorSentMessage Whether the visitor has already sent a line in this visible chat.
- * @returns Non-blocking guidance and checklist; does not call APIs or persist data.
- */
-function buildWorkbenchReplyCoach(draft: string, targetName: string, hasVisitorSentMessage: boolean): ReplyCoachView {
-  const text = draft.trim()
-  const target = targetName.trim() || "眼前的 NPC"
-  const example = `*我环顾四周，压低声音看向${target}* "先告诉我最紧要的一件事，我们从哪里开始？"`
-  const hasAction = hasRoleplayActionCue(text)
-  const hasScene = /这里|周围|门口|桌|窗|街|雨|夜|房间|站台|走廊|身边|眼前|空气|脚步|声音/.test(text)
-  const hasNextStep = /？|\?|怎么办|接下来|先|跟我|帮|看见|听见|找|确认|目标|线索|任务|等等|哪里|什么/.test(text)
-  const oocLike = /你会做什么|你能做什么|能干嘛|有什么功能|怎么玩|介绍一下自己|你的设定|角色卡|提示词|prompt|模型|AI|机器人/i.test(text)
-  const checks = [
-    { id: "action", label: "动作/神态", done: hasAction },
-    { id: "scene", label: "承接场景", done: hasScene },
-    { id: "hook", label: "可被接话", done: hasNextStep },
-  ]
-
-  if (!text) {
-    return {
-      tone: "idle",
-      eyebrow: hasVisitorSentMessage ? "接戏提示" : "第一句公式",
-      title: "动作 + 台词 + 一个下一步",
-      body: "把想问的话包装进当前场景，NPC 会更容易顺着演下去。",
-      example,
-      showExample: true,
-      checks,
-    }
-  }
-
-  if (oocLike) {
-    return {
-      tone: "warning",
-      eyebrow: "避免出戏",
-      title: "这句像在问工具能力",
-      body: "不要直接问 NPC 会做什么；改成你在场景里观察、靠近、求助或确认目标。",
-      example,
-      showExample: true,
-      checks,
-    }
-  }
-
-  if (hasAction && hasNextStep && text.length >= 18) {
-    return {
-      tone: "ready",
-      eyebrow: "可以发送",
-      title: "这句已经像互动小说了",
-      body: "有动作或状态，也给了 NPC 能接住的方向。",
-      example,
-      showExample: false,
-      checks,
-    }
-  }
-
-  return {
-    tone: "guide",
-    eyebrow: "补一笔就更稳",
-    title: hasAction ? "再给 NPC 一个可接的问题" : "先写一个动作或神态",
-    body: hasAction
-      ? "可以加一句「接下来怎么办？」或「我该先看哪里？」来交出剧情球。"
-      : "例如先写 *我环顾四周*、*我递上雨伞*，再把问题说出口。",
-    example,
-    showExample: true,
-    checks,
-  }
 }
 
 /**
@@ -650,7 +553,6 @@ export function SpaceChatWorkbench({
   const visitorName = "旅人"
   const visitorGender = visitorPlayIdentity?.gender || "unspecified"
   const playIdentityId = visitorPlayIdentity?.playIdentityId || ""
-  const playIdentityLabel = visitorPlayIdentity ? visitorPlayIdentityLabel(visitorPlayIdentity) : ""
   const [message, setMessage] = useState("")
   const [mentionQuery, setMentionQuery] = useState<string | null>(null)
   const [mentionIndex, setMentionIndex] = useState(0)
@@ -719,18 +621,6 @@ export function SpaceChatWorkbench({
     () => getWorkbenchRoleplayStarters(space, selectedCharacter, firstMinuteGuide),
     [space, selectedCharacter, firstMinuteGuide],
   )
-  const replyCoachTargetName = activeChatChannel === "private"
-    ? selectedCharacter?.name || selectedCharacter?.id || "NPC"
-    : selectedCharacter?.name || doorwayHost?.name || doorwayHost?.id || "NPC"
-  const replyCoach = useMemo(
-    () => buildWorkbenchReplyCoach(message, replyCoachTargetName, hasVisitorSentMessage),
-    [message, replyCoachTargetName, hasVisitorSentMessage],
-  )
-  const replyCoachToneClass = replyCoach.tone === "warning"
-    ? "border-rose-200/22 bg-rose-300/[0.08]"
-    : replyCoach.tone === "ready"
-      ? "border-emerald-200/20 bg-emerald-300/[0.07]"
-      : "border-amber-200/18 bg-amber-300/[0.065]"
   const mentionMatches = useMemo(() => {
     if (mentionQuery === null) return []
     if (!mentionQuery) return characters
@@ -1464,9 +1354,6 @@ export function SpaceChatWorkbench({
               <Button type="button" data-doorway-start-chat className="min-h-12 w-full" onClick={handleDoorwayStartChat}>
                 {doorwayGameplayDefinitions.length ? "和 NPC 打招呼 →" : `${firstMinuteGuide.startLabel} →`}
               </Button>
-              <p className="text-center text-xs leading-5 text-violet-100/42">
-                按钮只填草稿，不会替你发送
-              </p>
             </div>
           </section>
         ) : null}
@@ -1493,13 +1380,10 @@ export function SpaceChatWorkbench({
         )}
 
         <div className="grid h-full min-h-0 w-full grid-cols-1 lg:grid-cols-[15rem_minmax(0,1fr)] xl:grid-cols-[15.5rem_minmax(0,1fr)] lg:items-stretch">
-          <aside className="flex min-h-0 flex-col border-b border-white/10 bg-slate-950/24 lg:overflow-hidden lg:border-b-0 lg:border-r lg:border-cyan-200/10" aria-label="NPC 角色与任务">
+          <aside className="hidden min-h-0 flex-col border-b border-white/10 bg-slate-950/24 lg:flex lg:overflow-hidden lg:border-b-0 lg:border-r lg:border-cyan-200/10" aria-label="NPC 角色与任务">
             <div className="shrink-0 px-3 pb-2 pt-3">
               <div className="flex items-center justify-between gap-3">
-                <span className="min-w-0">
-                  <h2 className="text-base font-black text-white">驻场角色</h2>
-                  {playIdentityLabel ? <span className="mt-1 block truncate text-[11px] font-bold text-cyan-300/72">你以 {playIdentityLabel} 身份进入</span> : null}
-                </span>
+                <h2 className="text-base font-black text-white">驻场角色</h2>
                 <span className="rounded-full border border-cyan-300/20 bg-cyan-300/10 px-2.5 py-1 text-xs font-bold text-cyan-100">
                   {characters.length}
                 </span>
@@ -1531,7 +1415,7 @@ export function SpaceChatWorkbench({
                 })
               ) : (
                 <div className="min-w-[16rem] rounded-2xl border border-dashed border-white/15 bg-slate-950/35 p-4 text-sm leading-6 text-violet-50/62 lg:min-w-0">
-                  这间空间还没有 NPC。店主可以在管理入口导入 SillyTavern 兼容角色卡。
+                  暂无角色
                 </div>
               )}
             </div>
@@ -1806,53 +1690,8 @@ export function SpaceChatWorkbench({
                     placeholder={activeChatChannel === "public" ? "在这里说点什么…" : `对 ${selectedCharacter?.name || "NPC"} 说点什么…`}
                     className="min-h-14 w-full resize-none rounded-2xl border border-cyan-200/14 bg-white/[0.055] px-4 py-3 text-sm leading-6 text-white outline-none placeholder:text-violet-100/35 focus:border-cyan-300/60 disabled:cursor-not-allowed disabled:opacity-55"
                   />
-                  <details
-                    data-roleplay-reply-coach
-                    className={`group mt-2 rounded-xl border px-3 py-2 text-xs leading-5 shadow-sm shadow-black/10 ${replyCoachToneClass}`}
-                  >
-                    <summary className="flex cursor-pointer list-none flex-wrap items-center justify-between gap-2">
-                      <span className="flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-1">
-                        <span className="shrink-0 font-black uppercase tracking-[0.16em] text-amber-100/66">{replyCoach.eyebrow}</span>
-                        <strong className="truncate text-sm font-black text-white">{replyCoach.title}</strong>
-                      </span>
-                      <span className="hidden shrink-0 flex-wrap gap-1.5 sm:flex">
-                        {replyCoach.checks.map((check) => (
-                          <span
-                            key={check.id}
-                            className={`rounded-full border px-2 py-0.5 font-black ${
-                              check.done
-                                ? "border-emerald-200/25 bg-emerald-300/[0.09] text-emerald-50"
-                                : "border-white/10 bg-white/[0.045] text-violet-100/58"
-                            }`}
-                          >
-                            {check.done ? "✓" : "·"} {check.label}
-                          </span>
-                        ))}
-                      </span>
-                    </summary>
-                    <p className="mt-2 text-violet-50/70">{replyCoach.body}</p>
-                    {replyCoach.showExample ? (
-                      <button
-                        type="button"
-                        data-roleplay-reply-coach-example
-                        onClick={() => {
-                          setMessage(replyCoach.example)
-                          setMentionQuery(null)
-                          setMentionIndex(0)
-                          setTimeout(() => textareaRef.current?.focus(), 0)
-                        }}
-                        disabled={busy === "send" || passwordLocked}
-                        className="mt-2 w-full rounded-xl border border-amber-200/16 bg-slate-950/18 px-3 py-2 text-left font-bold text-amber-50/78 transition hover:border-amber-200/38 hover:bg-amber-300/[0.08] disabled:cursor-not-allowed disabled:opacity-50"
-                      >
-                        借用句式（只填入，不发送）：{replyCoach.example}
-                      </button>
-                    ) : null}
-                  </details>
                   {mentionQuery !== null && mentionMatches.length > 0 && activeChatChannel === "public" && (
                     <div className="absolute bottom-full left-0 right-0 mb-2 max-h-60 overflow-y-auto rounded-2xl border border-white/15 bg-slate-950/98 shadow-xl shadow-black/40">
-                      <div className="px-4 py-2 text-xs text-violet-100/40 border-b border-white/10">
-                        输入 @NPC名 后等对应 NPC 回复
-                      </div>
                       {mentionMatches.map((char, index) => (
                         <button
                           key={char.id}
@@ -1875,32 +1714,21 @@ export function SpaceChatWorkbench({
               </div>
             </form>
 
-            {!passwordLocked ? (
+            {!passwordLocked && hasVisitorSentMessage ? (
               <section
                 data-story-branch-controls
-                className="border-t border-white/10 bg-slate-950/60 px-3 py-2 sm:px-4"
+                className="flex justify-end border-t border-white/10 bg-slate-950/60 px-3 py-2 sm:px-4"
                 aria-label="故事支线控制"
               >
-                <div className="flex flex-col gap-2 rounded-2xl border border-cyan-200/14 bg-cyan-300/[0.052] p-2.5 sm:flex-row sm:items-center sm:justify-between">
-                  <div className="min-w-0">
-                    <p className="text-xs font-black uppercase tracking-[0.16em] text-cyan-100/58">当前支线</p>
-                    <p className="mt-0.5 text-sm font-black text-white">
-                      {hasVisitorSentMessage ? "继续这条记忆支线" : "还在开场，可以放心试写第一句"}
-                    </p>
-                    <p className="mt-1 hidden text-xs font-bold leading-5 text-violet-50/58 sm:block">
-                      开新支线只清空本屏草稿和气泡；回访记忆、关系、保存进度保留。
-                    </p>
-                  </div>
-                  <button
-                    type="button"
-                    data-start-fresh-branch
-                    onClick={handleStartFreshEntranceBranch}
-                    disabled={busy === "send" || isGameplayBusy}
-                    className="min-h-10 shrink-0 rounded-xl border border-cyan-200/25 bg-slate-950/34 px-4 py-2 text-sm font-black text-cyan-50 transition hover:border-cyan-200/48 hover:bg-cyan-300/[0.10] disabled:cursor-not-allowed disabled:opacity-55"
-                  >
-                    从门口开新支线
-                  </button>
-                </div>
+                <button
+                  type="button"
+                  data-start-fresh-branch
+                  onClick={handleStartFreshEntranceBranch}
+                  disabled={busy === "send" || isGameplayBusy}
+                  className="min-h-10 shrink-0 rounded-xl border border-cyan-200/25 bg-slate-950/34 px-4 py-2 text-sm font-black text-cyan-50 transition hover:border-cyan-200/48 hover:bg-cyan-300/[0.10] disabled:cursor-not-allowed disabled:opacity-55"
+                >
+                  新支线
+                </button>
               </section>
             ) : null}
           </main>
