@@ -20,6 +20,7 @@ import {
 import { HistoricalBroadStreetVisual } from "./historical-broad-street-visual"
 import { useCreatorAccess } from "../hooks/useCreatorAccess"
 import type { SessionAccountState } from "../hooks/useSessionAccount"
+import { HISTORY_PILOT_SPACE_ID } from "../lib/history-pilot-space"
 import { resolveHomepageSpaceCover, resolveUniqueHomepageSpaceCovers } from "../lib/homepage-spaces"
 import { mediaAssetUrl } from "../lib/media-assets"
 import { buildSpaceFirstMinuteGuide } from "../lib/space-first-minute"
@@ -448,9 +449,9 @@ function targetFor(space?: { id?: string; name?: string }) {
 }
 
 /**
- * Build the canonical public profile target for one homepage character card.
+ * Build the direct Space chat target for one homepage character card.
  * @param card Character and hosting-space identifiers derived from public homepage data.
- * @returns The character profile path, or discovery when the card is incomplete. This function has no side effects.
+ * @returns The character-selected Space path, or discovery when the card is incomplete. This function has no side effects.
  */
 function targetForHomeCharacter(card?: { spaceId?: string; spaceName?: string; characterId?: string; name?: string }) {
   if (!card?.spaceId || !card.characterId) return WEB_PATHS.spaces
@@ -501,17 +502,20 @@ function homeCoordinateCardData(slice: HomeReferenceProps["featuredCitySlices"][
     spaceId: hasRealCharacter ? String(slice?.id) : "",
     spaceName: hasRealCharacter ? (slice?.name?.trim() || "未命名空间") : "等待空间",
     name: hasRealCharacter ? (slice?.characterName?.trim() || "未命名角色") : `等待角色入住 ${index + 1}`,
-    description: hasRealCharacter
-      ? (slice?.characterDescription?.trim() || "TA 正在这个坐标背后的空间里。")
-      : "角色数据返回后，这里会显示名字、性格和所在空间。",
-    tag: hasRealCharacter ? (slice?.characterTags?.find(Boolean) || "驻场角色") : "待同步",
+    tag: hasRealCharacter
+      ? (slice?.characterTags?.find((tag) => tag !== "真实历史背景" && tag !== "原创角色") || "角色")
+      : "待同步",
     image: hasRealCharacter && (slice?.characterAvatar || slice?.image)
       ? (slice?.characterAvatar || slice?.image || fallbackImage)
       : fallbackImage,
-    imageKind: slice?.hasCharacterPortrait ? "portrait" : "atmosphere",
+    imageKind: slice?.hasCharacterPortrait
+      ? "portrait"
+      : slice?.id === HISTORY_PILOT_SPACE_ID
+        ? "historical-broad-street"
+        : "atmosphere",
     location: hasRealCharacter ? (slice?.location?.trim() || "真实坐标") : "等待坐标",
     nodeId: variant === "black" ? blackMeta.nodeId : `COORD_${String(index + 1).padStart(2, "0")}`,
-    entityLabel: hasRealCharacter ? (slice?.entryMeta || "所在空间可进入") : "等待同步",
+    entityLabel: hasRealCharacter ? (slice?.entryMeta || "可进入") : "等待同步",
     tone: hasRealCharacter ? blackMeta.tone : "pending",
   }
 }
@@ -528,15 +532,15 @@ function discoverCardData(space: Space | undefined, index: number, coverOverride
     return {
       id: "",
       name: `等待真实空间 ${index + 1}`,
-      description: "真实空间数据返回后，这里会显示主人设置的名称、简介和入口。",
+      description: "",
       tag: "待同步",
       image: fallbackImage,
       visitLabel: "暂无到访记录",
       characterLabel: "等待角色数据",
       favoriteCount: 0,
       timeLabel: "等待同步",
-      sceneHint: "等待真实空间数据。",
-      tryPrompt: "空间同步后再进入。",
+      sceneHint: "加载中",
+      tryPrompt: "加载中",
       experienceType: "待同步",
       avatarImages: [] as string[],
       characterNames: [] as string[],
@@ -753,22 +757,6 @@ function FableSpaceSidebar({
         })}
       </nav>
 
-      <section
-        data-fable-space-sidebar-status="dom-text"
-        className={cx(
-          "absolute overflow-hidden rounded-[0.9rem] border px-4 py-4",
-          isBlack
-            ? "border-cyan-300/16 bg-[#1b2144]/76 text-cyan-100 shadow-[inset_0_1px_0_rgba(255,255,255,0.03),0_0_24px_rgba(89,102,187,0.10)]"
-            : "border-white/80 bg-white/84 text-slate-700",
-        )}
-        style={panelBoxStyle(panel, sidebar.status.x, sidebar.status.y, sidebar.status.w, sidebar.status.h)}
-      >
-        <p className="text-[13px] font-black text-[#d0b4e3]">角色先行</p>
-        <p className="mt-2 text-[11px] font-bold leading-5 text-[#9697b5]">
-          从想见的人进入完整故事世界。
-        </p>
-      </section>
-
       {sidebar.bottomActions.map((item) =>
         "action" in item && item.action === "theme" ? (
           <button
@@ -959,8 +947,8 @@ function fallbackFeedItemsFromHome(featuredCitySlices: HomeReferenceProps["featu
     items.push({
       id: slice.id,
       title: slice.name || "未命名空间",
-      subtitle: slice.description || slice.location || "真实坐标上的故事空间",
-      meta: slice.entryMeta || "当前可进入",
+      subtitle: slice.location || "真实坐标",
+      meta: slice.entryMeta || "可进入",
       image: slice.image || sceneLibrary,
       to: targetFor(slice),
     })
@@ -1023,7 +1011,7 @@ function roleEntriesFromSpaces(spaces: Space[]): FableSpaceOnlineEntity[] {
 /**
  * Build truthful homepage character rows without inventing online or last-seen presence.
  * @param slices Character-first homepage entries with their complete hosting-space context.
- * @returns Up to six public character rows linking to canonical profiles. This function has no side effects.
+ * @returns Up to six public character rows linking directly into their hosting Spaces. This function has no side effects.
  */
 function fallbackOnlineEntitiesFromHome(slices: HomeReferenceProps["featuredCitySlices"]): FableSpaceOnlineEntity[] {
   const entities: FableSpaceOnlineEntity[] = []
@@ -1033,7 +1021,7 @@ function fallbackOnlineEntitiesFromHome(slices: HomeReferenceProps["featuredCity
       id: `home-character-${slice.id}-${slice.characterId}`,
       name: slice.characterName || "未命名角色",
       location: `在「${slice.name || "未命名空间"}」`,
-      status: slice.entryMeta || "查看角色",
+      status: "进入",
       avatar: slice.characterAvatar || slice.image || sceneLibrary,
       avatarKind: slice.hasCharacterPortrait ? "portrait" : "atmosphere",
       to: targetForHomeCharacter({
@@ -1759,7 +1747,6 @@ function OverlayInput({
 function FableSpaceCollectionState({
   variant,
   state,
-  error,
   onRetry,
   emptyTitle,
   emptyDescription,
@@ -1785,15 +1772,15 @@ function FableSpaceCollectionState({
 }) {
   const isBlack = variant === "black"
   const title = state === "loading"
-    ? (loadingTitle || "正在读取首发故事")
+    ? (loadingTitle || "加载中")
     : state === "error"
-      ? (errorTitle || "首发故事暂时无法读取")
-      : (emptyTitle || "首发故事尚未完整开放")
+      ? (errorTitle || "加载失败")
+      : (emptyTitle || "暂无内容")
   const description = state === "loading"
-    ? (loadingDescription || "正在核对三座 Space 与六位角色。")
+    ? (loadingDescription || "")
     : state === "error"
-      ? (error || errorDescription || "请稍后重试；页面不会用其他公开角色填补。")
-      : (emptyDescription || "三座正式 Space 或六位角色的数据不完整，暂不展示替代内容。")
+      ? (errorDescription || "")
+      : (emptyDescription || "")
 
   return (
     <section
@@ -1820,9 +1807,11 @@ function FableSpaceCollectionState({
         </span>
       )}
       <h3 className="text-[17px] font-black">{title}</h3>
-      <p className={cx("mt-2 max-w-[36rem] text-[13px] font-bold leading-6", isBlack ? "text-[#d0cae5]" : "text-slate-500")}>
-        {description}
-      </p>
+      {description ? (
+        <p className={cx("mt-2 max-w-[36rem] text-[13px] font-bold leading-6", isBlack ? "text-[#d0cae5]" : "text-slate-500")}>
+          {description}
+        </p>
+      ) : null}
       {state === "error" && onRetry ? (
         <button
           type="button"
@@ -1859,14 +1848,12 @@ function FableSpaceHomeCoordinateCard({
   const isBlack = variant === "black"
   const card = homeCoordinateCardData(slice, index, variant)
   const [x, y, w, h] = box
-  const isFeaturedEncounter = w >= 600
   const canEnter = Boolean(card.id)
   const target = to || targetForHomeCharacter(card)
   const badgeLabel = isBlack ? card.tag : (canEnter ? card.tag : (isLoading ? "加载中" : "待开放"))
   const toneClass = "border-cyan-300/38 bg-cyan-300/18 text-cyan-100 shadow-[0_0_16px_rgba(89,102,187,0.18)]"
   const className = cx(
-    "absolute z-20 flex min-h-11 overflow-hidden rounded-[0.72rem] border outline-none transition",
-    isFeaturedEncounter ? "flex-row" : "flex-col",
+    "absolute z-20 flex min-h-11 flex-col overflow-hidden rounded-[0.72rem] border outline-none transition",
     canEnter ? "touch-manipulation hover:-translate-y-0.5 focus:ring-4 motion-reduce:transform-none" : "cursor-wait select-none opacity-86",
     isBlack
       ? "border-[#8e86d8]/22 bg-[#1b2144] text-[#f3f0ff] shadow-[0_6px_8px_rgba(4,7,22,0.28)] focus:ring-[#8e86d8]/36"
@@ -1874,7 +1861,7 @@ function FableSpaceHomeCoordinateCard({
   )
   const content = (
     <>
-      <div className={cx("relative shrink-0 overflow-hidden bg-[#303861]/40", isFeaturedEncounter ? "h-full w-[44%]" : "h-[45%] w-full")}>
+      <div className="relative h-[45%] shrink-0 overflow-hidden bg-[#303861]/40">
         {card.imageKind === "portrait" ? (
           <img
             data-fable-space-active-node-cover="replaceable-image"
@@ -1884,33 +1871,33 @@ function FableSpaceHomeCoordinateCard({
             loading="lazy"
             decoding="async"
           />
-        ) : (
+        ) : card.imageKind === "historical-broad-street" ? (
           <HistoricalBroadStreetVisual className="h-full w-full" />
+        ) : (
+          <img
+            src={card.image}
+            alt={`${card.spaceName} 氛围图`}
+            className={cx("h-full w-full object-cover", isBlack ? "opacity-90 saturate-[1.08]" : "")}
+            loading="lazy"
+            decoding="async"
+          />
         )}
         {isBlack ? <span aria-hidden="true" className="absolute inset-0 bg-gradient-to-t from-[#151a38]/78 via-transparent to-transparent" /> : null}
         <span className={cx("absolute left-3 top-3 max-w-[calc(100%-1.5rem)] truncate rounded-md border px-2.5 py-1 text-[10px] font-black tracking-[0.05em]", toneClass)}>
           {badgeLabel}
         </span>
       </div>
-      <div data-fable-space-active-node-copy="dom-text" className={cx("flex min-h-0 flex-1 flex-col", isFeaturedEncounter ? "px-8 py-7" : "px-3.5 pb-2.5 pt-2.5")}>
-        {isFeaturedEncounter ? (
-          <span className={cx("mb-5 w-fit rounded-full border px-3 py-1.5 text-[11px] font-black", isBlack ? "border-amber-200/20 bg-amber-200/8 text-amber-100" : "border-amber-200 bg-amber-50 text-amber-700")}>
-            真实历史背景 · 原创角色
-          </span>
-        ) : null}
-        <h3 data-fable-space-home-card-title="real-text" className={cx("truncate font-black leading-none tracking-[-0.02em]", isFeaturedEncounter ? "text-[2rem]" : "text-[17px]", isBlack ? "text-[#f3f0ff]" : "text-slate-800")} title={card.name}>{card.name}</h3>
-        <p className={cx("truncate font-black", isFeaturedEncounter ? "mt-3 text-sm" : "mt-1 text-[11px]", isBlack ? "text-[#d0b4e3]" : "text-violet-500")} title={`在「${card.spaceName}」· ${card.location}`}>
+      <div data-fable-space-active-node-copy="dom-text" className="flex min-h-0 flex-1 flex-col px-3.5 pb-2.5 pt-2.5">
+        <h3 data-fable-space-home-card-title="real-text" className={cx("truncate text-[17px] font-black leading-none tracking-[-0.02em]", isBlack ? "text-[#f3f0ff]" : "text-slate-800")} title={card.name}>{card.name}</h3>
+        <p className={cx("mt-1 truncate text-[11px] font-black", isBlack ? "text-[#d0b4e3]" : "text-violet-500")} title={`在「${card.spaceName}」· ${card.location}`}>
           在「{card.spaceName}」
         </p>
-        <p className={cx("font-bold", isFeaturedEncounter ? "mt-6 line-clamp-4 text-base leading-8" : "mt-1 line-clamp-1 text-[11px] leading-4", isBlack ? "text-cyan-50/72" : "text-slate-500")} title={card.description}>
-          {isFeaturedEncounter ? `“${card.description}”` : card.description}
-        </p>
-        <div className={cx("mt-auto flex min-w-0 items-center justify-between gap-2 border-t border-[#d0b4e3]/10", isFeaturedEncounter ? "pt-5" : "pt-1.5")}>
-          <span className={cx("min-w-0 truncate font-bold", isFeaturedEncounter ? "text-xs" : "text-[10px]", isBlack ? "text-cyan-100/42" : "text-slate-400")} title={`${card.location} · ${card.entityLabel}`}>
+        <div className="mt-auto flex min-w-0 items-center justify-between gap-2 border-t border-[#d0b4e3]/10 pt-1.5">
+          <span className={cx("min-w-0 truncate text-[10px] font-bold", isBlack ? "text-cyan-100/42" : "text-slate-400")} title={`${card.location} · ${card.entityLabel}`}>
             {card.entityLabel}
           </span>
-          <span className={cx("shrink-0 font-black", isFeaturedEncounter ? "rounded-xl bg-[#5966bb] px-5 py-3 text-sm text-[#f3f0ff]" : "text-[11px]", isBlack ? "text-cyan-300" : "text-violet-500")}>
-            {isFeaturedEncounter ? "回应她" : "进入故事"}<span aria-hidden="true"> →</span>
+          <span className={cx("shrink-0 text-[11px] font-black", isBlack ? "text-cyan-300" : "text-violet-500")}>
+            回应<span aria-hidden="true"> →</span>
           </span>
         </div>
       </div>
@@ -1934,7 +1921,7 @@ function FableSpaceHomeCoordinateCard({
   return (
     <Link
       to={target}
-      aria-label={`进入${card.spaceName}回应${card.name}`}
+      aria-label={`回应${card.name}，角色所在空间：${card.spaceName}`}
       data-fable-space-home-card="real-card"
       data-fable-space-active-node-card="image-and-dom-separated"
       data-fable-space-home-card-state="enterable"
@@ -2111,7 +2098,6 @@ function FableSpaceHomeMainSurface({
   variant,
   isLoading = false,
   loadState,
-  loadError,
   onRetry,
   heroCoordinate,
   visitorIdentityLabel,
@@ -2122,7 +2108,6 @@ function FableSpaceHomeMainSurface({
   variant: Variant
   isLoading?: boolean
   loadState?: HomeReferenceProps["loadState"]
-  loadError?: string
   onRetry?: () => void
   heroCoordinate?: FableSpaceHeroCoordinate
   visitorIdentityLabel?: string
@@ -2133,9 +2118,7 @@ function FableSpaceHomeMainSurface({
   const titleBox = HOME_LAYOUT.title
   const heroDecorations = HOME_LAYOUT.heroDecorations
   const recommendedHeaderBox = HOME_LAYOUT.recommendedHeader
-  const cardBoxes = featuredCitySlices.length === 1
-    ? ([[256, 566, 936, 420]] as const)
-    : HOME_LAYOUT.cards
+  const cardBoxes = HOME_LAYOUT.cards.slice(0, Math.min(featuredCitySlices.length, HOME_LAYOUT.cards.length))
   const rightRailSurface = HOME_LAYOUT.rightRailSurface
   const resolvedLoadState = loadState || (isLoading ? "loading" : featuredCitySlices.length ? "ready" : "empty")
   return (
@@ -2160,7 +2143,16 @@ function FableSpaceHomeMainSurface({
       >
         {isBlack ? (
           <>
-            <HistoricalBroadStreetVisual className="absolute inset-0 h-full w-full opacity-92" />
+            <div className="absolute inset-0 bg-[#0d1226]" />
+            <img
+              src={homeBlackHeroVisual}
+              alt=""
+              className="absolute inset-0 h-full w-full object-cover object-center opacity-82 saturate-[0.72] brightness-[0.84]"
+              draggable={false}
+              loading="eager"
+              fetchPriority="high"
+              decoding="async"
+            />
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_72%_34%,rgba(103,113,213,0.16),transparent_34%)]" />
           </>
         ) : (
@@ -2210,22 +2202,18 @@ function FableSpaceHomeMainSurface({
           data-fable-space-home-title="real-text"
           className={cx("max-w-[12em] text-[clamp(2.35rem,3.35vw,3.3rem)] font-black leading-[1.06] tracking-[-0.035em]", isBlack ? "text-cyan-50 drop-shadow-[0_0_18px_rgba(255,255,255,0.18)]" : "text-slate-800")}
         >
-          1854 年伦敦，
+          今天，
           <br />
-          <span className={isBlack ? "text-cyan-300" : "text-violet-500"}>有人向你讨水。</span>
+          <span className={isBlack ? "text-cyan-300" : "text-violet-500"}>想见谁？</span>
         </h1>
-        <p className={cx("mt-3 max-w-[34em] text-[clamp(0.78rem,1vw,0.94rem)] font-bold leading-6", isBlack ? "text-cyan-100/66" : "text-slate-500")}>
-          你是个乞丐。她抱着空陶罐，而你手里有一只破碗。先回答她，再从一口水走进真实历史。
-        </p>
       </div>
       {!isBlack ? <HomeCurrentCoordinateBadge artboard={artboard} variant={variant} coordinate={heroCoordinate} /> : null}
       <div className="absolute z-10 flex items-center justify-between" style={boxStyle(artboard, recommendedHeaderBox.x, recommendedHeaderBox.y, recommendedHeaderBox.w, recommendedHeaderBox.h)}>
         <span>
-          <h2 className={cx("text-[18px] font-black leading-none", isBlack ? "text-[#d0b4e3]" : "text-slate-800")}>此刻，先见她</h2>
-          <span className={cx("mt-1 block text-[12px] font-bold", isBlack ? "text-[#9697b5]" : "text-slate-400")}>真实历史背景中的原创角色 · 伦敦 Soho，1854</span>
+          <h2 className={cx("text-[18px] font-black leading-none", isBlack ? "text-[#d0b4e3]" : "text-slate-800")}>此刻可以去见的人</h2>
         </span>
         <Link to={WEB_PATHS.spaces} onMouseDown={suppressMouseFocus} className={cx("inline-flex min-h-9 touch-manipulation items-center rounded-[0.65rem] px-3 text-[12px] font-black outline-none transition focus:ring-4", isBlack ? "text-[#8e86d8] hover:bg-[#303861]/60 focus:ring-[#8e86d8]/32" : "text-violet-500 hover:bg-violet-50 focus:ring-violet-300")}>
-          其他故事世界 <span aria-hidden="true" className="ml-1">→</span>
+          全部角色 <span aria-hidden="true" className="ml-1">→</span>
         </Link>
       </div>
       {resolvedLoadState === "ready" ? cardBoxes.map((box, index) => (
@@ -2241,14 +2229,13 @@ function FableSpaceHomeMainSurface({
           <FableSpaceCollectionState
             variant={variant}
             state={resolvedLoadState}
-            error={loadError}
             onRetry={onRetry}
-            loadingTitle="正在读取历史入口"
-            loadingDescription="正在读取 1854 年伦敦宽街与安妮的角色数据。"
-            errorTitle="历史入口暂时无法读取"
-            errorDescription="请稍后重试；页面不会用其他公开角色填补这个入口。"
-            emptyTitle="历史入口尚未完整开放"
-            emptyDescription="历史 Space 或安妮的角色数据不完整，暂不展示替代内容。"
+            loadingTitle="加载中"
+            loadingDescription="请稍候"
+            errorTitle="角色未出现"
+            errorDescription="请重试"
+            emptyTitle="暂无角色"
+            emptyDescription="稍后再来"
             className="absolute z-20"
             style={boxStyle(artboard, 256, 566, 936, 420)}
           />
@@ -2263,7 +2250,6 @@ function FableSpaceHomeMobile({
   variant,
   isLoading = false,
   loadState,
-  loadError,
   onRetry,
   sessionAccount,
   visitorIdentityLabel,
@@ -2274,7 +2260,6 @@ function FableSpaceHomeMobile({
   variant: Variant
   isLoading?: boolean
   loadState?: HomeReferenceProps["loadState"]
-  loadError?: string
   onRetry?: () => void
   sessionAccount?: SessionAccountState
   visitorIdentityLabel?: string
@@ -2283,7 +2268,7 @@ function FableSpaceHomeMobile({
   const isBlack = variant === "black"
   const resolvedLoadState = loadState || (isLoading ? "loading" : featuredCitySlices.length ? "ready" : "empty")
   const cards = resolvedLoadState === "ready"
-    ? featuredCitySlices.slice(0, 1).map((slice, index) => homeCoordinateCardData(slice, index, variant))
+    ? featuredCitySlices.slice(0, 6).map((slice, index) => homeCoordinateCardData(slice, index, variant))
     : []
   const profile = accountProfile(sessionAccount)
   return (
@@ -2308,7 +2293,8 @@ function FableSpaceHomeMobile({
       <section className={cx("relative mt-4 overflow-hidden rounded-[1.5rem] border p-4", isBlack ? "border-cyan-300/24 bg-[#1b2144]/84 shadow-[0_18px_42px_rgba(4,7,22,0.34)]" : "border-white/80 bg-white/80 shadow-[0_18px_44px_rgba(108,123,178,0.14)]")}>
         {isBlack ? (
           <>
-            <HistoricalBroadStreetVisual className="absolute inset-0 h-full w-full opacity-48" compact />
+            <div aria-hidden="true" className="absolute inset-0 bg-[#0d1226]" />
+            <img src={homeBlackHeroVisual} alt="" aria-hidden="true" className="absolute inset-0 h-full w-full object-cover opacity-50 saturate-[0.72] brightness-[0.84]" loading="eager" fetchPriority="high" decoding="async" />
           </>
         ) : (
           <img src={lightSkyCityBalcony} alt="" aria-hidden="true" className="absolute inset-0 h-full w-full object-cover opacity-34" loading="lazy" decoding="async" />
@@ -2328,20 +2314,17 @@ function FableSpaceHomeMobile({
           data-fable-space-home-title-mobile="real-text"
           className={cx("relative z-10 mt-2 text-2xl font-black leading-tight tracking-[-0.03em]", isBlack ? "text-white drop-shadow-[0_0_14px_rgba(142,134,216,0.28)]" : "text-slate-800")}
         >
-          1854 年伦敦，有人向你讨水
+          今天想见谁？
         </h1>
-        <p className={cx("relative z-10 mt-2 max-w-[32rem] text-sm font-bold leading-6", isBlack ? "text-cyan-100/64" : "text-slate-500")}>
-          你是个乞丐。她抱着空陶罐，而你手里有一只破碗。先回答她。
-        </p>
         <div className="relative z-10 mt-4 flex gap-3">
-          <Link to={cards[0] ? targetForHomeCharacter(cards[0]) : WEB_PATHS.spaces} className={cx("inline-flex min-h-11 flex-1 touch-manipulation items-center justify-center rounded-[1.15rem] px-4 text-sm font-black", isBlack ? "bg-[#5966bb] text-[#f3f0ff] shadow-[0_0_24px_rgba(89,102,187,0.22)]" : "bg-violet-500 text-white shadow-[0_14px_28px_rgba(118,91,255,0.22)]")}>回应她</Link>
+          <Link to={WEB_PATHS.spaces} className={cx("inline-flex min-h-11 flex-1 touch-manipulation items-center justify-center rounded-[1.15rem] px-4 text-sm font-black", isBlack ? "bg-[#5966bb] text-[#f3f0ff] shadow-[0_0_24px_rgba(89,102,187,0.22)]" : "bg-violet-500 text-white shadow-[0_14px_28px_rgba(118,91,255,0.22)]")}>找角色</Link>
           <Link to={WEB_PATHS.myHome} className={cx("inline-flex min-h-11 flex-1 touch-manipulation items-center justify-center rounded-[1.15rem] border px-4 text-sm font-black", isBlack ? "border-cyan-300/26 bg-[#252a52]/72 text-cyan-100 shadow-[inset_0_0_12px_rgba(142,134,216,0.08)]" : "border-violet-100 bg-white text-violet-500")}>我的回访</Link>
         </div>
       </section>
       <section className="mt-4">
         <div className="mb-2 flex items-center justify-between">
-          <h2 className={cx("font-black", isBlack ? "text-white" : "text-slate-800")}>此刻，先见她</h2>
-          <Link to={WEB_PATHS.spaces} className={cx("inline-flex min-h-11 touch-manipulation items-center rounded-xl px-3 text-sm font-black", isBlack ? "text-cyan-200" : "text-violet-400")}>其他世界</Link>
+          <h2 className={cx("font-black", isBlack ? "text-white" : "text-slate-800")}>此刻可以去见</h2>
+          <Link to={WEB_PATHS.spaces} className={cx("inline-flex min-h-11 touch-manipulation items-center rounded-xl px-3 text-sm font-black", isBlack ? "text-cyan-200" : "text-violet-400")}>全部角色</Link>
         </div>
         {resolvedLoadState === "ready" ? (
           <div className="grid gap-2.5">
@@ -2357,13 +2340,15 @@ function FableSpaceHomeMobile({
               <>
                 {slice.imageKind === "portrait" ? (
                   <img src={slice.image} alt={`${slice.name} 的角色头像`} className="h-[5.75rem] w-[5.75rem] shrink-0 rounded-xl object-cover object-top" loading="lazy" decoding="async" />
-                ) : (
+                ) : slice.imageKind === "historical-broad-street" ? (
                   <HistoricalBroadStreetVisual className="h-[5.75rem] w-[5.75rem] shrink-0 rounded-xl" compact />
+                ) : (
+                  <img src={slice.image} alt={`${slice.spaceName} 氛围图`} className="h-[5.75rem] w-[5.75rem] shrink-0 rounded-xl object-cover" loading="lazy" decoding="async" />
                 )}
                 <span className="flex min-w-0 flex-1 flex-col justify-center py-0.5">
                   <span className="flex min-w-0 items-center justify-between gap-2">
                     <span data-fable-space-home-card-title="real-text" className={cx("block min-w-0 truncate font-black", isBlack ? "text-white" : "text-slate-800")} title={slice.name}>{slice.name}</span>
-                    <span className={cx("shrink-0 text-xs font-black", isBlack ? "text-cyan-300" : "text-violet-500")}>回应她<span aria-hidden="true"> →</span></span>
+                    <span className={cx("shrink-0 text-xs font-black", isBlack ? "text-cyan-300" : "text-violet-500")}>回应<span aria-hidden="true"> →</span></span>
                   </span>
                   <span className={cx("mt-1 block truncate text-xs font-bold", isBlack ? "text-cyan-100/58" : "text-slate-500")} title={`在「${slice.spaceName}」· ${slice.location}`}>
                     在「{slice.spaceName}」
@@ -2384,7 +2369,7 @@ function FableSpaceHomeMobile({
               <Link
                 key={slice.id || slice.nodeId}
                 to={targetForHomeCharacter(slice)}
-                aria-label={`进入${slice.spaceName}回应${slice.name}`}
+                aria-label={`回应${slice.name}，角色所在空间：${slice.spaceName}`}
                 data-fable-space-home-card="real-card"
                 data-fable-space-home-card-state="enterable"
                 className={cardClassName}
@@ -2398,14 +2383,13 @@ function FableSpaceHomeMobile({
           <FableSpaceCollectionState
             variant={variant}
             state={resolvedLoadState}
-            error={loadError}
             onRetry={onRetry}
-            loadingTitle="正在读取历史入口"
-            loadingDescription="正在读取 1854 年伦敦宽街与安妮的角色数据。"
-            errorTitle="历史入口暂时无法读取"
-            errorDescription="请稍后重试；页面不会用其他公开角色填补这个入口。"
-            emptyTitle="历史入口尚未完整开放"
-            emptyDescription="历史 Space 或安妮的角色数据不完整，暂不展示替代内容。"
+            loadingTitle="加载中"
+            loadingDescription="请稍候"
+            errorTitle="角色未出现"
+            errorDescription="请重试"
+            emptyTitle="暂无角色"
+            emptyDescription="稍后再来"
           />
         )}
       </section>
@@ -2413,19 +2397,7 @@ function FableSpaceHomeMobile({
   )
 }
 
-function HomeHeroActions({
-  artboard,
-  variant,
-  forceVisible = false,
-  primaryTo = WEB_PATHS.spaces,
-  primaryLabel = "找角色",
-}: {
-  artboard: Artboard
-  variant: Variant
-  forceVisible?: boolean
-  primaryTo?: string
-  primaryLabel?: string
-}) {
+function HomeHeroActions({ artboard, variant, forceVisible = false }: { artboard: Artboard; variant: Variant; forceVisible?: boolean }) {
   const isBlack = variant === "black"
   const playIconSize = 14
   const playIconStrokeWidth = 2.75
@@ -2440,8 +2412,8 @@ function HomeHeroActions({
   return (
     <>
       <Link
-        to={primaryTo}
-        aria-label={primaryLabel}
+        to={WEB_PATHS.spaces}
+        aria-label="找角色"
         onMouseDown={suppressMouseFocus}
         className={cx(
           "absolute z-20 flex min-h-11 touch-manipulation items-center justify-center gap-2 rounded-[1.15rem] border text-sm font-black transition hover:-translate-y-0.5 focus:outline-none focus:ring-4",
@@ -2450,7 +2422,7 @@ function HomeHeroActions({
         )}
         style={boxStyle(artboard, actions.primary.x, actions.primary.y, actions.primary.w, actions.primary.h)}
       >
-        <span className="flex flex-col leading-tight"><span>{primaryLabel}</span><span className={cx("text-[10px] uppercase tracking-[0.12em]", isBlack ? "text-slate-950/70" : "text-white/70")}>ENTER</span></span>
+        <span className="flex flex-col leading-tight"><span>找角色</span><span className={cx("text-[10px] uppercase tracking-[0.12em]", isBlack ? "text-slate-950/70" : "text-white/70")}>MEET</span></span>
         {isBlack ? (
           <ArrowUpRight size={16} strokeWidth={3} className="opacity-70" />
         ) : (
@@ -3193,7 +3165,6 @@ function FableSpaceDiscoverMobile({
             error={loadError}
             onRetry={onRetry}
             emptyTitle="暂时没有符合条件的 Space"
-            emptyDescription="调整搜索或筛选后再试；页面不会生成示例空间补位。"
           />
         )}
       </section>
@@ -3266,7 +3237,6 @@ export function FableSpaceHomeReference({
   featuredCitySlices,
   isLoading = false,
   loadState,
-  loadError,
   onRetry,
   sessionAccount,
   heroCoordinate,
@@ -3282,22 +3252,12 @@ export function FableSpaceHomeReference({
   const resolvedOnlineEntities = onlineEntities === undefined ? fallbackOnlineEntitiesFromHome(featuredCitySlices) : onlineEntities
   const rightRail = HOME_LAYOUT.rightRail
   const profile = accountProfile(sessionAccount)
-  const firstSlice = featuredCitySlices[0]
-  const firstEncounterTarget = firstSlice
-    ? targetForHomeCharacter({
-        spaceId: firstSlice.id,
-        spaceName: firstSlice.name,
-        characterId: firstSlice.characterId,
-        name: firstSlice.characterName,
-      })
-    : WEB_PATHS.spaces
   return (
     <ArtboardShell artboard={artboard} variant={variant} kind="home">
       <FableSpaceHomeMobile
         featuredCitySlices={featuredCitySlices}
         isLoading={isLoading}
         loadState={loadState}
-        loadError={loadError}
         onRetry={onRetry}
         sessionAccount={sessionAccount}
         onToggleTheme={onToggleTheme}
@@ -3312,7 +3272,6 @@ export function FableSpaceHomeReference({
           variant={variant}
           isLoading={isLoading}
           loadState={loadState}
-          loadError={loadError}
           onRetry={onRetry}
           heroCoordinate={heroCoordinate}
           visitorIdentityLabel={visitorIdentityLabel}
@@ -3320,21 +3279,14 @@ export function FableSpaceHomeReference({
         />
         <FableSpaceSidebar artboard={artboard} variant={variant} active="home" onToggleTheme={onToggleTheme} showCreatorTools={showCreatorTools} />
         <FableSpaceUserCluster artboard={artboard} variant={variant} profile={profile} />
-        <HomeHeroActions
-          artboard={artboard}
-          variant={variant}
-          forceVisible
-          primaryTo={firstEncounterTarget}
-          primaryLabel="回应安妮"
-        />
+        <HomeHeroActions artboard={artboard} variant={variant} forceVisible />
         <FableSpaceFeedPanel
           artboard={artboard}
           variant={variant}
           box={rightRail.worldPulse}
-          title="历史正在发生"
+          title="故事"
           items={resolvedWorldPulseItems}
-          actionLabel="进入完整世界"
-          actionTo={firstEncounterTarget}
+          actionLabel="全部故事"
           forceVisible
         />
         <FableSpaceOnlineEntitiesPanel
@@ -3342,9 +3294,9 @@ export function FableSpaceHomeReference({
           variant={variant}
           box={rightRail.onlineEntities}
           entities={resolvedOnlineEntities}
-          title="故事中的人"
-          actionTo={firstEncounterTarget}
-          limit={1}
+          title="可以去见的人"
+          actionTo={WEB_PATHS.spaces}
+          limit={6}
           forceVisible
         />
       </div>
@@ -3387,7 +3339,6 @@ export function FableSpaceDiscoverReference(props: DiscoverReferenceProps) {
             error={props.loadError}
             onRetry={props.onRetry}
             emptyTitle="暂时没有符合条件的 Space"
-            emptyDescription="调整搜索或筛选后再试；页面不会生成示例空间补位。"
             className="absolute z-20"
             style={boxStyle(artboard, 252, 413, 954, 476)}
           />

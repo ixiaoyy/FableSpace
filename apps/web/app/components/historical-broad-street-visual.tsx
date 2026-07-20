@@ -5,7 +5,7 @@ export function HistoricalBroadStreetVisual({ className = "", compact = false }:
     <svg
       viewBox="0 0 720 420"
       role="img"
-      aria-label="1854 年伦敦宽街的雨雾、水泵与石板路剪影"
+      aria-label="1854 年伦敦宽街，一个小女孩抱着缺口陶罐站在水泵旁"
       className={className}
       preserveAspectRatio="xMidYMid slice"
     >
@@ -70,13 +70,45 @@ export function HistoricalBroadStreetVisual({ className = "", compact = false }:
       </g>
       <ellipse cx="512" cy="381" rx="98" ry="17" fill="#090c18" opacity="0.45" />
 
-      {!compact ? (
-        <g transform="translate(75 236)">
-          <text fill="#eee8de" fontSize="17" fontWeight="800" letterSpacing="4">BROAD STREET</text>
-          <text y="57" fill="#d0b4e3" fontSize="55" fontWeight="900" letterSpacing="-2">1854</text>
-          <text y="88" fill="#cbd2e1" fillOpacity="0.72" fontSize="14" fontWeight="700">一口水，牵出一张疾病地图</text>
+      <g transform="translate(236 126)">
+        <ellipse cx="84" cy="245" rx="76" ry="14" fill="#090c18" opacity="0.48" />
+        <path
+          d="M42 75c6-31 24-48 49-48 27 0 45 19 48 50l-10 17H53Z"
+          fill="#171a2d"
+          stroke="#77738f"
+          strokeWidth="4"
+        />
+        <circle cx="91" cy="66" r="29" fill="#b79b88" />
+        <path
+          d="M63 63c2-25 14-38 30-38 21 0 34 15 35 42-15-7-26-18-31-31-7 15-18 24-34 27Z"
+          fill="#26283d"
+        />
+        <path d="M79 68h3M104 68h3" stroke="#282435" strokeWidth="5" strokeLinecap="round" />
+        <path d="M85 83c5 3 10 3 15 0" fill="none" stroke="#705f60" strokeWidth="3" strokeLinecap="round" />
+        <path
+          d="M52 94c20-13 58-13 78 0l17 118H35Z"
+          fill="#292d4a"
+          stroke="#77738f"
+          strokeWidth="4"
+          strokeLinejoin="round"
+        />
+        <path d="M52 104 26 165l22 11 31-54M129 104l24 58-21 12-31-53" fill="#292d4a" stroke="#77738f" strokeWidth="4" strokeLinejoin="round" />
+        <path d="M58 209 51 247M123 209l8 38" stroke="#171a2d" strokeWidth="14" strokeLinecap="round" />
+        <path d="M38 248h30M116 248h31" stroke="#77738f" strokeWidth="8" strokeLinecap="round" />
+        <g transform="translate(68 125)">
+          <path
+            d="M8 13h48l8 18-5 58H5L0 31Z"
+            fill="#665462"
+            stroke="#c6aa8b"
+            strokeWidth="4"
+            strokeLinejoin="round"
+          />
+          <path d="M9 13 20 3l8 10L38 2l10 11" fill="none" stroke="#c6aa8b" strokeWidth="4" strokeLinejoin="round" />
+          <path d="M57 31c20 0 22 38 3 39" fill="none" stroke="#c6aa8b" strokeWidth="5" />
+          <path d="M13 42h40" stroke="#8f7480" strokeWidth="3" opacity="0.7" />
         </g>
-      ) : null}
+        <path d="M45 166c17 11 34 15 52 12M136 166c-16 10-32 14-49 12" fill="none" stroke="#b79b88" strokeWidth="9" strokeLinecap="round" />
+      </g>
 
       <rect width="720" height="420" fill={`url(#broad-street-rain-${suffix})`} />
       <path d="M0 225c151-39 241 24 368-3s216-78 352-31v84H0Z" fill="#b7bfd0" opacity="0.07" />

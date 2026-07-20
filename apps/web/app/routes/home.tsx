@@ -64,7 +64,7 @@ export default function HomeRoute() {
     ? "loading"
     : loadError
       ? "error"
-      : homepage.featuredCitySlices.length === 1
+      : homepage.featuredCitySlices.length > 0
         ? "ready"
         : "empty"
 

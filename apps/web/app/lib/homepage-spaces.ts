@@ -214,7 +214,7 @@ export function buildFeaturedCitySlices(spaces: Space[], limit = 3): HomepageCit
     name: compactText(space.name, "未命名入口", 18),
     description: compactText(space.description, formatHomepageLocation(space), 72),
     location: formatHomepageLocation(space),
-    entryMeta: space.status === "closed" || space.is_open === false ? "今日熄灯" : "所在空间可进入",
+    entryMeta: space.status === "closed" || space.is_open === false ? "今日熄灯" : "可进入",
     tags: buildEntryTags(space),
     id: space.id,
     visit_count: toPositiveNumber(space.visit_count),
