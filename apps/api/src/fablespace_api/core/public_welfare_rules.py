@@ -66,6 +66,50 @@ PUBLIC_WELFARE_COMMON_RESPONSES: tuple[PublicWelfareRuleResponse, ...] = (
 )
 
 PUBLIC_WELFARE_TAVERN_RULESETS: dict[str, PublicWelfareTavernRuleSet] = {
+    "history_broad_street_water_1854": PublicWelfareTavernRuleSet(
+        trigger_keywords=(
+            "水", "给你", "给水", "不给", "拒绝", "水泵", "宽街", "妈妈", "母亲",
+            "邻居", "街坊", "医生", "地图", "病例", "John Snow", "约翰", "雪诺",
+            "开始", "怎么玩", "帮助", "规则",
+        ),
+        responses=(
+            PublicWelfareRuleResponse(
+                keywords=("开始", "怎么玩", "做什么", "帮助", "规则"),
+                action="安妮把缺口陶罐放到脚边",
+                message="先别替我决定喝不喝。你只要选一件：告诉我碗里的水从哪来、陪我问邻居，或者去找那个挨家挨户画记号的先生。",
+            ),
+            PublicWelfareRuleResponse(
+                keywords=("不给", "拒绝", "没有水", "空的", "不帮"),
+                action="安妮抿住嘴，没有再伸手",
+                message="那也行。我不拿你的。你能陪我找别处，替我问一个大人，或者告诉我那个画图先生往哪边去了吗？",
+            ),
+            PublicWelfareRuleResponse(
+                keywords=("给你", "给水", "喝吧", "分你", "可以给"),
+                action="安妮伸手伸到一半，又把陶罐抱紧",
+                message="谢谢，可它是从哪儿来的？要也是宽街那口泵，我不能带回去。先查清水源，再决定给谁喝。",
+            ),
+            PublicWelfareRuleResponse(
+                keywords=("水泵", "宽街", "井", "水源"),
+                action="安妮朝街角那口手压泵看了一眼",
+                message="我们家一直从那里打水。楼上和对门也去过，后来好几家都病了。妈妈只说别碰它，却没人肯告诉我还能去哪儿取水。",
+            ),
+            PublicWelfareRuleResponse(
+                keywords=("妈妈", "母亲", "家里", "家人"),
+                action="安妮把陶罐的缺口转到掌心里",
+                message="妈妈没有让我来讨，她只说不能再碰那口泵。你若想帮，就先帮我弄清楚：病倒的几家是不是都从同一个地方取水。",
+            ),
+            PublicWelfareRuleResponse(
+                keywords=("医生", "地图", "病例", "John Snow", "约翰", "雪诺", "画图"),
+                action="安妮在灰地上点出几扇门的位置",
+                message="就是那个严肃先生。他不先问谁闻见坏空气，只问每家喝过哪里的水，还把地址画在纸上。我们可以把我家和对门的取水处告诉他。",
+            ),
+        ),
+        fallback=PublicWelfareRuleResponse(
+            keywords=(),
+            action="安妮守着空陶罐，没有催你",
+            message="你可以不给水。可若愿意再做一件事，就帮我查清：你碗里的水、我家的水，还有病倒街坊的水，分别从哪儿来。",
+        ),
+    ),
     "story_palace_snow_edict": PublicWelfareTavernRuleSet(
         trigger_keywords=(
             "诏书", "皇帝", "太监", "公主", "宫门", "水门", "腰牌", "封蜡",
@@ -179,6 +223,11 @@ PUBLIC_WELFARE_TAVERN_RULESETS: dict[str, PublicWelfareTavernRuleSet] = {
 
 
 PUBLIC_WELFARE_CHARACTER_RULESETS: dict[tuple[str, str], PublicWelfareTavernRuleSet] = {
+    ("history_broad_street_water_1854", "安妮"): PublicWelfareTavernRuleSet(
+        trigger_keywords=PUBLIC_WELFARE_TAVERN_RULESETS["history_broad_street_water_1854"].trigger_keywords,
+        responses=PUBLIC_WELFARE_TAVERN_RULESETS["history_broad_street_water_1854"].responses,
+        fallback=PUBLIC_WELFARE_TAVERN_RULESETS["history_broad_street_water_1854"].fallback,
+    ),
     ("story_palace_snow_edict", "魏观海"): PublicWelfareTavernRuleSet(
         trigger_keywords=PUBLIC_WELFARE_TAVERN_RULESETS["story_palace_snow_edict"].trigger_keywords,
         responses=(

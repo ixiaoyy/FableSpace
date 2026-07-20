@@ -5,8 +5,8 @@ import { FableSpaceHomeReference } from "../components/fable-space-reference-art
 import { VisitorPlayIdentityOnboarding } from "../components/visitor-play-identity-onboarding"
 import { useSessionAccount } from "../hooks/useSessionAccount"
 import { useTheme } from "../hooks/useTheme"
+import { loadHistoryPilotSpace } from "../lib/history-pilot-space"
 import { buildHomepageView } from "../lib/homepage-spaces"
-import { loadLaunchStorySpaces } from "../lib/launch-story-spaces"
 import { mediaAssetUrl } from "../lib/media-assets"
 import { errorMessage, type SpaceListResponse } from "../lib/spaces"
 import {
@@ -38,7 +38,7 @@ export const links: LinksFunction = () => [
 export async function clientLoader(): Promise<HomeLoaderData> {
   try {
     return {
-      result: await loadLaunchStorySpaces(),
+      result: await loadHistoryPilotSpace(),
       error: "",
     }
   } catch (error) {
@@ -64,7 +64,7 @@ export default function HomeRoute() {
     ? "loading"
     : loadError
       ? "error"
-      : homepage.featuredCitySlices.length === 6
+      : homepage.featuredCitySlices.length === 1
         ? "ready"
         : "empty"
 

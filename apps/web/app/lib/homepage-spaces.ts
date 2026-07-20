@@ -25,6 +25,7 @@ export type HomepageCitySlice = {
   characterName: string
   characterDescription: string
   characterAvatar: string
+  hasCharacterPortrait: boolean
   characterTags: string[]
 }
 
@@ -46,6 +47,8 @@ function safeSpaces(result?: Partial<SpaceListResponse> | null): Space[] {
 function safeCharacters(space: Space) {
   return Array.isArray(space.characters) ? space.characters : []
 }
+
+const zhCnIntegerFormatter = new Intl.NumberFormat("zh-CN")
 
 /**
  * Resolve the best public portrait available for a homepage NPC.
@@ -77,7 +80,7 @@ function hasCoordinates(space: Space) {
 }
 
 function formatInteger(value: number) {
-  return new Intl.NumberFormat("zh-CN").format(Math.max(0, Math.round(value)))
+  return zhCnIntegerFormatter.format(Math.max(0, Math.round(value)))
 }
 
 function compactText(value: unknown, fallback: string, maxLength = 28) {
@@ -222,11 +225,12 @@ export function buildFeaturedCitySlices(spaces: Space[], limit = 3): HomepageCit
     characterId: character.id,
     characterName: compactText(character.name, "未命名角色", 18),
     characterDescription: compactText(
-      character.description || character.personality || character.first_mes,
+      character.first_mes || character.description || character.personality,
       "TA 正在这个坐标背后的空间里。",
-      72,
+      112,
     ),
     characterAvatar: homepageCharacterAvatar(character),
+    hasCharacterPortrait: Boolean(homepageCharacterAvatar(character)),
     characterTags: [
       ...(Array.isArray(character.tags) ? character.tags : []),
       ...(Array.isArray(character.traits) ? character.traits : []),

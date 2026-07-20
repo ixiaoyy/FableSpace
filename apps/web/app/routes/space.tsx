@@ -11,7 +11,9 @@ import {
 } from "lucide-react"
 import { useState } from "react"
 import { Link, Navigate, replace, useLoaderData } from "react-router"
+import { HistoricalBroadStreetVisual } from "../components/historical-broad-street-visual"
 import { SpaceChatWorkbench } from "../features/space-chat-workbench"
+import { HISTORY_PILOT_SPACE_ID } from "../lib/history-pilot-space"
 import { resolveHomepageSpaceCover } from "../lib/homepage-spaces"
 import { mediaAssetUrl } from "../lib/media-assets"
 import { derivePlaceTypeDisplay } from "../lib/place-types.js"
@@ -214,6 +216,7 @@ function SpaceHeroPanel({
   status: ReturnType<typeof entryStatusDisplay>
 }) {
   const coverImage = resolveSpaceHomeImage(space, 0)
+  const isHistoryWaterPilot = space.id === HISTORY_PILOT_SPACE_ID
   const firstMinute = buildSpaceFirstMinuteGuide(space)
   const placeType = derivePlaceTypeDisplay(space)
   const anchor = formatSpaceAnchorLocation(space)
@@ -222,7 +225,11 @@ function SpaceHeroPanel({
   return (
     <section className="relative min-h-[390px] overflow-hidden rounded-[1.2rem] border border-cyan-200/16 bg-[#1b2144] shadow-[0_22px_70px_rgba(4,7,22,0.42)] sm:min-h-[430px] xl:min-h-[840px]">
       <div className="absolute inset-0">
-        <img src={coverImage} alt="" className="h-full w-full object-cover opacity-[0.88]" loading="eager" decoding="async" />
+        {isHistoryWaterPilot ? (
+          <HistoricalBroadStreetVisual className="h-full w-full opacity-[0.92]" />
+        ) : (
+          <img src={coverImage} alt="" className="h-full w-full object-cover opacity-[0.88]" loading="eager" decoding="async" />
+        )}
         <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(2,7,16,0.92)_0%,rgba(2,7,16,0.70)_38%,rgba(2,7,16,0.24)_100%)]" />
         <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(2,7,16,0.08)_0%,rgba(2,7,16,0.34)_62%,rgba(2,7,16,0.88)_100%)]" />
       </div>
@@ -335,8 +342,10 @@ function SpaceSpacePage({
         </div>
         <div className="min-w-0 space-y-5">
           <div className="grid min-w-0 gap-5 xl:grid-cols-[minmax(360px,0.74fr)_minmax(720px,1.26fr)] xl:items-stretch">
-            <SpaceHeroPanel space={space} isOwner={isOwner} status={status} />
-            <section id="空间主线" className="flex scroll-mt-6 flex-col rounded-[1.2rem] border border-cyan-200/16 bg-[#1b2144]/82 p-3 shadow-[0_24px_72px_rgba(4,7,22,0.38)] sm:p-4 xl:h-[840px] xl:overflow-hidden">
+            <div className="order-2 xl:order-1">
+              <SpaceHeroPanel space={space} isOwner={isOwner} status={status} />
+            </div>
+            <section id="空间主线" className="space-mobile-chat-first order-1 flex w-full min-w-0 max-w-full scroll-mt-6 flex-col rounded-[1.2rem] border border-cyan-200/16 bg-[#1b2144]/82 p-3 shadow-[0_24px_72px_rgba(4,7,22,0.38)] sm:p-4 xl:order-2 xl:h-[840px] xl:overflow-hidden">
               <div className="mb-3 flex items-center justify-between gap-4 px-1">
                 <div>
                   <h2 className="text-xl font-black text-white">角色与聊天</h2>
@@ -350,7 +359,7 @@ function SpaceSpacePage({
                   {status.interactionLabel}
                 </span>
               </div>
-              <div className="min-h-0 flex-1">
+              <div className="min-h-0 min-w-0 flex-1">
                 <SpaceChatWorkbench
                   space={space}
                   roleplay={roleplay}
