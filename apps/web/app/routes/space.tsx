@@ -6,8 +6,6 @@ import {
   MapPin,
   MoreVertical,
   Share2,
-  UserRoundCheck,
-  UsersRound,
 } from "lucide-react"
 import { useState } from "react"
 import { Link, Navigate, replace, useLoaderData } from "react-router"
@@ -84,12 +82,6 @@ function cx(...classes: Array<string | false | undefined | null>) {
   return classes.filter(Boolean).join(" ")
 }
 
-function compactText(value: unknown, fallback: string, maxLength = 84) {
-  const text = typeof value === "string" ? value.trim().replace(/\s+/g, " ") : ""
-  const display = text || fallback
-  return display.length > maxLength ? `${display.slice(0, maxLength)}…` : display
-}
-
 function entryStatusDisplay(space: Space) {
   const access = String(space.access || "public").toLowerCase()
   const status = String(space.status || "open").toLowerCase()
@@ -99,7 +91,6 @@ function entryStatusDisplay(space: Space) {
     return {
       label: "今日熄灯",
       interactionLabel: "仅预览",
-      helper: "可预览，稍后再进入",
       className: "border-violet-300/20 bg-violet-300/10 text-violet-100",
     }
   }
@@ -108,7 +99,6 @@ function entryStatusDisplay(space: Space) {
     return {
       label: "口令门扉",
       interactionLabel: "口令进入",
-      helper: "带口令进入，不公开扩散",
       className: "border-amber-200/28 bg-amber-300/12 text-amber-50",
     }
   }
@@ -117,7 +107,6 @@ function entryStatusDisplay(space: Space) {
     return {
       label: "主人私域",
       interactionLabel: "授权可见",
-      helper: "仅主人或授权访客可见",
       className: "border-violet-200/28 bg-violet-300/12 text-violet-50",
     }
   }
@@ -125,7 +114,6 @@ function entryStatusDisplay(space: Space) {
   return {
     label: "公开入口",
     interactionLabel: "可互动",
-    helper: "可直接进入和 NPC 对话",
     className: "border-cyan-200/30 bg-cyan-300/14 text-cyan-50",
   }
 }
@@ -238,7 +226,7 @@ function SpaceHeroPanel({
         <div className="mb-5 flex flex-wrap items-center gap-2">
           <span className="inline-flex min-h-8 items-center gap-2 rounded-full border border-cyan-200/18 bg-slate-950/42 px-3 text-[0.68rem] font-black text-cyan-100 backdrop-blur">
             <span className="h-1.5 w-1.5 rounded-full bg-cyan-300" />
-            {characters.length} 位活跃角色
+            {characters.length} 位角色
           </span>
           <span className={cx("inline-flex min-h-8 items-center gap-2 rounded-full border px-3 text-[0.68rem] font-black backdrop-blur", status.className)}>
             <DoorOpen className="h-3.5 w-3.5" />
@@ -254,16 +242,8 @@ function SpaceHeroPanel({
         <h1 className="max-w-3xl text-4xl font-black leading-[0.98] text-white drop-shadow-2xl sm:text-5xl lg:text-6xl">
           {space.name || "未命名空间"}
         </h1>
-        <p className="mt-4 max-w-2xl text-xl font-black leading-7 text-white sm:text-2xl">
-          {compactText(space.description || firstMinute.experienceType, firstMinute.playObjective, 34)}
-        </p>
-        <p className="mt-4 max-w-2xl text-sm font-semibold leading-7 text-cyan-50/76 sm:text-base">
-          {compactText(space.scene_prompt || space.description, firstMinute.sceneHint, 104)}
-        </p>
 
         <div className="mt-5 flex flex-wrap items-center gap-5 text-xs font-bold text-cyan-100/62">
-          <span className="inline-flex items-center gap-2"><UserRoundCheck className="h-4 w-4 text-cyan-200" />{status.helper}</span>
-          <span className="inline-flex items-center gap-2"><UsersRound className="h-4 w-4 text-cyan-200" />驻场角色 {characters.length}</span>
           <span className="inline-flex items-center gap-2"><Activity className="h-4 w-4 text-cyan-200" />{placeType.shortLabel || placeType.label || firstMinute.experienceType}</span>
         </div>
 

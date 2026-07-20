@@ -89,47 +89,6 @@ const ROLEPLAY_STARTER_PROMPTS: RoleplayStarterPrompt[] = [
 ]
 
 /**
- * Compacts scene text for visitor UI without rewriting owner-authored content.
- * Returns a short display string only; it has no persistence side effects.
- */
-function compactSceneLine(value: unknown, fallback = "", maxLength = 72) {
-  const text = String(value ?? "").trim().replace(/\s+/g, " ") || fallback
-  return text.length > maxLength ? `${text.slice(0, maxLength)}…` : text
-}
-
-/**
- * Builds opening-scene digest rows from existing space/NPC fields.
- * The rows are UI scaffolding only and must not be treated as new canonical lore.
- */
-function buildWorkbenchOpeningDigest(
-  space: Space,
-  character: SpaceCharacter | undefined,
-  firstMinuteGuide: ReturnType<typeof buildSpaceFirstMinuteGuide>,
-  visitorState: any,
-) {
-  const rows: { label: string; value: string }[] = []
-  const location = compactSceneLine(firstMinuteGuide.anchorLine || space.address || space.name, "", 54)
-  const mood = compactSceneLine(firstMinuteGuide.sceneHint || space.description || firstMinuteGuide.experienceHelper, "", 64)
-  const npc = compactSceneLine(
-    [character?.name, character?.description || character?.personality].filter(Boolean).join(" · "),
-    "",
-    68,
-  )
-  const nextStep = compactSceneLine(firstMinuteGuide.tryThisFirst?.[0] || firstMinuteGuide.playObjective, "", 76)
-  const visitCount = Number.parseInt(String(visitorState?.visit_count || visitorState?.visitCount || ""), 10)
-
-  if (location) rows.push({ label: "地点", value: location })
-  if (mood) rows.push({ label: "氛围", value: mood })
-  if (npc) rows.push({ label: "眼前 NPC", value: npc })
-  if (Number.isFinite(visitCount) && visitCount > 1) {
-    rows.push({ label: "回访", value: `这是你第 ${visitCount} 次回来，可以继续上次的关系感。` })
-  }
-  if (nextStep) rows.push({ label: "下一步", value: nextStep })
-
-  return rows.slice(0, 5)
-}
-
-/**
  * Sorts generic in-character starter prompts for the current space mode.
  * These are visitor reply templates only; clicking one pre-fills text and does not auto-send.
  */
@@ -613,10 +572,6 @@ export function SpaceChatWorkbench({
     ? publicMessages
     : privateMessagesByCharacterId[selectedCharacter?.id || ""] || []
   const hasVisitorSentMessage = visibleMessages.some((line) => line.role === "user")
-  const openingDigestRows = useMemo(
-    () => buildWorkbenchOpeningDigest(space, selectedCharacter, firstMinuteGuide, visitorState),
-    [space, selectedCharacter, firstMinuteGuide, visitorState],
-  )
   const roleplayStarterPrompts = useMemo(
     () => getWorkbenchRoleplayStarters(space, selectedCharacter, firstMinuteGuide),
     [space, selectedCharacter, firstMinuteGuide],
@@ -1393,7 +1348,6 @@ export function SpaceChatWorkbench({
               {characters.length ? (
                 characters.map((character) => {
                   const active = activeChatChannel === "private" && character.id === selectedCharacter?.id
-                  const intro = compactSceneLine(character.description || character.personality || character.scenario || character.first_mes, "等待你开口。", 70)
                   return (
                     <button
                       key={character.id}
@@ -1408,7 +1362,6 @@ export function SpaceChatWorkbench({
                       <CharacterAvatar character={character} active={active} />
                       <span className="min-w-0 flex-1">
                         <span className="block truncate text-sm font-black text-white">{character.name || character.id}</span>
-                        <span className="mt-1 line-clamp-2 block text-xs font-semibold leading-5 text-cyan-50/58">{intro}</span>
                       </span>
                     </button>
                   )
@@ -1500,23 +1453,8 @@ export function SpaceChatWorkbench({
                     <h2 className="mt-0.5 truncate text-base font-black text-white sm:text-lg">
                       {activeChatChannel === "public" ? "公共聊天" : selectedCharacter?.name || "暂无 NPC"}
                     </h2>
-                    <p className="mt-1 line-clamp-2 text-xs font-semibold leading-5 text-cyan-50/62">
-                      {activeChatChannel === "public"
-                        ? characters.length + " 位 NPC 在场，可以用 @名字 指定回应。"
-                        : compactSceneLine(selectedCharacter?.description || selectedCharacter?.personality || selectedCharacter?.scenario || selectedCharacter?.first_mes, doorwayGreeting, 118)}
-                    </p>
                   </div>
                 </div>
-                {openingDigestRows.length ? (
-                  <div className="mt-3 flex gap-2 overflow-x-auto pb-1 sm:grid sm:grid-cols-3 sm:overflow-visible sm:pb-0">
-                    {openingDigestRows.slice(0, 3).map((row) => (
-                      <div key={row.label} className="min-w-[9.5rem] rounded-xl border border-white/10 bg-slate-950/24 px-3 py-2 sm:min-w-0">
-                        <p className="text-[0.66rem] font-black uppercase tracking-[0.14em] text-violet-100/42">{row.label}</p>
-                        <p className="mt-1 truncate text-xs font-bold text-cyan-50/70">{row.value}</p>
-                      </div>
-                    ))}
-                  </div>
-                ) : null}
               </div>
             </div>
             <AmbientActivityPanel activity={ambientActivity} />
