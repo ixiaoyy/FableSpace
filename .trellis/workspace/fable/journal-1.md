@@ -72,3 +72,38 @@ Migrated 358 project images to the stable CDN namespace, replaced runtime and me
 ### Next Steps
 
 - None - task complete
+
+
+## Session 3: Restore expandable character homepage
+
+**Date**: 2026-07-20
+**Task**: Restore expandable character homepage
+**Branch**: `main`
+
+### Summary
+
+恢复可扩展角色发现首页，将安妮作为普通角色卡呈现；写入禁止页面解释性文字的前端硬规范；清理移动端聊天与 Space 标题区说明脚手架，并完成 360px 生产验收。
+
+### Main Changes
+
+- Detailed change bullets were not supplied; see the summary above.
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `3f6d135f` | (see git log) |
+| `079ea3d8` | (see git log) |
+| `690a04d0` | (see git log) |
+
+### Testing
+
+- Validation was not recorded for this session.
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
