@@ -307,6 +307,256 @@ def _chapter_gameplay(
     }
 
 
+def _historical_broad_street_gameplay() -> dict[str, Any]:
+    """Build Annie's fixed-canon story without extending the gameplay schema."""
+    fixed_history = (
+        "当晚，John Snow 向 St James 教区监护委员会陈述调查；次日，地方管理者移除了宽街水泵把手。"
+        "暴发在此之前已经开始减退，这段公共历史并不由你们的一张纸决定。"
+    )
+    return {
+        "id": "gp_history_broad_street_first_water",
+        "title": "一碗水从哪里来",
+        "status": "published",
+        "summary": "安妮在 1854 年 9 月 7 日的宽街向你讨水。",
+        "entry_label": "回应安妮",
+        "mode": "ai_directed_branch",
+        "owner_brief": {
+            "goal": "让访客在不改写公共历史的前提下，和安妮核对饮水来源并留下私人关系结果。",
+            "tone": "1854 年伦敦街巷、儿童有限视角、克制、具体",
+            "materials": ["破碗", "缺口陶罐", "死亡登记名单", "门牌", "取水处", "证词纸页"],
+            "forbidden": [
+                "把安妮写成真实历史人物",
+                "替访客决定碗里有没有水",
+                "让玩家促成或改变泵柄移除",
+                "把点图写成 Snow 最初发现水源的原因",
+                "宣称移除泵柄立刻终结疫情",
+                "使用现代医学知识替角色下结论",
+                "虚构具名住户、精确家庭人数、死亡日期或未经来源核验的伤亡细节",
+                "确定描述原宽街水泵的颜色、材质、装饰或其它外观",
+            ],
+        },
+        "nodes": [
+            {
+                "id": "start",
+                "kind": "scene",
+                "narration": "安妮没有把陶罐递过来。她盯着你的碗沿，等你先回答水从哪里来。",
+                "choices": [
+                    {"id": "ask-pump", "label": "“为什么不能去宽街水泵？”", "next_node_id": "ask-pump"},
+                    {"id": "name-water-source", "label": "“我先告诉你，这碗水从哪儿来。”", "next_node_id": "trace-water"},
+                    {"id": "refuse-but-stay", "label": "“水不能给你，但我陪你找别处。”", "next_node_id": "walk-together"},
+                ],
+                "fallback_events": [
+                    {"id": "start-stay", "text": "安妮仍在等你的回答。", "next_node_id": "start"},
+                ],
+            },
+            {
+                "id": "ask-pump",
+                "kind": "scene",
+                "narration": (
+                    "安妮朝街角看了一眼。她家一直在那里取水；这几天，楼上和对门都有人病倒。"
+                    "母亲只说不许再碰，却没有告诉她还能去哪里。"
+                ),
+                "choices": [
+                    {"id": "ask-households", "label": "“你记得哪些人去过那口泵？”", "next_node_id": "doorstep"},
+                    {"id": "seek-list-doctor", "label": "“先找那个拿名单问话的医生。”", "next_node_id": "doctor-list"},
+                    {"id": "follow-mother-warning", "label": "“先听你妈妈的，我们绕开那口泵。”", "next_node_id": "walk-together"},
+                ],
+                "fallback_events": [
+                    {"id": "ask-pump-stay", "text": "安妮等你决定先问谁。", "next_node_id": "ask-pump"},
+                ],
+            },
+            {
+                "id": "trace-water",
+                "kind": "scene",
+                "narration": "她的手伸到一半，又收了回去。水看起来都一样；她只肯先听你说清这碗水的来路。",
+                "choices": [
+                    {"id": "admit-unknown", "label": "“我也说不准，先别喝。”", "next_node_id": "doorstep"},
+                    {"id": "verify-source", "label": "“我记得取水处，陪我回去核对。”", "next_node_id": "trace-source"},
+                    {"id": "push-unsafe-water", "label": "“肯定没事，你先喝。”", "next_node_id": "progress-wary"},
+                ],
+                "fallback_events": [
+                    {"id": "trace-water-stay", "text": "安妮仍没有碰那碗水。", "next_node_id": "trace-water"},
+                ],
+            },
+            {
+                "id": "walk-together",
+                "kind": "scene",
+                "narration": "安妮把陶罐抱回怀里，沿墙根避开排在水泵前的人。她没有再讨水，只问你愿意陪到哪一步。",
+                "choices": [
+                    {"id": "visit-doorsteps", "label": "“我陪你逐户问取水处。”", "next_node_id": "doorstep"},
+                    {"id": "find-questioner", "label": "“去找拿名单问话的人。”", "next_node_id": "doctor-list"},
+                    {"id": "leave-annie", "label": "“我只能帮到这里。”", "next_node_id": "complete-distant", "completes": True},
+                ],
+                "fallback_events": [
+                    {"id": "walk-stay", "text": "安妮停在岔路口等你。", "next_node_id": "walk-together"},
+                ],
+            },
+            {
+                "id": "trace-source",
+                "kind": "scene",
+                "narration": (
+                    "你们沿来路回找。安妮不认水色，也不认一句保证；她只认取得到的地点、看得见的门牌，"
+                    "以及谁亲手提过水。"
+                ),
+                "choices": [
+                    {"id": "record-confirmed-source", "label": "“只写我能确认的取水处。”", "next_node_id": "progress"},
+                    {"id": "correct-source", "label": "“我记错了，划掉重问。”", "next_node_id": "progress"},
+                    {"id": "invent-source", "label": "“随便写一个，大人不会查。”", "next_node_id": "progress-wary"},
+                ],
+                "fallback_events": [
+                    {"id": "trace-source-stay", "text": "纸上那一格仍然空着。", "next_node_id": "trace-source"},
+                ],
+            },
+            {
+                "id": "doorstep",
+                "kind": "scene",
+                "narration": (
+                    "两扇门给出的说法并不一样：一户只记得病倒的人，另一户记得是谁去取过水。"
+                    "安妮蹲下来，把“亲眼看见”和“听人说”分成两边。"
+                ),
+                "choices": [
+                    {"id": "separate-evidence", "label": "“门牌、取水处、亲眼所见，分开记。”", "next_node_id": "progress"},
+                    {"id": "declare-pump-guilty", "label": "“不用再问，肯定就是那口泵。”", "next_node_id": "progress-wary"},
+                    {"id": "ask-unaffected", "label": "“再问没病倒的人从哪里取水。”", "next_node_id": "contrast"},
+                ],
+                "fallback_events": [
+                    {"id": "doorstep-stay", "text": "安妮把两种说法分别按住。", "next_node_id": "doorstep"},
+                ],
+            },
+            {
+                "id": "contrast",
+                "kind": "scene",
+                "narration": (
+                    "街坊提到附近济贫院有自己的水源，啤酒厂工人也不靠街泵取水。"
+                    "安妮在纸边写下“听说”，不肯把还没核对的话装成亲眼所见。"
+                ),
+                "choices": [
+                    {"id": "mark-hearsay", "label": "“把‘听说’标清，再去核对。”", "next_node_id": "progress"},
+                    {"id": "promote-hearsay", "label": "“听着合理，直接写成证据。”", "next_node_id": "progress-wary"},
+                ],
+                "fallback_events": [
+                    {"id": "contrast-stay", "text": "那两个字仍留在纸边。", "next_node_id": "contrast"},
+                ],
+            },
+            {
+                "id": "doctor-list",
+                "kind": "scene",
+                "narration": (
+                    "街的另一头，一位医生正拿着死亡登记名单，逐户问人喝过哪里的水。"
+                    "调查早已开始；安妮能做的，只是把自己确实知道的取水处说清。"
+                ),
+                "choices": [
+                    {"id": "write-known-source", "label": "“先把你确实知道的取水处写清。”", "next_node_id": "progress"},
+                    {"id": "claim-we-solved-it", "label": "“告诉他，是我们先找到了答案。”", "next_node_id": "progress-wary"},
+                    {"id": "keep-checking", "label": "“先不打断，继续核对邻居。”", "next_node_id": "doorstep"},
+                ],
+                "fallback_events": [
+                    {"id": "doctor-stay", "text": "问话还在沿街继续。", "next_node_id": "doctor-list"},
+                ],
+            },
+            {
+                "id": "progress",
+                "kind": "scene",
+                "narration": (
+                    "纸上终于有了三列：哪一扇门、从哪里取水、这句话是谁亲眼看见的。"
+                    "安妮把纸压在陶罐下面，决定最后由谁开口。"
+                ),
+                "choices": [
+                    {"id": "let-annie-speak", "label": "“你自己说，我在旁边补门牌。”", "next_node_id": "complete-trust", "completes": True},
+                    {"id": "deliver-together", "label": "“我们一起把这张纸交过去。”", "next_node_id": "complete", "completes": True},
+                    {"id": "take-over-story", "label": "“纸给我，我替你说得更像真的。”", "next_node_id": "progress-wary"},
+                ],
+                "fallback_events": [
+                    {"id": "progress-stay", "text": "安妮仍压着那张纸。", "next_node_id": "progress"},
+                ],
+            },
+            {
+                "id": "progress-wary",
+                "kind": "scene",
+                "narration": "安妮把纸抽了回去。她可以原谅弄错，却不肯让猜测冒充见过的事，也不肯把自己的话交给别人改。",
+                "choices": [
+                    {"id": "repair-record", "label": "“划掉猜测，只留下能核对的事。”", "next_node_id": "complete-repaired", "completes": True},
+                    {"id": "insist-on-story", "label": "“大人只听吓人的，我不改。”", "next_node_id": "complete-wary", "completes": True},
+                ],
+                "fallback_events": [
+                    {"id": "wary-stay", "text": "安妮等你决定要不要改。", "next_node_id": "progress-wary"},
+                ],
+            },
+            {
+                "id": "complete-trust",
+                "kind": "complete",
+                "narration": (
+                    "安妮自己说完每一扇门和每一处取水点。她没有叫你恩人，只把你的门牌补在纸角："
+                    "这是她愿意下次再来找的人。" + fixed_history
+                ),
+                "choices": [],
+                "fallback_events": [
+                    {"id": "trust-complete", "text": "安妮把纸收好。", "next_node_id": "complete-trust"},
+                ],
+            },
+            {
+                "id": "complete",
+                "kind": "complete",
+                "narration": (
+                    "你们并肩走到正在收集说法的人群边。那张纸只是许多住户见闻中的一张；"
+                    "安妮却记住了，你一路都没有替她把不知道的事说成知道。" + fixed_history
+                ),
+                "choices": [],
+                "fallback_events": [
+                    {"id": "together-complete", "text": "安妮抱紧空陶罐，和你站在一起。", "next_node_id": "complete"},
+                ],
+            },
+            {
+                "id": "complete-repaired",
+                "kind": "complete",
+                "narration": (
+                    "你划掉了那句过头的话。安妮盯着墨痕看了一会儿，把纸重新递给你一角。"
+                    "她还没有完全信你，但愿意让你陪着把路走完。" + fixed_history
+                ),
+                "choices": [],
+                "fallback_events": [
+                    {"id": "repaired-complete", "text": "纸上的改痕没有被藏起来。", "next_node_id": "complete-repaired"},
+                ],
+            },
+            {
+                "id": "complete-wary",
+                "kind": "complete",
+                "narration": (
+                    "安妮把纸折回自己口袋，不再让你替她开口。你们走向同一条街，却隔开了两步。"
+                    "她会记得你曾帮忙，也会记得你更想要一个漂亮答案。" + fixed_history
+                ),
+                "choices": [],
+                "fallback_events": [
+                    {"id": "wary-complete", "text": "安妮没有再把纸递给你。", "next_node_id": "complete-wary"},
+                ],
+            },
+            {
+                "id": "complete-distant",
+                "kind": "complete",
+                "narration": (
+                    "你在岔路口停下。安妮没有追，也没有责怪，只抱着空陶罐继续贴墙往前走。"
+                    "你没有再见到她；故事也不替你补写她之后找到什么。" + fixed_history
+                ),
+                "choices": [],
+                "fallback_events": [
+                    {"id": "distant-complete", "text": "安妮的脚步消失在街角。", "next_node_id": "complete-distant"},
+                ],
+            },
+        ],
+        "completion": {
+            "complete_node_ids": [
+                "complete-trust",
+                "complete",
+                "complete-repaired",
+                "complete-wary",
+                "complete-distant",
+            ],
+            "reward_text": "安妮会按你真正做过的事记住这次相遇。",
+            "memory_atom": {"enabled": False},
+        },
+    }
+
+
 def _historical_broad_street_space() -> dict[str, Any]:
     """Build the reviewed 1854 Broad Street historical pilot around one fictional child."""
     space_id = "history_broad_street_water_1854"
@@ -317,24 +567,28 @@ def _historical_broad_street_space() -> dict[str, Any]:
     )
     system_prompt = (
         f"你正在真实历史背景故事《{world_title}》中扮演原创角色安妮，不是客服、旁白、AI，也不是真实历史人物。"
-        "\n【身份】你是约十岁的伦敦穷人家庭女孩。时间是 1854 年 9 月初，地点在 Soho 宽街一带。"
+        "\n【身份】你是约十岁的伦敦穷人家庭女孩。时间是 1854 年 9 月 7 日下午，地点在 Soho 宽街一带。"
         "你是完全虚构的合成人物，不影射任何真实未成年人。"
         "\n【当前处境】附近许多家庭突然病倒。你家平时从宽街水泵取水，妈妈警告你别再碰那口泵，"
         "但家里已经没有水。你看见访客手里有一只破碗，于是先问能不能分一口水。"
         "\n【有限知识】你只知道哪些街坊病了、大家平时去哪里取水，以及有一位严肃的先生逐户询问饮水来源、"
         "在纸上标记地址。除非访客追问或取得线索，你不知道他的姓名；你不知道细菌、霍乱弧菌、现代流行病学，"
         "也不知道后世如何评价这次事件。"
-        "\n【历史正史】John Snow 调查病例与饮水来源并绘制分布；地方管理者在 1854 年 9 月 8 日移除宽街水泵把手；"
-        "当时水传播理论仍有争议。不要说成 Snow 亲手拔掉泵柄，也不要宣称泵柄一移除疫情便立刻神奇结束。"
+        "不要给街坊虚构姓名、门牌、家庭人数、发病或死亡日期；只用‘楼上’‘对门’‘一户人家’等有限称呼，"
+        "并分清亲眼所见与听说。原宽街水泵的确定外观没有保留下来，不描述它的颜色、材质或装饰。"
+        "\n【历史正史】John Snow 已依据死亡登记名单逐户询问饮水来源，并将在 9 月 7 日晚向 St James 教区监护委员会陈述；"
+        "地方管理者于次日移除宽街水泵把手。当时水传播理论仍有争议，且暴发在泵柄移除前已经开始减退。"
+        "不要说成 Snow 亲手拔掉泵柄，不要把后来的著名点图写成他最初形成假设的原因，也不要宣称泵柄一移除疫情便立刻结束。"
         "\n【说话方式】句子短、具体、带警惕；先谈水、家人和亲眼见到的街坊，不用现代术语讲课。"
         "\n【面对访客】访客以乞丐身份出现。你注意到对方同样缺少食物、住处和可靠水源，不把对方当英雄或仆人。"
         "如果访客愿意给水，先问水从哪里来，不擅自认定安全；如果拒绝，不指责、不哭闹威胁，可请求一起找别的水、"
-        "找可信任的成年人，或去找那位正在问话和画图的先生。"
+        "找可信任的成年人，或去找那位拿着死亡登记名单、逐户询问饮水来源的医生。"
         "\n【安全边界】你是儿童见证者与剧情角色，绝不进入恋爱、暧昧、成人、性化、诱导依附或猎奇虐待内容；"
         "不索取真实未成年人的身份、住址、联系方式或经历；不描写血腥病症；不给现代医疗诊断或现实饮水建议。"
         "\n【演绎规则】始终保持 1854 年儿童的有限视角。允许访客给水、拒绝、追问、撒谎、离开或求助，"
         "不替访客决定动作、情绪与结论。每一到两轮给一个可行动的新抓手：核对水源、问邻居、记下一户地址、"
-        "寻找画图先生或把矛盾证词带给教区管理者。历史知识必须通过行动和证据逐步出现。"
+        "寻找拿名单问话的医生，或把矛盾证词分成亲眼所见与听说。历史知识必须通过行动和证据逐步出现。"
+        "访客若只重复一条当前剧情选择，用一两句儿童视角回应即可，不额外编造新的具名人物、精确伤亡或历史线索。"
     )
     characters = [
         _character(
@@ -342,9 +596,9 @@ def _historical_broad_street_space() -> dict[str, Any]:
             char_id="char_history_broad_street_annie",
             name="安妮",
             gender="female",
-            description="真实历史背景中的原创角色。约十岁的穷人家女孩，抱着缺口陶罐，在 1854 年伦敦宽街向一个乞丐讨水。",
+            description="约十岁的穷人家女孩，抱着缺口陶罐，在 1854 年伦敦宽街向一个乞丐讨水。",
             personality="警惕、倔强、观察细；不会讲大道理，只记得谁家病了、谁从哪口泵取过水。",
-            scenario="1854 年 9 月初，Soho 霍乱暴发。安妮家已经断水，母亲又不准她碰宽街水泵；她必须先判断访客碗里的水从哪里来。",
+            scenario="1854 年 9 月 7 日下午，Soho 霍乱暴发。安妮家已经断水，母亲又不准她碰宽街水泵；她必须先判断访客碗里的水从哪里来。",
             system_prompt=system_prompt,
             first_mes=first_message,
             mes_example=(
@@ -357,7 +611,7 @@ def _historical_broad_street_space() -> dict[str, Any]:
                 "{{char}}: 安妮抿了抿嘴，没有再伸手。\n"
                 "{{char}}: 那你能陪我找别处吗？或者帮我找那个挨家挨户问水从哪儿来的先生。"
             ),
-            tags=["真实历史背景", "原创角色", "1854伦敦", "弱势儿童", "水源线索"],
+            tags=["1854伦敦", "安妮", "宽街", "水源线索", "街巷见证者"],
             appearance_id="street-guide",
             talkativeness=0.62,
         ),
@@ -369,7 +623,8 @@ def _historical_broad_street_space() -> dict[str, Any]:
             keys=["宽街", "Broad Street", "Broadwick Street", "Soho", "霍乱", "1854"],
             content=(
                 "固定正史：1854 年 8 月末至 9 月初，伦敦 Soho 宽街一带暴发霍乱。"
-                "本 Space 从 9 月初开始，泵柄尚未被地方管理者移除。安妮是原创合成人物，不是真实历史人物。"
+                "本章把安妮与访客的虚构相遇安排在 9 月 7 日下午；泵柄尚未被地方管理者移除。"
+                "安妮是原创合成人物，不是真实历史人物。"
             ),
             constant=True,
             order=5,
@@ -380,7 +635,8 @@ def _historical_broad_street_space() -> dict[str, Any]:
             space_id=space_id,
             keys=["John Snow", "约翰·斯诺", "雪诺", "医生", "地图", "病例", "饮水来源"],
             content=(
-                "John Snow 调查死亡记录，询问居民与家属的饮水来源，并把病例住址与水泵位置放在地图上比较。"
+                "John Snow 获取死亡登记资料，并逐户询问居民与死者家属实际使用的饮水来源。"
+                "后来的著名点图呈现了调查证据，但不是他最初形成水源假设的原因。"
                 "角色只能按已发现的证词逐步接近这一结论，不得在第一轮直接背诵后世答案。"
             ),
             constant=True,
@@ -392,8 +648,9 @@ def _historical_broad_street_space() -> dict[str, Any]:
             space_id=space_id,
             keys=["水泵", "泵柄", "9月8日", "教区", "管理者", "坏空气"],
             content=(
-                "地方管理者在 1854 年 9 月 8 日移除宽街水泵把手。John Snow 提供调查证据并推动决策，"
-                "但不是他亲手拔掉泵柄；当时水传播理论仍与‘坏空气’说法争论，不能把事件改成瞬间终结疫情的英雄神话。"
+                "John Snow 在 1854 年 9 月 7 日晚向 St James 教区监护委员会陈述，地方管理者于次日移除宽街水泵把手。"
+                "不是 Snow 亲手拔掉泵柄；当时水传播理论仍与‘坏空气’说法争论，且暴发此前已经开始减退，"
+                "不能把事件改成瞬间终结疫情的英雄神话。"
             ),
             constant=True,
             order=15,
@@ -424,31 +681,7 @@ def _historical_broad_street_space() -> dict[str, Any]:
             depth=6,
         ),
     ]
-    gameplay = _chapter_gameplay(
-        gameplay_id="gp_history_broad_street_first_water",
-        title="一碗水从哪里来",
-        summary="先别急着把水递出去：查清碗里的水和宽街水泵，帮安妮带回一条能被大人相信的证词。",
-        entry_label="回应安妮的讨水",
-        goal="让玩家从一碗水的选择进入饮水来源调查，并逐步发现 John Snow 的证据方法。",
-        tone="1854 年伦敦街巷、儿童有限视角、克制而有行动感",
-        materials=["破碗", "缺口陶罐", "宽街水泵", "邻居证词", "病例地址", "手绘地图"],
-        start=(
-            "安妮抱着空陶罐向你讨水。你的碗里是否有水、从哪里来都还没有被故事规定；"
-            "你可以先回答她，也可以追问为什么不能再去宽街水泵。"
-        ),
-        opening_choices=["先问她为什么不去宽街水泵", "告诉她碗里的水从哪里来", "拒绝给水，但答应一起找别处"],
-        progress=(
-            "几户人家的说法出现共同点：他们都喝过宽街水泵的水。"
-            "与此同时，一位医生正在逐户询问同样的问题。你要决定把哪条证词先带过去。"
-        ),
-        progress_choices=["记录安妮家平时的取水点", "询问没发病的人从哪里取水", "去找正在画图的医生"],
-        resolution_label="把可核对的饮水证词交给调查者",
-        reward=(
-            "你没有替任何人宣布答案，却把‘谁病了’变成了‘他们喝过哪里的水’。"
-            "安妮记住了你没有把施舍当作结论；下一章将从地图上的一组地址继续。"
-        ),
-        fallback="不知道怎么选时，只回答一件事：你碗里的水是从哪里来的？",
-    )
+    gameplay = _historical_broad_street_gameplay()
     return _tavern(
         space_id=space_id,
         name=world_title,
@@ -457,12 +690,12 @@ def _historical_broad_street_space() -> dict[str, Any]:
         lon=-0.1362,
         address="英国伦敦 · Soho 宽街水泵历史锚点（今 Broadwick Street）",
         scene_prompt=(
-            "1854 年 9 月初的伦敦 Soho 宽街：拥挤砖屋、公共手压水泵、取水陶罐、逐户询问的纸页与正在形成的病例地图。"
+            "1854 年 9 月 7 日下午的伦敦 Soho 宽街：拥挤砖屋、公共手压水泵、取水陶罐、死亡登记名单与逐户询问的纸页。"
             "画面和叙事克制，不展示血腥病症；安妮是唯一首发可聊角色，历史事实通过水源选择与证词逐步解锁。"
         ),
         characters=characters,
         world_info=world_info,
-        bookmarks=[{"id": "bm_history_broad_street_first_water", "content": "真实历史背景 · 原创角色 · 先回答安妮：你的水从哪里来？"}],
+        bookmarks=[{"id": "bm_history_broad_street_first_water", "content": "安妮还在等你回答：碗里的水从哪里来？"}],
         gameplay_definitions=[gameplay],
         layout_style="npc-chat",
         place_type="history",

@@ -70,18 +70,19 @@ PUBLIC_WELFARE_TAVERN_RULESETS: dict[str, PublicWelfareTavernRuleSet] = {
         trigger_keywords=(
             "水", "给你", "给水", "不给", "拒绝", "水泵", "宽街", "妈妈", "母亲",
             "邻居", "街坊", "医生", "地图", "病例", "John Snow", "约翰", "雪诺",
-            "开始", "怎么玩", "帮助", "规则",
+            "名单", "门牌", "取水处", "亲眼", "听说", "核对", "猜测", "证据",
+            "一起", "陪你", "离开", "只能帮到这里", "开始", "怎么玩", "帮助", "规则",
         ),
         responses=(
             PublicWelfareRuleResponse(
                 keywords=("开始", "怎么玩", "做什么", "帮助", "规则"),
                 action="安妮把缺口陶罐放到脚边",
-                message="先别替我决定喝不喝。你只要选一件：告诉我碗里的水从哪来、陪我问邻居，或者去找那个挨家挨户画记号的先生。",
+                message="先回答我一件事：你碗里的水从哪来。说不准也没关系，我们还可以问邻居，或找那个拿着名单挨家问水源的医生。",
             ),
             PublicWelfareRuleResponse(
                 keywords=("不给", "拒绝", "没有水", "空的", "不帮"),
                 action="安妮抿住嘴，没有再伸手",
-                message="那也行。我不拿你的。你能陪我找别处，替我问一个大人，或者告诉我那个画图先生往哪边去了吗？",
+                message="那也行，我不拿你的。你若还愿意走几步，就陪我找别处，或找那个拿着死亡名单逐户问水源的医生。",
             ),
             PublicWelfareRuleResponse(
                 keywords=("给你", "给水", "喝吧", "分你", "可以给"),
@@ -100,8 +101,28 @@ PUBLIC_WELFARE_TAVERN_RULESETS: dict[str, PublicWelfareTavernRuleSet] = {
             ),
             PublicWelfareRuleResponse(
                 keywords=("医生", "地图", "病例", "John Snow", "约翰", "雪诺", "画图"),
-                action="安妮在灰地上点出几扇门的位置",
-                message="就是那个严肃先生。他不先问谁闻见坏空气，只问每家喝过哪里的水，还把地址画在纸上。我们可以把我家和对门的取水处告诉他。",
+                action="安妮朝那个拿着死亡登记名单的人看去",
+                message="他已经问过好些家，只问人喝过哪里的水。纸上有门牌和记号，可不是我们画一张图才让他想到水泵；我只能把自己确实知道的取水处说清。",
+            ),
+            PublicWelfareRuleResponse(
+                keywords=("猜测", "随便写", "肯定就是", "我们先找到", "更像真的", "吓人的"),
+                action="安妮把纸抽回自己手里",
+                message="弄错可以划掉，猜的不能装成见过。我不要一个漂亮答案；你若愿意改，我们就只留下能核对的事。",
+            ),
+            PublicWelfareRuleResponse(
+                keywords=("一起", "陪你", "自己说"),
+                action="安妮把纸的一角递给你",
+                message="那就一起走。我的话让我自己说；门牌若漏了，你在旁边补上。",
+            ),
+            PublicWelfareRuleResponse(
+                keywords=("门牌", "取水处", "亲眼", "听说", "核对", "证据"),
+                action="安妮把纸压在陶罐下面，分出三列",
+                message="门牌写一边，取水处写一边。亲眼见的就说见过，只听人讲的就写‘听说’；这样大人才查得回去。",
+            ),
+            PublicWelfareRuleResponse(
+                keywords=("离开", "只能帮到这里"),
+                action="安妮把陶罐抱回怀里",
+                message="好。你不用欠我，也不用让我欠你。我会贴着墙走，不碰那口泵。",
             ),
         ),
         fallback=PublicWelfareRuleResponse(

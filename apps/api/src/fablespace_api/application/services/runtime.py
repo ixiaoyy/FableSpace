@@ -124,6 +124,8 @@ logger = logging.getLogger(__name__)
 
 
 RULES_BACKENDS = {"rules", "rule_based", "public_welfare"}
+REVIEWED_HISTORICAL_CHOICE_SPACE_IDS = {"history_broad_street_water_1854"}
+REVIEWED_HISTORICAL_CHOICE_CONTEXT_MARKER = "fablespace:reviewed-historical-choice"
 FALLBACK_NOTICE = "NPC 暂时无法给出有效回复，可以换个问法或稍后重试。"
 NON_ANSWER_FALLBACK_PHRASES = (
     "似乎在听你说话",
@@ -354,29 +356,51 @@ class RuntimeApplicationMixin:
             )
 
         degradation: dict[str, Any] | None = None
-        try:
-            response_text = self._chat_response_text(
-                tavern=tavern,
-                character_name=character.name,
-                character_prompt=character.system_prompt or character.personality or character.description,
-                character_description=character.description,
-                character_personality=character.personality,
-                character_scenario=character.scenario,
-                character_system_prompt=character.system_prompt,
-                character_mes_example=character.mes_example,
-                character_gender=character.gender,
-                character_tags=character.tags,
-                character_traits=character.traits,
-                message=clean_message,
-                llm_config=llm_config,
-                extra_context=extra_context or [],
-                visitor_state=prompt_visitor_state,
-                visitor_name=visitor_name,
-                prompt_visitor_id=visitor_id,
-                character_id=character_id,
-                first_mes=character.first_mes,
-                hobbies=character.hobbies,
+        uses_reviewed_historical_choice = (
+            tavern.id in REVIEWED_HISTORICAL_CHOICE_SPACE_IDS
+            and any(
+                isinstance(item, dict)
+                and str(item.get("role") or "").strip().lower() == "system"
+                and str(item.get("content") or "").strip().startswith(
+                    REVIEWED_HISTORICAL_CHOICE_CONTEXT_MARKER
+                )
+                for item in (extra_context or [])
             )
+        )
+        response_text = ""
+        if uses_reviewed_historical_choice:
+            response_text = resolve_public_welfare_rules_response(
+                message=clean_message,
+                space_id=tavern.id,
+                character_name=character.name,
+                space_name=tavern.name,
+                first_mes=character.first_mes,
+                is_revisit=bool(prompt_visitor_state and prompt_visitor_state.visit_count > 1),
+            ) or ""
+        try:
+            if not response_text:
+                response_text = self._chat_response_text(
+                    tavern=tavern,
+                    character_name=character.name,
+                    character_prompt=character.system_prompt or character.personality or character.description,
+                    character_description=character.description,
+                    character_personality=character.personality,
+                    character_scenario=character.scenario,
+                    character_system_prompt=character.system_prompt,
+                    character_mes_example=character.mes_example,
+                    character_gender=character.gender,
+                    character_tags=character.tags,
+                    character_traits=character.traits,
+                    message=clean_message,
+                    llm_config=llm_config,
+                    extra_context=extra_context or [],
+                    visitor_state=prompt_visitor_state,
+                    visitor_name=visitor_name,
+                    prompt_visitor_id=visitor_id,
+                    character_id=character_id,
+                    first_mes=character.first_mes,
+                    hobbies=character.hobbies,
+                )
         except LLMError as exc:
             return self._degraded_chat(
                 character_id,

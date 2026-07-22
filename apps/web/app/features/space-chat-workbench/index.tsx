@@ -17,6 +17,11 @@ import { normalizePublicWelfareNpcAssetPath } from "../../lib/space-runtime-conf
 import { buildSpaceFirstMinuteGuide, type SpaceFirstMinuteAction } from "../../lib/space-first-minute"
 import { matchesPublicReference } from "../../lib/web-routes"
 import { readVisitorPlayIdentity } from "../../lib/visitor-play-identity"
+import {
+  HISTORY_PILOT_GAMEPLAY_ID,
+  isHistoryPilotExperience,
+  isHistoryPilotGameplay,
+} from "../../lib/history-pilot-space"
 
 import {
   enterSpace,
@@ -42,6 +47,7 @@ import { getMiniGameTemplates } from "../../product/spaceMiniGames"
 import OrphanEchoGameplayPanel from "../../product/OrphanEchoGameplayPanel"
 import GameplaySessionPanel from "../../product/GameplaySessionPanel"
 import { SpaceCapabilityHubPanel } from "../../components/SpaceCapabilityHubPanel"
+import { HistoricalBroadStreetStory } from "./historical-broad-street-story"
 
 
 type ChatChannel = "public" | "private"
@@ -87,6 +93,15 @@ const ROLEPLAY_STARTER_PROMPTS: RoleplayStarterPrompt[] = [
     prompt: "*我检查好随身物品，认真看向你* 再确认一下，我们这次要完成什么目标？",
   },
 ]
+
+const HISTORY_PILOT_CHOICE_CHAT_CONTEXT = [{
+  role: "system",
+  content: (
+    "fablespace:reviewed-historical-choice\n"
+    + "本轮只用一两句儿童有限视角回应访客已经显示的剧情选择，不新增具名人物、门牌、家庭人数、日期、"
+    + "伤亡细节、水泵外观或其它未经核验的历史线索；亲眼所见与听说必须分开。"
+  ),
+}]
 
 /**
  * Sorts generic in-character starter prompts for the current space mode.
@@ -536,6 +551,7 @@ export function SpaceChatWorkbench({
   const [activeGameplayDefinitionId, setActiveGameplayDefinitionId] = useState("")
   const gameplayDeepLinkRequestRef = useRef("")
   const preferredGameplayIdRef = useRef("")
+  const historyGameplayAutostartRef = useRef("")
 
   const [coinBalance, setCoinBalance] = useState<number | null>(null)
   const [lastGift, setLastGift] = useState<{ coins: number; items: string } | null>(null)
@@ -549,6 +565,7 @@ export function SpaceChatWorkbench({
   )
 
   const passwordLocked = access === "password" && !hasEnteredPasswordSpace
+  const isHistoryPilotStory = isHistoryPilotExperience(space.id, selectedCharacter?.id)
   const firstMinuteGuide = useMemo(() => buildSpaceFirstMinuteGuide(space), [space])
   const ambientActivity = useMemo(() => resolveAmbientActivity(space, characters), [space, characters])
   const doorwayHost = selectedCharacter || characters[0]
@@ -673,7 +690,7 @@ export function SpaceChatWorkbench({
           },
     )
 
-  }, [characters, passwordLocked, space.id, space.name, space.gameplay_definitions, visitorState])
+  }, [characters, passwordLocked, space, visitorState])
 
   useEffect(() => {
     if (passwordLocked) return
@@ -681,6 +698,29 @@ export function SpaceChatWorkbench({
 
     // Load gameplays and sessions
     let cancelled = false
+    const startLoadedGameplay = async (definition: GameplayDefinitionRecord) => {
+      const gameplayId = String(definition.id || "")
+      preferredGameplayIdRef.current = gameplayId
+      setActiveGameplayDefinitionId(gameplayId)
+      setIsGameplayBusy(true)
+      try {
+        const res = await startGameplaySession(space.id, {
+          gameplay_id: gameplayId,
+          character_id: selectedCharacter?.id,
+          visitor_id: visitorId,
+          visitor_name: visitorName,
+        }, visitorId)
+        if (cancelled) return
+        const responseSession = res.session as Record<string, any> | undefined
+        const session = responseSession || { ...res, id: res.session_id, gameplay_id: gameplayId }
+        setActiveSession(session)
+        const sessionRecord = session as Record<string, any>
+        const lastEvent = Array.isArray(sessionRecord.events) ? sessionRecord.events[sessionRecord.events.length - 1] : null
+        setGameplayScene(res.scene || lastEvent?.scene || sceneFromGameplayDefinition(definition, sessionRecord.current_node_id))
+      } finally {
+        if (!cancelled) setIsGameplayBusy(false)
+      }
+    }
     const loadGameplayData = async () => {
       try {
         const [defsRes, sessionsRes] = await Promise.all([
@@ -717,8 +757,7 @@ export function SpaceChatWorkbench({
             return
           }
 
-          preferredGameplayIdRef.current = requestedGameplayId
-          await handleStartGameplay(requestedDefinition)
+          await startLoadedGameplay(requestedDefinition)
           if (!cancelled) setSearchParams(nextSearchParams, { replace: true, preventScrollReset: true })
           return
         }
@@ -735,6 +774,18 @@ export function SpaceChatWorkbench({
           const lastEvent = Array.isArray(sessionRecord.events) ? sessionRecord.events[sessionRecord.events.length - 1] : null
           setActiveGameplayDefinitionId(sessionGameplayId)
           setGameplayScene(lastEvent?.scene || sceneFromGameplayDefinition(definition, sessionRecord.current_node_id))
+        } else if (isHistoryPilotStory) {
+          const historyDefinition = definitions.find((definition: any) => (
+            isHistoryPilotGameplay(definition?.id) &&
+            String(definition?.status || "published").toLowerCase() === "published"
+          ))
+          const autostartKey = `${space.id}:${visitorId}:${HISTORY_PILOT_GAMEPLAY_ID}`
+          if (!historyDefinition) {
+            setError("安妮的故事暂时不可用，请稍后重试。")
+          } else if (historyGameplayAutostartRef.current !== autostartKey) {
+            historyGameplayAutostartRef.current = autostartKey
+            await startLoadedGameplay(historyDefinition)
+          }
         }
       } catch (err) {
         if (cancelled) return
@@ -745,6 +796,11 @@ export function SpaceChatWorkbench({
           setSearchParams(nextSearchParams, { replace: true, preventScrollReset: true })
           return
         }
+        if (isHistoryPilotStory) {
+          historyGameplayAutostartRef.current = ""
+          setError(`安妮的故事暂时无法开始：${errorMessage(err)}`)
+          return
+        }
         console.error("Failed to load gameplay data:", err)
       }
     }
@@ -752,12 +808,12 @@ export function SpaceChatWorkbench({
     return () => {
       cancelled = true
     }
-  }, [space.id, visitorId, passwordLocked, requestedGameplayId, searchParams, setSearchParams, canStartDeepLinkedGameplay])
+  }, [space, visitorId, visitorName, selectedCharacter?.id, passwordLocked, requestedGameplayId, searchParams, setSearchParams, canStartDeepLinkedGameplay, isHistoryPilotStory])
 
   useEffect(() => {
 
     chatLogRef.current?.scrollTo({ top: chatLogRef.current.scrollHeight, behavior: "smooth" })
-  }, [visibleMessages.length, busy])
+  }, [visibleMessages.length, busy, gameplayScene?.node_id])
 
   useEffect(() => {
     setMentionIndex(0)
@@ -858,7 +914,7 @@ export function SpaceChatWorkbench({
     )
   }
 
-  async function sendPrivateChat(cleanMessage: string) {
+  async function sendPrivateChat(cleanMessage: string, extraContext: Array<Record<string, unknown>> = []) {
     if (!selectedCharacter) return
     const userLine = buildUserLine(cleanMessage, selectedCharacter.id)
     setPendingReplyTargetName(selectedCharacter.name || selectedCharacter.id || "NPC")
@@ -872,6 +928,7 @@ export function SpaceChatWorkbench({
       play_identity_id: playIdentityId,
       message: cleanMessage,
       display_message: cleanMessage,
+      ...(extraContext.length ? { extra_context: extraContext } : {}),
     })
     const responseText = String(result.response || "").trim()
     if (responseText) {
@@ -1125,6 +1182,23 @@ export function SpaceChatWorkbench({
     }
   }
 
+  async function handleHistoryStoryChoice(choice: { id: string; label?: string }) {
+    const choiceText = String(choice.label || choice.id || "").trim()
+    if (!choiceText || !activeSession || !selectedCharacter || busy === "send" || isGameplayBusy) return
+
+    setBusy("send")
+    setError("")
+    try {
+      await sendPrivateChat(choiceText, HISTORY_PILOT_CHOICE_CHAT_CONTEXT)
+      await handleAdvanceGameplay({ choice_id: choice.id })
+    } catch (err) {
+      setError(errorMessage(err))
+    } finally {
+      setPendingReplyTargetName("")
+      setBusy("")
+    }
+  }
+
   async function handleAbandonGameplay() {
     if (!activeSession) return
     if (!confirm("确定要放弃当前的玩法进度吗？")) return
@@ -1317,14 +1391,14 @@ export function SpaceChatWorkbench({
           <>
 
         {/* ── 金币余额 & 收礼提示（作用域在 SpaceChatWorkbench 内）── */}
-        {coinBalance !== null && (
+        {!isHistoryPilotStory && coinBalance !== null && (
           <div className="px-4 pb-2 sm:px-6">
             <span className="inline-flex items-center gap-1.5 rounded-full border border-yellow-400/30 bg-yellow-400/10 px-3 py-1 text-xs font-bold text-yellow-300">
               🪙 金币：{coinBalance}
             </span>
           </div>
         )}
-        {lastGift && (
+        {!isHistoryPilotStory && lastGift && (
           <div
             className="mx-4 mb-2 animate-bounce rounded-2xl border border-yellow-300/40 bg-yellow-400/15 px-4 py-2 text-sm font-bold text-yellow-200 shadow-lg sm:mx-6"
             role="status"
@@ -1334,7 +1408,8 @@ export function SpaceChatWorkbench({
           </div>
         )}
 
-        <div className="grid h-full min-h-0 w-full grid-cols-1 lg:grid-cols-[15rem_minmax(0,1fr)] xl:grid-cols-[15.5rem_minmax(0,1fr)] lg:items-stretch">
+        <div className={`grid h-full min-h-0 w-full grid-cols-1 lg:items-stretch ${isHistoryPilotStory ? "" : "lg:grid-cols-[15rem_minmax(0,1fr)] xl:grid-cols-[15.5rem_minmax(0,1fr)]"}`}>
+          {!isHistoryPilotStory ? (
           <aside className="hidden min-h-0 flex-col border-b border-white/10 bg-slate-950/24 lg:flex lg:overflow-hidden lg:border-b-0 lg:border-r lg:border-cyan-200/10" aria-label="NPC 角色与任务">
             <div className="shrink-0 px-3 pb-2 pt-3">
               <div className="flex items-center justify-between gap-3">
@@ -1430,8 +1505,10 @@ export function SpaceChatWorkbench({
               </button>
             </div>
           </aside>
+          ) : null}
 
           <main className="flex min-h-0 min-w-0 flex-col overflow-hidden bg-[#151a38]/70">
+            {!isHistoryPilotStory ? (
             <div className="border-b border-cyan-200/10 px-3 py-2.5 sm:px-4">
               <div
                 data-current-npc-stage-card
@@ -1457,7 +1534,8 @@ export function SpaceChatWorkbench({
                 </div>
               </div>
             </div>
-            <AmbientActivityPanel activity={ambientActivity} />
+            ) : null}
+            {!isHistoryPilotStory ? <AmbientActivityPanel activity={ambientActivity} /> : null}
 
             {isOrphanEchoMode ? (
               <div className="p-4">
@@ -1473,7 +1551,7 @@ export function SpaceChatWorkbench({
                   miniGameTemplates={miniGameTemplates}
                 />
               </div>
-            ) : activeSession ? (
+            ) : activeSession && !isHistoryPilotStory ? (
               <div className="p-4">
                 <GameplaySessionPanel
                   session={activeSession}
@@ -1576,6 +1654,14 @@ export function SpaceChatWorkbench({
                   </div>
                 )
               })}
+              {isHistoryPilotStory && activeSession ? (
+                <HistoricalBroadStreetStory
+                  session={activeSession}
+                  scene={gameplayScene}
+                  busy={busy === "send" || isGameplayBusy}
+                  onChoice={handleHistoryStoryChoice}
+                />
+              ) : null}
               {busy === "send" ? (
                 <div className="flex justify-start">
                   <div className="rounded-[1.35rem] rounded-bl-md border border-white/10 bg-white/[0.06] px-4 py-3 text-sm text-violet-50/68">
@@ -1652,7 +1738,7 @@ export function SpaceChatWorkbench({
               </div>
             </form>
 
-            {!passwordLocked && hasVisitorSentMessage ? (
+            {!isHistoryPilotStory && !passwordLocked && hasVisitorSentMessage ? (
               <section
                 data-story-branch-controls
                 className="flex justify-end border-t border-white/10 bg-slate-950/60 px-3 py-2 sm:px-4"
