@@ -107,3 +107,37 @@ Migrated 358 project images to the stable CDN namespace, replaced runtime and me
 ### Next Steps
 
 - None - task complete
+
+
+## Session 4: Complete Annie Broad Street historical story
+
+**Date**: 2026-07-22
+**Task**: Complete Annie Broad Street historical story
+**Branch**: `main`
+
+### Summary
+
+Delivered Annie's mobile-first Broad Street story with fixed public history, five private relationship endings, reviewed deterministic choice chat, progressive sources, and full build plus narrow-viewport verification.
+
+### Main Changes
+
+- Detailed change bullets were not supplied; see the summary above.
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `e7a38fe4` | (see git log) |
+| `580919b0` | (see git log) |
+
+### Testing
+
+- Validation was not recorded for this session.
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
