@@ -9,7 +9,7 @@
 - [x] 对台账中的 25 个精确 key 执行远端 DELETE，并逐项确认 404。
 - [x] 删除 25 个 prompt sidecar，更新媒体清单与统计。
 - [x] 运行远端、清单、残留引用、Git 图片数、diff 和前端构建验证。
-- [ ] 提交、归档本任务并记录 journal。
+- [x] 提交、归档本任务并记录 journal。
 
 ## Exact first-batch totals
 
