@@ -1,357 +1,290 @@
-# FableSpace 世界 Schema
+# FableSpace 故事世界 Schema
 
-本文档只记录当前空间平台的 durable data contract。实现字段以 `apps/api/src/fablespace_api/core/`、`apps/api/src/fablespace_api/contracts/` 和 `apps/api/src/fablespace_api/infrastructure/models.py` 为准；若代码与本文冲突，先修正文档或代码，不要静默漂移。
+本文档定义角色故事平台的目标 durable data contract。产品边界见 [FABLESPACE_SPACE_PLATFORM.md](FABLESPACE_SPACE_PLATFORM.md)，负面清单见 [WHAT_NOT_TO_BUILD.md](WHAT_NOT_TO_BUILD.md)。
 
-命名说明：对外 API、领域文档和前端统一使用 Space / `space_id`。当前数据库物理表仍保留 legacy `taverns` 表名，旧 `tavern` place type 输入会归一为 `space`，这是兼容策略，不代表新增一套并行 Schema。
+当前代码仍处于旧 Space 合同向新领域迁移的开发阶段。旧表、旧 API 和旧类型与本文不一致是待实施任务，不构成兼容要求；新代码不得为了复用旧实现而把坐标、owner、密码、营业状态或 SillyTavern 字段带入新 Schema。
 
-## 概念映射
+## 命名与边界
 
-| 旧概念 | 当前概念 | 说明 |
-|--------|----------|------|
-| Place / POI | Space | 地图上的可进入空间 |
-| Faction | SpaceCharacter | 空间内 NPC |
-| World Info | WorldInfoEntry | 关键词触发的背景注入 |
-| World | SpaceScene / scene prompt | 空间场景与氛围 |
-| Player State | VisitorState | 访客与空间 / NPC 的关系 |
-| Player Play Identity | `VisitorState.metadata.play_identity` | 访客私有的虚构游玩身份运行时状态 |
-| OSM Data | 地图底图 | 真实坐标锚点 |
+领域文档、API 和前端统一使用：
 
-## Space
+| 概念 | 代码命名 | 说明 |
+|---|---|---|
+| 故事世界 | `StoryWorld` / `story_world_id` | 系统策划、审核并版本化发布的完整故事边界 |
+| 角色 | `Character` / `character_id` | 属于一个 StoryWorld、由 AI 在边界内演绎的人物 |
+| 玩家身份 | `PlayerRole` / `player_role_id` | 属于一个 StoryWorld 的固定故事身份 |
+| 玩家故事状态 | `PlayerStoryState` | 按玩家与 StoryWorld 隔离的长期私有状态 |
+| 故事轮次 | `StoryRun` | 一次从开始到结局的可回放运行实例 |
+| 角色关系 | `CharacterRelationship` | 一个 StoryRun 内玩家与具体 Character 的关系状态 |
 
-Space 是核心实体：一个挂接真实坐标、可进入、拥有独立正史与连续性边界的故事世界。真实坐标负责现实锚定，世界内部的时代、知识、角色、当前事件和规则由既有字段表达；`owner_id` 继续承担数据所有权和兼容管理，不代表店主供给侧仍是当前产品主线。
+`NPC` 只描述 Character 由 AI 演绎的运行方式，不作为持久化实体名。`Space`、`SpaceCharacter`、`VisitorState`、`space_id` 和 `play_identity_id` 不是新合同的别名。
 
-| 字段 | 类型 / 取值 | 约束 |
-|------|-------------|------|
-| `id` | string | 唯一 ID |
-| `name` | string | 店主确认的空间名 |
-| `description` | string | 访客可见描述 |
-| `lat` / `lon` | number | 必须是真实坐标 |
-| `address` | string? | 可选地址或反查结果 |
-| `owner_id` | string | 空间主人 |
-| `created_at` | ISO string | 创建时间 |
-| `access` | `public` / `password` / `private` | 访问控制 |
-| `password_hash` | string? | 仅密码空间使用，不返回明文 |
-| `status` | `open` / `closed` | LLM 或空间运行状态 |
-| `roleplay_mode` | `ai_only` / `hybrid` | 玩家扮演 NPC 仅在单空间内由店主审批 |
-| `layout_style` | `lobby` / `npc-chat` / `quest-play` / `hybrid-room` | 仅决定展示布局，不生成内容 |
-| `place_type` | 有限枚举 | 缺省 `space`；legacy `tavern` 输入归一为 `space`；`home` 默认私密 |
-| `special_type` | `""` / `cultivation` / `divination` 等 | 只作为薄层类型，不改变主线边界 |
-| `characters` | SpaceCharacter[] | 空间 NPC |
-| `world_info` | WorldInfoEntry[] | 世界知识 |
-| `gameplay_definitions` | GameplayDefinition[] | 店主配置的玩法定义 |
-| `skill_packs` | SkillPackSetting[] | 店主显式启用能力包 |
-| `scene_prompt` | string? | 场景氛围提示 |
-| `operating_hours` | OperatingHours | 营业时间 |
-| `home_members` | HomeMember[] | 仅 Home 使用 |
-| `place_relationships` | PlaceRelationship[] | 地点治理关系 |
+## 数据分层
 
-硬约束：
+系统内容与玩家运行时数据必须分开：
 
-- Space 必须有真实 `lat/lon`。
-- Space 之间默认隔离世界正史、权威、物品、能力与常识；跨世界差异不得绕过店主确认和访问边界。
-- 非法 `place_type` 不得静默存储。
-- `home` 默认 `private`，不进入公开发现。
-- 平台只能版本化迁移 `owner_id=system_public_welfare` 的系统种子；同 ID 的用户所有权记录不得被系统内容覆盖。旧系统种子归档只改变 `access/status`，不构成数据删除。
-- 公开分享 payload 不得泄露密码、API Key、hidden prompt、对话、运行时私有状态。
+```text
+版本化系统内容
+  StoryWorld
+    -> PlayerRole
+    -> Character[]
+    -> 章节 / 节点 / 选择 / 状态转换 / 结局
+    -> 正史边界
 
-## SpaceCharacter
+玩家私有运行时数据
+  PlayerStoryState
+    -> 当前 StoryRun
+      -> CharacterRelationship[]
+      -> 关键选择 / 故事标记
+      -> 私有记忆 / 消息 / 可回放事件
+    -> 已完成轮次摘要
+```
 
-SpaceCharacter 是空间内 NPC，优先兼容 SillyTavern Character Card V2。
+系统内容以仓库内可审查、可校验、可版本化的内容注册表维护，不通过 owner CRUD 写入。数据库保存玩家身份映射和运行时私有数据，不复制一套可被运行时改写的 StoryWorld 正史。
+
+## StoryWorld
+
+StoryWorld 是系统策划、人工审核并可版本化发布的完整故事世界。
+
+### 必需字段
 
 | 字段 | 类型 / 取值 | 约束 |
-|------|-------------|------|
-| `id` | string | 唯一 ID |
-| `space_id` | string | 所属 Space |
-| `name` | string | 角色名 |
-| `description` | string | 店主视角描述 |
-| `personality` | string | 性格设定 |
-| `scenario` | string | 场景设定 |
-| `gender` | `unspecified` / `female` / `male` / `nonbinary` / `other` | 不得由平台自动推断 |
-| `system_prompt` | string | 角色系统提示 |
-| `first_mes` | string | 开场白 |
-| `mes_example` | string | 示例回复 |
-| `alternate_greetings` | string[]? | 备用开场 |
-| `tags` / `hobbies` | string[] | 标签和兴趣 |
-| `avatar` | string? | 默认头像 URL |
-| `sprites` | Record<string,string> | 表情图 |
-| `appearance` | object? | 外貌 preset |
-| `talkativeness` | number | 群聊发言积极度 |
-| `current_space_id` / `home_space_id` | string? | NPC 流动相关 |
-| `simulation_state` / `traits` | object? / string[] | NPC 仿真相关 |
+|---|---|---|
+| `id` | string | 稳定且唯一 |
+| `title` | string | 玩家可见名称 |
+| `summary` | string | 玩家可见的简短故事处境 |
+| `genre` | string | 内容题材，不改变运行合同 |
+| `publication_status` | `draft` / `published` / `archived` | 唯一发布生命周期 |
+| `content_version` | string | 每次可发布内容版本的稳定标识 |
+| `player_role` | PlayerRole | P0 恰好一个固定身份 |
+| `characters` | Character[] | 至少包含一个属于本世界的角色 |
 
-约束：
+StoryWorld 还必须包含经过审核的章节或节点、关键选择、允许的状态转换、结局和正史边界。这些嵌套结构的具体字段由“系统故事内容模型”任务定义；在该任务完成前，不得由实现自行扩展为脚本执行、任意状态对象或运行时可编辑 Prompt。
 
-- 平台不得从姓名、头像、对话或 AI 草稿自动推断 / 覆盖性别。
-- Owner 图像优先级高于项目 fallback：`sprites.neutral` -> `avatar` -> `image_url` -> fallback。
-- 角色卡导入时，SillyTavern 字段按名称映射；FableSpace 扩展字段必须保持向后兼容。
-- 访客游玩身份和自声明性别是运行时上下文，不新增或覆盖 SpaceCharacter 字段，也不随 SillyTavern 角色卡导入、导出。NPC 的时代与世界观继续以已有 `system_prompt`、`personality`、`scenario`、`description` 和所属 Space 场景为准。
+### 约束
 
-## AI 草稿
+- 公开发现和新轮次只能使用 `published` 内容。
+- `draft` 不进入公开 API 或玩家运行时。
+- `archived` 停止新玩家开始，但保留既有 StoryRun 的内容版本、进度和回滚依据。
+- Character、PlayerRole、章节、选择和结局引用必须在同一 StoryWorld 与同一内容版本内闭合。
+- StoryWorld 不包含 `owner_id`、`lat`、`lon`、现实地址、访问密码、营业状态、用户发布配置或私有 LLM 配置。
+- 历史地点是内容事实，不是 StoryWorld 的通用坐标字段。
 
-AI 草稿是非持久发布态，用于辅助店主创作。
+## Character
 
-可包含：`name`、`description`、`personality`、`scenario`、`system_prompt`、`first_mes`、`mes_example`、`tags`。
+Character 必须属于一个 StoryWorld，并包含 AI 演绎所需的稳定人物合同。
 
-约束：
-
-- 店主确认前不得进入公开 Space payload。
-- 店主确认前不得覆盖已有 SpaceCharacter。
-- 店主确认前不得随空间包导出。
-- 确认后按 SpaceCharacter 保存；草稿本身不新增持久字段。
-
-## WorldInfoEntry
-
-| 字段 | 类型 | 说明 |
-|------|------|------|
-| `id` | string | 唯一 ID |
-| `space_id` | string | 所属空间 |
-| `keys` / `keys_secondary` | string[] | 触发关键词 |
-| `content` | string | 注入内容 |
-| `selective` / `constant` | boolean | 注入模式 |
-| `depth` | number | 检索对话深度 |
-| `order` | number | 注入顺序 |
-| `probability` | number | 注入概率 0-100 |
-| `disable` | boolean | 禁用开关 |
-
-WorldInfo 只做上下文注入，不是平台自动生成正史。
-
-## LLMConfig
+### 必需字段
 
 | 字段 | 类型 | 约束 |
-|------|------|------|
-| `backend` | `openai` / `anthropic` / `ollama` / `openrouter` / `custom` 等 | 按代码支持范围 |
-| `model` | string | 模型名 |
-| `api_key` | string | 敏感字段，仅 owner / 后端内部可见 |
-| `base_url` | string? | 自定义端点 |
-| `temperature` / `max_tokens` / `top_p` | number? | 调用参数 |
-| `token_used` | number? | owner 可见统计 |
+|---|---|---|
+| `id` | string | 在系统内容中稳定且唯一 |
+| `story_world_id` | string | 必须引用所属 StoryWorld |
+| `name` | string | 玩家可见角色名 |
+| `motive` | string | 当前事件中主动追求的目标 |
+| `secret` | string | 不应无条件向玩家公开的已审核信息 |
+| `voice` | string | 语言、语气和表达边界 |
+| `current_situation` | string | 当前事件中的处境 |
+| `opening_line` | string | 角色入口的已审核开场 |
+| `relationship_rules` | structured content | 自然对话与关键选择如何影响关系 |
 
-约束：
+### 约束
 
-- 访客响应不得包含 API Key。
-- 店主 Key 不写共享 `.env`，不写日志。
-- Token 统计不用于平台充值或结算。
+- 同一 StoryWorld 的 Character 必须有可区分的动机、秘密、语言、交易和拒绝边界，不能只替换姓名。
+- Character 不能脱离 StoryWorld 成为通用聊天角色。
+- Character 不能修改 StoryWorld 正史、PlayerRole 或确定性剧情状态。
+- 角色展示资源属于系统内容版本；图片 URL、对象 key 和 prompt sidecar 继续遵守 [IMAGE_ASSETS_SPEC.md](IMAGE_ASSETS_SPEC.md)。
+- Character 不要求兼容 SillyTavern 字段，也不提供角色卡导入或导出。
 
-## VisitorState
+## PlayerRole
 
-| 字段 | 类型 | 说明 |
-|------|------|------|
-| `visitor_id` | string | 访客 ID |
-| `space_id` | string | 空间 ID |
-| `gender` | Gender | 空间内自声明；缺省 `unspecified` |
-| `visit_count` | number | 访问次数 |
-| `first_visit` / `last_visit` | ISO string? | 访问时间 |
-| `relationship.strength` | number | 0.0-1.0 |
-| `relationship.stage` | AffinityStage | 好感阶段 |
-| `metadata.play_identity` | `{id: string, version: number}`? | 版本化游玩身份；首版仅 `{id: "beggar", version: 1}` |
+PlayerRole 是玩家在一个 StoryWorld 内自动生效的固定故事身份。
 
-AffinityStage：`stranger`、`acquaintance`、`familiar`、`friend`、`close_friend`、`best_friend`。
+### 必需字段
 
-约束：
+| 字段 | 类型 | 约束 |
+|---|---|---|
+| `id` | string | 在所属 StoryWorld 内稳定 |
+| `story_world_id` | string | 必须引用所属 StoryWorld |
+| `name` | string | 前台使用的简短身份名 |
+| `gender` | string | 已审核的故事设定，不由玩家选择或平台推断 |
+| `background` | string | 与时代、制度和正史一致 |
+| `entry_reason` | string | 解释玩家为何进入当前事件 |
+| `character_visible_information` | structured content | Character 可以据此识别和回应玩家的内容 |
 
-- 访客性别只作用于 `space_id + visitor_id`，不得扩展为全局资料或公开社交筛选。
-- 当前身份选择界面只开放自声明 `male` / `female`；既有 Gender 枚举和旧数据仍保持兼容。缺失时保留 `unspecified`，不得从姓名、头像、对话或身份类型推断。
-- 入场、单聊和群聊请求统一使用 `play_identity_id`；后端只接受服务端白名单 ID，并将规范化结果写入 `metadata.play_identity`。客户端不得传入任意 Prompt 文本。
-- 首版唯一身份为 `beggar`（前台显示“乞丐”），版本为 `1`；古代来源是该服务端身份定义的一部分，不另增字段，也不在前台单独展示。它是玩家主动选择的虚构扮演上下文，不是账号权限、现实经济状况或公开资料。
-- `metadata.play_identity` 与 `gender` 必须在首轮 Prompt 构建前可用，保证所有 NPC 都能结合所属 Space 和自身已确认人设形成身份感知回应。
-- 游玩身份不得改变 Space 真实坐标、访问控制、已发布正史或 NPC 角色卡，也不得进入公开 Space payload。
-- VisitorState 是访客私有运行时状态，不进入公开 Space payload。
+### 约束
 
-## ChatMessage
+- P0 每个 StoryWorld 恰好一个 PlayerRole。
+- PlayerRole 不能跨 StoryWorld 复用，也不是账号权限、现实身份或公开社交资料。
+- 客户端不能提交任意身份 Prompt、替换 PlayerRole 或声明超出故事合同的能力。
+- 1854 年宽街使用“乞丐”；长明宫·雪夜封宫使用“小太监”。
 
-| 字段 | 类型 | 说明 |
-|------|------|------|
-| `id` | string | 唯一 ID |
-| `space_id` | string | 空间 ID |
-| `character_id` | string | NPC ID |
-| `visitor_id` | string | 访客 ID |
-| `role` | `user` / `assistant` / `system` 等代码支持值 | 消息角色 |
-| `content` | string | 可观察文本 |
-| `timestamp` | ISO string | 时间 |
-| `token_count` | number? | owner 可见 |
+## PlayerStoryState
 
-导出或公开接口不得暴露 hidden prompt、API Key 或其他访客私密信息。
+PlayerStoryState 是一个玩家在一个 StoryWorld 中的长期私有状态。
 
-游玩身份 Prompt 是根据当前 VisitorState、服务端版本化身份定义、既有 Space 场景和 NPC 角色卡临时构建的运行时上下文，不写入 ChatMessage 内容，也不回写 SpaceCharacter。单聊和群聊必须使用同一身份解析规则。
+### 必需字段
 
-## Gameplay
+| 字段 | 类型 | 约束 |
+|---|---|---|
+| `player_id` | string | 由服务端身份边界解析 |
+| `story_world_id` | string | 所属 StoryWorld |
+| `player_role_id` | string | 必须是所属 StoryWorld 的固定 PlayerRole |
+| `active_story_run_id` | string? | 当前活动轮次；无活动轮次时为空 |
+| `visit_count` | integer | 非负回访次数 |
+| `last_visited_at` | ISO timestamp? | 最近回访时间 |
+| `completed_run_summaries` | collection | 已完成轮次的结局摘要，不携带上一轮可变状态 |
 
-GameplayDefinition 是店主发布在单个 Space 内的轻量玩法定义。
+### 唯一性与身份
 
-核心字段：
+- `player_id + story_world_id` 唯一定位一条 PlayerStoryState。
+- 未登录时，`player_id` 来自服务端认可的匿名访客标识；同一设备可以恢复。
+- 登录后才承诺账号绑定与跨设备恢复。
+- 客户端不得提交、替换或冒充任意 `player_id`。
+- PlayerStoryState 不跨 StoryWorld 传播，也不进入公开发现、公开资料、排行榜或其他玩家响应。
 
-- `id`
-- `title`
-- `status`: `draft` / `published` / `disabled`
-- `summary`
-- `entry_label`
-- `mode`
-- `owner_brief`: 目标、语气、素材、禁止事项
-- `nodes`: 场景、选项、fallback 事件
-- `completion`: 完成节点、奖励文案、是否写 memory atom
+## StoryRun
 
-GameplaySession 是某个访客的一局运行时进度。
+StoryRun 表示一次从开始到结局的故事轮次。
 
-核心字段：
-
-- `id`
-- `space_id`
-- `gameplay_id`
-- `visitor_id`
-- `character_id`
-- `state`: `started` / `in_progress` / `completed` / `abandoned`
-- `current_node_id`
-- `turn_count`
-- `variables`
-- `events`
-- `completion`
-
-约束：
-
-- Definition 是 Space 内容，可随空间包导出。
-- Session 是运行时私有数据，不进入公开 Space payload。
-- 玩法是轻量文本互动，不做战斗、等级、装备、排行榜。
-
-## StateCard
-
-StateCard 是长期连续性台账。AI 可以提出候选，但默认是 `pending`。
+### 必需字段
 
 | 字段 | 类型 / 取值 | 约束 |
-|------|-------------|------|
-| `id` | string | 唯一 ID |
-| `space_id` | string | 空间 ID |
-| `category` | `character` / `task` / `resource` / `conflict` / `event_log` | 卡片类别 |
-| `status` | `pending` / `confirmed` / `rejected` / `superseded` | 决策状态 |
-| `canon_scope` | `visitor` / `space` | 作用域 |
-| `title` / `summary` | string | 摘要，不写 chain-of-thought |
-| `visitor_id` / `character_id` | string? | 可选关联 |
-| `source` | string | 来源 |
-| `source_message_ids` | string[] | 可追踪来源 |
-| `proposed_by` / `confirmed_by` | string? | 决策人 |
-| `fixed_canon` | boolean | true 时只能店主维护 |
-| `metadata` | object | 冲突候选、决策说明等 |
+|---|---|---|
+| `id` | string | 唯一轮次 ID |
+| `player_id` | string | 必须与所属 PlayerStoryState 一致 |
+| `story_world_id` | string | 必须与所属 PlayerStoryState 一致 |
+| `content_version` | string | 轮次开始时锁定的 StoryWorld 版本 |
+| `status` | `active` / `completed` | 唯一轮次生命周期 |
+| `current_chapter_id` | string | 必须属于锁定内容版本 |
+| `current_node_id` | string | 必须属于当前章节 |
+| `key_choices` | collection | 已确认且不可回退的关键选择 |
+| `story_flags` | collection | 仅由已审核剧情动作改变 |
+| `character_relationships` | CharacterRelationship[] | 只包含本 StoryWorld 的角色 |
+| `private_memories` | collection | 经过筛选的玩家私有记忆 |
+| `events` | collection | 可回放的消息、选择与状态变化事件 |
+| `ending_summary` | string? | 完成时写入；活动轮次为空 |
 
-约束：
+### 约束
 
-- Chat / group chat 只能生成 pending 候选。
-- 非店主访客只能确认 / 忽略自己的 visitor-scope 卡。
-- Space-scope 或 fixed canon 只能由店主维护。
-- StateCard 不得变成 RPG 属性、装备、排行榜或公开社交资料。
+- 每个 `player_id + story_world_id` 同时最多一个 `active` StoryRun。
+- 关键选择在活动轮次中不能撤销；系统不提供章节回退或并行时间线。
+- 完成后可以开始新 StoryRun。新轮次不继承上一轮好感度和故事标记；PlayerStoryState 只保留上一轮结局摘要。
+- 部署新内容版本时不得静默重写旧 StoryRun 的 `content_version`、节点或事件。
+- `events` 必须保留可观察输入、确定性剧情动作、状态变化原因和来源；不得存储 chain-of-thought。
+- 消息、记忆和事件的具体嵌套字段由玩家状态与运行时 API 任务定义，但必须始终绑定当前玩家、StoryWorld、StoryRun 和必要的 Character 来源。
 
-## Place / Home / Relationship
+## CharacterRelationship
 
-Home 复用 Space 基础字段，仍必须有真实 `lat/lon`。
+CharacterRelationship 保存一个 StoryRun 内玩家与具体 Character 的关系。
 
-HomeMember：
+### 必需字段
 
-- `id`
-- `home_id`
-- `name` / `display_name`
-- `member_type`: `conversational_character` / `silent_member` / `display_object`
-- `speech_mode`: `character` / `silent` / `display`
-- `description`
-- `avatar`
-- `character_id`
-- `metadata`
+| 字段 | 类型 | 约束 |
+|---|---|---|
+| `story_run_id` | string | 所属 StoryRun |
+| `character_id` | string | 必须属于同一 StoryWorld |
+| `affinity` | number | 内部连续值，不直接向玩家展示 |
+| `stage` | string | StoryWorld 审核的关系阶段 |
+| `last_change_reason` | string? | 最近一次有依据变化的可追踪原因 |
+| `flags` | collection | 故事专属关键关系标记 |
 
-PlaceRelationship：
+### 约束
 
-- `id`
-- `relation_type`: `school_enrollment` / `care_link` / `membership` / `work_affiliation` / `story_link`
-- `source_space_id`
-- `source_member_id`
-- `target_space_id`
-- `status`: `pending` / `approved` / `rejected` / `revoked`
-- `display_name`
-- `visibility`: `target_summary`
-- `requested_by` / `decided_by`
+- `story_run_id + character_id` 唯一。
+- 自然对话只能产生有依据、受限的小幅 `affinity` 变化。
+- 已审核的关键选择可以产生较大变化，并打开或关闭分支。
+- 重复闲聊不得无成本获得重大关系阶段、关键标记或结局。
+- 前端只展示角色态度、关系阶段和变化原因，不展示 `affinity` 数值。
+- 关系不跨 StoryWorld 或 StoryRun 传播。
 
-约束：
+## 剧情动作与 AI 写回
 
-- `silent_member` 和 `display_object` 默认不进入 NPC 对话链路。
-- 跨主人关系默认 pending，由目标地点 owner 决定。
-- 学校成员摘要不得展示真实未成年人身份信息。
-- Relationship 是地点治理记录，不是好友、私信、动态墙或全局社交图谱。
+运行时状态变化遵循固定顺序：
 
-## SkillPack
+```text
+预设选择或自由输入
+  -> 加载锁定的 StoryWorld 内容版本与 StoryRun
+  -> 解析为允许的剧情动作，或保持普通对话
+  -> 确定性规则校验前置条件并应用状态变化
+  -> 构建 Character、PlayerRole、正史、关系和私有记忆上下文
+  -> AI 生成角色可观察回应
+  -> 输出校验
+  -> 持久化消息、事件、受限关系变化和记忆候选
+```
 
-SkillPack 是店主显式启用的 NPC 能力包。
+- AI 不能直接写 StoryWorld、章节、节点、关键选择、故事标记或结局。
+- 自由输入未匹配已审核剧情动作时不能推进关键状态。
+- AI 提出的关系变化或记忆只能作为候选，必须经过规则、上限、来源和隐私校验。
+- 所有永久写回必须可追踪、可回放并能解释其规则来源。
 
-核心字段：
+## 历史正史
 
-- `id`
-- `enabled`
-- `config`
+历史 StoryWorld 必须在系统内容中区分：
 
-当前内置 MVP：`local-rumor`。
+| 内容层 | Schema 约束 |
+|---|---|
+| 固定史实 | 有可追踪来源；时间或时间范围、地点、真实参与者、可证实同场关系、制度阶段和已知公开结果不可被运行时改变 |
+| 剧情设定 | 明确为原创，且已核对不会改变任何固定史实 |
+| 待核验 | 来源不足或存在实质争议；不得进入剧情因果、Character 定论或发布正史 |
 
-约束：
+三层内容的具体注册表结构由系统故事内容模型任务定义。实现不得把“史料未记载”自动归类为剧情设定，也不得让 AI 改变内容层级。原创或架空 StoryWorld 不受真实历史时间线约束，但仍受自身已发布正史和状态机约束。
 
-- 非店主不能修改。
-- 技能包不能自动改写 NPC、WorldInfo、记忆、StateCard、访问规则或 LLM 配置。
-- `local-rumor` 只能引用已有 NeighborhoodRumor，不得编造现实地点或事实。
+## 系统 LLM 配置
 
-## RelationshipGraph
+模型、API Key、服务地址和生成参数属于部署级系统配置，不是 StoryWorld 或 owner 数据实体。
 
-RelationshipGraph 表达 owner / system 在其治理范围内确认或候选的空间与角色关系，以及对单个访客的私有投影。
+- 公开 API 和前端不得接收 API Key、隐藏 Prompt 或生成参数。
+- 密钥不得写入日志、消息、事件或 PlayerStoryState。
+- 运维指标不得暴露玩家对话、私有记忆或可还原密钥的信息。
+- 平台不提供 owner / StoryWorld 私有 LLM 配置或 Token 计费字段。
 
-RelationshipEdge：
+## 公开与私有响应边界
 
-- `source_owner_id`
-- `source_space_id`
-- `source_node_type`: `space` / `character`
-- `source_node_id`
-- `target_owner_id`
-- `target_space_id`
-- `target_node_type`
-- `target_node_id`
-- `behavior_type`: `friendly` / `allied` / `neutral` / `rival` / `hostile`
-- `strength_preset`: `weak` / `normal` / `strong`
-- `status`: `pending` / `confirmed` / `rejected` / `disabled`
-- `governance_mode`: `manual` / `assisted` / `delegated_ai` / `system_ai`
+公开响应可以包含：
 
-VisitorRelationshipProjection：
+- `published` StoryWorld 的发现摘要；
+- Character 的公开入口信息；
+- 所属 StoryWorld 摘要和固定 PlayerRole 的玩家可见入场信息。
 
-- `visitor_id`
-- `node_type`
-- `node_id`
-- `space_id`
-- `affinity`
-- `hostility`
-- `metadata`
+玩家私有响应必须经过当前登录账号或匿名访客身份校验，才可以包含：
 
-约束：
+- PlayerStoryState；
+- 当前 StoryRun；
+- 自己的消息、选择、关系、记忆、事件和结局摘要。
 
-- `pending` / `disabled` edge 不参与传播。
-- 跨 owner edge 只是 source owner 视角，不能劫持 target owner。
-- 访客投影是私有运行时数据，不得公开。
-- 负向关系先降低 `affinity` 到 0，再把剩余量计入 `hostility`。
+任何公开响应都不得包含其他玩家标识、对话、进度、关系、记忆、隐藏正史、系统 Prompt 或密钥。
 
-## NpcPublicBond
+## 校验矩阵
 
-NpcPublicBond 是访客与 NPC 的公开长期关系申请 / 审批记录。
+| 条件 | 处理 |
+|---|---|
+| `publication_status` 或 StoryRun `status` 不在允许枚举 | 拒绝加载或写入，不静默归一 |
+| published StoryWorld 缺少固定 PlayerRole、Character 或有效内容引用 | 拒绝发布 |
+| Character、PlayerRole、章节、节点或关系跨 StoryWorld 引用 | 拒绝 |
+| 客户端提交任意 `player_id` 或 PlayerRole | 拒绝或忽略客户端值，由服务端身份边界解析 |
+| 运行时尝试改写锁定 `content_version` | 拒绝 |
+| 未通过前置条件的剧情动作 | 不改变关键状态，并返回可观察的受控结果 |
+| AI 输出尝试直接写正史、关键标记或结局 | 丢弃该写回并记录安全的诊断信息 |
+| 私有状态被请求到错误玩家或公开端点 | 拒绝且不泄露记录是否存在 |
 
-核心字段：
+## 已删除的旧合同
 
-- `id`
-- `space_id`
-- `character_id`
-- `visitor_id`
-- `bond_type`
-- `status`: `pending` / `active` / `revoked` / `expired`
-- `created_at` / `approved_at` / `revoked_at` / `expires_at`
-- `approved_by` / `revoked_by`
-- `visitor_note` / `owner_note` / `revoke_reason`
+以下内容不属于本 Schema，也不得作为新实现的兼容要求：
 
-约束：
+- `Space`、`SpaceCharacter`、`VisitorState`、`WorldInfoEntry` 和 `StateCard`；
+- `Place`、`Home`、地点关系、公开关系图、NpcPublicBond 和 SkillPack；
+- `lat` / `lon`、地图底图、POI、owner、访问密码和营业状态；
+- SillyTavern 角色卡导入 / 导出与空间包；
+- 全局 `play_identity`、玩家自声明性别和用户身份 Prompt；
+- owner / 故事世界私有 LLMConfig 和 Token 统计；
+- 旧 GameplayDefinition / GameplaySession 通用玩法合同。
 
-- 申请必须审批后生效。
-- 1:1 排他关系已有 active 时，新申请进入队列。
-- 公开端点不得暴露 `visitor_id`。
+旧代码与开发数据只能在独立清退任务中经过完整引用审计、备份和显式迁移后删除。不得保留长期新旧双轨，也不得在应用启动时静默清库。
 
 ## 版本与维护
 
-- 新增字段、枚举或语义变化必须同步本文、相关 API contract 和最小真实验证依据。
-- 旧数据读取必须向后兼容；缺失字段应有明确默认值。
-- 不要把一次性 brainstorm、实现日志或历史长版本塞回本文。
-- 详细版本历史如需保留，放在提交、合并请求或发布说明中，而不是主线 Schema 文档。
+- 新增字段、枚举或语义变化必须先获得产品确认，并同步本文、相关 API 合同和最小真实验证。
+- 系统内容变化必须增加可追踪的 `content_version`；旧 StoryRun 继续引用原版本。
+- 运行时表变更必须有显式迁移和回滚边界，不依赖兼容默认值掩盖协议变化。
+- 本文不保存一次性 brainstorm、实现日志或历史长版本；过程记录留在 Trellis 任务、提交和发布说明中。
