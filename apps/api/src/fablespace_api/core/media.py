@@ -21,8 +21,6 @@ def public_media_url(value: str) -> str:
         return trimmed
 
     normalized = trimmed.replace("\\", "/").lstrip("/")
-    if normalized.startswith("apps/web/public/"):
-        normalized = f"public/{normalized.removeprefix('apps/web/public/')}"
-    elif normalized.startswith(("assets/", "place-atmosphere", "faction-emblems/")):
-        normalized = f"public/{normalized}"
+    if normalized.startswith("apps/web/app/assets/"):
+        normalized = f"app/assets/{normalized.removeprefix('apps/web/app/assets/')}"
     return f"{media_base_url()}/{normalized}"

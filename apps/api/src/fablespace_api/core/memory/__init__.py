@@ -24,17 +24,6 @@ from fablespace_api.core.memory.core import (
     MemoryEntry,
     ChatMemory,
 )
-
-
-def __getattr__(name):
-    if name == "GraphMemoryStore":
-        from fablespace_api.core.memory_graph import GraphMemoryStore
-        return GraphMemoryStore
-    if name == "VectorMemoryStore":
-        from fablespace_api.core.vectors import VectorMemoryStore
-        return VectorMemoryStore
-    raise AttributeError(f"module 'fablespace_api.core.memory' has no attribute {name!r}")
-
 __all__ = [
     "MEMORY_SCOPES",
     "MEMORY_DIMENSIONS",
@@ -44,8 +33,6 @@ __all__ = [
     "MemorySearchResult",
     "MemoryStore",
     "KeywordMemoryStore",
-    "VectorMemoryStore",
-    "GraphMemoryStore",
     "ImportanceScorer",
     "auto_create_memories_from_chat",
     "select_memory_atoms_for_prompt",

@@ -10,24 +10,21 @@
 - `.codex/generated_images`、系统临时目录、浏览器下载目录和聊天预览只算生成来源。被采用的图片必须先上传对象存储并进入清单；未采用的图片只标记为参考稿，不得被项目引用。
 - 替换图片时必须上传新对象并更新实际代码 URL 与清单；只生成或上传但仍引用旧 URL，视为未替换。
 - URL key 一经发布按不可变资源处理。内容变化时使用新 key，禁止原 key 覆盖后依赖清 CDN 缓存。
-- 店主 API Key、访客私密信息、精确私人地址不得出现在图片或 prompt 中。
+- 系统密钥、访客私密信息和精确私人地址不得出现在图片或 prompt 中。
 
 ## 对象 key 约定
 
-现有媒体沿用迁移前的逻辑目录，统一放在 `fablespace/media/v1/` 下：
+正式故事媒体统一放在 `fablespace/media/v1/` 下：
 
 | 对象 key 前缀 | 用途 |
 |---|---|
-| `app/assets/<feature>/` | React 页面、品牌和 UI 图片 |
-| `app/product/assets/<feature>/` | 产品兼容模块图片 |
-| `public/assets/npcs/...` | NPC seed、表情和运行时公共图片 |
-| `public/place-atmosphere/` | 地点氛围图 |
-| `public/faction-emblems/` | 势力或分类徽章 |
+| `app/assets/home-story-bookshelf/v1/` | 首页故事封面与角色图 |
+| `app/assets/story-worlds/<story-id>/` | 已发布故事自己的封面、场景与角色图 |
 
 示例：
 
 ```text
-https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_example/neutral.png
+https://img.pingxingxian.space/fablespace/media/v1/app/assets/story-worlds/story_example/characters/char_example/neutral.webp
 ```
 
 ## 上传与验证
@@ -39,6 +36,7 @@ https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-wel
 5. 更新代码、seed、sidecar 或文档引用；提交前确认 Git 跟踪图片数为零。
 
 部署校验脚本位于 `deploy/cdn/`。部署会逐项比较清单与桶内对象的 key 和字节数，并通过 CDN 实际读取抽样资源。
+当清单没有条目时，校验目标变为确认正式媒体命名空间不存在未登记对象。
 
 ## NPC prompt sidecar
 
@@ -62,7 +60,7 @@ expression-set.prompt.md
 
 ```markdown
 ---
-asset: https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_example/neutral.png
+asset: https://img.pingxingxian.space/fablespace/media/v1/app/assets/story-worlds/story_example/characters/char_example/neutral.webp
 prompt_type: original-final
 source_type: prompt-manifest
 source_manifest: docs/assets/2026-01-01-character-media/prompt-manifest.json
@@ -119,7 +117,7 @@ NPC 资产必须是原创虚构角色插画，不得像真人照片。正向 pro
 - 批量素材不能同质化；非同系列图片应区分构图、材质、色彩、光影或视觉 thesis。
 - 不接受只有“安全、合规、相关”但画面普通的默认 AI 图。
 - 页面图片必须区分静态背景和动态 DOM 文本；动态文字、数字、用户信息不要烘焙进整页截图。
-- 坐标或地图类素材只能做 coordinate-inspired 或 abstracted 表达，不得伪装真实导航截图，不得暴露精确私人地址。
+- 历史地点只能作为故事内容或场景插画呈现，不制作导航、地图或坐标类产品素材。
 
 ## 交付检查清单
 

@@ -62,10 +62,9 @@ CURATED_HOBBIES = [
     # 探索类 (adventure)
     Hobby("urbex", "废墟探险 (Urbex)", "adventure", "喜欢在废弃的建筑和隐秘角落寻找惊喜，对“被遗忘的时间”着迷"),
     Hobby("cryptozoology", "未确认生物研究", "adventure", "坚信世界仍有未被认知的生物，对目击报告和神秘生物学感兴趣"),
-    Hobby("street_photography", "街头摄影", "adventure", "擅长捕捉城市瞬间的张力，观察那些在坐标中穿梭的众生相"),
+    Hobby("street_photography", "街头摄影", "adventure", "擅长捕捉城市瞬间的张力，观察街巷中来往的众生相"),
     Hobby("lockpicking", "锁匠/开锁", "adventure", "着迷于解开某种禁忌或封闭的感觉，对机械结构的弱点有敏锐洞察"),
     Hobby("wasteland_aesthetic", "废土美学", "adventure", "崇尚实用主义与重构的魅力，能从破败中发现独特的力量感"),
-    Hobby("hidden_coordinates", "隐秘坐标追踪", "adventure", "对那些不出现在官方地图上的地点感兴趣，喜欢挖掘空间的深度"),
 
     # 社交类 (social)
     Hobby("mixology", "调酒 (Mixology)", "social", "擅长调配出反映心情的独特饮品，对话语的“调性”和“后劲”有见解"),

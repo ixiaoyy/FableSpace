@@ -1,17 +1,15 @@
 from __future__ import annotations
 
 import hashlib
-import json
 import uuid
 from copy import deepcopy
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
-from typing import Any, Callable
+from typing import Any
 
 
 GAMEPLAY_DEFINITION_STATUSES = {"draft", "published", "disabled"}
 GAMEPLAY_SESSION_STATES = {"started", "in_progress", "completed", "abandoned"}
-GAMEPLAY_ACTIONS = {"stay", "move", "complete"}
 
 
 def _utc_now_iso() -> str:
@@ -45,7 +43,7 @@ def _string_list(value: Any, *, max_items: int = 12, max_length: int = 80) -> li
     return result
 
 
-def _normalize_owner_brief(value: Any) -> dict[str, Any]:
+def _normalize_story_brief(value: Any) -> dict[str, Any]:
     source = value if isinstance(value, dict) else {}
     return {
         "goal": _text(source.get("goal"), max_length=300),
@@ -118,8 +116,8 @@ def _normalize_node(value: Any, index: int, *, goal: str = "") -> dict[str, Any]
     }
 
 
-def _default_nodes(title: str, owner_brief: dict[str, Any]) -> list[dict[str, Any]]:
-    goal = owner_brief.get("goal") or title or "完成本局玩法"
+def _default_nodes(title: str, story_brief: dict[str, Any]) -> list[dict[str, Any]]:
+    goal = story_brief.get("goal") or title or "完成本局玩法"
     return [
         {
             "id": "start",
@@ -167,15 +165,19 @@ def _validate_node_links(nodes: list[dict[str, Any]]) -> None:
 def normalize_gameplay_definition(value: Any) -> dict[str, Any]:
     source = value if isinstance(value, dict) else {}
     title = _text(source.get("title"), default="未命名玩法", max_length=48)
-    owner_brief = _normalize_owner_brief(source.get("owner_brief"))
+    story_brief = _normalize_story_brief(
+        source.get("story_brief")
+        if isinstance(source.get("story_brief"), dict)
+        else source.get("owner_brief")
+    )
     raw_status = _text(source.get("status"), default="draft", max_length=32)
     status = raw_status if raw_status in GAMEPLAY_DEFINITION_STATUSES else "draft"
 
     raw_nodes = source.get("nodes") if isinstance(source.get("nodes"), list) else []
     nodes = (
-        [_normalize_node(node, index, goal=owner_brief.get("goal", "")) for index, node in enumerate(raw_nodes)]
+        [_normalize_node(node, index, goal=story_brief.get("goal", "")) for index, node in enumerate(raw_nodes)]
         if raw_nodes
-        else deepcopy(_default_nodes(title, owner_brief))
+        else deepcopy(_default_nodes(title, story_brief))
     )
     _validate_node_links(nodes)
 
@@ -194,7 +196,7 @@ def normalize_gameplay_definition(value: Any) -> dict[str, Any]:
         "summary": _text(source.get("summary"), max_length=180),
         "entry_label": _text(source.get("entry_label"), default="开始玩法", max_length=40),
         "mode": _text(source.get("mode"), default="ai_directed_branch", max_length=60),
-        "owner_brief": owner_brief,
+        "story_brief": story_brief,
         "nodes": nodes,
         "completion": {
             "complete_node_ids": complete_node_ids,
@@ -447,63 +449,3 @@ def fallback_result(gameplay: dict[str, Any], session: GameplaySession) -> dict[
         "completed": is_complete_node(gameplay, to_node),
         "scene": scene_for_node(gameplay, to_node),
     }
-
-
-class AIDirector:
-    def __init__(self, responder: Callable[[dict[str, Any]], str]):
-        self.responder = responder
-
-    def advance(
-        self,
-        gameplay: dict[str, Any],
-        session: GameplaySession,
-        *,
-        message: str = "",
-        choice_id: str = "",
-    ) -> dict[str, Any]:
-        payload = {
-            "gameplay": {
-                "id": gameplay.get("id"),
-                "title": gameplay.get("title"),
-                "owner_brief": gameplay.get("owner_brief"),
-            },
-            "session": session.to_dict(),
-            "current_scene": scene_for_node(gameplay, session.current_node_id),
-            "message": _text(message, max_length=1000),
-            "choice_id": _text(choice_id, max_length=80),
-        }
-        try:
-            parsed = json.loads(self.responder(payload))
-        except Exception:
-            return fallback_result(gameplay, session)
-        if not isinstance(parsed, dict):
-            return fallback_result(gameplay, session)
-
-        action = _text(parsed.get("action"), default="stay", max_length=20)
-        if action not in GAMEPLAY_ACTIONS:
-            return fallback_result(gameplay, session)
-
-        current_node_id = session.current_node_id
-        next_node_id = current_node_id if action == "stay" else _text(parsed.get("next_node_id"), max_length=80)
-        if action == "complete" and not next_node_id:
-            next_node_id = ((gameplay.get("completion") or {}).get("complete_node_ids") or [current_node_id])[0]
-        if not node_by_id(gameplay, next_node_id):
-            return fallback_result(gameplay, session)
-
-        narration = _text(parsed.get("narration"), max_length=1200)
-        completed = bool(parsed.get("completed")) or action == "complete" or is_complete_node(gameplay, next_node_id)
-        event = new_event(
-            _text(parsed.get("event_type"), default="node_changed" if next_node_id != current_node_id else "ai_director", max_length=80),
-            narration=narration,
-            from_node_id=current_node_id,
-            to_node_id=next_node_id,
-            choice_id=choice_id,
-            source="ai",
-        )
-        return {
-            "source": "ai",
-            "event": event.to_dict(),
-            "next_node_id": next_node_id,
-            "completed": completed,
-            "scene": scene_for_node(gameplay, next_node_id),
-        }

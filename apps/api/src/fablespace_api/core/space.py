@@ -1,16 +1,10 @@
-"""
-FableSpace Space — 空间 CRUD 核心
-
-提供空间(Space)的创建、读取、更新、删除操作。
-支持 SillyTavern Character Card V2 格式的角色导入。
-"""
+"""Transitional player runtime storage used while StoryWorld persistence lands."""
 
 from __future__ import annotations
 
 import json
 import os
 import uuid
-import hashlib
 import threading
 import time
 from copy import deepcopy
@@ -33,8 +27,6 @@ from fablespace_api.core.fixture_retirement import (
 )
 from fablespace_api.core.memory import MemoryAtom
 from fablespace_api.core.skill_packs import normalize_skill_pack_settings
-from fablespace_api.core.time_context import build_time_context
-from fablespace_api.core.cultivation_logic import is_cultivation_space, calculate_cultivation_receipt_with_card
 from fablespace_api.core.visitor_play_identity import (
     merge_play_identity_metadata,
     validate_requested_play_identity,
@@ -91,7 +83,7 @@ SYSTEM_PUBLIC_WELFARE_MANAGED_FREE_MODELS = {
 # 数据模型
 # ─────────────────────────────────────────
 
-# SillyTavern 标准表情列表（27 个）
+# 角色表情列表
 STANDARD_EXPRESSIONS = [
     "admiration",
     "amusement",
@@ -136,7 +128,7 @@ class SpaceSpriteSet:
     """
     角色表情精灵图集合
 
-    支持完整的 SillyTavern 27 个表情 + 自定义表情。
+    支持标准角色表情和自定义表情。
     每个表情对应一张立绘图片 URL。
 
     格式示例（JSON）：
@@ -215,45 +207,8 @@ class SpaceSpriteSet:
 
 
 @dataclass
-class NpcSimulationState:
-    """NPC 仿真生理与心理状态"""
-    energy: float = 100.0
-    hunger: float = 100.0
-    thirst: float = 100.0
-    social: float = 100.0
-    entertainment: float = 100.0
-    mood: float = 50.0          # 0=极度沮丧 50=中性 100=非常开心
-    last_tick_at: str = ""
-
-    def to_dict(self) -> dict[str, Any]:
-        return {
-            "energy": self.energy,
-            "hunger": self.hunger,
-            "thirst": self.thirst,
-            "social": self.social,
-            "entertainment": self.entertainment,
-            "mood": self.mood,
-            "last_tick_at": self.last_tick_at,
-        }
-
-    @classmethod
-    def from_dict(cls, d: dict[str, Any]) -> NpcSimulationState:
-        if not d:
-            return cls()
-        return cls(
-            energy=float(d.get("energy", 100.0)),
-            hunger=float(d.get("hunger", 100.0)),
-            thirst=float(d.get("thirst", 100.0)),
-            social=float(d.get("social", 100.0)),
-            entertainment=float(d.get("entertainment", 100.0)),
-            mood=float(d.get("mood", 50.0)),
-            last_tick_at=d.get("last_tick_at", ""),
-        )
-
-
-@dataclass
 class SpaceCharacter:
-    """空间角色 — 兼容 SillyTavern Character Card V2"""
+    """故事角色。"""
     id: str
     space_id: str
     name: str
@@ -272,16 +227,7 @@ class SpaceCharacter:
     talkativeness: float = 0.5  # 0.0–1.0，群聊时说话频率
     hobbies: list[str] = field(default_factory=list)
     
-    # ── 仿真与流动 (v0.9) ──────────────
-    current_space_id: str = ""
-    home_space_id: str = ""
-    simulation_state: NpcSimulationState = field(default_factory=NpcSimulationState)
     traits: list[str] = field(default_factory=list)
-    social_memories: list[dict] = field(default_factory=list) # [{content, source_name, timestamp}]
-    is_visitor: bool = False  # 是否为外来访客（流动 NPC）
-    # ── Mobility & Geo (v1.2) ──────────
-    lat: float | None = None
-    lon: float | None = None
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -302,14 +248,7 @@ class SpaceCharacter:
             "appearance": deepcopy(self.appearance) if isinstance(self.appearance, dict) else {},
             "talkativeness": _normalize_talkativeness(self.talkativeness),
             "hobbies": list(self.hobbies) if self.hobbies else [],
-            "current_space_id": self.current_space_id or self.space_id,
-            "home_space_id": self.home_space_id or self.space_id,
-            "lat": self.lat,
-            "lon": self.lon,
-            "simulation_state": self.simulation_state.to_dict(),
             "traits": list(self.traits),
-            "social_memories": self.social_memories,
-            "is_visitor": self.is_visitor,
         }
 
     @classmethod
@@ -340,17 +279,12 @@ class SpaceCharacter:
             appearance=_normalize_character_appearance(d.get("appearance")),
             talkativeness=_normalize_talkativeness(d.get("talkativeness", 0.5)),
             hobbies=d.get("hobbies", []),
-            current_space_id=d.get("current_space_id", d.get("space_id", "")),
-            home_space_id=d.get("home_space_id", d.get("space_id", "")),
-            simulation_state=NpcSimulationState.from_dict(d.get("simulation_state", {})),
             traits=d.get("traits", []),
-            social_memories=d.get("social_memories", []),
-            is_visitor=bool(d.get("is_visitor", False)),
         )
 
 
 def _entry_character_payload(character: TavernCharacter) -> dict[str, Any]:
-    """Public-safe character shape for the tavern entry page."""
+    """Public-safe character shape for the story entry page."""
     return {
         "id": character.id,
         "space_id": character.space_id,
@@ -366,196 +300,13 @@ def _entry_character_payload(character: TavernCharacter) -> dict[str, Any]:
         "appearance": deepcopy(character.appearance) if isinstance(character.appearance, dict) else {},
         "talkativeness": _normalize_talkativeness(character.talkativeness),
         "hobbies": list(character.hobbies) if character.hobbies else [],
-        "current_space_id": character.current_space_id or character.space_id,
-        "is_visitor": character.is_visitor,
-        "lat": character.lat,
-        "lon": character.lon,
     }
 
 
-def _public_safe_ambient_text(value: Any, *, max_length: int = 120) -> str:
-    """Return short visitor-safe ambient text for entry payloads.
-
-    Args:
-        value: Raw runtime text from NPC social memories or owner-authored public fields.
-        max_length: Maximum number of display characters retained after whitespace cleanup.
-
-    Returns:
-        A sanitized string, or an empty string when the value is blank or appears sensitive.
-
-    Side effects:
-        None. This helper only normalizes text for a public projection.
-    """
-    text = str(value or "").strip().replace("\r", " ").replace("\n", " ")
-    text = " ".join(text.split())
-    if not text:
-        return ""
-    lowered = text.lower()
-    sensitive_markers = (
-        "api key",
-        "apikey",
-        "api_key",
-        "secret",
-        "password",
-        "token",
-        "bearer ",
-        "sk-",
-        "密钥",
-        "密码",
-        "令牌",
-    )
-    if any(marker in lowered for marker in sensitive_markers):
-        return ""
-    return text[:max_length]
 
 
-def _ambient_need_label(character: TavernCharacter) -> str:
-    """Build one public mood/need label from an NPC simulation state.
-
-    Args:
-        character: Published NPC whose simulation state already exists in memory.
-
-    Returns:
-        A short Chinese status label suitable for visitor UI chips.
-
-    Side effects:
-        None. This helper reads but never mutates NPC state.
-    """
-    state = character.simulation_state
-    if not state:
-        return "状态平稳"
-    needs = [
-        ("想休息", float(getattr(state, "energy", 100.0))),
-        ("想吃点东西", float(getattr(state, "hunger", 100.0))),
-        ("想喝点东西", float(getattr(state, "thirst", 100.0))),
-        ("想找人聊天", float(getattr(state, "social", 100.0))),
-        ("想找点乐子", float(getattr(state, "entertainment", 100.0))),
-    ]
-    urgent = [item for item in needs if item[1] < 45.0]
-    if urgent:
-        urgent.sort(key=lambda item: item[1])
-        return urgent[0][0]
-    mood = float(getattr(state, "mood", 50.0))
-    if mood >= 70.0:
-        return "心情很好"
-    if mood <= 35.0:
-        return "有点低落"
-    return "状态平稳"
 
 
-def _entry_ambient_activity_payload(tavern: Tavern) -> dict[str, Any]:
-    """Create a public-safe ambient activity summary for a Space entry page.
-
-    Args:
-        tavern: Space domain object already authorized for public entry viewing.
-
-    Returns:
-        A computed activity payload with summary counts, state signals, and recent NPC-to-NPC
-        snippets. It is runtime atmosphere, not owner-confirmed canon.
-
-    Side effects:
-        None. This helper never writes Space, NPC, chat history, or social memory data.
-    """
-    characters = list(tavern.characters or [])
-    active_count = len(characters)
-    visitor_count = sum(1 for character in characters if character.is_visitor)
-    social_memory_count = sum(
-        len(character.social_memories)
-        for character in characters
-        if isinstance(character.social_memories, list)
-    )
-    talkative_count = sum(1 for character in characters if _normalize_talkativeness(character.talkativeness) >= 0.65)
-
-    recent: list[dict[str, Any]] = []
-    for character in characters:
-        memories = character.social_memories if isinstance(character.social_memories, list) else []
-        for index, memory in enumerate(memories[:3]):
-            if not isinstance(memory, dict):
-                continue
-            content = _public_safe_ambient_text(memory.get("content"), max_length=96)
-            source_name = _public_safe_ambient_text(memory.get("source_name"), max_length=40)
-            if not content or not source_name:
-                continue
-            timestamp = _public_safe_ambient_text(memory.get("timestamp"), max_length=40)
-            recent.append({
-                "id": f"{character.id or 'npc'}-{index}-{timestamp or len(recent)}",
-                "type": "npc_exchange",
-                "character_id": character.id,
-                "character_name": character.name,
-                "source_name": source_name,
-                "content": content,
-                "timestamp": timestamp,
-            })
-
-    recent.sort(key=lambda item: str(item.get("timestamp") or ""), reverse=True)
-    recent = recent[:5]
-
-    signals = [
-        {
-            "id": "active-characters",
-            "label": "在场角色",
-            "value": f"{active_count} 位",
-            "tone": "info",
-        }
-    ]
-    if bool(tavern.group_chat_enabled) and active_count > 1:
-        signals.append({
-            "id": "group-chat",
-            "label": "群聊桌",
-            "value": "已开启",
-            "tone": "live",
-        })
-    if visitor_count:
-        signals.append({
-            "id": "visiting-npcs",
-            "label": "外来 NPC",
-            "value": f"{visitor_count} 位路过",
-            "tone": "motion",
-        })
-    if recent:
-        signals.append({
-            "id": "recent-exchanges",
-            "label": "最近交流",
-            "value": f"{len(recent)} 条",
-            "tone": "memory",
-        })
-    elif talkative_count:
-        signals.append({
-            "id": "talkative-npcs",
-            "label": "接话意愿",
-            "value": f"{talkative_count} 位偏主动",
-            "tone": "social",
-        })
-
-    character_states = [
-        {
-            "character_id": character.id,
-            "character_name": character.name,
-            "label": _ambient_need_label(character),
-            "talkativeness": _normalize_talkativeness(character.talkativeness),
-            "is_visitor": bool(character.is_visitor),
-        }
-        for character in characters[:8]
-    ]
-
-    if recent:
-        summary = f"{active_count} 位 NPC 在场，最近留下 {len(recent)} 条彼此交流。"
-    elif active_count > 1:
-        summary = f"{active_count} 位 NPC 在场，空间会按店主配置接住你的下一句话。"
-    elif active_count == 1:
-        summary = "1 位 NPC 正在空间里待命。"
-    else:
-        summary = "这间空间还没有配置驻场 NPC。"
-
-    return {
-        "summary": summary,
-        "active_character_count": active_count,
-        "visiting_character_count": visitor_count,
-        "social_memory_count": social_memory_count,
-        "signals": signals,
-        "recent": recent,
-        "character_states": character_states,
-    }
 
 
 def _entry_gameplay_payload(gameplay: dict[str, Any]) -> dict[str, Any]:
@@ -885,7 +636,7 @@ class VisitorState:
 
 @dataclass
 class Space:
-    """空间 — 地图上的一个可进入场所"""
+    """已发布故事的过渡存储模型。"""
     id: str
     name: str
     description: str
@@ -989,62 +740,27 @@ class Space:
             "place_relationships": deepcopy(self.place_relationships),
         }
 
-    def to_dict_private(self, user_id: str) -> dict[str, Any]:
-        """包含敏感信息的版本，仅 owner 可见"""
-        result = self.to_dict()
-        if user_id == self.owner_id:
-            result["llm_config"] = self.llm_config.to_dict_private()
-            result["voice_config"] = self.voice_config.to_dict_private()
-        return result
-
-    def to_dict_public(self) -> dict[str, Any]:
-        """公开版本，不包含敏感信息"""
-        result = self.to_dict()
-        result.pop("password_hash", None)
-        result.pop("voice_config", None)
-        result.pop("engagement_config", None)
-        result["character_claims"] = [
-            deepcopy(claim)
-            for claim in self.character_claims
-            if str(claim.get("status") or "") == "approved"
-        ]
-        result.pop("home_members", None)
-        result.pop("place_relationships", None)
-        return result
-
     def to_dict_entry(self) -> dict[str, Any]:
-        """Slim public-safe payload for visitor tavern entry/detail pages."""
-        result = self.to_dict_public()
-        for key in (
-            "world_info",
-            "groups",
-            "bookmarks",
-            "chat_templates",
-            "output_rules",
-            "prompt_blocks",
-            "runtime_presets",
-            "active_preset_id",
-            "memory_policy",
-            "group_chat_config",
-        ):
-            result.pop(key, None)
-
-        visible_llm_config = _hydrate_system_public_welfare_llm_config(
-            self,
-            self.llm_config,
-            space_id=self.id,
-            include_api_key=False,
-        )
-        result["llm_config"] = {"backend": visible_llm_config.backend}
-        result["characters"] = [_entry_character_payload(character) for character in self.characters]
-        result["ambient_activity"] = _entry_ambient_activity_payload(self)
-        result["gameplay_definitions"] = [
-            _entry_gameplay_payload(gameplay)
-            for gameplay in deepcopy(self.gameplay_definitions)
-            if str((gameplay or {}).get("status") or "published") == "published"
-        ]
-        result["response_view"] = "entry"
-        return result
+        """Return only the published player-facing story contract."""
+        return {
+            "id": self.id,
+            "name": self.name,
+            "description": self.description,
+            "access": self.access,
+            "status": self.status,
+            "scene_prompt": self.scene_prompt,
+            "characters": [
+                _entry_character_payload(character)
+                for character in self.characters
+            ],
+            "gameplay_definitions": [
+                _entry_gameplay_payload(gameplay)
+                for gameplay in deepcopy(self.gameplay_definitions)
+                if str((gameplay or {}).get("status") or "published") == "published"
+            ],
+            "group_chat_enabled": bool(self.group_chat_enabled),
+            "response_view": "entry",
+        }
 
     @classmethod
     def from_dict(cls, d: dict[str, Any]) -> Tavern:
@@ -2209,539 +1925,34 @@ class SpaceService:
     def __init__(self, store: TavernStore):
         self.store = store
 
-    def _enrich_time_status(self, tavern_dict: dict[str, Any], tavern: Tavern) -> None:
-        time_ctx = build_time_context(
-            lat=tavern.lat,
-            lon=tavern.lon,
-            timezone_str=tavern.timezone,
-            operating_hours=tavern.operating_hours,
-        )
-        local_time_display = time_ctx.local_time.strftime("%H:%M")
-        tavern_dict.update({
-            "timezone": time_ctx.timezone,
-            "local_time_display": local_time_display,
-            "is_open": time_ctx.is_open,
-            "time_status": {
-                "timezone": time_ctx.timezone,
-                "local_time_display": local_time_display,
-                "is_open": time_ctx.is_open,
-                "local_date": time_ctx.local_time.strftime("%Y-%m-%d"),
-                "local_season": time_ctx.season,
-                "local_day_of_week": time_ctx.day_of_week,
-                "local_hour": time_ctx.local_hour,
-            },
-        })
 
-    def _get_private_llm_config(self, space_id: str) -> LLMConfig | None:
-        private_getter = getattr(self.store, "get_llm_config_private", None)
-        if callable(private_getter):
-            return private_getter(space_id)
-        return self.store.get_llm_config(space_id)
 
-    def list_spaces(
-        self,
-        lat: float | None = None,
-        lon: float | None = None,
-        radius: float = 5000,
-        access: str | None = None,
-        status: str | None = None,
-        place_type: str = "",
-        special_type: str = "",
-        query: str = "",
-        owner_id: str = "",
-    ) -> list[dict[str, Any]]:
-        """列出空间，支持位置过滤"""
-        taverns = self.store.list_spaces(include_private=bool(owner_id), owner_id=owner_id)
-        normalized_query = (query or "").strip()
-        normalized_status = (status or "").strip()
-        normalized_place_type = _normalize_tavern_list_place_type_filter(place_type)
-        normalized_special_type = _normalize_tavern_list_special_type_filter(special_type)
-
-        result = []
-        for t in taverns:
-            if owner_id and t.owner_id != owner_id:
-                continue
-            if t.place_type == "home" and not (owner_id and t.owner_id == owner_id):
-                continue
-            if access and t.access != access:
-                continue
-            if normalized_status and t.status != normalized_status:
-                continue
-            if normalized_place_type and t.place_type != normalized_place_type:
-                continue
-            if normalized_special_type and t.special_type != normalized_special_type:
-                continue
-            if normalized_query and not _matches_tavern_query(t, normalized_query):
-                continue
-
-            tavern_dict = t.to_dict_private(owner_id) if owner_id and t.owner_id == owner_id else t.to_dict_public()
-            tavern_dict["_distance"] = None
-            if lat is not None and lon is not None:
-                dist = _haversine_distance(lat, lon, t.lat, t.lon)
-                tavern_dict["_distance"] = dist
-                if dist > radius:
-                    continue
-
-            # 添加时间状态信息
-            self._enrich_time_status(tavern_dict, t)
-
-            result.append(tavern_dict)
-
-        # 按距离排序
-        result.sort(key=lambda x: x["_distance"] if x["_distance"] is not None else float("inf"))
-        return result
 
     def get_space(self, space_id: str, user_id: str = "", view: str = "") -> dict[str, Any]:
-        tavern = self.store.get_space(space_id)
-        if not tavern:
-            raise HTTPException(status_code=404, detail="空间不存在")
-
-        if tavern.access == "private" and tavern.owner_id != user_id:
-            raise HTTPException(status_code=403, detail="此空间是私人的")
-
-        # 添加时间状态信息
-        entry_view = str(view or "").strip().lower() == "entry"
-        if entry_view:
-            tavern_dict = tavern.to_dict_entry()
-        else:
-            tavern_dict = tavern.to_dict_private(user_id) if tavern.owner_id and tavern.owner_id == user_id else tavern.to_dict_public()
-        self._enrich_time_status(tavern_dict, tavern)
-        if tavern.place_type == "school":
-            tavern_dict["school_members"] = self.list_school_members(space_id, user_id=user_id)["members"]
-            if not entry_view and tavern.owner_id and tavern.owner_id == user_id:
-                tavern_dict["pending_school_enrollments"] = self._school_relationships(space_id, statuses={"pending"})
-        if not entry_view and tavern.owner_id and tavern.owner_id == user_id:
-            tavern_dict["target_place_relationships"] = self._target_relationships(space_id)
-            tavern_dict["pending_place_relationships"] = self._target_relationships(space_id, statuses={"pending"})
-
+        del view
+        story = self.store.get_space(space_id)
+        if not story or story.access != "public":
+            raise HTTPException(status_code=404, detail="故事不存在")
+        payload = story.to_dict_entry()
         if user_id:
             visitor_state = self.store.get_visitor_state(space_id, user_id)
             if visitor_state:
-                tavern_dict["visitor_state"] = visitor_state.to_dict()
+                payload["visitor_state"] = visitor_state.to_dict()
+        return payload
 
-        return tavern_dict
 
-    def create_space(self, data: dict[str, Any], owner_id: str = "") -> dict[str, Any]:
-        """创建空间"""
-        owner_id = str(owner_id or "").strip()
-        if not owner_id:
-            raise HTTPException(status_code=401, detail="创建空间需要明确店主身份")
-        space_id = data.get("id") or f"space_{uuid.uuid4().hex[:12]}"
-        now = _utc_now_iso()
-        place_type = _require_valid_place_type(data["place_type"]) if "place_type" in data else "space"
-        access = data.get("access", "public")
-        if place_type == "home":
-            access = _normalize_home_access(access)
 
-        tavern = Tavern(
-            id=space_id,
-            name=data.get("name", "未命名空间"),
-            description=data.get("description", ""),
-            lat=float(data.get("lat", 0)),
-            lon=float(data.get("lon", 0)),
-            address=data.get("address", ""),
-            owner_id=owner_id or data.get("owner_id", ""),
-            created_at=now,
-            access=access,
-            password_hash="",
-            status="open",
-            roleplay_mode=_normalize_roleplay_mode(data.get("roleplay_mode", "ai_only")),
-            layout_style=_normalize_tavern_layout_style(data.get("layout_style", "lobby")),
-            place_type=place_type,
-            special_type=_normalize_special_type(data.get("special_type", "")),
-            character_claims=_normalize_character_claims(data.get("character_claims", [])),
-            gameplay_definitions=_normalize_metadata_list(data.get("gameplay_definitions", [])),
-            output_rules=_normalize_metadata_list(data.get("output_rules", [])),
-            prompt_blocks=_normalize_metadata_list(data.get("prompt_blocks", [])),
-            runtime_presets=_normalize_metadata_list(data.get("runtime_presets", [])),
-            skill_packs=normalize_skill_pack_settings(data.get("skill_packs", [])),
-            active_preset_id=str(data.get("active_preset_id") or ""),
-            memory_policy=deepcopy(data.get("memory_policy", {})) if isinstance(data.get("memory_policy"), dict) else {},
-            scene_prompt=data.get("scene_prompt", ""),
-            group_chat_enabled=_normalize_bool(data.get("group_chat_enabled", False)),
-            group_chat_config=_normalize_group_chat_config(data.get("group_chat_config", {})),
-            llm_config=LLMConfig.from_dict(data.get("llm_config", {})),
-            timezone=data.get("timezone"),
-            operating_hours=deepcopy(data.get("operating_hours", {})) if isinstance(data.get("operating_hours"), dict) else {},
-            home_members=_normalize_home_members(data.get("home_members", []), space_id),
-            place_relationships=_normalize_place_relationships(data.get("place_relationships", [])),
-        )
 
-        # 处理密码
-        password = data.get("password", "")
-        if tavern.access == "password" and password:
-            tavern.password_hash = _hash_password(password)
 
-        tavern = self.store.create_space(tavern)
 
-        # 保存 LLM 配置（包含 api_key；本地后端可仅凭 base_url 配置）
-        llm_data = data.get("llm_config", {})
-        if llm_data:
-            llm_config = LLMConfig.from_dict(llm_data)
-        else:
-            llm_config = None
-        if llm_config:
-            llm_config = _hydrate_system_public_welfare_llm_config(tavern, llm_config, space_id=space_id)
-        if llm_config and (llm_config.is_configured() or str(llm_config.backend or "").strip().lower() in {"rules", "rule_based", "public_welfare"}):
-            self.store.save_llm_config(space_id, llm_config)
-            # 更新 status
-            tavern.llm_config = llm_config
-            tavern.status = "open"
-            tavern = self.store.update_space(tavern)
-        elif llm_config and _is_system_or_public_welfare_space_data(tavern):
-            self.store.save_llm_config(space_id, llm_config)
-            tavern.llm_config = llm_config
-            tavern.status = "open"
-            tavern = self.store.update_space(tavern)
-        elif _is_system_or_public_welfare_space_data(tavern):
-            # System/public-welfare shops remain normally open without a
-            # configured external provider; runtime uses the local rules
-            # fallback until the owner explicitly saves a working model.
-            tavern.status = "open"
-            tavern = self.store.update_space(tavern)
 
-        return tavern.to_dict_private(owner_id)
 
-    def update_space(self, space_id: str, data: dict[str, Any], user_id: str = "") -> dict[str, Any]:
-        """更新空间"""
-        tavern = self.store.get_space(space_id)
-        if not tavern:
-            raise HTTPException(status_code=404, detail="空间不存在")
 
-        if tavern.owner_id and tavern.owner_id != user_id:
-            raise HTTPException(status_code=403, detail="你不是此空间的主人")
 
-        # 更新字段
-        if "name" in data:
-            tavern.name = data["name"]
-        if "description" in data:
-            tavern.description = data["description"]
-        if "lat" in data:
-            tavern.lat = float(data["lat"])
-        if "lon" in data:
-            tavern.lon = float(data["lon"])
-        if "address" in data:
-            tavern.address = data["address"]
-        if "scene_prompt" in data:
-            tavern.scene_prompt = data["scene_prompt"]
-        if "status" in data:
-            tavern.status = data["status"]
-        if "roleplay_mode" in data:
-            tavern.roleplay_mode = _normalize_roleplay_mode(data.get("roleplay_mode"))
-        if "layout_style" in data:
-            tavern.layout_style = _normalize_tavern_layout_style(data.get("layout_style"))
-        if "place_type" in data:
-            tavern.place_type = _require_valid_place_type(data.get("place_type"))
-            if tavern.place_type == "home":
-                tavern.access = _normalize_home_access(tavern.access)
-        if "special_type" in data:
-            tavern.special_type = _normalize_special_type(data.get("special_type"))
-        if "access" in data:
-            tavern.access = _normalize_home_access(data["access"]) if tavern.place_type == "home" else data["access"]
-        if "character_claims" in data:
-            tavern.character_claims = _normalize_character_claims(data.get("character_claims"))
-        if "home_members" in data:
-            tavern.home_members = _normalize_home_members(data.get("home_members"), tavern.id)
-        if "place_relationships" in data:
-            tavern.place_relationships = _normalize_place_relationships(data.get("place_relationships"))
-        if "characters" in data and isinstance(data["characters"], list):
-            tavern.characters = [
-                _character_from_payload(character_data, space_id)
-                for character_data in data["characters"]
-                if isinstance(character_data, dict)
-            ]
-        if "world_info" in data and isinstance(data["world_info"], list):
-            tavern.world_info = [
-                _world_info_from_payload(entry_data, space_id)
-                for entry_data in data["world_info"]
-                if isinstance(entry_data, dict)
-            ]
-        for metadata_key in ("groups", "bookmarks", "chat_templates", "gameplay_definitions", "output_rules", "prompt_blocks", "runtime_presets"):
-            if metadata_key in data:
-                setattr(tavern, metadata_key, _normalize_metadata_list(data[metadata_key]))
-        if "skill_packs" in data:
-            tavern.skill_packs = normalize_skill_pack_settings(data.get("skill_packs"))
-        if "active_preset_id" in data:
-            tavern.active_preset_id = str(data.get("active_preset_id") or "").strip()
-        if "memory_policy" in data:
-            tavern.memory_policy = deepcopy(data["memory_policy"]) if isinstance(data["memory_policy"], dict) else {}
-        if "group_chat_enabled" in data:
-            tavern.group_chat_enabled = _normalize_bool(data.get("group_chat_enabled"))
-        if "group_chat_config" in data:
-            tavern.group_chat_config = _normalize_group_chat_config(data.get("group_chat_config"))
-        if "timezone" in data:
-            tavern.timezone = data.get("timezone")
-        if "operating_hours" in data:
-            tavern.operating_hours = deepcopy(data["operating_hours"]) if isinstance(data["operating_hours"], dict) else {}
 
-        # 处理密码更新
-        if "password" in data:
-            password = data["password"]
-            if password:
-                tavern.password_hash = _hash_password(password)
-            else:
-                tavern.password_hash = ""
 
-        # 更新 LLM 配置
-        llm_data = data.get("llm_config")
-        if llm_data:
-            preserved_token_usage = self.store.get_token_usage(space_id) or tavern.llm_config.token_used
-            stored_llm_config = self._get_private_llm_config(space_id)
-            llm_config = LLMConfig.from_dict(
-                {
-                    **llm_data,
-                    "token_used": llm_data.get("token_used", preserved_token_usage),
-                }
-            )
-            if (
-                not llm_config.api_key
-                and stored_llm_config
-                and stored_llm_config.backend == llm_config.backend
-            ):
-                llm_config.api_key = stored_llm_config.api_key
-            llm_config = _hydrate_system_public_welfare_llm_config(tavern, llm_config, space_id=space_id)
-            if llm_config.is_configured():
-                self.store.save_llm_config(space_id, llm_config)
-                tavern.llm_config = llm_config
-                tavern.status = "open"
-            elif _is_system_or_public_welfare_space_data(tavern):
-                self.store.save_llm_config(space_id, llm_config)
-                tavern.llm_config = llm_config
-                tavern.status = "open"
-            else:
-                tavern.llm_config = llm_config
-                tavern.status = "closed"
 
-        # 更新语音配置
-        voice_data = data.get("voice_config")
-        if voice_data:
-            voice_config = VoiceConfig.from_dict(voice_data)
-            tavern.voice_config = voice_config
-            self.store.save_voice_config(space_id, voice_config)
 
-        tavern = self.store.update_space(tavern)
-        return tavern.to_dict_private(user_id)
-
-    def delete_space(self, space_id: str, user_id: str = "") -> dict[str, str]:
-        tavern = self.store.get_space(space_id)
-        if not tavern:
-            raise HTTPException(status_code=404, detail="空间不存在")
-
-        if tavern.owner_id and tavern.owner_id != user_id:
-            raise HTTPException(status_code=403, detail="你不是此空间的主人")
-
-        self.store.delete_space(space_id)
-        return {"ok": True, "space_id": space_id}
-
-    def add_home_member(self, space_id: str, data: dict[str, Any], user_id: str = "") -> dict[str, Any]:
-        tavern = self.store.get_space(space_id)
-        if not tavern:
-            raise HTTPException(status_code=404, detail="空间不存在")
-        if tavern.owner_id and tavern.owner_id != user_id:
-            raise HTTPException(status_code=403, detail="你不是此 Home 的主人")
-        if tavern.place_type != "home":
-            raise HTTPException(status_code=400, detail="只有 Home 可以添加家庭成员")
-
-        member_payload = {
-            **data,
-            "id": data.get("id") or f"member_{uuid.uuid4().hex[:12]}",
-            "home_id": space_id,
-            "created_at": data.get("created_at") or _utc_now_iso(),
-        }
-        members = _normalize_home_members([member_payload], space_id)
-        if not members:
-            raise HTTPException(status_code=400, detail="家庭成员名称不能为空")
-        member = members[0]
-        tavern.home_members.append(member)
-        tavern.home_members = _normalize_home_members(tavern.home_members, space_id)
-        self.store.update_space(tavern)
-        return {"ok": True, "space_id": space_id, "member": member, "members": deepcopy(tavern.home_members)}
-
-    def create_school_enrollment(self, home_space_id: str, data: dict[str, Any], user_id: str = "") -> dict[str, Any]:
-        school_tavern_id = str(data.get("school_tavern_id") or data.get("target_space_id") or "").strip()
-        school = self.store.get_space(school_tavern_id)
-        if not school:
-            raise HTTPException(status_code=404, detail="学校地点不存在")
-        if school.place_type != "school":
-            raise HTTPException(status_code=400, detail="目标地点不是学校")
-        return self.create_place_relationship(
-            home_space_id,
-            {
-                **data,
-                "target_space_id": school_tavern_id,
-                "relation_type": "school_enrollment",
-                "target_role": data.get("target_role") or "school",
-                "source_role": data.get("source_role") or "student",
-            },
-            user_id,
-        )
-
-    def create_place_relationship(self, home_space_id: str, data: dict[str, Any], user_id: str = "") -> dict[str, Any]:
-        home = self.store.get_space(home_space_id)
-        if not home:
-            raise HTTPException(status_code=404, detail="Home 不存在")
-        if home.owner_id and home.owner_id != user_id:
-            raise HTTPException(status_code=403, detail="你不是此 Home 的主人")
-        if home.place_type != "home":
-            raise HTTPException(status_code=400, detail="只能从 Home 发起地点关系")
-
-        member_id = str(data.get("member_id") or "").strip()
-        target_space_id = str(data.get("target_space_id") or data.get("school_tavern_id") or "").strip()
-        relation_type = _require_valid_place_relationship_type(data.get("relation_type") or "school_enrollment")
-        member = next((item for item in home.home_members if item.get("id") == member_id), None)
-        if not member:
-            raise HTTPException(status_code=404, detail="家庭成员不存在")
-        target = self.store.get_space(target_space_id)
-        if not target:
-            raise HTTPException(status_code=404, detail="目标地点不存在")
-        if relation_type == "school_enrollment" and target.place_type != "school":
-            raise HTTPException(status_code=400, detail="学生-学校关系的目标地点必须是学校")
-
-        status = "approved" if target.owner_id and target.owner_id == home.owner_id else "pending"
-        relationship = {
-            "id": f"rel_{uuid.uuid4().hex[:12]}",
-            "relation_type": relation_type,
-            "source_space_id": home.id,
-            "source_member_id": member_id,
-            "target_space_id": target.id,
-            "status": status,
-            "display_name": str(data.get("display_name") or member.get("display_name") or member.get("name") or "").strip()[:80],
-            "visibility": "target_summary",
-            "requested_by": user_id,
-            "created_at": _utc_now_iso(),
-            "source_role": str(data.get("source_role") or "").strip()[:60],
-            "target_role": str(data.get("target_role") or "").strip()[:60],
-        }
-        if status == "approved":
-            relationship["decided_by"] = target.owner_id or user_id
-            relationship["decided_at"] = relationship["created_at"]
-        note = str(data.get("note") or "").strip()
-        if note:
-            relationship["note"] = note[:240]
-
-        relationship = {key: value for key, value in relationship.items() if value != ""}
-        home.place_relationships.append(relationship)
-        home.place_relationships = _normalize_place_relationships(home.place_relationships)
-        self.store.update_space(home)
-        return {"ok": True, "relationship": relationship}
-
-    def decide_place_relationship(
-        self,
-        target_space_id: str,
-        relationship_id: str,
-        data: dict[str, Any],
-        user_id: str = "",
-    ) -> dict[str, Any]:
-        target = self.store.get_space(target_space_id)
-        if not target:
-            raise HTTPException(status_code=404, detail="目标地点不存在")
-        if target.owner_id and target.owner_id != user_id:
-            raise HTTPException(status_code=403, detail="你不是目标地点的主人")
-
-        next_status = _normalize_place_relationship_status(data.get("status"))
-        if next_status == "pending":
-            raise HTTPException(status_code=400, detail="审批结果不能是 pending")
-
-        source_tavern, relationship = self._find_relationship(relationship_id, target_space_id=target_space_id)
-        if not relationship:
-            raise HTTPException(status_code=404, detail="关系记录不存在")
-
-        relationship["status"] = next_status
-        relationship["decided_by"] = user_id
-        relationship["decided_at"] = _utc_now_iso()
-        note = str(data.get("note") or "").strip()
-        if note:
-            relationship["note"] = note[:240]
-        source_tavern.place_relationships = _normalize_place_relationships(source_tavern.place_relationships)
-        self.store.update_space(source_tavern)
-        return {"ok": True, "relationship": relationship}
-
-    def list_school_members(self, school_tavern_id: str, user_id: str = "") -> dict[str, Any]:
-        school = self.store.get_space(school_tavern_id)
-        if not school:
-            raise HTTPException(status_code=404, detail="学校地点不存在")
-        if school.access == "private" and school.owner_id != user_id:
-            raise HTTPException(status_code=403, detail="此学校地点是私人的")
-        members = []
-        for home, relationship in self._school_relationships_with_sources(school_tavern_id, statuses={"approved"}):
-            member = next((item for item in home.home_members if item.get("id") == relationship.get("source_member_id")), None)
-            if not member:
-                continue
-            members.append({
-                "relationship_id": relationship.get("id", ""),
-                "home_space_id": home.id,
-                "member_id": member.get("id", ""),
-                "display_name": relationship.get("display_name") or member.get("display_name") or member.get("name", ""),
-                "member_type": member.get("member_type", "silent_member"),
-                "avatar": member.get("avatar", ""),
-                "speech_mode": member.get("speech_mode", "silent"),
-            })
-        members.sort(key=lambda item: (str(item.get("display_name") or ""), str(item.get("relationship_id") or "")))
-        return {"space_id": school_tavern_id, "members": members, "count": len(members)}
-
-    def _all_taverns_for_relationships(self) -> list[Tavern]:
-        getter = getattr(self.store, "list_all_spaces", None)
-        if callable(getter):
-            return getter()
-        return self.store.list_spaces(include_private=True)
-
-    def _find_relationship(
-        self,
-        relationship_id: str,
-        target_space_id: str = "",
-    ) -> tuple[Tavern | None, dict[str, Any] | None]:
-        for tavern in self._all_taverns_for_relationships():
-            for relationship in tavern.place_relationships:
-                if relationship.get("id") != relationship_id:
-                    continue
-                if target_space_id and relationship.get("target_space_id") != target_space_id:
-                    continue
-                return tavern, relationship
-        return None, None
-
-    def _target_relationships(self, target_space_id: str, statuses: set[str] | None = None) -> list[dict[str, Any]]:
-        return [
-            deepcopy(relationship)
-            for _, relationship in self._target_relationships_with_sources(target_space_id, statuses=statuses)
-        ]
-
-    def _target_relationships_with_sources(
-        self,
-        target_space_id: str,
-        statuses: set[str] | None = None,
-    ) -> list[tuple[Tavern, dict[str, Any]]]:
-        matches: list[tuple[Tavern, dict[str, Any]]] = []
-        for tavern in self._all_taverns_for_relationships():
-            for relationship in tavern.place_relationships:
-                if relationship.get("target_space_id") != target_space_id:
-                    continue
-                if statuses and relationship.get("status") not in statuses:
-                    continue
-                matches.append((tavern, relationship))
-        return matches
-
-    def _school_relationships(self, school_tavern_id: str, statuses: set[str] | None = None) -> list[dict[str, Any]]:
-        return [
-            deepcopy(relationship)
-            for _, relationship in self._school_relationships_with_sources(school_tavern_id, statuses=statuses)
-        ]
-
-    def _school_relationships_with_sources(
-        self,
-        school_tavern_id: str,
-        statuses: set[str] | None = None,
-    ) -> list[tuple[Tavern, dict[str, Any]]]:
-        matches: list[tuple[Tavern, dict[str, Any]]] = []
-        for tavern in self._all_taverns_for_relationships():
-            for relationship in tavern.place_relationships:
-                if relationship.get("relation_type") != "school_enrollment":
-                    continue
-                if relationship.get("target_space_id") != school_tavern_id:
-                    continue
-                if statuses and relationship.get("status") not in statuses:
-                    continue
-                matches.append((tavern, relationship))
-        return matches
 
     def enter_space(
         self,
@@ -2751,21 +1962,11 @@ class SpaceService:
         visitor_gender: str = "",
         play_identity_id: str | None = None,
     ) -> dict[str, Any]:
-        """进入空间（验证密码）"""
-        tavern = self.store.get_space(space_id)
-        if not tavern:
-            raise HTTPException(status_code=404, detail="空间不存在")
-
-        # 密码验证
-        if tavern.access == "password":
-            if not password:
-                raise HTTPException(status_code=401, detail="此空间需要密码")
-            if not _verify_password(password, tavern.password_hash):
-                raise HTTPException(status_code=401, detail="密码错误")
-
-        # 私人空间只允许主人进入
-        if tavern.access == "private" and tavern.owner_id != user_id:
-            raise HTTPException(status_code=403, detail="此空间是私人的")
+        """Enter one published system story and update only player state."""
+        del password
+        story = self.store.get_space(space_id)
+        if not story or story.access != "public":
+            raise HTTPException(status_code=404, detail="故事不存在")
 
         try:
             selected_identity_id, selected_gender = validate_requested_play_identity(
@@ -2775,7 +1976,6 @@ class SpaceService:
         except ValueError as exc:
             raise HTTPException(status_code=400, detail=str(exc)) from exc
 
-        # 更新访客状态。有明确访客身份时才写入，避免匿名空 ID 污染回访面板。
         now = _utc_now_iso()
         visitor_state = None
         if user_id:
@@ -2783,10 +1983,6 @@ class SpaceService:
                 visitor_id=user_id,
                 space_id=space_id,
             )
-
-            # 修行空间离线结算逻辑
-            if is_cultivation_space(tavern):
-                cultivation_receipt = calculate_cultivation_receipt_with_card(tavern, visitor_state, now)
 
             visitor_state.visit_count += 1
             if not visitor_state.first_visit:
@@ -2806,278 +2002,40 @@ class SpaceService:
             )
             self.store.update_visitor_state(space_id, visitor_state)
 
-        # 更新空间访问计数
-        tavern.visit_count += 1
-        self.store.update_space(tavern)
-
         return {
             "ok": True,
             "space_id": space_id,
             "visitor_id": user_id,
             "visit_count": visitor_state.visit_count if visitor_state else 0,
             "visitor_state": visitor_state.to_dict() if visitor_state else None,
-            "cultivation_receipt": cultivation_receipt if 'cultivation_receipt' in locals() else None,
-            "status": tavern.status,
-            "characters": [c.to_dict() for c in tavern.characters],
-            "scene_prompt": tavern.scene_prompt,
-            "first_mes": tavern.characters[0].first_mes if tavern.characters else "欢迎光临。",
+            "status": story.status,
+            "characters": [_entry_character_payload(character) for character in story.characters],
+            "scene_prompt": story.scene_prompt,
+            "first_mes": story.characters[0].first_mes if story.characters else "故事从这里开始。",
         }
 
     # ── 角色管理 ────────────────────────
 
-    def add_character(self, space_id: str, data: dict[str, Any], user_id: str = "") -> dict[str, Any]:
-        tavern = self.store.get_space(space_id)
-        if not tavern:
-            raise HTTPException(status_code=404, detail="空间不存在")
 
-        if tavern.owner_id and tavern.owner_id != user_id:
-            raise HTTPException(status_code=403, detail="你不是此空间的主人")
 
-        character = _character_from_payload(data, space_id)
-        tavern.characters.append(character)
-        world_info_payload = data.get("_world_info") or data.get("world_info")
-        if isinstance(world_info_payload, list):
-            tavern.world_info.extend(
-                _world_info_from_payload(entry_data, space_id)
-                for entry_data in world_info_payload
-                if isinstance(entry_data, dict)
-            )
-        self.store.update_space(tavern)
-        return character.to_dict()
 
-    def update_character(self, space_id: str, char_id: str, data: dict[str, Any], user_id: str = "") -> dict[str, Any]:
-        tavern = self.store.get_space(space_id)
-        if not tavern:
-            raise HTTPException(status_code=404, detail="空间不存在")
-
-        if tavern.owner_id and tavern.owner_id != user_id:
-            raise HTTPException(status_code=403, detail="你不是此空间的主人")
-
-        char = next((c for c in tavern.characters if c.id == char_id), None)
-        if not char:
-            raise HTTPException(status_code=404, detail="角色不存在")
-
-        # 更新字段
-        for key in ("name", "description", "personality", "scenario", "system_prompt", "first_mes", "mes_example"):
-            if key in data:
-                setattr(char, key, data[key])
-        if "hobbies" in data:
-            char.hobbies = _normalize_string_list(data["hobbies"], split_commas=True)
-        if "gender" in data:
-            char.gender = _normalize_gender(data.get("gender"))
-        if "alternate_greetings" in data:
-            char.alternate_greetings = _normalize_string_list(data["alternate_greetings"])
-        if "tags" in data:
-            char.tags = _normalize_string_list(data["tags"], split_commas=True)
-        if "avatar" in data:
-            char.avatar = str(data.get("avatar") or "").strip()
-        if "appearance" in data:
-            char.appearance = _normalize_character_appearance(data.get("appearance"))
-        if "talkativeness" in data:
-            char.talkativeness = _normalize_talkativeness(data.get("talkativeness"))
-        if "sprites" in data:
-            sprite_map = _normalize_sprite_map(data["sprites"])
-            char.sprites = TavernSpriteSet(sprite_map) if sprite_map else None
-
-        self.store.update_space(tavern)
-        return char.to_dict()
-
-    def delete_character(self, space_id: str, char_id: str, user_id: str = "") -> dict[str, str]:
-        tavern = self.store.get_space(space_id)
-        if not tavern:
-            raise HTTPException(status_code=404, detail="空间不存在")
-
-        if tavern.owner_id and tavern.owner_id != user_id:
-            raise HTTPException(status_code=403, detail="你不是此空间的主人")
-
-        tavern.characters = [c for c in tavern.characters if c.id != char_id]
-        self.store.update_space(tavern)
-        return {"ok": True, "character_id": char_id}
-
-    def import_character_card(
-        self,
-        space_id: str,
-        card_data: dict[str, Any],
-        user_id: str = "",
-    ) -> dict[str, Any]:
-        """从 SillyTavern Character Card V2 格式导入角色"""
-        # 解析 SillyTavern V2 格式
-        parsed = _parse_sillytavern_card(card_data)
-        return self.add_character(space_id, parsed, user_id)
 
     # ── 运营指标 ────────────────────────
 
-    def get_tavern_metrics(self, space_id: str, user_id: str = "") -> dict[str, Any]:
-        """获取空间运营指标"""
-        tavern = self.store.get_space(space_id)
-        if not tavern:
-            raise HTTPException(status_code=404, detail="空间不存在")
-
-        # 验证访问权限（只有空间主人可以看到完整指标）
-        if tavern.owner_id and tavern.owner_id != user_id:
-            raise HTTPException(status_code=403, detail="你不是此空间的主人")
-
-        # Token 用量
-        token_usage = self.store.get_token_usage(space_id)
-
-        # 从访客状态获取访问统计
-        visitor_states = self.store.list_visitor_states(space_id)
-        total_visits = sum(vs.visit_count for vs in visitor_states)
-        unique_visitors = len(visitor_states)
-
-        # 从聊天历史获取消息统计和 NPC 排行
-        sessions = self.store.list_chat_sessions(space_id, limit=None)
-        total_messages = sum(s.get("message_count", 0) for s in sessions)
-
-        # NPC 互动排行：按 character_id 聚合消息数
-        npc_stats: dict[str, dict[str, Any]] = {}
-        for session in sessions:
-            char_id = session.get("character_id", "")
-            if not char_id:
-                continue
-            if char_id not in npc_stats:
-                # 查找角色名称
-                char_name = next(
-                    (c.name for c in tavern.characters if c.id == char_id),
-                    char_id,
-                )
-                npc_stats[char_id] = {
-                    "character_id": char_id,
-                    "character_name": char_name,
-                    "message_count": 0,
-                    "last_interaction": "",
-                }
-            npc_stats[char_id]["message_count"] += session.get("message_count", 0)
-            last_msg_time = session.get("updated_at", "")
-            if last_msg_time and npc_stats[char_id]["last_interaction"] < last_msg_time:
-                npc_stats[char_id]["last_interaction"] = last_msg_time
-
-        # 按消息数排序
-        npc_rankings = sorted(
-            npc_stats.values(),
-            key=lambda x: x["message_count"],
-            reverse=True,
-        )
-
-        # 热门时段分析：从所有消息时间戳提取小时分布
-        hourly_counts = [0] * 24
-        daily_counts: dict[str, int] = {}
-        for session in sessions:
-            last_time = session.get("updated_at", "")
-            if not last_time:
-                continue
-            try:
-                # 解析 ISO 时间格式
-                from datetime import datetime
-                dt = datetime.fromisoformat(last_time.replace("Z", "+00:00"))
-                hour = dt.hour
-                hourly_counts[hour] += session.get("message_count", 0)
-                date_key = dt.strftime("%Y-%m-%d")
-                daily_counts[date_key] = daily_counts.get(date_key, 0) + session.get("message_count", 0)
-            except (ValueError, TypeError):
-                continue
-
-        # 峰值时段：找出消息最多的 3 个小时
-        peak_hours = sorted(
-            range(24),
-            key=lambda h: hourly_counts[h],
-            reverse=True,
-        )[:3]
-
-        # 最近 7 天的日期统计
-        peak_days = [
-            {"date": date, "visit_count": count}
-            for date, count in sorted(
-                daily_counts.items(),
-                key=lambda x: x[0],
-                reverse=True,
-            )
-        ][:7]
-
-        return {
-            "space_id": space_id,
-            "token_usage": token_usage,
-            "total_visits": total_visits,
-            "unique_visitors": unique_visitors,
-            "total_messages": total_messages,
-            "npc_rankings": npc_rankings,
-            "peak_hours": peak_hours,
-            "peak_days": peak_days,
-        }
 
 
 # ─────────────────────────────────────────
-# SillyTavern 角色卡解析
+# 角色数据辅助逻辑
 # ─────────────────────────────────────────
 
-def _parse_sillytavern_card(card: dict[str, Any]) -> dict[str, Any]:
-    """
-    解析 SillyTavern Character Card V2 格式
-
-    字段映射：
-    data.name → name
-    data.description → description
-    data.personality → personality
-    data.scenario → scenario
-    data.system_prompt → system_prompt
-    data.first_mes → first_mes
-    data.mes_example → mes_example
-    data.alternate_greetings → alternate_greetings
-    data.tags → tags
-    data.character_book.entries → world_info
-    """
-    # 支持两种格式：直接传入 data 对象，或传入完整的 card 对象
-    data = card.get("data", card)
-
-    result = {
-        "name": data.get("name", "未命名角色"),
-        "description": data.get("description", ""),
-        "personality": data.get("personality", ""),
-        "scenario": data.get("scenario", ""),
-        "gender": data.get("gender", ""),
-        "system_prompt": data.get("system_prompt", ""),
-        "first_mes": data.get("first_mes", ""),
-        "mes_example": data.get("mes_example", ""),
-        "alternate_greetings": data.get("alternate_greetings", []),
-        "tags": data.get("tags", []),
-        "avatar": data.get("avatar", ""),
-        "appearance": data.get("appearance", {}),
-        "talkativeness": data.get("talkativeness", 0.5),
-        "sprites": data.get("sprites", {}),
-        "hobbies": data.get("hobbies", []),
-    }
-
-    # 解析 character_book (WorldInfo)
-    char_book = data.get("character_book", {})
-    entries = char_book.get("entries", [])
-    world_info = []
-    for entry in entries:
-        world_info.append({
-            "keys": entry.get("keys", []),
-            "content": entry.get("content", ""),
-            "selective": entry.get("selective", True),
-            "constant": entry.get("constant", False),
-            "depth": entry.get("depth", 4),
-            "order": entry.get("order", 100),
-        })
-
-    if world_info:
-        result["_world_info"] = world_info
-
-    return result
 
 
 # ─────────────────────────────────────────
 # 工具函数
 # ─────────────────────────────────────────
 
-def _hash_password(password: str) -> str:
-    """简单密码 hash（生产环境建议用 bcrypt）"""
-    return hashlib.sha256(password.encode()).hexdigest()
 
 
-def _verify_password(password: str, hashed: str) -> bool:
-    return _hash_password(password) == hashed
 
 
 def _normalize_string_list(value: Any, split_commas: bool = False) -> list[str]:
@@ -3207,14 +2165,8 @@ def _normalize_special_type(value: Any) -> str:
     return s if s in SPECIAL_TYPES else ""
 
 
-def _normalize_tavern_list_special_type_filter(value: Any) -> str:
-    special_type = str(value or "").strip().lower().replace("_", "-")
-    return special_type if special_type in SPECIAL_TYPES and special_type else ""
 
 
-def _normalize_tavern_list_place_type_filter(value: Any) -> str:
-    place_type = PLACE_TYPE_ALIASES.get(str(value or "").strip().lower().replace("_", "-"), str(value or "").strip().lower().replace("_", "-"))
-    return place_type if place_type in PLACE_TYPES else ""
 
 
 def _canonical_place_type(value: Any, default: str = "space") -> str:
@@ -3239,11 +2191,6 @@ def _normalize_place_type(value: Any) -> str:
     return _canonical_place_type(value, default="space")
 
 
-def _require_valid_place_type(value: Any) -> str:
-    place_type = _canonical_place_type(value, default="")
-    if place_type in PLACE_TYPES:
-        return place_type
-    raise HTTPException(status_code=400, detail="地点类型不受支持")
 
 
 def _normalize_home_access(value: Any) -> str:
@@ -3316,11 +2263,6 @@ def _normalize_place_relationship_type(value: Any) -> str:
     return relation_type if relation_type in PLACE_RELATIONSHIP_TYPES else "school_enrollment"
 
 
-def _require_valid_place_relationship_type(value: Any) -> str:
-    relation_type = str(value or "").strip().lower().replace("-", "_")
-    if relation_type in PLACE_RELATIONSHIP_TYPES:
-        return relation_type
-    raise HTTPException(status_code=400, detail="关系类型不受支持")
 
 
 def _normalize_place_relationships(value: Any) -> list[dict[str, Any]]:
@@ -3441,84 +2383,12 @@ def _normalize_metadata_list(value: Any) -> list[dict[str, Any]]:
     return [deepcopy(item) for item in value if isinstance(item, dict)]
 
 
-def _character_from_payload(data: dict[str, Any], space_id: str) -> TavernCharacter:
-    sprite_map = _normalize_sprite_map(data.get("sprites", {}))
-    return TavernCharacter(
-        id=data.get("id") or f"char_{uuid.uuid4().hex[:12]}",
-        space_id=space_id,
-        name=data.get("name", "未命名角色"),
-        description=data.get("description", ""),
-        personality=data.get("personality", ""),
-        scenario=data.get("scenario", ""),
-        gender=_normalize_gender(data.get("gender")),
-        system_prompt=data.get("system_prompt", ""),
-        first_mes=data.get("first_mes", ""),
-        mes_example=data.get("mes_example", ""),
-        alternate_greetings=_normalize_string_list(data.get("alternate_greetings", [])),
-        tags=_normalize_string_list(data.get("tags", []), split_commas=True),
-        sprites=TavernSpriteSet(sprite_map) if sprite_map else None,
-        avatar=str(data.get("avatar") or "").strip(),
-        appearance=_normalize_character_appearance(data.get("appearance")),
-        talkativeness=_normalize_talkativeness(data.get("talkativeness", 0.5)),
-        hobbies=_normalize_string_list(data.get("hobbies", []), split_commas=True),
-    )
 
 
-def _world_info_from_payload(data: dict[str, Any], space_id: str) -> WorldInfoEntry:
-    entry = deepcopy(data)
-    entry["id"] = entry.get("id") or f"wi_{uuid.uuid4().hex[:12]}"
-    entry["space_id"] = space_id
-    if "order" not in entry and "insertion_order" in entry:
-        entry["order"] = entry.get("insertion_order")
-    if not isinstance(entry.get("keys"), list):
-        entry["keys"] = _normalize_string_list(entry.get("keys", []), split_commas=True)
-    if not isinstance(entry.get("keys_secondary"), list):
-        entry["keys_secondary"] = _normalize_string_list(entry.get("keys_secondary", []), split_commas=True)
-    return WorldInfoEntry.from_dict(entry)
 
 
-def _haversine_distance(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
-    """计算两点间的 Haversine 距离（米）"""
-    import math
-    R = 6371000  # 地球半径（米）
-    phi1 = math.radians(lat1)
-    phi2 = math.radians(lat2)
-    dphi = math.radians(lat2 - lat1)
-    dlambda = math.radians(lon2 - lon1)
-    a = math.sin(dphi / 2) ** 2 + math.cos(phi1) * math.cos(phi2) * math.sin(dlambda / 2) ** 2
-    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
-    return R * c
 
 
-def _matches_tavern_query(tavern: Tavern, query: str) -> bool:
-    """Match a tavern against visitor-facing discovery text."""
-    needle = query.casefold()
-    fields: list[Any] = [
-        tavern.id,
-        tavern.name,
-        tavern.description,
-        tavern.address,
-        tavern.access,
-        tavern.status,
-        tavern.place_type,
-        tavern.special_type,
-        tavern.scene_prompt,
-    ]
-
-    for character in tavern.characters:
-        fields.extend([
-            character.name,
-            character.description,
-            character.personality,
-            character.scenario,
-            character.gender,
-            *character.tags,
-        ])
-
-    for entry in tavern.world_info:
-        fields.extend([*entry.keys, *entry.keys_secondary, entry.content])
-
-    return any(needle in str(value).casefold() for value in fields if value)
 
 
 def _utc_now_iso() -> str:
@@ -3529,41 +2399,6 @@ def _utc_now_iso() -> str:
 # PNG tEXt chunk 提取（用于角色卡 PNG 导入）
 # ─────────────────────────────────────────
 
-def extract_char_card_from_png(png_bytes: bytes) -> dict[str, Any] | None:
-    """从 SillyTavern 角色卡 PNG 中提取 tEXt chunk"""
-    try:
-        import zlib
-        import struct
-
-        # PNG 签名检查
-        if png_bytes[:8] != b"\x89PNG\r\n\x1a\n":
-            return None
-
-        pos = 8
-        while pos < len(png_bytes):
-            length = struct.unpack(">I", png_bytes[pos:pos + 4])[0]
-            chunk_type = png_bytes[pos + 4:pos + 8].decode("latin-1")
-            chunk_data = png_bytes[pos + 8:pos + 8 + length]
-            pos += 12 + length
-
-            if chunk_type == "tEXt":
-                # 解析 tEXt chunk: keyword\0text
-                null_pos = chunk_data.index(b"\x00")
-                keyword = chunk_data[:null_pos].decode("latin-1")
-                text = chunk_data[null_pos + 1:].decode("utf-8", errors="replace")
-
-                # 查找 chara 或 ccv3 关键字（两者都是 SillyTavern 角色卡标识）
-                if keyword in ("chara", "ccv3"):
-                    import base64
-                    json_str = base64.b64decode(text).decode("utf-8")
-                    return json.loads(json_str)
-
-            if chunk_type == "IEND":
-                break
-
-        return None
-    except Exception:
-        return None
 
 
 # Backward-compatible aliases for persisted JSON keys, existing tests, and

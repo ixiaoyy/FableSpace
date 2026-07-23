@@ -22,5 +22,5 @@ def meta(request: Request) -> MetaResponse:
         app_name=settings.app_name,
         api_version=settings.api_version,
         architecture="frontend-backend-separated",
-        product="cyber-tavern-ugc-platform",
+        product="character-first-story-platform",
     )

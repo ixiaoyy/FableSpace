@@ -1,7 +1,7 @@
 """
 WorldInfo Injector — inject lorebook/WorldInfo entries into prompts.
 
-Supports SillyTavern WorldInfo features:
+Supports published story knowledge features:
 - Keyword matching (primary + secondary)
 - Regex patterns
 - Selective mode (keyword must match)
@@ -92,7 +92,7 @@ class InjectionContext:
     character_system_prompt: str = ""
     current_message: str = ""
     recent_messages: list[str] = field(default_factory=list)
-    # SillyTavern-compatible fields
+    # Published story knowledge fields
     jailbreak: str = ""
     author_note: str = ""
     author_note_depth: int = 3
@@ -105,7 +105,7 @@ class WorldInfoInjector:
     """
     Inject WorldInfo entries into prompts.
 
-    Inspired by SillyTavern's world-info.js.
+    Select relevant published story knowledge for a dialogue turn.
     """
 
     def __init__(self, entries: list[dict | WorldInfoEntry] = None):
@@ -173,7 +173,7 @@ class WorldInfoInjector:
         messages: list[dict[str, str]],
     ) -> list[dict[str, str]]:
         """
-        Inject WorldInfo + Author's Note (inspired by SillyTavern's authors-note.js).
+        Inject story knowledge and the reviewed author note.
         Author's note is inserted before the last N messages.
         """
         result = list(messages)
@@ -247,12 +247,12 @@ class WorldInfoInjector:
         return [e for e in self.entries if e.matches(self._build_search_text(context, e.depth))]
 
 
-# ─── Macro system (inspired by SillyTavern's macro system) ────────────────────
+# ─── Prompt macro system ─────────────────────────────────────────────────────
 
 
 class MacroSubstitutor:
     """
-    Substitute macros in prompts — inspired by SillyTavern's macro.js.
+    Substitute reviewed macros in story prompts.
 
     Supported macros:
     {{char}}         — character name

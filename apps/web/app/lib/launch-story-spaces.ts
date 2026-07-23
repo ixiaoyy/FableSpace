@@ -1,7 +1,5 @@
 import { getSpace, type Space, type SpaceCharacter, type SpaceListResponse } from "./spaces"
 
-export const LAUNCH_STORY_OWNER_ID = "system_public_welfare"
-
 export const LAUNCH_STORY_SPACE_CONTRACT = [
   {
     spaceId: "story_palace_snow_edict",
@@ -51,9 +49,6 @@ function validateLaunchStorySpace(space: Space, contract: LaunchStorySpaceContra
   if (!space || space.id !== contract.spaceId) {
     throw new LaunchStoryContractError(contract.spaceId, "返回了不匹配的 Space")
   }
-  if (space.owner_id !== LAUNCH_STORY_OWNER_ID) {
-    throw new LaunchStoryContractError(contract.spaceId, "不属于系统公益内容")
-  }
   if (space.access !== "public") {
     throw new LaunchStoryContractError(contract.spaceId, "当前不是公开访问")
   }
@@ -79,7 +74,7 @@ function validateLaunchStorySpace(space: Space, contract: LaunchStorySpaceContra
 /**
  * Loads and validates the accepted three-Space launch collection without substituting other public content.
  * @returns Three public, open system Spaces in contract order, each projected to its two real API characters.
- * @throws When any request fails or a persisted Space no longer matches the accepted owner/access/status/character contract.
+ * @throws When any request fails or published story content no longer matches the accepted access/status/character contract.
  */
 export async function loadLaunchStorySpaces(): Promise<SpaceListResponse> {
   try {

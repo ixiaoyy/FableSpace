@@ -1,9 +1,9 @@
 {
   "id": "legacy-creator-sillytavern-removal",
   "name": "legacy-creator-sillytavern-removal",
-  "title": "删除创作者与 SillyTavern",
-  "description": "只删除创建、店主、owner、角色卡导入导出、包和私有配置能力。",
-  "status": "planning",
+  "title": "删除旧创作者、SillyTavern、地图前台与中文路由",
+  "description": "删除创建、店主、owner、角色卡、包、私有配置、地图前台和中文兼容路由。",
+  "status": "in_progress",
   "dev_type": null,
   "scope": null,
   "package": null,

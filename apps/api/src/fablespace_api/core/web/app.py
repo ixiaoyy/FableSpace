@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+import re
 
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -10,49 +11,65 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from fablespace_api.api.response_envelope import add_api_response_envelope_middleware
 from fablespace_api.api.v1.router import api_router
-from fablespace_api.application.clue_hunts import ClueHuntApplicationService
 from fablespace_api.application.spaces import SpaceApplicationService
-from fablespace_api.application.services.platform import configure_platform_cache
-from fablespace_api.application.territories import TerritoryApplicationService
-from fablespace_api.core.clue_hunt import ClueHuntStore
 from fablespace_api.infrastructure.settings import ApiSettings as NativeApiSettings
-from fablespace_api.infrastructure.storage import (
-    configure_process_stores,
-    create_owner_config_store,
-    create_space_store,
-    create_territory_store,
-    create_visitor_note_store,
-    create_writeback_store,
-)
+from fablespace_api.infrastructure.storage import create_space_store
 
 from .config import ApiSettings
-from .router import create_api_router
-from .service import WebService
 
 logger = logging.getLogger(__name__)
 
 
 class SpaStaticFiles(StaticFiles):
-    """Serve built assets normally, but fall back to index.html for app routes."""
+    """Serve built assets and only the three supported player routes."""
 
     def __init__(self, *args, index_file, **kwargs):
         super().__init__(*args, **kwargs)
         self.index_file = index_file
 
     async def get_response(self, path: str, scope):
+        normalized_path = path.replace("\\", "/").strip("/")
+        supported_route = (
+            normalized_path in {"", "characters"}
+            or re.fullmatch(r"stories/[^/]+", normalized_path) is not None
+        )
         try:
-            return await super().get_response(path, scope)
+            response = await super().get_response(path, scope)
+            if (
+                response.status_code == 404
+                and scope.get("method") in {"GET", "HEAD"}
+                and supported_route
+            ):
+                return FileResponse(self.index_file)
+            return response
         except StarletteHTTPException as exc:
-            first_segment = path.strip("/").split("/", 1)[0]
+            first_segment = normalized_path.split("/", 1)[0]
             if first_segment == "api":
                 raise
             if (
                 exc.status_code == 404
                 and scope.get("method") in {"GET", "HEAD"}
-                and "." not in path.rsplit("/", 1)[-1]
+                and supported_route
             ):
                 return FileResponse(self.index_file)
             raise
+
+
+def _frontend_static_dir(settings: ApiSettings):
+    candidates = [settings.frontend_dist]
+    if settings.frontend_root:
+        candidates.append(settings.frontend_root / "build" / "client")
+    seen = set()
+    for candidate in candidates:
+        if candidate is None:
+            continue
+        resolved = candidate.resolve()
+        if resolved in seen:
+            continue
+        seen.add(resolved)
+        if (resolved / "index.html").is_file():
+            return resolved
+    return None
 
 
 def create_web_app(settings: ApiSettings) -> FastAPI:
@@ -60,11 +77,9 @@ def create_web_app(settings: ApiSettings) -> FastAPI:
     native_settings = NativeApiSettings(
         output_root=resolved.output_root,
         frontend_root=resolved.frontend_root,
-        sillytavern_url=resolved.sillytavern_url,
         storage_backend=resolved.storage_backend,
         database_url=resolved.database_url,
         mysql_url=resolved.mysql_url,
-        redis_url=resolved.redis_url,
         generated_storage_backend=resolved.generated_storage_backend,
         s3_bucket=resolved.s3_bucket,
         s3_region=resolved.s3_region,
@@ -75,31 +90,10 @@ def create_web_app(settings: ApiSettings) -> FastAPI:
         cdn_base_url=resolved.cdn_base_url,
         s3_request_timeout_seconds=resolved.s3_request_timeout_seconds,
     )
-    configure_platform_cache(resolved.redis_url)
     space_store = create_space_store(native_settings)
-    configure_process_stores(native_settings, space_store)
-    territory_service = TerritoryApplicationService(
-        create_territory_store(native_settings, space_store)
-    )
-    service = WebService(
-        resolved,
-        space_store=space_store,
-        writeback_store=create_writeback_store(native_settings, space_store),
-    )
     app = FastAPI(title="FableSpace API", version="0.1.0")
     app.state.settings = native_settings
-    app.state.territory_service = territory_service
-    app.state.spaces = SpaceApplicationService(
-        service.space_store,
-        create_owner_config_store(native_settings, service.space_store),
-        create_visitor_note_store(native_settings, service.space_store),
-        territory_service=territory_service,
-    )
-    app.state.clue_hunts = ClueHuntApplicationService(
-        ClueHuntStore(resolved.output_root / "clue_hunts.json"),
-        service.space_store,
-    )
-    app.state.sillytavern_url = resolved.sillytavern_url
+    app.state.spaces = SpaceApplicationService(space_store)
     app.add_middleware(
         CORSMiddleware,
         allow_origins=["*"],
@@ -118,7 +112,6 @@ def create_web_app(settings: ApiSettings) -> FastAPI:
         logger.exception("Unhandled API error on %s %s", request.method, request.url.path)
         return JSONResponse(status_code=500, content={"error": "服务暂时不可用"})
 
-    app.include_router(create_api_router(service))
     app.include_router(api_router)
 
     @app.api_route(
@@ -132,7 +125,7 @@ def create_web_app(settings: ApiSettings) -> FastAPI:
     def api_not_found() -> JSONResponse:
         return JSONResponse(status_code=404, content={"error": "API endpoint not found"})
 
-    frontend_dir = service.frontend_static_dir()
+    frontend_dir = _frontend_static_dir(resolved)
     if frontend_dir:
         index_file = (frontend_dir / "index.html").resolve()
 

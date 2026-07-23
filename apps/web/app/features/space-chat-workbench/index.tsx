@@ -2,10 +2,6 @@ import {
   ArrowRight,
   ChevronDown,
   DoorOpen,
-  LockKeyhole,
-  MapPin,
-  MessagesSquare,
-  Radio,
   Send,
   Sparkles,
   UsersRound,
@@ -13,7 +9,7 @@ import {
 import { useEffect, useMemo, useRef, useState, type FormEvent, type KeyboardEvent, type ReactNode } from "react"
 import { useSearchParams } from "react-router"
 
-import { normalizePublicWelfareNpcAssetPath } from "../../lib/space-runtime-config.js"
+import { mediaAssetUrl } from "../../lib/media-assets"
 import { buildSpaceFirstMinuteGuide, type SpaceFirstMinuteAction } from "../../lib/space-first-minute"
 import { matchesPublicReference } from "../../lib/web-routes"
 import { readVisitorPlayIdentity } from "../../lib/visitor-play-identity"
@@ -29,9 +25,7 @@ import {
   sendGroupChat,
   sendSpaceChat,
   type ChatMessage,
-  type RoleplayState,
   type Space,
-  type SpaceAmbientActivity,
   type SpaceCharacter,
 } from "../../lib/spaces"
 import { Button } from "../../ui/button"
@@ -43,10 +37,7 @@ import {
   abandonGameplaySession,
   listGameplaySessions,
 } from "../../lib/spaces"
-import { getMiniGameTemplates } from "../../product/spaceMiniGames"
-import OrphanEchoGameplayPanel from "../../product/OrphanEchoGameplayPanel"
-import GameplaySessionPanel from "../../product/GameplaySessionPanel"
-import { SpaceCapabilityHubPanel } from "../../components/SpaceCapabilityHubPanel"
+import StoryProgressPanel from "./story-progress-panel"
 import { HistoricalBroadStreetStory } from "./historical-broad-street-story"
 
 
@@ -77,19 +68,19 @@ const ROLEPLAY_STARTER_PROMPTS: RoleplayStarterPrompt[] = [
   {
     id: "tension",
     label: "突发危机",
-    helper: "快速让 NPC 推动下一幕",
+    helper: "快速让角色推动下一幕",
     prompt: "*我压低声音，拉住你的衣袖* 等等，周围好像不太对劲，我们接下来怎么办？",
   },
   {
     id: "daily",
     label: "日常闲聊",
-    helper: "适合陪伴、治愈、日常空间",
+    helper: "适合陪伴、治愈和日常故事",
     prompt: "*我在你身边坐下，放松地笑了笑* 你刚刚在想什么？接下来有什么安排？",
   },
   {
     id: "quest",
     label: "明确任务",
-    helper: "适合调查、委托、跑团式空间",
+    helper: "适合调查、委托和剧情探索",
     prompt: "*我检查好随身物品，认真看向你* 再确认一下，我们这次要完成什么目标？",
   },
 ]
@@ -109,9 +100,6 @@ const HISTORY_PILOT_CHOICE_CHAT_CONTEXT = [{
  */
 function getWorkbenchRoleplayStarters(space: Space, character: SpaceCharacter | undefined, firstMinuteGuide: ReturnType<typeof buildSpaceFirstMinuteGuide>) {
   const searchText = [
-    space.layout_style,
-    space.place_type,
-    space.special_type,
     space.description,
     space.scene_prompt,
     character?.scenario,
@@ -130,186 +118,8 @@ function getWorkbenchRoleplayStarters(space: Space, character: SpaceCharacter | 
     .filter((prompt): prompt is RoleplayStarterPrompt => Boolean(prompt))
 }
 
-/**
- * Normalizes a numeric talkativeness value for local ambient fallback UI.
- * @param value Raw value from a public character payload.
- * @returns A 0-1 value; invalid inputs fall back to 0.5.
- */
-function normalizeAmbientTalkativeness(value: unknown) {
-  const parsed = Number(value)
-  if (!Number.isFinite(parsed)) return 0.5
-  return Math.max(0, Math.min(1, parsed))
-}
-
-/**
- * Formats an optional activity timestamp for compact visitor display.
- * @param value ISO-like timestamp from the backend ambient payload.
- * @returns A short local time label, or an empty string when parsing fails.
- */
-function formatAmbientActivityTime(value?: string) {
-  if (!value) return ""
-  const date = new Date(value)
-  if (Number.isNaN(date.getTime())) return ""
-  return date.toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit" })
-}
-
-/**
- * Builds a conservative ambient activity fallback when the backend has not
- * returned the computed entry payload yet.
- * @param space Public Space payload already loaded for the visitor.
- * @param characters Published NPCs visible in this Space.
- * @returns A read-only UI model; it does not imply new canon or persisted activity.
- */
-function buildLocalAmbientActivity(space: Space, characters: SpaceCharacter[]): SpaceAmbientActivity {
-  const talkativeCount = characters.filter((character) => normalizeAmbientTalkativeness(character.talkativeness) >= 0.65).length
-  const visitingCount = characters.filter((character) => character.is_visitor).length
-  const groupChatEnabled = Boolean((space as { group_chat_enabled?: unknown }).group_chat_enabled && characters.length > 1)
-  const signals = [
-    { id: "active-characters", label: "在场角色", value: `${characters.length} 位`, tone: "info" },
-  ]
-  if (groupChatEnabled) {
-    signals.push({ id: "group-chat", label: "群聊桌", value: "已开启", tone: "live" })
-  }
-  if (visitingCount) {
-    signals.push({ id: "visiting-npcs", label: "外来 NPC", value: `${visitingCount} 位路过`, tone: "motion" })
-  }
-  if (talkativeCount) {
-    signals.push({ id: "talkative-npcs", label: "接话意愿", value: `${talkativeCount} 位偏主动`, tone: "social" })
-  }
-
-  return {
-    summary: characters.length > 1
-      ? `${characters.length} 位 NPC 在场，空间会按店主配置接住你的下一句话。`
-      : characters.length === 1
-        ? "1 位 NPC 正在空间里待命。"
-        : "这间空间还没有配置驻场 NPC。",
-    active_character_count: characters.length,
-    visiting_character_count: visitingCount,
-    social_memory_count: 0,
-    signals,
-    recent: [],
-    character_states: characters.slice(0, 8).map((character) => ({
-      character_id: character.id,
-      character_name: character.name || character.id || "NPC",
-      label: character.is_visitor ? "正在路过" : normalizeAmbientTalkativeness(character.talkativeness) >= 0.65 ? "偏主动" : "待命中",
-      talkativeness: normalizeAmbientTalkativeness(character.talkativeness),
-      is_visitor: Boolean(character.is_visitor),
-    })),
-  }
-}
-
-/**
- * Returns the effective ambient activity model for the workbench.
- * @param space Public Space payload; may include backend-computed ambient_activity.
- * @param characters Published NPCs used for safe local fallback.
- * @returns A stable read-only activity view model for rendering.
- */
-function resolveAmbientActivity(space: Space, characters: SpaceCharacter[]) {
-  const backendActivity = space.ambient_activity
-  if (backendActivity && typeof backendActivity === "object") {
-    return {
-      ...buildLocalAmbientActivity(space, characters),
-      ...backendActivity,
-      signals: Array.isArray(backendActivity.signals) ? backendActivity.signals : [],
-      recent: Array.isArray(backendActivity.recent) ? backendActivity.recent : [],
-      character_states: Array.isArray(backendActivity.character_states) ? backendActivity.character_states : [],
-    }
-  }
-  return buildLocalAmbientActivity(space, characters)
-}
-
-/**
- * Picks restrained product-UI styling for ambient signal chips.
- * @param tone Backend-provided semantic tone name.
- * @returns Tailwind class names for a compact status chip.
- */
-function ambientSignalClass(tone?: string) {
-  if (tone === "live") return "border-emerald-200/24 bg-emerald-300/[0.08] text-emerald-50"
-  if (tone === "motion") return "border-amber-200/24 bg-amber-300/[0.08] text-amber-50"
-  if (tone === "memory") return "border-violet-200/24 bg-violet-300/[0.09] text-violet-50"
-  if (tone === "social") return "border-cyan-200/22 bg-cyan-300/[0.08] text-cyan-50"
-  return "border-white/10 bg-white/[0.045] text-cyan-50/78"
-}
-
-/**
- * Renders read-only NPC ambient activity for a Space entry.
- * @param activity Computed or fallback activity view model.
- * @returns A compact panel that shows the Space as inhabited without sending chat.
- */
-function AmbientActivityPanel({ activity }: { activity: SpaceAmbientActivity }) {
-  const signals = Array.isArray(activity.signals) ? activity.signals : []
-  const recent = Array.isArray(activity.recent) ? activity.recent : []
-  const characterStates = Array.isArray(activity.character_states) ? activity.character_states : []
-
-  return (
-    <section
-      data-space-ambient-activity
-      className="border-b border-cyan-200/10 bg-[#151a38]/82 px-3 py-2.5 sm:px-4"
-      aria-label="空间 NPC 自主活动"
-    >
-      <div className="rounded-xl border border-cyan-200/12 bg-slate-950/24 px-3 py-2.5">
-        <div className="flex min-w-0 items-start gap-3">
-          <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl border border-cyan-200/18 bg-cyan-300/[0.09] text-cyan-50">
-            <Radio className="h-4 w-4" />
-          </span>
-          <div className="min-w-0 flex-1">
-            <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-              <div className="min-w-0">
-                <p className="text-xs font-black uppercase tracking-[0.16em] text-cyan-100/45">空间脉搏</p>
-                <p className="mt-1 line-clamp-2 text-sm font-bold leading-6 text-cyan-50/78">{activity.summary}</p>
-              </div>
-              {signals.length ? (
-                <div className="flex shrink-0 flex-wrap gap-1.5 sm:justify-end">
-                  {signals.slice(0, 4).map((signal) => (
-                    <span key={signal.id} className={`rounded-full border px-2.5 py-1 text-[0.68rem] font-black ${ambientSignalClass(signal.tone)}`}>
-                      {signal.label} · {signal.value}
-                    </span>
-                  ))}
-                </div>
-              ) : null}
-            </div>
-
-            {recent.length ? (
-              <div className="mt-2 grid gap-2" data-space-ambient-recent>
-                {recent.slice(0, 2).map((item) => {
-                  const target = item.character_name || "NPC"
-                  const source = item.source_name || "某位 NPC"
-                  const time = formatAmbientActivityTime(item.timestamp)
-                  return (
-                    <div key={item.id || `${source}-${target}-${item.content}`} className="min-w-0 rounded-xl border border-white/10 bg-white/[0.035] px-3 py-2">
-                      <div className="flex min-w-0 items-center gap-2 text-[0.68rem] font-black text-violet-100/45">
-                        <MessagesSquare className="h-3.5 w-3.5 shrink-0 text-cyan-100/52" />
-                        <span className="truncate">{source} → {target}</span>
-                        {time ? <span className="shrink-0 font-semibold normal-case tracking-normal">{time}</span> : null}
-                      </div>
-                      <p className="mt-1 line-clamp-2 text-xs font-semibold leading-5 text-violet-50/72">{item.content}</p>
-                    </div>
-                  )
-                })}
-              </div>
-            ) : characterStates.length ? (
-              <div className="mt-2 flex gap-2 overflow-x-auto pb-1" data-space-ambient-character-states>
-                {characterStates.slice(0, 6).map((state) => (
-                  <span
-                    key={state.character_id || state.character_name}
-                    className="inline-flex min-w-fit items-center gap-2 rounded-full border border-white/10 bg-white/[0.035] px-3 py-1.5 text-xs font-bold text-violet-50/70"
-                  >
-                    <span className="h-1.5 w-1.5 rounded-full bg-cyan-300" />
-                    {state.character_name} · {state.label}
-                  </span>
-                ))}
-              </div>
-            ) : null}
-          </div>
-        </div>
-      </div>
-    </section>
-  )
-}
-
 type SpaceChatWorkbenchProps = {
   space: Space
-  roleplay?: RoleplayState | null
   currentUserId: string
   publicPanel?: ReactNode
   visitorState?: any // Added for relationship context
@@ -350,6 +160,16 @@ function gameplayDisplayText(definition: GameplayDefinitionRecord, key: "title" 
   return textOrFallback(definition[key], fallback)
 }
 
+function gameplayStableKey(definition: GameplayDefinitionRecord) {
+  return String(
+    definition.id
+    || definition.title
+    || definition.entry_label
+    || definition.summary
+    || "published-story-step",
+  )
+}
+
 /**
  * Reconstructs the current scene from a loaded gameplay definition so resumed
  * sessions still show concrete narration and choices when the session list omits events.
@@ -359,27 +179,29 @@ function sceneFromGameplayDefinition(definition: GameplayDefinitionRecord | unde
   const targetNodeId = String(nodeId || "")
   const node = nodes.find((item: any) => String(item?.id || "") === targetNodeId) || nodes[0]
   if (!node) return {}
-  const choices = Array.isArray(node.choices)
-    ? node.choices
-      .filter((choice: any) => choice?.id)
-      .map((choice: any) => ({
+  const choices: Array<{ id: string; label: string }> = []
+  if (Array.isArray(node.choices)) {
+    for (const choice of node.choices) {
+      if (!choice?.id) continue
+      choices.push({
         id: String(choice.id),
         label: textOrFallback(choice.label, String(choice.id)),
-      }))
-    : []
+      })
+    }
+  }
   return {
     node_id: String(node.id || targetNodeId),
-    narration: textOrFallback(node.narration, "玩法正在进行。"),
+    narration: textOrFallback(node.narration, "故事正在推进。"),
     choices,
   }
 }
 
 function avatarSource(character: SpaceCharacter | undefined) {
   if (!character) return ""
-  if (character.avatar) return normalizePublicWelfareNpcAssetPath(character.avatar)
-  if (character.image_url) return normalizePublicWelfareNpcAssetPath(character.image_url)
+  if (character.avatar) return mediaAssetUrl(character.avatar)
+  if (character.image_url) return mediaAssetUrl(character.image_url)
   const sprites = character.sprites || {}
-  return normalizePublicWelfareNpcAssetPath(sprites.neutral || sprites.default || Object.values(sprites)[0] || "")
+  return mediaAssetUrl(sprites.neutral || sprites.default || Object.values(sprites)[0] || "")
 }
 
 
@@ -387,25 +209,13 @@ function canRenderImage(src: string) {
   return /^(https?:)?\/\//.test(src) || src.startsWith("/") || src.startsWith("data:")
 }
 
-const SHOPKEEPER_CHARACTER_ID = "__shopkeeper__"
-
-/**
- * Finds the public doorway host candidate from existing owner-authored NPCs.
- * @param characters Published space characters already visible to the visitor.
- * @returns The shopkeeper-like NPC when one exists; no side effects.
- */
-function findWorkbenchShopkeeperNpc(characters: SpaceCharacter[]) {
-  return characters.find((character) =>
-    character.name?.includes("店长") ||
-    character.tags?.some((tag) => tag.toLowerCase().includes("shopkeeper") || tag.includes("店长")),
-  )
-}
+const STORY_NARRATOR_ID = "__story_narrator__"
 
 function entranceReactionContent(character: SpaceCharacter, spaceName: string) {
   const firstMessage = String(character.first_mes || "").trim()
   if (firstMessage) return firstMessage
-  const name = character.name || "这里的 NPC"
-  return `你刚走进${spaceName || "这间空间"}，${name}向你点了点头。`
+  const name = character.name || "这里的角色"
+  return `你进入${spaceName || "这个故事"}时，${name}向你点了点头。`
 }
 
 function entranceReactionMessages(characters: SpaceCharacter[], spaceName: string): ChatMessage[] {
@@ -425,30 +235,14 @@ function hostGuideMessage(space: Space, _characters: SpaceCharacter[]): ChatMess
   return {
     id: `host-guide-${timestamp}`,
     role: "assistant",
-    character_id: SHOPKEEPER_CHARACTER_ID,
-    content: `欢迎来到${space.name || "这间空间"}。`,
+    character_id: STORY_NARRATOR_ID,
+    content: `${space.name || "故事"}从这里开始。`,
     timestamp,
   }
 }
 
-function publicEntranceMessages(characters: SpaceCharacter[], space: Space, shopkeeperNpc?: SpaceCharacter): ChatMessage[] {
-  // If we have a real NPC shopkeeper, they greet.
-  // Otherwise, the host guide (virtual shopkeeper) greets.
-  // If no virtual shopkeeper and no NPC shopkeeper, pick one NPC to fallback greet.
-  const greetings: ChatMessage[] = []
-
-  if (shopkeeperNpc) {
-    greetings.push({
-      id: `entrance-shopkeeper-${Date.now()}`,
-      role: "assistant",
-      character_id: shopkeeperNpc.id,
-      content: entranceReactionContent(shopkeeperNpc, space.name),
-      timestamp: new Date().toISOString(),
-    })
-  }
-
-  greetings.push(hostGuideMessage(space, characters))
-  return greetings
+function publicEntranceMessages(characters: SpaceCharacter[], space: Space): ChatMessage[] {
+  return [hostGuideMessage(space, characters)]
 }
 
 function normalizeMentionName(value: string) {
@@ -476,7 +270,47 @@ function formatChatTime(value?: string) {
   if (!value) return ""
   const date = new Date(value)
   if (Number.isNaN(date.getTime())) return ""
-  return date.toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit" })
+  return date.toLocaleTimeString("zh-CN", {
+    hour: "2-digit",
+    minute: "2-digit",
+    timeZone: "Asia/Shanghai",
+  })
+}
+
+function chatMessageKey(line: ChatMessage) {
+  return line.id || [
+    line.role,
+    line.character_id,
+    line.visitor_id,
+    line.timestamp,
+    line.content,
+  ].join(":")
+}
+
+function mapGroupResponseMessages(
+  result: Awaited<ReturnType<typeof sendGroupChat>>,
+): ChatMessage[] {
+  const messages = Array.isArray(result.messages) ? result.messages : []
+  const lines: ChatMessage[] = []
+  for (const [index, groupMessage] of messages.entries()) {
+    const content = String(groupMessage.content || "").trim()
+    if (!content) continue
+    lines.push({
+      id: groupMessage.id || `local-group-${Date.now()}-${index}`,
+      role: groupMessage.role || "assistant",
+      content,
+      character_id: groupMessage.character_id,
+      visitor_name: groupMessage.visitor_name,
+      fallback_notice: groupMessage.is_fallback === true
+        ? String(groupMessage.fallback_notice || result.fallback_notice || "角色暂时无法给出有效回复，可以换个问法或稍后重试。")
+        : "",
+      timestamp: groupMessage.timestamp || new Date().toISOString(),
+    })
+  }
+  const progress_echoes = progressEchoesFromChatResult(result)
+  return lines.map((line, index) =>
+    index === lines.length - 1 ? { ...line, progress_echoes } : line,
+  )
 }
 
 function CharacterAvatar({ character, active }: { character?: SpaceCharacter; active?: boolean }) {
@@ -485,7 +319,7 @@ function CharacterAvatar({ character, active }: { character?: SpaceCharacter; ac
     return (
       <img
         src={src}
-        alt={character?.name || "NPC avatar"}
+        alt={character?.name || "角色头像"}
         className={`h-12 w-12 rounded-2xl object-cover ring-1 ${active ? "ring-cyan-200/60" : "ring-white/12"}`}
       />
     )
@@ -509,7 +343,7 @@ export function SpaceChatWorkbench({
 }: SpaceChatWorkbenchProps) {
   const characters = useMemo(() => (Array.isArray(space.characters) ? space.characters : []), [space.characters])
   const characterNameById = useMemo(
-    () => new Map(characters.map((character) => [character.id, character.name || character.id || "NPC"])),
+    () => new Map(characters.map((character) => [character.id, character.name || character.id || "角色"])),
     [characters],
   )
   const [searchParams, setSearchParams] = useSearchParams()
@@ -536,8 +370,6 @@ export function SpaceChatWorkbench({
   const [activeChatChannel, setActiveChatChannel] = useState<ChatChannel>(() => characters[0]?.id ? "private" : "public")
   const [publicMessages, setPublicMessages] = useState<ChatMessage[]>([])
   const [privateMessagesByCharacterId, setPrivateMessagesByCharacterId] = useState<Record<string, ChatMessage[]>>({})
-  const [password, setPassword] = useState("")
-  const [hasEnteredPasswordSpace, setHasEnteredPasswordSpace] = useState(false)
   const [busy, setBusy] = useState("")
   const [error, setError] = useState("")
   const chatLogRef = useRef<HTMLDivElement | null>(null)
@@ -553,27 +385,21 @@ export function SpaceChatWorkbench({
   const preferredGameplayIdRef = useRef("")
   const historyGameplayAutostartRef = useRef("")
 
-  const [coinBalance, setCoinBalance] = useState<number | null>(null)
-  const [lastGift, setLastGift] = useState<{ coins: number; items: string } | null>(null)
   const requestedGameplayId = String(searchParams.get("gameplay_id") || "").trim()
 
-  const access = String(space.access || "public")
   const canStartDeepLinkedGameplay = (
-    access === "public" &&
     String(space.status || "") === "open" &&
     space.is_open !== false
   )
 
-  const passwordLocked = access === "password" && !hasEnteredPasswordSpace
   const isHistoryPilotStory = isHistoryPilotExperience(space.id, selectedCharacter?.id)
   const firstMinuteGuide = useMemo(() => buildSpaceFirstMinuteGuide(space), [space])
-  const ambientActivity = useMemo(() => resolveAmbientActivity(space, characters), [space, characters])
   const doorwayHost = selectedCharacter || characters[0]
   const doorwayGreeting = doorwayHost
     ? entranceReactionContent(doorwayHost, space.name)
-    : "店主还没有安排驻场 NPC。你可以先进来，把第一条想了解的线索留给店主。"
+    : "故事尚未配置角色。"
   const doorwayStarterLine = doorwayHost
-    ? `你好，${doorwayHost.name || "在场 NPC"}。我刚到这里，想从门口开始了解。`
+    ? `你好，${doorwayHost.name || "在场角色"}。我刚进入故事，想先了解眼前发生了什么。`
     : "我刚进门，想先听听这里最值得注意的线索。"
   const shouldShowDoorway = false
   const doorwayGameplayDefinitions = useMemo(
@@ -610,10 +436,8 @@ export function SpaceChatWorkbench({
   }, [characters, requestedCharacter, selectedCharacterId])
 
   useEffect(() => {
-    if (access === "password") return
-
     let cancelled = false
-    enterSpace(space.id, "", visitorId, visitorGender, playIdentityId)
+    enterSpace(space.id, visitorId, visitorGender, playIdentityId)
       .then((res) => {
         if (cancelled) return
         if (res.visitor_state) {
@@ -627,22 +451,14 @@ export function SpaceChatWorkbench({
     return () => {
       cancelled = true
     }
-  }, [access, playIdentityId, space.id, visitorGender, visitorId])
+  }, [playIdentityId, space.id, visitorGender, visitorId])
 
   useEffect(() => {
-    if (passwordLocked) {
-      setPublicMessages([])
-      setPrivateMessagesByCharacterId({})
-      return
-    }
-
-    const shopkeeperNpc = findWorkbenchShopkeeperNpc(characters)
-
-    const initKey = `${space.id}:${passwordLocked ? "locked" : "open"}`
+    const initKey = space.id
     const shouldReplaceInitialMessages = chatInitializationKeyRef.current !== initKey
     chatInitializationKeyRef.current = initKey
 
-    // Identity friendly NPCs who should greet in private
+    // Familiar characters may greet in their private conversation.
     const friendlyNpcs = characters.filter(c => {
       const stage = visitorState?.relationship?.stage || "stranger"
       return ["familiar", "friend", "close_friend", "best_friend"].includes(stage)
@@ -652,15 +468,14 @@ export function SpaceChatWorkbench({
       setActiveChatChannel(characters[0]?.id ? "private" : "public")
     }
     
-    // Public greetings: Shopkeeper only. Do not overwrite an in-flight/first user message
-    // when visitorState arrives after the visitor has already sent something.
-    const publicGreetings = publicEntranceMessages(characters, space, shopkeeperNpc)
+    // Do not overwrite an in-flight first message when visitor state arrives later.
+    const publicGreetings = publicEntranceMessages(characters, space)
     setPublicMessages((current) =>
       shouldReplaceInitialMessages || current.length === 0 ? publicGreetings : current,
     )
 
-    // Private greetings: the first selected NPC should be immediately readable;
-    // familiar NPCs can still add relationship-aware private greetings.
+    // The selected character greets immediately; familiar characters can add
+    // relationship-aware greetings.
     const privateGreetings: Record<string, ChatMessage[]> = {}
     const primaryNpc = characters[0]
     if (primaryNpc?.id) {
@@ -690,10 +505,9 @@ export function SpaceChatWorkbench({
           },
     )
 
-  }, [characters, passwordLocked, space, visitorState])
+  }, [characters, space, visitorState])
 
   useEffect(() => {
-    if (passwordLocked) return
     if (!requestedGameplayId) gameplayDeepLinkRequestRef.current = ""
 
     // Load gameplays and sessions
@@ -742,7 +556,7 @@ export function SpaceChatWorkbench({
           nextSearchParams.delete("gameplay_id")
 
           if (!canStartDeepLinkedGameplay) {
-            setError("该玩法所在空间当前未公开开放，不能从任务指南直接开始。")
+            setError("该故事当前未公开开放，不能直接开始。")
             setSearchParams(nextSearchParams, { replace: true, preventScrollReset: true })
             return
           }
@@ -752,7 +566,7 @@ export function SpaceChatWorkbench({
             String(definition?.status || "").toLowerCase() === "published"
           ))
           if (!requestedDefinition) {
-            setError("指定玩法不存在、未发布或已停用。")
+            setError("指定故事章节不存在、未发布或已停用。")
             setSearchParams(nextSearchParams, { replace: true, preventScrollReset: true })
             return
           }
@@ -792,7 +606,7 @@ export function SpaceChatWorkbench({
         if (requestedGameplayId) {
           const nextSearchParams = new URLSearchParams(searchParams)
           nextSearchParams.delete("gameplay_id")
-          setError(`无法打开指定玩法：${errorMessage(err)}`)
+          setError(`无法打开指定故事章节：${errorMessage(err)}`)
           setSearchParams(nextSearchParams, { replace: true, preventScrollReset: true })
           return
         }
@@ -808,32 +622,12 @@ export function SpaceChatWorkbench({
     return () => {
       cancelled = true
     }
-  }, [space, visitorId, visitorName, selectedCharacter?.id, passwordLocked, requestedGameplayId, searchParams, setSearchParams, canStartDeepLinkedGameplay, isHistoryPilotStory])
+  }, [space, visitorId, visitorName, selectedCharacter?.id, requestedGameplayId, searchParams, setSearchParams, canStartDeepLinkedGameplay, isHistoryPilotStory])
 
   useEffect(() => {
 
     chatLogRef.current?.scrollTo({ top: chatLogRef.current.scrollHeight, behavior: "smooth" })
   }, [visibleMessages.length, busy, gameplayScene?.node_id])
-
-  useEffect(() => {
-    setMentionIndex(0)
-  }, [mentionMatches])
-
-  async function handlePasswordEnter(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault()
-    if (!password.trim()) return
-    setBusy("enter")
-    setError("")
-    try {
-      await enterSpace(space.id, password.trim(), visitorId, visitorGender, playIdentityId)
-      setHasEnteredPasswordSpace(true)
-      setPassword("")
-    } catch (err) {
-      setError(errorMessage(err))
-    } finally {
-      setBusy("")
-    }
-  }
 
   function appendPrivateMessages(characterId: string, lines: ChatMessage[]) {
     setPrivateMessagesByCharacterId((current) => ({
@@ -870,7 +664,7 @@ export function SpaceChatWorkbench({
       visitor_id: visitorId,
       progress_echoes: result ? progressEchoesFromChatResult(result) : [],
       fallback_notice: result?.is_fallback === true
-        ? String(result.fallback_notice || "NPC 暂时无法给出有效回复，可以换个问法或稍后重试。")
+        ? String(result.fallback_notice || "角色暂时无法给出有效回复，可以换个问法或稍后重试。")
         : "",
       timestamp: now,
     }
@@ -894,30 +688,10 @@ export function SpaceChatWorkbench({
     })
   }
 
-  function mapGroupResponseMessages(result: Awaited<ReturnType<typeof sendGroupChat>>): ChatMessage[] {
-    const progress_echoes = progressEchoesFromChatResult(result)
-    const lines = (Array.isArray(result.messages) ? result.messages : [])
-      .map((groupMessage, index) => ({
-        id: groupMessage.id || `local-group-${Date.now()}-${index}`,
-        role: groupMessage.role || "assistant",
-        content: String(groupMessage.content || "").trim(),
-        character_id: groupMessage.character_id,
-        visitor_name: groupMessage.visitor_name,
-        fallback_notice: groupMessage.is_fallback === true
-          ? String(groupMessage.fallback_notice || result.fallback_notice || "NPC 暂时无法给出有效回复，可以换个问法或稍后重试。")
-          : "",
-        timestamp: groupMessage.timestamp || new Date().toISOString(),
-      }))
-      .filter((groupMessage) => groupMessage.content)
-    return lines.map((line, index) =>
-      index === lines.length - 1 ? { ...line, progress_echoes } : line,
-    )
-  }
-
   async function sendPrivateChat(cleanMessage: string, extraContext: Array<Record<string, unknown>> = []) {
     if (!selectedCharacter) return
     const userLine = buildUserLine(cleanMessage, selectedCharacter.id)
-    setPendingReplyTargetName(selectedCharacter.name || selectedCharacter.id || "NPC")
+    setPendingReplyTargetName(selectedCharacter.name || selectedCharacter.id || "角色")
     appendPrivateMessages(selectedCharacter.id, [userLine])
 
     const result = await sendSpaceChat(space.id, {
@@ -936,21 +710,12 @@ export function SpaceChatWorkbench({
     } else if (result.degradation?.message) {
       setError(result.degradation.message)
     }
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const _gift = (result as any).gift
-    if (_gift && _gift.coins_added > 0) {
-      setCoinBalance(_gift.wallet_balance ?? null)
-      const _items = (_gift.events as Array<{ item_name: string; quantity: number }>)
-        .map((e) => `${e.item_name}×${e.quantity}`).join(' ')
-      setLastGift({ coins: _gift.coins_added, items: _items })
-      setTimeout(() => setLastGift(null), 3500)
-    }
   }
 
   async function sendPublicChat(cleanMessage: string) {
     const mention = parsePublicMentionTarget(cleanMessage, characters)
     const targetCharacter = mention?.character
-    setPendingReplyTargetName(targetCharacter ? characterNameById.get(targetCharacter.id) || targetCharacter.name || "NPC" : "")
+    setPendingReplyTargetName(targetCharacter ? characterNameById.get(targetCharacter.id) || targetCharacter.name || "角色" : "")
 
     setPublicMessages((current) => [...current, buildUserLine(cleanMessage, targetCharacter?.id)])
 
@@ -969,15 +734,6 @@ export function SpaceChatWorkbench({
         setPublicMessages((current) => [...current, buildAssistantLine(responseText, targetCharacter.id, result)])
       } else if (result.degradation?.message) {
         setError(result.degradation.message)
-      }
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const _gift = (result as any).gift
-      if (_gift && _gift.coins_added > 0) {
-        setCoinBalance(_gift.wallet_balance ?? null)
-        const _items = (_gift.events as Array<{ item_name: string; quantity: number }>)
-          .map((e) => `${e.item_name}×${e.quantity}`).join(' ')
-        setLastGift({ coins: _gift.coins_added, items: _items })
-        setTimeout(() => setLastGift(null), 3500)
       }
       return
     }
@@ -1005,7 +761,7 @@ export function SpaceChatWorkbench({
   async function handleSubmit(event?: FormEvent<HTMLFormElement>) {
     event?.preventDefault()
     const cleanMessage = message.trim()
-    if (!cleanMessage || passwordLocked) return
+    if (!cleanMessage) return
     if (activeChatChannel === "private" && !selectedCharacter) return
 
     setMessage("")
@@ -1201,7 +957,7 @@ export function SpaceChatWorkbench({
 
   async function handleAbandonGameplay() {
     if (!activeSession) return
-    if (!confirm("确定要放弃当前的玩法进度吗？")) return
+    if (!confirm("确定要放弃当前的故事进度吗？")) return
     setIsGameplayBusy(true)
     setError("")
     try {
@@ -1232,8 +988,7 @@ export function SpaceChatWorkbench({
    * relationship records, persisted messages, or gameplay sessions.
    */
   function handleStartFreshEntranceBranch() {
-    const shopkeeperNpc = findWorkbenchShopkeeperNpc(characters)
-    setPublicMessages(publicEntranceMessages(characters, space, shopkeeperNpc))
+    setPublicMessages(publicEntranceMessages(characters, space))
     setPrivateMessagesByCharacterId({})
     setActiveChatChannel(characters[0]?.id ? "private" : "public")
     setSelectedCharacterId(characters[0]?.id || "")
@@ -1250,8 +1005,6 @@ export function SpaceChatWorkbench({
     })
   }
 
-  const isOrphanEchoMode = (space as Record<string, unknown>).special_type === "divination" || searchParams.get("ui_style") === "orphan-echo"
-  const miniGameTemplates = getMiniGameTemplates()
   const currentGameplay = useMemo(() => {
     const sessionDefinitionId = String(activeSession?.gameplay_id || activeSession?.definition_id || activeGameplayDefinitionId || "")
     return gameplayDefinitions.find((definition) => String(definition?.id || "") === sessionDefinitionId) || gameplayDefinitions[0]
@@ -1260,7 +1013,7 @@ export function SpaceChatWorkbench({
 
   return (
 
-    <section data-chat-workbench="sillytavern-style" data-active-chat-channel={activeChatChannel} className="h-full">
+    <section data-chat-workbench="story" data-active-chat-channel={activeChatChannel} className="h-full">
       <div className="flex h-full min-h-[30rem] overflow-hidden rounded-[1rem] border border-cyan-200/12 bg-[linear-gradient(180deg,rgba(27,33,68,0.94)_0%,rgba(13,18,38,0.97)_100%)] shadow-[0_18px_48px_rgba(4,7,22,0.32)]">
         {/* 移除了冗余的 space.name header bar - 标题已在 Hero Panel 展示 */}
 
@@ -1274,11 +1027,6 @@ export function SpaceChatWorkbench({
             <div className="rounded-[1.75rem] border border-cyan-200/18 bg-cyan-300/[0.075] p-5 shadow-[0_18px_48px_rgba(89,102,187,0.16)] max-lg:mb-20">
               {/* 场景提示作为主标题 */}
               <h2 className="text-3xl font-black leading-tight text-white">{firstMinuteGuide.sceneHint}</h2>
-              {/* 锚点信息 */}
-              <p data-doorway-map-anchor className="mt-3 flex items-start gap-2 rounded-2xl border border-white/10 bg-slate-950/35 p-3 text-sm font-bold leading-6 text-cyan-50/76">
-                <MapPin className="mt-0.5 h-4 w-4 shrink-0" />
-                <span>{firstMinuteGuide.anchorLine}</span>
-              </p>
               {/* 「现在做」区块 */}
               {firstMinuteGuide.playObjective && (
                 <div className="mt-4">
@@ -1310,7 +1058,7 @@ export function SpaceChatWorkbench({
               </div>
             </div>
 
-            {/* 右侧：NPC 接待 + 任务 */}
+            {/* 右侧：角色与故事入口 */}
             <div className="flex flex-col gap-4 rounded-[1.75rem] border border-violet-200/18 bg-slate-950/65 p-5">
               {/* Host Role 标签 */}
               <div className="inline-flex w-fit items-center gap-2 rounded-full border border-violet-200/16 bg-violet-300/10 px-3 py-1.5 text-xs font-black text-violet-100">
@@ -1318,12 +1066,12 @@ export function SpaceChatWorkbench({
                 {firstMinuteGuide.hostRole}
               </div>
 
-              {/* NPC 接待区域 */}
+              {/* 角色接待区域 */}
               <div className="flex items-start gap-3 rounded-2xl border border-white/10 bg-white/[0.035] p-4">
                 <CharacterAvatar character={doorwayHost} active />
                 <div className="min-w-0 flex-1">
-                  <p className="font-black text-white">{doorwayHost?.name || "驻场 NPC"}</p>
-                  <p className="mt-1 text-xs font-bold text-cyan-100/54">{characters.length} 位 NPC 在场</p>
+                  <p className="font-black text-white">{doorwayHost?.name || "故事角色"}</p>
+                  <p className="mt-1 text-xs font-bold text-cyan-100/54">{characters.length} 位角色在场</p>
                   <p data-doorway-host-greeting className="mt-2 text-sm leading-6 text-violet-50/78">
                     {doorwayGreeting}
                   </p>
@@ -1334,18 +1082,18 @@ export function SpaceChatWorkbench({
               {doorwayGameplayDefinitions.length ? (
                 <div className="space-y-2" data-doorway-gameplay-list>
                   <p className="text-xs font-black uppercase tracking-[0.18em] text-cyan-100/58">可接任务</p>
-                  {doorwayGameplayDefinitions.map((definition, index) => (
+                  {doorwayGameplayDefinitions.map((definition) => (
                     <button
-                      key={String(definition.id || index)}
+                      key={gameplayStableKey(definition)}
                       type="button"
-                      data-doorway-gameplay-entry={String(definition.id || index)}
+                      data-doorway-gameplay-entry={gameplayStableKey(definition)}
                       disabled={isGameplayBusy}
                       onClick={() => void handleDoorwayStartGameplay(definition)}
                       className="flex w-full items-center justify-between gap-3 rounded-xl border border-cyan-200/16 bg-cyan-300/[0.065] px-4 py-3 text-left transition hover:border-cyan-200/38 hover:bg-cyan-300/[0.12] focus:outline-none focus:ring-2 focus:ring-cyan-300/20 disabled:cursor-wait disabled:opacity-60"
                     >
                       <div className="min-w-0 flex-1">
                         <span className="block truncate text-sm font-black text-cyan-50">
-                          {gameplayDisplayText(definition, "entry_label", gameplayDisplayText(definition, "title", "开始这个玩法"))}
+                          {gameplayDisplayText(definition, "entry_label", gameplayDisplayText(definition, "title", "开始这个章节"))}
                         </span>
                         <span className="mt-0.5 block truncate text-xs font-bold text-violet-100/58">
                           {gameplayDisplayText(definition, "summary", "")}
@@ -1381,7 +1129,7 @@ export function SpaceChatWorkbench({
 
               {/* 主按钮 */}
               <Button type="button" data-doorway-start-chat className="min-h-12 w-full" onClick={handleDoorwayStartChat}>
-                {doorwayGameplayDefinitions.length ? "和 NPC 打招呼 →" : `${firstMinuteGuide.startLabel} →`}
+                {doorwayGameplayDefinitions.length ? "和角色打招呼 →" : `${firstMinuteGuide.startLabel} →`}
               </Button>
             </div>
           </section>
@@ -1390,27 +1138,9 @@ export function SpaceChatWorkbench({
         {!shouldShowDoorway ? (
           <>
 
-        {/* ── 金币余额 & 收礼提示（作用域在 SpaceChatWorkbench 内）── */}
-        {!isHistoryPilotStory && coinBalance !== null && (
-          <div className="px-4 pb-2 sm:px-6">
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-yellow-400/30 bg-yellow-400/10 px-3 py-1 text-xs font-bold text-yellow-300">
-              🪙 金币：{coinBalance}
-            </span>
-          </div>
-        )}
-        {!isHistoryPilotStory && lastGift && (
-          <div
-            className="mx-4 mb-2 animate-bounce rounded-2xl border border-yellow-300/40 bg-yellow-400/15 px-4 py-2 text-sm font-bold text-yellow-200 shadow-lg sm:mx-6"
-            role="status"
-            aria-live="polite"
-          >
-            🎁 收到 {lastGift.items}，+{lastGift.coins} 金币！
-          </div>
-        )}
-
         <div className={`grid h-full min-h-0 w-full grid-cols-1 lg:items-stretch ${isHistoryPilotStory ? "" : "lg:grid-cols-[15rem_minmax(0,1fr)] xl:grid-cols-[15.5rem_minmax(0,1fr)]"}`}>
           {!isHistoryPilotStory ? (
-          <aside className="hidden min-h-0 flex-col border-b border-white/10 bg-slate-950/24 lg:flex lg:overflow-hidden lg:border-b-0 lg:border-r lg:border-cyan-200/10" aria-label="NPC 角色与任务">
+          <aside className="hidden min-h-0 flex-col border-b border-white/10 bg-slate-950/24 lg:flex lg:overflow-hidden lg:border-b-0 lg:border-r lg:border-cyan-200/10" aria-label="角色与故事任务">
             <div className="shrink-0 px-3 pb-2 pt-3">
               <div className="flex items-center justify-between gap-3">
                 <h2 className="text-base font-black text-white">驻场角色</h2>
@@ -1451,11 +1181,11 @@ export function SpaceChatWorkbench({
               {doorwayGameplayDefinitions.length ? (
                 <div className="space-y-2" data-doorway-gameplay-list>
                   <p className="text-xs font-black uppercase tracking-[0.16em] text-cyan-100/54">可接任务</p>
-                  {doorwayGameplayDefinitions.slice(0, 2).map((definition, index) => (
+                  {doorwayGameplayDefinitions.slice(0, 2).map((definition) => (
                     <button
-                      key={String(definition.id || index)}
+                      key={gameplayStableKey(definition)}
                       type="button"
-                      data-doorway-gameplay-entry={String(definition.id || index)}
+                      data-doorway-gameplay-entry={gameplayStableKey(definition)}
                       disabled={isGameplayBusy}
                       onClick={() => void handleDoorwayStartGameplay(definition)}
                       className="flex w-full items-center justify-between gap-3 rounded-xl border border-cyan-200/16 bg-cyan-300/[0.065] px-3 py-2.5 text-left transition hover:border-cyan-200/38 hover:bg-cyan-300/[0.12] focus:outline-none focus:ring-2 focus:ring-cyan-300/20 disabled:cursor-wait disabled:opacity-60"
@@ -1512,7 +1242,7 @@ export function SpaceChatWorkbench({
             <div className="border-b border-cyan-200/10 px-3 py-2.5 sm:px-4">
               <div
                 data-current-npc-stage-card
-                aria-label={activeChatChannel === "public" ? "公共聊天" : "当前 NPC"}
+                aria-label={activeChatChannel === "public" ? "多人对话" : "当前角色"}
                 className="rounded-xl border border-cyan-200/10 bg-white/[0.035] p-3"
               >
                 <div className="flex min-w-0 items-start gap-3">
@@ -1528,32 +1258,16 @@ export function SpaceChatWorkbench({
                       {activeChatChannel === "public" ? "公共频道" : "当前角色"}
                     </p>
                     <h2 className="mt-0.5 truncate text-base font-black text-white sm:text-lg">
-                      {activeChatChannel === "public" ? "公共聊天" : selectedCharacter?.name || "暂无 NPC"}
+                      {activeChatChannel === "public" ? "多人对话" : selectedCharacter?.name || "暂无角色"}
                     </h2>
                   </div>
                 </div>
               </div>
             </div>
             ) : null}
-            {!isHistoryPilotStory ? <AmbientActivityPanel activity={ambientActivity} /> : null}
-
-            {isOrphanEchoMode ? (
+            {activeSession && !isHistoryPilotStory ? (
               <div className="p-4">
-                <OrphanEchoGameplayPanel
-                  session={activeSession}
-                  scene={gameplayScene}
-                  gameplay={currentGameplay}
-                  busy={isGameplayBusy}
-                  onChoice={(choice: any) => handleAdvanceGameplay({ choice_id: choice.id })}
-                  onSubmit={(text: string) => handleAdvanceGameplay({ message: text })}
-                  onAbandon={handleAbandonGameplay}
-                  onStart={handleStartGameplay}
-                  miniGameTemplates={miniGameTemplates}
-                />
-              </div>
-            ) : activeSession && !isHistoryPilotStory ? (
-              <div className="p-4">
-                <GameplaySessionPanel
+                <StoryProgressPanel
                   session={activeSession}
                   scene={gameplayScene}
                   gameplay={currentGameplay}
@@ -1566,33 +1280,6 @@ export function SpaceChatWorkbench({
               </div>
             ) : null}
 
-            {passwordLocked ? (
-
-              <form onSubmit={handlePasswordEnter} className="m-4 rounded-3xl border border-amber-300/25 bg-amber-300/10 p-4">
-                <div className="flex items-start gap-3">
-                  <LockKeyhole className="mt-1 h-5 w-5 shrink-0 text-amber-100" />
-                  <div className="min-w-0 flex-1">
-                    <p className="font-black text-amber-50">这间空间需要密码</p>
-                    <p className="mt-1 text-sm leading-6 text-amber-50/72">输入店主提供的密码后即可进入空间并开始对话。</p>
-                    <div className="mt-3 flex flex-col gap-2 sm:flex-row">
-                      <input
-                        value={password}
-                        onChange={(event) => setPassword(event.target.value)}
-                        type="password"
-                        aria-label="空间密码"
-                        className="min-h-12 flex-1 rounded-2xl border border-white/12 bg-slate-950/55 px-4 text-white outline-none focus:border-amber-200/70"
-                        placeholder="空间密码"
-                      />
-                      <Button type="submit" disabled={busy === "enter" || !password.trim()}>
-                        <DoorOpen className="h-4 w-4" />
-                        进入空间
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              </form>
-            ) : null}
-
             <div
               ref={chatLogRef}
               data-entrance-reactions
@@ -1600,18 +1287,18 @@ export function SpaceChatWorkbench({
               aria-label="聊天记录"
               className="min-h-[8rem] flex-1 space-y-3 overflow-y-auto p-3 sm:p-4"
             >
-              {visibleMessages.map((line, index) => {
+              {visibleMessages.map((line) => {
                 const isUser = line.role === "user"
                 const targetName = characterNameById.get(line.character_id || "")
                 const speakerName = isUser
                   ? activeChatChannel === "public" && targetName
                     ? `${visitorName || visitorId} → @${targetName}`
                     : visitorName || visitorId
-                  : line.character_id === SHOPKEEPER_CHARACTER_ID
-                    ? "店长"
-                    : targetName || "NPC"
+                  : line.character_id === STORY_NARRATOR_ID
+                    ? "旁白"
+                    : targetName || "角色"
                 return (
-                  <div key={line.id || `${line.role}-${index}`} className={`flex min-w-0 ${isUser ? "justify-end" : "justify-start"}`}>
+                  <div key={chatMessageKey(line)} className={`flex min-w-0 ${isUser ? "justify-end" : "justify-start"}`}>
                     <div
                       className={`max-w-[88%] rounded-[1.2rem] px-4 py-3 text-sm leading-6 shadow-lg ${
                         isUser
@@ -1668,14 +1355,14 @@ export function SpaceChatWorkbench({
                     {pendingReplyTargetName
                       ? `${pendingReplyTargetName} 正在回复…`
                       : activeChatChannel === "public"
-                        ? "店里正在回应…"
-                        : `${selectedCharacter?.name || "NPC"} 正在回复…`}
+                        ? "角色们正在回应…"
+                        : `${selectedCharacter?.name || "角色"} 正在回复…`}
                   </div>
                 </div>
               ) : null}
             </div>
 
-            {error && !passwordLocked ? (
+            {error ? (
               <div className="border-t border-white/10 px-4 py-3">
                 <p className="rounded-2xl border border-red-300/25 bg-red-300/10 p-3 text-sm leading-6 text-red-50">{error}</p>
               </div>
@@ -1707,11 +1394,11 @@ export function SpaceChatWorkbench({
                       }
                     }}
                     onKeyDown={handleComposerKeyDown}
-                    disabled={(activeChatChannel === "private" && !selectedCharacter) || characters.length === 0 || busy === "send" || passwordLocked}
+                    disabled={(activeChatChannel === "private" && !selectedCharacter) || characters.length === 0 || busy === "send"}
                     aria-label={activeChatChannel === "public" ? "公共聊天输入" : "当前角色聊天输入"}
                     rows={2}
                     maxLength={1600}
-                    placeholder={activeChatChannel === "public" ? "在这里说点什么…" : `对 ${selectedCharacter?.name || "NPC"} 说点什么…`}
+                    placeholder={activeChatChannel === "public" ? "对在场角色说点什么…" : `对 ${selectedCharacter?.name || "角色"} 说点什么…`}
                     className="min-h-14 w-full resize-none rounded-2xl border border-cyan-200/14 bg-white/[0.055] px-4 py-3 text-sm leading-6 text-white outline-none placeholder:text-violet-100/35 focus:border-cyan-300/60 disabled:cursor-not-allowed disabled:opacity-55"
                   />
                   {mentionQuery !== null && mentionMatches.length > 0 && activeChatChannel === "public" && (
@@ -1731,14 +1418,14 @@ export function SpaceChatWorkbench({
                     </div>
                   )}
                 </div>
-                <Button type="submit" disabled={(activeChatChannel === "private" && !selectedCharacter) || characters.length === 0 || busy === "send" || passwordLocked || !message.trim()} className="min-h-14 sm:w-28">
+                <Button type="submit" disabled={(activeChatChannel === "private" && !selectedCharacter) || characters.length === 0 || busy === "send" || !message.trim()} className="min-h-14 sm:w-28">
                   <Send className="h-4 w-4" />
                   发送
                 </Button>
               </div>
             </form>
 
-            {!isHistoryPilotStory && !passwordLocked && hasVisitorSentMessage ? (
+            {!isHistoryPilotStory && hasVisitorSentMessage ? (
               <section
                 data-story-branch-controls
                 className="flex justify-end border-t border-white/10 bg-slate-950/60 px-3 py-2 sm:px-4"

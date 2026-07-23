@@ -2,8 +2,6 @@ import { readApiJson } from "./api-client"
 
 export const DEFAULT_PARALLELLINES_URL = "https://pingxingxian.space"
 export const PARALLELLINES_AUTH_MODE = "parallellines"
-export const FABLESPACE_CREATOR_CAPABILITY = "fablespace.creator"
-export const FABLESPACE_ADMIN_CAPABILITY = "fablespace.admin"
 export const ACCESS_STATUS_REFRESH_INTERVAL_MS = 30_000
 
 export type CurrentSessionIdentity = {
@@ -83,44 +81,6 @@ export function getCurrentSessionIdentity(): Promise<CurrentSessionIdentity | nu
   return getAccessStatus()
     .then((status) => status.user)
     .catch(() => null)
-}
-
-/**
- * Checks one FableSpace product capability from the trusted linked identity.
- * @param identity Current session identity returned by the status endpoint.
- * @param capability Exact product capability to test.
- * @returns True when the capability is explicit or `fablespace.admin` grants it implicitly.
- */
-export function hasFableSpaceCapability(
-  identity: CurrentSessionIdentity | null,
-  capability: string,
-): boolean {
-  const granted = Array.isArray(identity?.capabilities) ? identity.capabilities : []
-  return granted.includes(FABLESPACE_ADMIN_CAPABILITY) || granted.includes(capability)
-}
-
-/**
- * Applies creator authorization only to linked deployments and preserves standalone behavior.
- * @param status Access-gate status returned by FableSpace.
- * @returns True for legacy mode or for a linked user with creator/admin capability.
- */
-export function canAccessCreatorTools(status: AccessStatus | null): boolean {
-  if (!status) return false
-  if (status.auth_mode !== PARALLELLINES_AUTH_MODE) return true
-  return status.access_allowed && hasFableSpaceCapability(status.user, FABLESPACE_CREATOR_CAPABILITY)
-}
-
-/**
- * Guards a creator-only client route before it reads or mutates owner resources.
- * @returns The resolved access status when creator tools are available.
- * @throws A 403 Response in linked mode when the current user lacks creator capability.
- */
-export async function requireCreatorTools(): Promise<AccessStatus> {
-  const status = await getAccessStatus()
-  if (!canAccessCreatorTools(status)) {
-    throw new Response("当前账号暂未开放空间创作与管理功能", { status: 403 })
-  }
-  return status
 }
 
 /**

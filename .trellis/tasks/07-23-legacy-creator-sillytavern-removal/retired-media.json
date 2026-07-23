@@ -1,0 +1,3350 @@
+{
+  "schema_version": 1,
+  "batch_id": "2026-07-23-retire-all-legacy-product-media",
+  "prepared_at": "2026-07-23T08:47:06+00:00",
+  "deleted_at": "2026-07-23T09:12:10+00:00",
+  "media_base_url": "https://img.pingxingxian.space/fablespace/media/v1",
+  "batch_totals": {
+    "entry_count": 333,
+    "bytes": 139007917
+  },
+  "remote_verification": {
+    "namespace_matches_manifest": true,
+    "preflight_expected_size_count": 333,
+    "delete_confirmed_count": 333,
+    "preflight_at": "2026-07-23T08:55:45+00:00",
+    "postflight_at": "2026-07-23T09:12:10+00:00"
+  },
+  "entries": [
+    {
+      "source": "apps/web/app/assets/fable-space-05-10/brand/soullink-logo-low.png",
+      "disposition": "migrate",
+      "bytes": 15701,
+      "sha256": "947c8e66f331c1a48be344eae7e64662bfb676e48a0c614356f5c9641914952a",
+      "content_type": "image/png",
+      "object_key": "app/assets/fable-space-05-10/brand/soullink-logo-low.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/assets/fable-space-05-10/brand/soullink-logo-low.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/app/assets/fable-space-05-10/discover/cards/card-cafe-square.png",
+      "disposition": "migrate",
+      "bytes": 410841,
+      "sha256": "68cff5f25997b0fda18f9ddddd0841d61114579fa7b262b0bdf5f76d56ed4c70",
+      "content_type": "image/png",
+      "object_key": "app/assets/fable-space-05-10/discover/cards/card-cafe-square.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/assets/fable-space-05-10/discover/cards/card-cafe-square.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/app/assets/fable-space-05-10/discover/cards/card-compass-square.png",
+      "disposition": "migrate",
+      "bytes": 74766,
+      "sha256": "5e92b9740912920c547cf8de41750757cf7190dfca3f41f088bc49a5ab244eb1",
+      "content_type": "image/png",
+      "object_key": "app/assets/fable-space-05-10/discover/cards/card-compass-square.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/assets/fable-space-05-10/discover/cards/card-compass-square.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/app/assets/fable-space-05-10/discover/cards/card-library-sunlit-square.png",
+      "disposition": "migrate",
+      "bytes": 373790,
+      "sha256": "b031db0f457bce4b3be55bdc1582bffdf213e3a5a0cfe3a997070035219155f3",
+      "content_type": "image/png",
+      "object_key": "app/assets/fable-space-05-10/discover/cards/card-library-sunlit-square.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/assets/fable-space-05-10/discover/cards/card-library-sunlit-square.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/app/assets/fable-space-05-10/discover/cards/card-library-wide-square.png",
+      "disposition": "migrate",
+      "bytes": 469470,
+      "sha256": "a3b093dd770261d6a3b39bdb71c2c4894d850fcd3ab336d98efffbe43e4e74b5",
+      "content_type": "image/png",
+      "object_key": "app/assets/fable-space-05-10/discover/cards/card-library-wide-square.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/assets/fable-space-05-10/discover/cards/card-library-wide-square.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/app/assets/fable-space-05-10/discover/cards/card-plane-square.png",
+      "disposition": "migrate",
+      "bytes": 25581,
+      "sha256": "9736746f4d1ff86637d2b394a47f36045b1bf2c7a71e39807f050f5455e496ee",
+      "content_type": "image/png",
+      "object_key": "app/assets/fable-space-05-10/discover/cards/card-plane-square.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/assets/fable-space-05-10/discover/cards/card-plane-square.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/app/assets/fable-space-05-10/discover/cards/card-sea-lane-square.png",
+      "disposition": "migrate",
+      "bytes": 353576,
+      "sha256": "97438d7bfac9a74e394050428a37368edb82486ea4fc2ec5ff23c1cb4f04079f",
+      "content_type": "image/png",
+      "object_key": "app/assets/fable-space-05-10/discover/cards/card-sea-lane-square.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/assets/fable-space-05-10/discover/cards/card-sea-lane-square.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/app/assets/fable-space-05-10/discover/cards/card-sky-city-square.png",
+      "disposition": "migrate",
+      "bytes": 432515,
+      "sha256": "3dc897226c77020019aed01976bc217177e5af1384883d456dd7f229c6b91003",
+      "content_type": "image/png",
+      "object_key": "app/assets/fable-space-05-10/discover/cards/card-sky-city-square.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/assets/fable-space-05-10/discover/cards/card-sky-city-square.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/app/assets/fable-space-05-10/discover/cards/card-train-platform-square.png",
+      "disposition": "migrate",
+      "bytes": 350952,
+      "sha256": "ffaf8d1a37240a8fd597d69d8f2ecac88f6648f1ec02dd2bba722b15b8a70cc2",
+      "content_type": "image/png",
+      "object_key": "app/assets/fable-space-05-10/discover/cards/card-train-platform-square.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/assets/fable-space-05-10/discover/cards/card-train-platform-square.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/app/assets/fable-space-05-10/discover/world-status/bg-black.png",
+      "disposition": "migrate",
+      "bytes": 48470,
+      "sha256": "4a6343f7b3a6bfb5a2cf0244f4c8532fdd7fe4fc463a17a942ab9e914f29c3e5",
+      "content_type": "image/png",
+      "object_key": "app/assets/fable-space-05-10/discover/world-status/bg-black.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/assets/fable-space-05-10/discover/world-status/bg-black.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/app/assets/fable-space-05-10/home-black/guide-database-icon.png",
+      "disposition": "migrate",
+      "bytes": 1364359,
+      "sha256": "a690759cb6f96044e245de3e353e5f0394b223df1539b503398e28014303e303",
+      "content_type": "image/png",
+      "object_key": "app/assets/fable-space-05-10/home-black/guide-database-icon.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/assets/fable-space-05-10/home-black/guide-database-icon.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/app/assets/fable-space-05-10/home-black/guide-database-icon.webp",
+      "disposition": "migrate",
+      "bytes": 8054,
+      "sha256": "96888ae6ab77840bb8fbf2677b241919b4de979e94e33bc6cc98a37a52c99f2f",
+      "content_type": "image/webp",
+      "object_key": "app/assets/fable-space-05-10/home-black/guide-database-icon.webp",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/assets/fable-space-05-10/home-black/guide-database-icon.webp",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/app/assets/fable-space-05-10/home-black/guide-protocol-icon.png",
+      "disposition": "migrate",
+      "bytes": 1418659,
+      "sha256": "e36dda7bc5f95c7446a546b855af0f82be22f99ec5fadb2bb9f6b2d63fb3dbff",
+      "content_type": "image/png",
+      "object_key": "app/assets/fable-space-05-10/home-black/guide-protocol-icon.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/assets/fable-space-05-10/home-black/guide-protocol-icon.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/app/assets/fable-space-05-10/home-black/guide-protocol-icon.webp",
+      "disposition": "migrate",
+      "bytes": 11304,
+      "sha256": "7278de07582747636f293a7a7a6e2fda2352d132e1f56ce18f46fc811323826f",
+      "content_type": "image/webp",
+      "object_key": "app/assets/fable-space-05-10/home-black/guide-protocol-icon.webp",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/assets/fable-space-05-10/home-black/guide-protocol-icon.webp",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/app/assets/fable-space-05-10/home-black/guide-security-icon.png",
+      "disposition": "migrate",
+      "bytes": 1392844,
+      "sha256": "0ee8ae406268c67f0e203f51d2cfeddba68daf58f261dcab20018cf0c2a06c93",
+      "content_type": "image/png",
+      "object_key": "app/assets/fable-space-05-10/home-black/guide-security-icon.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/assets/fable-space-05-10/home-black/guide-security-icon.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/app/assets/fable-space-05-10/home-black/guide-security-icon.webp",
+      "disposition": "migrate",
+      "bytes": 9818,
+      "sha256": "05bf6dc1acc8467c956bb24290766ada654d5623bde187f14c4583966dbb600c",
+      "content_type": "image/webp",
+      "object_key": "app/assets/fable-space-05-10/home-black/guide-security-icon.webp",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/assets/fable-space-05-10/home-black/guide-security-icon.webp",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/app/assets/fable-space-05-10/home-black/hero-system-visual.png",
+      "disposition": "migrate",
+      "bytes": 2419515,
+      "sha256": "c92edf7fd641c09297220a4e9153a249f44bce27734684bb9823ce08b1984acd",
+      "content_type": "image/png",
+      "object_key": "app/assets/fable-space-05-10/home-black/hero-system-visual.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/assets/fable-space-05-10/home-black/hero-system-visual.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/app/assets/fable-space-05-10/home-black/hero-system-visual.webp",
+      "disposition": "migrate",
+      "bytes": 207194,
+      "sha256": "4e1322851554a0a2c6932d9ea933bd6765316fd00ec1973de52b5464a5fd85f1",
+      "content_type": "image/webp",
+      "object_key": "app/assets/fable-space-05-10/home-black/hero-system-visual.webp",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/assets/fable-space-05-10/home-black/hero-system-visual.webp",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/app/assets/fable-space-05-10/home-black/invite-card.png",
+      "disposition": "migrate",
+      "bytes": 1923479,
+      "sha256": "ff96b308e2161eb0fdcdce4c6e7311430a824f20aca9ac3e845d14c369deaeb1",
+      "content_type": "image/png",
+      "object_key": "app/assets/fable-space-05-10/home-black/invite-card.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/assets/fable-space-05-10/home-black/invite-card.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/app/assets/fable-space-05-10/home-black/invite-card.webp",
+      "disposition": "migrate",
+      "bytes": 83236,
+      "sha256": "77a8a84f9debe3ef5978d8c2078fb73206cf8c0f858e607a2c9629e007d536c5",
+      "content_type": "image/webp",
+      "object_key": "app/assets/fable-space-05-10/home-black/invite-card.webp",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/assets/fable-space-05-10/home-black/invite-card.webp",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/app/assets/fable-space-05-10/home-black/node-data-harbor.png",
+      "disposition": "migrate",
+      "bytes": 2137541,
+      "sha256": "3ae685a9f522f2391ffc7a00c9496b095853434c06dccffcde62e870373591d3",
+      "content_type": "image/png",
+      "object_key": "app/assets/fable-space-05-10/home-black/node-data-harbor.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/assets/fable-space-05-10/home-black/node-data-harbor.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/app/assets/fable-space-05-10/home-black/node-neon-ruins.png",
+      "disposition": "migrate",
+      "bytes": 2301776,
+      "sha256": "644bf999d41cfba3466bdd21cf89cd96611b526312e7e8112ccbf8cafc3a8d1d",
+      "content_type": "image/png",
+      "object_key": "app/assets/fable-space-05-10/home-black/node-neon-ruins.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/assets/fable-space-05-10/home-black/node-neon-ruins.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/app/assets/fable-space-05-10/home-black/node-old-platform.png",
+      "disposition": "migrate",
+      "bytes": 2082561,
+      "sha256": "86f149b9e7d4919e66b0e4aec293e04c9806dcb225936190ed66bf9a083571e2",
+      "content_type": "image/png",
+      "object_key": "app/assets/fable-space-05-10/home-black/node-old-platform.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/assets/fable-space-05-10/home-black/node-old-platform.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/app/assets/fable-space-05-10/home-black/node-white-tower.png",
+      "disposition": "migrate",
+      "bytes": 2039899,
+      "sha256": "87aab954be338298c877cb0527bcd1265db94e78b1a4dec1bc6d51defbc544ee",
+      "content_type": "image/png",
+      "object_key": "app/assets/fable-space-05-10/home-black/node-white-tower.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/assets/fable-space-05-10/home-black/node-white-tower.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/app/assets/fable-space-05-10/home-black/recent-echo-waveform.png",
+      "disposition": "migrate",
+      "bytes": 1055291,
+      "sha256": "b9dd8f442d86cb351943414499a8ec192555b39048c5db0d65eeb277d5d088ed",
+      "content_type": "image/png",
+      "object_key": "app/assets/fable-space-05-10/home-black/recent-echo-waveform.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/assets/fable-space-05-10/home-black/recent-echo-waveform.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/app/assets/fable-space-05-10/home-black/recent-echo-waveform.webp",
+      "disposition": "migrate",
+      "bytes": 2936,
+      "sha256": "4abcfdfc70ce0084fabe15c9a5b362ca4745e5dfb8777500b1a1808d4ffe759f",
+      "content_type": "image/webp",
+      "object_key": "app/assets/fable-space-05-10/home-black/recent-echo-waveform.webp",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/assets/fable-space-05-10/home-black/recent-echo-waveform.webp",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/app/assets/fable-space-05-10/home-black/star.png",
+      "disposition": "migrate",
+      "bytes": 1012257,
+      "sha256": "aa7bf578806897bb7501bdd93895d371fcca842b882050fde4ab6210e6d0969d",
+      "content_type": "image/png",
+      "object_key": "app/assets/fable-space-05-10/home-black/star.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/assets/fable-space-05-10/home-black/star.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/app/assets/fable-space-05-10/home-black/user-avatar-node07.png",
+      "disposition": "migrate",
+      "bytes": 1826652,
+      "sha256": "b9848cfa9bad572d2e656e83dac747110e01362ab65315b8270b6b69e693c92d",
+      "content_type": "image/png",
+      "object_key": "app/assets/fable-space-05-10/home-black/user-avatar-node07.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/assets/fable-space-05-10/home-black/user-avatar-node07.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/app/assets/fable-space-05-10/home-black/user-avatar-node07.webp",
+      "disposition": "migrate",
+      "bytes": 5506,
+      "sha256": "67bb2de292f3cf823caa535d2c113a063a87cb262faf874a37f3537a9e7970ec",
+      "content_type": "image/webp",
+      "object_key": "app/assets/fable-space-05-10/home-black/user-avatar-node07.webp",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/assets/fable-space-05-10/home-black/user-avatar-node07.webp",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/app/assets/fable-space-05-10/home-black/world-stats-sparkline.png",
+      "disposition": "migrate",
+      "bytes": 1188484,
+      "sha256": "fb95e8d0db93524f018cbc3219672a3cc446f99a88fa6c6a0f06daa7d2294a01",
+      "content_type": "image/png",
+      "object_key": "app/assets/fable-space-05-10/home-black/world-stats-sparkline.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/assets/fable-space-05-10/home-black/world-stats-sparkline.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/app/assets/fable-space-05-10/home-black/world-stats-sparkline.webp",
+      "disposition": "migrate",
+      "bytes": 7640,
+      "sha256": "ec39a8d12af554fe845cf413040cbb7e8fa965ef9018c6348a78205591eaf15c",
+      "content_type": "image/webp",
+      "object_key": "app/assets/fable-space-05-10/home-black/world-stats-sparkline.webp",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/assets/fable-space-05-10/home-black/world-stats-sparkline.webp",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/app/assets/fable-space-05-10/reference/soullink-index-1536x1024.png",
+      "disposition": "migrate",
+      "bytes": 1976770,
+      "sha256": "1f33fa26a02f715a47d287d6e93e41dddaa062d35fa8843fb69b60e2758315ba",
+      "content_type": "image/png",
+      "object_key": "app/assets/fable-space-05-10/reference/soullink-index-1536x1024.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/assets/fable-space-05-10/reference/soullink-index-1536x1024.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/app/assets/fable-space-05-10/reference/soullink-static-base-1536x1024.png",
+      "disposition": "migrate",
+      "bytes": 1774064,
+      "sha256": "b0c22e9953c365ed1f0028e636cc9f69fb3c93ff5b705a843b46b2ae92776f5d",
+      "content_type": "image/png",
+      "object_key": "app/assets/fable-space-05-10/reference/soullink-static-base-1536x1024.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/assets/fable-space-05-10/reference/soullink-static-base-1536x1024.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/app/assets/fable-space-scenes/bar.png",
+      "disposition": "migrate",
+      "bytes": 2268217,
+      "sha256": "ab4d30c04230c88c0e979121ce32740d6d5642f267849bed1edfb175038f5de4",
+      "content_type": "image/png",
+      "object_key": "app/assets/fable-space-scenes/bar.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/assets/fable-space-scenes/bar.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/app/assets/fable-space-scenes/bar.webp",
+      "disposition": "migrate",
+      "bytes": 128490,
+      "sha256": "f8f3d68f43bcff221506fb4d9041fc23b04c18b3bbef75f53717ea900979ec05",
+      "content_type": "image/webp",
+      "object_key": "app/assets/fable-space-scenes/bar.webp",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/assets/fable-space-scenes/bar.webp",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/app/assets/fable-space-scenes/cafe.png",
+      "disposition": "migrate",
+      "bytes": 2373550,
+      "sha256": "7bca2edee11f6ad7b138850a4cb203dd55804e2afbd1d8f983635886b723b3f8",
+      "content_type": "image/png",
+      "object_key": "app/assets/fable-space-scenes/cafe.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/assets/fable-space-scenes/cafe.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/app/assets/fable-space-scenes/cafe.webp",
+      "disposition": "migrate",
+      "bytes": 124518,
+      "sha256": "85e503035302b60d56b73a664ada2fe201ec9d308456ed9fa52b446843ec154b",
+      "content_type": "image/webp",
+      "object_key": "app/assets/fable-space-scenes/cafe.webp",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/assets/fable-space-scenes/cafe.webp",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/app/assets/fable-space-scenes/company.png",
+      "disposition": "migrate",
+      "bytes": 2126494,
+      "sha256": "aa149969ae6993c855fabafa121d0affa088861f8548358e93a00dcc2f835a15",
+      "content_type": "image/png",
+      "object_key": "app/assets/fable-space-scenes/company.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/assets/fable-space-scenes/company.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/app/assets/fable-space-scenes/company.webp",
+      "disposition": "migrate",
+      "bytes": 104522,
+      "sha256": "5f9878efd0e3ce0b2b6fb9e398822c94f108b3fb68ffa47ee20ea73cdd96c410",
+      "content_type": "image/webp",
+      "object_key": "app/assets/fable-space-scenes/company.webp",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/assets/fable-space-scenes/company.webp",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/app/assets/fable-space-scenes/hotel.png",
+      "disposition": "migrate",
+      "bytes": 2179313,
+      "sha256": "a14aab576fc8216bbc6511717e1e804383a4dcd021faae421126ed39e3eeed27",
+      "content_type": "image/png",
+      "object_key": "app/assets/fable-space-scenes/hotel.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/assets/fable-space-scenes/hotel.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/app/assets/fable-space-scenes/hotel.webp",
+      "disposition": "migrate",
+      "bytes": 85064,
+      "sha256": "ecd583fde6d50201a31731e411a9bbd26f9ef715bcc13fd35322f4d0bf367829",
+      "content_type": "image/webp",
+      "object_key": "app/assets/fable-space-scenes/hotel.webp",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/assets/fable-space-scenes/hotel.webp",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/app/assets/fable-space-scenes/library.png",
+      "disposition": "migrate",
+      "bytes": 2486563,
+      "sha256": "e8690042d68b0d8368d6bfe6625295e362ccc8495d0e93c9c1d3fe2c0935d8ad",
+      "content_type": "image/png",
+      "object_key": "app/assets/fable-space-scenes/library.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/assets/fable-space-scenes/library.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/app/assets/fable-space-scenes/library.webp",
+      "disposition": "migrate",
+      "bytes": 132072,
+      "sha256": "b0be6c8e673f10db84b5340f01df89fae7d6ce89afe19749b4332f53e1b7ecef",
+      "content_type": "image/webp",
+      "object_key": "app/assets/fable-space-scenes/library.webp",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/assets/fable-space-scenes/library.webp",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/app/assets/fable-space-scenes/pet-shop.png",
+      "disposition": "migrate",
+      "bytes": 2547492,
+      "sha256": "b52f994ee5486e7c369b0b4d10b79dabb8cab69d5b84f5d8a08c79db86a6e557",
+      "content_type": "image/png",
+      "object_key": "app/assets/fable-space-scenes/pet-shop.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/assets/fable-space-scenes/pet-shop.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/app/assets/fable-space-scenes/pet-shop.webp",
+      "disposition": "migrate",
+      "bytes": 159714,
+      "sha256": "7ae087b5cea0f62c42bacbe7918a695cd10e6ab70d032fb175a76f64cc6e7072",
+      "content_type": "image/webp",
+      "object_key": "app/assets/fable-space-scenes/pet-shop.webp",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/assets/fable-space-scenes/pet-shop.webp",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/app/assets/fable-space-scenes/school.png",
+      "disposition": "migrate",
+      "bytes": 2226954,
+      "sha256": "ceef5ab3c33922439dcd215ae6fe8dd5a9614abf05b3e21f471969aab4a552e1",
+      "content_type": "image/png",
+      "object_key": "app/assets/fable-space-scenes/school.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/assets/fable-space-scenes/school.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/app/assets/fable-space-scenes/school.webp",
+      "disposition": "migrate",
+      "bytes": 104658,
+      "sha256": "913b61f9d916ab2ce0491510f2d38d84240ed56e8c31eea872eee6d0732f8b1e",
+      "content_type": "image/webp",
+      "object_key": "app/assets/fable-space-scenes/school.webp",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/assets/fable-space-scenes/school.webp",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/app/assets/fable-space-scenes/sports-center.png",
+      "disposition": "migrate",
+      "bytes": 2472620,
+      "sha256": "f40633766087873ecf1b0f3fb378280395d0282da879b19d5486ca40e388972f",
+      "content_type": "image/png",
+      "object_key": "app/assets/fable-space-scenes/sports-center.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/assets/fable-space-scenes/sports-center.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/app/assets/fable-space-scenes/sports-center.webp",
+      "disposition": "migrate",
+      "bytes": 134880,
+      "sha256": "f7814df93158fadac333792b1e88806c79687984559db3706111e2ee8c9d55bc",
+      "content_type": "image/webp",
+      "object_key": "app/assets/fable-space-scenes/sports-center.webp",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/assets/fable-space-scenes/sports-center.webp",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/app/assets/identity-onboarding/v3/beggar.png",
+      "disposition": "migrate",
+      "bytes": 2290476,
+      "sha256": "918a6ba6389a8c7bdf5e710babfe0fbad6c13a902c96cfb57b33a50a7fd5ce8d",
+      "content_type": "image/png",
+      "object_key": "app/assets/identity-onboarding/v3/beggar.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/assets/identity-onboarding/v3/beggar.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/app/assets/identity-onboarding/v3/beggar.webp",
+      "disposition": "migrate",
+      "bytes": 208570,
+      "sha256": "c5b7447f7203777de89aa3533b495607b8dd36e2535f5be1db93aa920ba289c6",
+      "content_type": "image/webp",
+      "object_key": "app/assets/identity-onboarding/v3/beggar.webp",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/assets/identity-onboarding/v3/beggar.webp",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/app/assets/identity-onboarding/v3/eunuch.png",
+      "disposition": "migrate",
+      "bytes": 1886754,
+      "sha256": "7f73c9d469a39879a412d96628488411bef47c0fedde2d368da3aca7fef9a33f",
+      "content_type": "image/png",
+      "object_key": "app/assets/identity-onboarding/v3/eunuch.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/assets/identity-onboarding/v3/eunuch.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/app/assets/identity-onboarding/v3/eunuch.webp",
+      "disposition": "migrate",
+      "bytes": 77778,
+      "sha256": "95bd960d3eda77ad83e64782ffa5b16c3a81cc7f9eb9e3b48e5d8d21c4568807",
+      "content_type": "image/webp",
+      "object_key": "app/assets/identity-onboarding/v3/eunuch.webp",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/assets/identity-onboarding/v3/eunuch.webp",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/app/assets/identity-onboarding/v3/monster-hunter.png",
+      "disposition": "migrate",
+      "bytes": 2067094,
+      "sha256": "742f46a67a9fd127d145113b637b1cb3aa52216bd44e03fb67b13de313382798",
+      "content_type": "image/png",
+      "object_key": "app/assets/identity-onboarding/v3/monster-hunter.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/assets/identity-onboarding/v3/monster-hunter.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/app/assets/identity-onboarding/v3/palace-maid.png",
+      "disposition": "migrate",
+      "bytes": 2030378,
+      "sha256": "0a5149483485ff5ff4efdd4f546d4cb3d8ed2bf1c241a882b37796ba43e20117",
+      "content_type": "image/png",
+      "object_key": "app/assets/identity-onboarding/v3/palace-maid.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/assets/identity-onboarding/v3/palace-maid.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/app/assets/identity-onboarding/v3/puppy.png",
+      "disposition": "migrate",
+      "bytes": 1762727,
+      "sha256": "4cffca1ce5caf77277dd739d9f21fa2060b6712eb65188a21cdf57cb660d1566",
+      "content_type": "image/png",
+      "object_key": "app/assets/identity-onboarding/v3/puppy.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/assets/identity-onboarding/v3/puppy.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/app/assets/identity-onboarding/v3/puppy.webp",
+      "disposition": "migrate",
+      "bytes": 62402,
+      "sha256": "0d885b0df0dd0805744243556a8e01e62d5cfed38be3d73a73479be2a77f1998",
+      "content_type": "image/webp",
+      "object_key": "app/assets/identity-onboarding/v3/puppy.webp",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/assets/identity-onboarding/v3/puppy.webp",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/app/assets/identity-onboarding/v3/radish-spirit.png",
+      "disposition": "migrate",
+      "bytes": 1936238,
+      "sha256": "db23bb4aecd8c08bd10cd91d8fa6f87aa94cae23951e2f234bbdf5eb29531297",
+      "content_type": "image/png",
+      "object_key": "app/assets/identity-onboarding/v3/radish-spirit.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/assets/identity-onboarding/v3/radish-spirit.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/app/assets/identity-onboarding/v3/radish-spirit.webp",
+      "disposition": "migrate",
+      "bytes": 105708,
+      "sha256": "32a7fc5ea8c183ca510456865a6413bf1ee35c74382d321c1ab63b7dba26217b",
+      "content_type": "image/webp",
+      "object_key": "app/assets/identity-onboarding/v3/radish-spirit.webp",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/assets/identity-onboarding/v3/radish-spirit.webp",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/app/assets/identity-onboarding/v3/top-student.png",
+      "disposition": "migrate",
+      "bytes": 1777626,
+      "sha256": "6cf7758491ad55f566f67866c3a5f11de3de13e03ae0a9ab05492d6935295050",
+      "content_type": "image/png",
+      "object_key": "app/assets/identity-onboarding/v3/top-student.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/assets/identity-onboarding/v3/top-student.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/app/assets/identity-onboarding/v3/underachiever.png",
+      "disposition": "migrate",
+      "bytes": 1914228,
+      "sha256": "d6ab416681c283709e21c4df70e90fd9ecc3ea2270e0e84e5a0d939737bdcb64",
+      "content_type": "image/png",
+      "object_key": "app/assets/identity-onboarding/v3/underachiever.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/assets/identity-onboarding/v3/underachiever.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/app/assets/npc-style-cast/portraits-hd/guardian-a.png",
+      "disposition": "migrate",
+      "bytes": 389024,
+      "sha256": "63a1d1be1c38a00097e722aba72ec6e844b289aa4e58b475ee7586488eb43fca",
+      "content_type": "image/png",
+      "object_key": "app/assets/npc-style-cast/portraits-hd/guardian-a.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/assets/npc-style-cast/portraits-hd/guardian-a.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/app/assets/npc-style-cast/portraits-hd/guardian-b.png",
+      "disposition": "migrate",
+      "bytes": 397529,
+      "sha256": "1b41ba891224f2c3b2bd8bfb80a0a0eb7c0a8b9438a2dc3869e1f8ea56b7ae75",
+      "content_type": "image/png",
+      "object_key": "app/assets/npc-style-cast/portraits-hd/guardian-b.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/assets/npc-style-cast/portraits-hd/guardian-b.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/app/assets/npc-style-cast/portraits-hd/healer-a.png",
+      "disposition": "migrate",
+      "bytes": 466979,
+      "sha256": "1fb5acd60fdf3b8a8159f0ab7a93a4b723277238bd8d865680b49f2af229c64d",
+      "content_type": "image/png",
+      "object_key": "app/assets/npc-style-cast/portraits-hd/healer-a.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/assets/npc-style-cast/portraits-hd/healer-a.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/app/assets/npc-style-cast/portraits-hd/healer-b.png",
+      "disposition": "migrate",
+      "bytes": 454701,
+      "sha256": "3fad436adcef9dede596bd17a17457257c9c7005d8d5c573e2d34b3666752893",
+      "content_type": "image/png",
+      "object_key": "app/assets/npc-style-cast/portraits-hd/healer-b.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/assets/npc-style-cast/portraits-hd/healer-b.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/app/assets/npc-style-cast/portraits-hd/merchant-a.png",
+      "disposition": "migrate",
+      "bytes": 419834,
+      "sha256": "a4b82f0b39dcb58ea98f76fafb315a81a430d0ad37f6bccbcf99d0cee6ab75a6",
+      "content_type": "image/png",
+      "object_key": "app/assets/npc-style-cast/portraits-hd/merchant-a.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/assets/npc-style-cast/portraits-hd/merchant-a.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/app/assets/npc-style-cast/portraits-hd/merchant-b.png",
+      "disposition": "migrate",
+      "bytes": 388187,
+      "sha256": "376ccc618b0d2135c33ea5fae1bae97f6c35f542caed8fa38b9e2d52eaa79d28",
+      "content_type": "image/png",
+      "object_key": "app/assets/npc-style-cast/portraits-hd/merchant-b.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/assets/npc-style-cast/portraits-hd/merchant-b.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/app/assets/npc-style-cast/portraits-hd/scholar-a.png",
+      "disposition": "migrate",
+      "bytes": 403379,
+      "sha256": "38fa02b2392a3f9d473e9f9c18bfab4a6ebcba39e62e2f69f3c6e56e53079e96",
+      "content_type": "image/png",
+      "object_key": "app/assets/npc-style-cast/portraits-hd/scholar-a.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/assets/npc-style-cast/portraits-hd/scholar-a.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/app/assets/npc-style-cast/portraits-hd/scholar-b.png",
+      "disposition": "migrate",
+      "bytes": 414242,
+      "sha256": "d864a2e20dcabcf35b15cf7f998737dc50002de3759bf46121c950008d610cd3",
+      "content_type": "image/png",
+      "object_key": "app/assets/npc-style-cast/portraits-hd/scholar-b.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/assets/npc-style-cast/portraits-hd/scholar-b.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/app/assets/npc-style-cast/portraits-hd/spirit-a.png",
+      "disposition": "migrate",
+      "bytes": 474508,
+      "sha256": "111b99e75ba9b7c1796a56670e954702d1dadaa6169c19fb9e1b3e5af2e0c6b2",
+      "content_type": "image/png",
+      "object_key": "app/assets/npc-style-cast/portraits-hd/spirit-a.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/assets/npc-style-cast/portraits-hd/spirit-a.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/app/assets/npc-style-cast/portraits-hd/spirit-b.png",
+      "disposition": "migrate",
+      "bytes": 434669,
+      "sha256": "f19dca1d9a92de08f5e28f42a712785344e3d36b9b22396dc88b9136bcd9b4e4",
+      "content_type": "image/png",
+      "object_key": "app/assets/npc-style-cast/portraits-hd/spirit-b.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/assets/npc-style-cast/portraits-hd/spirit-b.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/app/assets/npc-style-cast/portraits-hd/wanderer-a.png",
+      "disposition": "migrate",
+      "bytes": 395139,
+      "sha256": "59bed81be0d75f65e04fd12499334b97a1859b19cf2bbbd3457fdd7cc1898d06",
+      "content_type": "image/png",
+      "object_key": "app/assets/npc-style-cast/portraits-hd/wanderer-a.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/assets/npc-style-cast/portraits-hd/wanderer-a.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/app/assets/npc-style-cast/portraits-hd/wanderer-b.png",
+      "disposition": "migrate",
+      "bytes": 405726,
+      "sha256": "8ad4dd69f81862dca2431727591b332c3ab616e8ae9b03d9993e12ce290af20f",
+      "content_type": "image/png",
+      "object_key": "app/assets/npc-style-cast/portraits-hd/wanderer-b.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/assets/npc-style-cast/portraits-hd/wanderer-b.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/app/assets/npc-style-cast/portraits/guardian-a.png",
+      "disposition": "migrate",
+      "bytes": 123332,
+      "sha256": "b05eb9373395b5bb53b64441795f95636f613ee3cac41367291f2fbc6d5e07dd",
+      "content_type": "image/png",
+      "object_key": "app/assets/npc-style-cast/portraits/guardian-a.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/assets/npc-style-cast/portraits/guardian-a.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/app/assets/npc-style-cast/portraits/guardian-b.png",
+      "disposition": "migrate",
+      "bytes": 124545,
+      "sha256": "4119f34f9579c0467c47bdbcacc12390a502722cddce5306115805550f3716f5",
+      "content_type": "image/png",
+      "object_key": "app/assets/npc-style-cast/portraits/guardian-b.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/assets/npc-style-cast/portraits/guardian-b.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/app/assets/npc-style-cast/portraits/healer-a.png",
+      "disposition": "migrate",
+      "bytes": 141319,
+      "sha256": "88c693636841ca91ac4a3084fc0919bfaa131883d48582e70c57525e58c194d8",
+      "content_type": "image/png",
+      "object_key": "app/assets/npc-style-cast/portraits/healer-a.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/assets/npc-style-cast/portraits/healer-a.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/app/assets/npc-style-cast/portraits/healer-b.png",
+      "disposition": "migrate",
+      "bytes": 138238,
+      "sha256": "ed4ccc2fb47f3d29dbb4293428e0905b9140f024b55e97e2c428ebe4cc426b39",
+      "content_type": "image/png",
+      "object_key": "app/assets/npc-style-cast/portraits/healer-b.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/assets/npc-style-cast/portraits/healer-b.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/app/assets/npc-style-cast/portraits/merchant-a.png",
+      "disposition": "migrate",
+      "bytes": 130109,
+      "sha256": "230ded8ad742838da322c0efef477d180e811f218d683548ee0ac40288df380e",
+      "content_type": "image/png",
+      "object_key": "app/assets/npc-style-cast/portraits/merchant-a.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/assets/npc-style-cast/portraits/merchant-a.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/app/assets/npc-style-cast/portraits/merchant-b.png",
+      "disposition": "migrate",
+      "bytes": 122682,
+      "sha256": "fa76ed4891e932ad8988b680976901f89ef4ad8690390de5963d39b797dfe2d5",
+      "content_type": "image/png",
+      "object_key": "app/assets/npc-style-cast/portraits/merchant-b.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/assets/npc-style-cast/portraits/merchant-b.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/app/assets/npc-style-cast/portraits/scholar-a.png",
+      "disposition": "migrate",
+      "bytes": 125803,
+      "sha256": "498abceb488b4419ea8964d3dbc80f0d920db99e91beca27266c264ce6f7a132",
+      "content_type": "image/png",
+      "object_key": "app/assets/npc-style-cast/portraits/scholar-a.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/assets/npc-style-cast/portraits/scholar-a.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/app/assets/npc-style-cast/portraits/scholar-b.png",
+      "disposition": "migrate",
+      "bytes": 128163,
+      "sha256": "aefbd7bb3144543df39e18baa235bb4c7a5856f2089a851560a13d4d65cca1dd",
+      "content_type": "image/png",
+      "object_key": "app/assets/npc-style-cast/portraits/scholar-b.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/assets/npc-style-cast/portraits/scholar-b.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/app/assets/npc-style-cast/portraits/spirit-a.png",
+      "disposition": "migrate",
+      "bytes": 143574,
+      "sha256": "19194cc51364fe55a7e5fdcfd28525c0b6a689b3a0d9e87f6df11f9914d7a1cb",
+      "content_type": "image/png",
+      "object_key": "app/assets/npc-style-cast/portraits/spirit-a.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/assets/npc-style-cast/portraits/spirit-a.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/app/assets/npc-style-cast/portraits/spirit-b.png",
+      "disposition": "migrate",
+      "bytes": 133385,
+      "sha256": "91bc365ef7dd0bdb790bc561a23a25d7abb395ffb932a13770d444ca26de2726",
+      "content_type": "image/png",
+      "object_key": "app/assets/npc-style-cast/portraits/spirit-b.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/assets/npc-style-cast/portraits/spirit-b.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/app/assets/npc-style-cast/portraits/wanderer-a.png",
+      "disposition": "migrate",
+      "bytes": 123667,
+      "sha256": "44cbeceeff4d6de65714687481a3f37de12bc1dfce6924d35924cb6c75829c54",
+      "content_type": "image/png",
+      "object_key": "app/assets/npc-style-cast/portraits/wanderer-a.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/assets/npc-style-cast/portraits/wanderer-a.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/app/assets/npc-style-cast/portraits/wanderer-b.png",
+      "disposition": "migrate",
+      "bytes": 126208,
+      "sha256": "c9fb6b83d45b0dac4d3483e7f78ae093fb7b110e5e4026b6b4ba7c50be8b3b26",
+      "content_type": "image/png",
+      "object_key": "app/assets/npc-style-cast/portraits/wanderer-b.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/assets/npc-style-cast/portraits/wanderer-b.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/app/assets/place-atmosphere-hd/atmosphere-ember.webp",
+      "disposition": "migrate",
+      "bytes": 91790,
+      "sha256": "8466e04f58a1a6538331d79626c4ccebd8000f83cbfd571d9d7d23a599e88dcd",
+      "content_type": "image/webp",
+      "object_key": "app/assets/place-atmosphere-hd/atmosphere-ember.webp",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/assets/place-atmosphere-hd/atmosphere-ember.webp",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/app/assets/place-atmosphere-hd/atmosphere-grove.webp",
+      "disposition": "migrate",
+      "bytes": 119684,
+      "sha256": "d9ad50c82cc605354ff16cd0e92473bfa5550cfbf29654ab93311008ba035c46",
+      "content_type": "image/webp",
+      "object_key": "app/assets/place-atmosphere-hd/atmosphere-grove.webp",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/assets/place-atmosphere-hd/atmosphere-grove.webp",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/app/assets/place-atmosphere-hd/atmosphere-healing.webp",
+      "disposition": "migrate",
+      "bytes": 109682,
+      "sha256": "b6ac4c32ec9899eaa5b75a5330d038c6e5b455fc4b71c65a9882349501d1b147",
+      "content_type": "image/webp",
+      "object_key": "app/assets/place-atmosphere-hd/atmosphere-healing.webp",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/assets/place-atmosphere-hd/atmosphere-healing.webp",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/app/assets/place-atmosphere-hd/atmosphere-judgement.webp",
+      "disposition": "migrate",
+      "bytes": 55338,
+      "sha256": "2d9588d7e080a511f807aa1cabc027ccb4b265e41925e08885065cf3f175e2fe",
+      "content_type": "image/webp",
+      "object_key": "app/assets/place-atmosphere-hd/atmosphere-judgement.webp",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/assets/place-atmosphere-hd/atmosphere-judgement.webp",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/app/assets/place-atmosphere-hd/atmosphere-lore.webp",
+      "disposition": "migrate",
+      "bytes": 87292,
+      "sha256": "4e7423fe0cb23709d271d9e5a593a43da7cae65282688696a61058755d3c4e14",
+      "content_type": "image/webp",
+      "object_key": "app/assets/place-atmosphere-hd/atmosphere-lore.webp",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/assets/place-atmosphere-hd/atmosphere-lore.webp",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/app/assets/place-atmosphere-hd/atmosphere-market.webp",
+      "disposition": "migrate",
+      "bytes": 131760,
+      "sha256": "e4f1a6414db8f847197fb2d8c5ecb243584218df89c113c082dc2f49681dd0cc",
+      "content_type": "image/webp",
+      "object_key": "app/assets/place-atmosphere-hd/atmosphere-market.webp",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/assets/place-atmosphere-hd/atmosphere-market.webp",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/app/assets/place-atmosphere-hd/atmosphere-shrine.webp",
+      "disposition": "migrate",
+      "bytes": 92240,
+      "sha256": "6a06b7bcdc038d28d1f0b9fb286282228d166684eb3ad2de694f83e2022579e4",
+      "content_type": "image/webp",
+      "object_key": "app/assets/place-atmosphere-hd/atmosphere-shrine.webp",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/assets/place-atmosphere-hd/atmosphere-shrine.webp",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/app/assets/place-atmosphere-hd/atmosphere-spirit.webp",
+      "disposition": "migrate",
+      "bytes": 94704,
+      "sha256": "da1b4d80bb76df5fd94defbdaf86a0ee2382117d7dee98a305671f4490c36591",
+      "content_type": "image/webp",
+      "object_key": "app/assets/place-atmosphere-hd/atmosphere-spirit.webp",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/assets/place-atmosphere-hd/atmosphere-spirit.webp",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/app/assets/place-atmosphere-hd/atmosphere-supply.webp",
+      "disposition": "migrate",
+      "bytes": 101646,
+      "sha256": "6bd790eaebe70e3823f6ac7afe0dfb5b35361c6c5b634fcb963eb6b024921549",
+      "content_type": "image/webp",
+      "object_key": "app/assets/place-atmosphere-hd/atmosphere-supply.webp",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/assets/place-atmosphere-hd/atmosphere-supply.webp",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/app/assets/place-atmosphere-hd/atmosphere-transit.webp",
+      "disposition": "migrate",
+      "bytes": 91690,
+      "sha256": "92265c1d020f970a4d48198365a649bbc3293b9a4b10bf6bf2bff0099eff9842",
+      "content_type": "image/webp",
+      "object_key": "app/assets/place-atmosphere-hd/atmosphere-transit.webp",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/assets/place-atmosphere-hd/atmosphere-transit.webp",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/app/product/assets/map-packs/pack_a/buildings/house_01.png",
+      "disposition": "migrate",
+      "bytes": 417874,
+      "sha256": "aaea555999320529363699b1043538170888b6c782c14e59a0529d6ff403ac99",
+      "content_type": "image/png",
+      "object_key": "app/product/assets/map-packs/pack_a/buildings/house_01.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/product/assets/map-packs/pack_a/buildings/house_01.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/app/product/assets/map-packs/pack_a/buildings/sanctum_01.png",
+      "disposition": "migrate",
+      "bytes": 413975,
+      "sha256": "e16f49badec3e2491e622a1d433148aaa57457aaafe07607b194ba225ce7d37b",
+      "content_type": "image/png",
+      "object_key": "app/product/assets/map-packs/pack_a/buildings/sanctum_01.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/product/assets/map-packs/pack_a/buildings/sanctum_01.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/app/product/assets/map-packs/pack_a/buildings/shop_01.png",
+      "disposition": "migrate",
+      "bytes": 431541,
+      "sha256": "5ea4a21cb4ac5fe85c1cedbb7454edbfe37d18f5de6216ad4dc29e0c03db40b8",
+      "content_type": "image/png",
+      "object_key": "app/product/assets/map-packs/pack_a/buildings/shop_01.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/product/assets/map-packs/pack_a/buildings/shop_01.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/app/product/assets/map-packs/pack_a/buildings/tower_01.png",
+      "disposition": "migrate",
+      "bytes": 368498,
+      "sha256": "0b370235d3a56f66769e5218ec7d22f6ba653acb3f2e2a7a68564591090e0452",
+      "content_type": "image/png",
+      "object_key": "app/product/assets/map-packs/pack_a/buildings/tower_01.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/product/assets/map-packs/pack_a/buildings/tower_01.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/app/product/assets/map-packs/pack_a/decorations/lamp_01.png",
+      "disposition": "migrate",
+      "bytes": 403217,
+      "sha256": "da94daba15cf840692df46a6437d0c4a3ee3619ae74ee2f81cecff89283b45ea",
+      "content_type": "image/png",
+      "object_key": "app/product/assets/map-packs/pack_a/decorations/lamp_01.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/product/assets/map-packs/pack_a/decorations/lamp_01.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/app/product/assets/map-packs/pack_a/decorations/tree_01.png",
+      "disposition": "migrate",
+      "bytes": 391312,
+      "sha256": "49a6097be740f05010e9cd051aa7de9fefb2b89c9b22fe142181d69e409bebb2",
+      "content_type": "image/png",
+      "object_key": "app/product/assets/map-packs/pack_a/decorations/tree_01.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/product/assets/map-packs/pack_a/decorations/tree_01.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/app/product/assets/map-packs/pack_a/icons/boss.png",
+      "disposition": "migrate",
+      "bytes": 92612,
+      "sha256": "f13e5f29d3d9e6a19bdb9e4f7b2f8bdd67b004233704d58b0f77c6f86c973b9b",
+      "content_type": "image/png",
+      "object_key": "app/product/assets/map-packs/pack_a/icons/boss.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/product/assets/map-packs/pack_a/icons/boss.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/app/product/assets/map-packs/pack_a/icons/echo.png",
+      "disposition": "migrate",
+      "bytes": 97596,
+      "sha256": "0f3ddefb7cc3267539aacac4fd824651d080f1f23d031fc59c278959f794d545",
+      "content_type": "image/png",
+      "object_key": "app/product/assets/map-packs/pack_a/icons/echo.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/product/assets/map-packs/pack_a/icons/echo.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/app/product/assets/map-packs/pack_a/icons/event.png",
+      "disposition": "migrate",
+      "bytes": 97074,
+      "sha256": "06ace7c2daf8cb0acfe403abfeed5a43f110f6bec7546a21890454096f911ba4",
+      "content_type": "image/png",
+      "object_key": "app/product/assets/map-packs/pack_a/icons/event.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/product/assets/map-packs/pack_a/icons/event.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/app/product/assets/map-packs/pack_a/icons/home.png",
+      "disposition": "migrate",
+      "bytes": 53754,
+      "sha256": "e20f215b1d1692d2a18f1d9470995dbed0587c03d0ee939aac94e3b3ee798d38",
+      "content_type": "image/png",
+      "object_key": "app/product/assets/map-packs/pack_a/icons/home.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/product/assets/map-packs/pack_a/icons/home.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/app/product/assets/map-packs/pack_a/icons/quest.png",
+      "disposition": "migrate",
+      "bytes": 95056,
+      "sha256": "fa243755b7028556fbc8db023b867c016e7078f3db812eb9b7d1bfe1edcd2e7b",
+      "content_type": "image/png",
+      "object_key": "app/product/assets/map-packs/pack_a/icons/quest.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/product/assets/map-packs/pack_a/icons/quest.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/app/product/assets/map-packs/pack_a/icons/shop.png",
+      "disposition": "migrate",
+      "bytes": 88055,
+      "sha256": "6b7adf33f95161041765af46ef1a920c02ca46e49cffd0769da514d3ad2cce3c",
+      "content_type": "image/png",
+      "object_key": "app/product/assets/map-packs/pack_a/icons/shop.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/product/assets/map-packs/pack_a/icons/shop.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/app/product/assets/map-packs/pack_a/scene/scene_01.png",
+      "disposition": "migrate",
+      "bytes": 2008670,
+      "sha256": "01e0f03a49be7fbcfd8036c8febf5059bf9535d61cce42ccd52012b097f61ff1",
+      "content_type": "image/png",
+      "object_key": "app/product/assets/map-packs/pack_a/scene/scene_01.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/product/assets/map-packs/pack_a/scene/scene_01.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/app/product/assets/map-packs/pack_a/tiles/ground_01.png",
+      "disposition": "migrate",
+      "bytes": 145660,
+      "sha256": "f2691ffd7cfb6fa94d37ff32b44410e10e9f577fcd3bc46a08931e464d13ce91",
+      "content_type": "image/png",
+      "object_key": "app/product/assets/map-packs/pack_a/tiles/ground_01.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/product/assets/map-packs/pack_a/tiles/ground_01.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/app/product/assets/map-packs/pack_a/tiles/ground_02.png",
+      "disposition": "migrate",
+      "bytes": 136204,
+      "sha256": "1086111ff640876465d5ee7c7ab51d260c00a25be1d0fda73a189bf6f38d54be",
+      "content_type": "image/png",
+      "object_key": "app/product/assets/map-packs/pack_a/tiles/ground_02.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/product/assets/map-packs/pack_a/tiles/ground_02.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/app/product/assets/map-packs/pack_a/tiles/magic_01.png",
+      "disposition": "migrate",
+      "bytes": 132827,
+      "sha256": "1cd69cff1464dbfc05f6ebc5b4888dd22643fc8de19003763a5a19c0448773cf",
+      "content_type": "image/png",
+      "object_key": "app/product/assets/map-packs/pack_a/tiles/magic_01.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/product/assets/map-packs/pack_a/tiles/magic_01.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/app/product/assets/map-packs/pack_a/tiles/road_01.png",
+      "disposition": "migrate",
+      "bytes": 150552,
+      "sha256": "0d6199ee2bc1f14bae25e0ee06f592b359b21840d80c25412f2b0d2415a1864a",
+      "content_type": "image/png",
+      "object_key": "app/product/assets/map-packs/pack_a/tiles/road_01.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/product/assets/map-packs/pack_a/tiles/road_01.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/app/product/assets/map-packs/pack_a/tiles/road_02.png",
+      "disposition": "migrate",
+      "bytes": 136853,
+      "sha256": "1c6823ed1417c80f99838dbb3d7a987a80696bb242bdd5945684a9df1d57a376",
+      "content_type": "image/png",
+      "object_key": "app/product/assets/map-packs/pack_a/tiles/road_02.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/product/assets/map-packs/pack_a/tiles/road_02.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/app/product/assets/map-packs/pack_a/tiles/water_01.png",
+      "disposition": "migrate",
+      "bytes": 143458,
+      "sha256": "f7a01b7432835bf5114c465ea7ad9f6b12b4fe736ee80ef62d132abeeadbf91d",
+      "content_type": "image/png",
+      "object_key": "app/product/assets/map-packs/pack_a/tiles/water_01.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/product/assets/map-packs/pack_a/tiles/water_01.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/app/product/assets/map-packs/pack_b/buildings/house_01.png",
+      "disposition": "migrate",
+      "bytes": 537863,
+      "sha256": "6d431d81f435dfebf0e6c64ceb34d05d63e0d179306b2e866745d627a72e25b2",
+      "content_type": "image/png",
+      "object_key": "app/product/assets/map-packs/pack_b/buildings/house_01.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/product/assets/map-packs/pack_b/buildings/house_01.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/app/product/assets/map-packs/pack_b/buildings/sanctum_01.png",
+      "disposition": "migrate",
+      "bytes": 440913,
+      "sha256": "d466cdeb8c4c6146c4cde7bf47044ba88857a145a04868acbd170774f2fa378b",
+      "content_type": "image/png",
+      "object_key": "app/product/assets/map-packs/pack_b/buildings/sanctum_01.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/product/assets/map-packs/pack_b/buildings/sanctum_01.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/app/product/assets/map-packs/pack_b/buildings/shop_01.png",
+      "disposition": "migrate",
+      "bytes": 343443,
+      "sha256": "fc0ecfc3180f8820dc4b786405596d1e4121dc21f82894aa683c764270e00b90",
+      "content_type": "image/png",
+      "object_key": "app/product/assets/map-packs/pack_b/buildings/shop_01.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/product/assets/map-packs/pack_b/buildings/shop_01.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/app/product/assets/map-packs/pack_b/buildings/tower_01.png",
+      "disposition": "migrate",
+      "bytes": 426257,
+      "sha256": "156170f833ea471ae98d8836bd00505b04448e505f0d8b8e8c644ed0e0702128",
+      "content_type": "image/png",
+      "object_key": "app/product/assets/map-packs/pack_b/buildings/tower_01.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/product/assets/map-packs/pack_b/buildings/tower_01.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/app/product/assets/map-packs/pack_b/decorations/lamp_01.png",
+      "disposition": "migrate",
+      "bytes": 322717,
+      "sha256": "3095b35e48141c035ac3a7d64ec2dc98fb5a973455d02ef5c0be75b7800e3a22",
+      "content_type": "image/png",
+      "object_key": "app/product/assets/map-packs/pack_b/decorations/lamp_01.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/product/assets/map-packs/pack_b/decorations/lamp_01.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/app/product/assets/map-packs/pack_b/decorations/tree_01.png",
+      "disposition": "migrate",
+      "bytes": 459752,
+      "sha256": "7191cdb2d5c226270ac39f9b7a3a82be1740400f7e00d9ff3e979fc1e1ab4411",
+      "content_type": "image/png",
+      "object_key": "app/product/assets/map-packs/pack_b/decorations/tree_01.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/product/assets/map-packs/pack_b/decorations/tree_01.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/app/product/assets/map-packs/pack_b/icons/boss.png",
+      "disposition": "migrate",
+      "bytes": 78921,
+      "sha256": "7de82bb298aac3c052441e37d1c9353d443b9f49cbacf38ed714b3f5e6a7ee6d",
+      "content_type": "image/png",
+      "object_key": "app/product/assets/map-packs/pack_b/icons/boss.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/product/assets/map-packs/pack_b/icons/boss.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/app/product/assets/map-packs/pack_b/icons/echo.png",
+      "disposition": "migrate",
+      "bytes": 119953,
+      "sha256": "69fb302e78f9a30912cc857dcba6c6981215a29b2d59c64c128411624047f579",
+      "content_type": "image/png",
+      "object_key": "app/product/assets/map-packs/pack_b/icons/echo.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/product/assets/map-packs/pack_b/icons/echo.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/app/product/assets/map-packs/pack_b/icons/event.png",
+      "disposition": "migrate",
+      "bytes": 76522,
+      "sha256": "55977d8857304a796c720145eff61a656866a7fa6f209c1dec0e4af866098c5c",
+      "content_type": "image/png",
+      "object_key": "app/product/assets/map-packs/pack_b/icons/event.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/product/assets/map-packs/pack_b/icons/event.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/app/product/assets/map-packs/pack_b/icons/home.png",
+      "disposition": "migrate",
+      "bytes": 110163,
+      "sha256": "549cd7b46245305710df58091ec5e0216757fa537f0702a6490f4d44c13a2dd3",
+      "content_type": "image/png",
+      "object_key": "app/product/assets/map-packs/pack_b/icons/home.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/product/assets/map-packs/pack_b/icons/home.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/app/product/assets/map-packs/pack_b/icons/quest.png",
+      "disposition": "migrate",
+      "bytes": 120856,
+      "sha256": "43172cd85af7861fd77245a249406f4d518906044cf0a45821471b4fc0ac7524",
+      "content_type": "image/png",
+      "object_key": "app/product/assets/map-packs/pack_b/icons/quest.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/product/assets/map-packs/pack_b/icons/quest.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/app/product/assets/map-packs/pack_b/icons/shop.png",
+      "disposition": "migrate",
+      "bytes": 59912,
+      "sha256": "fade7c07e76b280929a69617bb34f348879e88fdb5b6fbd34d845bc0319303e1",
+      "content_type": "image/png",
+      "object_key": "app/product/assets/map-packs/pack_b/icons/shop.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/product/assets/map-packs/pack_b/icons/shop.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/app/product/assets/map-packs/pack_b/scene/scene_01.png",
+      "disposition": "migrate",
+      "bytes": 2151079,
+      "sha256": "879ba192064e41779063e84b077c5eedfd02c5d173e932e05f424ec555c3c058",
+      "content_type": "image/png",
+      "object_key": "app/product/assets/map-packs/pack_b/scene/scene_01.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/product/assets/map-packs/pack_b/scene/scene_01.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/app/product/assets/map-packs/pack_b/tiles/garden_01.png",
+      "disposition": "migrate",
+      "bytes": 134074,
+      "sha256": "9c9729159147922b603e88991e839ed0cd08f5fb7ac3acab65435df0d74d1b7f",
+      "content_type": "image/png",
+      "object_key": "app/product/assets/map-packs/pack_b/tiles/garden_01.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/product/assets/map-packs/pack_b/tiles/garden_01.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/app/product/assets/map-packs/pack_b/tiles/ground_01.png",
+      "disposition": "migrate",
+      "bytes": 103875,
+      "sha256": "6ee97164c71c4d1ef94c3229fae488908a79285fc2a5f2b56713714c2c87078b",
+      "content_type": "image/png",
+      "object_key": "app/product/assets/map-packs/pack_b/tiles/ground_01.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/product/assets/map-packs/pack_b/tiles/ground_01.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/app/product/assets/map-packs/pack_b/tiles/ground_02.png",
+      "disposition": "migrate",
+      "bytes": 112271,
+      "sha256": "d358ab0317894915bf0dd2ad028927f6a21fd917a2437bebdcdfff729d4b6f19",
+      "content_type": "image/png",
+      "object_key": "app/product/assets/map-packs/pack_b/tiles/ground_02.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/product/assets/map-packs/pack_b/tiles/ground_02.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/app/product/assets/map-packs/pack_b/tiles/road_01.png",
+      "disposition": "migrate",
+      "bytes": 154238,
+      "sha256": "21fd1d37d0f0e64a2cf8dfa65ae171eb108b8d4b02a23e261c1815715d19f731",
+      "content_type": "image/png",
+      "object_key": "app/product/assets/map-packs/pack_b/tiles/road_01.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/product/assets/map-packs/pack_b/tiles/road_01.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/app/product/assets/map-packs/pack_b/tiles/road_02.png",
+      "disposition": "migrate",
+      "bytes": 129426,
+      "sha256": "deb9c982ec69f32a6b19ba60301d8cf870d73fa0fd49563565d94db2a06e8fb9",
+      "content_type": "image/png",
+      "object_key": "app/product/assets/map-packs/pack_b/tiles/road_02.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/product/assets/map-packs/pack_b/tiles/road_02.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/app/product/assets/map-packs/pack_b/tiles/water_01.png",
+      "disposition": "migrate",
+      "bytes": 81194,
+      "sha256": "85386d9c7f5a1a9ea7acc15ffa9c580fb139eb04c85434692f02f3f4e0298b33",
+      "content_type": "image/png",
+      "object_key": "app/product/assets/map-packs/pack_b/tiles/water_01.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/product/assets/map-packs/pack_b/tiles/water_01.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/assets/characters/auntie-zhang.png",
+      "disposition": "migrate",
+      "bytes": 876503,
+      "sha256": "1de9632acf37b32f0f92017250f1a082ed94baf78f542c26546a2df880c620a3",
+      "content_type": "image/png",
+      "object_key": "public/assets/characters/auntie-zhang.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/assets/characters/auntie-zhang.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/assets/characters/dealer-monica.png",
+      "disposition": "migrate",
+      "bytes": 745004,
+      "sha256": "ba0d8fac18dd66b4833b7740a2d618088a0c878bb229126c79e4b0777fb1f85c",
+      "content_type": "image/png",
+      "object_key": "public/assets/characters/dealer-monica.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/assets/characters/dealer-monica.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/assets/characters/detective-gray.png",
+      "disposition": "migrate",
+      "bytes": 733900,
+      "sha256": "0d4018091fce6359db1e82797174cbc9f83d3ac6e963f1d38095c380216e61a5",
+      "content_type": "image/png",
+      "object_key": "public/assets/characters/detective-gray.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/assets/characters/detective-gray.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/assets/characters/samuel-villager.png",
+      "disposition": "migrate",
+      "bytes": 772241,
+      "sha256": "07323ffb1d7597fc32bd664843f504f656ef13a3570a10c4cb3d548b69732e22",
+      "content_type": "image/png",
+      "object_key": "public/assets/characters/samuel-villager.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/assets/characters/samuel-villager.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/assets/characters/seer-white.png",
+      "disposition": "migrate",
+      "bytes": 714074,
+      "sha256": "9893b2b3f8540e98992300b79d4b74d9cf74f3883fd3be984729caed15023f69",
+      "content_type": "image/png",
+      "object_key": "public/assets/characters/seer-white.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/assets/characters/seer-white.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/assets/characters/selina-widow.png",
+      "disposition": "migrate",
+      "bytes": 727471,
+      "sha256": "7541058c56af6e24a90941a970b6145dcca34b27ecd88e6b9e218acdec5856da",
+      "content_type": "image/png",
+      "object_key": "public/assets/characters/selina-widow.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/assets/characters/selina-widow.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/assets/map-snapshots/default/tile-000-0b0c722994b0.png",
+      "disposition": "migrate",
+      "bytes": 4379,
+      "sha256": "2b3609912e697b8a770631cc078039e9691967312ae437e5959ba15d5a5cccce",
+      "content_type": "image/png",
+      "object_key": "public/assets/map-snapshots/default/tile-000-0b0c722994b0.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/assets/map-snapshots/default/tile-000-0b0c722994b0.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/assets/npcs/public-welfare/char_pw_9_delta/anger.png",
+      "disposition": "migrate",
+      "bytes": 152921,
+      "sha256": "1db47b403b0e530d52dd44a7b709a092511322404db20f9391bae8ecf26f99de",
+      "content_type": "image/png",
+      "object_key": "public/assets/npcs/public-welfare/char_pw_9_delta/anger.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_9_delta/anger.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/assets/npcs/public-welfare/char_pw_9_delta/curiosity.png",
+      "disposition": "migrate",
+      "bytes": 152018,
+      "sha256": "40c294db5b1afd03ad89736307b8e18d40441cb6835293a2c950ecb1ae20c8cb",
+      "content_type": "image/png",
+      "object_key": "public/assets/npcs/public-welfare/char_pw_9_delta/curiosity.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_9_delta/curiosity.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/assets/npcs/public-welfare/char_pw_9_delta/embarrassment.png",
+      "disposition": "migrate",
+      "bytes": 150731,
+      "sha256": "a66a462a34d0d2f46a1e5bd939f0dbc5e56755dee527d37692e7c5c5196868b1",
+      "content_type": "image/png",
+      "object_key": "public/assets/npcs/public-welfare/char_pw_9_delta/embarrassment.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_9_delta/embarrassment.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/assets/npcs/public-welfare/char_pw_9_delta/joy.png",
+      "disposition": "migrate",
+      "bytes": 150919,
+      "sha256": "17144e065582c11222e104a3aa909e4a41321eebd7c3fdae9afe45fcdfdfd2c0",
+      "content_type": "image/png",
+      "object_key": "public/assets/npcs/public-welfare/char_pw_9_delta/joy.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_9_delta/joy.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/assets/npcs/public-welfare/char_pw_9_delta/neutral.png",
+      "disposition": "migrate",
+      "bytes": 151723,
+      "sha256": "8fc58190aaf8070c5253a7cbbcbf1f0cc84e45f737ab25d1de7fd8e1a7a35c69",
+      "content_type": "image/png",
+      "object_key": "public/assets/npcs/public-welfare/char_pw_9_delta/neutral.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_9_delta/neutral.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/assets/npcs/public-welfare/char_pw_aheng/anger.png",
+      "disposition": "migrate",
+      "bytes": 132894,
+      "sha256": "cbd7d07199aacdceb0bd08fa9378bd47a79c5308f76ba714909638bd61a54ec7",
+      "content_type": "image/png",
+      "object_key": "public/assets/npcs/public-welfare/char_pw_aheng/anger.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_aheng/anger.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/assets/npcs/public-welfare/char_pw_aheng/curiosity.png",
+      "disposition": "migrate",
+      "bytes": 130361,
+      "sha256": "a164ac7d59d6c0907093baa49da17224f7158b91d22b43227a7e7d1f9f425607",
+      "content_type": "image/png",
+      "object_key": "public/assets/npcs/public-welfare/char_pw_aheng/curiosity.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_aheng/curiosity.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/assets/npcs/public-welfare/char_pw_aheng/embarrassment.png",
+      "disposition": "migrate",
+      "bytes": 130994,
+      "sha256": "59cfc85dba92e572421d5b8a142a65683958b3831948788e5c4aad3ec6d1ee79",
+      "content_type": "image/png",
+      "object_key": "public/assets/npcs/public-welfare/char_pw_aheng/embarrassment.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_aheng/embarrassment.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/assets/npcs/public-welfare/char_pw_aheng/joy.png",
+      "disposition": "migrate",
+      "bytes": 132257,
+      "sha256": "a1a10dfef3d5be470dc9ae2db63d2f27b90378489f39046d6835c8b6cbf7350e",
+      "content_type": "image/png",
+      "object_key": "public/assets/npcs/public-welfare/char_pw_aheng/joy.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_aheng/joy.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/assets/npcs/public-welfare/char_pw_aheng/neutral.png",
+      "disposition": "migrate",
+      "bytes": 132048,
+      "sha256": "db548b26155892717440f36c7ff32e228b8626bf3799684dfc2fd1440c32114e",
+      "content_type": "image/png",
+      "object_key": "public/assets/npcs/public-welfare/char_pw_aheng/neutral.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_aheng/neutral.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/assets/npcs/public-welfare/char_pw_ahuai/anger.png",
+      "disposition": "migrate",
+      "bytes": 149363,
+      "sha256": "a6bd7f355a74abf9307cec77bc2849b1e6ce5e346b384ed81bcd684ed5c17755",
+      "content_type": "image/png",
+      "object_key": "public/assets/npcs/public-welfare/char_pw_ahuai/anger.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_ahuai/anger.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/assets/npcs/public-welfare/char_pw_ahuai/curiosity.png",
+      "disposition": "migrate",
+      "bytes": 149429,
+      "sha256": "80bdb0d8a4bf30142643289bcb494519e8453c5be46ba1031cf7e00c7d4fac63",
+      "content_type": "image/png",
+      "object_key": "public/assets/npcs/public-welfare/char_pw_ahuai/curiosity.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_ahuai/curiosity.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/assets/npcs/public-welfare/char_pw_ahuai/embarrassment.png",
+      "disposition": "migrate",
+      "bytes": 149753,
+      "sha256": "a9998c366d86cc16fbd1ad6d31ce831d8e60f598e630ce0f52917c0706ed88ae",
+      "content_type": "image/png",
+      "object_key": "public/assets/npcs/public-welfare/char_pw_ahuai/embarrassment.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_ahuai/embarrassment.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/assets/npcs/public-welfare/char_pw_ahuai/joy.png",
+      "disposition": "migrate",
+      "bytes": 151258,
+      "sha256": "d9ab5cc42d2c3793213706ae7de263e7d2aa4bab76e66cfbe99777db6316430d",
+      "content_type": "image/png",
+      "object_key": "public/assets/npcs/public-welfare/char_pw_ahuai/joy.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_ahuai/joy.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/assets/npcs/public-welfare/char_pw_ahuai/neutral.png",
+      "disposition": "migrate",
+      "bytes": 149327,
+      "sha256": "429e5f29642e1810fc319e2aad840e16f8e8d070562235dd8fe1c4e00697aa12",
+      "content_type": "image/png",
+      "object_key": "public/assets/npcs/public-welfare/char_pw_ahuai/neutral.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_ahuai/neutral.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/assets/npcs/public-welfare/char_pw_anlan/anger.png",
+      "disposition": "migrate",
+      "bytes": 140832,
+      "sha256": "ae51828df2fb3063e188bdce88dcafdc4b5b63d5cf36437536d42ba32e5c5078",
+      "content_type": "image/png",
+      "object_key": "public/assets/npcs/public-welfare/char_pw_anlan/anger.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_anlan/anger.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/assets/npcs/public-welfare/char_pw_anlan/curiosity.png",
+      "disposition": "migrate",
+      "bytes": 141608,
+      "sha256": "393abdb483d02e033813cc9c3f4ced0914dd5f49a6b8a65b261d35588376b5d3",
+      "content_type": "image/png",
+      "object_key": "public/assets/npcs/public-welfare/char_pw_anlan/curiosity.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_anlan/curiosity.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/assets/npcs/public-welfare/char_pw_anlan/embarrassment.png",
+      "disposition": "migrate",
+      "bytes": 139375,
+      "sha256": "6ac8c7ff1f6b031806a545acd4c7bae2bbd8d787dc5ee6bc8c271c92ff03c1b2",
+      "content_type": "image/png",
+      "object_key": "public/assets/npcs/public-welfare/char_pw_anlan/embarrassment.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_anlan/embarrassment.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/assets/npcs/public-welfare/char_pw_anlan/joy.png",
+      "disposition": "migrate",
+      "bytes": 138343,
+      "sha256": "5cd733a53552897b20cb88b17be2a7472b44f861f75d8c7960c3bbc6397b3a6e",
+      "content_type": "image/png",
+      "object_key": "public/assets/npcs/public-welfare/char_pw_anlan/joy.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_anlan/joy.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/assets/npcs/public-welfare/char_pw_anlan/neutral.png",
+      "disposition": "migrate",
+      "bytes": 131798,
+      "sha256": "4c163ef708ef429497e23e6ecc1d3668a8e7977f0b5c8ecbcbd63b7011019156",
+      "content_type": "image/png",
+      "object_key": "public/assets/npcs/public-welfare/char_pw_anlan/neutral.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_anlan/neutral.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/assets/npcs/public-welfare/char_pw_dengxin/anger.png",
+      "disposition": "migrate",
+      "bytes": 130881,
+      "sha256": "e4f2c0d4fbbf18f17c6d2e842c6cf91591f824dd8910fbfdcda324c174680c1a",
+      "content_type": "image/png",
+      "object_key": "public/assets/npcs/public-welfare/char_pw_dengxin/anger.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_dengxin/anger.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/assets/npcs/public-welfare/char_pw_dengxin/curiosity.png",
+      "disposition": "migrate",
+      "bytes": 131402,
+      "sha256": "ffca2879769502b81234467d4213d8f80505ebeaacb2971f1e68f00a742ffe1e",
+      "content_type": "image/png",
+      "object_key": "public/assets/npcs/public-welfare/char_pw_dengxin/curiosity.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_dengxin/curiosity.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/assets/npcs/public-welfare/char_pw_dengxin/embarrassment.png",
+      "disposition": "migrate",
+      "bytes": 131928,
+      "sha256": "e8d8d1e4d2696ee6277f7c5dc20c9156516094b92dbc2daffaedefd433f94926",
+      "content_type": "image/png",
+      "object_key": "public/assets/npcs/public-welfare/char_pw_dengxin/embarrassment.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_dengxin/embarrassment.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/assets/npcs/public-welfare/char_pw_dengxin/joy.png",
+      "disposition": "migrate",
+      "bytes": 131002,
+      "sha256": "16c96cd93258d60c776bed844aa40621dfed8e32907bf4bb6a3a9c15e320dd2c",
+      "content_type": "image/png",
+      "object_key": "public/assets/npcs/public-welfare/char_pw_dengxin/joy.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_dengxin/joy.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/assets/npcs/public-welfare/char_pw_dengxin/neutral.png",
+      "disposition": "migrate",
+      "bytes": 131072,
+      "sha256": "c6413a23c8456c6d7bd27ff11969f4c8de6dd3a9d0dd7b14474e35a75801de49",
+      "content_type": "image/png",
+      "object_key": "public/assets/npcs/public-welfare/char_pw_dengxin/neutral.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_dengxin/neutral.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/assets/npcs/public-welfare/char_pw_heguang/anger.png",
+      "disposition": "migrate",
+      "bytes": 146189,
+      "sha256": "59f30161e2c7578d0941102f9914e522e06a72951d2894318c5c6f1d91e7caa0",
+      "content_type": "image/png",
+      "object_key": "public/assets/npcs/public-welfare/char_pw_heguang/anger.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_heguang/anger.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/assets/npcs/public-welfare/char_pw_heguang/curiosity.png",
+      "disposition": "migrate",
+      "bytes": 148105,
+      "sha256": "be87b19d13290677f53f1579166b5887d6f5f795dfe116238a897359359ebed7",
+      "content_type": "image/png",
+      "object_key": "public/assets/npcs/public-welfare/char_pw_heguang/curiosity.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_heguang/curiosity.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/assets/npcs/public-welfare/char_pw_heguang/embarrassment.png",
+      "disposition": "migrate",
+      "bytes": 149996,
+      "sha256": "1e2d5d7b56670f35505ad9cd697f61cc484be6860319add450a8306ad1e4cee3",
+      "content_type": "image/png",
+      "object_key": "public/assets/npcs/public-welfare/char_pw_heguang/embarrassment.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_heguang/embarrassment.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/assets/npcs/public-welfare/char_pw_heguang/joy.png",
+      "disposition": "migrate",
+      "bytes": 151010,
+      "sha256": "860da5b2a05a5f2f93205ee20979d309f5c730c234d319cc91efe8d3f419dd51",
+      "content_type": "image/png",
+      "object_key": "public/assets/npcs/public-welfare/char_pw_heguang/joy.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_heguang/joy.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/assets/npcs/public-welfare/char_pw_heguang/neutral.png",
+      "disposition": "migrate",
+      "bytes": 151255,
+      "sha256": "f5218c17dc2a03a5c11cf7bf8e992f1172448d403a89798e5fb9e81e9bb1b7de",
+      "content_type": "image/png",
+      "object_key": "public/assets/npcs/public-welfare/char_pw_heguang/neutral.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_heguang/neutral.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/assets/npcs/public-welfare/char_pw_huoyan/anger.png",
+      "disposition": "migrate",
+      "bytes": 137039,
+      "sha256": "4d22a603caed70c32f5e61cc7d52a3fe14f47c60e400b578f78af696b645f768",
+      "content_type": "image/png",
+      "object_key": "public/assets/npcs/public-welfare/char_pw_huoyan/anger.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_huoyan/anger.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/assets/npcs/public-welfare/char_pw_huoyan/curiosity.png",
+      "disposition": "migrate",
+      "bytes": 139020,
+      "sha256": "da4745933caab6275a691416015cf86f22ec772c24d043aff32a7f62b466c56b",
+      "content_type": "image/png",
+      "object_key": "public/assets/npcs/public-welfare/char_pw_huoyan/curiosity.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_huoyan/curiosity.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/assets/npcs/public-welfare/char_pw_huoyan/embarrassment.png",
+      "disposition": "migrate",
+      "bytes": 139539,
+      "sha256": "08f1154d4d0d3a0e77294513d2ad7e0cc53ea57167b3b4d85de3dbe1e3422c3b",
+      "content_type": "image/png",
+      "object_key": "public/assets/npcs/public-welfare/char_pw_huoyan/embarrassment.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_huoyan/embarrassment.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/assets/npcs/public-welfare/char_pw_huoyan/joy.png",
+      "disposition": "migrate",
+      "bytes": 143409,
+      "sha256": "0aad556a0492d69f7ecc9f1c2a1c6f11cf7c98cb5ec43525fb78aa959c7b20ed",
+      "content_type": "image/png",
+      "object_key": "public/assets/npcs/public-welfare/char_pw_huoyan/joy.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_huoyan/joy.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/assets/npcs/public-welfare/char_pw_huoyan/neutral.png",
+      "disposition": "migrate",
+      "bytes": 126036,
+      "sha256": "f9953117614f71e4f9155d277bc184e27af0fad7437ef6341d0dd035b8d4c1d7",
+      "content_type": "image/png",
+      "object_key": "public/assets/npcs/public-welfare/char_pw_huoyan/neutral.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_huoyan/neutral.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/assets/npcs/public-welfare/char_pw_luming/anger.png",
+      "disposition": "migrate",
+      "bytes": 103238,
+      "sha256": "5b5e4662684c806e26360641c50280647a69cde58b1f3d22a1f3dbe9c104a0c5",
+      "content_type": "image/png",
+      "object_key": "public/assets/npcs/public-welfare/char_pw_luming/anger.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_luming/anger.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/assets/npcs/public-welfare/char_pw_luming/curiosity.png",
+      "disposition": "migrate",
+      "bytes": 101992,
+      "sha256": "a065422dd98b07115fefd8e8e44bc45b0b502e42f3577a9b6df66491610a042b",
+      "content_type": "image/png",
+      "object_key": "public/assets/npcs/public-welfare/char_pw_luming/curiosity.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_luming/curiosity.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/assets/npcs/public-welfare/char_pw_luming/embarrassment.png",
+      "disposition": "migrate",
+      "bytes": 104109,
+      "sha256": "cd08f7d4a2392adaee5531b8f43969c2f49cb6539b1d4cb5b58b8ab3143cc094",
+      "content_type": "image/png",
+      "object_key": "public/assets/npcs/public-welfare/char_pw_luming/embarrassment.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_luming/embarrassment.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/assets/npcs/public-welfare/char_pw_luming/joy.png",
+      "disposition": "migrate",
+      "bytes": 103368,
+      "sha256": "fb6f652159dcb8d7e17e7d19a3fb973d647812a30aee6c08c33c594f02b17959",
+      "content_type": "image/png",
+      "object_key": "public/assets/npcs/public-welfare/char_pw_luming/joy.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_luming/joy.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/assets/npcs/public-welfare/char_pw_luming/neutral.png",
+      "disposition": "migrate",
+      "bytes": 104344,
+      "sha256": "abac810813ae40b64a7c355586368fbc49f5793e9e1e3803cfbf886b41202334",
+      "content_type": "image/png",
+      "object_key": "public/assets/npcs/public-welfare/char_pw_luming/neutral.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_luming/neutral.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/assets/npcs/public-welfare/char_pw_mika_nurse/anger.png",
+      "disposition": "migrate",
+      "bytes": 503651,
+      "sha256": "43fa400c8ae1d961c5686949a9176c803e1b9b2dd5cf865d416ff82722a609e6",
+      "content_type": "image/png",
+      "object_key": "public/assets/npcs/public-welfare/char_pw_mika_nurse/anger.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_mika_nurse/anger.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/assets/npcs/public-welfare/char_pw_mika_nurse/curiosity.png",
+      "disposition": "migrate",
+      "bytes": 514694,
+      "sha256": "bff99b958b9156c35f9c767f3596c70eda4efbfc187e31c6fc42b649059fcbb6",
+      "content_type": "image/png",
+      "object_key": "public/assets/npcs/public-welfare/char_pw_mika_nurse/curiosity.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_mika_nurse/curiosity.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/assets/npcs/public-welfare/char_pw_mika_nurse/embarrassment.png",
+      "disposition": "migrate",
+      "bytes": 527887,
+      "sha256": "841f2bb2d551fba83e1bfeaf6822769d0dc674b2f0205b2d1e234c6eb6b762ac",
+      "content_type": "image/png",
+      "object_key": "public/assets/npcs/public-welfare/char_pw_mika_nurse/embarrassment.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_mika_nurse/embarrassment.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/assets/npcs/public-welfare/char_pw_mika_nurse/joy.png",
+      "disposition": "migrate",
+      "bytes": 544083,
+      "sha256": "0bc2abf75053067c3d4a657b12b8c14a073c7e0ce80fd3f9555c40e37fe1bae6",
+      "content_type": "image/png",
+      "object_key": "public/assets/npcs/public-welfare/char_pw_mika_nurse/joy.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_mika_nurse/joy.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/assets/npcs/public-welfare/char_pw_mika_nurse/neutral.png",
+      "disposition": "migrate",
+      "bytes": 554339,
+      "sha256": "9e58ada036727ffe068572dfddf8a9edcf3c6bf215839d25d331ca335af17405",
+      "content_type": "image/png",
+      "object_key": "public/assets/npcs/public-welfare/char_pw_mika_nurse/neutral.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_mika_nurse/neutral.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/assets/npcs/public-welfare/char_pw_mimi_nya/anger.png",
+      "disposition": "migrate",
+      "bytes": 144887,
+      "sha256": "be87afdd22c67c5ff92517a6a98cd05272b4a627e6aac95b56f8796b208072da",
+      "content_type": "image/png",
+      "object_key": "public/assets/npcs/public-welfare/char_pw_mimi_nya/anger.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_mimi_nya/anger.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/assets/npcs/public-welfare/char_pw_mimi_nya/curiosity.png",
+      "disposition": "migrate",
+      "bytes": 142532,
+      "sha256": "d506bbad365128ac301da24d539f18fc702d9bcc9af7d3632053b5796da2347e",
+      "content_type": "image/png",
+      "object_key": "public/assets/npcs/public-welfare/char_pw_mimi_nya/curiosity.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_mimi_nya/curiosity.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/assets/npcs/public-welfare/char_pw_mimi_nya/embarrassment.png",
+      "disposition": "migrate",
+      "bytes": 144391,
+      "sha256": "c51feca650e1e916c5a944d401014b33e42c378ce15807d5cc27aa5237dd2520",
+      "content_type": "image/png",
+      "object_key": "public/assets/npcs/public-welfare/char_pw_mimi_nya/embarrassment.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_mimi_nya/embarrassment.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/assets/npcs/public-welfare/char_pw_mimi_nya/joy.png",
+      "disposition": "migrate",
+      "bytes": 145277,
+      "sha256": "28fc263cdd92834b449ced8695a6177c1c34c3fc972c016b78249bb2945eeb37",
+      "content_type": "image/png",
+      "object_key": "public/assets/npcs/public-welfare/char_pw_mimi_nya/joy.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_mimi_nya/joy.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/assets/npcs/public-welfare/char_pw_mimi_nya/neutral.png",
+      "disposition": "migrate",
+      "bytes": 144689,
+      "sha256": "4c181cab61b9bf9cf4dedf52ac744ccf8ced8e0441f5f671bfd28792d4d654e2",
+      "content_type": "image/png",
+      "object_key": "public/assets/npcs/public-welfare/char_pw_mimi_nya/neutral.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_mimi_nya/neutral.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/assets/npcs/public-welfare/char_pw_mozhan/anger.png",
+      "disposition": "migrate",
+      "bytes": 156562,
+      "sha256": "d0987838e92f8b63ef9505c0a90eb497e76420038f686c2b8f2cd1b4de9b6a6e",
+      "content_type": "image/png",
+      "object_key": "public/assets/npcs/public-welfare/char_pw_mozhan/anger.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_mozhan/anger.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/assets/npcs/public-welfare/char_pw_mozhan/curiosity.png",
+      "disposition": "migrate",
+      "bytes": 156842,
+      "sha256": "572cb295c8cc95e7454b9e1571c7f1729d126cd08ef9146dd451cd7dd0022022",
+      "content_type": "image/png",
+      "object_key": "public/assets/npcs/public-welfare/char_pw_mozhan/curiosity.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_mozhan/curiosity.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/assets/npcs/public-welfare/char_pw_mozhan/embarrassment.png",
+      "disposition": "migrate",
+      "bytes": 157630,
+      "sha256": "1a6184be7d0b29cbdaf39c4e2722a41713ae7a8622ba486754ec453272624262",
+      "content_type": "image/png",
+      "object_key": "public/assets/npcs/public-welfare/char_pw_mozhan/embarrassment.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_mozhan/embarrassment.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/assets/npcs/public-welfare/char_pw_mozhan/joy.png",
+      "disposition": "migrate",
+      "bytes": 158733,
+      "sha256": "7a0e5f41898736cc67f48e298d4f593be76aa33044b92247dcff3ea7e1fb0d0d",
+      "content_type": "image/png",
+      "object_key": "public/assets/npcs/public-welfare/char_pw_mozhan/joy.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_mozhan/joy.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/assets/npcs/public-welfare/char_pw_mozhan/neutral.png",
+      "disposition": "migrate",
+      "bytes": 150954,
+      "sha256": "84753e29178b617088e3e6c6f50a581d2315fb3a8a2ef07dfd50db25a55d58f1",
+      "content_type": "image/png",
+      "object_key": "public/assets/npcs/public-welfare/char_pw_mozhan/neutral.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_mozhan/neutral.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/assets/npcs/public-welfare/char_pw_mu_mu/anger.png",
+      "disposition": "migrate",
+      "bytes": 140605,
+      "sha256": "b22c5929dd796150e25cbfa015faf4fbfabd2b702d0eb11913a631f37c5187f6",
+      "content_type": "image/png",
+      "object_key": "public/assets/npcs/public-welfare/char_pw_mu_mu/anger.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_mu_mu/anger.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/assets/npcs/public-welfare/char_pw_mu_mu/curiosity.png",
+      "disposition": "migrate",
+      "bytes": 143696,
+      "sha256": "99fd3ccc98d9df883d978c9ac2888249baab1fec7a9862a745fab34718e4c8be",
+      "content_type": "image/png",
+      "object_key": "public/assets/npcs/public-welfare/char_pw_mu_mu/curiosity.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_mu_mu/curiosity.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/assets/npcs/public-welfare/char_pw_mu_mu/embarrassment.png",
+      "disposition": "migrate",
+      "bytes": 147171,
+      "sha256": "8fad66aada88eb076fb5759c3601755eb1a322a05b92ad1102de695f488864c7",
+      "content_type": "image/png",
+      "object_key": "public/assets/npcs/public-welfare/char_pw_mu_mu/embarrassment.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_mu_mu/embarrassment.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/assets/npcs/public-welfare/char_pw_mu_mu/joy.png",
+      "disposition": "migrate",
+      "bytes": 150158,
+      "sha256": "53a61a3f079421bffee9f4d9afc8a0c00c88f81b14dfc275e56be173c9aefd75",
+      "content_type": "image/png",
+      "object_key": "public/assets/npcs/public-welfare/char_pw_mu_mu/joy.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_mu_mu/joy.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/assets/npcs/public-welfare/char_pw_mu_mu/neutral.png",
+      "disposition": "migrate",
+      "bytes": 140479,
+      "sha256": "e177eb72bae6b203f060bf1c18d86244b71520359389b011627adea7fd366f5a",
+      "content_type": "image/png",
+      "object_key": "public/assets/npcs/public-welfare/char_pw_mu_mu/neutral.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_mu_mu/neutral.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/assets/npcs/public-welfare/char_pw_nanxing_liaison/anger.png",
+      "disposition": "migrate",
+      "bytes": 554271,
+      "sha256": "a97449ad4533535416fa89f68876920eb145a262ad06c243284a9fbfb02d37a9",
+      "content_type": "image/png",
+      "object_key": "public/assets/npcs/public-welfare/char_pw_nanxing_liaison/anger.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_nanxing_liaison/anger.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/assets/npcs/public-welfare/char_pw_nanxing_liaison/curiosity.png",
+      "disposition": "migrate",
+      "bytes": 558848,
+      "sha256": "2883af363d01cb4fc3e2249a47a8bf0df23f6166b2e33893a6ccef989f6446c2",
+      "content_type": "image/png",
+      "object_key": "public/assets/npcs/public-welfare/char_pw_nanxing_liaison/curiosity.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_nanxing_liaison/curiosity.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/assets/npcs/public-welfare/char_pw_nanxing_liaison/embarrassment.png",
+      "disposition": "migrate",
+      "bytes": 577797,
+      "sha256": "d1a0c2daca966acbaa9b18476ecc32fe3ef3dc7847cbba5d74d68e920eb47fca",
+      "content_type": "image/png",
+      "object_key": "public/assets/npcs/public-welfare/char_pw_nanxing_liaison/embarrassment.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_nanxing_liaison/embarrassment.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/assets/npcs/public-welfare/char_pw_nanxing_liaison/joy.png",
+      "disposition": "migrate",
+      "bytes": 580633,
+      "sha256": "358d0ca37290c5bd6fc9e481b7d726e28a9362cca702dc36f67b9c0f76e31ccd",
+      "content_type": "image/png",
+      "object_key": "public/assets/npcs/public-welfare/char_pw_nanxing_liaison/joy.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_nanxing_liaison/joy.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/assets/npcs/public-welfare/char_pw_nanxing_liaison/neutral.png",
+      "disposition": "migrate",
+      "bytes": 565331,
+      "sha256": "39fd33ae3d38c6aeb56647edd70302a1692f6fe556fc685e73d5a4a540394ae1",
+      "content_type": "image/png",
+      "object_key": "public/assets/npcs/public-welfare/char_pw_nanxing_liaison/neutral.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_nanxing_liaison/neutral.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/assets/npcs/public-welfare/char_pw_pi_pi/anger.png",
+      "disposition": "migrate",
+      "bytes": 154383,
+      "sha256": "c4cd5e0f3413831e604a1a1556f9673aa70fb01bf00bfcc7d28007817db9a79e",
+      "content_type": "image/png",
+      "object_key": "public/assets/npcs/public-welfare/char_pw_pi_pi/anger.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_pi_pi/anger.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/assets/npcs/public-welfare/char_pw_pi_pi/curiosity.png",
+      "disposition": "migrate",
+      "bytes": 156677,
+      "sha256": "3bb254bdd799d0dbf6d4b48ab66e2052a26d67ce078ccb75a2d7517b2918e857",
+      "content_type": "image/png",
+      "object_key": "public/assets/npcs/public-welfare/char_pw_pi_pi/curiosity.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_pi_pi/curiosity.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/assets/npcs/public-welfare/char_pw_pi_pi/embarrassment.png",
+      "disposition": "migrate",
+      "bytes": 158311,
+      "sha256": "84877967fa5181db046ce3b36ce000017820fec203b5f61967fc387d2ea3fcca",
+      "content_type": "image/png",
+      "object_key": "public/assets/npcs/public-welfare/char_pw_pi_pi/embarrassment.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_pi_pi/embarrassment.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/assets/npcs/public-welfare/char_pw_pi_pi/joy.png",
+      "disposition": "migrate",
+      "bytes": 161604,
+      "sha256": "e52919f5b56bf68fcd6f5c4c31411157175fc3e04d492d1af3aafa7e9eaa8eb9",
+      "content_type": "image/png",
+      "object_key": "public/assets/npcs/public-welfare/char_pw_pi_pi/joy.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_pi_pi/joy.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/assets/npcs/public-welfare/char_pw_pi_pi/neutral.png",
+      "disposition": "migrate",
+      "bytes": 152930,
+      "sha256": "0d6051b2443bda33aa5fbe568405a2b68f153a4cac336475348a2be0fb98ceb3",
+      "content_type": "image/png",
+      "object_key": "public/assets/npcs/public-welfare/char_pw_pi_pi/neutral.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_pi_pi/neutral.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/assets/npcs/public-welfare/char_pw_qiaoqiao/anger.png",
+      "disposition": "migrate",
+      "bytes": 141537,
+      "sha256": "10042f316d77e6a431e125b294f2aac79d81af937ec1c8b62e372e7d740bf727",
+      "content_type": "image/png",
+      "object_key": "public/assets/npcs/public-welfare/char_pw_qiaoqiao/anger.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_qiaoqiao/anger.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/assets/npcs/public-welfare/char_pw_qiaoqiao/curiosity.png",
+      "disposition": "migrate",
+      "bytes": 140382,
+      "sha256": "18d09cd05f32b504521d96fb32cd899749140a64d748daf2514c24d0854bdc98",
+      "content_type": "image/png",
+      "object_key": "public/assets/npcs/public-welfare/char_pw_qiaoqiao/curiosity.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_qiaoqiao/curiosity.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/assets/npcs/public-welfare/char_pw_qiaoqiao/embarrassment.png",
+      "disposition": "migrate",
+      "bytes": 140199,
+      "sha256": "559d7667b0f5dad509feb3266e3cc5d33660494d2b0813cd54f0b9a9fea1d601",
+      "content_type": "image/png",
+      "object_key": "public/assets/npcs/public-welfare/char_pw_qiaoqiao/embarrassment.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_qiaoqiao/embarrassment.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/assets/npcs/public-welfare/char_pw_qiaoqiao/joy.png",
+      "disposition": "migrate",
+      "bytes": 140233,
+      "sha256": "80a2a2f6c90f11c8b88a5edda7279382bec4207a9745bdde3d97958a4bc30e90",
+      "content_type": "image/png",
+      "object_key": "public/assets/npcs/public-welfare/char_pw_qiaoqiao/joy.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_qiaoqiao/joy.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/assets/npcs/public-welfare/char_pw_qiaoqiao/neutral.png",
+      "disposition": "migrate",
+      "bytes": 139680,
+      "sha256": "08c3a9ce963709c72a5489e397f10802ed56c070e24b9c3413d24ae0d160064c",
+      "content_type": "image/png",
+      "object_key": "public/assets/npcs/public-welfare/char_pw_qiaoqiao/neutral.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_qiaoqiao/neutral.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/assets/npcs/public-welfare/char_pw_qiaoshou/anger.png",
+      "disposition": "migrate",
+      "bytes": 165711,
+      "sha256": "be5b1e35a5ef829344802940f2bdca48d4d3b1149dbbda2ef1908ba73df9ff94",
+      "content_type": "image/png",
+      "object_key": "public/assets/npcs/public-welfare/char_pw_qiaoshou/anger.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_qiaoshou/anger.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/assets/npcs/public-welfare/char_pw_qiaoshou/curiosity.png",
+      "disposition": "migrate",
+      "bytes": 167047,
+      "sha256": "aa5c706b467fbf736e1695df859bda86093db85c0d9f2130446c078f30a9560f",
+      "content_type": "image/png",
+      "object_key": "public/assets/npcs/public-welfare/char_pw_qiaoshou/curiosity.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_qiaoshou/curiosity.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/assets/npcs/public-welfare/char_pw_qiaoshou/embarrassment.png",
+      "disposition": "migrate",
+      "bytes": 168301,
+      "sha256": "0022d4678d4581e764fb5ea71b72954dabf254a948059c0f40f2228ab8cadf2e",
+      "content_type": "image/png",
+      "object_key": "public/assets/npcs/public-welfare/char_pw_qiaoshou/embarrassment.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_qiaoshou/embarrassment.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/assets/npcs/public-welfare/char_pw_qiaoshou/joy.png",
+      "disposition": "migrate",
+      "bytes": 170001,
+      "sha256": "5c959928bc74ccad4144c1217a0ae7cc5090688d7c58d34dde8248aa7c376c7b",
+      "content_type": "image/png",
+      "object_key": "public/assets/npcs/public-welfare/char_pw_qiaoshou/joy.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_qiaoshou/joy.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/assets/npcs/public-welfare/char_pw_qiaoshou/neutral.png",
+      "disposition": "migrate",
+      "bytes": 161797,
+      "sha256": "bd08c690feba6ed2d076884be47d1128503061df1f84f37a26a5696cb8e66df6",
+      "content_type": "image/png",
+      "object_key": "public/assets/npcs/public-welfare/char_pw_qiaoshou/neutral.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_qiaoshou/neutral.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/assets/npcs/public-welfare/char_pw_qingyou_records/anger.png",
+      "disposition": "migrate",
+      "bytes": 493362,
+      "sha256": "593a429326819ae5ad5c11410f2afa768fa28a7e14f54c71d58d1a6f375504c5",
+      "content_type": "image/png",
+      "object_key": "public/assets/npcs/public-welfare/char_pw_qingyou_records/anger.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_qingyou_records/anger.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/assets/npcs/public-welfare/char_pw_qingyou_records/curiosity.png",
+      "disposition": "migrate",
+      "bytes": 503635,
+      "sha256": "2a459bcae4fa493b573a5ed8aae8722dc90842b41db7cfac8bf22b5552b3e0f8",
+      "content_type": "image/png",
+      "object_key": "public/assets/npcs/public-welfare/char_pw_qingyou_records/curiosity.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_qingyou_records/curiosity.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/assets/npcs/public-welfare/char_pw_qingyou_records/embarrassment.png",
+      "disposition": "migrate",
+      "bytes": 519908,
+      "sha256": "d51a4445f611c5355e7d6f7b255e24bc6a1768e962e1754b2a62b29d662b4463",
+      "content_type": "image/png",
+      "object_key": "public/assets/npcs/public-welfare/char_pw_qingyou_records/embarrassment.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_qingyou_records/embarrassment.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/assets/npcs/public-welfare/char_pw_qingyou_records/joy.png",
+      "disposition": "migrate",
+      "bytes": 531034,
+      "sha256": "1f9f964dfdf599539f41d35e1c6c486de9f05dad4344d15cc7e30be085656cda",
+      "content_type": "image/png",
+      "object_key": "public/assets/npcs/public-welfare/char_pw_qingyou_records/joy.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_qingyou_records/joy.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/assets/npcs/public-welfare/char_pw_qingyou_records/neutral.png",
+      "disposition": "migrate",
+      "bytes": 511058,
+      "sha256": "d074b08d6dda26e9d96dc6e749c3245bcfd40781f2225eb9db521c7f546d2489",
+      "content_type": "image/png",
+      "object_key": "public/assets/npcs/public-welfare/char_pw_qingyou_records/neutral.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_qingyou_records/neutral.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/assets/npcs/public-welfare/char_pw_shiyi/anger.png",
+      "disposition": "migrate",
+      "bytes": 130973,
+      "sha256": "e12d01138dec6ba928483d15400f913e7a755138e040e37beadb88533524967b",
+      "content_type": "image/png",
+      "object_key": "public/assets/npcs/public-welfare/char_pw_shiyi/anger.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_shiyi/anger.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/assets/npcs/public-welfare/char_pw_shiyi/curiosity.png",
+      "disposition": "migrate",
+      "bytes": 131247,
+      "sha256": "57dffd73ab4a2d3636289c81d6dc2d27342b622c59cf9c89de0e93f719039cb4",
+      "content_type": "image/png",
+      "object_key": "public/assets/npcs/public-welfare/char_pw_shiyi/curiosity.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_shiyi/curiosity.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/assets/npcs/public-welfare/char_pw_shiyi/embarrassment.png",
+      "disposition": "migrate",
+      "bytes": 132445,
+      "sha256": "9bbc296c79e5e198f33a2dcc74c434423d3a3ad43ccd703ca7c5c25f72985b78",
+      "content_type": "image/png",
+      "object_key": "public/assets/npcs/public-welfare/char_pw_shiyi/embarrassment.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_shiyi/embarrassment.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/assets/npcs/public-welfare/char_pw_shiyi/joy.png",
+      "disposition": "migrate",
+      "bytes": 131648,
+      "sha256": "dc72343bb1440003a41c9c8bcbbd5b7aa1cbbabeaa2aa951f7035d17881cadf8",
+      "content_type": "image/png",
+      "object_key": "public/assets/npcs/public-welfare/char_pw_shiyi/joy.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_shiyi/joy.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/assets/npcs/public-welfare/char_pw_shiyi/neutral.png",
+      "disposition": "migrate",
+      "bytes": 130988,
+      "sha256": "c223e82a43b57aae7e87871f805802ab9e14d140a76f347e93c59b795ed8ded4",
+      "content_type": "image/png",
+      "object_key": "public/assets/npcs/public-welfare/char_pw_shiyi/neutral.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_shiyi/neutral.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/assets/npcs/public-welfare/char_pw_suoyin/anger.png",
+      "disposition": "migrate",
+      "bytes": 133588,
+      "sha256": "2c2f22343eccd18332297d436c6bf6e02a8bda65089f4dd0e83310ed78f7151b",
+      "content_type": "image/png",
+      "object_key": "public/assets/npcs/public-welfare/char_pw_suoyin/anger.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_suoyin/anger.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/assets/npcs/public-welfare/char_pw_suoyin/curiosity.png",
+      "disposition": "migrate",
+      "bytes": 133151,
+      "sha256": "f83431095567583887b6ad5fc506f8a92101da01f1b1c54d338b85dd46df5601",
+      "content_type": "image/png",
+      "object_key": "public/assets/npcs/public-welfare/char_pw_suoyin/curiosity.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_suoyin/curiosity.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/assets/npcs/public-welfare/char_pw_suoyin/embarrassment.png",
+      "disposition": "migrate",
+      "bytes": 133978,
+      "sha256": "81459d582e1f60112581c68748e72f585b9af2c82ddf63821ed1a7cc1cd81940",
+      "content_type": "image/png",
+      "object_key": "public/assets/npcs/public-welfare/char_pw_suoyin/embarrassment.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_suoyin/embarrassment.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/assets/npcs/public-welfare/char_pw_suoyin/joy.png",
+      "disposition": "migrate",
+      "bytes": 133467,
+      "sha256": "30df6ab4368354e7f00377b476062151941d23e74f8adbd3ef30e48393682e95",
+      "content_type": "image/png",
+      "object_key": "public/assets/npcs/public-welfare/char_pw_suoyin/joy.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_suoyin/joy.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/assets/npcs/public-welfare/char_pw_suoyin/neutral.png",
+      "disposition": "migrate",
+      "bytes": 133457,
+      "sha256": "b27bb5b6851a4f4ed0088fec147b53c38885bf5494fc2b93aa71c02582777602",
+      "content_type": "image/png",
+      "object_key": "public/assets/npcs/public-welfare/char_pw_suoyin/neutral.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_suoyin/neutral.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/assets/npcs/public-welfare/char_pw_tongling/anger.png",
+      "disposition": "migrate",
+      "bytes": 136188,
+      "sha256": "debe33915be1af75157ed5590e7900b5d0d783410648da0a4c8ca47eedc1e3b7",
+      "content_type": "image/png",
+      "object_key": "public/assets/npcs/public-welfare/char_pw_tongling/anger.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_tongling/anger.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/assets/npcs/public-welfare/char_pw_tongling/curiosity.png",
+      "disposition": "migrate",
+      "bytes": 136096,
+      "sha256": "68ec8e38b1ef8932a93ee641644cbd49889de219633db531873cf229aec81971",
+      "content_type": "image/png",
+      "object_key": "public/assets/npcs/public-welfare/char_pw_tongling/curiosity.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_tongling/curiosity.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/assets/npcs/public-welfare/char_pw_tongling/embarrassment.png",
+      "disposition": "migrate",
+      "bytes": 135865,
+      "sha256": "333f7fc156d974591d306e985b8fbbee6fbf1ed15031090c6e50768b5c88b5fe",
+      "content_type": "image/png",
+      "object_key": "public/assets/npcs/public-welfare/char_pw_tongling/embarrassment.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_tongling/embarrassment.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/assets/npcs/public-welfare/char_pw_tongling/joy.png",
+      "disposition": "migrate",
+      "bytes": 135920,
+      "sha256": "93a12f40ad2fa1567cc8a6b79e96176e3e7c32c32ac1437f149de7a9bcabf2b6",
+      "content_type": "image/png",
+      "object_key": "public/assets/npcs/public-welfare/char_pw_tongling/joy.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_tongling/joy.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/assets/npcs/public-welfare/char_pw_tongling/neutral.png",
+      "disposition": "migrate",
+      "bytes": 135467,
+      "sha256": "f0421491553233f6f650c18e3d30631f4e11cbd97ecc5239644c46c2caeb1ae7",
+      "content_type": "image/png",
+      "object_key": "public/assets/npcs/public-welfare/char_pw_tongling/neutral.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_tongling/neutral.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/assets/npcs/public-welfare/char_pw_v17/anger.png",
+      "disposition": "migrate",
+      "bytes": 156989,
+      "sha256": "92f58e744e71633fb9fe604839d8e68fb2e0d05c205e91889a93b33f1e6ddc5e",
+      "content_type": "image/png",
+      "object_key": "public/assets/npcs/public-welfare/char_pw_v17/anger.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_v17/anger.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/assets/npcs/public-welfare/char_pw_v17/curiosity.png",
+      "disposition": "migrate",
+      "bytes": 159108,
+      "sha256": "a01554edb24c037db522ca73c1f523a98e549679f03cfb7cb86eb61598c419df",
+      "content_type": "image/png",
+      "object_key": "public/assets/npcs/public-welfare/char_pw_v17/curiosity.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_v17/curiosity.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/assets/npcs/public-welfare/char_pw_v17/embarrassment.png",
+      "disposition": "migrate",
+      "bytes": 161520,
+      "sha256": "780e7b613859af6a35f22b790b7de53ce44f298bdd7e1383ada5a199ed934425",
+      "content_type": "image/png",
+      "object_key": "public/assets/npcs/public-welfare/char_pw_v17/embarrassment.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_v17/embarrassment.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/assets/npcs/public-welfare/char_pw_v17/joy.png",
+      "disposition": "migrate",
+      "bytes": 163559,
+      "sha256": "7dd3c2f5a8c79fd37dcd13bcb3b28db65108564409ea42c5e38de0dda20011ac",
+      "content_type": "image/png",
+      "object_key": "public/assets/npcs/public-welfare/char_pw_v17/joy.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_v17/joy.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/assets/npcs/public-welfare/char_pw_v17/neutral.png",
+      "disposition": "migrate",
+      "bytes": 156385,
+      "sha256": "8666ab4ffb91779573a540a6aa19cedc383621e16820e091333bd1ab0b3dd593",
+      "content_type": "image/png",
+      "object_key": "public/assets/npcs/public-welfare/char_pw_v17/neutral.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_v17/neutral.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/assets/npcs/public-welfare/char_pw_wenjian/anger.png",
+      "disposition": "migrate",
+      "bytes": 151992,
+      "sha256": "e8a19ff16eca95a0133bf78a4ebbb766b3451277ccad1e3ba3b3d22570d351ef",
+      "content_type": "image/png",
+      "object_key": "public/assets/npcs/public-welfare/char_pw_wenjian/anger.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_wenjian/anger.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/assets/npcs/public-welfare/char_pw_wenjian/curiosity.png",
+      "disposition": "migrate",
+      "bytes": 154340,
+      "sha256": "6547e23e0d28a2f2c24ee5dbd91d894a4dcdf81ca8cd8d7e034df9cddf9e3e3d",
+      "content_type": "image/png",
+      "object_key": "public/assets/npcs/public-welfare/char_pw_wenjian/curiosity.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_wenjian/curiosity.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/assets/npcs/public-welfare/char_pw_wenjian/embarrassment.png",
+      "disposition": "migrate",
+      "bytes": 155261,
+      "sha256": "84fcc8aacbac7b0fc5b94e34cd029b813d059c7351bdfae144c6270f6b7b057c",
+      "content_type": "image/png",
+      "object_key": "public/assets/npcs/public-welfare/char_pw_wenjian/embarrassment.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_wenjian/embarrassment.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/assets/npcs/public-welfare/char_pw_wenjian/joy.png",
+      "disposition": "migrate",
+      "bytes": 157194,
+      "sha256": "6653e8b70f52e49d82f13c8ede61fc1582fa538fc3d42a19d1cf6d84fbbedde5",
+      "content_type": "image/png",
+      "object_key": "public/assets/npcs/public-welfare/char_pw_wenjian/joy.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_wenjian/joy.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/assets/npcs/public-welfare/char_pw_wenjian/neutral.png",
+      "disposition": "migrate",
+      "bytes": 151956,
+      "sha256": "cd917dc29fdb7ba6ad1f4ce29d5a095e2aa2ab0ae765b32f6356dd7aace8489d",
+      "content_type": "image/png",
+      "object_key": "public/assets/npcs/public-welfare/char_pw_wenjian/neutral.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_wenjian/neutral.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/assets/npcs/public-welfare/char_pw_xiaozhou/anger.png",
+      "disposition": "migrate",
+      "bytes": 146193,
+      "sha256": "6e7adff85c5defb3f5a4aae0389d115be9be787358ef9e6c356e302a015697c2",
+      "content_type": "image/png",
+      "object_key": "public/assets/npcs/public-welfare/char_pw_xiaozhou/anger.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_xiaozhou/anger.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/assets/npcs/public-welfare/char_pw_xiaozhou/curiosity.png",
+      "disposition": "migrate",
+      "bytes": 149666,
+      "sha256": "e753731567e06d3279e131142876cc7caaffadebcc543c5f24ed8048d39534a2",
+      "content_type": "image/png",
+      "object_key": "public/assets/npcs/public-welfare/char_pw_xiaozhou/curiosity.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_xiaozhou/curiosity.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/assets/npcs/public-welfare/char_pw_xiaozhou/embarrassment.png",
+      "disposition": "migrate",
+      "bytes": 146993,
+      "sha256": "c641a6bcc477fbe8f80b592165546910bdf3d200df2d40928ee050d40e95244b",
+      "content_type": "image/png",
+      "object_key": "public/assets/npcs/public-welfare/char_pw_xiaozhou/embarrassment.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_xiaozhou/embarrassment.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/assets/npcs/public-welfare/char_pw_xiaozhou/joy.png",
+      "disposition": "migrate",
+      "bytes": 152729,
+      "sha256": "80d8548d358e66be401c43912a409c724342c49476a9697ef0406d0d02cbec83",
+      "content_type": "image/png",
+      "object_key": "public/assets/npcs/public-welfare/char_pw_xiaozhou/joy.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_xiaozhou/joy.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/assets/npcs/public-welfare/char_pw_xiaozhou/neutral.png",
+      "disposition": "migrate",
+      "bytes": 146725,
+      "sha256": "42b30fe731ed7484695ae6f10e17598b36ebccae6b6e1cfa3a59012c2826175f",
+      "content_type": "image/png",
+      "object_key": "public/assets/npcs/public-welfare/char_pw_xiaozhou/neutral.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_xiaozhou/neutral.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/assets/npcs/public-welfare/char_pw_xingdai/anger.png",
+      "disposition": "migrate",
+      "bytes": 140541,
+      "sha256": "4ae90fb17b983fccd2d43a6d25b76bc286a14219158bafb68ae7ec79f3db905c",
+      "content_type": "image/png",
+      "object_key": "public/assets/npcs/public-welfare/char_pw_xingdai/anger.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_xingdai/anger.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/assets/npcs/public-welfare/char_pw_xingdai/curiosity.png",
+      "disposition": "migrate",
+      "bytes": 137942,
+      "sha256": "9a612806ac59035c1b6dede127ef2c0e20f793d8bbd3c7fe0d757e0358067c66",
+      "content_type": "image/png",
+      "object_key": "public/assets/npcs/public-welfare/char_pw_xingdai/curiosity.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_xingdai/curiosity.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/assets/npcs/public-welfare/char_pw_xingdai/embarrassment.png",
+      "disposition": "migrate",
+      "bytes": 141882,
+      "sha256": "013b3bc2b3a1b18427344f753784a501ad858291667b96101778443730690bf3",
+      "content_type": "image/png",
+      "object_key": "public/assets/npcs/public-welfare/char_pw_xingdai/embarrassment.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_xingdai/embarrassment.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/assets/npcs/public-welfare/char_pw_xingdai/joy.png",
+      "disposition": "migrate",
+      "bytes": 140266,
+      "sha256": "1a2ba84110c5e7618dedbf9db14adaaaa02439aaf11b4fdf32f288ee220fc026",
+      "content_type": "image/png",
+      "object_key": "public/assets/npcs/public-welfare/char_pw_xingdai/joy.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_xingdai/joy.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/assets/npcs/public-welfare/char_pw_xingdai/neutral.png",
+      "disposition": "migrate",
+      "bytes": 140450,
+      "sha256": "bc1602319310af83149d06ca76accff365732ccca33de9a5f376dd18bf32a3b0",
+      "content_type": "image/png",
+      "object_key": "public/assets/npcs/public-welfare/char_pw_xingdai/neutral.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_xingdai/neutral.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/assets/npcs/public-welfare/char_pw_yeyu/anger.png",
+      "disposition": "migrate",
+      "bytes": 120970,
+      "sha256": "ade5b0670e24d8bce44165e301c626c92172fe72a8aaa79d5ca34d448f69eee9",
+      "content_type": "image/png",
+      "object_key": "public/assets/npcs/public-welfare/char_pw_yeyu/anger.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_yeyu/anger.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/assets/npcs/public-welfare/char_pw_yeyu/curiosity.png",
+      "disposition": "migrate",
+      "bytes": 122177,
+      "sha256": "14b15fa16c9df4a4072a91f98f440de0f78bdcffc0a6885c664cda0532a65eb8",
+      "content_type": "image/png",
+      "object_key": "public/assets/npcs/public-welfare/char_pw_yeyu/curiosity.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_yeyu/curiosity.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/assets/npcs/public-welfare/char_pw_yeyu/embarrassment.png",
+      "disposition": "migrate",
+      "bytes": 121261,
+      "sha256": "72b75fcdfe35e363e02da52621f77de46bcc5362d21452b126442d079bc8d427",
+      "content_type": "image/png",
+      "object_key": "public/assets/npcs/public-welfare/char_pw_yeyu/embarrassment.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_yeyu/embarrassment.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/assets/npcs/public-welfare/char_pw_yeyu/joy.png",
+      "disposition": "migrate",
+      "bytes": 122313,
+      "sha256": "f82926be97ccc4ea427591a0154bc79a1630963127c72f4b903de7aafa008aa6",
+      "content_type": "image/png",
+      "object_key": "public/assets/npcs/public-welfare/char_pw_yeyu/joy.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_yeyu/joy.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/assets/npcs/public-welfare/char_pw_yeyu/neutral.png",
+      "disposition": "migrate",
+      "bytes": 123588,
+      "sha256": "9b414839aaeecf543faea69c65a84d7891710a12fc6ad424de6bbfb1dafa3947",
+      "content_type": "image/png",
+      "object_key": "public/assets/npcs/public-welfare/char_pw_yeyu/neutral.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_yeyu/neutral.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/assets/npcs/public-welfare/char_pw_yinpiao/anger.png",
+      "disposition": "migrate",
+      "bytes": 140748,
+      "sha256": "c7fa3cf97c8eced9004bd51838fa692214b7825e8629741ca73e2351b3533f47",
+      "content_type": "image/png",
+      "object_key": "public/assets/npcs/public-welfare/char_pw_yinpiao/anger.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_yinpiao/anger.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/assets/npcs/public-welfare/char_pw_yinpiao/curiosity.png",
+      "disposition": "migrate",
+      "bytes": 139833,
+      "sha256": "515eb2c05368c40a3d963b2a446cd3d7d7159fcb9f14d9ee08bb1e3739f5fc46",
+      "content_type": "image/png",
+      "object_key": "public/assets/npcs/public-welfare/char_pw_yinpiao/curiosity.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_yinpiao/curiosity.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/assets/npcs/public-welfare/char_pw_yinpiao/embarrassment.png",
+      "disposition": "migrate",
+      "bytes": 138457,
+      "sha256": "d828fc572ed1edc6ea3b69c5a3c8d8bd061897bf98fabf572e9b465efd996e63",
+      "content_type": "image/png",
+      "object_key": "public/assets/npcs/public-welfare/char_pw_yinpiao/embarrassment.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_yinpiao/embarrassment.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/assets/npcs/public-welfare/char_pw_yinpiao/joy.png",
+      "disposition": "migrate",
+      "bytes": 139296,
+      "sha256": "0ce234333588ca2c9799a249ea49fe9b500f5953d23520cd2bb63bcf6aa26984",
+      "content_type": "image/png",
+      "object_key": "public/assets/npcs/public-welfare/char_pw_yinpiao/joy.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_yinpiao/joy.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/assets/npcs/public-welfare/char_pw_yinpiao/neutral.png",
+      "disposition": "migrate",
+      "bytes": 144245,
+      "sha256": "699f2bb07c753d9991969e471c95d53725be245201993bc7f53635a7d9a32f55",
+      "content_type": "image/png",
+      "object_key": "public/assets/npcs/public-welfare/char_pw_yinpiao/neutral.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_yinpiao/neutral.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/assets/npcs/public-welfare/char_pw_zhideng/anger.png",
+      "disposition": "migrate",
+      "bytes": 149402,
+      "sha256": "5515ab2dd5b1ae4c404cb83aa2dc294dd630dd6490728b297c5b57e684dd0846",
+      "content_type": "image/png",
+      "object_key": "public/assets/npcs/public-welfare/char_pw_zhideng/anger.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_zhideng/anger.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/assets/npcs/public-welfare/char_pw_zhideng/curiosity.png",
+      "disposition": "migrate",
+      "bytes": 150159,
+      "sha256": "fee54815164d5997e37086115bfa90acf6d5dffa0c3257fe13219a39ac391f28",
+      "content_type": "image/png",
+      "object_key": "public/assets/npcs/public-welfare/char_pw_zhideng/curiosity.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_zhideng/curiosity.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/assets/npcs/public-welfare/char_pw_zhideng/embarrassment.png",
+      "disposition": "migrate",
+      "bytes": 151445,
+      "sha256": "844940cb523a95e8eb17e002cf6591ac84cd714e2f52e0cd71a112beb2b948cd",
+      "content_type": "image/png",
+      "object_key": "public/assets/npcs/public-welfare/char_pw_zhideng/embarrassment.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_zhideng/embarrassment.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/assets/npcs/public-welfare/char_pw_zhideng/joy.png",
+      "disposition": "migrate",
+      "bytes": 152888,
+      "sha256": "3dc937db2d7ff5bf31d40a5bc51ac3f5450fe4121e129c859f7a251257272253",
+      "content_type": "image/png",
+      "object_key": "public/assets/npcs/public-welfare/char_pw_zhideng/joy.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_zhideng/joy.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/assets/npcs/public-welfare/char_pw_zhideng/neutral.png",
+      "disposition": "migrate",
+      "bytes": 147712,
+      "sha256": "31d9a641d21d6a8d563481000551a851f52f2187a77e45611f9551dff3f16c4e",
+      "content_type": "image/png",
+      "object_key": "public/assets/npcs/public-welfare/char_pw_zhideng/neutral.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_zhideng/neutral.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/assets/npcs/public-welfare/char_pw_zhijian/anger.png",
+      "disposition": "migrate",
+      "bytes": 136001,
+      "sha256": "7c2d8cddc6b366ad8024e9e1fe92f5a427f3968ae93a52aa24d75bebf8b18979",
+      "content_type": "image/png",
+      "object_key": "public/assets/npcs/public-welfare/char_pw_zhijian/anger.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_zhijian/anger.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/assets/npcs/public-welfare/char_pw_zhijian/curiosity.png",
+      "disposition": "migrate",
+      "bytes": 136609,
+      "sha256": "234536a25421a233c7d9676497c95226164b3528ec14c3378b6bdd5c07d21931",
+      "content_type": "image/png",
+      "object_key": "public/assets/npcs/public-welfare/char_pw_zhijian/curiosity.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_zhijian/curiosity.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/assets/npcs/public-welfare/char_pw_zhijian/embarrassment.png",
+      "disposition": "migrate",
+      "bytes": 137908,
+      "sha256": "ac0bf2d5f295eb0ec9a1a37eef427294b4f5488d8f93dc8a2b082c915c9db64b",
+      "content_type": "image/png",
+      "object_key": "public/assets/npcs/public-welfare/char_pw_zhijian/embarrassment.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_zhijian/embarrassment.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/assets/npcs/public-welfare/char_pw_zhijian/joy.png",
+      "disposition": "migrate",
+      "bytes": 139091,
+      "sha256": "304e128dae06e87f20590607d280aa483fe348c1c86007f4c2f4d8da763122cd",
+      "content_type": "image/png",
+      "object_key": "public/assets/npcs/public-welfare/char_pw_zhijian/joy.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_zhijian/joy.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/assets/npcs/public-welfare/char_pw_zhijian/neutral.png",
+      "disposition": "migrate",
+      "bytes": 141332,
+      "sha256": "e5e948efbc331af3790351c297d04fc430cf0c7153e4700c2cb7c38d7e98487c",
+      "content_type": "image/png",
+      "object_key": "public/assets/npcs/public-welfare/char_pw_zhijian/neutral.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/assets/npcs/public-welfare/char_pw_zhijian/neutral.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/assets/scenes/mystery-noir-room.png",
+      "disposition": "migrate",
+      "bytes": 831288,
+      "sha256": "2c079a2b872c2f2e7a78a2721e9a6cae887b30a1bda2a57b7163c3193dfb6a9b",
+      "content_type": "image/png",
+      "object_key": "public/assets/scenes/mystery-noir-room.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/assets/scenes/mystery-noir-room.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/assets/scenes/poker-club-lounge.png",
+      "disposition": "migrate",
+      "bytes": 813915,
+      "sha256": "262bc41db3378e0921a448f8e853eb2ffac8dc6960026d31c2785c5cd1283a89",
+      "content_type": "image/png",
+      "object_key": "public/assets/scenes/poker-club-lounge.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/assets/scenes/poker-club-lounge.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/assets/scenes/shanghai-mahjong-alley.png",
+      "disposition": "migrate",
+      "bytes": 957173,
+      "sha256": "738688f998c5269eb86bb0e899c9d38a066afbc8aa2028ac0f5b0986ac91a5fd",
+      "content_type": "image/png",
+      "object_key": "public/assets/scenes/shanghai-mahjong-alley.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/assets/scenes/shanghai-mahjong-alley.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/assets/scenes/werewolf-campfire.png",
+      "disposition": "migrate",
+      "bytes": 835685,
+      "sha256": "99c58f4bdf41da0fc5447f4dbe4a4134d89d0c80588d99e22e0672080e6d7749",
+      "content_type": "image/png",
+      "object_key": "public/assets/scenes/werewolf-campfire.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/assets/scenes/werewolf-campfire.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/faction-emblems/emblem-clinic.svg",
+      "disposition": "migrate",
+      "bytes": 668,
+      "sha256": "e55f2550fd8c52a5dc80c1a4e8639ee449fbb19ce85acaddb3c99147cd24b284",
+      "content_type": "image/svg+xml",
+      "object_key": "public/faction-emblems/emblem-clinic.svg",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/faction-emblems/emblem-clinic.svg",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/faction-emblems/emblem-memory.svg",
+      "disposition": "migrate",
+      "bytes": 722,
+      "sha256": "05bca68be45721ef14f4f1dbacdd7b1515146889b10aa38ea37ce1ec8378355d",
+      "content_type": "image/svg+xml",
+      "object_key": "public/faction-emblems/emblem-memory.svg",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/faction-emblems/emblem-memory.svg",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/faction-emblems/emblem-night.svg",
+      "disposition": "migrate",
+      "bytes": 736,
+      "sha256": "d7564844b3ff88091cf8ac163bb422c55ad2a3f21d8da7bd40ae239652e7c6ce",
+      "content_type": "image/svg+xml",
+      "object_key": "public/faction-emblems/emblem-night.svg",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/faction-emblems/emblem-night.svg",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/faction-emblems/emblem-order.svg",
+      "disposition": "migrate",
+      "bytes": 685,
+      "sha256": "0360c8bbd782ff415a314834a2ae53ddaa6dd87822620437c3a57eb45ac7cce1",
+      "content_type": "image/svg+xml",
+      "object_key": "public/faction-emblems/emblem-order.svg",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/faction-emblems/emblem-order.svg",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/faction-emblems/emblem-trade.svg",
+      "disposition": "migrate",
+      "bytes": 867,
+      "sha256": "f40588035df0829dab9e554c6b0f256b3b5993c1a0e15fb2e9f17bc86564d21f",
+      "content_type": "image/svg+xml",
+      "object_key": "public/faction-emblems/emblem-trade.svg",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/faction-emblems/emblem-trade.svg",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/place-atmosphere-hd/atmosphere-ember.png",
+      "disposition": "migrate",
+      "bytes": 904705,
+      "sha256": "b3e84fb437f0a61a66be45d00140a7ba3340fe2a527d30587c656c01ef3d159b",
+      "content_type": "image/png",
+      "object_key": "public/place-atmosphere-hd/atmosphere-ember.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/place-atmosphere-hd/atmosphere-ember.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/place-atmosphere-hd/atmosphere-grove.png",
+      "disposition": "migrate",
+      "bytes": 1081169,
+      "sha256": "eeb4b4897f83734ae514222886478cb42362a4b9b9b620a9d4f037cab49b8b6b",
+      "content_type": "image/png",
+      "object_key": "public/place-atmosphere-hd/atmosphere-grove.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/place-atmosphere-hd/atmosphere-grove.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/place-atmosphere-hd/atmosphere-healing.png",
+      "disposition": "migrate",
+      "bytes": 1013068,
+      "sha256": "e8b44a4c1e0a62d150f706001fcd29f3be62db2fccd3fcd21862838acfb62044",
+      "content_type": "image/png",
+      "object_key": "public/place-atmosphere-hd/atmosphere-healing.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/place-atmosphere-hd/atmosphere-healing.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/place-atmosphere-hd/atmosphere-judgement.png",
+      "disposition": "migrate",
+      "bytes": 798290,
+      "sha256": "f4b499994f7e13676e9fd1abd07ae01faf801baefacb0910fdc860a071e4679c",
+      "content_type": "image/png",
+      "object_key": "public/place-atmosphere-hd/atmosphere-judgement.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/place-atmosphere-hd/atmosphere-judgement.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/place-atmosphere-hd/atmosphere-lore.png",
+      "disposition": "migrate",
+      "bytes": 944123,
+      "sha256": "e6cf3ebafb7232a5772b83946c6556532ccbde82723593010775d3de4e9747ff",
+      "content_type": "image/png",
+      "object_key": "public/place-atmosphere-hd/atmosphere-lore.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/place-atmosphere-hd/atmosphere-lore.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/place-atmosphere-hd/atmosphere-market.png",
+      "disposition": "migrate",
+      "bytes": 1091603,
+      "sha256": "6c24f59a8f6c69a9d23fa7dfe61bda50f88600ff76a9b641f5987cac5d6333e5",
+      "content_type": "image/png",
+      "object_key": "public/place-atmosphere-hd/atmosphere-market.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/place-atmosphere-hd/atmosphere-market.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/place-atmosphere-hd/atmosphere-shrine.png",
+      "disposition": "migrate",
+      "bytes": 1003832,
+      "sha256": "876fe67ee1e76ae3e7d850fdeaa50ad5703634b9f3eb0ed0030214dfcf6d2b51",
+      "content_type": "image/png",
+      "object_key": "public/place-atmosphere-hd/atmosphere-shrine.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/place-atmosphere-hd/atmosphere-shrine.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/place-atmosphere-hd/atmosphere-spirit.png",
+      "disposition": "migrate",
+      "bytes": 982170,
+      "sha256": "716ec35ff3233e076eba6754bd6bc896e96264ff41284154bed7b0c8528d056f",
+      "content_type": "image/png",
+      "object_key": "public/place-atmosphere-hd/atmosphere-spirit.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/place-atmosphere-hd/atmosphere-spirit.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/place-atmosphere-hd/atmosphere-supply.png",
+      "disposition": "migrate",
+      "bytes": 987369,
+      "sha256": "4c0577d4f13897866cda53cd6ee738fc2ed852a434e242b5b906673e9402d206",
+      "content_type": "image/png",
+      "object_key": "public/place-atmosphere-hd/atmosphere-supply.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/place-atmosphere-hd/atmosphere-supply.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/place-atmosphere-hd/atmosphere-transit.png",
+      "disposition": "migrate",
+      "bytes": 977073,
+      "sha256": "8fa2fdc190c7aa39689755926cd0671fd5d74979d0e6fed29d6017f16fb6a8e0",
+      "content_type": "image/png",
+      "object_key": "public/place-atmosphere-hd/atmosphere-transit.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/place-atmosphere-hd/atmosphere-transit.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/place-atmosphere/atmosphere-ember.png",
+      "disposition": "migrate",
+      "bytes": 281018,
+      "sha256": "189110a5e2b8eb0a36ac6ba0466cc078daad07d1c5c79372744a2649cba82b61",
+      "content_type": "image/png",
+      "object_key": "public/place-atmosphere/atmosphere-ember.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/place-atmosphere/atmosphere-ember.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/place-atmosphere/atmosphere-grove.png",
+      "disposition": "migrate",
+      "bytes": 323361,
+      "sha256": "c811ff4781b784db3677733ceee0f2c8c9e584e859319c75f8e591f7573a8e45",
+      "content_type": "image/png",
+      "object_key": "public/place-atmosphere/atmosphere-grove.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/place-atmosphere/atmosphere-grove.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/place-atmosphere/atmosphere-healing.png",
+      "disposition": "migrate",
+      "bytes": 306545,
+      "sha256": "8bff14ce69f0ff67cc335f36733ff354ad30118359bd7491a927bed1619c11c9",
+      "content_type": "image/png",
+      "object_key": "public/place-atmosphere/atmosphere-healing.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/place-atmosphere/atmosphere-healing.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/place-atmosphere/atmosphere-judgement.png",
+      "disposition": "migrate",
+      "bytes": 256790,
+      "sha256": "e1896a5256e0f6c473f66b914e807430a1c610a0ace5689ed0d3a0e5f231fce2",
+      "content_type": "image/png",
+      "object_key": "public/place-atmosphere/atmosphere-judgement.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/place-atmosphere/atmosphere-judgement.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/place-atmosphere/atmosphere-lore.png",
+      "disposition": "migrate",
+      "bytes": 290678,
+      "sha256": "9588bef13bc0e7f32c94c4bcb9b39aa650daf756907732b865a006c8db074884",
+      "content_type": "image/png",
+      "object_key": "public/place-atmosphere/atmosphere-lore.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/place-atmosphere/atmosphere-lore.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/place-atmosphere/atmosphere-market.png",
+      "disposition": "migrate",
+      "bytes": 327735,
+      "sha256": "4abf66ef66c30987700f6279a384bf6b0637744ef6ce0ab980ae13286e953573",
+      "content_type": "image/png",
+      "object_key": "public/place-atmosphere/atmosphere-market.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/place-atmosphere/atmosphere-market.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/place-atmosphere/atmosphere-shrine.png",
+      "disposition": "migrate",
+      "bytes": 303666,
+      "sha256": "fde7a470fc30ba94e8bb2a3d67d2dc935d34e2ff38e7e4fe660d0e2991c1859d",
+      "content_type": "image/png",
+      "object_key": "public/place-atmosphere/atmosphere-shrine.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/place-atmosphere/atmosphere-shrine.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/place-atmosphere/atmosphere-spirit.png",
+      "disposition": "migrate",
+      "bytes": 299820,
+      "sha256": "acf6c2053ab470d782d5f997555929e432a3264034f27ebd60d90e9e39d3fbac",
+      "content_type": "image/png",
+      "object_key": "public/place-atmosphere/atmosphere-spirit.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/place-atmosphere/atmosphere-spirit.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/place-atmosphere/atmosphere-supply.png",
+      "disposition": "migrate",
+      "bytes": 301713,
+      "sha256": "dcd08cb327412a357db073720b95a92758000e46662657aab7ed197f150bdf3b",
+      "content_type": "image/png",
+      "object_key": "public/place-atmosphere/atmosphere-supply.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/place-atmosphere/atmosphere-supply.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/public/place-atmosphere/atmosphere-transit.png",
+      "disposition": "migrate",
+      "bytes": 300829,
+      "sha256": "6cafee192580f45ed961ab957d47d3e227f5b97233401374d45e4bf3e25abf55",
+      "content_type": "image/png",
+      "object_key": "public/place-atmosphere/atmosphere-transit.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/public/place-atmosphere/atmosphere-transit.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "artifacts/audits/fablespace-playability-20260715/01-home.png",
+      "disposition": "migrate",
+      "bytes": 74981,
+      "sha256": "16f54efc8448126cd408e469fc7bfc760beafeed1d48bb2ab4855485eeb0f11c",
+      "content_type": "image/png",
+      "object_key": "references/audits/fablespace-playability-20260715/01-home.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/references/audits/fablespace-playability-20260715/01-home.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "artifacts/audits/fablespace-playability-20260715/02-discover.png",
+      "disposition": "migrate",
+      "bytes": 62526,
+      "sha256": "49c3e88e57d4a2afe0d706c87810b3da3a40756b4b0b50bf394faa90a1d3dc73",
+      "content_type": "image/png",
+      "object_key": "references/audits/fablespace-playability-20260715/02-discover.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/references/audits/fablespace-playability-20260715/02-discover.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "artifacts/audits/fablespace-playability-20260715/03-space-entry.png",
+      "disposition": "migrate",
+      "bytes": 96741,
+      "sha256": "f563387a3e39839a7b6209385a21c7081c653c5977c8aef6ed1a429ccd2dcf8e",
+      "content_type": "image/png",
+      "object_key": "references/audits/fablespace-playability-20260715/03-space-entry.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/references/audits/fablespace-playability-20260715/03-space-entry.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "artifacts/audits/fablespace-playability-20260715/04-quest-guide.png",
+      "disposition": "migrate",
+      "bytes": 78577,
+      "sha256": "b0da56044553d6e6d4a4f49ec3bf88ddfdec5364d9d1b33cd71a4b3c8c0b557b",
+      "content_type": "image/png",
+      "object_key": "references/audits/fablespace-playability-20260715/04-quest-guide.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/references/audits/fablespace-playability-20260715/04-quest-guide.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "artifacts/audits/fablespace-playability-fix-20260715/01-home-desktop.png",
+      "disposition": "migrate",
+      "bytes": 152188,
+      "sha256": "92da8090d306430a751d338ec384b1b370dfb121678c46072678b1322fa83917",
+      "content_type": "image/png",
+      "object_key": "references/audits/fablespace-playability-fix-20260715/01-home-desktop.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/references/audits/fablespace-playability-fix-20260715/01-home-desktop.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "artifacts/audits/fablespace-playability-fix-20260715/02-discover-desktop.png",
+      "disposition": "migrate",
+      "bytes": 99223,
+      "sha256": "b853f8fd707a9b29e121e449f17029f2007f541742c8fb45c5645dc9bdb7f1ff",
+      "content_type": "image/png",
+      "object_key": "references/audits/fablespace-playability-fix-20260715/02-discover-desktop.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/references/audits/fablespace-playability-fix-20260715/02-discover-desktop.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "artifacts/audits/fablespace-playability-fix-20260715/03-quests-desktop.png",
+      "disposition": "migrate",
+      "bytes": 109318,
+      "sha256": "01fb6c95ab21648281f2269f8f7b0a87ffaa3b089d174db6e538e90917af9074",
+      "content_type": "image/png",
+      "object_key": "references/audits/fablespace-playability-fix-20260715/03-quests-desktop.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/references/audits/fablespace-playability-fix-20260715/03-quests-desktop.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "artifacts/audits/fablespace-playability-fix-20260715/04-space-gameplay-desktop.png",
+      "disposition": "migrate",
+      "bytes": 181203,
+      "sha256": "df31b1b0d4720664913e55d6370a9e5b8e9486ea48b289f779e3987b1f67c00e",
+      "content_type": "image/png",
+      "object_key": "references/audits/fablespace-playability-fix-20260715/04-space-gameplay-desktop.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/references/audits/fablespace-playability-fix-20260715/04-space-gameplay-desktop.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "artifacts/audits/fablespace-playability-fix-20260715/05-home-mobile.png",
+      "disposition": "migrate",
+      "bytes": 38936,
+      "sha256": "0aa0c062b1cad4dd5b6ee121261ed59cc133d068c9a403ba14d9777034ea810c",
+      "content_type": "image/png",
+      "object_key": "references/audits/fablespace-playability-fix-20260715/05-home-mobile.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/references/audits/fablespace-playability-fix-20260715/05-home-mobile.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "artifacts/audits/fablespace-playability-fix-20260715/06-quests-mobile.png",
+      "disposition": "migrate",
+      "bytes": 38429,
+      "sha256": "94868f02a344fbe181c1b78fa887133f85d3338798be9f998fb89628e2682fc8",
+      "content_type": "image/png",
+      "object_key": "references/audits/fablespace-playability-fix-20260715/06-quests-mobile.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/references/audits/fablespace-playability-fix-20260715/06-quests-mobile.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "artifacts/audits/fablespace-playability-fix-20260715/07-space-gameplay-mobile.png",
+      "disposition": "migrate",
+      "bytes": 50107,
+      "sha256": "cec064f41cff2cf50649d7adabfce7aed7874996f12ae276914dd85da41bcea7",
+      "content_type": "image/png",
+      "object_key": "references/audits/fablespace-playability-fix-20260715/07-space-gameplay-mobile.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/references/audits/fablespace-playability-fix-20260715/07-space-gameplay-mobile.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "artifacts/audits/fablespace-playability-fix-20260715/08-space-gameplay-panel-mobile.png",
+      "disposition": "migrate",
+      "bytes": 48266,
+      "sha256": "7fbb37ccf5646c913a11dc9d71600da1af8439862d524e9b270227b890bae877",
+      "content_type": "image/png",
+      "object_key": "references/audits/fablespace-playability-fix-20260715/08-space-gameplay-panel-mobile.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/references/audits/fablespace-playability-fix-20260715/08-space-gameplay-panel-mobile.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "artifacts/design-qa/visitor-identity-step1-desktop.png",
+      "disposition": "migrate",
+      "bytes": 96628,
+      "sha256": "40dd476ffa8be371e81cab5d298a5987b29829d3da87479d7f0f385dc011d73b",
+      "content_type": "image/png",
+      "object_key": "references/design-qa/visitor-identity-step1-desktop.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/references/design-qa/visitor-identity-step1-desktop.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "artifacts/design-qa/visitor-identity-step1-selected-desktop.png",
+      "disposition": "migrate",
+      "bytes": 99179,
+      "sha256": "e6d8b81bbd581886b33bc2b6059e07032b593e420432087740a3afecb6f87047",
+      "content_type": "image/png",
+      "object_key": "references/design-qa/visitor-identity-step1-selected-desktop.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/references/design-qa/visitor-identity-step1-selected-desktop.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "artifacts/design-qa/visitor-identity-v3-step1-768x1024.png",
+      "disposition": "migrate",
+      "bytes": 119741,
+      "sha256": "d2e1faad70d2618e00c7781e0a8de496ca7e91d19a6506f0c4111b63822ff93d",
+      "content_type": "image/png",
+      "object_key": "references/design-qa/visitor-identity-v3-step1-768x1024.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/references/design-qa/visitor-identity-v3-step1-768x1024.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "artifacts/design-qa/visitor-identity-v3-step1-desktop.png",
+      "disposition": "migrate",
+      "bytes": 132823,
+      "sha256": "4b66f97ff586ee60dd33a74fd88eda353e60e0a956125e48e71d32eabae1cba1",
+      "content_type": "image/png",
+      "object_key": "references/design-qa/visitor-identity-v3-step1-desktop.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/references/design-qa/visitor-identity-v3-step1-desktop.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "artifacts/design-qa/visitor-identity-v3-step2-768x1024.png",
+      "disposition": "migrate",
+      "bytes": 87621,
+      "sha256": "9bfa2efc99d5113c0b903a4796c5ab2cd8b1dcc4b77445c7da01e42b1830a941",
+      "content_type": "image/png",
+      "object_key": "references/design-qa/visitor-identity-v3-step2-768x1024.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/references/design-qa/visitor-identity-v3-step2-768x1024.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "artifacts/design-references/visitor-identity-onboarding-v2.png",
+      "disposition": "migrate",
+      "bytes": 2148965,
+      "sha256": "4e760bc79a5e126e958f50aed62259e4a446eaffefa0efc3f9105d19ea6172bb",
+      "content_type": "image/png",
+      "object_key": "references/design-references/visitor-identity-onboarding-v2.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/references/design-references/visitor-identity-onboarding-v2.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "artifacts/design-references/visitor-identity-onboarding-v3.png",
+      "disposition": "migrate",
+      "bytes": 2247751,
+      "sha256": "19b88be7dbe82a8a771804363d669545f3d08cb1ca5bc36d3fe22c89586e84ea",
+      "content_type": "image/png",
+      "object_key": "references/design-references/visitor-identity-onboarding-v3.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/references/design-references/visitor-identity-onboarding-v3.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "artifacts/frontend-visual-acceptance/2026-07-14-simple-scenes/discover-desktop-1440x1000.png",
+      "disposition": "migrate",
+      "bytes": 2070454,
+      "sha256": "dbd66c5a6c77ebf3b0008d2fc1c92bc1457c38c02b858f41cf117c117dac8a8b",
+      "content_type": "image/png",
+      "object_key": "references/frontend-visual-acceptance/2026-07-14-simple-scenes/discover-desktop-1440x1000.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/references/frontend-visual-acceptance/2026-07-14-simple-scenes/discover-desktop-1440x1000.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "artifacts/frontend-visual-acceptance/2026-07-14-simple-scenes/discover-expanded-desktop-1440x1000.png",
+      "disposition": "migrate",
+      "bytes": 138610,
+      "sha256": "da42c657bbf643513858d4937e9849fc48c110de59c284efb7d5112bc6e826fa",
+      "content_type": "image/png",
+      "object_key": "references/frontend-visual-acceptance/2026-07-14-simple-scenes/discover-expanded-desktop-1440x1000.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/references/frontend-visual-acceptance/2026-07-14-simple-scenes/discover-expanded-desktop-1440x1000.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "artifacts/frontend-visual-acceptance/2026-07-14-simple-scenes/discover-expanded-desktop-final-1440x1000.png",
+      "disposition": "migrate",
+      "bytes": 121741,
+      "sha256": "e483c0b0fd4bc516a08bdf15dc2ce962d73aeaa33436eca4464ef66e52c7a283",
+      "content_type": "image/png",
+      "object_key": "references/frontend-visual-acceptance/2026-07-14-simple-scenes/discover-expanded-desktop-final-1440x1000.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/references/frontend-visual-acceptance/2026-07-14-simple-scenes/discover-expanded-desktop-final-1440x1000.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "artifacts/frontend-visual-acceptance/2026-07-14-simple-scenes/discover-expanded-desktop-preview-1440x1000.png",
+      "disposition": "migrate",
+      "bytes": 126908,
+      "sha256": "a5f60c055b26c96fd9acee032621cdf261f4971f34fda2863214be013e1eb3fd",
+      "content_type": "image/png",
+      "object_key": "references/frontend-visual-acceptance/2026-07-14-simple-scenes/discover-expanded-desktop-preview-1440x1000.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/references/frontend-visual-acceptance/2026-07-14-simple-scenes/discover-expanded-desktop-preview-1440x1000.png",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "artifacts/frontend-visual-acceptance/2026-07-14-simple-scenes/discover-expanded-mobile-final-390x844.png",
+      "disposition": "migrate",
+      "bytes": 48127,
+      "sha256": "8a473b794511a65993a4e579664fc49465a44ac9a1ba95b744a09c0c7991cd9a",
+      "content_type": "image/png",
+      "object_key": "references/frontend-visual-acceptance/2026-07-14-simple-scenes/discover-expanded-mobile-final-390x844.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/references/frontend-visual-acceptance/2026-07-14-simple-scenes/discover-expanded-mobile-final-390x844.png",
+      "remote_status": "deleted"
+    }
+  ]
+}

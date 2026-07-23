@@ -1,7 +1,7 @@
 """
 Group Chat — multi-character chat with talkativeness control.
 
-Inspired by SillyTavern's group-chats.js.
+Coordinates multi-character turns inside one published story.
 
 Features:
 - Multiple characters in one chat

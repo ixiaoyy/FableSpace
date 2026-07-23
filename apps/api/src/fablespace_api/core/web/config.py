@@ -47,14 +47,6 @@ def _default_frontend_root() -> Path | None:
     return _optional_path_from_env("FABLESPACE_FRONTEND_ROOT", "FABLEMAP_FRONTEND_ROOT", DEFAULT_FRONTEND_ROOT)
 
 
-def _default_sillytavern_url() -> str:
-    return _env_value(
-        "FABLESPACE_SILLYTAVERN_URL",
-        "FABLEMAP_SILLYTAVERN_URL",
-        "http://127.0.0.1:8000",
-    ) or "http://127.0.0.1:8000"
-
-
 def _default_database_url() -> str:
     return _env_value("FABLESPACE_DATABASE_URL", "FABLEMAP_DATABASE_URL")
 
@@ -89,11 +81,9 @@ class ApiSettings:
     frontend_root: Path | None = field(default_factory=_default_frontend_root)
     frontend_dist: Path | None = None
     frontend_public: Path | None = None
-    sillytavern_url: str = field(default_factory=_default_sillytavern_url)
     storage_backend: str = field(default_factory=_default_storage_backend)
     database_url: str = field(default_factory=_default_database_url)
     mysql_url: str = field(default_factory=_default_mysql_url)
-    redis_url: str = field(default_factory=lambda: _env_value("FABLESPACE_REDIS_URL"))
     generated_storage_backend: str = field(default_factory=_default_generated_storage_backend)
     s3_bucket: str = field(default_factory=lambda: _env_value("FABLESPACE_S3_BUCKET"))
     s3_region: str = field(default_factory=lambda: _env_value("FABLESPACE_S3_REGION", default="auto"))
@@ -117,11 +107,9 @@ class ApiSettings:
             frontend_root=resolved_frontend_root,
             frontend_dist=resolved_frontend_dist,
             frontend_public=resolved_frontend_public,
-            sillytavern_url=self.sillytavern_url,
             storage_backend=self.storage_backend,
             database_url=self.database_url,
             mysql_url=self.mysql_url,
-            redis_url=self.redis_url,
             generated_storage_backend=self.generated_storage_backend,
             s3_bucket=self.s3_bucket,
             s3_region=self.s3_region,

@@ -50,14 +50,6 @@ def _default_cors_origins() -> list[str]:
     return [origin.strip() for origin in value.split(",") if origin.strip()]
 
 
-def _default_sillytavern_url() -> str:
-    return _env_value(
-        "FABLESPACE_SILLYTAVERN_URL",
-        "FABLEMAP_SILLYTAVERN_URL",
-        "http://127.0.0.1:8000",
-    ) or "http://127.0.0.1:8000"
-
-
 def _default_database_url() -> str:
     """Primary SQLAlchemy database URL. Empty means use the default SQLite file when storage_backend=database."""
     return _env_value("FABLESPACE_DATABASE_URL", "FABLEMAP_DATABASE_URL")
@@ -109,7 +101,6 @@ class ApiSettings:
     cors_origins: list[str] = field(default_factory=_default_cors_origins)
     output_root: Path = field(default_factory=_default_output_root)
     frontend_root: Path | None = field(default_factory=_default_frontend_root)
-    sillytavern_url: str = field(default_factory=_default_sillytavern_url)
 
     # Authentication. `legacy` preserves standalone development; production can
     # require a signed session issued through ParallelLines SSO.
@@ -164,10 +155,7 @@ class ApiSettings:
     mysql_pool_size: int = field(default_factory=lambda: _int_from_env("FABLESPACE_MYSQL_POOL_SIZE", "FABLEMAP_MYSQL_POOL_SIZE", 5))
     mysql_max_overflow: int = field(default_factory=lambda: _int_from_env("FABLESPACE_MYSQL_MAX_OVERFLOW", "FABLEMAP_MYSQL_MAX_OVERFLOW", 10))
     mysql_echo: bool = field(default_factory=lambda: _bool_from_env("FABLESPACE_MYSQL_ECHO", "FABLEMAP_MYSQL_ECHO", False))
-    simulation_interval_seconds: int = field(default_factory=lambda: _int_from_env("FABLESPACE_SIMULATION_INTERVAL_SECONDS", "FABLEMAP_SIMULATION_INTERVAL_SECONDS", 600))
-
-    # Shared cache and S3-compatible generated-file storage.
-    redis_url: str = field(default_factory=lambda: _env_value("FABLESPACE_REDIS_URL"))
+    # S3-compatible generated-file storage.
     generated_storage_backend: str = field(default_factory=_default_generated_storage_backend)
     s3_bucket: str = field(default_factory=lambda: _env_value("FABLESPACE_S3_BUCKET"))
     s3_region: str = field(default_factory=lambda: _env_value("FABLESPACE_S3_REGION", default="auto"))

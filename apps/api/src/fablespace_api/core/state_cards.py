@@ -175,7 +175,7 @@ def extract_state_card_candidates_from_turn(
 
     This is deliberately conservative and rule-based. It records only a short
     observable summary; it never treats a model response as confirmed canon and
-    never mutates owner-authored tavern fields.
+    never mutates published story fields.
     """
 
     combined = _text(f"{user_message}\n{assistant_message}", max_length=1200)

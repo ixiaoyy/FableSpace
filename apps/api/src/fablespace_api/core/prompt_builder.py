@@ -2,7 +2,7 @@
 Prompt Builder — build prompts for LLM chat completions.
 
 Features:
-- 6-layer prompt structure (inspired by SillyTavern's prompt-converters.js)
+- Layered prompt structure
 - Macro substitution
 - WorldInfo injection
 - Author's Note
@@ -21,8 +21,6 @@ from typing import Any, Optional
 from .memory import format_memory_atoms_for_prompt
 from .prompt_blocks import normalize_prompt_blocks, truncate_to_budget
 from .world_info_injector import WorldInfoInjector, InjectionContext, MacroSubstitutor
-from .char_card_parser import ParsedCharacter
-from .time_context import build_time_context, build_time_context_prompt, build_closed_tavern_prompt, TimeContext
 from .affinity import AffinityPromptBuilder, AffinityStage
 from .state_cards import format_state_cards_for_prompt
 from .hobbies import get_hobby_prompt_hint
@@ -62,11 +60,6 @@ class PromptBuildConfig:
     space_name: str = ""
     tavern_scene_prompt: str = ""
     co_present_characters: list[dict[str, Any]] = field(default_factory=list)
-    # Time context (optional, will be computed if not provided)
-    timezone: str | None = None
-    operating_hours: dict = field(default_factory=dict)
-    tavern_lat: float | None = None
-    tavern_lon: float | None = None
     # User info
     user_name: str = "旅人"
     user_persona: str = ""
@@ -98,13 +91,6 @@ class PromptBuildConfig:
     include_system_in_history: bool = False
     # Extra
     extra_macros: dict = field(default_factory=dict)
-    # Simulation (v1.1)
-    npc_feeling: str = ""
-    social_memories: list[dict] = field(default_factory=list)
-    # Relationship graph context (v1.2)
-    relationship_context: list[dict] = field(default_factory=list)
-    # Internal: computed time context (not exposed to caller)
-    _time_context: TimeContext | None = field(default=None, repr=False)
 
 
 # ─── Prompt Builder ──────────────────────────────────────────────────────────────
@@ -163,7 +149,7 @@ class PromptBuilder:
     """
     Build prompts from tavern chat context.
 
-    Layer structure (inspired by SillyTavern):
+    Layer structure:
     0. Jailbreak (optional)
     1. Tavern scene prompt (system)
     2. Character system prompt (system)
@@ -180,7 +166,6 @@ class PromptBuilder:
         self.macro = MacroSubstitutor()
 
         # 计算时间上下文
-        self._compute_time_context()
 
     def _npc_voice_contract(self) -> str:
         config = self.config
@@ -246,19 +231,6 @@ class PromptBuilder:
             "可以自然回应或说明如何直接找对方，但不要声称不认识、走错地方或只能代为转达。"
         )
 
-    def _compute_time_context(self) -> None:
-        """计算时间上下文（如果配置了相关字段）"""
-        config = self.config
-        if config.timezone is not None or config.tavern_lat is not None:
-            if config.tavern_lat is not None and config.tavern_lon is not None:
-                ctx = build_time_context(
-                    lat=config.tavern_lat,
-                    lon=config.tavern_lon,
-                    timezone_str=config.timezone,
-                    operating_hours=config.operating_hours,
-                )
-                config._time_context = ctx
-
     def build(
         self,
         messages: list[ChatMessage],
@@ -312,69 +284,6 @@ class PromptBuilder:
                 "role": "system",
                 "content": sys_prompt,
             })
-
-        # ── NPC Simulation Feelings (v1.1) ──────────────────────────────────
-        if config.npc_feeling:
-            result_messages.append({
-                "role": "system",
-                "content": f"[当前状态提示] 你现在的生理与心理感受如下，请在对话中自然体现：{config.npc_feeling}",
-            })
-
-        # ── NPC Social Memories (v0.1) ──────────────────────────────────────
-        if config.social_memories:
-            memory_lines = []
-            for m in config.social_memories:
-                memory_lines.append(f"- {m['source_name']} 提到过：{m['content']}")
-            
-            memories_text = "\n".join(memory_lines)
-            result_messages.append({
-                "role": "system",
-                "content": f"[社交传闻/八卦] 你最近从其他 NPC 那里听到了以下信息，如果对话契合，可以作为谈资或侧面提及（不要生硬罗列）：\n{memories_text}",
-            })
-
-        # ── Relationship Graph Context (v1.2) ──────────────────────────────
-        if config.relationship_context:
-            _BEHAVIOR_LABELS = {
-                "friendly": "友好", "allied": "同盟", "neutral": "中立",
-                "rival": "竞争", "hostile": "敌对",
-            }
-            _STRENGTH_LABELS = {
-                "weak": "微弱", "normal": "一般", "strong": "紧密",
-            }
-            rel_lines: list[str] = []
-            for rel in config.relationship_context:
-                label = rel.get("display_name") or rel.get("target_name", "")
-                behavior = _BEHAVIOR_LABELS.get(rel.get("behavior_type", ""), rel.get("behavior_type", ""))
-                strength = _STRENGTH_LABELS.get(rel.get("strength_preset", ""), rel.get("strength_preset", ""))
-                direction = rel.get("direction", "outgoing")
-                if direction == "incoming":
-                    rel_lines.append(f"- {label}（对你的{behavior}关系，强度{strength}）")
-                else:
-                    rel_lines.append(f"- {label}（你对他们的{behavior}关系，强度{strength}）")
-            rel_text = "\n".join(rel_lines)
-            result_messages.append({
-                "role": "system",
-                "content": (
-                    "[关系图] 你与其他空间/角色存在以下已确认的关系"
-                    "（由店主配置，非平台判定）：\n" + rel_text
-                ),
-            })
-
-        # ── Time Context ────────────────────────────────────────────────────
-        time_ctx = config._time_context
-        if time_ctx:
-            time_prompt = build_time_context_prompt(time_ctx)
-            result_messages.append({
-                "role": "system",
-                "content": f"【时间背景】\n{time_prompt}",
-            })
-            # 如果打烊，追加打烊提示
-            if time_ctx.is_closed:
-                closed_prompt = build_closed_tavern_prompt()
-                result_messages.append({
-                    "role": "system",
-                    "content": closed_prompt,
-                })
 
         # ── Layer 3: Character info ────────────────────────────────────────
         char_info_parts = [f"角色姓名：{config.char_name}"]
@@ -591,21 +500,6 @@ class PromptBuilder:
                 "role": "system",
                 "content": f"【同场 NPC】\n{co_present_npc_context}",
             })
-
-        # ── Time Context ────────────────────────────────────────────────────
-        time_ctx = config._time_context
-        if time_ctx:
-            time_prompt = build_time_context_prompt(time_ctx)
-            result_messages.append({
-                "role": "system",
-                "content": f"【时间背景】\n{time_prompt}",
-            })
-            if time_ctx.is_closed:
-                closed_prompt = build_closed_tavern_prompt()
-                result_messages.append({
-                    "role": "system",
-                    "content": closed_prompt,
-                })
 
         history_msgs = self._format_history(messages)
         result_messages.extend(history_msgs)
@@ -900,10 +794,6 @@ def build_tavern_prompt(
     new_message: str,
     user_name: str = "旅人",
     config: PromptBuildConfig = None,
-    timezone: str | None = None,
-    operating_hours: dict | None = None,
-    tavern_lat: float | None = None,
-    tavern_lon: float | None = None,
 ) -> dict[str, Any]:
     """Convenience function to build a tavern chat prompt."""
     if config is None:
@@ -924,15 +814,5 @@ def build_tavern_prompt(
     config.char_traits = character.get("traits", [])
     config.user_name = user_name
     config.world_info_entries = world_info
-    # Time context
-    if timezone is not None:
-        config.timezone = timezone
-    if operating_hours is not None:
-        config.operating_hours = operating_hours
-    if tavern_lat is not None:
-        config.tavern_lat = tavern_lat
-    if tavern_lon is not None:
-        config.tavern_lon = tavern_lon
-
     builder = PromptBuilder(config)
     return builder.build(messages, new_message)

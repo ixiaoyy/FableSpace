@@ -235,17 +235,6 @@
     color: inherit;
   }
 
-  .amap-container {
-    contain: layout paint;
-  }
-
-  @media (max-width: 720px) {
-    .amap-container {
-      --fablespace-map-height: clamp(280px, 50dvh, 420px);
-      --fablespace-map-min-height: clamp(280px, 50dvh, 420px);
-    }
-  }
-
   /* Shared decorative surfaces reuse the same restrained brand light. */
   .ornate-frame {
     @apply relative rounded-2xl border-2 border-[var(--theme-accent-border)] bg-[var(--theme-card)] shadow-[0_8px_32px_rgba(89,102,187,0.12)];
@@ -406,7 +395,7 @@
       [data-discover-board] article,
       [data-fable-space-discover-card="real-card"],
       [data-fable-space-home-card="real-card"],
-      [data-chat-workbench="sillytavern-style"] button,
+      [data-chat-workbench="story"] button,
       [data-create-wizard-step] button
     ):is(:hover, :focus-visible, :focus-within) {
       backface-visibility: hidden;

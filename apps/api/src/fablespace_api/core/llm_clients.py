@@ -1,5 +1,5 @@
 """
-LLM Client Factory — supports 24+ backends inspired by SillyTavern.
+LLM Client Factory for platform-managed story dialogue.
 
 Backends: openai, claude, openrouter, ollama, azure_openai, groq,
 deepseek, mistral, cohere, fireworks, moonshot, custom (OpenAI-compatible),

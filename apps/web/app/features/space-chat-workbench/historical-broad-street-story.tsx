@@ -1,4 +1,4 @@
-import { BookOpenText, ExternalLink, MapPin } from "lucide-react"
+import { BookOpenText, Clock3, ExternalLink } from "lucide-react"
 
 import {
   HISTORY_PILOT_REFERENCE_NOTICE,
@@ -53,7 +53,7 @@ export function HistoricalBroadStreetStory({
       <div className="relative">
         <header className="flex items-center justify-between gap-3 border-b border-amber-100/12 pb-3">
           <p className="flex min-w-0 items-center gap-2 text-xs font-bold tracking-[0.08em] text-amber-50/68">
-            <MapPin className="h-3.5 w-3.5 shrink-0" />
+            <Clock3 className="h-3.5 w-3.5 shrink-0" />
             <span className="truncate">伦敦宽街 · 1854 年 9 月 7 日</span>
           </p>
           <Dialog>

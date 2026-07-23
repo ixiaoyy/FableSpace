@@ -1,35 +1,7 @@
-import { index, layout, route, type RouteConfig } from "@react-router/dev/routes"
+import { index, route, type RouteConfig } from "@react-router/dev/routes"
 
 export default [
   index("./routes/home.tsx"),
-  route("空间", "./routes/discover.tsx"),
-  layout("./routes/creator-capability-layout.tsx", [
-    route("空间/新建", "./routes/create.tsx"),
-    route("空间/:spaceRef/管理", "./routes/space-manage.tsx"),
-    route("空间/:spaceRef/角色/:characterRef/提示词", "./routes/prompt-editor.tsx"),
-    route("店主", "./routes/owner.tsx"),
-    route("领地", "./routes/territory.tsx"),
-  ]),
-  route("空间/:spaceRef/角色/:characterRef", "./routes/npc-detail.tsx"),
-  route("空间/:spaceRef", "./routes/space.tsx"),
-  route("任务", "./routes/quests.tsx"),
-  route("寻宝/:routeRef", "./routes/clue-hunt.tsx"),
-  route("店主/:ownerRef", "./routes/creator.$ownerId.tsx"),
-  route("通知", "./routes/notifications.tsx"),
-
-  route("discover", "./routes/legacy-web-route.tsx", { id: "legacy-discover" }),
-  route("quests", "./routes/legacy-web-route.tsx", { id: "legacy-quests" }),
-  route("clue-hunts/:routeId", "./routes/legacy-web-route.tsx", { id: "legacy-clue-hunt" }),
-  route("create", "./routes/legacy-web-route.tsx", { id: "legacy-create" }),
-  route("owner", "./routes/legacy-web-route.tsx", { id: "legacy-owner" }),
-  route("territory", "./routes/legacy-web-route.tsx", { id: "legacy-territory" }),
-  route("notifications", "./routes/legacy-web-route.tsx", { id: "legacy-notifications" }),
-  route("space/:spaceId/manage", "./routes/legacy-web-route.tsx", { id: "legacy-space-manage" }),
-  route("space/:spaceId/character/:characterId/prompt", "./routes/legacy-web-route.tsx", { id: "legacy-prompt-editor" }),
-  route("space/:spaceId", "./routes/legacy-web-route.tsx", { id: "legacy-space" }),
-  route("tavern/:spaceId/manage", "./routes/legacy-web-route.tsx", { id: "legacy-tavern-manage" }),
-  route("tavern/:spaceId/character/:characterId/prompt", "./routes/legacy-web-route.tsx", { id: "legacy-tavern-prompt-editor" }),
-  route("tavern/:spaceId", "./routes/legacy-web-route.tsx", { id: "legacy-tavern" }),
-  route("npc/:spaceId/:characterId", "./routes/legacy-web-route.tsx", { id: "legacy-npc" }),
-  route("creator/:ownerId", "./routes/legacy-web-route.tsx", { id: "legacy-creator" }),
+  route("characters", "./routes/characters.tsx"),
+  route("stories/:spaceRef", "./routes/space.tsx"),
 ] satisfies RouteConfig

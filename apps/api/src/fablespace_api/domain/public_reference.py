@@ -5,9 +5,9 @@ import re
 from typing import Literal
 
 
-PublicReferenceNamespace = Literal["space", "character", "clue-hunt", "owner"]
+PublicReferenceNamespace = Literal["space"]
 
-PUBLIC_REFERENCE_NAMESPACES = frozenset({"space", "character", "clue-hunt", "owner"})
+PUBLIC_REFERENCE_NAMESPACES = frozenset({"space"})
 PUBLIC_REFERENCE_CODE_LENGTH = 11
 LEGACY_PUBLIC_REFERENCE_CODE_LENGTH = 20
 
@@ -48,8 +48,7 @@ def public_reference_code(
 ) -> str:
     """Derive a stable 11-character base64url code from an internal identity.
 
-    Character identities include both Space and character IDs. The underlying
-    value remains the full unsigned FNV-1a 64-bit hash.
+    The underlying value remains the full unsigned FNV-1a 64-bit hash.
     """
 
     safe_namespace = _validated_namespace(namespace)

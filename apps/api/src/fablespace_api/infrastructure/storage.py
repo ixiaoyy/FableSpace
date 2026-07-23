@@ -145,79 +145,8 @@ def create_space_store(settings: Any):
         raise
 
 
-# Backward-compatible factory name for modules not yet fully renamed.
-create_tavern_store = create_space_store
-
-
 def store_database(store: Any):
     getter = getattr(store, "_session", None)
     if callable(getter):
         return getter()
     return None
-
-
-
-def create_owner_config_store(settings: Any, space_store: Any):
-    database = store_database(space_store)
-    if database is not None:
-        from fablespace_api.infrastructure.owner_config_store import SQLAlchemyOwnerConfigStore
-        return SQLAlchemyOwnerConfigStore(database)
-    from fablespace_api.infrastructure.owner_config_store import OwnerConfigStore
-    return OwnerConfigStore(Path(getattr(settings, "output_root", Path(".fablespace-api"))) / "owner_configs.json")
-
-
-def create_visitor_note_store(settings: Any, space_store: Any):
-    database = store_database(space_store)
-    if database is not None:
-        from fablespace_api.infrastructure.visitor_note_store import SQLAlchemyVisitorNoteStore
-        return SQLAlchemyVisitorNoteStore(database)
-    from fablespace_api.infrastructure.visitor_note_store import VisitorNoteStore
-    return VisitorNoteStore(Path(getattr(settings, "output_root", Path(".fablespace-api"))) / "visitor_notes.json")
-
-
-def create_territory_store(settings: Any, space_store: Any):
-    database = store_database(space_store)
-    if database is not None:
-        from fablespace_api.infrastructure.territory_store import SQLAlchemyTerritoryStore
-        return SQLAlchemyTerritoryStore(database)
-    from fablespace_api.infrastructure.territory_store import TerritoryStore
-    return TerritoryStore(Path(getattr(settings, "output_root", Path(".fablespace-api"))) / "territories")
-
-
-def create_writeback_store(settings: Any, space_store: Any):
-    database = store_database(space_store)
-    if database is not None:
-        from fablespace_api.core.writeback import SQLAlchemyWritebackStore
-        return SQLAlchemyWritebackStore(database)
-    from fablespace_api.core.writeback import WritebackStore
-    return WritebackStore(Path(getattr(settings, "output_root", Path(".fablespace-api"))) / "writeback")
-
-
-def create_neighborhood_knowledge_store(settings: Any, space_store: Any):
-    database = store_database(space_store)
-    if database is not None:
-        from fablespace_api.infrastructure.neighborhood_store import SQLAlchemyNeighborhoodKnowledgeStore
-        return SQLAlchemyNeighborhoodKnowledgeStore(database)
-    from fablespace_api.core.rumor import RumorStore
-    # Fallback to rumor store if needed, or implement a separate JSON store
-    return RumorStore(Path(getattr(settings, "output_root", Path(".fablespace-api"))) / "neighborhood_knowledge")
-
-
-def configure_process_stores(settings: Any, space_store: Any) -> None:
-    """Configure legacy/global route stores to match the selected backend."""
-
-    database = store_database(space_store)
-    if database is not None:
-        from fablespace_api.core.notifications import SQLAlchemyNotificationStore, set_notification_store
-        from fablespace_api.infrastructure.home_store import SQLAlchemyHomeStore, set_home_store
-
-        set_notification_store(SQLAlchemyNotificationStore(database))
-        set_home_store(SQLAlchemyHomeStore(database))
-        return
-
-    from fablespace_api.core.notifications import NotificationStore, set_notification_store
-    from fablespace_api.infrastructure.home_store import HomeStore, set_home_store
-
-    output_root = Path(getattr(settings, "output_root", Path(".fablespace-api")))
-    set_notification_store(NotificationStore())
-    set_home_store(HomeStore(output_root / "homes"))

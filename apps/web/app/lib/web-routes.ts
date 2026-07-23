@@ -3,35 +3,18 @@ const FNV64_PRIME = 1_099_511_628_211n
 const UINT64_MAX = (1n << 64n) - 1n
 const BASE64URL_ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_"
 
-export type PublicReferenceNamespace = "space" | "character" | "clue-hunt" | "owner"
+export type PublicReferenceNamespace = "space" | "character"
 
 type NamedRouteEntity = {
   id: string
   name: string
 }
 
-type TitledRouteEntity = {
-  id: string
-  title: string
-}
-
 export const WEB_PATHS = {
   home: "/",
-  spaces: "/空间",
-  createSpace: "/空间/新建",
-  quests: "/任务",
-  owner: "/店主",
-  territory: "/领地",
-  notifications: "/通知",
+  characters: "/characters",
+  stories: "/stories",
 } as const
-
-const LEGACY_HASH_ALIASES: Record<string, string> = {
-  "#space-mainline": "#空间主线",
-  "#discover-mainline": "#发现主线",
-  "#guide-mainline": "#任务主线",
-  "#create-mainline": "#新建主线",
-  "#owner-mainline": "#店主主线",
-}
 
 function compactUint64(value: bigint) {
   if (value < 0n || value > UINT64_MAX) return ""
@@ -121,16 +104,7 @@ function encodePathSegment(value: string) {
 
 export function spacePath(space: NamedRouteEntity) {
   const reference = publicReference(space.name, "space", space.id)
-  return `${WEB_PATHS.spaces}/${encodePathSegment(reference)}`
-}
-
-export function spaceManagePath(space: NamedRouteEntity) {
-  return `${spacePath(space)}/管理`
-}
-
-export function characterPath(space: NamedRouteEntity, character: NamedRouteEntity) {
-  const reference = publicReference(character.name, "character", space.id, character.id)
-  return `${spacePath(space)}/角色/${encodePathSegment(reference)}`
+  return `${WEB_PATHS.stories}/${encodePathSegment(reference)}`
 }
 
 /**
@@ -141,21 +115,7 @@ export function characterPath(space: NamedRouteEntity, character: NamedRouteEnti
  */
 export function characterSpacePath(space: NamedRouteEntity, character: NamedRouteEntity) {
   const reference = publicReference(character.name, "character", space.id, character.id)
-  return `${spacePath(space)}?character_ref=${encodePathSegment(reference)}#空间主线`
-}
-
-export function promptEditorPath(space: NamedRouteEntity, character: NamedRouteEntity) {
-  return `${characterPath(space, character)}/提示词`
-}
-
-export function clueHuntPath(route: TitledRouteEntity) {
-  const reference = publicReference(route.title, "clue-hunt", route.id)
-  return `/寻宝/${encodePathSegment(reference)}`
-}
-
-export function ownerProfilePath(ownerId: string, displayName = "店主") {
-  const reference = publicReference(displayName, "owner", ownerId)
-  return `${WEB_PATHS.owner}/${encodePathSegment(reference)}`
+  return `${spacePath(space)}?character_ref=${encodePathSegment(reference)}#story`
 }
 
 /** Build an ASCII-safe Location value for React Router redirect Responses. */
@@ -169,8 +129,6 @@ export function redirectPathForRequest(request: Request, pathname: string) {
       ? window.location.hash
       : requestUrl.hash
   }
-
-  destination.hash = LEGACY_HASH_ALIASES[destination.hash] || destination.hash
 
   return `${destination.pathname}${destination.search}${destination.hash}`
 }

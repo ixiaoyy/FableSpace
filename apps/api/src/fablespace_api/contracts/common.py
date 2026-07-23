@@ -6,7 +6,7 @@ from pydantic import BaseModel, ConfigDict
 
 
 class FlexibleBody(BaseModel):
-    """Base model for owner-authored dynamic tavern payloads."""
+    """Base model for dynamic request payloads."""
 
     model_config = ConfigDict(extra="allow")
 

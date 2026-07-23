@@ -2,11 +2,11 @@ from __future__ import annotations
 
 from fastapi import Request
 
-from ...application.spaces import TavernApplicationService
+from ...application.spaces import SpaceApplicationService
 from .auth import resolve_request_user_id
 
 
-def spaces_service(request: Request) -> TavernApplicationService:
+def spaces_service(request: Request) -> SpaceApplicationService:
     return request.app.state.spaces
 
 

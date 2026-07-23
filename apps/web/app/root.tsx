@@ -19,13 +19,12 @@ export const meta: MetaFunction = () => [
   { title: "FableSpace｜世界的镜像面" },
   {
     name: "description",
-    content: "基于地理位置的多类型 AI 空间游玩平台。",
+    content: "以角色、选择和长期记忆为核心的故事世界。",
   },
 ]
 
 export const links: LinksFunction = () => [
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
-  { rel: "dns-prefetch", href: "https://webapi.amap.com" },
 ]
 
 export function Layout({ children }: { children: React.ReactNode }) {
@@ -157,7 +156,7 @@ function AccessClosedPanel({
 }) {
   const actionClass = "mt-7 inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-[var(--entry-primary)] px-6 text-sm font-black text-[var(--entry-primary-ink)] outline-none transition hover:bg-[var(--entry-primary-hover)] active:bg-[var(--entry-primary-active)] focus-visible:ring-4 focus-visible:ring-[var(--entry-focus)]"
   return (
-    <main className="cinematic-entry relative grid min-h-screen place-items-center overflow-hidden px-5">
+    <main className="cinematic-entry relative grid min-h-dvh place-items-center overflow-hidden px-5">
       <div className="cinematic-entry__ambient pointer-events-none absolute inset-0" />
       <section className="relative w-full max-w-lg overflow-hidden rounded-2xl border border-[var(--entry-border)] bg-[var(--entry-surface-raised)] p-8 text-center backdrop-blur-xl sm:p-11">
         <span className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-[var(--entry-lavender-soft)] text-[var(--entry-lavender)]">

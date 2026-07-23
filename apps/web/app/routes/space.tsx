@@ -1,10 +1,7 @@
 import type { ClientLoaderFunctionArgs } from "react-router"
 import {
-  Activity,
   ArrowLeft,
   DoorOpen,
-  MapPin,
-  MoreVertical,
   Share2,
 } from "lucide-react"
 import { useState } from "react"
@@ -13,31 +10,21 @@ import { HistoricalBroadStreetVisual } from "../components/historical-broad-stre
 import { SpaceChatWorkbench } from "../features/space-chat-workbench"
 import { HISTORY_PILOT_SPACE_ID } from "../lib/history-pilot-space"
 import { resolveHomepageSpaceCover } from "../lib/homepage-spaces"
-import { mediaAssetUrl } from "../lib/media-assets"
-import { derivePlaceTypeDisplay } from "../lib/place-types.js"
-import { fallbackRoleplayState } from "../lib/roleplay-state"
 import { resolveCurrentSessionUserId } from "../lib/session"
-import { buildSpaceFirstMinuteGuide } from "../lib/space-first-minute"
 import { readVisitorPlayIdentity } from "../lib/visitor-play-identity"
 import { redirectPathForRequest, spacePath, WEB_PATHS } from "../lib/web-routes"
 import {
   DEFAULT_VISITOR_ID,
   errorMessage,
-  getRoleplayState,
   getSpace,
-  type RoleplayState,
   type Space,
 } from "../lib/spaces"
-import { formatSpaceAnchorLocation } from "../product/mapAnchorCopy.js"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card"
-
-const homeBlackHeroVisual = mediaAssetUrl("app/assets/fable-space-05-10/home-black/hero-system-visual.webp")
 
 type SpaceLoaderData = {
   spaceId: string
   currentUserId: string
   space: Space | null
-  roleplay: RoleplayState | null
   error: string
 }
 
@@ -45,7 +32,6 @@ function getCurrentUserIdFromRequest(request: Request) {
   const url = new URL(request.url)
   return (
     url.searchParams.get("user_id")?.trim() ||
-    url.searchParams.get("owner_id")?.trim() ||
     url.searchParams.get("visitor_id")?.trim() ||
     DEFAULT_VISITOR_ID
   )
@@ -55,7 +41,7 @@ export async function clientLoader({ params, request }: ClientLoaderFunctionArgs
   const spaceRef = params.spaceRef ?? ""
   const currentUserId = await resolveCurrentSessionUserId(getCurrentUserIdFromRequest(request))
   if (!spaceRef) {
-    return { spaceId: "", currentUserId, space: null, roleplay: null, error: "缺少空间引用" }
+    return { spaceId: "", currentUserId, space: null, error: "缺少故事引用" }
   }
   try {
     const space = await getSpace(spaceRef, currentUserId, { view: "entry" })
@@ -65,16 +51,10 @@ export async function clientLoader({ params, request }: ClientLoaderFunctionArgs
     if (url.pathname !== new URL(canonicalPath, url.origin).pathname) {
       throw replace(redirectPathForRequest(request, canonicalPath))
     }
-    let roleplay: RoleplayState | null = null
-    try {
-      roleplay = await getRoleplayState(spaceId, currentUserId)
-    } catch {
-      roleplay = null
-    }
-    return { spaceId, currentUserId, space, roleplay, error: "" }
+    return { spaceId, currentUserId, space, error: "" }
   } catch (error) {
     if (error instanceof Response) throw error
-    return { spaceId: spaceRef, currentUserId, space: null, roleplay: null, error: errorMessage(error) }
+    return { spaceId: spaceRef, currentUserId, space: null, error: errorMessage(error) }
   }
 }
 
@@ -83,50 +63,33 @@ function cx(...classes: Array<string | false | undefined | null>) {
 }
 
 function entryStatusDisplay(space: Space) {
-  const access = String(space.access || "public").toLowerCase()
   const status = String(space.status || "open").toLowerCase()
   const isClosed = space.is_open === false || status === "closed"
 
   if (isClosed) {
     return {
-      label: "今日熄灯",
-      interactionLabel: "仅预览",
+      label: "暂不可用",
+      interactionLabel: "稍后再来",
       className: "border-violet-300/20 bg-violet-300/10 text-violet-100",
     }
   }
 
-  if (access === "password") {
-    return {
-      label: "口令门扉",
-      interactionLabel: "口令进入",
-      className: "border-amber-200/28 bg-amber-300/12 text-amber-50",
-    }
-  }
-
-  if (access === "private") {
-    return {
-      label: "主人私域",
-      interactionLabel: "授权可见",
-      className: "border-violet-200/28 bg-violet-300/12 text-violet-50",
-    }
-  }
-
   return {
-    label: "公开入口",
-    interactionLabel: "可互动",
+    label: "故事进行中",
+    interactionLabel: "可回应",
     className: "border-cyan-200/30 bg-cyan-300/14 text-cyan-50",
   }
 }
 
 
 /**
- * Selects a reusable atmosphere image for the space hero.
+ * Selects published story art without substituting retired generic scene assets.
  * @param space Current public space payload used as the deterministic seed.
  * @param index Slot index within the homepage section.
  * @returns Public image URL suitable for img src; has no side effects.
  */
-function resolveSpaceHomeImage(space: Space, index = 0) {
-  return resolveHomepageSpaceCover(space, index) || homeBlackHeroVisual
+function resolveSpaceHomeImage(space: Space) {
+  return resolveHomepageSpaceCover(space)
 }
 
 /**
@@ -158,7 +121,7 @@ function SpaceTopBar({ space }: { space: Space }) {
   return (
     <div className="mb-4 flex min-w-0 items-center justify-between gap-3">
       <Link
-        to={WEB_PATHS.spaces}
+        to={WEB_PATHS.characters}
         className="inline-flex min-h-11 items-center gap-2 rounded-full border border-white/10 bg-white/[0.045] px-3.5 text-sm font-black text-cyan-50 backdrop-blur transition hover:border-cyan-200/30 hover:bg-cyan-300/10"
       >
         <ArrowLeft className="h-4 w-4" />
@@ -172,14 +135,7 @@ function SpaceTopBar({ space }: { space: Space }) {
           className="inline-flex min-h-11 items-center gap-2 rounded-full border border-cyan-200/18 bg-white/[0.045] px-4 text-sm font-black text-cyan-50 backdrop-blur transition hover:border-cyan-200/38 hover:bg-cyan-300/10"
         >
           <Share2 className="h-4 w-4" />
-          分享空间
-        </button>
-        <button
-          type="button"
-          aria-label="更多空间操作"
-          className="grid h-11 w-11 place-items-center rounded-full border border-cyan-200/18 bg-white/[0.045] text-cyan-50 backdrop-blur transition hover:border-cyan-200/38 hover:bg-cyan-300/10"
-        >
-          <MoreVertical className="h-4 w-4" />
+          分享故事
         </button>
       </div>
     </div>
@@ -190,24 +146,18 @@ function SpaceTopBar({ space }: { space: Space }) {
 /**
  * Renders the full-bleed visual hero for every shared space homepage.
  * @param space Public space payload for title, copy, metrics, and cover art.
- * @param isOwner Whether the current viewer owns this space, used only for a visible badge.
  * @param status Shared entry-status display used by both the hero and interaction panel.
  * @returns Homepage hero section; anchors scroll to the chat workbench and do not persist data.
  */
 function SpaceHeroPanel({
   space,
-  isOwner,
   status,
 }: {
   space: Space
-  isOwner: boolean
   status: ReturnType<typeof entryStatusDisplay>
 }) {
-  const coverImage = resolveSpaceHomeImage(space, 0)
+  const coverImage = resolveSpaceHomeImage(space)
   const isHistoryWaterPilot = space.id === HISTORY_PILOT_SPACE_ID
-  const firstMinute = buildSpaceFirstMinuteGuide(space)
-  const placeType = derivePlaceTypeDisplay(space)
-  const anchor = formatSpaceAnchorLocation(space)
   const characters = Array.isArray(space.characters) ? space.characters : []
 
   return (
@@ -215,9 +165,9 @@ function SpaceHeroPanel({
       <div className="absolute inset-0">
         {isHistoryWaterPilot ? (
           <HistoricalBroadStreetVisual className="h-full w-full opacity-[0.92]" />
-        ) : (
+        ) : coverImage ? (
           <img src={coverImage} alt="" className="h-full w-full object-cover opacity-[0.88]" loading="eager" decoding="async" />
-        )}
+        ) : null}
         <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(2,7,16,0.92)_0%,rgba(2,7,16,0.70)_38%,rgba(2,7,16,0.24)_100%)]" />
         <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(2,7,16,0.08)_0%,rgba(2,7,16,0.34)_62%,rgba(2,7,16,0.88)_100%)]" />
       </div>
@@ -232,24 +182,15 @@ function SpaceHeroPanel({
             <DoorOpen className="h-3.5 w-3.5" />
             {status.label}
           </span>
-          {isOwner ? (
-            <span className="inline-flex min-h-8 items-center rounded-full border border-amber-200/22 bg-amber-300/12 px-3 text-[0.68rem] font-black text-amber-50 backdrop-blur">
-              店主视角
-            </span>
-          ) : null}
         </div>
 
         <h1 className="max-w-3xl text-4xl font-black leading-[0.98] text-white drop-shadow-2xl sm:text-5xl lg:text-6xl">
-          {space.name || "未命名空间"}
+          {space.name || "未命名故事"}
         </h1>
-
-        <div className="mt-5 flex flex-wrap items-center gap-5 text-xs font-bold text-cyan-100/62">
-          <span className="inline-flex items-center gap-2"><Activity className="h-4 w-4 text-cyan-200" />{placeType.shortLabel || placeType.label || firstMinute.experienceType}</span>
-        </div>
 
         <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
           <Link
-            to={WEB_PATHS.spaces}
+            to={WEB_PATHS.characters}
             className="inline-flex min-h-[3.25rem] w-full touch-manipulation items-center justify-center gap-2 rounded-[0.95rem] border border-cyan-200/18 bg-slate-950/52 px-7 text-base font-black text-cyan-50 backdrop-blur transition hover:border-cyan-200/38 hover:bg-cyan-300/10 sm:w-auto"
           >
             返回发现
@@ -257,12 +198,6 @@ function SpaceHeroPanel({
         </div>
       </div>
 
-      <div className="absolute bottom-5 right-5 hidden max-w-[300px] rounded-[0.9rem] border border-white/10 bg-slate-950/40 p-3 text-xs font-bold leading-5 text-cyan-50/68 backdrop-blur xl:block">
-        <MapPin className="mb-2 h-4 w-4 text-cyan-200" />
-        {anchor.text !== "坐标待确认" ? anchor.text : `${Number(space.lat).toFixed(4)}, ${Number(space.lon).toFixed(4)}`}
-        <span className="mx-1.5 text-cyan-100/28">·</span>
-        {placeType.shortLabel || placeType.label || firstMinute.experienceType}
-      </div>
     </section>
   )
 }
@@ -279,12 +214,12 @@ function SpaceMobileHeader({ space }: { space: Space }) {
   return (
     <header className="mb-4 lg:hidden">
       <div className="flex items-center justify-between gap-3 rounded-[1.2rem] border border-cyan-200/16 bg-[#151a38]/90 p-3 shadow-[0_18px_42px_rgba(4,7,22,0.38)]">
-        <Link to={WEB_PATHS.spaces} className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl border border-cyan-200/18 bg-cyan-300/10 text-cyan-50" aria-label="返回发现">
+        <Link to={WEB_PATHS.characters} className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl border border-cyan-200/18 bg-cyan-300/10 text-cyan-50" aria-label="返回角色">
           <ArrowLeft className="h-5 w-5" />
         </Link>
         <div className="min-w-0 flex-1">
-          <p className="truncate text-base font-black text-white">{space.name || "空间入口"}</p>
-          <p className="truncate text-xs font-bold text-cyan-100/54">{status.label} · {space.characters?.length || 0} 位 NPC</p>
+          <p className="truncate text-base font-black text-white">{space.name || "故事入口"}</p>
+          <p className="truncate text-xs font-bold text-cyan-100/54">{status.label} · {space.characters?.length || 0} 位角色</p>
         </div>
       </div>
     </header>
@@ -295,24 +230,19 @@ function SpaceMobileHeader({ space }: { space: Space }) {
  * @param space Public space payload returned by entry view.
  * @param roleplay Existing roleplay state used by the chat workbench.
  * @param currentUserId Current viewer id passed through to the workbench.
- * @param isOwner Whether the current viewer owns the space, used for owner-visible UI.
- * @returns Full responsive space homepage; no schema or backend writes.
+ * @returns Full responsive story page; no schema or backend writes.
  */
 function SpaceSpacePage({
   space,
-  roleplay,
   currentUserId,
-  isOwner,
 }: {
   space: Space
-  roleplay: RoleplayState | null
   currentUserId: string
-  isOwner: boolean
 }) {
   const status = entryStatusDisplay(space)
 
   return (
-    <main className="relative min-h-screen overflow-x-hidden bg-[#0d1226] text-white">
+    <main className="relative min-h-dvh overflow-x-hidden bg-[#0d1226] text-white">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_78%_18%,rgba(103,113,213,0.28),transparent_34rem),radial-gradient(circle_at_58%_72%,rgba(178,123,188,0.08),transparent_26rem),linear-gradient(135deg,#0d1226_0%,#151a38_48%,#2b2e5a_100%)]" />
       <div className="pointer-events-none absolute inset-0 opacity-38 [background-image:linear-gradient(rgba(174,169,230,0.045)_1px,transparent_1px),linear-gradient(90deg,rgba(174,169,230,0.035)_1px,transparent_1px)] [background-size:56px_56px]" />
       <div className="relative mx-auto w-full max-w-[1420px] px-3 py-4 pb-8 sm:px-5 lg:px-6 lg:py-6 xl:px-7">
@@ -323,9 +253,9 @@ function SpaceSpacePage({
         <div className="min-w-0 space-y-5">
           <div className="grid min-w-0 gap-5 xl:grid-cols-[minmax(360px,0.74fr)_minmax(720px,1.26fr)] xl:items-stretch">
             <div className="order-2 xl:order-1">
-              <SpaceHeroPanel space={space} isOwner={isOwner} status={status} />
+              <SpaceHeroPanel space={space} status={status} />
             </div>
-            <section id="空间主线" className="space-mobile-chat-first order-1 flex w-full min-w-0 max-w-full scroll-mt-6 flex-col rounded-[1.2rem] border border-cyan-200/16 bg-[#1b2144]/82 p-3 shadow-[0_24px_72px_rgba(4,7,22,0.38)] sm:p-4 xl:order-2 xl:h-[840px] xl:overflow-hidden">
+            <section id="story" className="space-mobile-chat-first order-1 flex w-full min-w-0 max-w-full scroll-mt-6 flex-col rounded-[1.2rem] border border-cyan-200/16 bg-[#1b2144]/82 p-3 shadow-[0_24px_72px_rgba(4,7,22,0.38)] sm:p-4 xl:order-2 xl:h-[840px] xl:overflow-hidden">
               <div className="mb-3 flex items-center justify-between gap-4 px-1">
                 <h2 className="text-xl font-black text-white">聊天</h2>
                 <span className="hidden rounded-full border border-cyan-200/14 bg-cyan-300/8 px-3 py-1 text-xs font-black text-cyan-100/62 sm:inline-flex">
@@ -335,7 +265,6 @@ function SpaceSpacePage({
               <div className="min-h-0 min-w-0 flex-1">
                 <SpaceChatWorkbench
                   space={space}
-                  roleplay={roleplay}
                   currentUserId={currentUserId}
                 />
               </div>
@@ -348,24 +277,24 @@ function SpaceSpacePage({
 }
 function SpaceErrorPage({ spaceId, error }: { spaceId: string; error: string }) {
   return (
-    <main className="relative min-h-screen overflow-hidden bg-[#0d1226] px-4 py-8 text-white">
+    <main className="relative min-h-dvh overflow-hidden bg-[#0d1226] px-4 py-8 text-white">
       <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(135deg,#0d1226_0%,#151a38_48%,#2b2e5a_100%)]" />
       <div className="relative mx-auto max-w-3xl">
-        <Link to={WEB_PATHS.spaces} className="inline-flex min-h-11 items-center gap-2 rounded-2xl border border-cyan-200/18 bg-cyan-300/10 px-4 text-sm font-black text-cyan-50">
+        <Link to={WEB_PATHS.characters} className="inline-flex min-h-11 items-center gap-2 rounded-2xl border border-cyan-200/18 bg-cyan-300/10 px-4 text-sm font-black text-cyan-50">
           <ArrowLeft className="h-4 w-4" />
           返回发现
         </Link>
         <Card className="mt-8 min-w-0 overflow-hidden">
           <CardHeader>
-            <CardTitle>无法进入空间</CardTitle>
+            <CardTitle>无法进入故事</CardTitle>
             <CardDescription className="mt-2">
-              {error || `未找到空间 ${spaceId}`}
+              {error || `未找到故事 ${spaceId}`}
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <p className="rounded-2xl border border-theme-border bg-theme-card p-4 text-sm leading-6 text-cyan-50/70">
-              请确认空间链接是否正确，或让店主重新分享入口。
-            </p>
+            <Link to={WEB_PATHS.characters} className="inline-flex min-h-11 items-center rounded-2xl border border-theme-border bg-theme-card px-4 text-sm font-black text-cyan-50">
+              返回角色
+            </Link>
           </CardContent>
         </Card>
       </div>
@@ -374,21 +303,15 @@ function SpaceErrorPage({ spaceId, error }: { spaceId: string; error: string }) 
 }
 
 export default function SpaceRoute() {
-  const { spaceId, currentUserId, space, roleplay, error } = useLoaderData<typeof clientLoader>()
+  const { spaceId, currentUserId, space, error } = useLoaderData<typeof clientLoader>()
   const hasPlayIdentity = Boolean(readVisitorPlayIdentity())
-  const characters = space?.characters || []
-  const effectiveRoleplay = space ? roleplay || fallbackRoleplayState(space, characters) : null
-  const isOwner = Boolean(space?.owner_id && space.owner_id === currentUserId)
-
   if (!space) return <SpaceErrorPage spaceId={spaceId} error={error} />
   if (!hasPlayIdentity) return <Navigate to={WEB_PATHS.home} replace />
 
   return (
     <SpaceSpacePage
       space={space}
-      roleplay={effectiveRoleplay}
       currentUserId={currentUserId}
-      isOwner={isOwner}
     />
   )
 }

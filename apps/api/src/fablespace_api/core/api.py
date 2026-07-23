@@ -96,7 +96,7 @@ def run_api(args: argparse.Namespace) -> int:
                     "port": args.port,
                     "output_root": str(settings.output_root),
                     "frontend_available": frontend_available,
-                    "meta_url": f"{base_url}/api/meta",
+                    "meta_url": f"{base_url}/api/v1/meta",
                 },
                 ensure_ascii=False,
                 indent=2,

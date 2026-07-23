@@ -5,7 +5,7 @@ import type { SpaceListResponse } from "./spaces"
 
 /**
  * Load the reviewed historical pilot and the three launch worlds as one homepage collection.
- * Every child loader keeps its owner/access/status/character contract; this function only combines their results.
+ * Every child loader keeps its published access/status/character contract; this function only combines their results.
  */
 export async function loadHomeStoryCollection(): Promise<SpaceListResponse> {
   const [historyPilot, launchStories] = await Promise.all([

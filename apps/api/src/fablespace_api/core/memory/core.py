@@ -3,11 +3,9 @@
 Memory / Summarization — chat history compression and memory management.
 
 Features:
-- Token-based history truncation
-- Automatic summarization (via LLM)
-- Memory graph (entity tracking)
-- Long-term vs short-term memory
-- Selective memory (important messages only)
+- Private player memory atoms
+- Memory selection for dialogue continuity
+- History compression helpers
 """
 
 from __future__ import annotations
@@ -1015,7 +1013,7 @@ class HistoryTruncator:
     """
     Truncate chat history based on token limits.
 
-    SillyTavern's power-user feature: intelligently truncate history
+    Intelligently truncate history
     while preserving important context.
     """
 

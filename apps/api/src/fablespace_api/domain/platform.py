@@ -1,11 +1,10 @@
 PLATFORM_MAINLINE = (
-    "coordinates/location -> real map -> tavern discovery -> enter tavern -> "
-    "configure AI NPC -> chat -> memory/writeback -> revisit feedback"
+    "choose player identity -> discover character -> enter StoryWorld -> "
+    "dialogue and choices -> private memory and relationship -> revisit"
 )
 
 PRODUCT_BOUNDARIES = {
-    "real_coordinate_anchor": True,
-    "owner_authored_content": True,
-    "owner_paid_llm_tokens": True,
-    "sillytavern_compatible_cards": True,
+    "system_published_stories_only": True,
+    "character_first_entry": True,
+    "private_player_continuity": True,
 }

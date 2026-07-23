@@ -21,8 +21,6 @@ def main(argv: Sequence[str] | None = None) -> int:
     objects_payload = _read_json(args.objects)
 
     entries = list(manifest.get("entries", []))
-    if not entries:
-        raise ValueError("media manifest contains no entries")
     if objects_payload.get("IsTruncated"):
         raise ValueError("S3 object listing was truncated; verification requires the complete media namespace")
 
@@ -32,6 +30,21 @@ def main(argv: Sequence[str] | None = None) -> int:
         if item.get("Key")
     }
     prefix = args.s3_prefix.strip("/")
+    if not entries:
+        unexpected = sorted(
+            key
+            for key in remote_objects
+            if key == prefix or key.startswith(f"{prefix}/")
+        )
+        if unexpected:
+            raise ValueError(
+                "empty media manifest still has remote objects: "
+                + json.dumps(unexpected[:20], ensure_ascii=False)
+            )
+        args.samples_output.write_text("", encoding="utf-8")
+        print(json.dumps({"verified": 0, "cdn_samples": []}, ensure_ascii=False))
+        return 0
+
     missing: list[str] = []
     wrong_size: list[str] = []
     for entry in entries:

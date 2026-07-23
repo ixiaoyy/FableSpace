@@ -9,8 +9,7 @@
 - [x] Run frontend typecheck and build.
 - [x] Review responsive onboarding and character-targeted entry in code; defer optional browser evidence to the final visual QA child.
 - [x] Replace the single-identity promotional split layout with a two-step directory and confirmation flow that remains stable as identities grow.
-- [x] Align the two-step flow to `artifacts/design-references/visitor-identity-onboarding-v2.png` while removing era labels and keeping unsupported identities preview-only.
-- [x] Refine the character catalog and hero composition against `artifacts/design-references/visitor-identity-onboarding-v3.png`; retain “乞丐” as the only selectable card and keep era labels out of the UI.
+- [x] Remove the retired visual-reference dependency and keep the identity flow validated against the implemented product contract.
 - [x] Record React Doctor changed-scope findings; fix only confirmed regressions from this child.
 
 ## Verification Record

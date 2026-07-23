@@ -2,7 +2,6 @@ import { getSpace, type Space, type SpaceCharacter, type SpaceListResponse } fro
 
 export const HISTORY_PILOT_SPACE_ID = "history_broad_street_water_1854"
 export const HISTORY_PILOT_CHARACTER_ID = "char_history_broad_street_annie"
-export const HISTORY_PILOT_OWNER_ID = "system_public_welfare"
 export const HISTORY_PILOT_GAMEPLAY_ID = "gp_history_broad_street_first_water"
 
 export type HistoryPilotReferenceKind = "史实" | "剧情设定" | "待核验"
@@ -124,9 +123,6 @@ export class HistoryPilotContractError extends Error {
 function validateHistoryPilotSpace(space: Space): Space {
   if (!space || space.id !== HISTORY_PILOT_SPACE_ID) {
     throw new HistoryPilotContractError("返回了不匹配的 Space")
-  }
-  if (space.owner_id !== HISTORY_PILOT_OWNER_ID) {
-    throw new HistoryPilotContractError("不属于系统公益内容")
   }
   if (space.access !== "public") {
     throw new HistoryPilotContractError("当前不是公开访问")

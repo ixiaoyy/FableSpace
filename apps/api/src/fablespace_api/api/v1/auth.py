@@ -23,8 +23,6 @@ from ...infrastructure.settings import ApiSettings
 router = APIRouter(prefix="/auth", tags=["auth"])
 logger = logging.getLogger(__name__)
 ACCESS_CAPABILITY = "fablespace.access"
-CREATOR_CAPABILITY = "fablespace.creator"
-ADMIN_CAPABILITY = "fablespace.admin"
 AUTHORIZATION_LOCK_STRIPES = 64
 
 
@@ -210,7 +208,6 @@ def resolve_request_user_id(connection: HTTPConnection) -> str:
         connection.headers.get("X-User-Id")
         or connection.headers.get("X-User-ID")
         or connection.query_params.get("user_id")
-        or connection.query_params.get("owner_id")
         or ""
     ).strip()
 
@@ -233,27 +230,10 @@ async def is_private_access_allowed(connection: HTTPConnection) -> bool:
 
 
 def has_capability(identity: SessionIdentity | None, capability: str) -> bool:
-    """Check one product capability, treating `fablespace.admin` as the full-access grant."""
+    """Check one explicit product capability."""
     if identity is None:
         return False
-    granted = set(identity.capabilities)
-    return ADMIN_CAPABILITY in granted or capability in granted
-
-
-def require_session_capability(
-    connection: HTTPConnection,
-    capability: str,
-) -> SessionIdentity | None:
-    """Require a verified linked-mode capability while leaving standalone legacy mode unchanged."""
-    settings: ApiSettings = connection.app.state.settings
-    if settings.auth_mode != "parallellines":
-        return get_session_identity(connection)
-    identity = _verified_session_identity(connection)
-    if identity is None:
-        raise HTTPException(status_code=401, detail="FableSpace 会话无效或已过期")
-    if not has_capability(identity, capability):
-        raise HTTPException(status_code=403, detail="当前账号没有执行此操作的产品权限")
-    return identity
+    return capability in set(identity.capabilities)
 
 
 def _verified_session_identity(connection: HTTPConnection) -> SessionIdentity | None:

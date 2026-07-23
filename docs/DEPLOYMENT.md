@@ -50,8 +50,6 @@ https://<cdn-domain>/fablespace/media/v1/<object-key>
 | `CDN_S3_ACCESS_KEY_ID` | 是 | 仅允许写目标桶的访问 Key |
 | `CDN_S3_SECRET_ACCESS_KEY` | 是 | 对应 Secret Key |
 | `VITE_API_BASE` | 否 | 前后端分离时的 API 基址；同源部署留空 |
-| `VITE_AMAP_KEY` | 否 | 浏览器端地图 Key |
-| `VITE_AMAP_SECURITY_CODE` | 否 | 地图安全码 |
 
 配置顺序应为：先保持 `DEPLOY_ENABLED` 或 `DEPLOY_CONFIGURED` 未启用，完成服务器、桶、CDN 和 Secret 配置；最后把两个开关都设为 `true`，再手动触发一次 `Deploy` workflow。双开关用于避免只打开部署意图、但生产凭据尚未齐全时误触发发布。
 
@@ -66,6 +64,7 @@ https://<cdn-domain>/fablespace/media/v1/<object-key>
 5. 不要对仍在 `deploy/cdn/media-manifest.json` 中的对象设置过期规则；删除或替换对象前必须先确认没有代码、seed 或文档 URL 引用。
 
 当 `deploy/cdn/**` 或部署工作流变化，或手动触发部署时，Workflow 会比较清单中每个对象的 key 与字节数，并通过 `CDN_BASE_URL` 实际下载抽样图片；普通前端代码变更不执行全量桶扫描，避免被无关的历史媒体漂移阻塞。全量校验触发后，对象缺失、大小不符、公开域名或 CDN 回源未生效仍会在替换服务器前阻止发布。
+清单为空时，全量校验会要求 `fablespace/media/v1/` 命名空间同样为空；残留未登记对象会直接阻止发布。
 
 ## 服务器首次准备
 
@@ -124,11 +123,21 @@ FABLESPACE_SSO_TICKET_TTL_SECONDS=60
 
 两份密钥不得写入仓库、前端构建变量或日志。`configure_shared_services.py` 负责生成或复用密钥并同步两端；手工修改时仍必须重建/重启两个后端。FableSpace 在 `parallellines` 模式下若缺少 SSO 服务密钥或会话密钥会拒绝启动，避免部署时静默退回可伪造的旧身份模式。`FABLESPACE_AUTH_INTROSPECTION_CACHE_TTL_SECONDS` 运行时限制为 1–60 秒；缓存过期后续验主站失败会拒绝访问，不使用过期结果兜底。
 
-ParallelLines 必须为账号返回至少 `fablespace.access` 才能签发并维持会话；全部店主创作与管理写操作、LLM 配置探测及角色卡解析/导出等供给侧工具还需要 `fablespace.creator`，包括新建/更新/删除 Space、Home、Territory、Clue Hunt Route，以及 Space package 导入、NPC、WorldInfo、店主配置、玩法定义、skill packs 和 owner 审批。聊天、进入、访客记忆/状态、通知及玩法/寻宝会话等探索行为不要求 creator；共享写端点只有“当前会话用户操作自己的数据”走 access 分支，代操作其他访客、写空间正史或执行 owner 管理时必须同时具备 creator 并通过对应 Space/Route/Home 的 owner 校验。`fablespace.admin` 隐含全部产品能力，但 admin/operator 仍不能绕过具体资源的 owner 校验。票据兑换响应需要在身份资料之外返回 `capabilities`、`authorization_version`、`access_expires_at`，并提供同一服务密钥保护的 `POST /api/v1/auth/fablespace/introspect`。部署后直接打开 FableSpace 域名应显示关闭入口；只有从 ParallelLines 私密空间卡片完成票据兑换后，业务页面、API 与生成资源才会开放。
+ParallelLines 必须为账号返回 `fablespace.access` 才能签发并维持会话。
+FableSpace 不注册 creator、owner、admin、故事创建、角色卡、地图或私有
+LLM 产品能力。票据兑换响应需要在身份资料之外返回 `capabilities`、
+`authorization_version`、`access_expires_at`，并提供同一服务密钥保护的
+`POST /api/v1/auth/fablespace/introspect`。部署后直接打开 FableSpace 域名
+应显示关闭入口；只有从 ParallelLines 私密入口完成票据兑换后，业务页面、
+API 与生成资源才会开放。
 
 ## 回滚
 
-推荐 revert 问题提交并推送 `main`。旧的不可变媒体对象保持可用，因此回滚后的 URL 仍可读取。若只在服务器手工切换镜像，仓库状态与后端版本可能不一致，不作为标准回滚流程。
+推荐 revert 问题提交并推送 `main`。媒体对象只有仍登记在当前
+`deploy/cdn/media-manifest.json` 时才可作为回滚依赖；已经完成退役并从
+正式命名空间删除的对象不会为了旧版本保留。回滚到仍引用退役 URL 的提交前，
+必须先发布等价的新对象并同步清单与代码引用。若只在服务器手工切换镜像，
+仓库状态与后端版本可能不一致，不作为标准回滚流程。
 
 ## 本地验证 CDN base
 
