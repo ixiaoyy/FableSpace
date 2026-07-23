@@ -42,8 +42,6 @@ export async function clientLoader({ params, request }: ClientLoaderFunctionArgs
     "/owner": WEB_PATHS.owner,
     "/territory": WEB_PATHS.territory,
     "/notifications": WEB_PATHS.notifications,
-    "/home-me": WEB_PATHS.myHome,
-    "/home/me": WEB_PATHS.myHome,
   }
   const staticDestination = staticDestinations[pathname]
   if (staticDestination) {

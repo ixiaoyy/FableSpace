@@ -16,7 +16,6 @@ export default [
   route("寻宝/:routeRef", "./routes/clue-hunt.tsx"),
   route("店主/:ownerRef", "./routes/creator.$ownerId.tsx"),
   route("通知", "./routes/notifications.tsx"),
-  route("我的家", "./routes/home-me.tsx"),
 
   route("discover", "./routes/legacy-web-route.tsx", { id: "legacy-discover" }),
   route("quests", "./routes/legacy-web-route.tsx", { id: "legacy-quests" }),
@@ -31,8 +30,6 @@ export default [
   route("tavern/:spaceId/manage", "./routes/legacy-web-route.tsx", { id: "legacy-tavern-manage" }),
   route("tavern/:spaceId/character/:characterId/prompt", "./routes/legacy-web-route.tsx", { id: "legacy-tavern-prompt-editor" }),
   route("tavern/:spaceId", "./routes/legacy-web-route.tsx", { id: "legacy-tavern" }),
-  route("home-me", "./routes/legacy-web-route.tsx", { id: "legacy-home-me" }),
-  route("home/me", "./routes/legacy-web-route.tsx", { id: "legacy-home-slash-me" }),
   route("npc/:spaceId/:characterId", "./routes/legacy-web-route.tsx", { id: "legacy-npc" }),
   route("creator/:ownerId", "./routes/legacy-web-route.tsx", { id: "legacy-creator" }),
 ] satisfies RouteConfig

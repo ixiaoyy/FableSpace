@@ -23,7 +23,6 @@ export const WEB_PATHS = {
   owner: "/店主",
   territory: "/领地",
   notifications: "/通知",
-  myHome: "/我的家",
 } as const
 
 const LEGACY_HASH_ALIASES: Record<string, string> = {

@@ -1,4 +1,4 @@
-import { ClipboardList, Compass, Home, LogOut, MapPinned, Sparkles, Store, UserRound } from "lucide-react"
+import { ClipboardList, Compass, Home, LogOut, MapPinned, Sparkles, Store } from "lucide-react"
 import { useEffect, useState } from "react"
 import { NavLink } from "react-router"
 
@@ -17,20 +17,17 @@ import { WEB_PATHS } from "../lib/web-routes"
 // Bottom dock keeps the P0 explorer path within thumb reach.
 // Creation and management are supply-side actions, so mobile does not foreground them.
 const bottomDockOrder = [
-  { to: WEB_PATHS.home, label: "镜像面", icon: Home },
+  { to: WEB_PATHS.home, label: "首页", icon: Home },
   { to: WEB_PATHS.spaces, label: "发现", icon: Compass },
   { to: WEB_PATHS.quests, label: "游玩", icon: ClipboardList },
-  { to: WEB_PATHS.myHome, label: "回访", icon: UserRound },
-  { to: `${WEB_PATHS.spaces}?view=expanded`, label: "更多", icon: MapPinned },
 ]
 
 // Desktop can expose owner supply-side tools without making them the visitor's main path.
 const topNavItems = [
-  { to: WEB_PATHS.home, label: "镜像面", icon: Home },
-  { to: WEB_PATHS.spaces, label: "发现空间", icon: Compass },
-  { to: WEB_PATHS.quests, label: "游玩指南", icon: ClipboardList },
-  { to: WEB_PATHS.myHome, label: "我的回访", icon: UserRound },
-  { to: WEB_PATHS.createSpace, label: "店主开设", icon: Store, creatorOnly: true },
+  { to: WEB_PATHS.home, label: "首页", icon: Home },
+  { to: WEB_PATHS.spaces, label: "发现", icon: Compass },
+  { to: WEB_PATHS.quests, label: "游玩", icon: ClipboardList },
+  { to: WEB_PATHS.createSpace, label: "开设空间", icon: Store, creatorOnly: true },
   { to: WEB_PATHS.owner, label: "店主后台", icon: MapPinned, creatorOnly: true },
 ]
 
@@ -183,7 +180,7 @@ export function ProductShell({
       </header>
 
       <nav
-        className="mobile-bottom-dock fixed inset-x-3 bottom-3 z-50 grid grid-cols-5 gap-1 rounded-[1.5rem] border border-theme-border bg-theme-header p-1.5 shadow-2xl shadow-black/20 backdrop-blur-xl lg:hidden"
+        className="mobile-bottom-dock fixed inset-x-3 bottom-3 z-50 grid grid-cols-3 gap-1 rounded-[1.5rem] border border-theme-border bg-theme-header p-1.5 shadow-2xl shadow-black/20 backdrop-blur-xl lg:hidden"
         aria-label="移动端导航"
       >
         {bottomDockOrder.map((item) => (
@@ -231,7 +228,7 @@ export function ProductShell({
         {children}
         <footer className="mt-16 flex flex-col gap-2 border-t border-theme-border pt-6 text-sm text-theme-muted sm:flex-row sm:items-center">
           <MapPinned className="h-4 w-4 text-theme-accent-text opacity-60" />
-          <span>地理位置锚定 · 多类型 AI 空间 · 回访你的私密角落</span>
+          <span>真实坐标锚定 · 角色优先 · 私密游玩身份</span>
         </footer>
       </div>
     </main>
