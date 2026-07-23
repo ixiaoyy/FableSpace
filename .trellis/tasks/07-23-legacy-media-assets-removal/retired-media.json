@@ -1,0 +1,303 @@
+{
+  "schema_version": 1,
+  "batch_id": "2026-07-23-unused-npc-style-cast",
+  "reason": "No active code, configuration, seed, or maintained-document reference remains.",
+  "prepared_at": "2026-07-23T07:38:33+00:00",
+  "deleted_at": "2026-07-23T07:42:05+00:00",
+  "media_base_url": "https://img.pingxingxian.space/fablespace/media/v1",
+  "manifest_before": {
+    "tracked_image_count": 358,
+    "tracked_image_bytes": 148522769,
+    "migrate_count": 358,
+    "delete_count": 0
+  },
+  "batch_totals": {
+    "entry_count": 25,
+    "bytes": 9514852,
+    "sidecar_count": 25
+  },
+  "remote_verification": {
+    "namespace_matches_manifest": true,
+    "preflight_expected_size_count": 25,
+    "delete_confirmed_count": 25,
+    "preflight_at": "2026-07-23T07:40:49+00:00",
+    "postflight_at": "2026-07-23T07:42:05+00:00"
+  },
+  "entries": [
+    {
+      "source": "apps/web/app/assets/npc-style-cast/portraits-hd/alien-9-delta.png",
+      "disposition": "migrate",
+      "bytes": 427402,
+      "sha256": "1b5c0bf3916c9c564b11f4e45f5db0cea52a84527f185e02db94fd51051c9236",
+      "content_type": "image/png",
+      "object_key": "app/assets/npc-style-cast/portraits-hd/alien-9-delta.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/assets/npc-style-cast/portraits-hd/alien-9-delta.png",
+      "sidecar": "apps/web/app/assets/npc-style-cast/portraits-hd/alien-9-delta.prompt.md",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/app/assets/npc-style-cast/portraits-hd/alien-mu-mu.png",
+      "disposition": "migrate",
+      "bytes": 409040,
+      "sha256": "e8267784b1ae03b26aa8c9670d0d3fcc042cbd92001ef816a9516a92444c76ef",
+      "content_type": "image/png",
+      "object_key": "app/assets/npc-style-cast/portraits-hd/alien-mu-mu.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/assets/npc-style-cast/portraits-hd/alien-mu-mu.png",
+      "sidecar": "apps/web/app/assets/npc-style-cast/portraits-hd/alien-mu-mu.prompt.md",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/app/assets/npc-style-cast/portraits-hd/alien-pi-pi.png",
+      "disposition": "migrate",
+      "bytes": 431411,
+      "sha256": "39c472ff9fec6bb6f28e789563e1fff7e2360d88a264d9c1a59b4650bc3f47ff",
+      "content_type": "image/png",
+      "object_key": "app/assets/npc-style-cast/portraits-hd/alien-pi-pi.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/assets/npc-style-cast/portraits-hd/alien-pi-pi.png",
+      "sidecar": "apps/web/app/assets/npc-style-cast/portraits-hd/alien-pi-pi.prompt.md",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/app/assets/npc-style-cast/portraits-hd/alien-v17.png",
+      "disposition": "migrate",
+      "bytes": 424884,
+      "sha256": "a12fddf5b9a3196d5ffc23dc3a181c9bf8d48542d0685f43d78d95a31b21957b",
+      "content_type": "image/png",
+      "object_key": "app/assets/npc-style-cast/portraits-hd/alien-v17.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/assets/npc-style-cast/portraits-hd/alien-v17.png",
+      "sidecar": "apps/web/app/assets/npc-style-cast/portraits-hd/alien-v17.prompt.md",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/app/assets/npc-style-cast/portraits-hd/cat-accountant-yinpiao.png",
+      "disposition": "migrate",
+      "bytes": 450968,
+      "sha256": "75a70d6ec9ea2d554a28abf363b5f8ad482362ee6c1bba925602bdac70452bcf",
+      "content_type": "image/png",
+      "object_key": "app/assets/npc-style-cast/portraits-hd/cat-accountant-yinpiao.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/assets/npc-style-cast/portraits-hd/cat-accountant-yinpiao.png",
+      "sidecar": "apps/web/app/assets/npc-style-cast/portraits-hd/cat-accountant-yinpiao.prompt.md",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/app/assets/npc-style-cast/portraits-hd/commission-chimao.png",
+      "disposition": "migrate",
+      "bytes": 413113,
+      "sha256": "0f4d53dd91bada395f178d1bd881af5b4c6a02582f9ef96293be2e55561b9e59",
+      "content_type": "image/png",
+      "object_key": "app/assets/npc-style-cast/portraits-hd/commission-chimao.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/assets/npc-style-cast/portraits-hd/commission-chimao.png",
+      "sidecar": "apps/web/app/assets/npc-style-cast/portraits-hd/commission-chimao.prompt.md",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/app/assets/npc-style-cast/portraits-hd/commission-mozhan.png",
+      "disposition": "migrate",
+      "bytes": 354588,
+      "sha256": "32fdae42ac172a95b351941a9e9a365d4addda1c7419a82bf2d45c0e9067a173",
+      "content_type": "image/png",
+      "object_key": "app/assets/npc-style-cast/portraits-hd/commission-mozhan.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/assets/npc-style-cast/portraits-hd/commission-mozhan.png",
+      "sidecar": "apps/web/app/assets/npc-style-cast/portraits-hd/commission-mozhan.prompt.md",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/app/assets/npc-style-cast/portraits-hd/commission-zhideng.png",
+      "disposition": "migrate",
+      "bytes": 396244,
+      "sha256": "c6fef08b3f8e958c4589fbd73f5a7fa621316c04b96146857ff42d496a5fe66b",
+      "content_type": "image/png",
+      "object_key": "app/assets/npc-style-cast/portraits-hd/commission-zhideng.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/assets/npc-style-cast/portraits-hd/commission-zhideng.png",
+      "sidecar": "apps/web/app/assets/npc-style-cast/portraits-hd/commission-zhideng.prompt.md",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/app/assets/npc-style-cast/portraits-hd/mist-bartender-lanbo.png",
+      "disposition": "migrate",
+      "bytes": 405770,
+      "sha256": "ec3c9004d688c89f349b0006a9dd7b6085f4c38b8d9e751d6aa191201c63db6a",
+      "content_type": "image/png",
+      "object_key": "app/assets/npc-style-cast/portraits-hd/mist-bartender-lanbo.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/assets/npc-style-cast/portraits-hd/mist-bartender-lanbo.png",
+      "sidecar": "apps/web/app/assets/npc-style-cast/portraits-hd/mist-bartender-lanbo.prompt.md",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/app/assets/npc-style-cast/portraits-hd/neon-oracle-iris-zero.png",
+      "disposition": "migrate",
+      "bytes": 481594,
+      "sha256": "ff5dd169d9f1d58df19d249e7422fbace16f0193efcf58ea399b4e3d96e5be46",
+      "content_type": "image/png",
+      "object_key": "app/assets/npc-style-cast/portraits-hd/neon-oracle-iris-zero.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/assets/npc-style-cast/portraits-hd/neon-oracle-iris-zero.png",
+      "sidecar": "apps/web/app/assets/npc-style-cast/portraits-hd/neon-oracle-iris-zero.prompt.md",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/app/assets/npc-style-cast/portraits-hd/starport-boxing.png",
+      "disposition": "migrate",
+      "bytes": 426846,
+      "sha256": "571fc18d5f77473abd6a0df2ac612cda7f1cade51fb010431d5bfb9f4129531e",
+      "content_type": "image/png",
+      "object_key": "app/assets/npc-style-cast/portraits-hd/starport-boxing.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/assets/npc-style-cast/portraits-hd/starport-boxing.png",
+      "sidecar": "apps/web/app/assets/npc-style-cast/portraits-hd/starport-boxing.prompt.md",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/app/assets/npc-style-cast/portraits-hd/terminal-repair-luotong.png",
+      "disposition": "migrate",
+      "bytes": 449512,
+      "sha256": "ae3148d5eefbbdb225704ff22598c01b73af60ea2629344f68b2bc7e8737348c",
+      "content_type": "image/png",
+      "object_key": "app/assets/npc-style-cast/portraits-hd/terminal-repair-luotong.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/assets/npc-style-cast/portraits-hd/terminal-repair-luotong.png",
+      "sidecar": "apps/web/app/assets/npc-style-cast/portraits-hd/terminal-repair-luotong.prompt.md",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/app/assets/npc-style-cast/portraits/alien-9-delta.png",
+      "disposition": "migrate",
+      "bytes": 132313,
+      "sha256": "ff8e87b3575ba2647c433dc11354e69be2694e0b4f035f1f201078a67fe6f3c5",
+      "content_type": "image/png",
+      "object_key": "app/assets/npc-style-cast/portraits/alien-9-delta.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/assets/npc-style-cast/portraits/alien-9-delta.png",
+      "sidecar": "apps/web/app/assets/npc-style-cast/portraits/alien-9-delta.prompt.md",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/app/assets/npc-style-cast/portraits/alien-mu-mu.png",
+      "disposition": "migrate",
+      "bytes": 127773,
+      "sha256": "6f566094ff4ea37563665ab7288b8a8e48850e3c0dd74fa09f35bdfd07b91cf2",
+      "content_type": "image/png",
+      "object_key": "app/assets/npc-style-cast/portraits/alien-mu-mu.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/assets/npc-style-cast/portraits/alien-mu-mu.png",
+      "sidecar": "apps/web/app/assets/npc-style-cast/portraits/alien-mu-mu.prompt.md",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/app/assets/npc-style-cast/portraits/alien-pi-pi.png",
+      "disposition": "migrate",
+      "bytes": 132908,
+      "sha256": "ff920e8abc0cf1aac84f5ebf48dc40e897e958f3e20d709f4fad7a87d50c9e38",
+      "content_type": "image/png",
+      "object_key": "app/assets/npc-style-cast/portraits/alien-pi-pi.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/assets/npc-style-cast/portraits/alien-pi-pi.png",
+      "sidecar": "apps/web/app/assets/npc-style-cast/portraits/alien-pi-pi.prompt.md",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/app/assets/npc-style-cast/portraits/alien-v17.png",
+      "disposition": "migrate",
+      "bytes": 131491,
+      "sha256": "ac684e31e189d75acd478eacaaab578c4c8ce6b99eae56d72f7b5d336782940c",
+      "content_type": "image/png",
+      "object_key": "app/assets/npc-style-cast/portraits/alien-v17.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/assets/npc-style-cast/portraits/alien-v17.png",
+      "sidecar": "apps/web/app/assets/npc-style-cast/portraits/alien-v17.prompt.md",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/app/assets/npc-style-cast/portraits/cat-accountant-yinpiao.png",
+      "disposition": "migrate",
+      "bytes": 139032,
+      "sha256": "c8c1b127188d67d0546e4c193f1b7ebfe3e608f9a4d0f3af0261a0bd2ac0aa24",
+      "content_type": "image/png",
+      "object_key": "app/assets/npc-style-cast/portraits/cat-accountant-yinpiao.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/assets/npc-style-cast/portraits/cat-accountant-yinpiao.png",
+      "sidecar": "apps/web/app/assets/npc-style-cast/portraits/cat-accountant-yinpiao.prompt.md",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/app/assets/npc-style-cast/portraits/commission-chimao.png",
+      "disposition": "migrate",
+      "bytes": 130689,
+      "sha256": "501b64f495a9c4fe30663b2c236141ceb0127a4d2301487a40048491d0e56fcf",
+      "content_type": "image/png",
+      "object_key": "app/assets/npc-style-cast/portraits/commission-chimao.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/assets/npc-style-cast/portraits/commission-chimao.png",
+      "sidecar": "apps/web/app/assets/npc-style-cast/portraits/commission-chimao.prompt.md",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/app/assets/npc-style-cast/portraits/commission-mozhan.png",
+      "disposition": "migrate",
+      "bytes": 114058,
+      "sha256": "56505e4752993950c0eda8e390c88c0504ccaee26dd4ee3c4504bf3583081e55",
+      "content_type": "image/png",
+      "object_key": "app/assets/npc-style-cast/portraits/commission-mozhan.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/assets/npc-style-cast/portraits/commission-mozhan.png",
+      "sidecar": "apps/web/app/assets/npc-style-cast/portraits/commission-mozhan.prompt.md",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/app/assets/npc-style-cast/portraits/commission-zhideng.png",
+      "disposition": "migrate",
+      "bytes": 124339,
+      "sha256": "8a2824b657bb22c8856fb7b961097e3f2bc4388fd9cb0f9050bf30ab2dda9833",
+      "content_type": "image/png",
+      "object_key": "app/assets/npc-style-cast/portraits/commission-zhideng.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/assets/npc-style-cast/portraits/commission-zhideng.png",
+      "sidecar": "apps/web/app/assets/npc-style-cast/portraits/commission-zhideng.prompt.md",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/app/assets/npc-style-cast/portraits/mist-bartender-lanbo.png",
+      "disposition": "migrate",
+      "bytes": 129493,
+      "sha256": "46df6bcdbb0ea5ee5fcc8d8348e3748954273664c8846002270e9c458c6e3c99",
+      "content_type": "image/png",
+      "object_key": "app/assets/npc-style-cast/portraits/mist-bartender-lanbo.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/assets/npc-style-cast/portraits/mist-bartender-lanbo.png",
+      "sidecar": "apps/web/app/assets/npc-style-cast/portraits/mist-bartender-lanbo.prompt.md",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/app/assets/npc-style-cast/portraits/neon-oracle-iris-zero.png",
+      "disposition": "migrate",
+      "bytes": 147497,
+      "sha256": "0aa58642431604ca6dc587da3ca3a4f5cb4b489a600bd634fe2cef639a6b4787",
+      "content_type": "image/png",
+      "object_key": "app/assets/npc-style-cast/portraits/neon-oracle-iris-zero.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/assets/npc-style-cast/portraits/neon-oracle-iris-zero.png",
+      "sidecar": "apps/web/app/assets/npc-style-cast/portraits/neon-oracle-iris-zero.prompt.md",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/app/assets/npc-style-cast/portraits/starport-boxing.png",
+      "disposition": "migrate",
+      "bytes": 133704,
+      "sha256": "4f6bd028a1c23a620be032edab457b0489dc7566f50cfdf55c61fa9360719532",
+      "content_type": "image/png",
+      "object_key": "app/assets/npc-style-cast/portraits/starport-boxing.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/assets/npc-style-cast/portraits/starport-boxing.png",
+      "sidecar": "apps/web/app/assets/npc-style-cast/portraits/starport-boxing.prompt.md",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/app/assets/npc-style-cast/portraits/terminal-repair-luotong.png",
+      "disposition": "migrate",
+      "bytes": 138822,
+      "sha256": "bb65dd909a21a109c430ff6e006057ca80597774e7d280acfb8bb38498738174",
+      "content_type": "image/png",
+      "object_key": "app/assets/npc-style-cast/portraits/terminal-repair-luotong.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/assets/npc-style-cast/portraits/terminal-repair-luotong.png",
+      "sidecar": "apps/web/app/assets/npc-style-cast/portraits/terminal-repair-luotong.prompt.md",
+      "remote_status": "deleted"
+    },
+    {
+      "source": "apps/web/app/assets/npc-style-cast/space-npc-style-cast.png",
+      "disposition": "migrate",
+      "bytes": 2861361,
+      "sha256": "8e661e51497a54678746515156631bcec8e2e56373a20bae5b840ac612584546",
+      "content_type": "image/png",
+      "object_key": "app/assets/npc-style-cast/space-npc-style-cast.png",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/assets/npc-style-cast/space-npc-style-cast.png",
+      "sidecar": "apps/web/app/assets/npc-style-cast/space-npc-style-cast.prompt.md",
+      "remote_status": "deleted"
+    }
+  ]
+}

@@ -23,7 +23,8 @@
     "07-23-legacy-creator-sillytavern-removal",
     "07-23-legacy-home-social-removal",
     "07-23-legacy-space-contract-removal",
-    "07-23-legacy-schema-config-removal"
+    "07-23-legacy-schema-config-removal",
+    "07-23-legacy-media-assets-removal"
   ],
   "parent": "07-22-product-mainline-rebuild",
   "relatedFiles": [],
