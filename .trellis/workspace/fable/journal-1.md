@@ -208,3 +208,36 @@ Rewrote the platform mainline and negative boundary documents around StoryWorld,
 ### Next Steps
 
 - None - task complete
+
+
+## Session 7: Define StoryWorld schema and agent contracts
+
+**Date**: 2026-07-23
+**Task**: Define StoryWorld schema and agent contracts
+**Branch**: `main`
+
+### Summary
+
+Replaced the legacy Space schema and collaboration rules with the confirmed StoryWorld, Character, PlayerRole, PlayerStoryState, StoryRun, and CharacterRelationship contracts, including publication, identity, privacy, AI write-boundary, and historical canon constraints.
+
+### Main Changes
+
+- Detailed change bullets were not supplied; see the summary above.
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `45f9fbc1` | (see git log) |
+
+### Testing
+
+- Validation was not recorded for this session.
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete

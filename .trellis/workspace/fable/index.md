@@ -8,7 +8,7 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-1.md`
-- **Total Sessions**: 6
+- **Total Sessions**: 7
 - **Last Active**: 2026-07-23
 <!-- @@@/auto:current-status -->
 
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-1.md` | ~210 | Active |
+| `journal-1.md` | ~243 | Active |
 <!-- @@@/auto:active-documents -->
 
 ---
@@ -29,6 +29,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 7 | 2026-07-23 | Define StoryWorld schema and agent contracts | `45f9fbc1` | `main` |
 | 6 | 2026-07-23 | Rewrite story platform boundaries | `216475f4` | `main` |
 | 5 | 2026-07-23 | Rewrite public product positioning | `1ae537a0`, `34a03c65` | `main` |
 | 4 | 2026-07-22 | Complete Annie Broad Street historical story | `e7a38fe4`, `580919b0` | `main` |
