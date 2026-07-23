@@ -342,3 +342,36 @@ Implemented immutable StoryWorld content models, strict registry validation, tas
 ### Next Steps
 
 - None - task complete
+
+
+## Session 11: 清退旧创作者、地图与媒体资源
+
+**Date**: 2026-07-23
+**Task**: 清退旧创作者、地图与媒体资源
+**Branch**: `main`
+
+### Summary
+
+将玩家前台收口为首页、角色与故事三类路由，删除中文及旧兼容入口、地图和创作者运行时；清退 333 个旧媒体对象并完成前后端与远端核验。
+
+### Main Changes
+
+- Detailed change bullets were not supplied; see the summary above.
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `122c69c0` | (see git log) |
+
+### Testing
+
+- Validation was not recorded for this session.
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete

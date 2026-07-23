@@ -8,7 +8,7 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-1.md`
-- **Total Sessions**: 10
+- **Total Sessions**: 11
 - **Last Active**: 2026-07-23
 <!-- @@@/auto:current-status -->
 
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-1.md` | ~344 | Active |
+| `journal-1.md` | ~377 | Active |
 <!-- @@@/auto:active-documents -->
 
 ---
@@ -29,6 +29,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 11 | 2026-07-23 | 清退旧创作者、地图与媒体资源 | `122c69c0` | `main` |
 | 10 | 2026-07-23 | 清退旧 NPC 媒体素材 | `df669a73` | `main` |
 | 9 | 2026-07-23 | Define immutable StoryWorld content registry | `ca3c00a1` | `main` |
 | 8 | 2026-07-23 | Complete story platform contract phase | `34a03c65`, `216475f4`, `45f9fbc1` | `main` |
