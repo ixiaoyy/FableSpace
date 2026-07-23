@@ -1,0 +1,32 @@
+{
+  "id": "legacy-space-removal",
+  "name": "legacy-space-removal",
+  "title": "删除旧 Space 与供给侧能力",
+  "description": "在新主链路可运行后删除地图、Space、UGC、店主、SillyTavern 和旧兼容路由及代码。",
+  "status": "planning",
+  "dev_type": null,
+  "scope": null,
+  "package": null,
+  "priority": "P0",
+  "creator": "fable",
+  "assignee": "fable",
+  "createdAt": "2026-07-23",
+  "completedAt": null,
+  "branch": null,
+  "base_branch": "main",
+  "worktree_path": null,
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [
+    "07-23-legacy-map-removal",
+    "07-23-legacy-creator-sillytavern-removal",
+    "07-23-legacy-home-social-removal",
+    "07-23-legacy-space-contract-removal",
+    "07-23-legacy-schema-config-removal"
+  ],
+  "parent": "07-22-product-mainline-rebuild",
+  "relatedFiles": [],
+  "notes": "",
+  "meta": {}
+}

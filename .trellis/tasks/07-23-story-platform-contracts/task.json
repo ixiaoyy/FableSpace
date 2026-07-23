@@ -1,0 +1,30 @@
+{
+  "id": "story-platform-contracts",
+  "name": "story-platform-contracts",
+  "title": "重写角色故事平台合同与术语",
+  "description": "将权威文档、协作约束和公开术语统一到角色优先的系统故事平台合同。",
+  "status": "planning",
+  "dev_type": null,
+  "scope": null,
+  "package": null,
+  "priority": "P0",
+  "creator": "fable",
+  "assignee": "fable",
+  "createdAt": "2026-07-23",
+  "completedAt": null,
+  "branch": null,
+  "base_branch": "main",
+  "worktree_path": null,
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [
+    "07-23-public-product-docs",
+    "07-23-platform-boundary-docs",
+    "07-23-schema-agent-contracts"
+  ],
+  "parent": "07-22-product-mainline-rebuild",
+  "relatedFiles": [],
+  "notes": "",
+  "meta": {}
+}

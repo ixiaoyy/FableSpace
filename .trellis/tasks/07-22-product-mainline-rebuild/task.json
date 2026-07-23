@@ -1,0 +1,33 @@
+{
+  "id": "product-mainline-rebuild",
+  "name": "product-mainline-rebuild",
+  "title": "产品主线重构",
+  "description": "重新定义 FableSpace 当前唯一产品主线，并同步清理权威文档、前台入口与历史兼容层造成的旧定位信号。",
+  "status": "planning",
+  "dev_type": null,
+  "scope": null,
+  "package": null,
+  "priority": "P0",
+  "creator": "fable",
+  "assignee": "fable",
+  "createdAt": "2026-07-22",
+  "completedAt": null,
+  "branch": null,
+  "base_branch": "main",
+  "worktree_path": null,
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [
+    "07-23-story-platform-contracts",
+    "07-23-story-world-domain",
+    "07-23-p0-system-stories",
+    "07-23-character-first-player-flow",
+    "07-23-legacy-space-removal",
+    "07-23-story-platform-integration"
+  ],
+  "parent": null,
+  "relatedFiles": [],
+  "notes": "",
+  "meta": {}
+}

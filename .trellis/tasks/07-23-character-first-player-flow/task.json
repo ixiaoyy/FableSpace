@@ -1,0 +1,30 @@
+{
+  "id": "character-first-player-flow",
+  "name": "character-first-player-flow",
+  "title": "实现角色优先玩家前台",
+  "description": "实现角色发现、固定身份入场、对话选择、关系反馈和回访续写的前台唯一链路。",
+  "status": "planning",
+  "dev_type": null,
+  "scope": null,
+  "package": null,
+  "priority": "P0",
+  "creator": "fable",
+  "assignee": "fable",
+  "createdAt": "2026-07-23",
+  "completedAt": null,
+  "branch": null,
+  "base_branch": "main",
+  "worktree_path": null,
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [
+    "07-23-character-discovery-routes",
+    "07-23-story-interaction-ui",
+    "07-23-story-continuity-ui"
+  ],
+  "parent": "07-22-product-mainline-rebuild",
+  "relatedFiles": [],
+  "notes": "",
+  "meta": {}
+}

@@ -1,0 +1,32 @@
+{
+  "id": "story-world-domain",
+  "name": "story-world-domain",
+  "title": "建立 StoryWorld 领域与持久化",
+  "description": "建立 StoryWorld、Character、PlayerRole、PlayerStoryState、故事轮次和关系状态的新后端合同。",
+  "status": "planning",
+  "dev_type": null,
+  "scope": null,
+  "package": null,
+  "priority": "P0",
+  "creator": "fable",
+  "assignee": "fable",
+  "createdAt": "2026-07-23",
+  "completedAt": null,
+  "branch": null,
+  "base_branch": "main",
+  "worktree_path": null,
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [
+    "07-23-story-content-model",
+    "07-23-player-story-state-storage",
+    "07-23-story-runtime-api",
+    "07-23-player-identity-resolution",
+    "07-23-system-llm-runtime"
+  ],
+  "parent": "07-22-product-mainline-rebuild",
+  "relatedFiles": [],
+  "notes": "",
+  "meta": {}
+}

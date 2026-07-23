@@ -1,0 +1,29 @@
+{
+  "id": "p0-system-stories",
+  "name": "p0-system-stories",
+  "title": "重建 P0 两个系统故事",
+  "description": "按新合同交付安妮宽街与雪夜封宫两个系统故事及其固定 PlayerRole。",
+  "status": "planning",
+  "dev_type": null,
+  "scope": null,
+  "package": null,
+  "priority": "P0",
+  "creator": "fable",
+  "assignee": "fable",
+  "createdAt": "2026-07-23",
+  "completedAt": null,
+  "branch": null,
+  "base_branch": "main",
+  "worktree_path": null,
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [
+    "07-23-broad-street-story",
+    "07-23-palace-snow-edict-story"
+  ],
+  "parent": "07-22-product-mainline-rebuild",
+  "relatedFiles": [],
+  "notes": "",
+  "meta": {}
+}
