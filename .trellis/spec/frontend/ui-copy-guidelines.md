@@ -45,6 +45,8 @@ Keep only content or interface state that the user directly needs:
 - concise field labels, values, dates, counts, and necessary status words;
 - validation or failure messages that tell the user what happened or what
   action is available, without explaining implementation.
+- a single, standardized provenance notice inside a user-opened historical
+  reference surface, plus per-entry content-integrity status labels.
 
 ```tsx
 // Correct: content and action carry the meaning.
@@ -53,6 +55,34 @@ Keep only content or interface state that the user directly needs:
 <span>伦敦宽街 · 1854</span>
 <Link to={target}>回应</Link>
 ```
+
+## Narrow Exception: Historical Reference Integrity
+
+A user-opened historical reference surface may display:
+
+```tsx
+<p>含 AI 总结；剧情设定可能包含虚构。</p>
+<Badge>史实</Badge>
+<Badge>剧情设定</Badge>
+<Badge>待核验</Badge>
+```
+
+This exception exists so players can distinguish reviewed history from
+fictional story material. It is not permission to add product explanations,
+AI disclaimers, or provenance paragraphs elsewhere.
+
+Contract:
+
+- Show the notice once inside the historical reference surface only.
+- Do not show it on the homepage, character cards, or the mobile chat first screen.
+- Every historical reference entry must be classified as `史实`, `剧情设定`,
+  or `待核验`.
+- `史实` requires a reviewed source. AI-only or source-incomplete text must
+  remain `待核验`.
+- Split mixed fact and fiction into separate entries instead of hiding both
+  behind one generic warning.
+- Runtime AI may summarize published reference entries but must preserve their
+  classification and sources; it may not mint a new `史实` entry.
 
 ## Information Architecture Contract
 
@@ -74,3 +104,5 @@ Keep only content or interface state that the user directly needs:
 - [ ] Verify the mobile first viewport contains no explanatory paragraph.
 - [ ] Verify one returned character uses the same collection component and card size as multiple characters.
 - [ ] Search changed UI for explanatory patterns such as `先认识`, `为什么`, `这里会`, `页面不会`, `用于`, and `说明`.
+- [ ] If a historical reference surface is present, verify the single allowed notice and every entry's `史实` / `剧情设定` / `待核验` status.
+- [ ] Verify the historical-reference exception has not leaked into homepage cards or the mobile chat first screen.
