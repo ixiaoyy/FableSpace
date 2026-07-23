@@ -9,8 +9,12 @@ from fastapi.responses import FileResponse, JSONResponse, RedirectResponse
 from .api.response_envelope import add_api_response_envelope_middleware
 from .api.v1.auth import ParallelLinesAccessVerifier, is_private_access_allowed
 from .application.spaces import SpaceApplicationService
+from .application.story_worlds import StoryWorldApplicationService, SystemStoryDialogueResponder
 from .api.v1.router import api_router
+from .content import STORY_WORLD_REGISTRY
 from .core.space import SpaceStore
+from .infrastructure.database import Database
+from .infrastructure.storage import resolve_database_url
 from .infrastructure.settings import ApiSettings
 from .infrastructure.generated_storage import GeneratedStorageError, create_generated_storage
 from .infrastructure.storage import create_space_store
@@ -53,10 +57,29 @@ def create_app(settings: ApiSettings | None = None) -> FastAPI:
 
     store = create_store(resolved)
     spaces_service = SpaceApplicationService(store)
+    story_database_url = resolve_database_url(resolved)
+    if not story_database_url:
+        story_database_url = (
+            f"sqlite:///{(resolved.output_root / 'story-runtime.sqlite3').resolve().as_posix()}"
+        )
+    story_database = Database(
+        url=story_database_url,
+        pool_size=resolved.mysql_pool_size,
+        max_overflow=resolved.mysql_max_overflow,
+        echo=resolved.mysql_echo,
+    )
+    story_database.create_tables()
+    story_worlds_service = StoryWorldApplicationService(
+        story_database,
+        STORY_WORLD_REGISTRY,
+        SystemStoryDialogueResponder(),
+    )
 
     app = FastAPI(title=resolved.app_name, version=resolved.api_version)
     app.state.settings = resolved
     app.state.spaces = spaces_service
+    app.state.story_worlds = story_worlds_service
+    app.state.story_database = story_database
     app.state.generated_storage = generated_storage
     app.state.access_verifier = ParallelLinesAccessVerifier(resolved)
 
@@ -77,6 +100,7 @@ def create_app(settings: ApiSettings | None = None) -> FastAPI:
             request.method != "OPTIONS"
             and protected_path
             and request.url.path not in PRIVATE_GATE_PUBLIC_PATHS
+            and not request.url.path.startswith("/api/v1/story-worlds/")
             and not await is_private_access_allowed(request)
         ):
             return JSONResponse(

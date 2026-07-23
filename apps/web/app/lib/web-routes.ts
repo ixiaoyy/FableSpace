@@ -16,6 +16,10 @@ export const WEB_PATHS = {
   stories: "/stories",
 } as const
 
+export function storyWorldCharacterPath(storyWorldId: string, characterId: string) {
+  return `/story-worlds/${encodePathSegment(storyWorldId)}/characters/${encodePathSegment(characterId)}`
+}
+
 function compactUint64(value: bigint) {
   if (value < 0n || value > UINT64_MAX) return ""
 

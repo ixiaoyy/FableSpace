@@ -8,7 +8,12 @@ import {
 import { useEffect, useMemo, useRef, useState } from "react"
 import { Link } from "react-router"
 
-import { characterSpacePath, spacePath, WEB_PATHS } from "../lib/web-routes"
+import {
+  characterSpacePath,
+  spacePath,
+  storyWorldCharacterPath,
+  WEB_PATHS,
+} from "../lib/web-routes"
 import type { Space, SpaceCharacter } from "../lib/spaces"
 
 import "./home-character-discovery.css"
@@ -32,6 +37,8 @@ const FEATURED_CHARACTER_IDS = [
   "char_story_palace_eunuch_wei",
   "char_story_palace_princess_xiao",
 ] as const
+const ANNIE_CHARACTER_ID = "char_history_broad_street_annie"
+const ANNIE_STORY_WORLD_ID = "history_broad_street_water_1854"
 
 function characterAvatar(character: SpaceCharacter) {
   return (
@@ -271,6 +278,9 @@ function CharacterCard({
 }) {
   const { space, character, avatar, tag } = entry
   const cardId = `character-card-${character.id}`
+  const primaryPath = character.id === ANNIE_CHARACTER_ID
+    ? storyWorldCharacterPath(ANNIE_STORY_WORLD_ID, ANNIE_CHARACTER_ID)
+    : characterSpacePath(space, character)
 
   return (
     <article
@@ -295,7 +305,7 @@ function CharacterCard({
       </div>
 
       <div className="characterStoryActions">
-        <Link className="characterStoryPrimaryAction" to={characterSpacePath(space, character)}>
+        <Link className="characterStoryPrimaryAction" to={primaryPath}>
           <span>去见{character.name}</span>
           <ArrowRight aria-hidden="true" />
         </Link>
