@@ -309,3 +309,36 @@ Implemented immutable StoryWorld content models, strict registry validation, tas
 ### Next Steps
 
 - None - task complete
+
+
+## Session 10: 清退旧 NPC 媒体素材
+
+**Date**: 2026-07-23
+**Task**: 清退旧 NPC 媒体素材
+**Branch**: `main`
+
+### Summary
+
+删除 25 个无活动引用的旧 npc-style-cast CDN 对象及其 prompt sidecar，媒体清单收敛为 333 项，并完成远端 404、残留引用和前端构建验证。
+
+### Main Changes
+
+- Detailed change bullets were not supplied; see the summary above.
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `df669a73` | (see git log) |
+
+### Testing
+
+- Validation was not recorded for this session.
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
