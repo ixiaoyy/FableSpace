@@ -19,7 +19,8 @@
   "pr_url": null,
   "subtasks": [],
   "children": [
-    "07-23-remove-home-me-routes"
+    "07-23-remove-home-me-routes",
+    "07-23-remove-home-me-artboard-references"
   ],
   "parent": "07-23-legacy-space-removal",
   "relatedFiles": [],

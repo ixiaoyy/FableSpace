@@ -307,18 +307,13 @@ const HOME_LAYOUT = {
     panel: { x: 0, y: 0, w: 236, h: 1024 },
     logo: { x: 30, y: 38, w: 194, h: 88 },
     navItems: [
-      { id: "home", label: "镜像面", eyebrow: "首页", to: WEB_PATHS.home, x: 24, y: 154, w: 194, h: 62 },
-      { id: "discover", label: "角色", eyebrow: "找人聊聊", to: WEB_PATHS.spaces, x: 24, y: 225, w: 194, h: 62 },
-      { id: "echoes", label: "回访", eyebrow: "我的家", to: WEB_PATHS.myHome, x: 24, y: 296, w: 194, h: 62 },
-      { id: "memory", label: "记忆", eyebrow: "回访记录", to: WEB_PATHS.myHome, x: 24, y: 367, w: 194, h: 62 },
-      { id: "saved", label: "私密", eyebrow: "私密空间", to: WEB_PATHS.myHome, x: 24, y: 438, w: 194, h: 62 },
-      { id: "anchors", label: "地点", eyebrow: "位置锚点", to: WEB_PATHS.spaces, x: 24, y: 509, w: 194, h: 62 },
-      { id: "create", label: "店主", eyebrow: "店主后台", to: WEB_PATHS.owner, x: 24, y: 580, w: 194, h: 62 },
+      { id: "home", label: "首页", eyebrow: "角色推荐", to: WEB_PATHS.home, x: 24, y: 154, w: 194, h: 62 },
+      { id: "discover", label: "发现", eyebrow: "角色与空间", to: WEB_PATHS.spaces, x: 24, y: 225, w: 194, h: 62 },
+      { id: "create", label: "店主", eyebrow: "管理空间", to: WEB_PATHS.owner, x: 24, y: 296, w: 194, h: 62 },
     ],
     status: { x: 38, y: 790, w: 190, h: 126 },
     bottomActions: [
       { label: "切换主题", x: 53, y: 938, w: 34, h: 34, action: "theme" },
-      { label: "打开回访", x: 103, y: 938, w: 34, h: 34, to: WEB_PATHS.myHome },
     ],
   },
   userCluster: { x: 1232, y: 20, w: 288, h: 76 },
@@ -334,7 +329,6 @@ const HOME_LAYOUT = {
   search: { x: 268, y: 23, w: 858, h: 54 },
   heroActions: {
     primary: { x: 280, y: 382, w: 144, h: 54 },
-    secondary: { x: 438, y: 382, w: 133, h: 54 },
   },
   rightRailSurface: { x: 1220, y: 0, w: 316, h: 1024 },
   rightRail: {
@@ -630,10 +624,6 @@ function SidebarNavIcon({ id, variant, className }: { id: string; variant: Varia
   const Icon =
     id === "home" ? HomeIcon
     : id === "discover" ? Compass
-    : id === "echoes" ? MessageCircle
-    : id === "memory" ? BookOpen
-    : id === "saved" ? Bookmark
-    : id === "anchors" ? MapPin
     : Send
 
   return (
@@ -645,7 +635,7 @@ function SidebarNavIcon({ id, variant, className }: { id: string; variant: Varia
   )
 }
 
-function SidebarBottomIcon({ id, className }: { id: "theme" | "echoes"; className?: string }) {
+function SidebarBottomIcon({ className }: { className?: string }) {
   const common = {
     viewBox: "0 0 24 24",
     fill: "none",
@@ -657,26 +647,10 @@ function SidebarBottomIcon({ id, className }: { id: "theme" | "echoes"; classNam
     className,
   }
 
-  if (id === "theme") {
-    return (
-      <svg {...common}>
-        <circle cx="12" cy="12" r="3.4" />
-        <path d="M12 3.5v2M12 18.5v2M3.5 12h2M18.5 12h2M6 6l1.4 1.4M16.6 16.6 18 18M18 6l-1.4 1.4M7.4 16.6 6 18" />
-      </svg>
-    )
-  }
-  if (id === "echoes") {
-    return (
-      <svg {...common}>
-        <path d="M5.2 6.8h13.6v9.5H9l-3.8 2.5V6.8Z" />
-        <path d="M8.5 10.2h.01M11.9 10.2h.01M15.3 10.2h.01" />
-      </svg>
-    )
-  }
   return (
     <svg {...common}>
-      <circle cx="12" cy="12" r="3" />
-      <path d="M12 3.8v2.1M12 18.1v2.1M4.9 4.9l1.5 1.5M17.6 17.6l1.5 1.5M3.8 12h2.1M18.1 12h2.1M4.9 19.1l1.5-1.5M17.6 6.4l1.5-1.5" />
+      <circle cx="12" cy="12" r="3.4" />
+      <path d="M12 3.5v2M12 18.5v2M3.5 12h2M18.5 12h2M6 6l1.4 1.4M16.6 16.6 18 18M18 6l-1.4 1.4M7.4 16.6 6 18" />
     </svg>
   )
 }
@@ -757,8 +731,7 @@ function FableSpaceSidebar({
         })}
       </nav>
 
-      {sidebar.bottomActions.map((item) =>
-        "action" in item && item.action === "theme" ? (
+      {sidebar.bottomActions.map((item) => (
           <button
             key={item.label}
             type="button"
@@ -771,24 +744,9 @@ function FableSpaceSidebar({
             )}
             style={panelBoxStyle(panel, item.x, item.y, item.w, item.h)}
           >
-            <SidebarBottomIcon id="theme" className="h-[22px] w-[22px]" />
+            <SidebarBottomIcon className="h-[22px] w-[22px]" />
           </button>
-        ) : (
-          <Link
-            key={item.label}
-            to={"to" in item ? item.to : "/"}
-            aria-label={item.label}
-            onMouseDown={suppressMouseFocus}
-            className={cx(
-              "absolute grid touch-manipulation place-items-center rounded-full outline-none transition focus:ring-4 focus:ring-violet-400/45",
-              isBlack ? "text-cyan-100/70 hover:text-cyan-100" : "text-[#8491ad] hover:text-[#7b66ff]",
-            )}
-            style={panelBoxStyle(panel, item.x, item.y, item.w, item.h)}
-          >
-            <SidebarBottomIcon id="echoes" className="h-[22px] w-[22px]" />
-          </Link>
-        ),
-      )}
+      ))}
     </aside>
   )
 }
@@ -1150,7 +1108,7 @@ function FableSpaceOnlineEntitiesPanel({
   entities,
   forceVisible = false,
   title,
-  actionTo = WEB_PATHS.myHome,
+  actionTo = WEB_PATHS.spaces,
   limit = 3,
 }: {
   artboard: Artboard
@@ -1376,9 +1334,8 @@ function FableSpaceRecentMemoriesPanel({
   const visibleMemories = memories.slice(0, 2)
   return (
     <FableSpacePanelShell artboard={artboard} variant={variant} box={HOME_LAYOUT.bottomRail.recentMemories} forceVisible={forceVisible} className="flex flex-col gap-1.5 !p-3">
-      <header className="flex items-center justify-between gap-3">
+      <header>
         <h2 className={cx("text-[0.82rem] font-black", isBlack ? "text-cyan-50" : "text-slate-800")}>{isBlack ? "MEMORY STREAM" : "最近的记忆"}</h2>
-        <Link to={WEB_PATHS.myHome} onMouseDown={suppressMouseFocus} className={cx("text-[0.62rem] font-black outline-none transition focus:ring-4 focus:ring-violet-400/40", isBlack ? "text-cyan-300" : "text-slate-400")}>查看全部 →</Link>
       </header>
       <div data-fable-space-recent-memories="real-list" className={cx("flex flex-col gap-1.5 overflow-hidden", isBlack ? "divide-y divide-cyan-300/12" : "divide-y divide-slate-200/60")}>
         {visibleMemories.length ? (
@@ -2316,9 +2273,8 @@ function FableSpaceHomeMobile({
         >
           今天想见谁？
         </h1>
-        <div className="relative z-10 mt-4 flex gap-3">
+        <div className="relative z-10 mt-4">
           <Link to={WEB_PATHS.spaces} className={cx("inline-flex min-h-11 flex-1 touch-manipulation items-center justify-center rounded-[1.15rem] px-4 text-sm font-black", isBlack ? "bg-[#5966bb] text-[#f3f0ff] shadow-[0_0_24px_rgba(89,102,187,0.22)]" : "bg-violet-500 text-white shadow-[0_14px_28px_rgba(118,91,255,0.22)]")}>找角色</Link>
-          <Link to={WEB_PATHS.myHome} className={cx("inline-flex min-h-11 flex-1 touch-manipulation items-center justify-center rounded-[1.15rem] border px-4 text-sm font-black", isBlack ? "border-cyan-300/26 bg-[#252a52]/72 text-cyan-100 shadow-[inset_0_0_12px_rgba(142,134,216,0.08)]" : "border-violet-100 bg-white text-violet-500")}>我的回访</Link>
         </div>
       </section>
       <section className="mt-4">
@@ -2399,18 +2355,11 @@ function FableSpaceHomeMobile({
 
 function HomeHeroActions({ artboard, variant, forceVisible = false }: { artboard: Artboard; variant: Variant; forceVisible?: boolean }) {
   const isBlack = variant === "black"
-  const playIconSize = 14
-  const playIconStrokeWidth = 2.75
   const actions = HOME_LAYOUT.heroActions
   const primaryClass = isBlack
     ? "border-cyan-200/40 bg-[#5966bb] text-[#f3f0ff] shadow-[0_0_28px_rgba(89,102,187,0.24)]"
     : "border-violet-300/45 bg-[#8e83ff] text-white shadow-[0_14px_28px_rgba(126,111,255,0.22)]"
-  const secondaryClass = isBlack
-    ? "border-cyan-300/35 bg-[#1b2144]/88 text-cyan-50 shadow-[0_0_18px_rgba(89,102,187,0.12)]"
-    : "border-slate-300/60 bg-white/86 text-slate-700 shadow-[0_10px_24px_rgba(74,98,176,0.1)]"
-
   return (
-    <>
       <Link
         to={WEB_PATHS.spaces}
         aria-label="找角色"
@@ -2429,29 +2378,6 @@ function HomeHeroActions({ artboard, variant, forceVisible = false }: { artboard
           <ArrowRight size={16} strokeWidth={3} className="text-white" />
         )}
       </Link>
-      <Link
-        to={WEB_PATHS.myHome}
-        aria-label="打开我的回访"
-        onMouseDown={suppressMouseFocus}
-        className={cx(
-          "absolute z-20 flex min-h-11 touch-manipulation items-center justify-center gap-2 rounded-[1.15rem] border text-sm font-black transition hover:-translate-y-0.5 focus:outline-none focus:ring-4",
-          forceVisible ? "opacity-100" : "opacity-0 focus:opacity-100",
-          secondaryClass,
-        )}
-        style={boxStyle(artboard, actions.secondary.x, actions.secondary.y, actions.secondary.w, actions.secondary.h)}
-      >
-        <span
-          aria-hidden="true"
-          className="grid h-7 w-7 shrink-0 place-items-center"
-        >
-          <BookOpen
-            size={playIconSize}
-            strokeWidth={playIconStrokeWidth}
-          />
-        </span>
-        <span className="flex flex-col leading-tight"><span>我的回访</span><span className={cx("text-[10px] uppercase tracking-[0.12em]", isBlack ? "text-cyan-100/56" : "text-slate-500")}>RETURN</span></span>
-      </Link>
-    </>
   )
 }
 
@@ -2805,7 +2731,7 @@ function FableSpaceDiscoverRightRail({
       <section className={cx("pointer-events-auto absolute overflow-hidden rounded-[1.35rem] border p-[clamp(8px,1.04vw,16px)]", panelClass)} style={panelBoxStyle(railPanel, 12, 396, 286, 210)}>
         <header className="mb-[clamp(6px,0.78vw,12px)] flex items-center justify-between">
           <h2 className={cx("text-[15px] font-black", isBlack ? "text-cyan-50" : "text-slate-800")}>推荐故事</h2>
-          <Link to={WEB_PATHS.myHome} onMouseDown={suppressMouseFocus} className={cx("text-[11px] font-black", subtleLinkClass)}>查看全部 →</Link>
+          <Link to={WEB_PATHS.spaces} onMouseDown={suppressMouseFocus} className={cx("text-[11px] font-black", subtleLinkClass)}>查看全部 →</Link>
         </header>
         <div className="space-y-[clamp(4px,0.65vw,10px)]">
           {recommendedCards.map((card, index) => {
