@@ -12,7 +12,7 @@
 - [x] 删除失去调用方的 contracts、services、policies、stores、解析器和私有配置。
 - [x] 移除 SillyTavern、角色卡、owner LLM 与 Token 残留引用。
 - [x] 运行前后端验证、实际路由审计与脏工作区暂存快照审计。
-- [ ] 提交、归档并记录 journal。
+- [x] 提交、归档并记录 journal。
 
 ## Verification evidence
 
