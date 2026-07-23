@@ -1,13 +1,9 @@
 import { useState } from "react"
-import { useLoaderData, useNavigation, useRevalidator, type LinksFunction } from "react-router"
+import { useLoaderData, useNavigation, useRevalidator } from "react-router"
 
-import { FableSpaceHomeReference } from "../components/fable-space-reference-artboards"
+import { HomeCharacterDiscovery } from "../components/home-character-discovery"
 import { VisitorPlayIdentityOnboarding } from "../components/visitor-play-identity-onboarding"
-import { useSessionAccount } from "../hooks/useSessionAccount"
-import { useTheme } from "../hooks/useTheme"
-import { loadHistoryPilotSpace } from "../lib/history-pilot-space"
-import { buildHomepageView } from "../lib/homepage-spaces"
-import { mediaAssetUrl } from "../lib/media-assets"
+import { loadHomeStoryCollection } from "../lib/home-story-collection"
 import { errorMessage, type SpaceListResponse } from "../lib/spaces"
 import {
   clearVisitorPlayIdentity,
@@ -17,8 +13,6 @@ import {
   type VisitorPlayIdentity,
 } from "../lib/visitor-play-identity"
 
-const homeBlackHeroVisual = mediaAssetUrl("app/assets/fable-space-05-10/home-black/hero-system-visual.webp")
-
 const EMPTY_LIST_RESULT: SpaceListResponse = { spaces: [], count: 0 }
 
 type HomeLoaderData = {
@@ -26,19 +20,10 @@ type HomeLoaderData = {
   error: string
 }
 
-export const links: LinksFunction = () => [
-  {
-    rel: "preload",
-    as: "image",
-    href: homeBlackHeroVisual,
-    type: "image/webp",
-  },
-]
-
 export async function clientLoader(): Promise<HomeLoaderData> {
   try {
     return {
-      result: await loadHistoryPilotSpace(),
+      result: await loadHomeStoryCollection(),
       error: "",
     }
   } catch (error) {
@@ -54,17 +39,14 @@ export default function HomeRoute() {
   const navigation = useNavigation()
   const revalidator = useRevalidator()
   const [playIdentity, setPlayIdentity] = useState<VisitorPlayIdentity | null>(() => readVisitorPlayIdentity())
-  const sessionAccount = useSessionAccount()
-  const { toggleTheme } = useTheme()
   const isLoading = navigation.state === "loading" || revalidator.state === "loading"
   const result = isLoading ? EMPTY_LIST_RESULT : loaderData.result
   const loadError = isLoading ? "" : loaderData.error
-  const homepage = buildHomepageView(result, loadError)
   const loadState = isLoading
     ? "loading"
     : loadError
       ? "error"
-      : homepage.featuredCitySlices.length > 0
+      : result.spaces.length > 0
         ? "ready"
         : "empty"
 
@@ -91,17 +73,13 @@ export default function HomeRoute() {
   }
 
   return (
-    <FableSpaceHomeReference
-      variant="black"
-      featuredCitySlices={homepage.featuredCitySlices}
-      isLoading={isLoading}
+    <HomeCharacterDiscovery
+      spaces={result.spaces}
       loadState={loadState}
       loadError={loadError}
       onRetry={() => revalidator.revalidate()}
-      sessionAccount={sessionAccount}
       visitorIdentityLabel={visitorPlayIdentityLabel(playIdentity)}
       onReselectIdentity={handleIdentityReselect}
-      onToggleTheme={toggleTheme}
     />
   )
 }

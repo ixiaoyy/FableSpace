@@ -18,7 +18,9 @@
   "commit": null,
   "pr_url": null,
   "subtasks": [],
-  "children": [],
+  "children": [
+    "07-23-home-character-carousel"
+  ],
   "parent": "07-23-character-first-player-flow",
   "relatedFiles": [],
   "notes": "",

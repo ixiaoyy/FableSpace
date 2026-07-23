@@ -1,0 +1,705 @@
+.characterDiscoveryPage {
+  --character-paper: #fbf5e8;
+  --character-paper-raised: #fffaf0;
+  --character-paper-deep: #f4ead7;
+  --character-ink: #171b3c;
+  --character-muted: #6f6a75;
+  --character-orange: #f39a1f;
+  --character-orange-dark: #d67f0f;
+  --character-lavender: #7255d9;
+  --character-lavender-soft: #eee8ff;
+  --character-border: #eadcc4;
+  min-height: 100svh;
+  overflow-x: hidden;
+  color: var(--character-ink);
+  background: var(--character-paper);
+  color-scheme: light;
+  font-family: Inter, "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+}
+
+.characterDiscoveryHeader {
+  position: sticky;
+  z-index: 30;
+  top: 0;
+  display: flex;
+  min-height: 64px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 max(20px, env(safe-area-inset-left));
+  border-bottom: 1px solid rgba(203, 181, 145, 0.34);
+  background: rgba(251, 245, 232, 0.96);
+  backdrop-filter: blur(18px);
+}
+
+.characterDiscoveryBrand {
+  color: var(--character-ink);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 22px;
+  font-weight: 760;
+  letter-spacing: -0.035em;
+  text-decoration: none;
+}
+
+.characterDiscoveryHeaderSection {
+  display: inline-flex;
+  min-height: 34px;
+  align-items: center;
+  padding: 0 13px;
+  border: 1px solid #e4d6bf;
+  border-radius: 999px;
+  color: var(--character-lavender);
+  background: var(--character-paper-raised);
+  font-size: 12px;
+  font-weight: 760;
+}
+
+.characterDiscoveryContent {
+  width: min(100%, 1180px);
+  margin: 0 auto;
+  padding: clamp(30px, 5vw, 68px) 20px 112px;
+}
+
+.characterDiscoveryIntro {
+  margin: 0 auto clamp(22px, 3.2vw, 40px);
+}
+
+.characterDiscoveryIntro h1 {
+  width: fit-content;
+  margin: 0;
+  color: var(--character-ink);
+  font-family: "Noto Serif SC", "Songti SC", STSong, serif;
+  font-size: clamp(38px, 7.8vw, 72px);
+  font-weight: 700;
+  line-height: 1.08;
+  letter-spacing: -0.055em;
+}
+
+.characterDiscoveryIntro h1::after {
+  display: block;
+  width: 58%;
+  height: 3px;
+  margin-top: 12px;
+  border-radius: 999px;
+  background: var(--character-orange);
+  content: "";
+}
+
+.characterDiscoveryStage {
+  min-width: 0;
+}
+
+.characterSelectorList {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  gap: clamp(13px, 4.6vw, 24px);
+  margin-bottom: 22px;
+}
+
+.characterSelector {
+  display: grid;
+  min-width: 0;
+  min-height: 104px;
+  place-items: center;
+  gap: 8px;
+  padding: 5px;
+  border: 0;
+  color: var(--character-ink);
+  background: transparent;
+  font: inherit;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.characterSelectorPortrait {
+  display: block;
+  width: 68px;
+  height: 68px;
+  overflow: hidden;
+  border: 2px solid var(--character-paper-raised);
+  border-radius: 50%;
+  background: var(--character-paper-deep);
+  box-shadow: 0 0 0 1px #d8c9b2;
+  transition: box-shadow 180ms ease, transform 180ms ease;
+}
+
+.characterSelectorPortrait img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.characterSelectorCopy {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+  text-align: center;
+}
+
+.characterSelectorCopy strong {
+  font-family: "Noto Serif SC", "Songti SC", STSong, serif;
+  font-size: 14px;
+  line-height: 1.2;
+}
+
+.characterSelectorCopy small {
+  display: none;
+  overflow: hidden;
+  color: var(--character-muted);
+  font-size: 11px;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.characterSelector:hover .characterSelectorPortrait,
+.characterSelector:focus-visible .characterSelectorPortrait,
+.characterSelector.is-active .characterSelectorPortrait {
+  box-shadow:
+    0 0 0 2px var(--character-orange),
+    0 0 0 7px var(--character-lavender-soft);
+  transform: translateY(-2px);
+}
+
+.characterSelector.is-active strong {
+  color: var(--character-orange-dark);
+}
+
+.characterSelector:focus-visible {
+  outline: none;
+}
+
+.characterCarouselViewport {
+  width: calc(100% + 40px);
+  margin-inline: -20px;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-behavior: smooth;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  touch-action: pan-x;
+}
+
+.characterCarouselViewport::-webkit-scrollbar {
+  display: none;
+}
+
+.characterCarouselTrack {
+  display: flex;
+  gap: 14px;
+  width: max-content;
+  padding-inline: 21px;
+}
+
+.characterStoryCard {
+  display: grid;
+  width: min(430px, calc(100vw - 42px));
+  height: clamp(360px, 43svh, 392px);
+  flex: 0 0 auto;
+  grid-template-rows: minmax(0, 1fr) auto;
+  overflow: hidden;
+  border: 1px solid rgba(208, 184, 147, 0.72);
+  border-radius: 28px;
+  background: var(--character-paper-raised);
+  box-shadow: 0 18px 44px rgba(87, 65, 35, 0.13);
+  scroll-snap-align: center;
+  scroll-snap-stop: always;
+}
+
+.characterStoryCardMain {
+  display: grid;
+  min-height: 0;
+  grid-template-columns: minmax(0, 52%) minmax(0, 48%);
+}
+
+.characterStoryCardCopy {
+  z-index: 1;
+  display: grid;
+  min-width: 0;
+  align-content: start;
+  padding: clamp(22px, 6vw, 32px) 10px 20px clamp(20px, 5.6vw, 30px);
+}
+
+.characterStoryWorld {
+  min-height: 38px;
+  margin: 0;
+  overflow: hidden;
+  color: #666274;
+  font-size: 12px;
+  font-weight: 680;
+  line-height: 1.45;
+  text-overflow: ellipsis;
+}
+
+.characterStoryCard h2 {
+  margin: 4px 0 0;
+  overflow: hidden;
+  color: var(--character-ink);
+  font-family: "Noto Serif SC", "Songti SC", STSong, serif;
+  font-size: clamp(33px, 9vw, 52px);
+  font-weight: 700;
+  line-height: 1.08;
+  letter-spacing: -0.06em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.characterStoryTag {
+  display: inline-flex;
+  width: fit-content;
+  min-height: 30px;
+  align-items: center;
+  margin-top: 15px;
+  padding: 0 11px;
+  border: 1px solid #ebc9a9;
+  border-radius: 9px;
+  color: #aa5f28;
+  background: #fff1e4;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.characterStoryDescription {
+  display: -webkit-box;
+  margin: 20px 0 0;
+  overflow: hidden;
+  color: #4f4b57;
+  font-size: 13px;
+  line-height: 1.75;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+}
+
+.characterStoryPortrait {
+  min-width: 0;
+  overflow: hidden;
+  background: var(--character-paper-deep);
+}
+
+.characterStoryPortrait img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.characterStoryCard[data-character-id="char_history_broad_street_annie"] .characterStoryPortrait img {
+  object-position: 54% center;
+}
+
+.characterStoryCard[data-character-id="char_story_palace_eunuch_wei"] .characterStoryPortrait img {
+  object-position: 50% center;
+}
+
+.characterStoryCard[data-character-id="char_story_palace_princess_xiao"] .characterStoryPortrait img {
+  object-position: 48% center;
+}
+
+.characterStoryActions {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  padding: 14px;
+  border-top: 1px solid var(--character-border);
+  background: #fff8ec;
+}
+
+.characterStoryPrimaryAction,
+.characterStorySecondaryAction {
+  display: inline-flex;
+  min-height: 50px;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 780;
+  text-decoration: none;
+  transition: background 160ms ease, border-color 160ms ease, transform 160ms ease;
+}
+
+.characterStoryPrimaryAction {
+  padding: 0 16px;
+  color: #fffdf7;
+  background: var(--character-orange);
+  box-shadow: 0 9px 18px rgba(229, 133, 17, 0.24);
+}
+
+.characterStorySecondaryAction {
+  padding: 0 14px;
+  border: 1px solid #d9cae8;
+  color: var(--character-lavender);
+  background: #f8f3ff;
+}
+
+.characterStoryPrimaryAction svg,
+.characterStorySecondaryAction svg {
+  width: 17px;
+  height: 17px;
+  flex: 0 0 auto;
+}
+
+.characterStoryPrimaryAction:hover,
+.characterStoryPrimaryAction:focus-visible {
+  background: var(--character-orange-dark);
+  transform: translateY(-1px);
+}
+
+.characterStorySecondaryAction:hover,
+.characterStorySecondaryAction:focus-visible {
+  border-color: #b7a1df;
+  background: #f0e9ff;
+  transform: translateY(-1px);
+}
+
+.characterStoryPrimaryAction:focus-visible,
+.characterStorySecondaryAction:focus-visible {
+  outline: 3px solid rgba(114, 85, 217, 0.34);
+  outline-offset: 3px;
+}
+
+.characterCarouselDots {
+  display: flex;
+  justify-content: center;
+  gap: 7px;
+  margin-top: 17px;
+}
+
+.characterCarouselDots span {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #d9cfbf;
+  transition: width 180ms ease, background 180ms ease;
+}
+
+.characterCarouselDots span.is-active {
+  width: 23px;
+  border-radius: 999px;
+  background: var(--character-lavender);
+}
+
+.characterDiscoveryBottomNav {
+  position: fixed;
+  z-index: 40;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  display: grid;
+  min-height: calc(70px + env(safe-area-inset-bottom));
+  grid-template-columns: repeat(3, 1fr);
+  padding: 8px 20px max(8px, env(safe-area-inset-bottom));
+  border-top: 1px solid rgba(203, 181, 145, 0.42);
+  background: rgba(255, 250, 240, 0.96);
+  backdrop-filter: blur(18px);
+}
+
+.characterDiscoveryBottomNav > * {
+  display: grid;
+  min-height: 50px;
+  place-items: center;
+  align-content: center;
+  gap: 3px;
+  color: #9b8d7b;
+  font-size: 11px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.characterDiscoveryBottomNav svg {
+  width: 22px;
+  height: 22px;
+}
+
+.characterDiscoveryBottomNav .is-active {
+  color: var(--character-lavender);
+}
+
+.characterDiscoveryBottomNav [aria-disabled="true"] {
+  opacity: 0.54;
+}
+
+.characterDiscoveryState {
+  display: grid;
+  min-height: calc(100svh - 64px);
+  place-items: center;
+  align-content: center;
+  padding: 30px;
+  text-align: center;
+}
+
+.characterDiscoveryState h1 {
+  margin: 0;
+  font-family: "Noto Serif SC", "Songti SC", STSong, serif;
+  font-size: 30px;
+}
+
+.characterDiscoveryState p {
+  max-width: 520px;
+  margin: 12px 0 0;
+  color: var(--character-muted);
+  font-size: 14px;
+  line-height: 1.65;
+}
+
+.characterDiscoveryState button {
+  display: inline-flex;
+  min-height: 46px;
+  align-items: center;
+  gap: 8px;
+  margin-top: 20px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 999px;
+  color: white;
+  background: var(--character-orange);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 760;
+  cursor: pointer;
+}
+
+.characterDiscoveryState button svg {
+  width: 16px;
+  height: 16px;
+}
+
+@media (min-width: 720px) {
+  .characterDiscoveryContent {
+    padding-right: 34px;
+    padding-left: 34px;
+  }
+
+  .characterCarouselViewport {
+    width: calc(100% + 68px);
+    margin-inline: -34px;
+  }
+
+  .characterCarouselTrack {
+    gap: 20px;
+    padding-inline: max(34px, calc((100vw - min(560px, 72vw)) / 2));
+  }
+
+  .characterStoryCard {
+    width: min(560px, 72vw);
+    height: 470px;
+  }
+
+  .characterStoryCardCopy {
+    padding: 38px 22px 24px 38px;
+  }
+
+  .characterStoryWorld {
+    font-size: 13px;
+  }
+
+  .characterStoryDescription {
+    font-size: 14px;
+  }
+}
+
+@media (min-width: 960px) {
+  .characterDiscoveryHeader {
+    min-height: 72px;
+    padding-right: max(38px, env(safe-area-inset-right));
+    padding-left: max(38px, env(safe-area-inset-left));
+  }
+
+  .characterDiscoveryContent {
+    padding: 58px 40px 70px;
+  }
+
+  .characterDiscoveryIntro {
+    width: min(100%, 1040px);
+    margin-bottom: 46px;
+  }
+
+  .characterDiscoveryStage {
+    display: grid;
+    width: min(100%, 1040px);
+    grid-template-columns: 254px minmax(0, 1fr);
+    column-gap: 42px;
+    margin: 0 auto;
+  }
+
+  .characterSelectorList {
+    display: grid;
+    align-content: start;
+    justify-content: stretch;
+    gap: 13px;
+    margin: 0;
+  }
+
+  .characterSelector {
+    grid-template-columns: 66px minmax(0, 1fr);
+    min-height: 88px;
+    place-items: center start;
+    gap: 14px;
+    padding: 10px 14px 10px 10px;
+    border: 1px solid transparent;
+    border-radius: 24px;
+  }
+
+  .characterSelector:hover,
+  .characterSelector:focus-visible,
+  .characterSelector.is-active {
+    border-color: #e6d7c0;
+    background: var(--character-paper-raised);
+    box-shadow: 0 10px 28px rgba(91, 70, 41, 0.09);
+  }
+
+  .characterSelectorPortrait {
+    width: 66px;
+    height: 66px;
+  }
+
+  .characterSelectorCopy {
+    width: 100%;
+    gap: 5px;
+    text-align: left;
+  }
+
+  .characterSelectorCopy strong {
+    font-size: 17px;
+  }
+
+  .characterSelectorCopy small {
+    display: block;
+  }
+
+  .characterCarouselViewport {
+    width: 100%;
+    margin: 0;
+    overflow: visible;
+  }
+
+  .characterCarouselTrack {
+    display: block;
+    width: 100%;
+    padding: 0;
+  }
+
+  .characterStoryCard {
+    display: none;
+    width: 100%;
+    height: 520px;
+  }
+
+  .characterStoryCard.is-active {
+    display: grid;
+    animation: character-card-enter 190ms ease-out;
+  }
+
+  .characterStoryCardMain {
+    grid-template-columns: minmax(0, 54%) minmax(0, 46%);
+  }
+
+  .characterStoryCardCopy {
+    padding: 46px 28px 30px 46px;
+  }
+
+  .characterStoryCard h2 {
+    font-size: 58px;
+  }
+
+  .characterStoryDescription {
+    max-width: 29rem;
+    font-size: 15px;
+    -webkit-line-clamp: 5;
+  }
+
+  .characterStoryActions {
+    gap: 14px;
+    padding: 17px 19px;
+  }
+
+  .characterStoryPrimaryAction,
+  .characterStorySecondaryAction {
+    min-height: 54px;
+    font-size: 14px;
+  }
+
+  .characterCarouselDots,
+  .characterDiscoveryBottomNav {
+    display: none;
+  }
+}
+
+@media (max-width: 359px) {
+  .characterDiscoveryContent {
+    padding-right: 14px;
+    padding-left: 14px;
+  }
+
+  .characterSelectorList {
+    gap: 8px;
+  }
+
+  .characterSelectorPortrait {
+    width: 60px;
+    height: 60px;
+  }
+
+  .characterStoryCard {
+    width: calc(100vw - 30px);
+  }
+
+  .characterCarouselTrack {
+    padding-inline: 15px;
+  }
+
+  .characterStoryCardMain {
+    grid-template-columns: minmax(0, 58%) minmax(0, 42%);
+  }
+
+  .characterStoryCardCopy {
+    padding-left: 17px;
+  }
+
+  .characterStoryCard h2 {
+    font-size: 31px;
+  }
+
+  .characterStoryActions {
+    gap: 7px;
+    padding: 11px;
+  }
+
+  .characterStoryPrimaryAction,
+  .characterStorySecondaryAction {
+    min-height: 48px;
+    padding-right: 11px;
+    padding-left: 11px;
+    font-size: 12px;
+  }
+}
+
+@keyframes character-card-enter {
+  from {
+    opacity: 0;
+    transform: translateX(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .characterSelectorPortrait,
+  .characterStoryPrimaryAction,
+  .characterStorySecondaryAction,
+  .characterCarouselDots span {
+    transition: none;
+  }
+
+  .characterCarouselViewport {
+    scroll-behavior: auto;
+  }
+
+  .characterStoryCard.is-active {
+    animation: none;
+  }
+}
