@@ -3,7 +3,7 @@
   "name": "story-content-model",
   "title": "定义系统故事内容模型",
   "description": "只建立 StoryWorld、Character、PlayerRole、章节选择和发布注册表合同。",
-  "status": "planning",
+  "status": "in_progress",
   "dev_type": null,
   "scope": null,
   "package": null,
