@@ -375,3 +375,36 @@ Implemented immutable StoryWorld content models, strict registry validation, tas
 ### Next Steps
 
 - None - task complete
+
+
+## Session 12: 铺通安妮故事垂直链路
+
+**Date**: 2026-07-23
+**Task**: 铺通安妮故事垂直链路
+**Branch**: `main`
+
+### Summary
+
+完成安妮从首页详情、固定乞丐身份、自由回应与审核选择，到结局恢复和重新开始的 StoryWorld 新合同闭环；新增匿名持久化、历史内容边界、响应式页面及定向验证。
+
+### Main Changes
+
+- Detailed change bullets were not supplied; see the summary above.
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `575aace5` | (see git log) |
+
+### Testing
+
+- Validation was not recorded for this session.
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
