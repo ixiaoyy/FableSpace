@@ -1,17 +1,20 @@
 # FableSpace
 
-FableSpace 是一个基于真实地理位置的角色故事平台。玩家选择私有游玩身份，从想见的角色进入其所属的完整 Space，通过对话、选择、记忆和回访持续推进故事。
+FableSpace 是一个角色故事平台。玩家因想见一个角色而进入其所属的完整故事世界，通过对话和选择建立关系、经历事件，并在回访中延续彼此的故事。
 
-项目适合自托管部署，也适合作为“真实坐标 + AI NPC + 角色卡 + 连续故事”方向的开源基础工程。
+项目以经过策划、审核和版本化发布的系统故事为内容基础，适合自托管部署，也适合作为“角色演绎 + 人工剧情骨架 + 私有连续性”方向的开源基础工程。
 
 ## 主要能力
 
-- 角色优先发现：先选游玩身份和性别，再从角色进入其所属的完整故事 Space。
-- 真实地图锚点：每个 Space 必须绑定真实坐标，地图提供现实入口与氛围，而不是导航玩法。
-- AI NPC 对话：角色依据自身动机、秘密、命运与当前事件回应，并写回访客私有状态和记忆。
-- 角色卡兼容：角色数据优先兼容 SillyTavern Character Card V2，支持导入和导出。
-- 连续故事：支持线索、选择、关系变化、状态卡和回访续写。
+- 角色优先发现：首页直接呈现角色，玩家从想见的人进入其故事世界。
+- 故事固定身份：每个故事提供经过设计的玩家身份、背景和入场理由，不使用全平台通用身份。
+- 对话与选择：玩家可以自由回应，也可以作出人工编写的关键选择；AI 在已发布剧情和正史边界内演绎角色。
+- 关系与分支：自然对话可以小幅改变好感和语气，关键选择会显著改变关系与可进入分支。
+- 私有连续性：记录玩家的故事进度、角色关系、关键选择和记忆，下次回访从已有结果继续。
+- 历史内容边界：历史故事通过原创角色进入真实事件，玩家可以改变私人经历，不能改写已经核验的史实。
 - 自托管部署：前端、后端和持久化数据可通过 Docker Compose 一体化运行。
+
+当前 P0 包含两个系统故事：安妮在 1854 年伦敦宽街向玩家讨水，以及架空宫廷“雪夜封宫”中魏观海与萧明珠围绕寝殿和未宣诏书的冲突。
 
 ## 技术栈
 
@@ -95,24 +98,17 @@ docker compose up --build -d
 
 | 变量 | 说明 |
 |------|------|
-| `FABLESPACE_STORAGE_BACKEND` | 默认 `database`；显式设为 `json` 时使用旧 JSON 文件存储 |
 | `FABLESPACE_DATABASE_URL` | 首选 SQLAlchemy 数据库 URL；留空时使用默认 SQLite |
-| `FABLESPACE_MYSQL_URL` | 旧 MySQL URL 别名，新部署优先使用 `FABLESPACE_DATABASE_URL` |
 | `FABLESPACE_OUTPUT_ROOT` | 后端输出目录；Docker Compose 中为 `/data` |
-| `FABLESPACE_SEED_DEFAULT_SPACES` | 是否写入默认示例空间，默认 `1` |
 | `FABLESPACE_CORS_ORIGINS` | 前后端分离部署时允许的浏览器来源 |
-| `OPENCODE_API_KEY` | 可选的系统示例 LLM Key；不要用于保存店主私有 Key |
+| `OPENCODE_API_KEY` | 可选的系统 LLM 服务 Key；不要提交真实密钥 |
 
 前端环境示例位于 `apps/web/.env.example`。Docker 默认使用同源 `/api` 调用后端；如果你自行构建或分离部署前端，可以按需设置：
 
 | 变量 | 说明 |
 |------|------|
 | `VITE_API_BASE` | 前端构建期 API 基址，留空时使用同源 `/api` |
-| `VITE_AMAP_KEY` | 可选地图服务 Key |
-| `VITE_AMAP_SECURITY_CODE` | 可选地图服务安全码 |
 | `VITE_MEDIA_BASE_URL` | 项目图片的稳定 HTTPS 基址，默认 `https://img.pingxingxian.space/fablespace/media/v1` |
-
-店主自己的 LLM API Key 应在 FableSpace 的空间管理界面中配置，不应写入共享环境文件或提交到仓库。
 
 ## 数据持久化
 
@@ -157,8 +153,8 @@ py -3 -m fablespace_api api --host 127.0.0.1 --port 8951 --no-open
 
 - [文档索引](docs/INDEX.md)
 - [产品概述](docs/PRODUCT_BRIEF.md)
-- [空间平台设计](docs/FABLESPACE_SPACE_PLATFORM.md)
-- [世界数据结构](docs/WORLD_SCHEMA.md)
+- [角色故事平台设计](docs/FABLESPACE_SPACE_PLATFORM.md)
+- [故事世界数据结构](docs/WORLD_SCHEMA.md)
 - [明确不做清单](docs/WHAT_NOT_TO_BUILD.md)
 - [图像资源规范](docs/IMAGE_ASSETS_SPEC.md)
 - [自动部署与 CDN](docs/DEPLOYMENT.md)
@@ -166,6 +162,6 @@ py -3 -m fablespace_api api --host 127.0.0.1 --port 8951 --no-open
 ## 安全提醒
 
 - 不要提交 `.env`、数据库文件、日志文件或真实 API Key。
-- 访客可见数据和店主私有配置应分开处理。
+- 公开故事内容与玩家私有进度、对话和记忆应分开处理。
 - 公开部署时建议使用 HTTPS、强随机访问密码和受限数据库账号。
 - 对 LLM Key、对话记录和记忆写回数据按敏感数据处理。
