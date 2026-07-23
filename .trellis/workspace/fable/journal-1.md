@@ -141,3 +141,37 @@ Delivered Annie's mobile-first Broad Street story with fixed public history, fiv
 ### Next Steps
 
 - None - task complete
+
+
+## Session 5: Rewrite public product positioning
+
+**Date**: 2026-07-23
+**Task**: Rewrite public product positioning
+**Branch**: `main`
+
+### Summary
+
+拆分角色故事平台主线重建任务，并重写 README、文档索引与产品简述：明确角色优先流程、两套 P0 系统故事、固定玩家角色、关系/记忆连续性及历史正史边界。
+
+### Main Changes
+
+- Detailed change bullets were not supplied; see the summary above.
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `1ae537a0` | (see git log) |
+| `34a03c65` | (see git log) |
+
+### Testing
+
+- Validation was not recorded for this session.
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
