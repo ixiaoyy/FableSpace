@@ -175,3 +175,36 @@ Delivered Annie's mobile-first Broad Street story with fixed public history, fiv
 ### Next Steps
 
 - None - task complete
+
+
+## Session 6: Rewrite story platform boundaries
+
+**Date**: 2026-07-23
+**Task**: Rewrite story platform boundaries
+**Branch**: `main`
+
+### Summary
+
+Rewrote the platform mainline and negative boundary documents around StoryWorld, Character, PlayerRole, PlayerStoryState, the two P0 system stories, deterministic story actions, private continuity, and removal of legacy Space/LBS/UGC/SillyTavern compatibility.
+
+### Main Changes
+
+- Detailed change bullets were not supplied; see the summary above.
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `216475f4` | (see git log) |
+
+### Testing
+
+- Validation was not recorded for this session.
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
