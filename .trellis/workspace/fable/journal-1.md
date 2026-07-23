@@ -276,3 +276,36 @@ Verified the public positioning, platform boundaries, World Schema, and agent ru
 ### Next Steps
 
 - None - task complete
+
+
+## Session 9: Define immutable StoryWorld content registry
+
+**Date**: 2026-07-23
+**Task**: Define immutable StoryWorld content registry
+**Branch**: `main`
+
+### Summary
+
+Implemented immutable StoryWorld content models, strict registry validation, task-level contract verification, and synchronized WORLD_SCHEMA; preserved unrelated workspace changes.
+
+### Main Changes
+
+- Detailed change bullets were not supplied; see the summary above.
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `ca3c00a1` | (see git log) |
+
+### Testing
+
+- Validation was not recorded for this session.
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete

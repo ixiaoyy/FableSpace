@@ -8,7 +8,7 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-1.md`
-- **Total Sessions**: 8
+- **Total Sessions**: 9
 - **Last Active**: 2026-07-23
 <!-- @@@/auto:current-status -->
 
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-1.md` | ~278 | Active |
+| `journal-1.md` | ~311 | Active |
 <!-- @@@/auto:active-documents -->
 
 ---
@@ -29,6 +29,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 9 | 2026-07-23 | Define immutable StoryWorld content registry | `ca3c00a1` | `main` |
 | 8 | 2026-07-23 | Complete story platform contract phase | `34a03c65`, `216475f4`, `45f9fbc1` | `main` |
 | 7 | 2026-07-23 | Define StoryWorld schema and agent contracts | `45f9fbc1` | `main` |
 | 6 | 2026-07-23 | Rewrite story platform boundaries | `216475f4` | `main` |
