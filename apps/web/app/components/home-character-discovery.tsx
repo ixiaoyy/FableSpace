@@ -17,8 +17,6 @@ type HomeCharacterDiscoveryProps = {
   spaces: Space[]
   loadState: "loading" | "ready" | "empty" | "error"
   loadError: string
-  visitorIdentityLabel: string
-  onReselectIdentity: () => void
   onRetry: () => void
 }
 
