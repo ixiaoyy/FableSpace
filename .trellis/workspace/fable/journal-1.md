@@ -241,3 +241,38 @@ Replaced the legacy Space schema and collaboration rules with the confirmed Stor
 ### Next Steps
 
 - None - task complete
+
+
+## Session 8: Complete story platform contract phase
+
+**Date**: 2026-07-23
+**Task**: Complete story platform contract phase
+**Branch**: `main`
+
+### Summary
+
+Verified the public positioning, platform boundaries, World Schema, and agent rules express one character-first system-story contract; confirmed all three child tasks completed, links and terminology align, and no business-code paths were changed by the contract phase.
+
+### Main Changes
+
+- Detailed change bullets were not supplied; see the summary above.
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `34a03c65` | (see git log) |
+| `216475f4` | (see git log) |
+| `45f9fbc1` | (see git log) |
+
+### Testing
+
+- Validation was not recorded for this session.
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
