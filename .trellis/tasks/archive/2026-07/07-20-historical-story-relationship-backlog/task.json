@@ -1,0 +1,28 @@
+{
+  "id": "historical-story-relationship-backlog",
+  "name": "historical-story-relationship-backlog",
+  "title": "中西方历史未来剧本与人物关系库",
+  "description": "Convert the supplied China-West history workbook into a traceable future story backlog and same-Space character relationship seeds, prioritized as ancient China, foreign history, then modern history.",
+  "status": "completed",
+  "dev_type": null,
+  "scope": null,
+  "package": null,
+  "priority": "P1",
+  "creator": "fable",
+  "assignee": "fable",
+  "createdAt": "2026-07-20",
+  "completedAt": "2026-07-24",
+  "branch": null,
+  "base_branch": "main",
+  "worktree_path": null,
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [
+    "07-21-annie-broad-street-complete-story"
+  ],
+  "parent": null,
+  "relatedFiles": [],
+  "notes": "",
+  "meta": {}
+}

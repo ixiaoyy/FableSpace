@@ -20,7 +20,8 @@
   "subtasks": [],
   "children": [
     "07-23-home-character-carousel",
-    "07-23-home-remove-global-identity-gate"
+    "07-23-home-remove-global-identity-gate",
+    "07-24-palace-character-discovery-routes"
   ],
   "parent": "07-23-character-first-player-flow",
   "relatedFiles": [],

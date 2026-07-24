@@ -19,7 +19,8 @@
   "pr_url": null,
   "subtasks": [],
   "children": [
-    "07-23-character-story-detail-page"
+    "07-23-character-story-detail-page",
+    "07-24-palace-character-interaction-ui"
   ],
   "parent": "07-23-character-first-player-flow",
   "relatedFiles": [],

@@ -6,7 +6,7 @@
 
 ## Requirements
 
-- 只实现角色发现首页和 StoryWorld 角色深链。
+- 本任务是角色发现阶段协调父任务，首页卡片、身份门禁清理与长明宫详情深链由独立子任务实施。
 - 首页展示安妮、魏观海、萧明珠三张真实 API 角色卡。
 - 路由使用 `/story-worlds/:storyWorldRef/characters/:characterRef`。
 - 故事世界作为角色背景展示，不建立世界目录或身份选择页。

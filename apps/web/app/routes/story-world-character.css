@@ -51,9 +51,9 @@
 }
 
 .annieStoryHero,
-.annieStoryRun,
+.annieStoryWorkspace,
 .annieStoryAccess,
-.annieStoryStatus,
+.annieStoryStatusPanel,
 .annieStoryError {
   width: min(1120px, 90vw);
   margin-inline: auto;
@@ -180,6 +180,15 @@
   background: #d8c9a5;
 }
 
+.annieStoryPrimaryButton:focus-visible,
+.annieStoryHeader a:focus-visible,
+.annieStoryChoices button:focus-visible,
+.annieStoryMessageForm textarea:focus-visible,
+.annieStoryMessageForm button:focus-visible {
+  outline: 2px solid #f2d58e;
+  outline-offset: 3px;
+}
+
 .annieStoryPrimaryButton:disabled {
   cursor: wait;
   opacity: 0.64;
@@ -189,11 +198,39 @@
   width: 1rem;
 }
 
-.annieStoryStatus,
 .annieStoryError {
   padding: 1rem;
   color: var(--annie-muted);
   text-align: center;
+}
+
+.annieStoryStatusPanel {
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  min-height: 6.5rem;
+  margin-bottom: 1.5rem;
+  padding: 1.2rem 1.4rem;
+  border: 1px solid var(--annie-line);
+  border-radius: 1rem;
+  background: rgba(21, 25, 43, 0.62);
+}
+
+.annieStoryStatusPanel h2 {
+  margin: 0;
+  font-family: Georgia, "Noto Serif SC", serif;
+  font-size: 1.25rem;
+  font-weight: 500;
+}
+
+.annieStoryStatusMark {
+  width: 0.85rem;
+  height: 0.85rem;
+  border: 1px solid #c7b791;
+  border-radius: 50%;
+  box-shadow: 0 0 0 0 rgba(199, 183, 145, 0.45);
+  animation: annie-story-pulse 1.6s ease-out infinite;
 }
 
 .annieStoryError {
@@ -217,6 +254,22 @@
   color: #b9a985;
 }
 
+.annieStoryAccess--expired {
+  border-color: rgba(209, 144, 119, 0.34);
+  background:
+    linear-gradient(rgba(21, 25, 43, 0.9), rgba(21, 25, 43, 0.9)),
+    radial-gradient(circle at 50% 0%, rgba(209, 144, 119, 0.22), transparent 20rem);
+}
+
+.annieStoryAccess--expired > svg {
+  color: #d9a28a;
+}
+
+.annieStoryAccess--expired .annieStoryEyebrow {
+  margin-bottom: -0.45rem;
+  color: #d9a28a;
+}
+
 .annieStoryAccess h2 {
   margin: 0;
   font-family: Georgia, "Noto Serif SC", serif;
@@ -224,7 +277,15 @@
   font-weight: 500;
 }
 
+.annieStoryWorkspace {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(15.5rem, 18rem);
+  gap: 1.25rem;
+  align-items: start;
+}
+
 .annieStoryRun {
+  min-width: 0;
   overflow: hidden;
   border: 1px solid var(--annie-line);
   border-radius: 1.25rem;
@@ -234,7 +295,7 @@
 
 .annieStoryRunHeading {
   display: grid;
-  grid-template-columns: minmax(8rem, 0.3fr) 1fr;
+  grid-template-columns: minmax(11rem, 0.38fr) 1fr;
   align-items: end;
   gap: 2rem;
   padding: 1.5rem 1.75rem;
@@ -252,6 +313,108 @@
   margin: 0;
   color: var(--annie-muted);
   line-height: 1.7;
+}
+
+.annieStoryContinuity {
+  position: sticky;
+  top: 5.75rem;
+  display: grid;
+  gap: 1rem;
+}
+
+.annieStoryContinuitySection {
+  position: relative;
+  overflow: hidden;
+  padding: 1.35rem;
+  border: 1px solid var(--annie-line);
+  border-radius: 1rem;
+  background:
+    linear-gradient(145deg, rgba(33, 37, 57, 0.96), rgba(18, 22, 39, 0.96));
+  box-shadow: 0 1.25rem 3rem rgba(0, 0, 0, 0.18);
+}
+
+.annieStoryContinuitySection::after {
+  position: absolute;
+  top: -2.3rem;
+  right: -2rem;
+  width: 6rem;
+  height: 6rem;
+  content: "";
+  border: 1px solid rgba(199, 183, 145, 0.12);
+  border-radius: 50%;
+}
+
+.annieStoryContinuityHeading {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.annieStoryContinuityHeading svg {
+  width: 1rem;
+  color: #c7b791;
+}
+
+.annieStoryContinuityHeading .annieStoryEyebrow {
+  margin: 0;
+}
+
+.annieStoryContinuitySection > h2 {
+  margin: 1rem 0 0;
+  font-family: Georgia, "Noto Serif SC", serif;
+  font-size: 1.9rem;
+  font-weight: 500;
+}
+
+.annieStoryContinuitySection > p:not(.annieStoryEyebrow) {
+  margin: 0.8rem 0 0;
+  color: var(--annie-muted);
+  font-size: 0.88rem;
+  line-height: 1.75;
+}
+
+.annieStoryEndingList {
+  display: grid;
+  gap: 1.1rem;
+  margin: 1.2rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.annieStoryEndingList li {
+  display: grid;
+  grid-template-columns: 0.5rem minmax(0, 1fr);
+  gap: 0.75rem;
+}
+
+.annieStoryEndingList li > span {
+  width: 0.42rem;
+  height: 0.42rem;
+  margin-top: 0.42rem;
+  border: 1px solid #c7b791;
+  transform: rotate(45deg);
+}
+
+.annieStoryEndingList strong {
+  font-family: Georgia, "Noto Serif SC", serif;
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+.annieStoryEndingList p {
+  display: -webkit-box;
+  margin: 0.35rem 0 0;
+  overflow: hidden;
+  color: var(--annie-muted);
+  font-size: 0.78rem;
+  line-height: 1.65;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+}
+
+.annieStoryContinuityEmpty {
+  padding: 1rem 0 0.2rem;
+  border-top: 1px solid var(--annie-line);
 }
 
 .annieStoryTimeline {
@@ -417,6 +580,15 @@
   color: var(--annie-muted);
 }
 
+@keyframes annie-story-pulse {
+  70% {
+    box-shadow: 0 0 0 0.55rem rgba(199, 183, 145, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(199, 183, 145, 0);
+  }
+}
+
 @media (max-width: 760px) {
   .annieStoryHeader {
     padding-inline: 1rem;
@@ -436,11 +608,15 @@
     min-height: 17rem;
   }
 
-  .annieStoryRun,
+  .annieStoryWorkspace,
   .annieStoryAccess,
-  .annieStoryStatus,
+  .annieStoryStatusPanel,
   .annieStoryError {
     width: calc(100% - 2rem);
+  }
+
+  .annieStoryWorkspace {
+    grid-template-columns: 1fr;
   }
 
   .annieStoryRunHeading {
@@ -463,6 +639,15 @@
   .annieStoryChoices {
     grid-template-columns: 1fr;
   }
+
+  .annieStoryContinuity {
+    position: static;
+    grid-template-columns: 1fr;
+  }
+
+  .annieStoryContinuitySection {
+    border-radius: 0.85rem;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -471,5 +656,6 @@
   .annieStoryShell *::after {
     scroll-behavior: auto !important;
     transition: none !important;
+    animation: none !important;
   }
 }

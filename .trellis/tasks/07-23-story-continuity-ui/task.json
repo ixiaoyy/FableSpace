@@ -18,7 +18,10 @@
   "commit": null,
   "pr_url": null,
   "subtasks": [],
-  "children": [],
+  "children": [
+    "07-24-player-continuity-surfaces",
+    "07-24-player-continuity-integration"
+  ],
   "parent": "07-23-character-first-player-flow",
   "relatedFiles": [],
   "notes": "",
