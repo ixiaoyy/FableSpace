@@ -442,3 +442,36 @@ Matched the mobile homepage to UI稿/index.png, uploaded four immutable CDN asse
 ### Next Steps
 
 - None - task complete
+
+
+## Session 14: Player Story State Storage
+
+**Date**: 2026-07-24
+**Task**: Player Story State Storage
+**Branch**: `main`
+
+### Summary
+
+Implemented immutable StoryWorld runtime projections, transactional player-scoped state storage, message and private-memory tables, migration 005, schema contracts, and SQLite/MySQL validation while preserving the existing four-table Annie runtime.
+
+### Main Changes
+
+- Detailed change bullets were not supplied; see the summary above.
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `4628abc6` | (see git log) |
+
+### Testing
+
+- Validation was not recorded for this session.
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
