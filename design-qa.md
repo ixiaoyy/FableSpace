@@ -1,63 +1,117 @@
-# Design QA — 首页角色横滑卡
+# Homepage Design QA
 
-## Evidence
+## Comparison target
 
-- Source visual truth: `C:\Users\phpxi\.codex\generated_images\019f8cc3-7a26-7702-ae90-61d257a9c26e\call_bnLOgVOzcFAmDTW4l5PFj9ac.png`
-- Mobile implementation: `C:\Users\phpxi\AppData\Local\Temp\fablespace-home-carousel-qa\implementation-mobile-wei-final2-390x844.png`
-- Desktop implementation: `C:\Users\phpxi\AppData\Local\Temp\fablespace-home-carousel-qa\implementation-desktop-final-1280x900.png`
-- Combined mobile comparison: `C:\Users\phpxi\AppData\Local\Temp\fablespace-home-carousel-qa\comparison-mobile-source-vs-final.png`
-- State: 魏观海 selected.
-- Mobile viewport: 390 × 844 CSS px, device scale factor 1.
-- Desktop viewport: 1280 × 900 CSS px, device scale factor 1.
-- Source pixels: 852 × 1859.
-- Mobile implementation pixels: 390 × 844.
-- Density normalization: source resized and top-aligned to 390 × 844 before the side-by-side comparison; implementation remained at its native 390 × 844 capture.
+- Source visual truth: `D:\work\ai-\UI稿\index.png`
+- Rendered implementation: `D:\work\ai-\design-qa-implementation-final.png`
+  (local QA artifact; intentionally excluded from Git)
+- Combined comparison: `D:\work\ai-\design-qa-comparison-final.png`
+  (local QA artifact; intentionally excluded from Git)
+- Route/state: `/`, ready state, Wei Guanhai selected
+- CSS viewport: `426 × 922`
+- Source pixels: `853 × 1844`
+- Source normalization: downsampled to `426 × 922` with Lanczos 3
+- Implementation pixels: `426 × 922`
+- Browser device pixel ratio: `2`; the browser screenshot API returned CSS-pixel dimensions
 
-## Full-view Comparison
+## Full-view comparison evidence
 
-- Information hierarchy matches the selected direction: warm paper canvas, navy editorial title, orange primary action, lavender selection state, avatar selector, fixed character card, pagination state, and mobile bottom navigation.
-- The implementation deliberately omits the mock's explanatory subtitle, decorative book/feather art, and fabricated “上次同行” content. The UI-copy contract forbids explanatory homepage copy, and this task has no truthful continuity payload or approved decorative asset.
-- Mobile card width is 348 px for all three characters. Card height is 362.91 px and the action row begins at the same vertical coordinate for all three.
-- Desktop uses a 254 px selector rail and one 744 × 520 px fixed character card rather than enlarging the mobile layout.
+The source and implementation were placed in one `860 × 922` comparison image
+at the same CSS-pixel scale. The final implementation preserves the source
+composition: header, title, three character selectors, centered active card,
+pagination, story link, companion row, and fixed bottom navigation all occupy
+the same viewport in the same order.
 
-## Required Fidelity Surfaces
+Measured final implementation anchors:
 
-- Fonts and typography: Chinese display headings use the repository-safe Song-style fallback stack; supporting UI uses the existing system sans stack. Hierarchy, weights, wrapping, and truncation remain stable across all three characters. A dedicated bundled display font would be a P3 refinement.
-- Spacing and layout rhythm: mobile selector, card, actions, dots, and bottom navigation align without page-level horizontal overflow. Desktop selector and card share the same top and bottom edges. Card radius and action spacing closely follow the selected mock.
-- Colors and visual tokens: warm ivory, deep navy, orange, and lavender match the selected direction with readable contrast. No dark legacy bookshelf surface remains in the implemented component.
-- Image quality and asset fidelity: the real 1024 × 1024 character assets are used with character-specific object positioning; no placeholder art, CSS illustration, or improvised SVG replaces them.
-- Copy and content: character names, story names, tags, descriptions, and destinations come from the real API payload. Mock-only relationship and continuity claims are not fabricated.
+| Region | Bounds |
+|---|---|
+| Active card | `x=27, y=373.07, w=372, h=318` |
+| Pagination | `y=693.07, h=15` |
+| Story link | `x=118, y=711.07, w=190, h=29` |
+| Companion section | `y=746.07, h=92.40` |
+| Bottom navigation | `y=858, h=64` |
 
-## Focused-region Comparison
+The document and viewport are both `426 × 922`; there is no horizontal or
+vertical overflow.
 
-A separate crop was not needed: the normalized 390 × 844 combined comparison keeps the selector, character copy, portrait crop, and both actions readable at 1:1 implementation density. Desktop layout was captured separately because the source visual does not define a desktop viewport.
+## Focused comparison evidence
 
-## Interaction and Runtime Checks
+Separate crops were not required because the normalized combined image keeps
+the full page at one CSS pixel per output pixel and the typography, portraits,
+card content, icons, and navigation remain legible. Focused visual inspection
+covered:
 
-- Clicking an avatar centers the corresponding mobile card and updates `aria-pressed`.
-- Horizontal track scrolling from 魏观海 to 萧明珠 updates the selected avatar.
-- All three cards report identical width, height, action-row height, and action-row top position at 390 px.
-- The 魏观海 primary action navigates to the existing character-selected story URL.
-- 390 px and 1280 px captures report `scrollWidth === clientWidth`.
-- Browser console warnings/errors after navigation and return: none.
+- Header/title: Georgia brand wordmark; Song-style Chinese display type;
+  orange underline and sparkle; book-and-quill decoration.
+- Character selector: three correct subjects; Wei selected; active orange and
+  lavender rings.
+- Active card: correct Wei portrait, palace/snow setting, relationship label,
+  divider, story copy, and orange action.
+- Footer: pagination, story link, companion portraits/copy, and three-item
+  navigation.
 
-## Comparison History
+## Required fidelity surfaces
 
-1. Initial implementation comparison found an oversized 405 px mobile card and an outer square focus outline that weakened the circular avatar language.
-   - Fix: reduced the mobile card to 362.91 px at the target viewport, shifted the card split to 52/48, and kept keyboard focus visible on the portrait ring without the extra square.
-   - Post-fix evidence: `implementation-mobile-wei-final-390x844.png`.
-2. The post-fix card left a two-character orphan line in the real 魏观海 description.
-   - Fix: reduced mobile description clamping from four lines to three while retaining five lines on desktop.
-   - Post-fix evidence: `implementation-mobile-wei-final2-390x844.png` and `comparison-mobile-source-vs-final.png`.
+- Fonts and typography: matching serif hierarchy and weights; runtime
+  antialiasing/fallback rendering remains a minor platform-level difference.
+- Spacing and layout rhythm: major anchors, card dimensions, section order, and
+  bottom-nav placement match the normalized source.
+- Colors and visual tokens: paper `rgb(255, 248, 235)`, ink
+  `rgb(17, 24, 60)`, orange `rgb(247, 154, 24)`, and lavender
+  `rgb(114, 86, 216)`.
+- Image quality and asset fidelity: all three character assets load at
+  `1024 × 1024`; the UI decoration loads at `263 × 255`; no placeholder image
+  is rendered.
+- Copy and content: title, subtitle, character names, story metadata, story
+  link, companion heading/copy, and navigation labels match the source state.
 
-## Findings
+## Interaction and runtime evidence
 
-No actionable P0, P1, or P2 differences remain within this task's accepted scope.
+- Initial selection: Wei Guanhai, carousel `scrollLeft=386`.
+- Annie pagination: selected Annie, `scrollLeft=0`.
+- Xiao Mingzhu pagination: selected Xiao Mingzhu,
+  `scrollLeft=maxScroll=772`.
+- Returning to Wei: selected Wei Guanhai, `scrollLeft=386`.
+- Browser console warnings/errors: none.
+- All expected images completed with non-zero natural dimensions.
 
-## Follow-up Polish
+## Comparison history
 
-- P3: add a reviewed paper texture and light editorial ornament assets after they pass the project media pipeline.
-- P3: replace the reserved lower mobile space with truthful “上次同行” content when continuity data is implemented.
-- P3: bundle a licensed Chinese display font if exact cross-platform typography becomes a release requirement.
+### Pass 1 — blocked
+
+- Findings: title too narrow, active card six pixels too wide, card portrait
+  too large/right-shifted, CTA wider than the source.
+- Pixel diagnostic: MAE `31.05`, RMSE `59.27`.
+
+### Pass 2 — blocked
+
+- Fixes: corrected title vertical position, card width/padding, CTA width,
+  card-copy vertical rhythm, and Wei crop.
+- Remaining finding: portrait composition and title width still visibly
+  drifted.
+- Pixel diagnostic: MAE `30.87`, RMSE `58.85`.
+
+### Pass 3 — blocked
+
+- Fixes: used the complete square portrait in the card and corrected heading
+  proportions.
+- Remaining finding: small title/brand width and portrait horizontal-position
+  drift.
+- Pixel diagnostic: MAE `30.50`, RMSE `58.43`.
+
+### Final pass
+
+- Fixes: final heading/brand proportion adjustment and a ten-pixel Wei portrait
+  translation.
+- Pixel diagnostic: MAE `30.42`, RMSE `58.37`. These whole-image metrics include
+  the source screenshot's paper texture, raster compression, font
+  antialiasing, and decorative pixel noise; the pass decision is based on the
+  normalized combined visual inspection and measured layout anchors.
+- No actionable P0, P1, or P2 mismatch remains.
+- Residual P3: platform font antialiasing and small icon-stroke/texture
+  differences.
+
+## Final result
 
 final result: passed
