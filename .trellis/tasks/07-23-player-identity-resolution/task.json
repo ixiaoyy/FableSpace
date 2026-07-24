@@ -1,8 +1,8 @@
 {
   "id": "player-identity-resolution",
   "name": "player-identity-resolution",
-  "title": "接入匿名与账号玩家标识",
-  "description": "只实现游客设备标识、登录账号映射和跨设备绑定边界。",
+  "title": "接入强制登录玩家身份",
+  "description": "只实现可信登录会话解析、私有故事 API 门禁与安全回跳边界。",
   "status": "planning",
   "dev_type": null,
   "scope": null,

@@ -1,8 +1,8 @@
 {
   "id": "story-continuity-ui",
   "name": "story-continuity-ui",
-  "title": "实现回访关系与登录提示",
-  "description": "只实现回访恢复、关系状态、匿名保存边界和账号绑定提示。",
+  "title": "实现登录后回访与关系状态",
+  "description": "只实现登录后回访恢复、关系状态和会话失效处理。",
   "status": "planning",
   "dev_type": null,
   "scope": null,
