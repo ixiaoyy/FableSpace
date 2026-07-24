@@ -4,7 +4,18 @@ from __future__ import annotations
 
 from datetime import datetime
 
-from sqlalchemy import JSON, Column, DateTime, Float, ForeignKey, Index, Integer, String, Text
+from sqlalchemy import (
+    JSON,
+    CheckConstraint,
+    Column,
+    DateTime,
+    Float,
+    ForeignKey,
+    Index,
+    Integer,
+    String,
+    Text,
+)
 
 from .database import Base
 
@@ -82,3 +93,90 @@ class StoryEventModel(Base):
         Index("uq_story_events_run_sequence", "story_run_id", "sequence", unique=True),
         Index("idx_story_events_run_source", "story_run_id", "source_kind", "source_id"),
     )
+
+
+class StoryMessageModel(Base):
+    __tablename__ = "story_messages"
+
+    id = Column(String(36), primary_key=True)
+    story_run_id = Column(
+        String(36),
+        ForeignKey(
+            "story_runs.id",
+            ondelete="CASCADE",
+            name="fk_story_messages_story_run",
+        ),
+        nullable=False,
+    )
+    sequence = Column(Integer, nullable=False)
+    role = Column(String(16), nullable=False)
+    character_id = Column(String(128), nullable=True)
+    visible_to_character_ids = Column(JSON, nullable=False, default=list)
+    content = Column(Text, nullable=False)
+    source_event_id = Column(
+        String(36),
+        ForeignKey(
+            "story_events.id",
+            ondelete="CASCADE",
+            name="fk_story_messages_source_event",
+        ),
+        nullable=False,
+    )
+    source_event_sequence = Column(Integer, nullable=False)
+    created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
+
+    __table_args__ = (
+        CheckConstraint(
+            "role IN ('player', 'character', 'system')",
+            name="ck_story_messages_role",
+        ),
+        Index("uq_story_messages_run_sequence", "story_run_id", "sequence", unique=True),
+        Index("idx_story_messages_run_event", "story_run_id", "source_event_id"),
+    )
+
+
+class PrivateMemoryModel(Base):
+    __tablename__ = "private_memories"
+
+    id = Column(String(36), primary_key=True)
+    story_run_id = Column(
+        String(36),
+        ForeignKey(
+            "story_runs.id",
+            ondelete="CASCADE",
+            name="fk_private_memories_story_run",
+        ),
+        nullable=False,
+    )
+    content = Column(Text, nullable=False)
+    source_event_id = Column(
+        String(36),
+        ForeignKey(
+            "story_events.id",
+            ondelete="CASCADE",
+            name="fk_private_memories_source_event",
+        ),
+        nullable=False,
+    )
+    source_event_sequence = Column(Integer, nullable=False)
+    character_id = Column(String(128), nullable=True)
+    created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
+
+    __table_args__ = (
+        Index("idx_private_memories_run_created", "story_run_id", "created_at"),
+        Index("idx_private_memories_run_event", "story_run_id", "source_event_id"),
+    )
+
+
+from .schema_comments import apply_schema_comments
+
+apply_schema_comments(Base.metadata)
+
+__all__ = [
+    "CharacterRelationshipModel",
+    "PlayerStoryStateModel",
+    "PrivateMemoryModel",
+    "StoryEventModel",
+    "StoryMessageModel",
+    "StoryRunModel",
+]

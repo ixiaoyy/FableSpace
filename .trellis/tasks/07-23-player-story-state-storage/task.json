@@ -3,7 +3,7 @@
   "name": "player-story-state-storage",
   "title": "持久化玩家故事状态",
   "description": "只建立 PlayerStoryState、StoryRun、关系、记忆和事件的数据库持久化。",
-  "status": "planning",
+  "status": "in_progress",
   "dev_type": null,
   "scope": null,
   "package": null,

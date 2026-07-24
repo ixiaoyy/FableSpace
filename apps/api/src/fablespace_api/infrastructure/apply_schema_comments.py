@@ -18,6 +18,7 @@ from sqlalchemy import Engine, create_engine, inspect, text
 from fablespace_api.infrastructure.database import Base
 from fablespace_api.infrastructure.env import DEFAULT_ENV_FILE, load_env_file
 from fablespace_api.infrastructure.models import *  # noqa: F401,F403 - register all SQLAlchemy tables
+from fablespace_api.infrastructure.story_state_models import *  # noqa: F401,F403 - register StoryWorld runtime tables
 from fablespace_api.infrastructure.schema_comments import (
     COLUMN_COMMENTS,
     TABLE_COMMENTS,
