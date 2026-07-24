@@ -8,7 +8,7 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-1.md`
-- **Total Sessions**: 15
+- **Total Sessions**: 16
 - **Last Active**: 2026-07-24
 <!-- @@@/auto:current-status -->
 
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-1.md` | ~510 | Active |
+| `journal-1.md` | ~543 | Active |
 <!-- @@@/auto:active-documents -->
 
 ---
@@ -29,6 +29,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 16 | 2026-07-24 | Complete story continuity surfaces | `77708226` | `main` |
 | 15 | 2026-07-24 | 接入强制登录玩家身份 | `4cd2e88e` | `main` |
 | 14 | 2026-07-24 | Player Story State Storage | `4628abc6` | `main` |
 | 13 | 2026-07-24 | Homepage character carousel fidelity | `2b55124d`, `f09ac43c` | `main` |

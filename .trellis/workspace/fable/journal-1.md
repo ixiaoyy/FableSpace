@@ -508,3 +508,36 @@ Implemented immutable StoryWorld runtime projections, transactional player-scope
 ### Next Steps
 
 - None - task complete
+
+
+## Session 16: Complete story continuity surfaces
+
+**Date**: 2026-07-24
+**Task**: Complete story continuity surfaces
+**Branch**: `main`
+
+### Summary
+
+Split the frontend roadmap into UI-first and integration follow-ups, archived the completed historical backlog, and completed the responsive Annie return-visit, relationship, ending-summary, and session-expiry surfaces with fresh build and visual QA.
+
+### Main Changes
+
+- Detailed change bullets were not supplied; see the summary above.
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `77708226` | (see git log) |
+
+### Testing
+
+- Validation was not recorded for this session.
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
