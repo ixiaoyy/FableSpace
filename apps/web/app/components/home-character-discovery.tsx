@@ -1,13 +1,23 @@
 import {
-  ArrowRight,
   BookOpenText,
+  ChevronRight,
+  Feather,
+  MapPin,
+  NotebookText,
   RefreshCw,
+  Sparkles,
   UserRound,
-  UsersRound,
 } from "lucide-react"
-import { useEffect, useMemo, useRef, useState } from "react"
+import {
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react"
 import { Link } from "react-router"
 
+import { mediaAssetUrl } from "../lib/media-assets"
 import {
   characterSpacePath,
   spacePath,
@@ -25,68 +35,95 @@ type HomeCharacterDiscoveryProps = {
   onRetry: () => void
 }
 
+type CharacterPresentation = {
+  characterId: string
+  portrait: string
+  worldLine: string
+  relationship: string
+  storyLine: string
+  ctaLabel: string
+  storyLinkLabel: string
+  companionIds: string[]
+  companionLine: string
+}
+
 type FeaturedCharacter = {
   space: Space
   character: SpaceCharacter
-  avatar: string
-  tag: string
+  presentation: CharacterPresentation
 }
 
-const FEATURED_CHARACTER_IDS = [
-  "char_history_broad_street_annie",
-  "char_story_palace_eunuch_wei",
-  "char_story_palace_princess_xiao",
-] as const
 const ANNIE_CHARACTER_ID = "char_history_broad_street_annie"
+const WEI_CHARACTER_ID = "char_story_palace_eunuch_wei"
+const XIAO_CHARACTER_ID = "char_story_palace_princess_xiao"
 const ANNIE_STORY_WORLD_ID = "history_broad_street_water_1854"
+const BOOKS_QUILL_DECORATION = mediaAssetUrl(
+  "app/assets/home-story-bookshelf/v1/ui/books-quill.webp",
+)
 
-function characterAvatar(character: SpaceCharacter) {
-  return (
-    character.sprites?.neutral
-    || character.avatar
-    || character.image_url
-    || Object.values(character.sprites || {}).find(Boolean)
-    || ""
-  )
-}
-
-function characterDescription(character: SpaceCharacter) {
-  return (
-    String(character.description || "").trim()
-    || String(character.personality || "").trim()
-    || String(character.first_mes || "").trim()
-    || "故事正在等待回应。"
-  )
-}
-
-function characterTag(character: SpaceCharacter) {
-  return (
-    (Array.isArray(character.tags) ? character.tags : [])
-      .find((tag) => Boolean(tag?.trim() && tag.trim() !== character.name))
-      ?.trim()
-    || "故事角色"
-  )
-}
+const CHARACTER_PRESENTATIONS: CharacterPresentation[] = [
+  {
+    characterId: ANNIE_CHARACTER_ID,
+    portrait: mediaAssetUrl(
+      "app/assets/home-story-bookshelf/v1/characters/char_history_broad_street_annie.webp",
+    ),
+    worldLine: "伦敦宽街 · 一碗水",
+    relationship: "初次相遇",
+    storyLine: "她抱着空陶罐，正等你回答。",
+    ctaLabel: "去见安妮",
+    storyLinkLabel: "看看她的故事",
+    companionIds: [WEI_CHARACTER_ID, XIAO_CHARACTER_ID],
+    companionLine: "宫墙深处，还有人等你回去。",
+  },
+  {
+    characterId: WEI_CHARACTER_ID,
+    portrait: mediaAssetUrl(
+      "app/assets/home-story-bookshelf/v1/characters/char_story_palace_eunuch_wei.webp",
+    ),
+    worldLine: "长明宫 · 雪夜诏书",
+    relationship: "仍有戒心",
+    storyLine: "他在宫墙外踱步，\n似乎有话要说。",
+    ctaLabel: "去见魏观海",
+    storyLinkLabel: "看看他的故事",
+    companionIds: [WEI_CHARACTER_ID, XIAO_CHARACTER_ID],
+    companionLine: "宫墙深处，还有人等你回去。",
+  },
+  {
+    characterId: XIAO_CHARACTER_ID,
+    portrait: mediaAssetUrl(
+      "app/assets/home-story-bookshelf/v1/characters/char_story_palace_princess_xiao.webp",
+    ),
+    worldLine: "长明宫 · 雪夜诏书",
+    relationship: "初次相遇",
+    storyLine: "“宫门已经封了。\n你愿意替我查一句真话吗？”",
+    ctaLabel: "去见明珠",
+    storyLinkLabel: "看看她的故事",
+    companionIds: [ANNIE_CHARACTER_ID],
+    companionLine: "伦敦宽街 · 一碗水",
+  },
+]
 
 function featuredCharacters(spaces: Space[]) {
-  const byId = new Map<string, FeaturedCharacter>()
+  const byId = new Map<string, { space: Space; character: SpaceCharacter }>()
 
   for (const space of spaces) {
     for (const character of Array.isArray(space.characters) ? space.characters : []) {
       if (!character?.id || !character.name) continue
-      byId.set(character.id, {
-        space,
-        character,
-        avatar: characterAvatar(character),
-        tag: characterTag(character),
-      })
+      byId.set(character.id, { space, character })
     }
   }
 
-  return FEATURED_CHARACTER_IDS.flatMap((characterId) => {
-    const entry = byId.get(characterId)
-    return entry ? [entry] : []
+  return CHARACTER_PRESENTATIONS.flatMap((presentation) => {
+    const entry = byId.get(presentation.characterId)
+    return entry ? [{ ...entry, presentation }] : []
   })
+}
+
+function primaryPath(entry: FeaturedCharacter) {
+  if (entry.character.id === ANNIE_CHARACTER_ID) {
+    return storyWorldCharacterPath(ANNIE_STORY_WORLD_ID, ANNIE_CHARACTER_ID)
+  }
+  return characterSpacePath(entry.space, entry.character)
 }
 
 export function HomeCharacterDiscovery({
@@ -96,22 +133,33 @@ export function HomeCharacterDiscovery({
   onRetry,
 }: HomeCharacterDiscoveryProps) {
   const characters = useMemo(() => featuredCharacters(spaces), [spaces])
-  const [selectedCharacterId, setSelectedCharacterId] = useState(
-    () => characters[0]?.character.id || "",
-  )
+  const [selectedCharacterId, setSelectedCharacterId] = useState(WEI_CHARACTER_ID)
+  const initialSelectionRef = useRef(selectedCharacterId)
   const carouselRef = useRef<HTMLDivElement | null>(null)
   const cardRefs = useRef<Record<string, HTMLElement | null>>({})
   const scrollFrameRef = useRef<number | null>(null)
+  const programmaticTargetRef = useRef("")
 
   useEffect(() => {
-    if (!characters.length) {
-      setSelectedCharacterId("")
-      return
-    }
+    if (!characters.length) return
     if (!characters.some(({ character }) => character.id === selectedCharacterId)) {
       setSelectedCharacterId(characters[0].character.id)
     }
   }, [characters, selectedCharacterId])
+
+  useLayoutEffect(() => {
+    if (!characters.length) return
+    const viewport = carouselRef.current
+    const initialId = characters.some(
+      ({ character }) => character.id === initialSelectionRef.current,
+    )
+      ? initialSelectionRef.current
+      : characters[0].character.id
+    const card = cardRefs.current[initialId]
+    if (!viewport || !card) return
+    const left = card.offsetLeft - ((viewport.clientWidth - card.offsetWidth) / 2)
+    viewport.scrollTo({ left, behavior: "auto" })
+  }, [characters])
 
   useEffect(() => () => {
     if (scrollFrameRef.current !== null) {
@@ -119,24 +167,25 @@ export function HomeCharacterDiscovery({
     }
   }, [])
 
-  function selectCharacter(characterId: string) {
-    setSelectedCharacterId(characterId)
-
-    if (window.matchMedia("(min-width: 960px)").matches) return
+  function scrollCardIntoView(
+    characterId: string,
+    behavior: ScrollBehavior = "smooth",
+  ) {
     const viewport = carouselRef.current
     const card = cardRefs.current[characterId]
     if (!viewport || !card) return
-
     const left = card.offsetLeft - ((viewport.clientWidth - card.offsetWidth) / 2)
-    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches
-    viewport.scrollTo({
-      left,
-      behavior: reduceMotion ? "auto" : "smooth",
-    })
+    viewport.scrollTo({ left, behavior })
+  }
+
+  function selectCharacter(characterId: string) {
+    setSelectedCharacterId(characterId)
+    programmaticTargetRef.current = characterId
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    scrollCardIntoView(characterId, reducedMotion ? "auto" : "smooth")
   }
 
   function handleCarouselScroll() {
-    if (window.matchMedia("(min-width: 960px)").matches) return
     if (scrollFrameRef.current !== null) {
       window.cancelAnimationFrame(scrollFrameRef.current)
     }
@@ -146,6 +195,20 @@ export function HomeCharacterDiscovery({
       if (!viewport || !characters.length) return
 
       const viewportCenter = viewport.scrollLeft + (viewport.clientWidth / 2)
+      const programmaticTarget = programmaticTargetRef.current
+      if (programmaticTarget) {
+        const targetCard = cardRefs.current[programmaticTarget]
+        if (targetCard) {
+          const targetCenter = targetCard.offsetLeft + (targetCard.offsetWidth / 2)
+          if (Math.abs(targetCenter - viewportCenter) <= 2) {
+            setSelectedCharacterId(programmaticTarget)
+            programmaticTargetRef.current = ""
+          }
+        }
+        scrollFrameRef.current = null
+        return
+      }
+
       let nearestId = selectedCharacterId
       let nearestDistance = Number.POSITIVE_INFINITY
 
@@ -165,32 +228,52 @@ export function HomeCharacterDiscovery({
     })
   }
 
-  const hasReadyCharacters = loadState === "ready" && characters.length > 0
+  const activeEntry = characters.find(
+    ({ character }) => character.id === selectedCharacterId,
+  ) || characters[0]
+  const hasReadyCharacters = loadState === "ready"
+    && characters.length === CHARACTER_PRESENTATIONS.length
+  const effectiveLoadState = loadState === "ready" && !hasReadyCharacters
+    ? "error"
+    : loadState
+  const effectiveLoadError = loadState === "ready" && !hasReadyCharacters
+    ? "角色暂不可用"
+    : loadError
 
   return (
     <main className="characterDiscoveryPage">
       <header className="characterDiscoveryHeader">
         <Link className="characterDiscoveryBrand" to={WEB_PATHS.home}>
-          FableSpace
+          <span>FableSpace</span>
+          <Sparkles aria-hidden="true" />
         </Link>
-        <span className="characterDiscoveryHeaderSection">角色</span>
+        <span className="characterDiscoveryProfile" aria-hidden="true">
+          <UserRound aria-hidden="true" />
+        </span>
       </header>
 
       {!hasReadyCharacters ? (
         <CharacterDiscoveryState
-          loadState={loadState}
-          loadError={loadError}
+          loadState={effectiveLoadState}
+          loadError={effectiveLoadError}
           onRetry={onRetry}
         />
       ) : (
         <section className="characterDiscoveryContent" aria-labelledby="character-discovery-title">
           <div className="characterDiscoveryIntro">
-            <h1 id="character-discovery-title">今天想见谁？</h1>
+            <div className="characterDiscoveryHeading">
+              <h1 id="character-discovery-title">今天想见谁？</h1>
+              <Sparkles className="characterDiscoveryHeadingSparkle" aria-hidden="true" />
+            </div>
+            <p>从一个人，进入他的故事。</p>
+            <div className="characterDiscoveryBooks" aria-hidden="true">
+              <img src={BOOKS_QUILL_DECORATION} alt="" />
+            </div>
           </div>
 
           <div className="characterDiscoveryStage">
             <div className="characterSelectorList" aria-label="选择角色">
-              {characters.map(({ space, character, avatar }) => {
+              {characters.map(({ character, presentation }) => {
                 const active = character.id === selectedCharacterId
                 return (
                   <button
@@ -202,12 +285,14 @@ export function HomeCharacterDiscovery({
                     onClick={() => selectCharacter(character.id)}
                   >
                     <span className="characterSelectorPortrait">
-                      {avatar ? <img src={avatar} alt="" /> : null}
+                      <img src={presentation.portrait} alt="" />
+                      {active ? (
+                        <span className="characterSelectorSparkles" aria-hidden="true">
+                          <Sparkles />
+                        </span>
+                      ) : null}
                     </span>
-                    <span className="characterSelectorCopy">
-                      <strong>{character.name}</strong>
-                      <small>{space.name}</small>
-                    </span>
+                    <strong>{character.name}</strong>
                   </button>
                 )
               })}
@@ -216,46 +301,66 @@ export function HomeCharacterDiscovery({
             <div
               ref={carouselRef}
               className="characterCarouselViewport"
-              aria-label="角色卡片"
+              aria-label="角色故事轮播"
               onScroll={handleCarouselScroll}
+              onPointerDown={() => {
+                programmaticTargetRef.current = ""
+              }}
             >
               <div className="characterCarouselTrack">
-                {characters.map((entry) => {
-                  const { space, character } = entry
-                  const active = character.id === selectedCharacterId
-                  return (
-                    <CharacterCard
-                      key={character.id}
-                      entry={entry}
-                      active={active}
-                      cardRef={(node) => {
-                        cardRefs.current[character.id] = node
-                      }}
-                    />
-                  )
-                })}
+                {characters.map((entry) => (
+                  <CharacterCard
+                    key={entry.character.id}
+                    entry={entry}
+                    active={entry.character.id === selectedCharacterId}
+                    cardRef={(node) => {
+                      cardRefs.current[entry.character.id] = node
+                    }}
+                  />
+                ))}
               </div>
             </div>
 
-            <div className="characterCarouselDots" aria-hidden="true">
+            <div className="characterCarouselDots" aria-label="轮播分页">
               {characters.map(({ character }) => (
-                <span
+                <button
                   key={character.id}
+                  type="button"
                   className={character.id === selectedCharacterId ? "is-active" : ""}
+                  aria-label={`查看${character.name}`}
+                  aria-current={character.id === selectedCharacterId ? "true" : undefined}
+                  onClick={() => selectCharacter(character.id)}
                 />
               ))}
             </div>
+
+            {activeEntry ? (
+              <>
+                <Link
+                  className="characterStoryTextLink"
+                  to={spacePath(activeEntry.space)}
+                >
+                  <span aria-hidden="true" />
+                  <strong>{activeEntry.presentation.storyLinkLabel}</strong>
+                  <span aria-hidden="true" />
+                </Link>
+                <LastCompanion
+                  activeEntry={activeEntry}
+                  characters={characters}
+                />
+              </>
+            ) : null}
           </div>
         </section>
       )}
 
       <nav className="characterDiscoveryBottomNav" aria-label="底部导航">
         <Link className="is-active" to={WEB_PATHS.home}>
-          <UsersRound aria-hidden="true" />
+          <UserRound aria-hidden="true" />
           <span>角色</span>
         </Link>
         <span aria-disabled="true">
-          <BookOpenText aria-hidden="true" />
+          <NotebookText aria-hidden="true" />
           <span>回忆</span>
         </span>
         <span aria-disabled="true">
@@ -276,45 +381,85 @@ function CharacterCard({
   active: boolean
   cardRef: (node: HTMLElement | null) => void
 }) {
-  const { space, character, avatar, tag } = entry
-  const cardId = `character-card-${character.id}`
-  const primaryPath = character.id === ANNIE_CHARACTER_ID
-    ? storyWorldCharacterPath(ANNIE_STORY_WORLD_ID, ANNIE_CHARACTER_ID)
-    : characterSpacePath(space, character)
+  const { character, presentation } = entry
 
   return (
     <article
       ref={cardRef}
-      id={cardId}
+      id={`character-card-${character.id}`}
       className={`characterStoryCard${active ? " is-active" : ""}`}
       data-character-id={character.id}
-      aria-label={`${character.name}，来自${space.name}`}
+      aria-label={`${character.name}的故事`}
     >
-      <div className="characterStoryCardMain">
-        <div className="characterStoryCardCopy">
-          <p className="characterStoryWorld">{space.name}</p>
-          <h2>{character.name}</h2>
-          <span className="characterStoryTag">{tag}</span>
-          <p className="characterStoryDescription">
-            {characterDescription(character)}
-          </p>
-        </div>
-        <div className="characterStoryPortrait">
-          {avatar ? <img src={avatar} alt={`${character.name}角色立绘`} /> : null}
-        </div>
+      <img
+        className="characterStoryPortrait"
+        src={presentation.portrait}
+        alt={`${character.name}角色立绘`}
+      />
+      <div className="characterStoryCardFade" aria-hidden="true" />
+      <div className="characterStoryCardCopy">
+        <h2>
+          {character.name}
+          <Sparkles aria-hidden="true" />
+        </h2>
+        <p className="characterStoryWorld">
+          <MapPin aria-hidden="true" />
+          {presentation.worldLine}
+        </p>
+        <span className="characterStoryRelationship">
+          <Feather aria-hidden="true" />
+          {presentation.relationship}
+        </span>
+        <span className="characterStoryDivider" aria-hidden="true" />
+        <p className="characterStoryLine">{presentation.storyLine}</p>
       </div>
-
-      <div className="characterStoryActions">
-        <Link className="characterStoryPrimaryAction" to={primaryPath}>
-          <span>去见{character.name}</span>
-          <ArrowRight aria-hidden="true" />
-        </Link>
-        <Link className="characterStorySecondaryAction" to={spacePath(space)}>
-          <BookOpenText aria-hidden="true" />
-          <span>查看故事</span>
-        </Link>
-      </div>
+      <Link className="characterStoryPrimaryAction" to={primaryPath(entry)}>
+        <span>{presentation.ctaLabel}</span>
+        <Sparkles aria-hidden="true" />
+      </Link>
     </article>
+  )
+}
+
+function LastCompanion({
+  activeEntry,
+  characters,
+}: {
+  activeEntry: FeaturedCharacter
+  characters: FeaturedCharacter[]
+}) {
+  const companions = activeEntry.presentation.companionIds.flatMap((characterId) => {
+    const companion = characters.find(({ character }) => character.id === characterId)
+    return companion ? [companion] : []
+  })
+
+  return (
+    <section className="characterLastCompanion" aria-labelledby="last-companion-title">
+      <div className="characterLastCompanionHeading">
+        <h2 id="last-companion-title">
+          <Sparkles aria-hidden="true" />
+          上次同行
+        </h2>
+        <span aria-hidden="true" />
+        <BookOpenText aria-hidden="true" />
+      </div>
+      <Link className="characterLastCompanionRow" to={primaryPath(activeEntry)}>
+        <span className="characterLastCompanionPortraits" aria-hidden="true">
+          {companions.map(({ character, presentation }) => (
+            <img
+              key={character.id}
+              src={presentation.portrait}
+              alt=""
+            />
+          ))}
+        </span>
+        <span>{activeEntry.presentation.companionLine}</span>
+        <strong>
+          继续
+          <ChevronRight aria-hidden="true" />
+        </strong>
+      </Link>
+    </section>
   )
 }
 

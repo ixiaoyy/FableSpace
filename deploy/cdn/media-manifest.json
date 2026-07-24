@@ -1,10 +1,47 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-07-23T09:14:07+00:00",
+  "generated_at": "2026-07-24T03:12:25+00:00",
   "media_base_url": "https://img.pingxingxian.space/fablespace/media/v1",
-  "tracked_image_count": 0,
-  "tracked_image_bytes": 0,
-  "migrate_count": 0,
+  "tracked_image_count": 4,
+  "tracked_image_bytes": 648886,
+  "migrate_count": 4,
   "delete_count": 0,
-  "entries": []
+  "entries": [
+    {
+      "source": "apps/web/app/assets/home-story-bookshelf/v1/characters/char_history_broad_street_annie.webp",
+      "disposition": "migrate",
+      "bytes": 234132,
+      "sha256": "6847e27c39dcea7526ddf6dae8beb76864b52f9493ed3a1213d5355fe4aea88b",
+      "content_type": "image/webp",
+      "object_key": "app/assets/home-story-bookshelf/v1/characters/char_history_broad_street_annie.webp",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/assets/home-story-bookshelf/v1/characters/char_history_broad_street_annie.webp"
+    },
+    {
+      "source": "apps/web/app/assets/home-story-bookshelf/v1/characters/char_story_palace_eunuch_wei.webp",
+      "disposition": "migrate",
+      "bytes": 179672,
+      "sha256": "eef86ca0a215a1f129413af4585441bf60fecb9e0ba73dd1a733af6b9f099132",
+      "content_type": "image/webp",
+      "object_key": "app/assets/home-story-bookshelf/v1/characters/char_story_palace_eunuch_wei.webp",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/assets/home-story-bookshelf/v1/characters/char_story_palace_eunuch_wei.webp"
+    },
+    {
+      "source": "apps/web/app/assets/home-story-bookshelf/v1/characters/char_story_palace_princess_xiao.webp",
+      "disposition": "migrate",
+      "bytes": 228834,
+      "sha256": "c8a79cf1dcffb540f155c7725c872db0c778be8f8e76969108bb8b6600bd5872",
+      "content_type": "image/webp",
+      "object_key": "app/assets/home-story-bookshelf/v1/characters/char_story_palace_princess_xiao.webp",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/assets/home-story-bookshelf/v1/characters/char_story_palace_princess_xiao.webp"
+    },
+    {
+      "source": "apps/web/app/assets/home-story-bookshelf/v1/ui/books-quill.webp",
+      "disposition": "migrate",
+      "bytes": 6248,
+      "sha256": "96a7280e67564b6469aae7f5e344542574897176a2b1a1606485757f20f60021",
+      "content_type": "image/webp",
+      "object_key": "app/assets/home-story-bookshelf/v1/ui/books-quill.webp",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/assets/home-story-bookshelf/v1/ui/books-quill.webp"
+    }
+  ]
 }
