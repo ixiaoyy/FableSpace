@@ -8,8 +8,8 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-1.md`
-- **Total Sessions**: 12
-- **Last Active**: 2026-07-23
+- **Total Sessions**: 13
+- **Last Active**: 2026-07-24
 <!-- @@@/auto:current-status -->
 
 ---
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-1.md` | ~410 | Active |
+| `journal-1.md` | ~444 | Active |
 <!-- @@@/auto:active-documents -->
 
 ---
@@ -29,6 +29,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 13 | 2026-07-24 | Homepage character carousel fidelity | `2b55124d`, `f09ac43c` | `main` |
 | 12 | 2026-07-23 | 铺通安妮故事垂直链路 | `575aace5` | `main` |
 | 11 | 2026-07-23 | 清退旧创作者、地图与媒体资源 | `122c69c0` | `main` |
 | 10 | 2026-07-23 | 清退旧 NPC 媒体素材 | `df669a73` | `main` |

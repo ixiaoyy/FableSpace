@@ -408,3 +408,37 @@ Implemented immutable StoryWorld content models, strict registry validation, tas
 ### Next Steps
 
 - None - task complete
+
+
+## Session 13: Homepage character carousel fidelity
+
+**Date**: 2026-07-24
+**Task**: Homepage character carousel fidelity
+**Branch**: `main`
+
+### Summary
+
+Matched the mobile homepage to UI稿/index.png, uploaded four immutable CDN assets with manifest and prompt provenance, verified the three-character carousel and recorded normalized design QA evidence.
+
+### Main Changes
+
+- Detailed change bullets were not supplied; see the summary above.
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `2b55124d` | (see git log) |
+| `f09ac43c` | (see git log) |
+
+### Testing
+
+- Validation was not recorded for this session.
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
