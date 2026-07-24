@@ -1,17 +1,14 @@
-"""Public detail and private anonymous runtime routes for StoryWorlds."""
+"""Public detail and authenticated private runtime routes for StoryWorlds."""
 
 from __future__ import annotations
 
-from uuid import UUID, uuid4
-
-from fastapi import APIRouter, HTTPException, Request, Response
+from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel, Field
 
 from ...application.story_worlds import StoryRuntimeError, StoryWorldApplicationService
-from ...infrastructure.settings import ApiSettings
+from .auth import require_story_session_identity
 
 router = APIRouter(prefix="/story-worlds", tags=["story-worlds"])
-PLAYER_COOKIE = "fablespace_player_id"
 
 
 class MessageRequest(BaseModel):
@@ -26,23 +23,8 @@ def _service(request: Request) -> StoryWorldApplicationService:
     return request.app.state.story_worlds
 
 
-def _player_id(request: Request, response: Response) -> str:
-    raw = request.cookies.get(PLAYER_COOKIE, "").strip()
-    try:
-        player_id = str(UUID(raw))
-    except (ValueError, AttributeError):
-        player_id = str(uuid4())
-        settings: ApiSettings = request.app.state.settings
-        response.set_cookie(
-            key=PLAYER_COOKIE,
-            value=player_id,
-            httponly=True,
-            secure=settings.session_cookie_secure,
-            samesite="lax",
-            path="/",
-            max_age=60 * 60 * 24 * 365,
-        )
-    return player_id
+def _player_id(request: Request) -> str:
+    return require_story_session_identity(request).id
 
 
 def _raise_http(exc: StoryRuntimeError) -> None:
@@ -66,8 +48,8 @@ def get_character_detail(story_world_id: str, character_id: str, request: Reques
 
 
 @router.get("/{story_world_id}/runs/current")
-def get_current_run(story_world_id: str, request: Request, response: Response):
-    player_id = _player_id(request, response)
+def get_current_run(story_world_id: str, request: Request):
+    player_id = _player_id(request)
     try:
         return {"run": _service(request).current(player_id, story_world_id)}
     except StoryRuntimeError as exc:
@@ -75,8 +57,8 @@ def get_current_run(story_world_id: str, request: Request, response: Response):
 
 
 @router.post("/{story_world_id}/runs")
-def start_run(story_world_id: str, request: Request, response: Response):
-    player_id = _player_id(request, response)
+def start_run(story_world_id: str, request: Request):
+    player_id = _player_id(request)
     try:
         return {"run": _service(request).start(player_id, story_world_id)}
     except StoryRuntimeError as exc:
@@ -84,8 +66,8 @@ def start_run(story_world_id: str, request: Request, response: Response):
 
 
 @router.post("/{story_world_id}/runs/restart")
-def restart_run(story_world_id: str, request: Request, response: Response):
-    player_id = _player_id(request, response)
+def restart_run(story_world_id: str, request: Request):
+    player_id = _player_id(request)
     try:
         return {"run": _service(request).restart(player_id, story_world_id)}
     except StoryRuntimeError as exc:
@@ -98,9 +80,8 @@ def post_message(
     run_id: str,
     payload: MessageRequest,
     request: Request,
-    response: Response,
 ):
-    player_id = _player_id(request, response)
+    player_id = _player_id(request)
     content = payload.content.strip()
     if not content:
         raise HTTPException(status_code=422, detail="回应不能为空。")
@@ -123,9 +104,8 @@ def post_choice(
     run_id: str,
     payload: ChoiceRequest,
     request: Request,
-    response: Response,
 ):
-    player_id = _player_id(request, response)
+    player_id = _player_id(request)
     try:
         return {
             "run": _service(request).choose(

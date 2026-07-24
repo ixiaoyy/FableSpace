@@ -8,20 +8,6 @@ export const LAUNCH_STORY_SPACE_CONTRACT = [
       "char_story_palace_princess_xiao",
     ],
   },
-  {
-    spaceId: "story_ghost_foxfire_debt",
-    characterIds: [
-      "char_story_ghost_fox_spirit_feiyue",
-      "char_story_ghost_scholar_ning",
-    ],
-  },
-  {
-    spaceId: "story_campus_last_class",
-    characterIds: [
-      "char_story_campus_teacher_shen",
-      "char_story_campus_heir_gu",
-    ],
-  },
 ] as const
 
 type LaunchStorySpaceContract = (typeof LAUNCH_STORY_SPACE_CONTRACT)[number]
@@ -72,8 +58,8 @@ function validateLaunchStorySpace(space: Space, contract: LaunchStorySpaceContra
 }
 
 /**
- * Loads and validates the accepted three-Space launch collection without substituting other public content.
- * @returns Three public, open system Spaces in contract order, each projected to its two real API characters.
+ * Loads the reviewed P0 palace world without requesting unreleased discovery content.
+ * @returns The public, open palace world projected to its two reviewed characters.
  * @throws When any request fails or published story content no longer matches the accepted access/status/character contract.
  */
 export async function loadLaunchStorySpaces(): Promise<SpaceListResponse> {

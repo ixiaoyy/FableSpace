@@ -16,7 +16,7 @@ type ApiEnvelope = {
   }
 }
 
-function apiUrl(path: string) {
+export function apiUrl(path: string) {
   if (/^https?:\/\//i.test(path)) {
     return path
   }

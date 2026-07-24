@@ -7,6 +7,7 @@ import hashlib
 import hmac
 import json
 import logging
+import re
 import time
 from dataclasses import dataclass
 from datetime import UTC, datetime
@@ -24,6 +25,11 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 logger = logging.getLogger(__name__)
 ACCESS_CAPABILITY = "fablespace.access"
 AUTHORIZATION_LOCK_STRIPES = 64
+LOGIN_RETURN_COOKIE = "fablespace_login_return"
+LOGIN_RETURN_TTL_SECONDS = 10 * 60
+STORY_RETURN_PATH_PATTERN = re.compile(
+    r"^/story-worlds/[A-Za-z0-9_-]+/characters/[A-Za-z0-9_-]+$"
+)
 
 
 class SessionIdentity(BaseModel):
@@ -196,6 +202,27 @@ def get_session_identity(connection: HTTPConnection) -> SessionIdentity | None:
     return _decode_session_cookie(raw_cookie, settings)
 
 
+def require_story_session_identity(connection: HTTPConnection) -> SessionIdentity:
+    """Resolve one trusted account for StoryWorld runtime routes or fail before state access."""
+    settings: ApiSettings = connection.app.state.settings
+    identity = (
+        _verified_session_identity(connection)
+        if settings.auth_mode == "parallellines"
+        else get_session_identity(connection)
+    )
+    if (
+        identity is None
+        or not has_capability(identity, ACCESS_CAPABILITY)
+        or _is_access_expired(identity)
+    ):
+        raise HTTPException(
+            status_code=401,
+            detail="尚未登录或登录已过期",
+            headers={"Cache-Control": "no-store"},
+        )
+    return identity
+
+
 def resolve_request_user_id(connection: HTTPConnection) -> str:
     """Resolve trusted user ID, falling back to legacy claims only in standalone mode."""
     identity = get_session_identity(connection)
@@ -284,7 +311,11 @@ async def parallellines_callback(
     if isinstance(verifier, ParallelLinesAccessVerifier):
         await verifier.remember(identity)
 
-    response = RedirectResponse(url="/", status_code=303)
+    return_path = _decode_login_return_cookie(
+        request.cookies.get(LOGIN_RETURN_COOKIE, ""),
+        settings,
+    )
+    response = RedirectResponse(url=return_path, status_code=303)
     response.set_cookie(
         key=settings.session_cookie_name,
         value=_encode_session_cookie(identity, settings),
@@ -293,6 +324,41 @@ async def parallellines_callback(
         secure=settings.session_cookie_secure,
         samesite="lax",
         path="/",
+    )
+    response.delete_cookie(
+        key=LOGIN_RETURN_COOKIE,
+        path="/api/v1/auth/parallellines/callback",
+        secure=settings.session_cookie_secure,
+        httponly=True,
+        samesite="lax",
+    )
+    response.headers["Cache-Control"] = "no-store"
+    return response
+
+
+@router.get("/parallellines/start")
+def start_parallellines_login(
+    request: Request,
+    return_to: Annotated[str, Query(max_length=512)] = "/",
+) -> RedirectResponse:
+    """Bind a safe story return path before sending the browser to the existing main-site entry."""
+    settings: ApiSettings = request.app.state.settings
+    if len(settings.session_secret.strip()) < 32:
+        raise HTTPException(status_code=503, detail="联动登录尚未配置")
+
+    return_path = _safe_story_return_path(return_to)
+    response = RedirectResponse(
+        url=f"{settings.parallellines_public_base_url.rstrip('/')}/play",
+        status_code=303,
+    )
+    response.set_cookie(
+        key=LOGIN_RETURN_COOKIE,
+        value=_encode_login_return_cookie(return_path, settings),
+        max_age=LOGIN_RETURN_TTL_SECONDS,
+        httponly=True,
+        secure=settings.session_cookie_secure,
+        samesite="lax",
+        path="/api/v1/auth/parallellines/callback",
     )
     response.headers["Cache-Control"] = "no-store"
     return response
@@ -315,8 +381,12 @@ async def access_status(request: Request, response: Response) -> AccessStatus:
         access_allowed = await is_private_access_allowed(request)
         identity = _verified_session_identity(request) if access_allowed else None
     else:
-        access_allowed = True
         identity = get_session_identity(request)
+        access_allowed = (
+            identity is not None
+            and has_capability(identity, ACCESS_CAPABILITY)
+            and not _is_access_expired(identity)
+        )
     response.headers["Cache-Control"] = "no-store"
     return AccessStatus(
         access_allowed=access_allowed,
@@ -369,6 +439,67 @@ def _encode_session_cookie(identity: SessionIdentity, settings: ApiSettings) -> 
         hashlib.sha256,
     ).digest()
     return f"{payload}.{_base64url_encode(signature)}"
+
+
+def _encode_login_return_cookie(return_path: str, settings: ApiSettings) -> str:
+    """Sign one short-lived same-origin story return path with a distinct token purpose."""
+    issued_at = int(time.time())
+    claims = {
+        "purpose": "story-login-return",
+        "path": _safe_story_return_path(return_path),
+        "iat": issued_at,
+        "exp": issued_at + LOGIN_RETURN_TTL_SECONDS,
+    }
+    payload = _base64url_encode(json.dumps(claims, separators=(",", ":")).encode("utf-8"))
+    signature = hmac.new(
+        settings.session_secret.encode("utf-8"),
+        payload.encode("ascii"),
+        hashlib.sha256,
+    ).digest()
+    return f"{payload}.{_base64url_encode(signature)}"
+
+
+def _decode_login_return_cookie(raw_cookie: str, settings: ApiSettings) -> str:
+    """Verify the server-bound login return token and fall back to the public homepage."""
+    if not raw_cookie or not settings.session_secret:
+        return "/"
+    try:
+        payload, supplied_signature = raw_cookie.split(".", 1)
+        expected_signature = hmac.new(
+            settings.session_secret.encode("utf-8"),
+            payload.encode("ascii"),
+            hashlib.sha256,
+        ).digest()
+        if not hmac.compare_digest(expected_signature, _base64url_decode(supplied_signature)):
+            return "/"
+        claims = json.loads(_base64url_decode(payload))
+        if not isinstance(claims, dict):
+            return "/"
+        if (
+            claims.get("purpose") != "story-login-return"
+            or int(claims.get("exp", 0)) <= int(time.time())
+        ):
+            return "/"
+        return _safe_story_return_path(str(claims.get("path") or ""))
+    except (AttributeError, binascii.Error, TypeError, ValueError):
+        return "/"
+
+
+def _safe_story_return_path(raw_path: str) -> str:
+    """Allow only canonical StoryWorld character paths, rejecting encoded redirect tricks."""
+    raw_candidate = str(raw_path or "")
+    candidate = raw_candidate.strip()
+    if (
+        not candidate
+        or candidate != raw_candidate
+        or len(candidate) > 512
+        or "%" in candidate
+        or "\\" in candidate
+        or any(ord(character) < 0x20 or ord(character) == 0x7F for character in candidate)
+        or STORY_RETURN_PATH_PATTERN.fullmatch(candidate) is None
+    ):
+        return "/"
+    return candidate
 
 
 def _decode_session_cookie(raw_cookie: str, settings: ApiSettings) -> SessionIdentity | None:

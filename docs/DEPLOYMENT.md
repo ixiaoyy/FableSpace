@@ -128,8 +128,14 @@ FableSpace 不注册 creator、owner、admin、故事创建、角色卡、地图
 LLM 产品能力。票据兑换响应需要在身份资料之外返回 `capabilities`、
 `authorization_version`、`access_expires_at`，并提供同一服务密钥保护的
 `POST /api/v1/auth/fablespace/introspect`。部署后直接打开 FableSpace 域名
-应显示关闭入口；只有从 ParallelLines 私密入口完成票据兑换后，业务页面、
-API 与生成资源才会开放。
+可浏览首页、角色卡和公开 StoryWorld 角色详情；开始、恢复、推进或重新开始
+故事的 API 必须在票据兑换并建立有效会话后开放，无会话时返回 `401`。
+
+未登录玩家从角色页进入故事时，FableSpace 的
+`GET /api/v1/auth/parallellines/start` 先把允许的本站角色路径写入短期签名
+HttpOnly Cookie，再跳转 ParallelLines `/play` 现有入口。票据回调建立会话后
+只读取该服务端签名路径并以 `303` 回到原角色页；无效、过期、外部或非允许
+路径统一回到 `/`。回跳 Cookie 在成功兑换后删除，不进入前端构建变量或 URL。
 
 ## 回滚
 

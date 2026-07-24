@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+import re
 
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -13,6 +14,7 @@ from .application.story_worlds import StoryWorldApplicationService, SystemStoryD
 from .api.v1.router import api_router
 from .content import STORY_WORLD_REGISTRY
 from .core.space import SpaceStore
+from .domain.public_reference import public_reference_code
 from .infrastructure.database import Database
 from .infrastructure.storage import resolve_database_url
 from .infrastructure.settings import ApiSettings
@@ -24,10 +26,41 @@ PRIVATE_GATE_PUBLIC_PATHS = frozenset(
     {
         "/api/v1/health",
         "/api/v1/auth/parallellines/callback",
+        "/api/v1/auth/parallellines/start",
         "/api/v1/auth/status",
         "/api/v1/auth/logout",
     }
 )
+PUBLIC_STORY_CHARACTER_PATH = re.compile(
+    r"^/api/v1/story-worlds/[^/]+/characters/[^/]+$"
+)
+PUBLIC_SPACE_ENTRY_PATH = re.compile(r"^/api/v1/spaces/(?P<space_ref>[^/]+)$")
+PUBLIC_ENTRY_SPACE_IDS = frozenset(
+    {
+        "history_broad_street_water_1854",
+        "story_palace_snow_edict",
+    }
+)
+PUBLIC_ENTRY_SPACE_REFS = PUBLIC_ENTRY_SPACE_IDS | frozenset(
+    public_reference_code("space", space_id) for space_id in PUBLIC_ENTRY_SPACE_IDS
+)
+
+
+def _is_public_api_request(request: Request) -> bool:
+    """Match only intentional public reads and authentication endpoints."""
+    path = request.url.path
+    if path in PRIVATE_GATE_PUBLIC_PATHS:
+        return True
+    if request.method != "GET":
+        return False
+    if PUBLIC_STORY_CHARACTER_PATH.fullmatch(path):
+        return True
+    space_match = PUBLIC_SPACE_ENTRY_PATH.fullmatch(path)
+    return bool(
+        space_match
+        and request.query_params.get("view") == "entry"
+        and space_match.group("space_ref") in PUBLIC_ENTRY_SPACE_REFS
+    )
 
 
 def create_store(settings: ApiSettings) -> SpaceStore:
@@ -99,8 +132,7 @@ def create_app(settings: ApiSettings | None = None) -> FastAPI:
         if (
             request.method != "OPTIONS"
             and protected_path
-            and request.url.path not in PRIVATE_GATE_PUBLIC_PATHS
-            and not request.url.path.startswith("/api/v1/story-worlds/")
+            and not _is_public_api_request(request)
             and not await is_private_access_allowed(request)
         ):
             return JSONResponse(
@@ -112,7 +144,11 @@ def create_app(settings: ApiSettings | None = None) -> FastAPI:
 
     @app.exception_handler(HTTPException)
     async def http_exception_handler(_: Request, exc: HTTPException) -> JSONResponse:
-        return JSONResponse(status_code=exc.status_code, content={"error": exc.detail})
+        return JSONResponse(
+            status_code=exc.status_code,
+            content={"error": exc.detail},
+            headers=exc.headers,
+        )
 
     @app.exception_handler(Exception)
     async def unhandled_exception_handler(request: Request, _exc: Exception) -> JSONResponse:

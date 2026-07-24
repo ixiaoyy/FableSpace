@@ -4,7 +4,7 @@ import { loadLaunchStorySpaces } from "./launch-story-spaces"
 import type { SpaceListResponse } from "./spaces"
 
 /**
- * Load the reviewed historical pilot and the three launch worlds as one homepage collection.
+ * Load the two reviewed P0 worlds as one homepage character collection.
  * Every child loader keeps its published access/status/character contract; this function only combines their results.
  */
 export async function loadHomeStoryCollection(): Promise<SpaceListResponse> {

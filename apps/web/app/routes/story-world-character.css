@@ -52,6 +52,7 @@
 
 .annieStoryHero,
 .annieStoryRun,
+.annieStoryAccess,
 .annieStoryStatus,
 .annieStoryError {
   width: min(1120px, 90vw);
@@ -197,6 +198,30 @@
 
 .annieStoryError {
   color: #f1b4b4;
+}
+
+.annieStoryAccess {
+  box-sizing: border-box;
+  display: grid;
+  justify-items: center;
+  gap: 1rem;
+  padding: 2.5rem 1.5rem;
+  text-align: center;
+  border: 1px solid var(--annie-line);
+  border-radius: 1.25rem;
+  background: var(--annie-panel);
+}
+
+.annieStoryAccess > svg {
+  width: 1.5rem;
+  color: #b9a985;
+}
+
+.annieStoryAccess h2 {
+  margin: 0;
+  font-family: Georgia, "Noto Serif SC", serif;
+  font-size: clamp(1.5rem, 4vw, 2rem);
+  font-weight: 500;
 }
 
 .annieStoryRun {
@@ -412,6 +437,7 @@
   }
 
   .annieStoryRun,
+  .annieStoryAccess,
   .annieStoryStatus,
   .annieStoryError {
     width: calc(100% - 2rem);

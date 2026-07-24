@@ -1,6 +1,5 @@
-import { readApiJson } from "./api-client"
+import { apiUrl, readApiJson } from "./api-client"
 
-export const DEFAULT_PARALLELLINES_URL = "https://pingxingxian.space"
 export const PARALLELLINES_AUTH_MODE = "parallellines"
 export const ACCESS_STATUS_REFRESH_INTERVAL_MS = 30_000
 
@@ -23,12 +22,9 @@ export type AccessStatus = {
   user: CurrentSessionIdentity | null
 }
 
-type AccessStatusListener = (status: AccessStatus) => void
-
 let accessStatusRequest: Promise<AccessStatus> | null = null
 let cachedAccessStatus: AccessStatus | null = null
 let accessStatusExpiresAt = 0
-const accessStatusListeners = new Set<AccessStatusListener>()
 
 /**
  * Reads the public access-gate status through one shared request and bounded linked-mode cache.
@@ -51,26 +47,12 @@ export function getAccessStatus(forceRefresh = false): Promise<AccessStatus> {
       accessStatusExpiresAt = status.auth_mode === PARALLELLINES_AUTH_MODE
         ? Date.now() + ACCESS_STATUS_REFRESH_INTERVAL_MS
         : Number.POSITIVE_INFINITY
-      accessStatusListeners.forEach((listener) => listener(status))
       return status
     })
     .finally(() => {
       accessStatusRequest = null
     })
   return accessStatusRequest
-}
-
-/**
- * Subscribes a mounted access consumer to fresh status responses fetched anywhere in the app.
- * @param listener State updater that receives the latest successful access response.
- * @returns Cleanup callback that removes only this listener and performs no network request.
- */
-export function subscribeAccessStatus(listener: AccessStatusListener): () => void {
-  accessStatusListeners.add(listener)
-  if (cachedAccessStatus && Date.now() < accessStatusExpiresAt) {
-    listener(cachedAccessStatus)
-  }
-  return () => accessStatusListeners.delete(listener)
 }
 
 /**
@@ -81,6 +63,12 @@ export function getCurrentSessionIdentity(): Promise<CurrentSessionIdentity | nu
   return getAccessStatus()
     .then((status) => status.user)
     .catch(() => null)
+}
+
+/** Build the backend-owned login start URL for one canonical StoryWorld character path. */
+export function storyLoginUrl(returnTo: string): string {
+  const query = new URLSearchParams({ return_to: returnTo })
+  return apiUrl(`/api/v1/auth/parallellines/start?${query.toString()}`)
 }
 
 /**

@@ -1,9 +1,11 @@
 import type { ClientLoaderFunctionArgs } from "react-router"
-import { ArrowLeft, Feather, RotateCcw, Send, ShieldCheck } from "lucide-react"
-import { FormEvent, useEffect, useState } from "react"
+import { ArrowLeft, Feather, LockKeyhole, RotateCcw, Send, ShieldCheck } from "lucide-react"
+import { FormEvent, useCallback, useEffect, useState } from "react"
 import { Link, useLoaderData } from "react-router"
 
 import { HistoricalBroadStreetVisual } from "../components/historical-broad-street-visual"
+import { SESSION_EXPIRED_EVENT } from "../lib/api-client"
+import { getAccessStatus, storyLoginUrl } from "../lib/session"
 import {
   chooseStoryPath,
   getCurrentStoryRun,
@@ -14,7 +16,7 @@ import {
   type StoryRun,
   type StoryWorldCharacterDetail,
 } from "../lib/story-worlds"
-import { WEB_PATHS } from "../lib/web-routes"
+import { storyWorldCharacterPath, WEB_PATHS } from "../lib/web-routes"
 
 import "./story-world-character.css"
 
@@ -22,6 +24,8 @@ type LoaderData = {
   detail: StoryWorldCharacterDetail | null
   error: string
 }
+
+type StoryAccessState = "checking" | "authenticated" | "anonymous" | "error"
 
 export async function clientLoader({ params }: ClientLoaderFunctionArgs): Promise<LoaderData> {
   const storyWorldId = params.storyWorldId || ""
@@ -42,30 +46,48 @@ export async function clientLoader({ params }: ClientLoaderFunctionArgs): Promis
 export default function StoryWorldCharacterRoute() {
   const { detail, error } = useLoaderData<typeof clientLoader>()
   const [run, setRun] = useState<StoryRun | null>(null)
-  const [runLoading, setRunLoading] = useState(Boolean(detail))
+  const [runLoading, setRunLoading] = useState(false)
+  const [accessState, setAccessState] = useState<StoryAccessState>("checking")
   const [pending, setPending] = useState(false)
   const [actionError, setActionError] = useState("")
   const [message, setMessage] = useState("")
 
-  useEffect(() => {
+  const loadPrivateStory = useCallback(async (forceRefresh = false) => {
     if (!detail) return
-    let active = true
-    void getCurrentStoryRun(detail.story_world.id)
-      .then((current) => {
-        if (active) setRun(current)
-      })
-      .catch((reason) => {
-        if (active) {
-          setActionError(reason instanceof Error ? reason.message : "故事进度暂时无法读取。")
-        }
-      })
-      .finally(() => {
-        if (active) setRunLoading(false)
-      })
-    return () => {
-      active = false
+    setAccessState("checking")
+    setActionError("")
+    try {
+      const access = await getAccessStatus(forceRefresh)
+      if (!access.access_allowed || !access.user) {
+        setRun(null)
+        setAccessState("anonymous")
+        return
+      }
+      setRunLoading(true)
+      setAccessState("authenticated")
+      setRun(await getCurrentStoryRun(detail.story_world.id))
+    } catch (reason) {
+      setRun(null)
+      setAccessState("error")
+      setActionError(reason instanceof Error ? reason.message : "登录状态暂时无法确认。")
+    } finally {
+      setRunLoading(false)
     }
   }, [detail])
+
+  useEffect(() => {
+    void loadPrivateStory()
+  }, [loadPrivateStory])
+
+  useEffect(() => {
+    const handleSessionExpired = () => {
+      setPending(false)
+      setMessage("")
+      void loadPrivateStory(true)
+    }
+    window.addEventListener(SESSION_EXPIRED_EVENT, handleSessionExpired)
+    return () => window.removeEventListener(SESSION_EXPIRED_EVENT, handleSessionExpired)
+  }, [loadPrivateStory])
 
   if (!detail) {
     return (
@@ -79,6 +101,9 @@ export default function StoryWorldCharacterRoute() {
   }
 
   const storyWorldId = detail.story_world.id
+  const loginHref = storyLoginUrl(
+    storyWorldCharacterPath(storyWorldId, detail.character.id),
+  )
 
   async function runAction(action: () => Promise<StoryRun | null>) {
     setPending(true)
@@ -137,7 +162,7 @@ export default function StoryWorldCharacterRoute() {
               <p>{detail.player_role.background}</p>
             </div>
           </div>
-          {!run && !runLoading ? (
+          {accessState === "authenticated" && !run && !runLoading ? (
             <button
               className="annieStoryPrimaryButton"
               type="button"
@@ -151,10 +176,33 @@ export default function StoryWorldCharacterRoute() {
         </div>
       </section>
 
+      {accessState === "checking" ? (
+        <p className="annieStoryStatus">正在确认登录状态……</p>
+      ) : null}
       {runLoading ? <p className="annieStoryStatus">正在找回你们上次停下的地方……</p> : null}
       {actionError ? <p className="annieStoryError" role="alert">{actionError}</p> : null}
+      {accessState === "anonymous" ? (
+        <section className="annieStoryAccess" aria-labelledby="annie-story-access-title">
+          <LockKeyhole aria-hidden="true" />
+          <h2 id="annie-story-access-title">登录后进入故事</h2>
+          <a className="annieStoryPrimaryButton" href={loginHref}>登录</a>
+        </section>
+      ) : null}
+      {accessState === "error" ? (
+        <section className="annieStoryAccess">
+          <LockKeyhole aria-hidden="true" />
+          <h2>登录状态暂不可用</h2>
+          <button
+            className="annieStoryPrimaryButton"
+            type="button"
+            onClick={() => void loadPrivateStory(true)}
+          >
+            重试
+          </button>
+        </section>
+      ) : null}
 
-      {run ? (
+      {accessState === "authenticated" && run ? (
         <section className="annieStoryRun" aria-label="安妮的故事">
           <div className="annieStoryRunHeading">
             <div>
