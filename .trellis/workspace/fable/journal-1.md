@@ -475,3 +475,36 @@ Implemented immutable StoryWorld runtime projections, transactional player-scope
 ### Next Steps
 
 - None - task complete
+
+
+## Session 15: 接入强制登录玩家身份
+
+**Date**: 2026-07-24
+**Task**: 接入强制登录玩家身份
+**Branch**: `main`
+
+### Summary
+
+将公开浏览与私人故事运行时拆分；StoryWorld 只使用服务端验证账号身份，加入签名安全回跳、401 无写入边界、会话过期不重放，并完成 P0 公开白名单及桌面/360px 验收。
+
+### Main Changes
+
+- Detailed change bullets were not supplied; see the summary above.
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `4cd2e88e` | (see git log) |
+
+### Testing
+
+- Validation was not recorded for this session.
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
