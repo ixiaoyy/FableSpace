@@ -19,9 +19,12 @@ import { Link } from "react-router"
 
 import { mediaAssetUrl } from "../lib/media-assets"
 import {
+  ANNIE_CHARACTER_ROUTE,
+  characterPath,
+} from "../lib/character-routes"
+import {
   characterSpacePath,
   spacePath,
-  storyWorldCharacterPath,
   WEB_PATHS,
 } from "../lib/web-routes"
 import type { Space, SpaceCharacter } from "../lib/spaces"
@@ -56,7 +59,6 @@ type FeaturedCharacter = {
 const ANNIE_CHARACTER_ID = "char_history_broad_street_annie"
 const WEI_CHARACTER_ID = "char_story_palace_eunuch_wei"
 const XIAO_CHARACTER_ID = "char_story_palace_princess_xiao"
-const ANNIE_STORY_WORLD_ID = "history_broad_street_water_1854"
 const BOOKS_QUILL_DECORATION = mediaAssetUrl(
   "app/assets/home-story-bookshelf/v1/ui/books-quill.webp",
 )
@@ -121,7 +123,7 @@ function featuredCharacters(spaces: Space[]) {
 
 function primaryPath(entry: FeaturedCharacter) {
   if (entry.character.id === ANNIE_CHARACTER_ID) {
-    return storyWorldCharacterPath(ANNIE_STORY_WORLD_ID, ANNIE_CHARACTER_ID)
+    return characterPath(ANNIE_CHARACTER_ROUTE.slug)
   }
   return characterSpacePath(entry.space, entry.character)
 }

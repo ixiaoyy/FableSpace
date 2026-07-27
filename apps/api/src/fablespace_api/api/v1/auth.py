@@ -28,7 +28,7 @@ AUTHORIZATION_LOCK_STRIPES = 64
 LOGIN_RETURN_COOKIE = "fablespace_login_return"
 LOGIN_RETURN_TTL_SECONDS = 10 * 60
 STORY_RETURN_PATH_PATTERN = re.compile(
-    r"^/story-worlds/[A-Za-z0-9_-]+/characters/[A-Za-z0-9_-]+$"
+    r"^/characters/[A-Za-z0-9_-]+/story$"
 )
 
 
@@ -486,7 +486,7 @@ def _decode_login_return_cookie(raw_cookie: str, settings: ApiSettings) -> str:
 
 
 def _safe_story_return_path(raw_path: str) -> str:
-    """Allow only canonical StoryWorld character paths, rejecting encoded redirect tricks."""
+    """Allow only canonical character story paths, rejecting encoded redirect tricks."""
     raw_candidate = str(raw_path or "")
     candidate = raw_candidate.strip()
     if (
