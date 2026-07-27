@@ -591,6 +591,18 @@ function StoryTimeline({
 }) {
   const timelineRef = useRef<HTMLDivElement>(null)
   const latestEventId = run.events[run.events.length - 1]?.id
+  const currentNarrationEventId = run.events.reduce<string | null>(
+    (matchedId, event) => (
+      event.type === "narration"
+      && event.content === run.current_node.narration
+        ? event.id
+        : matchedId
+    ),
+    null,
+  )
+  const timelineEvents = run.events.filter(
+    (event) => event.id !== currentNarrationEventId,
+  )
 
   useEffect(() => {
     const timeline = timelineRef.current
@@ -605,7 +617,7 @@ function StoryTimeline({
       aria-busy={pending}
       aria-live="polite"
     >
-      {run.events.map((event) => {
+      {timelineEvents.map((event) => {
         const messageEvent = event.type === "message"
         const eventTone = event.type === "relationship_changed"
           ? event.type
