@@ -607,3 +607,36 @@ Split the frontend roadmap into UI-first and integration follow-ups, archived th
 ### Next Steps
 
 - None - task complete
+
+
+## Session 19: 完成安妮故事交互与史料表面阶段
+
+**Date**: 2026-07-27
+**Task**: 完成安妮故事交互与史料表面阶段
+**Branch**: `main`
+
+### Summary
+
+为安妮新 StoryWorld 路线增加关键选择关系反馈、分阶段审核史料投影、明确等待与失败重试、时间线自动定位和移动端可达性；使用无数据库 mock 在 390×844/桌面浏览器验收，并在隔离提交快照通过 typecheck/build。
+
+### Main Changes
+
+- Detailed change bullets were not supplied; see the summary above.
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `8cdf602f` | (see git log) |
+
+### Testing
+
+- Validation was not recorded for this session.
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
