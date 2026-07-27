@@ -707,3 +707,36 @@ Split the frontend roadmap into UI-first and integration follow-ups, archived th
 ### Next Steps
 
 - None - task complete
+
+
+## Session 22: 收敛故事页重复开场
+
+**Date**: 2026-07-27
+**Task**: 收敛故事页重复开场
+**Branch**: `main`
+
+### Summary
+
+登录并取得故事进度后隐藏重复的世界开场介绍，仅保留当前场景、叙事与角色对话；完成前端验证并部署。
+
+### Main Changes
+
+- Detailed change bullets were not supplied; see the summary above.
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `a759c34a` | (see git log) |
+
+### Testing
+
+- Validation was not recorded for this session.
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete

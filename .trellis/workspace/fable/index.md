@@ -8,7 +8,7 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-1.md`
-- **Total Sessions**: 21
+- **Total Sessions**: 22
 - **Last Active**: 2026-07-27
 <!-- @@@/auto:current-status -->
 
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-1.md` | ~709 | Active |
+| `journal-1.md` | ~742 | Active |
 <!-- @@@/auto:active-documents -->
 
 ---
@@ -29,6 +29,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 22 | 2026-07-27 | 收敛故事页重复开场 | `a759c34a` | `main` |
 | 21 | 2026-07-27 | 收敛故事页当前信息 | `b9cc8bd0`, `2c6f954b` | `main` |
 | 20 | 2026-07-27 | 完成长明宫短路由与故事入口 | `8e038e4a` | `main` |
 | 19 | 2026-07-27 | 完成安妮故事交互与史料表面阶段 | `8cdf602f` | `main` |
