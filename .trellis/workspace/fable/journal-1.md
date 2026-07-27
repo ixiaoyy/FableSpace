@@ -574,3 +574,36 @@ Split the frontend roadmap into UI-first and integration follow-ups, archived th
 ### Next Steps
 
 - None - task complete
+
+
+## Session 18: 完成安妮自由对话边界阶段
+
+**Date**: 2026-07-27
+**Task**: 完成安妮自由对话边界阶段
+**Branch**: `main`
+
+### Summary
+
+为安妮自由输入增加历史与儿童安全边界、受控安全回复、按内容规则计算的关系反馈、防重复刷取、来源事件追踪和过期回复冲突；使用 fake completion 离线验证，未连接数据库或调用真实 LLM。
+
+### Main Changes
+
+- Detailed change bullets were not supplied; see the summary above.
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `fa272b9e` | (see git log) |
+
+### Testing
+
+- Validation was not recorded for this session.
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
