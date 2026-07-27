@@ -673,3 +673,37 @@ Split the frontend roadmap into UI-first and integration follow-ups, archived th
 ### Next Steps
 
 - None - task complete
+
+
+## Session 21: 收敛故事页当前信息
+
+**Date**: 2026-07-27
+**Task**: 收敛故事页当前信息
+**Branch**: `main`
+
+### Summary
+
+去除当前场景叙述在时间线中的重复展示；故事页右栏只保留相关资料，隐藏关系卡、关系变化事件和结局留存列表，并删除对应样式。
+
+### Main Changes
+
+- Detailed change bullets were not supplied; see the summary above.
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `b9cc8bd0` | (see git log) |
+| `2c6f954b` | (see git log) |
+
+### Testing
+
+- Validation was not recorded for this session.
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
