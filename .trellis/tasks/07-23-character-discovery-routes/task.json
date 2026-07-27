@@ -2,7 +2,7 @@
   "id": "character-discovery-routes",
   "name": "character-discovery-routes",
   "title": "实现角色发现与新路由",
-  "description": "只实现首页角色卡、StoryWorld 深链和旧入口切换。",
+  "description": "只实现首页角色卡、角色公开短路由和旧入口切换。",
   "status": "planning",
   "dev_type": null,
   "scope": null,

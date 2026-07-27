@@ -2,7 +2,7 @@
   "id": "palace-character-discovery-routes",
   "name": "palace-character-discovery-routes",
   "title": "完成长明宫双角色公开详情入口",
-  "description": "补齐魏观海、萧明珠的 StoryWorld 公开详情深链与真实不可用状态，不扩大旧 Space 兼容。",
+  "description": "补齐魏观海、萧明珠的角色公开短路由与真实不可用状态，不扩大旧 Space 兼容。",
   "status": "planning",
   "dev_type": null,
   "scope": null,

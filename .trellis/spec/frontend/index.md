@@ -22,6 +22,7 @@ contracts for the React Router frontend in `apps/web/`.
 | [Quality Guidelines](./quality-guidelines.md) | Code standards, forbidden patterns | To fill |
 | [Type Safety](./type-safety.md) | Type patterns, validation | To fill |
 | [User-Facing UI Copy](./ui-copy-guidelines.md) | Mandatory no-explanatory-copy and collection-structure contract | Active |
+| [Character Routing](./character-routing.md) | Canonical character-first public routes and identity boundary | Active |
 
 ---
 
@@ -30,10 +31,12 @@ contracts for the React Router frontend in `apps/web/`.
 Before changing any user-facing page or component:
 
 1. Read [User-Facing UI Copy](./ui-copy-guidelines.md).
-2. Read [Quality Guidelines](./quality-guidelines.md).
-3. Confirm the page structure is driven by its durable product role, not by the
+2. Read [Character Routing](./character-routing.md) when changing navigation,
+   public routes, login return targets, or character entry surfaces.
+3. Read [Quality Guidelines](./quality-guidelines.md).
+4. Confirm the page structure is driven by its durable product role, not by the
    current number of records.
-4. Plan a mobile-first viewport check for visual or interaction changes.
+5. Plan a mobile-first viewport check for visual or interaction changes.
 
 ---
 

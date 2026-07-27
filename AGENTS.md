@@ -94,7 +94,9 @@ FableSpace 是一个角色故事平台：玩家因想见一个角色而进入其
 
 - 新领域统一使用 `StoryWorld`、`Character`、`PlayerRole`、`PlayerStoryState`、`StoryRun` 和 `CharacterRelationship`。
 - `NPC` 只描述 Character 由 AI 演绎的运行方式，不作为持久化实体名。
-- 新 API 与路由使用 `story_world_id`、`character_id` 和 `/story-worlds/...`，不新增 `/spaces` 或中文兼容路由。
+- 新 API 使用 `story_world_id`、`character_id` 和 `/api/v1/story-worlds/...`，不新增 `/spaces` 或中文兼容路由。
+- 前端公开角色详情的规范短路由是 `/characters/:characterSlug`，故事互动页是 `/characters/:characterSlug/story`；首页与站内链接统一使用这组路径，不再提供 `/story-worlds/...` 前端深链。
+- `characterSlug` 只是在 `apps/web/app/lib/character-routes.ts` 中显式维护的稳定 ASCII 路由键，用于映射既有 `storyWorldId` 与 `characterId`；它不是 Character Schema 字段、持久化身份或 API 参数，不得由展示名临时推导。
 - P0 每个 StoryWorld 只有一个固定 PlayerRole；客户端不能提交任意身份 Prompt、PlayerRole 或 `player_id`。
 - `player_id + story_world_id` 唯一定位 PlayerStoryState；登录账号或匿名访客标识由服务端可信边界解析。
 - StoryRun 锁定 `content_version`，关键选择在轮次中不能回退；结局后新轮次不继承上一轮好感度和故事标记。

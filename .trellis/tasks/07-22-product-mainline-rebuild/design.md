@@ -125,16 +125,19 @@ AI 不得直接写入正史、创建新永久结局、绕过前置条件或自�
 - 结局后重新开始；
 - 获取面向玩家的关系阶段、态度变化和回访摘要。
 
-具体路径由后端子任务确定，但所有故事深链统一位于 `/story-worlds/...`；不得保留 `/spaces`、中文 Space 路由或 legacy alias。公开发现和角色详情允许匿名读取；开始、恢复、推进和重新开始故事必须由认证中间件解析有效登录账号，不接受客户端注入 owner、player ID 或任意 visitor ID。无有效会话时返回 `401` 且不得写入状态。
+后端新 API 统一位于 `/api/v1/story-worlds/...`，使用 `story_world_id` 与 `character_id` 作为领域身份。前端公开角色详情统一使用 `/characters/:characterSlug`，故事互动统一使用 `/characters/:characterSlug/story`；`characterSlug` 由前端注册表显式映射到既有 StoryWorld 与 Character 身份，不新增 Schema 字段或持久化身份。前端不再提供 `/story-worlds/...` 深链，也不得保留 `/spaces`、中文 Space 路由或 legacy alias。公开发现和角色详情允许匿名读取；开始、恢复、推进和重新开始故事必须由认证中间件解析有效登录账号，不接受客户端注入 owner、player ID 或任意 visitor ID。无有效会话时返回 `401` 且不得写入状态。
 
 ## 6. 前端信息架构
 
 前端只保留：
 
 - `/`：角色发现首页；
-- `/story-worlds/:storyWorldRef/characters/:characterRef`：角色入场与故事互动；
+- `/characters/:characterSlug`：角色公开详情与固定 PlayerRole 入场信息；
+- `/characters/:characterSlug/story`：故事互动、回访恢复与结局；
 - 进入故事前的登录门禁与安全回跳表面；
 - 必要的错误、加载、无内容和回访状态。
+
+`characterSlug` 必须是前端路由注册表中显式维护的稳定 ASCII 键，不从角色展示名动态生成，也不替代 API 和持久化层的 `story_world_id` / `character_id`。
 
 首页以安妮、魏观海、萧明珠三张真实角色卡为 P0 数据，不补虚构占位角色。故事世界作为角色卡背景呈现，不提供独立世界目录。进入角色后展示固定 PlayerRole，不提供身份选择器。
 
