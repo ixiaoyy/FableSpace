@@ -8,7 +8,7 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-1.md`
-- **Total Sessions**: 19
+- **Total Sessions**: 20
 - **Last Active**: 2026-07-27
 <!-- @@@/auto:current-status -->
 
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-1.md` | ~642 | Active |
+| `journal-1.md` | ~675 | Active |
 <!-- @@@/auto:active-documents -->
 
 ---
@@ -29,6 +29,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 20 | 2026-07-27 | 完成长明宫短路由与故事入口 | `8e038e4a` | `main` |
 | 19 | 2026-07-27 | 完成安妮故事交互与史料表面阶段 | `8cdf602f` | `main` |
 | 18 | 2026-07-27 | 完成安妮自由对话边界阶段 | `fa272b9e` | `main` |
 | 17 | 2026-07-27 | 完成安妮宽街故事内容阶段 | `69184d81` | `main` |

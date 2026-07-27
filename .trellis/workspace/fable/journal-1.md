@@ -640,3 +640,36 @@ Split the frontend roadmap into UI-first and integration follow-ups, archived th
 ### Next Steps
 
 - None - task complete
+
+
+## Session 20: 完成长明宫短路由与故事入口
+
+**Date**: 2026-07-27
+**Task**: 完成长明宫短路由与故事入口
+**Branch**: `main`
+
+### Summary
+
+将长明宫迁入正式 StoryWorld 注册表，支持魏观海与萧明珠共享轮次但独立对白和关系投影；新增 /characters/wei、/characters/mingzhu 及故事页，删除公开旧 stories/characters 路由和旧聊天工作台，并完成线上路由、点击、配色与移动端验收。
+
+### Main Changes
+
+- Detailed change bullets were not supplied; see the summary above.
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `8e038e4a` | (see git log) |
+
+### Testing
+
+- Validation was not recorded for this session.
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
