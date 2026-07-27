@@ -740,3 +740,36 @@ Split the frontend roadmap into UI-first and integration follow-ups, archived th
 ### Next Steps
 
 - None - task complete
+
+
+## Session 23: 重写安妮初次相遇文案
+
+**Date**: 2026-07-27
+**Task**: 重写安妮初次相遇文案
+**Branch**: `main`
+
+### Summary
+
+补足玩家乞丐身份、雨中相遇、陌生人距离和安妮谨慎讨水的因果；提升内容版本，保持历史事实与后续剧情图不变，并完成部署验证。
+
+### Main Changes
+
+- Detailed change bullets were not supplied; see the summary above.
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `a4b42941` | (see git log) |
+
+### Testing
+
+- Validation was not recorded for this session.
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
