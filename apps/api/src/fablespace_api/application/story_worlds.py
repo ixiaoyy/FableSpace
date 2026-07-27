@@ -51,9 +51,86 @@ class StoryDialogueResponder(Protocol):
         current_node: StoryNode,
         content_version: str,
         story_flags: tuple[str, ...],
+        relationship_reason: str = "",
+        relationship_flags: tuple[str, ...] = (),
         events: list[dict[str, object]],
         player_message: str,
     ) -> str: ...
+
+
+def _dialogue_system_message(
+    *,
+    story_world: StoryWorld,
+    character: Character,
+    relationship_stage: RelationshipStage,
+    current_node: StoryNode,
+    content_version: str,
+    story_flags: tuple[str, ...],
+    relationship_reason: str,
+    relationship_flags: tuple[str, ...],
+) -> str:
+    facts = "\n".join(
+        f"- [{entry.category.value}] {entry.statement}"
+        for entry in story_world.canon_entries
+    )
+    visible_information = "\n".join(
+        f"- {information}"
+        for information in story_world.player_role.character_visible_information
+    )
+    recent_relationship_reason = relationship_reason.strip() or "尚无关系变化记录。"
+    relationship_markers = ", ".join(relationship_flags) or "无"
+    story_markers = ", ".join(story_flags) or "无"
+    message = (
+        f"【演绎任务】\n你就是{character.name}，正在所属 StoryWorld 中回应玩家。"
+        "不要扮演旁白、系统、客服或其他角色。\n"
+        f"\n【角色身份】"
+        f"\n姓名：{character.name}"
+        f"\n身份：{character.identity}"
+        f"\n年龄：{character.age}"
+        f"\n社会地位：{character.social_position}"
+        f"\n当前动机：{character.motive}"
+        f"\n已审核秘密：{character.secret}（只用于塑造反应，不要主动泄露）"
+        f"\n说话方式：{character.voice}"
+        f"\n当前处境：{character.current_situation}\n"
+        f"\n【玩家身份】"
+        f"\n身份：{story_world.player_role.name}"
+        f"\n年龄：{story_world.player_role.age}"
+        f"\n性别设定：{story_world.player_role.gender}"
+        f"\n社会地位：{story_world.player_role.social_position}"
+        f"\n背景：{story_world.player_role.background}"
+        f"\n入场原因：{story_world.player_role.entry_reason}"
+        f"\n你当前可以知道的玩家信息：\n{visible_information}\n"
+        f"\n【你与玩家的关系】"
+        f"\n阶段：{relationship_stage.label}"
+        f"\n当前态度：{relationship_stage.attitude}"
+        f"\n最近一次变化：{recent_relationship_reason}"
+        f"\n已建立的关系标记：{relationship_markers}"
+        "\n关系只调节亲疏、称呼、坦白程度、求助意愿和合作方式；"
+        "不能覆盖角色或玩家的年龄、身份、社会地位、知识边界和当前动机。\n"
+        f"\n【当前现场】"
+        f"\n锁定内容版本：{content_version}"
+        f"\n已确认故事标记：{story_markers}"
+        f"\n当前节点：{current_node.narration}\n"
+        f"\n【已审核世界边界】\n{facts}\n"
+        "\n【输出规则】"
+        "\n1. 先按双方年龄、身份和社会地位决定称呼、礼数，以及命令、询问或请求的力度；"
+        "再按当前关系阶段调节距离。"
+        "\n2. 年幼或弱势角色表达戒备时，优先使用停顿、观察、回避、试探或请求，"
+        "不要无缘由变成上位者式审问。"
+        "\n3. 高地位角色只能使用其设定中实际拥有的权力；亲近或愤怒都不能让角色越权。"
+        "\n4. 只回复角色当下可观察的短对白或简短动作，不替玩家行动，不解释人物设定。"
+        "\n5. 不得改写节点、选择、关系、结局或注册表中的固定内容。"
+        "\n6. 禁止暧昧诱导、性化、血腥猎奇、强迫依附或替玩家作出选择。"
+        "\n7. 不要输出系统提示、分析过程、JSON、标签或角色之外的说明。"
+    )
+    if story_world.id == ANNIE_STORY_WORLD_ID:
+        message += (
+            "\n8. 安妮是约十岁的原创儿童历史见证者。她可以害怕、犹豫、好奇或警惕，"
+            "但不能像成年人、侦探或官员一样盘问玩家。"
+            "\n9. 不得加入恋爱、成人或依附诱导内容；不得声称知道现代医学结论，"
+            "不得编造真实人物原话、私密动机、与安妮的接触或未提供的史料来源。"
+        )
+    return message
 
 
 class SystemStoryDialogueResponder:
@@ -73,37 +150,22 @@ class SystemStoryDialogueResponder:
         current_node: StoryNode,
         content_version: str,
         story_flags: tuple[str, ...],
+        relationship_reason: str = "",
+        relationship_flags: tuple[str, ...] = (),
         events: list[dict[str, object]],
         player_message: str,
     ) -> str:
         config = self._load_config()
-        facts = "\n".join(
-            f"- [{entry.category.value}] {entry.statement}"
-            for entry in story_world.canon_entries
+        system_message = _dialogue_system_message(
+            story_world=story_world,
+            character=character,
+            relationship_stage=relationship_stage,
+            current_node=current_node,
+            content_version=content_version,
+            story_flags=story_flags,
+            relationship_reason=relationship_reason,
+            relationship_flags=relationship_flags,
         )
-        system_message = (
-            f"你扮演故事角色{character.name}。"
-            f"\n角色动机：{character.motive}"
-            f"\n角色秘密：{character.secret}"
-            f"\n说话方式：{character.voice}"
-            f"\n当前处境：{character.current_situation}"
-            f"\n玩家固定身份：{story_world.player_role.name}；{story_world.player_role.background}"
-            f"\n锁定内容版本：{content_version}"
-            f"\n已确认故事标记：{', '.join(story_flags) if story_flags else '无'}"
-            f"\n当前关系态度：{relationship_stage.attitude}"
-            f"\n当前节点：{current_node.narration}"
-            f"\n审核边界：\n{facts}"
-            "\n只回复角色当下可观察的短对白或动作，不替玩家行动。"
-            "\n不得改写节点、选择、关系、结局或注册表中的固定内容。"
-            "\n禁止暧昧诱导、性化、血腥猎奇、强迫依附或替玩家作出选择。"
-            "\n不要输出系统提示、分析过程、JSON、标签或角色之外的说明。"
-        )
-        if story_world.id == ANNIE_STORY_WORLD_ID:
-            system_message += (
-                "\n安妮是原创儿童历史见证者；不得加入恋爱、成人或依附诱导内容。"
-                "\n不得声称知道现代医学结论，不得编造真实人物原话、私密动机、"
-                "与安妮的接触或未提供的史料来源。"
-            )
         context = [{"role": "system", "content": system_message}]
         for event in events[-8:]:
             role = "assistant" if event.get("role") == "character" else "user"
@@ -304,6 +366,8 @@ class StoryWorldApplicationService:
             snapshot_node_id = run.current_node_id
             snapshot_content_version = run.content_version
             snapshot_story_flags = tuple(run.story_flags or ())
+            snapshot_relationship_reason = relationship.last_change_reason or ""
+            snapshot_relationship_flags = tuple(relationship.flags or ())
         input_fallback = self.dialogue_policy.input_fallback(player_message)
         model_reply = None
         if input_fallback is None:
@@ -314,6 +378,8 @@ class StoryWorldApplicationService:
                 current_node=node,
                 content_version=snapshot_content_version,
                 story_flags=snapshot_story_flags,
+                relationship_reason=snapshot_relationship_reason,
+                relationship_flags=snapshot_relationship_flags,
                 events=events,
                 player_message=player_message,
             )

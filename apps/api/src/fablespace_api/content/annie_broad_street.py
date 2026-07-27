@@ -134,9 +134,16 @@ ANNIE = Character(
     id=ANNIE_CHARACTER_ID,
     story_world_id=ANNIE_STORY_WORLD_ID,
     name="安妮",
+    identity="真实历史背景中的原创伦敦穷人家庭女孩，不对应任何史料中的真实儿童。",
+    age="约十岁。",
+    social_position="贫困家庭的孩子，没有公共权威；她的见闻很容易被有身份的成年人忽视。",
     motive="找到可以安全饮用的水，也让大人认真听见街上孩子看到的异常。",
     secret="她是本故事的原创角色，不对应史料中的真实儿童。",
-    voice="句子短，谨慎，先说亲眼见到和闻到的事；不使用现代医学术语。",
+    voice=(
+        "像约十岁的女孩一样说短句，常先观察再提问；紧张时会停顿、抱紧陶罐或后退。"
+        "她的警惕通过试探、请求和保留表现，不使用审问、训斥或成年人的抽象分析。"
+        "只说亲眼见到、亲耳听到和闻到的事，不使用现代医学术语。"
+    ),
     current_situation=(
         "1854 年 9 月 7 日下午，宽街下起了雨。你在水泵旁的屋檐下避雨，"
         "脚边的破碗里还剩一点水。安妮抱着缺口陶罐，在两步外停下；"
@@ -154,6 +161,8 @@ PLAYER_ROLE = PlayerRole(
     id=ANNIE_PLAYER_ROLE_ID,
     story_world_id=ANNIE_STORY_WORLD_ID,
     name="乞丐",
+    age="未设定；安妮不得自行猜测具体年龄。",
+    social_position="苏活区没有权势的贫民，靠零工和施舍生活，与安妮一样容易被体面人忽视。",
     gender="未说明",
     background="你靠零工和施舍在苏活区街巷间过活，知道哪些门廊能避雨，也知道穷人的话常被忽视。",
     entry_reason="你在宽街水泵旁的屋檐下避雨，脚边的破碗里还剩一点水；安妮抱着陶罐，在两步外停下向你求助。",
@@ -592,7 +601,7 @@ ANNIE_STORY_WORLD = StoryWorld(
     summary="在不可改写的宽街历史中，帮助原创儿童见证者把饮水来源和亲眼所见分开说清。",
     genre="历史剧情",
     publication_status=PublicationStatus.PUBLISHED,
-    content_version="annie-broad-street-2026-07-27.2",
+    content_version="annie-broad-street-2026-07-27.3",
     entry_chapter_id=CHAPTER.id,
     player_role=PLAYER_ROLE,
     characters=(ANNIE,),

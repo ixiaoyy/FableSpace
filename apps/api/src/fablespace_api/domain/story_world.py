@@ -57,6 +57,9 @@ class Character:
     id: str
     story_world_id: str
     name: str
+    identity: str
+    age: str
+    social_position: str
     motive: str
     secret: str
     voice: str
@@ -70,6 +73,8 @@ class PlayerRole:
     id: str
     story_world_id: str
     name: str
+    age: str
+    social_position: str
     gender: str
     background: str
     entry_reason: str
@@ -318,6 +323,8 @@ def _validate_player_role(player_role: PlayerRole, story_world_id: str, path: st
             "PlayerRole must reference its containing StoryWorld.",
         )
     _require_text(player_role.name, f"{path}.name")
+    _require_text(player_role.age, f"{path}.age")
+    _require_text(player_role.social_position, f"{path}.social_position")
     _require_text(player_role.gender, f"{path}.gender")
     _require_text(player_role.background, f"{path}.background")
     _require_text(player_role.entry_reason, f"{path}.entry_reason")
@@ -342,6 +349,9 @@ def _validate_character(character: Character, story_world_id: str, path: str) ->
             "Character must reference its containing StoryWorld.",
         )
     _require_text(character.name, f"{path}.name")
+    _require_text(character.identity, f"{path}.identity")
+    _require_text(character.age, f"{path}.age")
+    _require_text(character.social_position, f"{path}.social_position")
     _require_text(character.motive, f"{path}.motive")
     _require_text(character.secret, f"{path}.secret")
     _require_text(character.voice, f"{path}.voice")

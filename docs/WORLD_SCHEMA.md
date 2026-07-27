@@ -85,6 +85,9 @@ Character 必须属于一个 StoryWorld，并包含 AI 演绎所需的稳定人�
 | `id` | string | 在同一 StoryWorldRegistry 的 Character 类型中稳定且唯一 |
 | `story_world_id` | string | 必须引用所属 StoryWorld |
 | `name` | string | 玩家可见角色名 |
+| `identity` | string | 已审核的角色身份；说明角色在所属世界中是谁 |
+| `age` | string | 已审核的年龄或年龄边界；未知时明确禁止模型自行推断 |
+| `social_position` | string | 角色的社会地位、权力范围和制度约束 |
 | `motive` | string | 当前事件中主动追求的目标 |
 | `secret` | string | 不应无条件向玩家公开的已审核信息 |
 | `voice` | string | 语言、语气和表达边界 |
@@ -97,6 +100,7 @@ Character 必须属于一个 StoryWorld，并包含 AI 演绎所需的稳定人�
 - 同一 StoryWorld 的 Character 必须有可区分的动机、秘密、语言、交易和拒绝边界，不能只替换姓名。
 - Character 不能脱离 StoryWorld 成为通用聊天角色。
 - Character 不能修改 StoryWorld 正史、PlayerRole 或确定性剧情状态。
+- 运行时演绎必须注入 Character 的身份、年龄和社会地位；关系阶段只能调节亲疏、称呼、坦白程度和合作意愿，不能覆盖这些稳定设定。
 - 角色展示资源属于系统内容版本；图片 URL、对象 key 和 prompt sidecar 继续遵守 [IMAGE_ASSETS_SPEC.md](IMAGE_ASSETS_SPEC.md)。
 - Character 不要求兼容 SillyTavern 字段，也不提供角色卡导入或导出。
 
@@ -111,6 +115,8 @@ PlayerRole 是玩家在一个 StoryWorld 内自动生效的固定故事身份。
 | `id` | string | 在同一 StoryWorldRegistry 的 PlayerRole 类型中稳定且唯一 |
 | `story_world_id` | string | 必须引用所属 StoryWorld |
 | `name` | string | 前台使用的简短身份名 |
+| `age` | string | 已审核的年龄或年龄边界；未知时明确禁止模型自行推断 |
+| `social_position` | string | 玩家在本世界内的社会地位、能力与权力上限 |
 | `gender` | string | 已审核的故事设定，不由玩家选择或平台推断 |
 | `background` | string | 与时代、制度和正史一致 |
 | `entry_reason` | string | 解释玩家为何进入当前事件 |
