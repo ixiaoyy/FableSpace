@@ -361,11 +361,13 @@ export default function CharacterStoryRoute() {
         <small>{detail.character.name}</small>
       </header>
 
-      <section className="annieStoryOpening" aria-labelledby="annie-story-title">
-        <p className="annieStoryEyebrow">{route.sceneLabel}</p>
-        <h1 id="annie-story-title">{detail.story_world.title}</h1>
-        <p>{detail.character.current_situation}</p>
-      </section>
+      {!run ? (
+        <section className="annieStoryOpening" aria-labelledby="annie-story-title">
+          <p className="annieStoryEyebrow">{route.sceneLabel}</p>
+          <h1 id="annie-story-title">{detail.story_world.title}</h1>
+          <p>{detail.character.current_situation}</p>
+        </section>
+      ) : null}
 
       <StoryAccessPanels
         accessState={accessState}
