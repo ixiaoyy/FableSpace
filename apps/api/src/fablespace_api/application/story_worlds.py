@@ -490,6 +490,8 @@ class StoryWorldApplicationService:
             private_memories=[],
         )
         session.add(run)
+        # Persist the FK parent before separately mapped relationship and event rows.
+        session.flush()
         for character in world.characters:
             stage = self._stage_for(character, character.relationship_rules.initial_affinity)
             session.add(
