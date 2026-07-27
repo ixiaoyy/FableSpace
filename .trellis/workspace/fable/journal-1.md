@@ -773,3 +773,36 @@ Split the frontend roadmap into UI-first and integration follow-ups, archived th
 ### Next Steps
 
 - None - task complete
+
+
+## Session 24: 结构化角色对话演绎合同
+
+**Date**: 2026-07-27
+**Task**: 结构化角色对话演绎合同
+**Branch**: `main`
+
+### Summary
+
+为 Character 和 PlayerRole 增加年龄与社会地位边界，重构模型 Prompt 以注入双方身份、动态关系原因和标记，并细化安妮的儿童语气约束；同步权威 Schema，完成离线 Prompt 与安全边界验证及部署。
+
+### Main Changes
+
+- Detailed change bullets were not supplied; see the summary above.
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `335d5d77` | (see git log) |
+
+### Testing
+
+- Validation was not recorded for this session.
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
