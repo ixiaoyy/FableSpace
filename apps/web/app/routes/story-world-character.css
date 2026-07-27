@@ -421,108 +421,16 @@
   line-height: 1.75;
 }
 
-.annieStoryContinuity {
+.annieStoryReferenceRail {
   position: sticky;
   top: 5.75rem;
-  display: grid;
-  gap: 1rem;
 }
 
-.annieStoryContinuitySection,
 .annieStoryReferences {
   overflow: hidden;
   border: 1px solid rgba(78, 61, 87, 0.15);
   border-radius: 0.8rem;
   background: rgba(255, 252, 244, 0.76);
-}
-
-.annieStoryContinuitySection {
-  position: relative;
-  padding: 1.35rem;
-}
-
-.annieStoryContinuitySection::after {
-  position: absolute;
-  top: -2.5rem;
-  right: -2.5rem;
-  width: 6rem;
-  height: 6rem;
-  content: "";
-  border: 1px solid rgba(114, 86, 216, 0.14);
-  border-radius: 50%;
-}
-
-.annieStoryContinuityHeading {
-  display: flex;
-  align-items: center;
-  gap: 0.65rem;
-}
-
-.annieStoryContinuityHeading svg {
-  width: 1rem;
-  color: var(--annie-lavender);
-}
-
-.annieStoryContinuityHeading .annieStoryEyebrow {
-  margin: 0;
-}
-
-.annieStoryContinuitySection > h2 {
-  margin: 1rem 0 0;
-  color: #403247;
-  font-size: 1.8rem;
-  font-weight: 700;
-}
-
-.annieStoryContinuitySection > p:not(.annieStoryEyebrow) {
-  margin: 0.8rem 0 0;
-  color: var(--annie-muted);
-  font-family: system-ui, sans-serif;
-  font-size: 0.86rem;
-  line-height: 1.75;
-}
-
-.annieStoryEndingList {
-  display: grid;
-  gap: 1.1rem;
-  margin: 1.2rem 0 0;
-  padding: 0;
-  list-style: none;
-}
-
-.annieStoryEndingList li {
-  display: grid;
-  grid-template-columns: 0.5rem minmax(0, 1fr);
-  gap: 0.75rem;
-}
-
-.annieStoryEndingList li > span {
-  width: 0.42rem;
-  height: 0.42rem;
-  margin-top: 0.42rem;
-  background: var(--annie-orange);
-  transform: rotate(45deg);
-}
-
-.annieStoryEndingList strong {
-  font-size: 1rem;
-}
-
-.annieStoryEndingList p {
-  display: -webkit-box;
-  margin: 0.35rem 0 0;
-  overflow: hidden;
-  color: var(--annie-muted);
-  font-family: system-ui, sans-serif;
-  font-size: 0.78rem;
-  line-height: 1.65;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 3;
-}
-
-.annieStoryContinuityEmpty {
-  padding-top: 1rem;
-  border-top: 1px solid var(--annie-line);
 }
 
 .annieStoryTimeline {
@@ -567,25 +475,17 @@
 }
 
 .annieStoryEvent--system,
-.annieStoryEvent--narration,
-.annieStoryEvent--relationship_changed {
+.annieStoryEvent--narration {
   max-width: 100%;
   color: var(--annie-muted);
   text-align: center;
 }
 
 .annieStoryEvent--system p,
-.annieStoryEvent--narration p,
-.annieStoryEvent--relationship_changed p {
+.annieStoryEvent--narration p {
   padding: 0;
   font-style: italic;
   background: transparent;
-}
-
-.annieStoryEvent--relationship_changed span,
-.annieStoryEvent--relationship_changed p {
-  color: #624cae;
-  font-style: normal;
 }
 
 .annieStoryActionsPanel {
@@ -1096,7 +996,7 @@
     grid-template-columns: 1fr;
   }
 
-  .annieStoryContinuity {
+  .annieStoryReferenceRail {
     position: static;
   }
 

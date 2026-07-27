@@ -1,12 +1,10 @@
 import type { ClientLoaderFunctionArgs } from "react-router"
 import {
   ArrowLeft,
-  BookMarked,
   BookOpenText,
   ChevronDown,
   CircleAlert,
   ExternalLink,
-  HeartHandshake,
   LoaderCircle,
   LockKeyhole,
   LogIn,
@@ -300,7 +298,6 @@ export default function CharacterStoryRoute() {
 
   const storyWorldId = route.storyWorldId
   const loginHref = storyLoginUrl(characterStoryPath(route.slug))
-  const completedRunSummaries = run?.completed_run_summaries || []
 
   async function runAction(
     kind: Exclude<StoryActionKind, "message">,
@@ -386,7 +383,6 @@ export default function CharacterStoryRoute() {
           failedAction={failedAction}
           actionError={actionError}
           message={message}
-          completedRunSummaries={completedRunSummaries}
           onChoose={(choiceId) => void runAction(
             "choice",
             () => chooseStoryPath(
@@ -500,7 +496,6 @@ function StoryRunWorkspace({
   failedAction,
   actionError,
   message,
-  completedRunSummaries,
   onChoose,
   onMessageChange,
   onSubmitMessage,
@@ -512,7 +507,6 @@ function StoryRunWorkspace({
   failedAction: StoryActionKind | null
   actionError: string
   message: string
-  completedRunSummaries: StoryRun["completed_run_summaries"]
   onChoose: (choiceId: string) => void
   onMessageChange: (message: string) => void
   onSubmitMessage: (event: FormEvent<HTMLFormElement>) => void
@@ -572,10 +566,7 @@ function StoryRunWorkspace({
         ) : null}
       </section>
 
-      <StoryContinuity
-        run={run}
-        completedRunSummaries={completedRunSummaries}
-      />
+      <StoryReferenceRail reference={run.historical_reference} />
     </div>
   )
 }
@@ -601,7 +592,10 @@ function StoryTimeline({
     null,
   )
   const timelineEvents = run.events.filter(
-    (event) => event.id !== currentNarrationEventId,
+    (event) => (
+      event.id !== currentNarrationEventId
+      && event.type !== "relationship_changed"
+    ),
   )
 
   useEffect(() => {
@@ -619,12 +613,8 @@ function StoryTimeline({
     >
       {timelineEvents.map((event) => {
         const messageEvent = event.type === "message"
-        const eventTone = event.type === "relationship_changed"
-          ? event.type
-          : event.role || event.type
-        const eventLabel = event.type === "relationship_changed"
-          ? "关系变化"
-          : event.type === "choice"
+        const eventTone = event.role || event.type
+        const eventLabel = event.type === "choice"
             ? "你的选择"
             : event.role === "character"
               ? event.character_name || detail.character.name
@@ -758,47 +748,14 @@ function StoryActions({
   )
 }
 
-function StoryContinuity({
-  run,
-  completedRunSummaries,
+function StoryReferenceRail({
+  reference,
 }: {
-  run: StoryRun
-  completedRunSummaries: StoryRun["completed_run_summaries"]
+  reference: StoryRun["historical_reference"]
 }) {
   return (
-    <aside className="annieStoryContinuity" aria-label="关系与回访">
-      <section className="annieStoryContinuitySection">
-        <div className="annieStoryContinuityHeading">
-          <HeartHandshake aria-hidden="true" />
-          <p className="annieStoryEyebrow">关系</p>
-        </div>
-        <h2>{run.relationship.label}</h2>
-        <p>{run.relationship.last_change_reason || run.relationship.attitude}</p>
-      </section>
-
-      <section className="annieStoryContinuitySection">
-        <div className="annieStoryContinuityHeading">
-          <BookMarked aria-hidden="true" />
-          <p className="annieStoryEyebrow">留下的结局</p>
-        </div>
-        {completedRunSummaries.length > 0 ? (
-          <ol className="annieStoryEndingList">
-            {completedRunSummaries.map((summary) => (
-              <li key={summary.story_run_id}>
-                <span aria-hidden="true" />
-                <div>
-                  <strong>{summary.title}</strong>
-                  <p>{summary.summary}</p>
-                </div>
-              </li>
-            ))}
-          </ol>
-        ) : (
-          <p className="annieStoryContinuityEmpty">还没有留下结局</p>
-        )}
-      </section>
-
-      <HistoricalReferencePanel reference={run.historical_reference} />
+    <aside className="annieStoryReferenceRail" aria-label="相关资料">
+      <HistoricalReferencePanel reference={reference} />
     </aside>
   )
 }
