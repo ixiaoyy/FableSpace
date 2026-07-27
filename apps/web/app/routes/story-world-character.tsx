@@ -2,16 +2,27 @@ import type { ClientLoaderFunctionArgs } from "react-router"
 import {
   ArrowLeft,
   BookMarked,
+  BookOpenText,
+  ChevronDown,
   CircleAlert,
+  ExternalLink,
   Feather,
   HeartHandshake,
+  LoaderCircle,
   LockKeyhole,
   LogIn,
   RotateCcw,
   Send,
   ShieldCheck,
 } from "lucide-react"
-import { FormEvent, useCallback, useEffect, useReducer } from "react"
+import {
+  type FormEvent,
+  type KeyboardEvent,
+  useCallback,
+  useEffect,
+  useReducer,
+  useRef,
+} from "react"
 import { Link, useLoaderData } from "react-router"
 
 import { HistoricalBroadStreetVisual } from "../components/historical-broad-street-visual"
@@ -24,6 +35,7 @@ import {
   restartStoryRun,
   sendStoryMessage,
   startStoryRun,
+  type HistoricalReferenceCategory,
   type StoryRun,
   type StoryWorldCharacterDetail,
 } from "../lib/story-worlds"
@@ -43,11 +55,14 @@ type StoryAccessState =
   | "expired"
   | "error"
 
+type StoryActionKind = "start" | "choice" | "message" | "restart"
+
 type StoryPageState = {
   run: StoryRun | null
   runLoading: boolean
   accessState: StoryAccessState
-  pending: boolean
+  pendingAction: StoryActionKind | null
+  failedAction: StoryActionKind | null
   actionError: string
   message: string
 }
@@ -59,9 +74,9 @@ type StoryPageAction =
   | { type: "run-loaded"; run: StoryRun | null }
   | { type: "access-error"; message: string }
   | { type: "session-expired" }
-  | { type: "action-started" }
+  | { type: "action-started"; kind: StoryActionKind }
   | { type: "action-succeeded"; run: StoryRun | null }
-  | { type: "action-failed"; message: string }
+  | { type: "action-failed"; kind: StoryActionKind; message: string }
   | { type: "message-changed"; message: string }
   | { type: "message-sent"; run: StoryRun | null }
 
@@ -69,10 +84,24 @@ const INITIAL_STORY_PAGE_STATE: StoryPageState = {
   run: null,
   runLoading: false,
   accessState: "checking",
-  pending: false,
+  pendingAction: null,
+  failedAction: null,
   actionError: "",
   message: "",
 }
+
+const REFERENCE_CATEGORY_LABELS: Record<
+  HistoricalReferenceCategory,
+  "史实" | "剧情设定" | "待核验"
+> = {
+  fixed_fact: "史实",
+  story_setting: "剧情设定",
+  needs_verification: "待核验",
+}
+
+const REFERENCE_CATEGORIES = Object.keys(
+  REFERENCE_CATEGORY_LABELS,
+) as HistoricalReferenceCategory[]
 
 function storyPageReducer(
   state: StoryPageState,
@@ -118,27 +147,45 @@ function storyPageReducer(
         run: null,
         runLoading: false,
         accessState: "expired",
-        pending: false,
+        pendingAction: null,
+        failedAction: null,
         actionError: "",
         message: "",
       }
     case "action-started":
-      return { ...state, pending: true, actionError: "" }
+      return {
+        ...state,
+        pendingAction: action.kind,
+        failedAction: null,
+        actionError: "",
+      }
     case "action-succeeded":
+      if (state.accessState === "expired") return state
       return {
         ...state,
         run: action.run || state.run,
-        pending: false,
+        pendingAction: null,
+        failedAction: null,
+        actionError: "",
       }
     case "action-failed":
-      return { ...state, pending: false, actionError: action.message }
+      if (state.accessState === "expired") return state
+      return {
+        ...state,
+        pendingAction: null,
+        failedAction: action.kind,
+        actionError: action.message,
+      }
     case "message-changed":
       return { ...state, message: action.message }
     case "message-sent":
+      if (state.accessState === "expired") return state
       return {
         ...state,
         run: action.run || state.run,
-        pending: false,
+        pendingAction: null,
+        failedAction: null,
+        actionError: "",
         message: "",
       }
   }
@@ -170,10 +217,13 @@ export default function StoryWorldCharacterRoute() {
     run,
     runLoading,
     accessState,
-    pending,
+    pendingAction,
+    failedAction,
     actionError,
     message,
   } = pageState
+  const actionInFlightRef = useRef(false)
+  const pending = pendingAction !== null
 
   const loadPrivateStory = useCallback(async (forceRefresh = false) => {
     if (!detail) return
@@ -205,6 +255,7 @@ export default function StoryWorldCharacterRoute() {
 
   useEffect(() => {
     const handleSessionExpired = () => {
+      actionInFlightRef.current = false
       dispatch({ type: "session-expired" })
     }
     window.addEventListener(SESSION_EXPIRED_EVENT, handleSessionExpired)
@@ -228,26 +279,35 @@ export default function StoryWorldCharacterRoute() {
   )
   const completedRunSummaries = run?.completed_run_summaries || []
 
-  async function runAction(action: () => Promise<StoryRun | null>) {
-    dispatch({ type: "action-started" })
+  async function runAction(
+    kind: Exclude<StoryActionKind, "message">,
+    action: () => Promise<StoryRun | null>,
+  ) {
+    if (actionInFlightRef.current) return
+    actionInFlightRef.current = true
+    dispatch({ type: "action-started", kind })
     try {
       const nextRun = await action()
       dispatch({ type: "action-succeeded", run: nextRun })
     } catch (reason) {
       dispatch({
         type: "action-failed",
+        kind,
         message: reason instanceof Error
           ? reason.message
           : "这一步暂时没有完成。",
       })
+    } finally {
+      actionInFlightRef.current = false
     }
   }
 
   function submitMessage(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     const content = message.trim()
-    if (!run || !content) return
-    dispatch({ type: "action-started" })
+    if (!run || !content || actionInFlightRef.current) return
+    actionInFlightRef.current = true
+    dispatch({ type: "action-started", kind: "message" })
     void sendStoryMessage(storyWorldId, run.id, content)
       .then((nextRun) => {
         dispatch({ type: "message-sent", run: nextRun })
@@ -255,10 +315,14 @@ export default function StoryWorldCharacterRoute() {
       .catch((reason) => {
         dispatch({
           type: "action-failed",
+          kind: "message",
           message: reason instanceof Error
             ? reason.message
             : `${detail.character.name}暂时没有回应。`,
         })
+      })
+      .finally(() => {
+        actionInFlightRef.current = false
       })
   }
 
@@ -294,7 +358,10 @@ export default function StoryWorldCharacterRoute() {
               className="annieStoryPrimaryButton"
               type="button"
               disabled={pending}
-              onClick={() => void runAction(() => startStoryRun(storyWorldId))}
+              onClick={() => void runAction(
+                "start",
+                () => startStoryRun(storyWorldId),
+              )}
             >
               <Feather aria-hidden="true" />
               <span>{pending ? "正在走近……" : `去见${detail.character.name}`}</span>
@@ -306,7 +373,7 @@ export default function StoryWorldCharacterRoute() {
       <StoryAccessPanels
         accessState={accessState}
         runLoading={runLoading}
-        actionError={actionError}
+        actionError={run ? "" : actionError}
         loginHref={loginHref}
         onRetry={() => void loadPrivateStory(true)}
       />
@@ -315,10 +382,13 @@ export default function StoryWorldCharacterRoute() {
         <StoryRunWorkspace
           detail={detail}
           run={run}
-          pending={pending}
+          pendingAction={pendingAction}
+          failedAction={failedAction}
+          actionError={actionError}
           message={message}
           completedRunSummaries={completedRunSummaries}
           onChoose={(choiceId) => void runAction(
+            "choice",
             () => chooseStoryPath(storyWorldId, run.id, choiceId),
           )}
           onMessageChange={(nextMessage) => dispatch({
@@ -326,7 +396,10 @@ export default function StoryWorldCharacterRoute() {
             message: nextMessage,
           })}
           onSubmitMessage={submitMessage}
-          onRestart={() => void runAction(() => restartStoryRun(storyWorldId))}
+          onRestart={() => void runAction(
+            "restart",
+            () => restartStoryRun(storyWorldId),
+          )}
         />
       ) : null}
 
@@ -417,7 +490,9 @@ function StoryLoadingPanel({
 function StoryRunWorkspace({
   detail,
   run,
-  pending,
+  pendingAction,
+  failedAction,
+  actionError,
   message,
   completedRunSummaries,
   onChoose,
@@ -427,7 +502,9 @@ function StoryRunWorkspace({
 }: {
   detail: StoryWorldCharacterDetail
   run: StoryRun
-  pending: boolean
+  pendingAction: StoryActionKind | null
+  failedAction: StoryActionKind | null
+  actionError: string
   message: string
   completedRunSummaries: StoryRun["completed_run_summaries"]
   onChoose: (choiceId: string) => void
@@ -435,6 +512,7 @@ function StoryRunWorkspace({
   onSubmitMessage: (event: FormEvent<HTMLFormElement>) => void
   onRestart: () => void
 }) {
+  const pending = pendingAction !== null
   return (
     <div className="annieStoryWorkspace">
       <section
@@ -451,13 +529,15 @@ function StoryRunWorkspace({
           </div>
         ) : null}
 
-        <StoryTimeline detail={detail} run={run} />
+        <StoryTimeline detail={detail} run={run} pending={pending} />
 
         {run.status === "active" ? (
           <StoryActions
             characterName={detail.character.name}
             run={run}
-            pending={pending}
+            pendingAction={pendingAction}
+            failedAction={failedAction}
+            actionError={actionError}
             message={message}
             onChoose={onChoose}
             onMessageChange={onMessageChange}
@@ -468,6 +548,11 @@ function StoryRunWorkspace({
             <p className="annieStoryEyebrow">本轮结局</p>
             <h2>{run.ending.title}</h2>
             <p>{run.ending.summary}</p>
+            {actionError ? (
+              <p className="annieStoryEndingError" role="alert">
+                {actionError} 本轮仍然保留，可以再次尝试。
+              </p>
+            ) : null}
             <button
               className="annieStoryPrimaryButton"
               type="button"
@@ -492,28 +577,51 @@ function StoryRunWorkspace({
 function StoryTimeline({
   detail,
   run,
+  pending,
 }: {
   detail: StoryWorldCharacterDetail
   run: StoryRun
+  pending: boolean
 }) {
+  const timelineRef = useRef<HTMLDivElement>(null)
+  const latestEventId = run.events[run.events.length - 1]?.id
+
+  useEffect(() => {
+    const timeline = timelineRef.current
+    if (!timeline) return
+    timeline.scrollTo({ top: timeline.scrollHeight, behavior: "auto" })
+  }, [latestEventId, run.current_node.id])
+
   return (
-    <div className="annieStoryTimeline" aria-live="polite">
+    <div
+      ref={timelineRef}
+      className="annieStoryTimeline"
+      aria-busy={pending}
+      aria-live="polite"
+      tabIndex={0}
+    >
       {run.events.map((event) => {
         const messageEvent = event.type === "message"
+        const eventTone = event.type === "relationship_changed"
+          ? event.type
+          : event.role || event.type
+        const eventLabel = event.type === "relationship_changed"
+          ? "关系变化"
+          : event.type === "choice"
+            ? "你的选择"
+            : event.role === "character"
+              ? detail.character.name
+              : event.role === "player"
+                ? "你"
+                : messageEvent
+                  ? "故事"
+                  : "此刻"
         return (
           <article
             key={event.id}
-            className={`annieStoryEvent annieStoryEvent--${event.role || event.type}`}
+            className={`annieStoryEvent annieStoryEvent--${eventTone}`}
           >
-            <span>
-              {event.role === "character"
-                ? detail.character.name
-                : event.role === "player"
-                  ? "你"
-                  : messageEvent
-                    ? "故事"
-                    : detail.story_world.title}
-            </span>
+            <span>{eventLabel}</span>
             <p>{event.content}</p>
           </article>
         )
@@ -525,7 +633,9 @@ function StoryTimeline({
 function StoryActions({
   characterName,
   run,
-  pending,
+  pendingAction,
+  failedAction,
+  actionError,
   message,
   onChoose,
   onMessageChange,
@@ -533,14 +643,56 @@ function StoryActions({
 }: {
   characterName: string
   run: StoryRun
-  pending: boolean
+  pendingAction: StoryActionKind | null
+  failedAction: StoryActionKind | null
+  actionError: string
   message: string
   onChoose: (choiceId: string) => void
   onMessageChange: (message: string) => void
   onSubmitMessage: (event: FormEvent<HTMLFormElement>) => void
 }) {
+  const pending = pendingAction !== null
+  const waitingText = pendingAction === "message"
+    ? `${characterName}正在回应…`
+    : pendingAction === "choice"
+      ? "正在记下这个选择…"
+      : ""
+  const recoveryText = failedAction === "message"
+    ? "回应没有发送，你写的文字还在，可以直接重试。"
+    : failedAction === "choice"
+      ? "选择没有记录，可以重新选择。"
+      : actionError
+
+  function handleComposerKeyDown(event: KeyboardEvent<HTMLTextAreaElement>) {
+    if (
+      event.key === "Enter"
+      && (event.ctrlKey || event.metaKey)
+      && !event.shiftKey
+      && !pending
+      && message.trim()
+    ) {
+      event.preventDefault()
+      event.currentTarget.form?.requestSubmit()
+    }
+  }
+
   return (
-    <div className="annieStoryActionsPanel">
+    <div className="annieStoryActionsPanel" aria-busy={pending}>
+      {waitingText ? (
+        <p className="annieStoryActionStatus" aria-live="polite">
+          <LoaderCircle aria-hidden="true" />
+          {waitingText}
+        </p>
+      ) : null}
+      {actionError ? (
+        <div className="annieStoryActionError" id="annie-story-action-error" role="alert">
+          <CircleAlert aria-hidden="true" />
+          <div>
+            <strong>{actionError}</strong>
+            <span>{recoveryText}</span>
+          </div>
+        </div>
+      ) : null}
       <div className="annieStoryChoices">
         {run.current_node.choices.map((choice) => (
           <button
@@ -561,18 +713,29 @@ function StoryActions({
             value={message}
             maxLength={1000}
             rows={2}
+            enterKeyHint="send"
             disabled={pending}
+            aria-describedby={
+              actionError
+                ? "annie-story-message-hint annie-story-action-error"
+                : "annie-story-message-hint"
+            }
             onChange={(event) => onMessageChange(event.target.value)}
+            onKeyDown={handleComposerKeyDown}
             placeholder="写下你的回应"
           />
           <button
             type="submit"
             disabled={pending || !message.trim()}
-            aria-label="发送回应"
+            aria-label={failedAction === "message" ? "重新发送回应" : "发送回应"}
           >
             <Send aria-hidden="true" />
+            <span>{failedAction === "message" ? "重试" : "发送"}</span>
           </button>
         </div>
+        <p className="annieStoryMessageHint" id="annie-story-message-hint">
+          Ctrl / ⌘ + Enter 发送
+        </p>
       </form>
     </div>
   )
@@ -617,6 +780,81 @@ function StoryContinuity({
           <p className="annieStoryContinuityEmpty">还没有留下结局</p>
         )}
       </section>
+
+      <HistoricalReferencePanel reference={run.historical_reference} />
     </aside>
+  )
+}
+
+function HistoricalReferencePanel({
+  reference,
+}: {
+  reference: StoryRun["historical_reference"]
+}) {
+  const categoryCounts = new Map<HistoricalReferenceCategory, number>(
+    REFERENCE_CATEGORIES.map((category) => [category, 0]),
+  )
+  for (const entry of reference.entries) {
+    categoryCounts.set(entry.category, (categoryCounts.get(entry.category) || 0) + 1)
+  }
+
+  return (
+    <details className="annieStoryReferences">
+      <summary>
+        <span className="annieStoryReferenceSummaryIcon">
+          <BookOpenText aria-hidden="true" />
+        </span>
+        <span>
+          <strong>史料参考</strong>
+          <small>
+            已解锁 {reference.unlocked_count} / {reference.total_count}
+          </small>
+        </span>
+        <ChevronDown className="annieStoryReferenceChevron" aria-hidden="true" />
+      </summary>
+      <div className="annieStoryReferenceBody">
+        <p className="annieStoryReferenceNote">
+          随情节解锁；内容与分类来自审核注册表。
+        </p>
+        <ul className="annieStoryReferenceLegend" aria-label="参考内容分类">
+          {REFERENCE_CATEGORIES.map((category) => (
+            <li key={category} data-category={category}>
+              <span>{REFERENCE_CATEGORY_LABELS[category]}</span>
+              <strong>{categoryCounts.get(category) || 0}</strong>
+            </li>
+          ))}
+        </ul>
+        <div className="annieStoryReferenceEntries">
+          {reference.entries.map((entry) => (
+            <section key={entry.id}>
+              <span
+                className="annieStoryReferenceKind"
+                data-category={entry.category}
+              >
+                {REFERENCE_CATEGORY_LABELS[entry.category]}
+              </span>
+              <p>{entry.statement}</p>
+              {entry.sources.length > 0 ? (
+                <div className="annieStoryReferenceSources">
+                  {entry.sources.map((source, index) => (
+                    <a
+                      key={source}
+                      href={source}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      来源 {index + 1}
+                      <ExternalLink aria-hidden="true" />
+                    </a>
+                  ))}
+                </div>
+              ) : (
+                <small>原创剧情设定，无史料来源</small>
+              )}
+            </section>
+          ))}
+        </div>
+      </div>
+    </details>
   )
 }

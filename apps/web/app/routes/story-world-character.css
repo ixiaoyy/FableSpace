@@ -1,9 +1,10 @@
 .annieStoryShell {
   --annie-ink: #efe9df;
-  --annie-muted: #a9adba;
+  --annie-muted: #b9bbc6;
   --annie-panel: rgba(21, 25, 43, 0.88);
   --annie-line: rgba(201, 189, 163, 0.18);
   min-height: 100dvh;
+  overflow-x: clip;
   padding: 0 0 5rem;
   color: var(--annie-ink);
   background:
@@ -71,8 +72,7 @@
   position: relative;
   overflow: hidden;
   border: 1px solid var(--annie-line);
-  border-radius: 1.25rem 1.25rem 6rem 1.25rem;
-  box-shadow: 0 2rem 6rem rgba(0, 0, 0, 0.34);
+  border-radius: 1rem;
 }
 
 .annieStoryHeroArt svg {
@@ -99,18 +99,18 @@
   color: #b9a985;
   font-size: 0.72rem;
   font-weight: 800;
-  letter-spacing: 0.24em;
-  text-transform: uppercase;
+  letter-spacing: 0.08em;
 }
 
 .annieStoryHero h1,
 .annieStoryCentered h1 {
   margin: 0;
   font-family: Georgia, "Noto Serif SC", serif;
-  font-size: clamp(3.6rem, 9vw, 7.5rem);
+  font-size: 6rem;
   font-weight: 500;
   line-height: 0.94;
-  letter-spacing: -0.05em;
+  letter-spacing: -0.035em;
+  text-wrap: balance;
 }
 
 .annieStorySituation {
@@ -174,17 +174,28 @@
   border-radius: 0.55rem;
   background: #c7b791;
   cursor: pointer;
+  transition:
+    color 180ms cubic-bezier(0.22, 1, 0.36, 1),
+    background-color 180ms cubic-bezier(0.22, 1, 0.36, 1),
+    transform 180ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .annieStoryPrimaryButton:hover {
   background: #d8c9a5;
 }
 
+.annieStoryPrimaryButton:active {
+  transform: translateY(1px);
+}
+
 .annieStoryPrimaryButton:focus-visible,
 .annieStoryHeader a:focus-visible,
 .annieStoryChoices button:focus-visible,
 .annieStoryMessageForm textarea:focus-visible,
-.annieStoryMessageForm button:focus-visible {
+.annieStoryMessageForm button:focus-visible,
+.annieStoryTimeline:focus-visible,
+.annieStoryReferences summary:focus-visible,
+.annieStoryReferenceSources a:focus-visible {
   outline: 2px solid #f2d58e;
   outline-offset: 3px;
 }
@@ -245,7 +256,7 @@
   padding: 2.5rem 1.5rem;
   text-align: center;
   border: 1px solid var(--annie-line);
-  border-radius: 1.25rem;
+  border-radius: 1rem;
   background: var(--annie-panel);
 }
 
@@ -273,7 +284,7 @@
 .annieStoryAccess h2 {
   margin: 0;
   font-family: Georgia, "Noto Serif SC", serif;
-  font-size: clamp(1.5rem, 4vw, 2rem);
+  font-size: 1.75rem;
   font-weight: 500;
 }
 
@@ -288,9 +299,8 @@
   min-width: 0;
   overflow: hidden;
   border: 1px solid var(--annie-line);
-  border-radius: 1.25rem;
+  border-radius: 1rem;
   background: var(--annie-panel);
-  box-shadow: 0 1.5rem 5rem rgba(0, 0, 0, 0.24);
 }
 
 .annieStoryRunHeading {
@@ -330,7 +340,6 @@
   border-radius: 1rem;
   background:
     linear-gradient(145deg, rgba(33, 37, 57, 0.96), rgba(18, 22, 39, 0.96));
-  box-shadow: 0 1.25rem 3rem rgba(0, 0, 0, 0.18);
 }
 
 .annieStoryContinuitySection::after {
@@ -421,8 +430,10 @@
   display: grid;
   gap: 1.2rem;
   max-height: 42rem;
+  min-width: 0;
   padding: 2rem clamp(1.2rem, 5vw, 4.5rem);
   overflow: auto;
+  scroll-padding-block: 1rem;
 }
 
 .annieStoryEvent {
@@ -443,6 +454,7 @@
   border: 1px solid var(--annie-line);
   border-radius: 0.25rem 1rem 1rem;
   background: rgba(255, 255, 255, 0.035);
+  overflow-wrap: anywhere;
 }
 
 .annieStoryEvent--player {
@@ -457,14 +469,16 @@
 }
 
 .annieStoryEvent--system,
-.annieStoryEvent--narration {
+.annieStoryEvent--narration,
+.annieStoryEvent--relationship_changed {
   max-width: 100%;
   color: #aeb0bb;
   text-align: center;
 }
 
 .annieStoryEvent--system p,
-.annieStoryEvent--narration p {
+.annieStoryEvent--narration p,
+.annieStoryEvent--relationship_changed p {
   padding: 0;
   font-family: Georgia, "Noto Serif SC", serif;
   font-style: italic;
@@ -472,11 +486,67 @@
   background: transparent;
 }
 
+.annieStoryEvent--relationship_changed span {
+  color: #d3b9d8;
+}
+
+.annieStoryEvent--relationship_changed p {
+  color: #d9c9df;
+  font-style: normal;
+}
+
 .annieStoryActionsPanel {
   display: grid;
   gap: 1.4rem;
   padding: 1.5rem clamp(1.2rem, 5vw, 4.5rem) 2rem;
   border-top: 1px solid var(--annie-line);
+  background: rgba(15, 19, 34, 0.96);
+}
+
+.annieStoryActionStatus {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  margin: 0;
+  color: #d9c9df;
+  font-size: 0.82rem;
+}
+
+.annieStoryActionStatus svg {
+  width: 1rem;
+  animation: annie-story-spin 900ms linear infinite;
+}
+
+.annieStoryActionError {
+  display: grid;
+  grid-template-columns: 1.25rem minmax(0, 1fr);
+  gap: 0.75rem;
+  padding: 0.9rem 1rem;
+  color: #ffe4e0;
+  border: 1px solid rgba(229, 146, 137, 0.38);
+  border-radius: 0.65rem;
+  background: rgba(111, 43, 49, 0.34);
+}
+
+.annieStoryActionError svg {
+  width: 1.1rem;
+  margin-top: 0.08rem;
+}
+
+.annieStoryActionError strong,
+.annieStoryActionError span {
+  display: block;
+}
+
+.annieStoryActionError strong {
+  font-size: 0.86rem;
+}
+
+.annieStoryActionError span {
+  margin-top: 0.25rem;
+  color: #f1c7c4;
+  font-size: 0.76rem;
+  line-height: 1.55;
 }
 
 .annieStoryChoices {
@@ -495,11 +565,24 @@
   border-radius: 0.6rem;
   background: rgba(199, 183, 145, 0.07);
   cursor: pointer;
+  transition:
+    border-color 180ms cubic-bezier(0.22, 1, 0.36, 1),
+    background-color 180ms cubic-bezier(0.22, 1, 0.36, 1),
+    transform 180ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .annieStoryChoices button:hover {
   border-color: #c7b791;
   background: rgba(199, 183, 145, 0.12);
+}
+
+.annieStoryChoices button:active {
+  transform: translateY(1px);
+}
+
+.annieStoryChoices button:disabled {
+  cursor: wait;
+  opacity: 0.52;
 }
 
 .annieStoryMessageForm label {
@@ -511,7 +594,7 @@
 
 .annieStoryMessageForm > div {
   display: grid;
-  grid-template-columns: 1fr 3.2rem;
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: stretch;
   overflow: hidden;
   border: 1px solid var(--annie-line);
@@ -527,21 +610,234 @@
   border: 0;
   outline: 0;
   background: transparent;
+  font-size: 1rem;
+  line-height: 1.55;
+}
+
+.annieStoryMessageForm textarea::placeholder {
+  color: #aeb1be;
+  opacity: 1;
+}
+
+.annieStoryMessageForm textarea:disabled {
+  cursor: wait;
+  opacity: 0.72;
 }
 
 .annieStoryMessageForm button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  min-width: 4.75rem;
+  min-height: 3rem;
+  padding-inline: 0.85rem;
   color: #171725;
+  font-weight: 800;
   border: 0;
   background: #c7b791;
   cursor: pointer;
 }
 
 .annieStoryMessageForm button:disabled {
+  cursor: not-allowed;
   opacity: 0.35;
 }
 
 .annieStoryMessageForm svg {
   width: 1.1rem;
+}
+
+.annieStoryMessageHint {
+  margin: 0.5rem 0 0;
+  color: var(--annie-muted);
+  font-size: 0.72rem;
+  text-align: right;
+}
+
+.annieStoryReferences {
+  overflow: hidden;
+  border: 1px solid var(--annie-line);
+  border-radius: 1rem;
+  background: rgba(18, 22, 39, 0.96);
+}
+
+.annieStoryReferences summary {
+  display: grid;
+  grid-template-columns: 2.1rem minmax(0, 1fr) 1rem;
+  align-items: center;
+  gap: 0.75rem;
+  min-height: 4.75rem;
+  padding: 0.9rem 1rem;
+  cursor: pointer;
+  list-style: none;
+  transition: background-color 180ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.annieStoryReferences summary:hover {
+  background: rgba(199, 183, 145, 0.055);
+}
+
+.annieStoryReferences summary::-webkit-details-marker {
+  display: none;
+}
+
+.annieStoryReferenceSummaryIcon {
+  display: grid;
+  place-items: center;
+  width: 2.1rem;
+  height: 2.1rem;
+  color: #d3c29a;
+  border-radius: 50%;
+  background: rgba(199, 183, 145, 0.1);
+}
+
+.annieStoryReferenceSummaryIcon svg,
+.annieStoryReferenceChevron {
+  width: 1rem;
+}
+
+.annieStoryReferences summary strong,
+.annieStoryReferences summary small {
+  display: block;
+}
+
+.annieStoryReferences summary strong {
+  font-family: Georgia, "Noto Serif SC", serif;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.annieStoryReferences summary small {
+  margin-top: 0.2rem;
+  color: var(--annie-muted);
+  font-size: 0.7rem;
+}
+
+.annieStoryReferenceChevron {
+  color: var(--annie-muted);
+  transition: transform 180ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.annieStoryReferences[open] .annieStoryReferenceChevron {
+  transform: rotate(180deg);
+}
+
+.annieStoryReferenceBody {
+  padding: 0 1rem 1rem;
+  border-top: 1px solid var(--annie-line);
+}
+
+.annieStoryReferenceNote {
+  margin: 0;
+  padding: 0.85rem 0;
+  color: var(--annie-muted);
+  font-size: 0.75rem;
+  line-height: 1.6;
+}
+
+.annieStoryReferenceLegend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin: 0 0 1rem;
+  padding: 0;
+  list-style: none;
+}
+
+.annieStoryReferenceLegend li {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-height: 1.8rem;
+  padding: 0.2rem 0.55rem;
+  color: #d7d8df;
+  font-size: 0.68rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.055);
+}
+
+.annieStoryReferenceLegend strong {
+  font-size: 0.68rem;
+}
+
+.annieStoryReferenceEntries {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.annieStoryReferenceEntries section {
+  min-width: 0;
+  padding: 0.85rem;
+  border-radius: 0.7rem;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.annieStoryReferenceKind {
+  display: inline-flex;
+  align-items: center;
+  min-height: 1.6rem;
+  padding: 0.15rem 0.5rem;
+  color: #dbdde7;
+  font-size: 0.66rem;
+  font-weight: 800;
+  border: 1px solid rgba(219, 221, 231, 0.24);
+  border-radius: 999px;
+}
+
+.annieStoryReferenceKind[data-category="fixed_fact"],
+.annieStoryReferenceLegend li[data-category="fixed_fact"] {
+  color: #cce8ed;
+  background: rgba(73, 145, 157, 0.16);
+}
+
+.annieStoryReferenceKind[data-category="story_setting"],
+.annieStoryReferenceLegend li[data-category="story_setting"] {
+  color: #eddfbc;
+  background: rgba(159, 128, 70, 0.18);
+}
+
+.annieStoryReferenceKind[data-category="needs_verification"],
+.annieStoryReferenceLegend li[data-category="needs_verification"] {
+  color: #dfd2ef;
+  background: rgba(122, 92, 154, 0.2);
+}
+
+.annieStoryReferenceEntries section > p {
+  margin: 0.7rem 0 0;
+  color: #d2d3da;
+  font-size: 0.78rem;
+  line-height: 1.65;
+  overflow-wrap: anywhere;
+}
+
+.annieStoryReferenceEntries section > small {
+  display: block;
+  margin-top: 0.65rem;
+  color: var(--annie-muted);
+  font-size: 0.68rem;
+}
+
+.annieStoryReferenceSources {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem 0.7rem;
+  margin-top: 0.7rem;
+}
+
+.annieStoryReferenceSources a {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  min-height: 2rem;
+  color: #cce8ed;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-underline-offset: 0.2rem;
+}
+
+.annieStoryReferenceSources svg {
+  width: 0.78rem;
 }
 
 .annieStoryEnding {
@@ -553,7 +849,7 @@
 .annieStoryEnding h2 {
   margin: 0;
   font-family: Georgia, "Noto Serif SC", serif;
-  font-size: clamp(2rem, 5vw, 3.5rem);
+  font-size: 3.25rem;
   font-weight: 500;
 }
 
@@ -562,6 +858,11 @@
   margin: 1rem auto 1.5rem;
   color: var(--annie-muted);
   line-height: 1.8;
+}
+
+.annieStoryEnding .annieStoryEndingError {
+  color: #f1b4b4;
+  font-size: 0.82rem;
 }
 
 .annieStoryCentered {
@@ -573,7 +874,7 @@
 }
 
 .annieStoryCentered h1 {
-  font-size: clamp(2.5rem, 7vw, 5rem);
+  font-size: 5rem;
 }
 
 .annieStoryCentered > p:not(.annieStoryEyebrow) {
@@ -589,6 +890,12 @@
   }
 }
 
+@keyframes annie-story-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 @media (max-width: 760px) {
   .annieStoryHeader {
     padding-inline: 1rem;
@@ -600,8 +907,13 @@
     padding-top: 1.5rem;
   }
 
+  .annieStoryHero h1,
+  .annieStoryCentered h1 {
+    font-size: 3.5rem;
+  }
+
   .annieStoryHeroArt {
-    border-radius: 0.8rem 0.8rem 3.5rem;
+    border-radius: 0.8rem;
   }
 
   .annieStoryHeroArt svg {
@@ -617,6 +929,11 @@
 
   .annieStoryWorkspace {
     grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .annieStoryRun {
+    border-radius: 0.85rem;
   }
 
   .annieStoryRunHeading {
@@ -625,6 +942,7 @@
   }
 
   .annieStoryTimeline {
+    max-height: min(50dvh, 32rem);
     padding-inline: 1rem;
   }
 
@@ -633,7 +951,12 @@
   }
 
   .annieStoryActionsPanel {
+    position: sticky;
+    z-index: 4;
+    bottom: 0;
     padding-inline: 1rem;
+    padding-bottom: max(1rem, env(safe-area-inset-bottom));
+    box-shadow: 0 -0.35rem 0.5rem rgba(7, 10, 20, 0.28);
   }
 
   .annieStoryChoices {
@@ -647,6 +970,18 @@
 
   .annieStoryContinuitySection {
     border-radius: 0.85rem;
+  }
+
+  .annieStoryReferences {
+    border-radius: 0.85rem;
+  }
+
+  .annieStoryAccess h2 {
+    font-size: 1.5rem;
+  }
+
+  .annieStoryEnding h2 {
+    font-size: 2.25rem;
   }
 }
 

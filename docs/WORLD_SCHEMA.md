@@ -418,6 +418,17 @@ CharacterRelationship 保存一个 StoryRun 内玩家与具体 Character 的关�
 
 实现不得把“史料未记载”自动归类为剧情设定，也不得让 AI 改变内容层级。原创或架空 StoryWorld 不受真实历史时间线约束，但仍受自身已发布正史和状态机约束。
 
+历史 StoryRun 的私有响应可以附带派生的 `historical_reference`，供玩家主动打开参考表面：
+
+| 字段 | 类型 | 约束 |
+|---|---|---|
+| `stage` | `opening` / `investigation` / `outcome` | 由当前节点与轮次状态确定，不由客户端提交 |
+| `unlocked_count` | integer | 当前已解锁条目数 |
+| `total_count` | integer | 当前内容版本的审核条目总数 |
+| `entries` | HistoricalReferenceEntry[] | 只包含当前阶段已解锁条目；锁定条目的正文和来源不得提前下发 |
+
+`HistoricalReferenceEntry` 只投影审核注册表中的 `id`、`category`、`statement` 和 `sources`。前端必须把 `fixed_fact`、`story_setting`、`needs_verification` 分别显示为“史实”“剧情设定”“待核验”，不得重写分类或让运行时 AI 生成参考条目。`published` 内容不会包含 `needs_verification`；前端可以显示该分类计数为零，但不能用占位文本伪造条目。
+
 ## 系统 LLM 配置
 
 模型、API Key、服务地址和生成参数属于部署级系统配置，不是 StoryWorld 或 owner 数据实体。

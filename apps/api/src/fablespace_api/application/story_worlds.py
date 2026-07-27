@@ -13,6 +13,10 @@ from uuid import uuid4
 from sqlalchemy import func, select
 
 from ..core.llm_clients import LLMConfig, LLMError, complete
+from ..content.annie_broad_street import (
+    ANNIE_REFERENCE_ENTRY_IDS_BY_STAGE,
+    ANNIE_STORY_WORLD_ID,
+)
 from ..domain.story_world import (
     Character,
     RelationshipStage,
@@ -388,7 +392,7 @@ class StoryWorldApplicationService:
             choice = next((item for item in node.choices if item.id == choice_id), None)
             if choice is None or not self._choice_available(choice, set(run.story_flags or [])):
                 raise StoryRuntimeError("choice_unavailable", "这个选择当前不可用。")
-            self._append_event(
+            choice_event = self._append_event(
                 session,
                 run.id,
                 event_type="choice",
@@ -423,6 +427,23 @@ class StoryWorldApplicationService:
                 relationship.stage = self._stage_for(character, relationship.affinity).id
                 relationship.last_change_reason = effect.reason
                 relationship.flags = list(dict.fromkeys([*(relationship.flags or []), *effect.set_flags]))
+                self._append_event(
+                    session,
+                    run.id,
+                    event_type="relationship_changed",
+                    role="system",
+                    character_id=character.id,
+                    content=effect.reason,
+                    source_kind="reviewed_choice",
+                    source_id=choice_event.id,
+                    payload={
+                        "character_id": character.id,
+                        "affinity_delta": effect.affinity_delta,
+                        "reason": effect.reason,
+                        "source_event_id": choice_event.id,
+                        "source_choice_id": choice.id,
+                    },
+                )
             next_node = self._node(world, choice.next_node_id)
             run.current_node_id = next_node.id
             self._append_event(
@@ -565,12 +586,57 @@ class StoryWorldApplicationService:
                 "attitude": stage.attitude,
                 "last_change_reason": relationship.last_change_reason,
             },
+            "historical_reference": self._historical_reference(world, run),
             "ending": (
                 {"id": ending.id, "title": ending.title, "summary": run.ending_summary}
                 if ending
                 else None
             ),
             "completed_run_summaries": list(state.completed_run_summaries or []),
+        }
+
+    @staticmethod
+    def _historical_reference(world: StoryWorld, run: StoryRunModel) -> dict[str, object]:
+        entry_chapter = next(
+            chapter
+            for chapter in world.chapters
+            if chapter.id == world.entry_chapter_id
+        )
+        stage = (
+            "outcome"
+            if run.status == "completed"
+            else "opening"
+            if run.current_node_id == entry_chapter.entry_node_id
+            else "investigation"
+        )
+        if world.id != ANNIE_STORY_WORLD_ID:
+            return {
+                "stage": stage,
+                "unlocked_count": 0,
+                "total_count": 0,
+                "entries": [],
+            }
+        stage_order = ("opening", "investigation", "outcome")
+        unlocked_ids = {
+            entry_id
+            for candidate_stage in stage_order[: stage_order.index(stage) + 1]
+            for entry_id in ANNIE_REFERENCE_ENTRY_IDS_BY_STAGE[candidate_stage]
+        }
+        entries = [
+            {
+                "id": entry.id,
+                "category": entry.category.value,
+                "statement": entry.statement,
+                "sources": list(entry.sources),
+            }
+            for entry in world.canon_entries
+            if entry.id in unlocked_ids
+        ]
+        return {
+            "stage": stage,
+            "unlocked_count": len(entries),
+            "total_count": len(world.canon_entries),
+            "entries": entries,
         }
 
     def _events(self, session, run_id: str) -> list[dict[str, object]]:

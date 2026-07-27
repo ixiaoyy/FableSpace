@@ -4,7 +4,11 @@ import sys
 from collections import deque
 from pathlib import Path
 
-REPO_ROOT = Path(__file__).resolve().parents[3]
+REPO_ROOT = next(
+    parent
+    for parent in Path(__file__).resolve().parents
+    if (parent / "apps" / "api" / "src").is_dir()
+)
 API_SRC = REPO_ROOT / "apps" / "api" / "src"
 sys.path.insert(0, str(API_SRC))
 

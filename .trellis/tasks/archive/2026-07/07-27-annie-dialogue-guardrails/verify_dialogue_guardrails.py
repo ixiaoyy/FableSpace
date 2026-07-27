@@ -9,7 +9,11 @@ import tempfile
 from pathlib import Path
 from types import SimpleNamespace
 
-REPO_ROOT = Path(__file__).resolve().parents[3]
+REPO_ROOT = next(
+    parent
+    for parent in Path(__file__).resolve().parents
+    if (parent / "apps" / "api" / "src").is_dir()
+)
 sys.path.insert(0, str(REPO_ROOT / "apps" / "api" / "src"))
 
 from fablespace_api.application import story_worlds as story_worlds_module

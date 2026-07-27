@@ -32,6 +32,23 @@ export type RelationshipStage = {
   last_change_reason?: string
 }
 
+export type HistoricalReferenceCategory =
+  | "fixed_fact"
+  | "story_setting"
+  | "needs_verification"
+
+export type HistoricalReference = {
+  stage: "opening" | "investigation" | "outcome"
+  unlocked_count: number
+  total_count: number
+  entries: Array<{
+    id: string
+    category: HistoricalReferenceCategory
+    statement: string
+    sources: string[]
+  }>
+}
+
 export type StoryRun = {
   id: string
   status: "active" | "completed"
@@ -44,12 +61,13 @@ export type StoryRun = {
   events: Array<{
     id: string
     sequence: number
-    type: "message" | "choice" | "narration"
+    type: "message" | "choice" | "narration" | "relationship_changed"
     role: "player" | "character" | "system" | null
     character_id: string | null
     content: string
   }>
   relationship: RelationshipStage
+  historical_reference: HistoricalReference
   ending: { id: string; title: string; summary: string } | null
   completed_run_summaries: Array<{
     story_run_id: string

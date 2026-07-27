@@ -36,6 +36,26 @@ FIXED_HISTORY_RESULT = (
     "减退。这段公共历史不由你们的纸页或选择决定。"
 )
 
+ANNIE_REFERENCE_ENTRY_IDS_BY_STAGE = {
+    "opening": (
+        "fact_outbreak_intensified",
+        "setting_annie_is_fictional",
+        "setting_player_is_beggar",
+    ),
+    "investigation": (
+        "fact_snow_investigation_method",
+        "fact_comparison_water_sources",
+        "setting_family_warning",
+        "setting_testimony_paper",
+    ),
+    "outcome": (
+        "fact_parish_statement_and_handle",
+        "fact_outbreak_already_declining",
+        "fact_map_not_discovery_origin",
+        "setting_private_endings",
+    ),
+}
+
 
 def _relationship_effect(
     affinity_delta: int,
