@@ -33,4 +33,4 @@
       connection.
 - [x] Run Trellis validation and scoped diff review.
 - [x] Record historical-integrity verdict and remaining risks.
-- [ ] Commit, archive, and record the Trellis session.
+- [x] Commit, archive, and record the Trellis session.
