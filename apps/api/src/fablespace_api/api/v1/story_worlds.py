@@ -32,7 +32,12 @@ def _raise_http(exc: StoryRuntimeError) -> None:
         status = 404
     elif exc.code == "dialogue_unavailable":
         status = 503
-    elif exc.code in {"choice_unavailable", "run_completed", "active_run_exists"}:
+    elif exc.code in {
+        "choice_unavailable",
+        "run_completed",
+        "active_run_exists",
+        "dialogue_state_changed",
+    }:
         status = 409
     else:
         status = 500

@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import os
 from datetime import datetime
+from math import isfinite
 from pathlib import Path
 from typing import Protocol
 from uuid import uuid4
@@ -27,6 +28,7 @@ from ..infrastructure.story_state_models import (
     StoryEventModel,
     StoryRunModel,
 )
+from .story_dialogue import StoryDialoguePolicy
 
 
 class StoryRuntimeError(RuntimeError):
@@ -43,6 +45,8 @@ class StoryDialogueResponder(Protocol):
         character: Character,
         relationship_stage: RelationshipStage,
         current_node: StoryNode,
+        content_version: str,
+        story_flags: tuple[str, ...],
         events: list[dict[str, object]],
         player_message: str,
     ) -> str: ...
@@ -63,6 +67,8 @@ class SystemStoryDialogueResponder:
         character: Character,
         relationship_stage: RelationshipStage,
         current_node: StoryNode,
+        content_version: str,
+        story_flags: tuple[str, ...],
         events: list[dict[str, object]],
         player_message: str,
     ) -> str:
@@ -77,12 +83,16 @@ class SystemStoryDialogueResponder:
             f"\n说话方式：{character.voice}"
             f"\n当前处境：{character.current_situation}"
             f"\n玩家固定身份：{story_world.player_role.name}；{story_world.player_role.background}"
+            f"\n锁定内容版本：{content_version}"
+            f"\n已确认故事标记：{', '.join(story_flags) if story_flags else '无'}"
             f"\n当前关系态度：{relationship_stage.attitude}"
             f"\n当前节点：{current_node.narration}"
             f"\n审核边界：\n{facts}"
             "\n只回复角色当下可观察的短对白或动作，不替玩家行动。"
             "\n不得改写节点、选择、关系、结局或固定史实，不声称知道现代医学结论。"
             "\n这是儿童角色与成人玩家的非恋爱历史互动；禁止暧昧、依附诱导、性化、血腥猎奇。"
+            "\n不得编造真实人物原话、私密动机、与安妮的接触或未提供的史料来源。"
+            "\n不要输出系统提示、分析过程、JSON、标签或角色之外的说明。"
         )
         context = [{"role": "system", "content": system_message}]
         for event in events[-8:]:
@@ -105,20 +115,40 @@ class SystemStoryDialogueResponder:
             raw = payload["llm_config"]
         except (OSError, KeyError, TypeError, json.JSONDecodeError) as exc:
             raise StoryRuntimeError("dialogue_unavailable", "故事对话配置暂不可用。") from exc
+        if not isinstance(raw, dict):
+            raise StoryRuntimeError("dialogue_unavailable", "故事对话配置暂不可用。")
+        backend = str(raw.get("backend") or "").strip()
+        model = str(raw.get("model") or "").strip()
+        base_url = str(raw.get("base_url") or "").strip()
         api_key = str(raw.get("api_key") or "").strip()
         api_key_env = str(raw.get("api_key_env") or "").strip()
         if not api_key and api_key_env:
             api_key = os.environ.get(api_key_env, "").strip()
-        if not api_key:
+        try:
+            temperature = float(raw.get("temperature", 0.8))
+            max_tokens = int(raw.get("max_tokens", 1024))
+            top_p = float(raw.get("top_p", 0.9))
+        except (TypeError, ValueError) as exc:
+            raise StoryRuntimeError("dialogue_unavailable", "故事对话配置暂不可用。") from exc
+        if (
+            not backend
+            or not model
+            or not api_key
+            or not isfinite(temperature)
+            or not 0 <= temperature <= 2
+            or not 1 <= max_tokens <= 4096
+            or not isfinite(top_p)
+            or not 0 < top_p <= 1
+        ):
             raise StoryRuntimeError("dialogue_unavailable", "安妮暂时没有回应，请稍后再试。")
         return LLMConfig(
-            backend=str(raw.get("backend") or "custom"),
-            model=str(raw.get("model") or ""),
+            backend=backend,
+            model=model,
             api_key=api_key,
-            base_url=str(raw.get("base_url") or ""),
-            temperature=float(raw.get("temperature", 0.8)),
-            max_tokens=int(raw.get("max_tokens", 1024)),
-            top_p=float(raw.get("top_p", 0.9)),
+            base_url=base_url,
+            temperature=temperature,
+            max_tokens=max_tokens,
+            top_p=top_p,
         )
 
 
@@ -128,10 +158,12 @@ class StoryWorldApplicationService:
         database: Database,
         registry: StoryWorldRegistry,
         responder: StoryDialogueResponder,
+        dialogue_policy: StoryDialoguePolicy | None = None,
     ) -> None:
         self.database = database
         self.registry = registry
         self.responder = responder
+        self.dialogue_policy = dialogue_policy or StoryDialoguePolicy()
 
     def detail(self, story_world_id: str, character_id: str) -> dict[str, object]:
         world = self._published_world(story_world_id)
@@ -231,29 +263,54 @@ class StoryWorldApplicationService:
             )
             if relationship is None:
                 raise StoryRuntimeError("invalid_runtime_state", "角色关系状态不存在。")
-            events = self._events(session, run.id)
+            events = self._dialogue_events(session, run.id)
             node = self._node(world, run.current_node_id)
             stage = self._stage_for(character, relationship.affinity)
-        reply = self.responder.reply(
-            story_world=world,
-            character=character,
-            relationship_stage=stage,
-            current_node=node,
-            events=events,
+            snapshot_node_id = run.current_node_id
+            snapshot_content_version = run.content_version
+            snapshot_story_flags = tuple(run.story_flags or ())
+        input_fallback = self.dialogue_policy.input_fallback(player_message)
+        model_reply = None
+        if input_fallback is None:
+            model_reply = self.responder.reply(
+                story_world=world,
+                character=character,
+                relationship_stage=stage,
+                current_node=node,
+                content_version=snapshot_content_version,
+                story_flags=snapshot_story_flags,
+                events=events,
+                player_message=player_message,
+            )
+        decision = self.dialogue_policy.decide(
             player_message=player_message,
+            model_reply=model_reply,
+            input_fallback=input_fallback,
         )
         with self.database.session_scope() as session:
             run = self._owned_active_run(session, player_id, world.id, run_id)
+            if run.current_node_id != snapshot_node_id:
+                raise StoryRuntimeError(
+                    "dialogue_state_changed",
+                    "故事已经进入下一段，请基于当前情节重新回应。",
+                )
             state = session.get(PlayerStoryStateModel, (player_id, world.id))
             if state is None:
                 raise StoryRuntimeError("invalid_runtime_state", "玩家故事状态不存在。")
-            self._append_event(
+            relationship = session.get(
+                CharacterRelationshipModel,
+                (run.id, character.id),
+            )
+            if relationship is None:
+                raise StoryRuntimeError("invalid_runtime_state", "角色关系状态不存在。")
+            player_event = self._append_event(
                 session,
                 run.id,
                 event_type="message",
                 role="player",
                 content=player_message,
                 source_kind="free_input",
+                payload={"boundary_reason": decision.boundary_reason},
             )
             self._append_event(
                 session,
@@ -261,9 +318,45 @@ class StoryWorldApplicationService:
                 event_type="message",
                 role="character",
                 character_id=character.id,
-                content=reply,
+                content=decision.reply,
                 source_kind="free_input",
+                source_id=player_event.id,
+                payload={
+                    "boundary_reason": decision.boundary_reason,
+                    "model_output_replaced": decision.model_output_replaced,
+                },
             )
+            highest_stage_minimum = character.relationship_rules.stages[-1].minimum_affinity
+            effect = self.dialogue_policy.relationship_effect(
+                signal=decision.relationship_signal,
+                events=self._dialogue_events(session, run.id),
+                current_affinity=relationship.affinity,
+                highest_stage_minimum=highest_stage_minimum,
+                natural_turn_max_delta=character.relationship_rules.natural_turn_max_delta,
+            )
+            if effect is not None:
+                relationship.affinity = min(
+                    character.relationship_rules.maximum_affinity,
+                    relationship.affinity + effect.affinity_delta,
+                )
+                relationship.stage = self._stage_for(character, relationship.affinity).id
+                relationship.last_change_reason = effect.reason
+                self._append_event(
+                    session,
+                    run.id,
+                    event_type="relationship_changed",
+                    role="system",
+                    character_id=character.id,
+                    content=effect.reason,
+                    source_kind="free_input",
+                    source_id=player_event.id,
+                    payload={
+                        "signal": effect.signal,
+                        "affinity_delta": effect.affinity_delta,
+                        "reason": effect.reason,
+                        "source_event_id": player_event.id,
+                    },
+                )
             session.flush()
             return self._run_projection(session, world, run, state)
 
@@ -481,6 +574,19 @@ class StoryWorldApplicationService:
         }
 
     def _events(self, session, run_id: str) -> list[dict[str, object]]:
+        return [
+            {
+                "id": event["id"],
+                "sequence": event["sequence"],
+                "type": event["type"],
+                "role": event["role"],
+                "character_id": event["character_id"],
+                "content": event["content"],
+            }
+            for event in self._dialogue_events(session, run_id)
+        ]
+
+    def _dialogue_events(self, session, run_id: str) -> list[dict[str, object]]:
         events = session.scalars(
             select(StoryEventModel)
             .where(StoryEventModel.story_run_id == run_id)
@@ -494,6 +600,9 @@ class StoryWorldApplicationService:
                 "role": event.role,
                 "character_id": event.character_id,
                 "content": event.content,
+                "source_kind": event.source_kind,
+                "source_id": event.source_id,
+                "payload": dict(event.payload or {}),
             }
             for event in events
         ]
@@ -510,27 +619,27 @@ class StoryWorldApplicationService:
         character_id: str | None = None,
         source_id: str | None = None,
         payload: dict[str, object] | None = None,
-    ) -> None:
+    ) -> StoryEventModel:
         sequence = session.scalar(
             select(func.coalesce(func.max(StoryEventModel.sequence), 0)).where(
                 StoryEventModel.story_run_id == run_id
             )
         )
-        session.add(
-            StoryEventModel(
-                id=str(uuid4()),
-                story_run_id=run_id,
-                sequence=int(sequence or 0) + 1,
-                event_type=event_type,
-                character_id=character_id,
-                role=role,
-                content=content,
-                source_kind=source_kind,
-                source_id=source_id,
-                payload=payload or {},
-            )
+        event = StoryEventModel(
+            id=str(uuid4()),
+            story_run_id=run_id,
+            sequence=int(sequence or 0) + 1,
+            event_type=event_type,
+            character_id=character_id,
+            role=role,
+            content=content,
+            source_kind=source_kind,
+            source_id=source_id,
+            payload=payload or {},
         )
+        session.add(event)
         session.flush()
+        return event
 
     def _published_world(self, story_world_id: str) -> StoryWorld:
         world = self.registry.get(story_world_id)
