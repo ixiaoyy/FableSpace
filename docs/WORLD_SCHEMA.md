@@ -454,20 +454,24 @@ CharacterRelationship 保存一个 StoryRun 内玩家与具体 Character 的关�
 
 任何公开响应都不得包含其他玩家标识、对话、进度、关系、记忆、隐藏正史、系统 Prompt 或密钥。
 
-### 当前安妮垂直切片 API
+### 当前 P0 StoryWorld API
 
-安妮使用新的 StoryWorld 路由，不通过旧 `/spaces` 合同：
+安妮与长明宫使用同一套 StoryWorld 路由，不通过旧 `/spaces` 合同：
 
 ```text
 GET  /api/v1/story-worlds/{story_world_id}/characters/{character_id}
-GET  /api/v1/story-worlds/{story_world_id}/runs/current
+GET  /api/v1/story-worlds/{story_world_id}/runs/current?character_id={character_id}
 POST /api/v1/story-worlds/{story_world_id}/runs
+     body: { "character_id": "..." }
 POST /api/v1/story-worlds/{story_world_id}/runs/{run_id}/messages
+     body: { "character_id": "...", "content": "..." }
 POST /api/v1/story-worlds/{story_world_id}/runs/{run_id}/choices
+     body: { "character_id": "...", "choice_id": "..." }
 POST /api/v1/story-worlds/{story_world_id}/runs/restart
+     body: { "character_id": "..." }
 ```
 
-公开详情只返回发布 StoryWorld、Character 公开处境和固定 PlayerRole。运行时请求不接受 `player_id`；服务端从已验证登录会话解析账号身份，无有效会话时返回 `401`，且不得创建或修改玩家状态。运行时响应不回显该 ID。
+公开详情只返回发布 StoryWorld、Character 公开处境和固定 PlayerRole。`character_id` 只能选择当前 StoryWorld 注册表内的 Character，不创建新的身份或轮次边界；长明宫从魏观海或萧明珠进入时共享同一个 StoryRun，但消息和关系投影归属当前会见角色。运行时请求不接受 `player_id`；服务端从已验证登录会话解析账号身份，无有效会话时返回 `401`，且不得创建或修改玩家状态。运行时响应不回显该 ID。
 
 运行时持久化基线使用 `player_story_states`、`story_runs`、`character_relationships`、`story_events`、`story_messages` 和 `private_memories` 六张表。已提交的 004 迁移建立前四张表，005 只新增后两张表；当前 HTTP API 的切换由后续运行时 API 任务负责。完成轮次保留全部有序安全结局摘要；重新开始创建全新 StoryRun，不复制上一轮 affinity、标记、事件、选择、消息或记忆。
 

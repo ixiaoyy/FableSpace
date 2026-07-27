@@ -242,12 +242,21 @@ export default function CharacterStoryRoute() {
         return
       }
       dispatch({ type: "run-loading" })
-      let currentRun = await getCurrentStoryRun(route.storyWorldId)
+      let currentRun = await getCurrentStoryRun(
+        route.storyWorldId,
+        route.characterId,
+      )
       if (!currentRun) {
         try {
-          currentRun = await startStoryRun(route.storyWorldId)
+          currentRun = await startStoryRun(
+            route.storyWorldId,
+            route.characterId,
+          )
         } catch (startError) {
-          currentRun = await getCurrentStoryRun(route.storyWorldId)
+          currentRun = await getCurrentStoryRun(
+            route.storyWorldId,
+            route.characterId,
+          )
           if (!currentRun) throw startError
         }
       }
@@ -322,7 +331,12 @@ export default function CharacterStoryRoute() {
     if (!run || !content || actionInFlightRef.current) return
     actionInFlightRef.current = true
     dispatch({ type: "action-started", kind: "message" })
-    void sendStoryMessage(storyWorldId, run.id, content)
+    void sendStoryMessage(
+      storyWorldId,
+      run.id,
+      route.characterId,
+      content,
+    )
       .then((nextRun) => {
         dispatch({ type: "message-sent", run: nextRun })
       })
@@ -341,7 +355,7 @@ export default function CharacterStoryRoute() {
   }
 
   return (
-    <main className="annieStoryShell">
+    <main className="annieStoryShell" data-story-theme={route.theme}>
       <header className="annieStoryHeader">
         <Link to={characterPath(route.slug)} aria-label={`返回${detail.character.name}的人物页`}>
           <ArrowLeft aria-hidden="true" />
@@ -351,7 +365,7 @@ export default function CharacterStoryRoute() {
       </header>
 
       <section className="annieStoryOpening" aria-labelledby="annie-story-title">
-        <p className="annieStoryEyebrow">伦敦 · 1854</p>
+        <p className="annieStoryEyebrow">{route.sceneLabel}</p>
         <h1 id="annie-story-title">{detail.story_world.title}</h1>
         <p>{detail.character.current_situation}</p>
       </section>
@@ -375,7 +389,12 @@ export default function CharacterStoryRoute() {
           completedRunSummaries={completedRunSummaries}
           onChoose={(choiceId) => void runAction(
             "choice",
-            () => chooseStoryPath(storyWorldId, run.id, choiceId),
+            () => chooseStoryPath(
+              storyWorldId,
+              run.id,
+              route.characterId,
+              choiceId,
+            ),
           )}
           onMessageChange={(nextMessage) => dispatch({
             type: "message-changed",
@@ -384,7 +403,7 @@ export default function CharacterStoryRoute() {
           onSubmitMessage={submitMessage}
           onRestart={() => void runAction(
             "restart",
-            () => restartStoryRun(storyWorldId),
+            () => restartStoryRun(storyWorldId, route.characterId),
           )}
         />
       ) : null}
@@ -547,7 +566,7 @@ function StoryRunWorkspace({
               onClick={onRestart}
             >
               <RotateCcw aria-hidden="true" />
-              <span>{pending ? "正在回到雨夜……" : "重新开始"}</span>
+              <span>{pending ? "正在回到故事起点……" : "重新开始"}</span>
             </button>
           </div>
         ) : null}
@@ -596,7 +615,7 @@ function StoryTimeline({
           : event.type === "choice"
             ? "你的选择"
             : event.role === "character"
-              ? detail.character.name
+              ? event.character_name || detail.character.name
               : event.role === "player"
                 ? "你"
                 : messageEvent
@@ -777,6 +796,9 @@ function HistoricalReferencePanel({
 }: {
   reference: StoryRun["historical_reference"]
 }) {
+  const containsHistoricalFact = reference.entries.some(
+    (entry) => entry.category === "fixed_fact",
+  )
   const categoryCounts = new Map<HistoricalReferenceCategory, number>(
     REFERENCE_CATEGORIES.map((category) => [category, 0]),
   )
@@ -791,7 +813,7 @@ function HistoricalReferencePanel({
           <BookOpenText aria-hidden="true" />
         </span>
         <span>
-          <strong>史料参考</strong>
+          <strong>{containsHistoricalFact ? "史料参考" : "设定参考"}</strong>
           <small>
             已解锁 {reference.unlocked_count} / {reference.total_count}
           </small>
@@ -800,7 +822,7 @@ function HistoricalReferencePanel({
       </summary>
       <div className="annieStoryReferenceBody">
         <p className="annieStoryReferenceNote">
-          随情节解锁；内容与分类来自审核注册表。
+          内容与分类来自审核注册表。
         </p>
         <ul className="annieStoryReferenceLegend" aria-label="参考内容分类">
           {REFERENCE_CATEGORIES.map((category) => (

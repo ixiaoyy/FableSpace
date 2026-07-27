@@ -46,9 +46,7 @@ function subscribeToThemeChanges(onStoreChange: () => void) {
 
 function supportsLightTheme(pathname: string) {
   return pathname === WEB_PATHS.home
-    || pathname === WEB_PATHS.characters
-    || pathname.startsWith(`${WEB_PATHS.characters}/`)
-    || pathname.startsWith(`${WEB_PATHS.stories}/`)
+    || /^\/characters\/[^/]+(?:\/story)?$/.test(pathname)
 }
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {

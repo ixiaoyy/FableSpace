@@ -19,14 +19,10 @@ import { Link } from "react-router"
 
 import { mediaAssetUrl } from "../lib/media-assets"
 import {
-  ANNIE_CHARACTER_ROUTE,
   characterPath,
+  resolveCharacterRouteById,
 } from "../lib/character-routes"
-import {
-  characterSpacePath,
-  spacePath,
-  WEB_PATHS,
-} from "../lib/web-routes"
+import { WEB_PATHS } from "../lib/web-routes"
 import type { Space, SpaceCharacter } from "../lib/spaces"
 
 import "./home-character-discovery.css"
@@ -122,10 +118,8 @@ function featuredCharacters(spaces: Space[]) {
 }
 
 function primaryPath(entry: FeaturedCharacter) {
-  if (entry.character.id === ANNIE_CHARACTER_ID) {
-    return characterPath(ANNIE_CHARACTER_ROUTE.slug)
-  }
-  return characterSpacePath(entry.space, entry.character)
+  const route = resolveCharacterRouteById(entry.character.id)
+  return route ? characterPath(route.slug) : WEB_PATHS.home
 }
 
 export function HomeCharacterDiscovery({
@@ -340,7 +334,7 @@ export function HomeCharacterDiscovery({
               <>
                 <Link
                   className="characterStoryTextLink"
-                  to={spacePath(activeEntry.space)}
+                  to={primaryPath(activeEntry)}
                 >
                   <span aria-hidden="true" />
                   <strong>{activeEntry.presentation.storyLinkLabel}</strong>

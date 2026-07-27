@@ -19,6 +19,21 @@
   font-family: "Noto Serif SC", "Songti SC", STSong, serif;
 }
 
+.annieStoryShell[data-story-theme="palace"] {
+  --annie-paper: #fffaf1;
+  --annie-paper-deep: #f3e8d8;
+  --annie-ink: #342b31;
+  --annie-muted: #706168;
+  --annie-line: rgba(91, 56, 52, 0.18);
+  --annie-orange: #b6533d;
+  --annie-orange-strong: #873729;
+  --annie-lavender: #76556f;
+  background:
+    radial-gradient(circle at 88% 7%, rgba(118, 85, 111, 0.12), transparent 24rem),
+    radial-gradient(circle at 8% 30%, rgba(182, 83, 61, 0.1), transparent 28rem),
+    var(--annie-paper);
+}
+
 .annieStoryShell *,
 .annieStoryShell *::before,
 .annieStoryShell *::after {
@@ -130,6 +145,15 @@
   display: block;
   width: 100%;
   min-height: 25rem;
+}
+
+.annieStoryHeroPortrait {
+  display: block;
+  width: 100%;
+  min-height: 25rem;
+  aspect-ratio: 4 / 5;
+  object-fit: cover;
+  object-position: center top;
 }
 
 .annieStoryHeroArt > span {

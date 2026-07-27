@@ -11,11 +11,17 @@ from .auth import require_story_session_identity
 router = APIRouter(prefix="/story-worlds", tags=["story-worlds"])
 
 
+class RunEntryRequest(BaseModel):
+    character_id: str = Field(min_length=1, max_length=128)
+
+
 class MessageRequest(BaseModel):
+    character_id: str = Field(min_length=1, max_length=128)
     content: str = Field(min_length=1, max_length=1000)
 
 
 class ChoiceRequest(BaseModel):
+    character_id: str = Field(min_length=1, max_length=128)
     choice_id: str = Field(min_length=1, max_length=128)
 
 
@@ -53,28 +59,46 @@ def get_character_detail(story_world_id: str, character_id: str, request: Reques
 
 
 @router.get("/{story_world_id}/runs/current")
-def get_current_run(story_world_id: str, request: Request):
+def get_current_run(story_world_id: str, character_id: str, request: Request):
     player_id = _player_id(request)
     try:
-        return {"run": _service(request).current(player_id, story_world_id)}
+        return {
+            "run": _service(request).current(
+                player_id,
+                story_world_id,
+                character_id,
+            )
+        }
     except StoryRuntimeError as exc:
         _raise_http(exc)
 
 
 @router.post("/{story_world_id}/runs")
-def start_run(story_world_id: str, request: Request):
+def start_run(story_world_id: str, payload: RunEntryRequest, request: Request):
     player_id = _player_id(request)
     try:
-        return {"run": _service(request).start(player_id, story_world_id)}
+        return {
+            "run": _service(request).start(
+                player_id,
+                story_world_id,
+                payload.character_id,
+            )
+        }
     except StoryRuntimeError as exc:
         _raise_http(exc)
 
 
 @router.post("/{story_world_id}/runs/restart")
-def restart_run(story_world_id: str, request: Request):
+def restart_run(story_world_id: str, payload: RunEntryRequest, request: Request):
     player_id = _player_id(request)
     try:
-        return {"run": _service(request).restart(player_id, story_world_id)}
+        return {
+            "run": _service(request).restart(
+                player_id,
+                story_world_id,
+                payload.character_id,
+            )
+        }
     except StoryRuntimeError as exc:
         _raise_http(exc)
 
@@ -96,6 +120,7 @@ def post_message(
                 player_id,
                 story_world_id,
                 run_id,
+                payload.character_id,
                 content,
             )
         }
@@ -117,6 +142,7 @@ def post_choice(
                 player_id,
                 story_world_id,
                 run_id,
+                payload.character_id,
                 payload.choice_id,
             )
         }

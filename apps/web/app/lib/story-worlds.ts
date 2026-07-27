@@ -64,6 +64,7 @@ export type StoryRun = {
     type: "message" | "choice" | "narration" | "relationship_changed"
     role: "player" | "character" | "system" | null
     character_id: string | null
+    character_name: string | null
     content: string
   }>
   relationship: RelationshipStage
@@ -89,34 +90,47 @@ export function getStoryWorldCharacter(storyWorldId: string, characterId: string
   )
 }
 
-export async function getCurrentStoryRun(storyWorldId: string) {
-  return (await readApiJson<RunResponse>(`${storyWorldBase(storyWorldId)}/runs/current`)).run
+export async function getCurrentStoryRun(storyWorldId: string, characterId: string) {
+  const query = new URLSearchParams({ character_id: characterId })
+  return (await readApiJson<RunResponse>(
+    `${storyWorldBase(storyWorldId)}/runs/current?${query.toString()}`,
+  )).run
 }
 
-export async function startStoryRun(storyWorldId: string) {
+export async function startStoryRun(storyWorldId: string, characterId: string) {
   return (await readApiJson<RunResponse>(
     `${storyWorldBase(storyWorldId)}/runs`,
-    jsonInit("POST"),
+    jsonInit("POST", { character_id: characterId }),
   )).run
 }
 
-export async function restartStoryRun(storyWorldId: string) {
+export async function restartStoryRun(storyWorldId: string, characterId: string) {
   return (await readApiJson<RunResponse>(
     `${storyWorldBase(storyWorldId)}/runs/restart`,
-    jsonInit("POST"),
+    jsonInit("POST", { character_id: characterId }),
   )).run
 }
 
-export async function sendStoryMessage(storyWorldId: string, runId: string, content: string) {
+export async function sendStoryMessage(
+  storyWorldId: string,
+  runId: string,
+  characterId: string,
+  content: string,
+) {
   return (await readApiJson<RunResponse>(
     `${storyWorldBase(storyWorldId)}/runs/${encodeURIComponent(runId)}/messages`,
-    jsonInit("POST", { content }),
+    jsonInit("POST", { character_id: characterId, content }),
   )).run
 }
 
-export async function chooseStoryPath(storyWorldId: string, runId: string, choiceId: string) {
+export async function chooseStoryPath(
+  storyWorldId: string,
+  runId: string,
+  characterId: string,
+  choiceId: string,
+) {
   return (await readApiJson<RunResponse>(
     `${storyWorldBase(storyWorldId)}/runs/${encodeURIComponent(runId)}/choices`,
-    jsonInit("POST", { choice_id: choiceId }),
+    jsonInit("POST", { character_id: characterId, choice_id: choiceId }),
   )).run
 }

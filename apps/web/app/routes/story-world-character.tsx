@@ -2,7 +2,6 @@ import type { ClientLoaderFunctionArgs } from "react-router"
 import { ArrowLeft, Feather, ShieldCheck } from "lucide-react"
 import { Link, useLoaderData } from "react-router"
 
-import { HistoricalBroadStreetVisual } from "../components/historical-broad-street-visual"
 import {
   characterStoryPath,
   resolveCharacterRoute,
@@ -41,8 +40,9 @@ export async function clientLoader({ params }: ClientLoaderFunctionArgs): Promis
 
 export default function StoryWorldCharacterRoute() {
   const { detail, slug, error } = useLoaderData<typeof clientLoader>()
+  const route = resolveCharacterRoute(slug)
 
-  if (!detail || !slug) {
+  if (!detail || !route) {
     return (
       <main className="annieStoryShell annieStoryCentered">
         <p className="annieStoryEyebrow">FableSpace</p>
@@ -54,7 +54,10 @@ export default function StoryWorldCharacterRoute() {
   }
 
   return (
-    <main className="annieStoryShell annieCharacterShell">
+    <main
+      className="annieStoryShell annieCharacterShell"
+      data-story-theme={route.theme}
+    >
       <header className="annieStoryHeader">
         <Link to={WEB_PATHS.home} aria-label="返回角色首页">
           <ArrowLeft aria-hidden="true" />
@@ -63,14 +66,18 @@ export default function StoryWorldCharacterRoute() {
         <small>{detail.story_world.genre}</small>
       </header>
 
-      <section className="annieStoryHero" aria-labelledby="annie-character-name">
+      <section className="annieStoryHero" aria-labelledby="story-character-name">
         <div className="annieStoryHeroArt">
-          <HistoricalBroadStreetVisual />
+          <img
+            className="annieStoryHeroPortrait"
+            src={route.portrait}
+            alt={`${detail.character.name}角色立绘`}
+          />
           <span>{detail.story_world.title}</span>
         </div>
         <div className="annieStoryHeroCopy">
-          <p className="annieStoryEyebrow">宽街的雨夜</p>
-          <h1 id="annie-character-name">{detail.character.name}</h1>
+          <p className="annieStoryEyebrow">{route.sceneLabel}</p>
+          <h1 id="story-character-name">{detail.character.name}</h1>
           <p className="annieStorySituation">{detail.character.current_situation}</p>
           <div className="annieStoryRole">
             <ShieldCheck aria-hidden="true" />
@@ -82,7 +89,7 @@ export default function StoryWorldCharacterRoute() {
           </div>
           <Link
             className="annieStoryPrimaryButton"
-            to={characterStoryPath(slug)}
+            to={characterStoryPath(route.slug)}
           >
             <Feather aria-hidden="true" />
             <span>去见{detail.character.name}</span>

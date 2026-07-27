@@ -16,7 +16,6 @@ from ..domain.story_world import (
     StoryEnding,
     StoryNode,
     StoryWorld,
-    StoryWorldRegistry,
 )
 
 ANNIE_STORY_WORLD_ID = "history_broad_street_water_1854"
@@ -682,5 +681,3 @@ ANNIE_STORY_WORLD = StoryWorld(
         ),
     ),
 )
-
-STORY_WORLD_REGISTRY = StoryWorldRegistry((ANNIE_STORY_WORLD,))
