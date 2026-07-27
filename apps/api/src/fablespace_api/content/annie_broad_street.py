@@ -138,10 +138,15 @@ ANNIE = Character(
     secret="她是本故事的原创角色，不对应史料中的真实儿童。",
     voice="句子短，谨慎，先说亲眼见到和闻到的事；不使用现代医学术语。",
     current_situation=(
-        "1854 年 9 月 7 日下午的伦敦宽街附近，安妮抱着一只缺口陶罐，"
-        "在水泵旁向你讨一口来路能够确认的水。"
+        "1854 年 9 月 7 日下午，宽街下起了雨。你在水泵旁的屋檐下避雨，"
+        "脚边的破碗里还剩一点水。安妮抱着缺口陶罐，在两步外停下；"
+        "你们从未见过，她没有理由立刻相信你。"
     ),
-    opening_line="先生……你有一点水吗？先告诉我，它是从哪儿取来的。",
+    opening_line=(
+        "“你碗里……还有一点水吗？”她看了一眼身后的水泵，没有再往前走。"
+        "“妈妈只说，别再碰这口泵。可家里已经一点水也没有了。"
+        "要是你的水不是从这里打的……能分我一点吗？”"
+    ),
     relationship_rules=ANNIE_RELATIONSHIP_RULES,
 )
 
@@ -151,7 +156,7 @@ PLAYER_ROLE = PlayerRole(
     name="乞丐",
     gender="未说明",
     background="你靠零工和施舍在苏活区街巷间过活，知道哪些门廊能避雨，也知道穷人的话常被忽视。",
-    entry_reason="你在宽街水泵旁歇脚时，安妮抱着陶罐向你求助。",
+    entry_reason="你在宽街水泵旁的屋檐下避雨，脚边的破碗里还剩一点水；安妮抱着陶罐，在两步外停下向你求助。",
     character_visible_information=(
         "安妮看得出你同样缺水、没有权势。",
         "她不知道你的姓名，也没有理由立刻信任你。",
@@ -165,7 +170,14 @@ CHAPTER = StoryChapter(
     nodes=(
         StoryNode(
             id="node_water_request",
-            narration="雨丝落在石板路上。安妮没有伸手拿你的碗，她在等你先说清水的来路。",
+            narration=(
+                "1854 年 9 月 7 日下午，宽街下起了雨。"
+                "你靠零工和施舍在苏活区过活，此刻正坐在水泵旁的屋檐下避雨。"
+                "脚边的破碗里，还剩着一点水。"
+                "一个抱着缺口陶罐的女孩在两步外停下。她约莫十岁，裙角已经湿透。"
+                "她没有向来往的店主和车夫开口，只看着同样一身雨水的你。"
+                "你们从未见过。她也没有理由立刻相信你。"
+            ),
             ending_id=None,
             choices=(
                 _choice(
@@ -580,7 +592,7 @@ ANNIE_STORY_WORLD = StoryWorld(
     summary="在不可改写的宽街历史中，帮助原创儿童见证者把饮水来源和亲眼所见分开说清。",
     genre="历史剧情",
     publication_status=PublicationStatus.PUBLISHED,
-    content_version="annie-broad-street-2026-07-27.1",
+    content_version="annie-broad-street-2026-07-27.2",
     entry_chapter_id=CHAPTER.id,
     player_role=PLAYER_ROLE,
     characters=(ANNIE,),
