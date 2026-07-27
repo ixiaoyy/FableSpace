@@ -541,3 +541,36 @@ Split the frontend roadmap into UI-first and integration follow-ups, archived th
 ### Next Steps
 
 - None - task complete
+
+
+## Session 17: 完成安妮宽街故事内容阶段
+
+**Date**: 2026-07-27
+**Task**: 完成安妮宽街故事内容阶段
+**Branch**: `main`
+
+### Summary
+
+将小女孩游玩线路拆分为内容、LLM 边界、交互和视觉四阶段；完成并校验第一阶段内容图，保留稳定结局 ID，并把旧 StoryRun 按 content_version 解析要求加入运行时任务。
+
+### Main Changes
+
+- Detailed change bullets were not supplied; see the summary above.
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `69184d81` | (see git log) |
+
+### Testing
+
+- Validation was not recorded for this session.
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
