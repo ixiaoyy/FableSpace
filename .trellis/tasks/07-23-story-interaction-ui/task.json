@@ -20,7 +20,9 @@
   "subtasks": [],
   "children": [
     "07-23-character-story-detail-page",
-    "07-24-palace-character-interaction-ui"
+    "07-24-palace-character-interaction-ui",
+    "07-27-annie-story-interaction-polish",
+    "07-27-annie-story-visual-assets"
   ],
   "parent": "07-23-character-first-player-flow",
   "relatedFiles": [],

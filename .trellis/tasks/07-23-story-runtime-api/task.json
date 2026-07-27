@@ -18,7 +18,9 @@
   "commit": null,
   "pr_url": null,
   "subtasks": [],
-  "children": [],
+  "children": [
+    "07-27-annie-dialogue-guardrails"
+  ],
   "parent": "07-23-story-world-domain",
   "relatedFiles": [],
   "notes": "",
