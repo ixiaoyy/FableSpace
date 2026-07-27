@@ -30,6 +30,6 @@
 ## 4. Finish
 
 - [x] Record verification evidence and historical-integrity verdict.
-- [ ] Stage only production files immediately; stage task artifacts at the
+- [x] Stage only production files immediately; stage task artifacts at the
       phase commit.
-- [ ] Commit, archive this task, and record the Trellis session.
+- [x] Commit, archive this task, and record the Trellis session.
