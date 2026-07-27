@@ -1,0 +1,29 @@
+#!/bin/sh
+set -eu
+
+service="${1:-backend}"
+case "${service}" in
+  backend|frontend)
+    ;;
+  all)
+    service=""
+    ;;
+  *)
+    echo "usage: fablelog [backend|frontend|all]" >&2
+    exit 2
+    ;;
+esac
+
+cd "${FABLESPACE_PATH:-/opt/fablespace}"
+
+if docker compose version >/dev/null 2>&1; then
+  compose_command="docker compose"
+else
+  compose_command="docker-compose"
+fi
+
+if [ -n "${service}" ]; then
+  exec sudo ${compose_command} logs --tail "${FABLESPACE_LOG_TAIL:-200}" --timestamps -f "${service}"
+fi
+
+exec sudo ${compose_command} logs --tail "${FABLESPACE_LOG_TAIL:-200}" --timestamps -f

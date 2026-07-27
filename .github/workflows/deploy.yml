@@ -201,6 +201,7 @@ jobs:
             git remote set-url origin "https://github.com/${{ github.repository }}.git"
             git fetch --prune origin main
             git reset --hard origin/main
+            sudo install -m 0755 deploy/server/fablelog /usr/local/bin/fablelog
 
             CONFIG_OUTPUT="$(sudo python3 deploy/server/configure_shared_services.py --cors-origin https://fable.pingxingxian.space)"
             printf '%s\n' "${CONFIG_OUTPUT}"

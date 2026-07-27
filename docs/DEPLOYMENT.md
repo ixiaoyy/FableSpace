@@ -96,6 +96,24 @@ docker exec parallellines-db-1 sh -c 'mysql -uroot -p"$MYSQL_ROOT_PASSWORD" -e "
 sudo docker compose -f docker-compose.yml -f deploy/docker-compose.shared.yml up -d --build
 ```
 
+## 运行日志
+
+部署流程会把 `deploy/server/fablelog` 安装到 `/usr/local/bin/fablelog`。登录服务器后可直接实时查看：
+
+```bash
+fablelog backend
+fablelog frontend
+fablelog all
+```
+
+默认显示最近 200 行并持续跟踪，按 `Ctrl+C` 退出。临时调整初始行数可设置 `FABLESPACE_LOG_TAIL`，例如：
+
+```bash
+FABLESPACE_LOG_TAIL=500 fablelog backend
+```
+
+前后端继续把日志写到标准输出，由 Docker `json-file` 驱动接管。每个容器日志文件达到 20 MB 时自动轮转，最多保留 5 个文件，避免日志无限增长占满磁盘。
+
 ## ParallelLines 私密空间联动
 
 生产环境把 FableSpace 设为只接受 ParallelLines 授权的产品会话。在 `/opt/fablespace/apps/api/.env` 配置：
