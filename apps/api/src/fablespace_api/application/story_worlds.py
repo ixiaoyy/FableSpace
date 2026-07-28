@@ -19,6 +19,7 @@ from ..content.annie_broad_street import (
 )
 from ..domain.story_world import (
     Character,
+    PlayerRole,
     RelationshipStage,
     StoryChoice,
     StoryNode,
@@ -46,6 +47,7 @@ class StoryDialogueResponder(Protocol):
         self,
         *,
         story_world: StoryWorld,
+        player_role: PlayerRole,
         character: Character,
         relationship_stage: RelationshipStage,
         current_node: StoryNode,
@@ -61,6 +63,7 @@ class StoryDialogueResponder(Protocol):
 def _dialogue_system_message(
     *,
     story_world: StoryWorld,
+    player_role: PlayerRole,
     character: Character,
     relationship_stage: RelationshipStage,
     current_node: StoryNode,
@@ -75,7 +78,7 @@ def _dialogue_system_message(
     )
     visible_information = "\n".join(
         f"- {information}"
-        for information in story_world.player_role.character_visible_information
+        for information in player_role.character_visible_information
     )
     recent_relationship_reason = relationship_reason.strip() or "尚无关系变化记录。"
     relationship_markers = ", ".join(relationship_flags) or "无"
@@ -93,12 +96,12 @@ def _dialogue_system_message(
         f"\n说话方式：{character.voice}"
         f"\n当前处境：{character.current_situation}\n"
         f"\n【玩家身份】"
-        f"\n身份：{story_world.player_role.name}"
-        f"\n年龄：{story_world.player_role.age}"
-        f"\n性别设定：{story_world.player_role.gender}"
-        f"\n社会地位：{story_world.player_role.social_position}"
-        f"\n背景：{story_world.player_role.background}"
-        f"\n入场原因：{story_world.player_role.entry_reason}"
+        f"\n身份：{player_role.name}"
+        f"\n年龄：{player_role.age}"
+        f"\n性别设定：{player_role.gender}"
+        f"\n社会地位：{player_role.social_position}"
+        f"\n背景：{player_role.background}"
+        f"\n入场原因：{player_role.entry_reason}"
         f"\n你当前可以知道的玩家信息：\n{visible_information}\n"
         f"\n【你与玩家的关系】"
         f"\n阶段：{relationship_stage.label}"
@@ -145,6 +148,7 @@ class SystemStoryDialogueResponder:
         self,
         *,
         story_world: StoryWorld,
+        player_role: PlayerRole,
         character: Character,
         relationship_stage: RelationshipStage,
         current_node: StoryNode,
@@ -158,6 +162,7 @@ class SystemStoryDialogueResponder:
         config = self._load_config()
         system_message = _dialogue_system_message(
             story_world=story_world,
+            player_role=player_role,
             character=character,
             relationship_stage=relationship_stage,
             current_node=current_node,
@@ -247,6 +252,24 @@ class StoryWorldApplicationService:
         world = self._published_world(story_world_id)
         character = self._character(world, character_id)
         stage = self._stage_for(character, character.relationship_rules.initial_affinity)
+        characters = []
+        for candidate in world.characters:
+            candidate_stage = self._stage_for(
+                candidate,
+                candidate.relationship_rules.initial_affinity,
+            )
+            characters.append(
+                {
+                    "id": candidate.id,
+                    "name": candidate.name,
+                    "current_situation": candidate.current_situation,
+                    "relationship_stage": {
+                        "id": candidate_stage.id,
+                        "label": candidate_stage.label,
+                        "attitude": candidate_stage.attitude,
+                    },
+                }
+            )
         return {
             "story_world": {
                 "id": world.id,
@@ -266,16 +289,11 @@ class StoryWorldApplicationService:
                     "attitude": stage.attitude,
                 },
             },
-            "player_role": {
-                "id": world.player_role.id,
-                "name": world.player_role.name,
-                "gender": world.player_role.gender,
-                "background": world.player_role.background,
-                "entry_reason": world.player_role.entry_reason,
-                "character_visible_information": list(
-                    world.player_role.character_visible_information
-                ),
-            },
+            "characters": characters,
+            "player_roles": [
+                self._player_role_projection(player_role)
+                for player_role in world.player_roles
+            ],
         }
 
     def current(
@@ -304,6 +322,15 @@ class StoryWorldApplicationService:
                     .order_by(StoryRunModel.completed_at.desc())
                     .limit(1)
                 )
+            if (
+                run is not None
+                and run.status == "active"
+                and state.player_role_id != run.player_role_id
+            ):
+                raise StoryRuntimeError(
+                    "invalid_runtime_state",
+                    "玩家状态与活动轮次锁定的身份不一致。",
+                )
             return self._run_projection(session, world, character, run, state) if run else None
 
     def start(
@@ -311,16 +338,23 @@ class StoryWorldApplicationService:
         player_id: str,
         story_world_id: str,
         character_id: str,
+        player_role_id: str,
     ) -> dict[str, object]:
         world = self._published_world(story_world_id)
         character = self._character(world, character_id)
+        player_role = self._player_role(world, player_role_id)
         with self.database.session_scope() as session:
-            state = self._state_for_update(session, player_id, world)
+            state = self._state_for_update(session, player_id, world, player_role)
             if state.active_story_run_id:
                 active = session.get(StoryRunModel, state.active_story_run_id)
                 if active and active.status == "active":
+                    if active.player_role_id != player_role.id:
+                        raise StoryRuntimeError(
+                            "player_role_locked",
+                            "当前轮次已经锁定了另一个身份。",
+                        )
                     return self._run_projection(session, world, character, active, state)
-            run = self._create_run(session, state, world, character)
+            run = self._create_run(session, state, world, character, player_role)
             session.flush()
             return self._run_projection(session, world, character, run, state)
 
@@ -329,16 +363,18 @@ class StoryWorldApplicationService:
         player_id: str,
         story_world_id: str,
         character_id: str,
+        player_role_id: str,
     ) -> dict[str, object]:
         world = self._published_world(story_world_id)
         character = self._character(world, character_id)
+        player_role = self._player_role(world, player_role_id)
         with self.database.session_scope() as session:
-            state = self._state_for_update(session, player_id, world)
+            state = self._state_for_update(session, player_id, world, player_role)
             if state.active_story_run_id:
                 active = session.get(StoryRunModel, state.active_story_run_id)
                 if active and active.status == "active":
                     raise StoryRuntimeError("active_run_exists", "当前故事尚未结束。")
-            run = self._create_run(session, state, world, character)
+            run = self._create_run(session, state, world, character, player_role)
             session.flush()
             return self._run_projection(session, world, character, run, state)
 
@@ -362,6 +398,7 @@ class StoryWorldApplicationService:
                 raise StoryRuntimeError("invalid_runtime_state", "角色关系状态不存在。")
             events = self._dialogue_events(session, run.id)
             node = self._node(world, run.current_node_id)
+            player_role = self._player_role(world, run.player_role_id)
             stage = self._stage_for(character, relationship.affinity)
             snapshot_node_id = run.current_node_id
             snapshot_content_version = run.content_version
@@ -373,6 +410,7 @@ class StoryWorldApplicationService:
         if input_fallback is None:
             model_reply = self.responder.reply(
                 story_world=world,
+                player_role=player_role,
                 character=character,
                 relationship_stage=stage,
                 current_node=node,
@@ -582,6 +620,7 @@ class StoryWorldApplicationService:
         state: PlayerStoryStateModel,
         world: StoryWorld,
         entry_character: Character,
+        player_role: PlayerRole,
     ):
         chapter = self._chapter(world, world.entry_chapter_id)
         node = self._node(world, chapter.entry_node_id)
@@ -590,6 +629,7 @@ class StoryWorldApplicationService:
             player_id=state.player_id,
             story_world_id=world.id,
             content_version=world.content_version,
+            player_role_id=player_role.id,
             status="active",
             current_chapter_id=chapter.id,
             current_node_id=node.id,
@@ -612,6 +652,7 @@ class StoryWorldApplicationService:
                     flags=[],
                 )
             )
+        state.player_role_id = player_role.id
         state.active_story_run_id = run.id
         state.visit_count += 1
         state.last_visited_at = datetime.utcnow()
@@ -636,7 +677,13 @@ class StoryWorldApplicationService:
         )
         return run
 
-    def _state_for_update(self, session, player_id: str, world: StoryWorld):
+    def _state_for_update(
+        self,
+        session,
+        player_id: str,
+        world: StoryWorld,
+        player_role: PlayerRole,
+    ):
         state = session.scalar(
             select(PlayerStoryStateModel)
             .where(
@@ -649,13 +696,15 @@ class StoryWorldApplicationService:
             state = PlayerStoryStateModel(
                 player_id=player_id,
                 story_world_id=world.id,
-                player_role_id=world.player_role.id,
+                player_role_id=player_role.id,
                 active_story_run_id=None,
                 visit_count=0,
                 completed_run_summaries=[],
             )
             session.add(state)
             session.flush()
+        else:
+            state.player_role_id = player_role.id
         return state
 
     def _owned_run(self, session, player_id: str, story_world_id: str, run_id: str):
@@ -677,10 +726,12 @@ class StoryWorldApplicationService:
             raise StoryRuntimeError("invalid_runtime_state", "角色关系状态不存在。")
         stage = self._stage_for(character, relationship.affinity)
         ending = self._ending(world, run.ending_id) if run.ending_id else None
+        player_role = self._player_role(world, run.player_role_id)
         return {
             "id": run.id,
             "status": run.status,
             "content_version": run.content_version,
+            "player_role": self._player_role_projection(player_role),
             "current_node": {
                 "id": node.id,
                 "narration": node.narration,
@@ -839,6 +890,41 @@ class StoryWorldApplicationService:
         if world is None or world not in self.registry.published():
             raise StoryRuntimeError("story_world_not_found", "没有找到这个故事世界。")
         return world
+
+    @staticmethod
+    def _player_role(world: StoryWorld, player_role_id: str) -> PlayerRole:
+        resolved_id = str(player_role_id or "").strip()
+        if not resolved_id:
+            raise StoryRuntimeError(
+                "player_role_required",
+                "开始故事前请选择一个身份。",
+            )
+        player_role = next(
+            (item for item in world.player_roles if item.id == resolved_id),
+            None,
+        )
+        if player_role is None:
+            raise StoryRuntimeError(
+                "player_role_not_found",
+                "这个身份不属于当前故事。",
+            )
+        return player_role
+
+    @staticmethod
+    def _player_role_projection(player_role: PlayerRole) -> dict[str, object]:
+        return {
+            "id": player_role.id,
+            "name": player_role.name,
+            "age": player_role.age,
+            "gender": player_role.gender,
+            "social_position": player_role.social_position,
+            "background": player_role.background,
+            "entry_reason": player_role.entry_reason,
+            "character_visible_information": list(
+                player_role.character_visible_information
+            ),
+            "avatar_url": player_role.avatar_url,
+        }
 
     @staticmethod
     def _character(world: StoryWorld, character_id: str) -> Character:

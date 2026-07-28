@@ -82,9 +82,15 @@ export default function StoryWorldCharacterRoute() {
           <div className="annieStoryRole">
             <ShieldCheck aria-hidden="true" />
             <div>
-              <span>你在这个故事里是</span>
-              <strong>{detail.player_role.name}</strong>
-              <p>{detail.player_role.background}</p>
+              <span>{detail.player_roles.length > 1 ? "本轮可选身份" : "你在这个故事里是"}</span>
+              <div className="annieStoryRoleOptions">
+                {detail.player_roles.map((playerRole) => (
+                  <strong key={playerRole.id}>{playerRole.name}</strong>
+                ))}
+              </div>
+              {detail.player_roles.length === 1 ? (
+                <p>{detail.player_roles[0].background}</p>
+              ) : null}
             </div>
           </div>
           <Link

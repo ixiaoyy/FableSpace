@@ -26,7 +26,7 @@
 ```text
 版本化系统内容
   StoryWorld
-    -> PlayerRole
+    -> PlayerRole[]
     -> Character[]
     -> 章节 / 节点 / 选择 / 状态转换 / 结局
     -> 正史边界
@@ -57,7 +57,7 @@ StoryWorld 是系统策划、人工审核并可版本化发布的完整故事世
 | `publication_status` | `draft` / `published` / `archived` | 唯一发布生命周期 |
 | `content_version` | string | 每次可发布内容版本的稳定标识 |
 | `entry_chapter_id` | string | 必须引用本 StoryWorld 的章节入口 |
-| `player_role` | PlayerRole | P0 恰好一个固定身份 |
+| `player_roles` | PlayerRole[] | 至少一个系统审核身份 |
 | `characters` | Character[] | 至少包含一个属于本世界的角色 |
 | `chapters` | StoryChapter[] | 至少一个章节；节点与选择组成可校验剧情图 |
 | `endings` | StoryEnding[] | 至少一个被可达终局节点引用的结局 |
@@ -106,7 +106,7 @@ Character 必须属于一个 StoryWorld，并包含 AI 演绎所需的稳定人�
 
 ## PlayerRole
 
-PlayerRole 是玩家在一个 StoryWorld 内自动生效的固定故事身份。
+PlayerRole 是玩家在一个 StoryWorld 内可被 StoryRun 锁定的系统预设故事身份。单身份世界自动生效；多身份世界允许玩家在开始新轮次前选择一个当前世界已发布的身份。
 
 ### 必需字段
 
@@ -121,13 +121,15 @@ PlayerRole 是玩家在一个 StoryWorld 内自动生效的固定故事身份。
 | `background` | string | 与时代、制度和正史一致 |
 | `entry_reason` | string | 解释玩家为何进入当前事件 |
 | `character_visible_information` | structured content | Character 可以据此识别和回应玩家的内容 |
+| `avatar_url` | string? | 可选的审核头像 HTTPS URL；多身份选择界面使用时必须遵守图片资产规范 |
 
 ### 约束
 
-- P0 每个 StoryWorld 恰好一个 PlayerRole。
+- 每个 StoryWorld 至少一个 PlayerRole；同一 StoryWorld 可以提供多个经过审核的身份。
+- 每个 StoryRun 必须锁定一个所属 StoryWorld 的 PlayerRole，活动轮次中不得更换。
 - PlayerRole 不能跨 StoryWorld 复用，也不是账号权限、现实身份或公开社交资料。
-- 客户端不能提交任意身份 Prompt、替换 PlayerRole 或声明超出故事合同的能力。
-- 1854 年宽街使用“乞丐”；长明宫·雪夜封宫使用“小太监”。
+- 客户端只能提交所属 StoryWorld 已发布的 `player_role_id`，不能提交任意身份 Prompt、替换 PlayerRole 内容或声明超出故事合同的能力。
+- 1854 年宽街只有“乞丐”；长明宫·雪夜封宫提供“小太监”与“小宫女”，每轮二选一。
 
 ## 系统故事内容子结构
 
@@ -257,7 +259,7 @@ PlayerStoryState 是一个玩家在一个 StoryWorld 中的长期私有状态。
 |---|---|---|
 | `player_id` | string | 由服务端身份边界解析 |
 | `story_world_id` | string | 所属 StoryWorld |
-| `player_role_id` | string | 必须是所属 StoryWorld 的固定 PlayerRole |
+| `player_role_id` | string | 当前活动轮次或最近一轮所选的所属 StoryWorld PlayerRole |
 | `active_story_run_id` | string? | 当前活动轮次；无活动轮次时为空 |
 | `visit_count` | integer | 非负回访次数 |
 | `last_visited_at` | ISO timestamp? | 最近回访时间 |
@@ -284,6 +286,7 @@ StoryRun 表示一次从开始到结局的故事轮次。
 | `player_id` | string | 必须与所属 PlayerStoryState 一致 |
 | `story_world_id` | string | 必须与所属 PlayerStoryState 一致 |
 | `content_version` | string | 轮次开始时锁定的 StoryWorld 版本 |
+| `player_role_id` | string | 轮次开始时锁定的所属 StoryWorld PlayerRole |
 | `status` | `active` / `completed` | 唯一轮次生命周期 |
 | `current_chapter_id` | string | 必须属于锁定内容版本 |
 | `current_node_id` | string | 必须属于当前章节 |
@@ -298,6 +301,7 @@ StoryRun 表示一次从开始到结局的故事轮次。
 ### 约束
 
 - 每个 `player_id + story_world_id` 同时最多一个 `active` StoryRun。
+- `player_role_id` 在 StoryRun 生命周期内不可更换；重新开始新轮次时可以从当前内容版本允许的 PlayerRole 中重新选择。
 - 关键选择在活动轮次中不能撤销；系统不提供章节回退或并行时间线。
 - 完成后可以开始新 StoryRun。新轮次不继承上一轮好感度和故事标记；PlayerStoryState 只保留上一轮结局摘要。
 - 部署新内容版本时不得静默重写旧 StoryRun 的 `content_version`、节点或事件。
@@ -401,7 +405,7 @@ CharacterRelationship 保存一个 StoryRun 内玩家与具体 Character 的关�
   -> 加载锁定的 StoryWorld 内容版本与 StoryRun
   -> 解析为允许的剧情动作，或保持普通对话
   -> 确定性规则校验前置条件并应用状态变化
-  -> 构建 Character、PlayerRole、正史、关系和私有记忆上下文
+  -> 按 StoryRun.player_role_id 构建 Character、PlayerRole、正史、关系和私有记忆上下文
   -> AI 生成角色可观察回应
   -> 输出校验
   -> 持久化消息、事件、受限关系变化和记忆候选
@@ -450,7 +454,7 @@ CharacterRelationship 保存一个 StoryRun 内玩家与具体 Character 的关�
 
 - `published` StoryWorld 的发现摘要；
 - Character 的公开入口信息；
-- 所属 StoryWorld 摘要和固定 PlayerRole 的玩家可见入场信息。
+- 所属 StoryWorld 摘要和全部系统预设 PlayerRole 的玩家可见入场信息。
 
 玩家私有响应必须经过当前登录账号身份校验，才可以包含：
 
@@ -468,27 +472,27 @@ CharacterRelationship 保存一个 StoryRun 内玩家与具体 Character 的关�
 GET  /api/v1/story-worlds/{story_world_id}/characters/{character_id}
 GET  /api/v1/story-worlds/{story_world_id}/runs/current?character_id={character_id}
 POST /api/v1/story-worlds/{story_world_id}/runs
-     body: { "character_id": "..." }
+     body: { "character_id": "...", "player_role_id": "..." }
 POST /api/v1/story-worlds/{story_world_id}/runs/{run_id}/messages
      body: { "character_id": "...", "content": "..." }
 POST /api/v1/story-worlds/{story_world_id}/runs/{run_id}/choices
      body: { "character_id": "...", "choice_id": "..." }
 POST /api/v1/story-worlds/{story_world_id}/runs/restart
-     body: { "character_id": "..." }
+     body: { "character_id": "...", "player_role_id": "..." }
 ```
 
-公开详情只返回发布 StoryWorld、Character 公开处境和固定 PlayerRole。`character_id` 只能选择当前 StoryWorld 注册表内的 Character，不创建新的身份或轮次边界；长明宫从魏观海或萧明珠进入时共享同一个 StoryRun，但消息和关系投影归属当前会见角色。运行时请求不接受 `player_id`；服务端从已验证登录会话解析账号身份，无有效会话时返回 `401`，且不得创建或修改玩家状态。运行时响应不回显该 ID。
+公开详情只返回发布 StoryWorld、Character 公开处境和系统预设 PlayerRole 列表。`character_id` 只能选择当前 StoryWorld 注册表内的 Character；`player_role_id` 只能选择同一 StoryWorld 当前发布的 PlayerRole，不允许携带身份正文。长明宫从魏观海或萧明珠进入时共享同一个 StoryRun，但消息和关系投影归属当前会见角色。运行时请求不接受 `player_id`；服务端从已验证登录会话解析账号身份，无有效会话时返回 `401`，且不得创建或修改玩家状态。运行时响应不回显玩家 ID，但会回显该 StoryRun 锁定的公开 PlayerRole 投影。
 
-运行时持久化基线使用 `player_story_states`、`story_runs`、`character_relationships`、`story_events`、`story_messages` 和 `private_memories` 六张表。已提交的 004 迁移建立前四张表，005 只新增后两张表；当前 HTTP API 的切换由后续运行时 API 任务负责。完成轮次保留全部有序安全结局摘要；重新开始创建全新 StoryRun，不复制上一轮 affinity、标记、事件、选择、消息或记忆。
+运行时持久化基线使用 `player_story_states`、`story_runs`、`character_relationships`、`story_events`、`story_messages` 和 `private_memories` 六张表。已提交的 004 迁移建立前四张表，005 新增后两张表，006 为 `story_runs` 增加并回填不可为空的 `player_role_id`。完成轮次保留全部有序安全结局摘要；重新开始创建全新 StoryRun，可以重新选择 PlayerRole，但不复制上一轮 affinity、标记、事件、选择、消息或记忆。
 
 ## 校验矩阵
 
 | 条件 | 处理 |
 |---|---|
 | `publication_status` 或 StoryRun `status` 不在允许枚举 | 拒绝加载或写入，不静默归一 |
-| published StoryWorld 缺少固定 PlayerRole、Character 或有效内容引用 | 拒绝发布 |
+| published StoryWorld 缺少 PlayerRole、Character 或有效内容引用 | 拒绝发布 |
 | Character、PlayerRole、章节、节点或关系跨 StoryWorld 引用 | 拒绝 |
-| 客户端提交任意 `player_id` 或 PlayerRole | 拒绝或忽略客户端值，由服务端身份边界解析 |
+| 客户端提交任意 `player_id`、身份正文或跨世界 `player_role_id` | 拒绝；玩家 ID 由服务端解析，PlayerRole 只从当前发布 StoryWorld 注册表解析 |
 | 未登录或登录会话已过期时请求私有运行时能力 | 返回 `401`，不创建或修改任何玩家状态 |
 | 运行时尝试改写锁定 `content_version` | 拒绝 |
 | 未通过前置条件的剧情动作 | 不改变关键状态，并返回可观察的受控结果 |
@@ -503,7 +507,7 @@ POST /api/v1/story-worlds/{story_world_id}/runs/restart
 - `Place`、`Home`、地点关系、公开关系图、NpcPublicBond 和 SkillPack；
 - `lat` / `lon`、地图底图、POI、owner、访问密码和营业状态；
 - SillyTavern 角色卡导入 / 导出与空间包；
-- 全局 `play_identity`、玩家自声明性别和用户身份 Prompt；
+- 全局 `play_identity`、脱离 StoryWorld 的玩家自声明性别和用户身份 Prompt；
 - owner / 故事世界私有 LLMConfig 和 Token 统计；
 - 旧 GameplayDefinition / GameplaySession 通用玩法合同。
 

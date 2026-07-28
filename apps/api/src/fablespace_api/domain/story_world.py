@@ -5,6 +5,7 @@ from enum import Enum
 from math import isfinite
 from types import MappingProxyType
 from typing import Iterable, Mapping, NoReturn
+from urllib.parse import urlparse
 
 
 class PublicationStatus(str, Enum):
@@ -79,6 +80,7 @@ class PlayerRole:
     background: str
     entry_reason: str
     character_visible_information: tuple[str, ...]
+    avatar_url: str | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -125,7 +127,7 @@ class StoryWorld:
     publication_status: PublicationStatus
     content_version: str
     entry_chapter_id: str
-    player_role: PlayerRole
+    player_roles: tuple[PlayerRole, ...]
     characters: tuple[Character, ...]
     chapters: tuple[StoryChapter, ...]
     endings: tuple[StoryEnding, ...]
@@ -224,20 +226,33 @@ def _validate_story_world(
     _require_id(story_world.content_version, f"{path}.content_version")
     _require_id(story_world.entry_chapter_id, f"{path}.entry_chapter_id")
 
-    if story_world.player_role is None:
+    player_roles = _require_tuple(story_world.player_roles, f"{path}.player_roles")
+    if not player_roles:
         _fail(
             "missing_player_role",
-            f"{path}.player_role",
-            "A StoryWorld must define exactly one PlayerRole.",
+            f"{path}.player_roles",
+            "A StoryWorld must define at least one PlayerRole.",
         )
-    _require_instance(story_world.player_role, PlayerRole, f"{path}.player_role")
-    _validate_player_role(story_world.player_role, story_world.id, f"{path}.player_role")
-    _record_id(
-        registry_player_role_ids,
-        story_world.player_role.id,
-        f"{path}.player_role.id",
-        "PlayerRole",
-    )
+    for player_role_index, player_role in enumerate(player_roles):
+        player_role_path = f"{path}.player_roles[{player_role_index}]"
+        _require_instance(player_role, PlayerRole, player_role_path)
+        _validate_player_role(player_role, story_world.id, player_role_path)
+        _record_id(
+            registry_player_role_ids,
+            player_role.id,
+            f"{player_role_path}.id",
+            "PlayerRole",
+        )
+        if (
+            story_world.publication_status is PublicationStatus.PUBLISHED
+            and len(player_roles) > 1
+            and player_role.avatar_url is None
+        ):
+            _fail(
+                "missing_player_role_avatar",
+                f"{player_role_path}.avatar_url",
+                "Published multi-role StoryWorlds must provide an avatar for every PlayerRole.",
+            )
 
     characters = _require_tuple(story_world.characters, f"{path}.characters")
     if not characters:
@@ -337,6 +352,15 @@ def _validate_player_role(player_role: PlayerRole, story_world_id: str, path: st
             information,
             f"{path}.character_visible_information[{information_index}]",
         )
+    if player_role.avatar_url is not None:
+        avatar_url = _require_text(player_role.avatar_url, f"{path}.avatar_url")
+        parsed = urlparse(avatar_url)
+        if parsed.scheme != "https" or not parsed.netloc:
+            _fail(
+                "invalid_media_url",
+                f"{path}.avatar_url",
+                "PlayerRole avatar URLs must be absolute HTTPS URLs.",
+            )
 
 
 def _validate_character(character: Character, story_world_id: str, path: str) -> None:

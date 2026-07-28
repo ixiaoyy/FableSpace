@@ -39,6 +39,7 @@ class StoryRunModel(Base):
     player_id = Column(String(64), nullable=False)
     story_world_id = Column(String(128), nullable=False)
     content_version = Column(String(128), nullable=False)
+    player_role_id = Column(String(128), nullable=False)
     status = Column(String(16), nullable=False)
     current_chapter_id = Column(String(128), nullable=False)
     current_node_id = Column(String(128), nullable=False)

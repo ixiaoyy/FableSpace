@@ -91,6 +91,7 @@
 
 .annieStoryHero,
 .annieStoryOpening,
+.annieStoryEntry,
 .annieStoryWorkspace,
 .annieStoryAccess,
 .annieStoryStatusPanel,
@@ -231,6 +232,19 @@
   font-weight: 700;
 }
 
+.annieStoryRoleOptions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1rem;
+}
+
+.annieStoryRoleOptions strong + strong::before {
+  margin-right: 1rem;
+  color: var(--annie-line);
+  content: "／";
+  font-weight: 400;
+}
+
 .annieStoryRole p {
   max-width: 42rem;
   margin: 0.55rem 0 0;
@@ -284,6 +298,8 @@
 
 .annieStoryPrimaryButton:focus-visible,
 .annieStoryHeader a:focus-visible,
+.annieStoryIdentityOption:focus-visible,
+.annieStoryCharacterOption:focus-visible,
 .annieStoryChoices button:focus-visible,
 .annieStoryMessageForm textarea:focus-visible,
 .annieStoryMessageForm button:focus-visible,
@@ -319,6 +335,295 @@
   color: var(--annie-muted);
   font-size: 1rem;
   line-height: 1.85;
+}
+
+.annieStoryEntry {
+  display: grid;
+  gap: clamp(2rem, 5vw, 3.5rem);
+  padding: clamp(2.5rem, 6vw, 5rem) 0;
+  animation: annie-page-open 520ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.annieStoryEntryContext {
+  position: relative;
+  display: grid;
+  gap: 0.85rem;
+  max-width: 48rem;
+  padding-left: clamp(1.25rem, 3vw, 2.2rem);
+}
+
+.annieStoryEntryContext::before {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 3px;
+  content: "";
+  background: linear-gradient(var(--annie-orange), rgba(182, 83, 61, 0.15));
+}
+
+.annieStoryEntryContext h1 {
+  max-width: 13ch;
+  margin: 0;
+  font-size: clamp(2.65rem, 6vw, 5rem);
+  font-weight: 720;
+  line-height: 1.05;
+  letter-spacing: -0.045em;
+}
+
+.annieStoryEntryContext > p:last-child {
+  max-width: 62ch;
+  margin: 0;
+  color: var(--annie-muted);
+  font-size: 1rem;
+  line-height: 1.9;
+}
+
+.annieStoryEntryStep {
+  display: grid;
+  gap: 1rem;
+}
+
+.annieStoryEntryStepHeading {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  padding-bottom: 0.8rem;
+  border-bottom: 1px solid var(--annie-line);
+}
+
+.annieStoryEntryStepHeading > span {
+  display: grid;
+  place-items: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  flex: 0 0 auto;
+  color: var(--annie-orange-strong);
+  border: 1px solid rgba(182, 83, 61, 0.34);
+  border-radius: 50%;
+  background: rgba(255, 250, 241, 0.8);
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.annieStoryEntryStepHeading h2 {
+  margin: 0.1rem 0 0;
+  font-size: clamp(1.25rem, 2vw, 1.55rem);
+}
+
+.annieStoryIdentityGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 19rem), 1fr));
+  gap: 0.9rem;
+}
+
+.annieStoryIdentityOption {
+  position: relative;
+  display: grid;
+  grid-template-columns: 5rem minmax(0, 1fr);
+  gap: 1rem;
+  min-height: 8rem;
+  overflow: hidden;
+  padding: 1rem;
+  color: var(--annie-ink);
+  text-align: left;
+  border: 1px solid var(--annie-line);
+  border-radius: 0.9rem 0.9rem 0.35rem 0.35rem;
+  background: rgba(255, 252, 244, 0.78);
+  box-shadow: 0.35rem 0.45rem 1.2rem rgba(78, 53, 73, 0.06);
+  cursor: pointer;
+  transition:
+    border-color 180ms cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 180ms cubic-bezier(0.22, 1, 0.36, 1),
+    transform 180ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.annieStoryIdentityOption:hover:not(:disabled) {
+  border-color: rgba(182, 83, 61, 0.42);
+  box-shadow: 0.5rem 0.65rem 1.5rem rgba(92, 51, 52, 0.12);
+  transform: translateY(-2px);
+}
+
+.annieStoryIdentityOption[aria-pressed="true"] {
+  border-color: var(--annie-orange);
+  background:
+    linear-gradient(135deg, rgba(182, 83, 61, 0.1), transparent 62%),
+    rgba(255, 252, 244, 0.96);
+  box-shadow: inset 0 0 0 1px var(--annie-orange);
+}
+
+.annieStoryIdentityOption:disabled {
+  cursor: wait;
+  opacity: 0.68;
+}
+
+.annieStoryIdentityPortrait {
+  display: grid;
+  place-items: center;
+  width: 5rem;
+  height: 6rem;
+  overflow: hidden;
+  color: var(--annie-paper);
+  border-radius: 2.5rem 2.5rem 0.45rem 0.45rem;
+  background: #403a49;
+  font-size: 1.5rem;
+  font-weight: 800;
+}
+
+.annieStoryIdentityPortrait img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.annieStoryIdentityCopy {
+  display: grid;
+  align-content: start;
+  gap: 0.65rem;
+  min-width: 0;
+  padding-right: 2.5rem;
+}
+
+.annieStoryIdentityCopy > span:first-child {
+  display: grid;
+  gap: 0.15rem;
+}
+
+.annieStoryIdentityCopy strong {
+  font-size: 1.2rem;
+}
+
+.annieStoryIdentityCopy small {
+  overflow: hidden;
+  color: var(--annie-orange-strong);
+  font-size: 0.72rem;
+  font-weight: 700;
+  line-height: 1.4;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.annieStoryIdentityCopy > span:last-child {
+  color: var(--annie-muted);
+  font-size: 0.82rem;
+  line-height: 1.6;
+}
+
+.annieStoryIdentityCheck {
+  position: absolute;
+  top: 0.8rem;
+  right: 0.8rem;
+  color: var(--annie-muted);
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+.annieStoryIdentityOption[aria-pressed="true"] .annieStoryIdentityCheck {
+  color: var(--annie-orange-strong);
+}
+
+.annieStoryCharacterList {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr));
+  gap: 0.75rem;
+}
+
+.annieStoryCharacterOption {
+  display: grid;
+  grid-template-columns: 3.6rem minmax(0, 1fr) 1.25rem;
+  align-items: center;
+  gap: 0.9rem;
+  min-height: 5.7rem;
+  padding: 0.75rem;
+  color: var(--annie-ink);
+  text-align: left;
+  border: 1px solid var(--annie-line);
+  border-radius: 0.65rem 0.65rem 0.2rem 0.2rem;
+  background: rgba(255, 252, 244, 0.64);
+  cursor: pointer;
+  transition:
+    color 180ms cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 180ms cubic-bezier(0.22, 1, 0.36, 1),
+    background-color 180ms cubic-bezier(0.22, 1, 0.36, 1),
+    transform 180ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.annieStoryCharacterOption:hover:not(:disabled) {
+  color: var(--annie-orange-strong);
+  border-color: rgba(182, 83, 61, 0.4);
+  background: rgba(255, 252, 244, 0.98);
+  transform: translateX(2px);
+}
+
+.annieStoryCharacterOption:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.annieStoryCharacterOption > img,
+.annieStoryCharacterMonogram {
+  width: 3.6rem;
+  height: 4.15rem;
+  object-fit: cover;
+  border-radius: 1.8rem 1.8rem 0.3rem 0.3rem;
+  background: var(--annie-paper-deep);
+}
+
+.annieStoryCharacterMonogram {
+  display: grid;
+  place-items: center;
+  color: var(--annie-orange-strong);
+  font-weight: 800;
+}
+
+.annieStoryCharacterCopy {
+  display: grid;
+  gap: 0.4rem;
+  min-width: 0;
+}
+
+.annieStoryCharacterCopy > span:first-child {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.7rem;
+}
+
+.annieStoryCharacterCopy strong {
+  font-size: 1.05rem;
+}
+
+.annieStoryCharacterCopy small {
+  flex: 0 0 auto;
+  color: var(--annie-muted);
+  font-size: 0.7rem;
+}
+
+.annieStoryCharacterCopy > span:last-child {
+  display: -webkit-box;
+  overflow: hidden;
+  color: var(--annie-muted);
+  font-size: 0.78rem;
+  line-height: 1.55;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.annieStoryCharacterOption > svg {
+  width: 1rem;
+  color: var(--annie-orange);
+}
+
+.annieStoryEntryHint {
+  margin: 0;
+  color: var(--annie-muted);
+  font-size: 0.8rem;
+  text-align: right;
+}
+
+.annieStoryEntry .annieStoryError {
+  width: 100%;
+  margin: 0;
+  text-align: left;
 }
 
 .annieStoryError {
@@ -945,6 +1250,7 @@
   }
 
   .annieStoryOpening,
+  .annieStoryEntry,
   .annieStoryWorkspace,
   .annieStoryAccess,
   .annieStoryStatusPanel,
@@ -958,6 +1264,67 @@
 
   .annieStoryOpening h1 {
     font-size: 2.8rem;
+  }
+
+  .annieStoryEntry {
+    gap: 2.4rem;
+    padding-top: 2.2rem;
+  }
+
+  .annieStoryEntryContext h1 {
+    font-size: clamp(2.35rem, 10vw, 3.2rem);
+  }
+
+  .annieStoryIdentityOption {
+    grid-template-columns: 3.5rem minmax(0, 1fr);
+    gap: 0.65rem;
+    min-height: 6rem;
+    padding: 0.7rem;
+  }
+
+  .annieStoryIdentityPortrait {
+    width: 3.5rem;
+    height: 4.5rem;
+  }
+
+  .annieStoryIdentityCopy {
+    gap: 0.3rem;
+    padding-right: 0;
+  }
+
+  .annieStoryIdentityCopy strong {
+    font-size: 1rem;
+  }
+
+  .annieStoryIdentityCopy small {
+    display: -webkit-box;
+    white-space: normal;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+
+  .annieStoryIdentityCopy > span:last-child {
+    display: none;
+  }
+
+  .annieStoryIdentityCheck {
+    top: auto;
+    right: 0.65rem;
+    bottom: 0.55rem;
+    font-size: 0.58rem;
+  }
+
+  .annieStoryIdentityGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.6rem;
+  }
+
+  .annieStoryIdentityOption:only-child {
+    grid-column: 1 / -1;
+  }
+
+  .annieStoryCharacterList {
+    grid-template-columns: 1fr;
   }
 
   .annieStoryWorkspace {

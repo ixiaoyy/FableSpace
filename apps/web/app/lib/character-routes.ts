@@ -52,6 +52,10 @@ export function resolveCharacterRouteById(characterId: string) {
   return CHARACTER_ROUTES.find((route) => route.characterId === characterId) || null
 }
 
+export function characterRoutesForWorld(storyWorldId: string) {
+  return CHARACTER_ROUTES.filter((route) => route.storyWorldId === storyWorldId)
+}
+
 export function characterPath(slug: string) {
   return `/characters/${encodeURIComponent(slug)}`
 }

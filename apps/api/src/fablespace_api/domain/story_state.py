@@ -64,6 +64,7 @@ class StoryRun:
     player_id: str
     story_world_id: str
     content_version: str
+    player_role_id: str
     status: StoryRunStatus
     current_chapter_id: str
     current_node_id: str

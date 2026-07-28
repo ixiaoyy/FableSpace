@@ -83,7 +83,8 @@ FableSpace 的价值排序是：
 
 允许：
 
-- 每个 StoryWorld 提供一个经过审核的固定 PlayerRole。
+- 每个 StoryWorld 提供一个或多个经过审核的 PlayerRole，并由每个 StoryRun 锁定其中一个。
+- 单身份世界自动生效；多身份世界只允许玩家选择当前 StoryWorld 已发布的 `player_role_id`。
 - PlayerRole 以所属故事的称谓、性别、背景、入场理由和可见信息影响角色回应。
 
 ## 不做 6：旧 Space 合同与兼容双轨
@@ -193,7 +194,7 @@ FableSpace 的价值排序是：
 
 方向正确的需求通常会强化：
 
-- 角色发现、固定 PlayerRole、开场对话和关键选择。
+- 角色发现、系统预设 PlayerRole、开场对话和关键选择。
 - Character 的独立立场、语言、关系变化与事件后果。
 - PlayerStoryState 的账号私有进度、记忆和回访。
 - 人工剧情动作、结构化持久化、回放和验证。

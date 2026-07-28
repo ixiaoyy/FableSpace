@@ -17,7 +17,7 @@ FableSpace 是一个角色故事平台：玩家因想见一个角色而进入其
 ```text
 首页直接发现角色
   -> 选择想见的角色
-  -> 查看一句故事处境与该故事固定 PlayerRole
+  -> 查看一句故事处境与该故事预设 PlayerRole
   -> 进入角色开场
   -> 自由对话 / 人工编写的关键选择
   -> 写回关系、故事进度和私有记忆
@@ -28,7 +28,7 @@ FableSpace 是一个角色故事平台：玩家因想见一个角色而进入其
 
 - 角色优先：公开入口是 Character，不要求玩家先浏览 StoryWorld 目录或全局身份目录。
 - 角色属于完整世界：动机、语言、当前事件、世界规则与后果必须受所属 StoryWorld 约束。
-- 身份属于故事：P0 每个 StoryWorld 只有一个固定 PlayerRole，不提供全局身份、性别选择或用户自定义 Prompt。
+- 身份属于故事：每个 StoryWorld 提供一个或多个系统审核的 PlayerRole；每个 StoryRun 锁定其中一个。不提供全局身份或用户自定义 Prompt。
 - 人工骨架约束 AI：章节、关键选择、状态转换和结局由系统审核；AI 只在边界内理解自由输入和演绎 Character。
 - 私有连续性：PlayerStoryState 按玩家与 StoryWorld 隔离，保存进度、关系、关键选择、记忆和回访结果。
 - 历史时间线不可改写：经核验的时间、地点、真实参与者、制度阶段与公开结果属于固定史实；来源不足保持 `待核验`。
@@ -37,7 +37,7 @@ FableSpace 是一个角色故事平台：玩家因想见一个角色而进入其
 当前 P0 只包含：
 
 - 1854 年宽街：Character 为安妮，固定 PlayerRole 为“乞丐”。
-- 长明宫·雪夜封宫：Character 为魏观海、萧明珠，固定 PlayerRole 为“小太监”。
+- 长明宫·雪夜封宫：Character 为魏观海、萧明珠，PlayerRole 为“小太监”或“小宫女”。
 
 青槐驿与临川大学保留为待重写候选，在 PlayerRole、角色反应、剧情骨架和连续性完成评审前不得进入 P0 公开发现。
 
@@ -97,9 +97,9 @@ FableSpace 是一个角色故事平台：玩家因想见一个角色而进入其
 - 新 API 使用 `story_world_id`、`character_id` 和 `/api/v1/story-worlds/...`，不新增 `/spaces` 或中文兼容路由。
 - 前端公开角色详情的规范短路由是 `/characters/:characterSlug`，故事互动页是 `/characters/:characterSlug/story`；首页与站内链接统一使用这组路径，不再提供 `/story-worlds/...` 前端深链。
 - `characterSlug` 只是在 `apps/web/app/lib/character-routes.ts` 中显式维护的稳定 ASCII 路由键，用于映射既有 `storyWorldId` 与 `characterId`；它不是 Character Schema 字段、持久化身份或 API 参数，不得由展示名临时推导。
-- P0 每个 StoryWorld 只有一个固定 PlayerRole；客户端不能提交任意身份 Prompt、PlayerRole 或 `player_id`。
+- 客户端只能提交所属 StoryWorld 已发布的 `player_role_id`，不得提交任意身份 Prompt、PlayerRole 内容或 `player_id`；服务端校验身份选择与玩家身份。
 - `player_id + story_world_id` 唯一定位 PlayerStoryState；登录账号或匿名访客标识由服务端可信边界解析。
-- StoryRun 锁定 `content_version`，关键选择在轮次中不能回退；结局后新轮次不继承上一轮好感度和故事标记。
+- StoryRun 锁定 `content_version` 与 `player_role_id`，活动轮次中不得更换身份，关键选择不能回退；结局后新轮次可以重新选择审核身份，且不继承上一轮好感度和故事标记。
 - CharacterRelationship 的连续好感度只供内部计算；前端只显示角色态度、关系阶段和变化原因。
 - 系统内容与玩家运行时数据分离：StoryWorld 内容来自可审查的版本化注册表，数据库保存玩家身份映射和私有运行状态。
 - 系统 LLM 模型、API Key、服务地址和生成参数由部署环境统一管理，不属于 owner 或 StoryWorld 数据。

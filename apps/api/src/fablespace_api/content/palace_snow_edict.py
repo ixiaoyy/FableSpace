@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from ..core.media import public_media_url
 from ..domain.story_world import (
     CanonCategory,
     CanonEntry,
@@ -22,6 +23,10 @@ PALACE_STORY_WORLD_ID = "story_palace_snow_edict"
 WEI_CHARACTER_ID = "char_story_palace_eunuch_wei"
 XIAO_CHARACTER_ID = "char_story_palace_princess_xiao"
 PALACE_PLAYER_ROLE_ID = "role_story_palace_little_eunuch"
+PALACE_MAID_PLAYER_ROLE_ID = "role_story_palace_little_maid"
+PALACE_ROLE_ASSET_ROOT = (
+    "app/assets/story-worlds/story_palace_snow_edict/player-roles"
+)
 
 
 def _relationship_rules(
@@ -103,15 +108,37 @@ PALACE_PLAYER_ROLE = PlayerRole(
     id=PALACE_PLAYER_ROLE_ID,
     story_world_id=PALACE_STORY_WORLD_ID,
     name="小太监",
-    age="未明确；“小”表示低阶与资历浅，不得自行推断为儿童或给出具体岁数。",
+    age="成年，约十八岁；“小”表示低阶与资历浅，不得称为儿童。",
     social_position="长明宫最低阶的内侍杂役，能传话、跑腿和查证，没有开门、宣诏或替上位者决策的权力。",
-    gender="未设定",
+    gender="男性",
     background="你在长明宫做最不起眼的杂役，熟悉水门、药房后廊和宫门名册，却没有替任何一方开门的权力。",
     entry_reason="送炭途中，你捡到半枚水门腰牌，也听见被扣的小内侍在值房里喊冤。",
     character_visible_information=(
         "你是长明宫低阶内侍，能在外廊和水门之间走动。",
         "你捡到了半枚水门腰牌，但尚未交给任何人。",
         "你可以传话、查证、拒绝站队，也必须承担被发现后的后果。",
+    ),
+    avatar_url=public_media_url(
+        f"{PALACE_ROLE_ASSET_ROOT}/little-eunuch/v1/avatar.webp"
+    ),
+)
+
+PALACE_MAID_PLAYER_ROLE = PlayerRole(
+    id=PALACE_MAID_PLAYER_ROLE_ID,
+    story_world_id=PALACE_STORY_WORLD_ID,
+    name="小宫女",
+    age="成年，约十八岁；“小”表示低阶与资历浅，不得称为儿童。",
+    social_position="长明宫最低阶的宫女杂役，能递话、送物和查证，没有进入禁地、传旨或替上位者决策的权力。",
+    gender="女性",
+    background="你在承香殿与尚食局之间递送物件，熟悉女官值次、药房后廊和各宫夜灯，却没有替任何一方开门的权力。",
+    entry_reason="送回空药匣时，你捡到半枚水门腰牌，也听见被扣的小内侍在值房里喊冤。",
+    character_visible_information=(
+        "你是长明宫低阶宫女，能在承香殿、尚食局和外廊之间走动。",
+        "你捡到了半枚水门腰牌，但尚未交给任何人。",
+        "你可以递话、查证、拒绝站队，也必须承担被发现后的后果。",
+    ),
+    avatar_url=public_media_url(
+        f"{PALACE_ROLE_ASSET_ROOT}/little-palace-maid/v1/avatar.webp"
     ),
 )
 
@@ -349,9 +376,9 @@ PALACE_STORY_WORLD = StoryWorld(
     summary="皇帝昏迷、寝殿封锁。魏观海与萧明珠必须在五更前决定谁来开门，谁来承担诏书见光后的代价。",
     genre="架空宫廷",
     publication_status=PublicationStatus.PUBLISHED,
-    content_version="palace-snow-edict-2026-07-27.2",
+    content_version="palace-snow-edict-2026-07-28.1",
     entry_chapter_id=PALACE_CHAPTER.id,
-    player_role=PALACE_PLAYER_ROLE,
+    player_roles=(PALACE_PLAYER_ROLE, PALACE_MAID_PLAYER_ROLE),
     characters=(WEI_GUANHAI, XIAO_MINGZHU),
     chapters=(PALACE_CHAPTER,),
     endings=(
@@ -396,9 +423,9 @@ PALACE_STORY_WORLD = StoryWorld(
             sources=(),
         ),
         CanonEntry(
-            id="setting_fixed_role",
+            id="setting_player_roles",
             category=CanonCategory.STORY_SETTING,
-            statement="玩家固定扮演长明宫小太监，可传话、查证、站队或拒绝参与，但不能改写人物既有秘密。",
+            statement="玩家每轮从长明宫小太监或小宫女中选择一个身份，可传话、查证、站队或拒绝参与，但不能开门、宣诏或改写人物既有秘密。",
             sources=(),
         ),
     ),
@@ -406,6 +433,8 @@ PALACE_STORY_WORLD = StoryWorld(
 
 
 __all__ = [
+    "PALACE_MAID_PLAYER_ROLE_ID",
+    "PALACE_PLAYER_ROLE_ID",
     "PALACE_STORY_WORLD",
     "PALACE_STORY_WORLD_ID",
     "WEI_CHARACTER_ID",

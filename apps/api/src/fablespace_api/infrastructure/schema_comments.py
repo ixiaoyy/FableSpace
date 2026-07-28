@@ -372,7 +372,7 @@ COLUMN_COMMENTS: dict[str, dict[str, str]] = {
     "player_story_states": {
         "player_id": "服务端从已验证登录会话解析的玩家 ID。",
         "story_world_id": "玩家状态所属 StoryWorld ID。",
-        "player_role_id": "该 StoryWorld 锁定的 PlayerRole ID。",
+        "player_role_id": "当前活动轮次或最近一轮选择的 PlayerRole ID。",
         "active_story_run_id": "当前活动 StoryRun ID；无活动轮次时为空。",
         "visit_count": "该玩家进入此 StoryWorld 的轮次数。",
         "last_visited_at": "最近进入或恢复此 StoryWorld 的时间。",
@@ -383,6 +383,7 @@ COLUMN_COMMENTS: dict[str, dict[str, str]] = {
         "player_id": "服务端解析的玩家 ID。",
         "story_world_id": "本轮次所属 StoryWorld ID。",
         "content_version": "本轮次开始时锁定的系统内容版本。",
+        "player_role_id": "本轮次开始时锁定的所属 StoryWorld PlayerRole ID。",
         "status": "轮次状态：active 或 completed。",
         "current_chapter_id": "当前审核章节 ID。",
         "current_node_id": "当前审核节点 ID。",

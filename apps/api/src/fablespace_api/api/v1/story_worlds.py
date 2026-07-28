@@ -13,6 +13,7 @@ router = APIRouter(prefix="/story-worlds", tags=["story-worlds"])
 
 class RunEntryRequest(BaseModel):
     character_id: str = Field(min_length=1, max_length=128)
+    player_role_id: str = Field(min_length=1, max_length=128)
 
 
 class MessageRequest(BaseModel):
@@ -43,8 +44,11 @@ def _raise_http(exc: StoryRuntimeError) -> None:
         "run_completed",
         "active_run_exists",
         "dialogue_state_changed",
+        "player_role_locked",
     }:
         status = 409
+    elif exc.code in {"player_role_required", "player_role_not_found"}:
+        status = 422
     else:
         status = 500
     raise HTTPException(status_code=status, detail=str(exc)) from exc
@@ -82,6 +86,7 @@ def start_run(story_world_id: str, payload: RunEntryRequest, request: Request):
                 player_id,
                 story_world_id,
                 payload.character_id,
+                payload.player_role_id,
             )
         }
     except StoryRuntimeError as exc:
@@ -97,6 +102,7 @@ def restart_run(story_world_id: str, payload: RunEntryRequest, request: Request)
                 player_id,
                 story_world_id,
                 payload.character_id,
+                payload.player_role_id,
             )
         }
     except StoryRuntimeError as exc:

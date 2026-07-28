@@ -27,6 +27,7 @@ from ..domain.story_state import (
 )
 from ..domain.story_world import (
     Character,
+    PlayerRole,
     PublicationStatus,
     StoryChoice,
     StoryWorld,
@@ -57,9 +58,11 @@ class PlayerStoryStateStore:
         player_id: str,
         story_world_id: str,
         *,
+        player_role_id: str | None = None,
         now: datetime | None = None,
     ) -> PlayerStoryState:
         world = self._published_world(story_world_id)
+        player_role = self._player_role(world, player_role_id)
         player_id = _required_text(player_id, "player_id")
         try:
             with self.database.session_scope() as session:
@@ -67,6 +70,7 @@ class PlayerStoryStateStore:
                     session,
                     player_id,
                     world,
+                    player_role_id=player_role.id,
                     now=now or datetime.utcnow(),
                 )
                 session.flush()
@@ -89,10 +93,12 @@ class PlayerStoryStateStore:
         player_id: str,
         story_world_id: str,
         *,
+        player_role_id: str,
         run_id: str | None = None,
         now: datetime | None = None,
     ) -> StoryRun:
         world = self._published_world(story_world_id)
+        player_role = self._player_role(world, player_role_id)
         player_id = _required_text(player_id, "player_id")
         started_at = now or datetime.utcnow()
         resolved_run_id = _required_text(run_id or str(uuid4()), "run_id")
@@ -101,7 +107,13 @@ class PlayerStoryStateStore:
 
         try:
             with self.database.session_scope() as session:
-                state = self._state_for_update(session, player_id, world, now=started_at)
+                state = self._state_for_update(
+                    session,
+                    player_id,
+                    world,
+                    player_role_id=player_role.id,
+                    now=started_at,
+                )
                 if state.active_story_run_id:
                     active = session.get(StoryRunModel, state.active_story_run_id)
                     if active is None or active.status != StoryRunStatus.ACTIVE.value:
@@ -116,6 +128,7 @@ class PlayerStoryStateStore:
                     player_id=player_id,
                     story_world_id=world.id,
                     content_version=world.content_version,
+                    player_role_id=player_role.id,
                     status=StoryRunStatus.ACTIVE.value,
                     current_chapter_id=chapter.id,
                     current_node_id=node.id,
@@ -156,6 +169,7 @@ class PlayerStoryStateStore:
                         "chapter_id": chapter.id,
                         "node_id": node.id,
                         "content_version": world.content_version,
+                        "player_role_id": player_role.id,
                     },
                     created_at=started_at,
                 )
@@ -191,11 +205,6 @@ class PlayerStoryStateStore:
             )
             if state is None:
                 return None
-            if state.player_role_id != world.player_role.id:
-                raise StoryStateError(
-                    "player_role_mismatch",
-                    "已保存的 PlayerRole 与 StoryWorld 固定身份不一致。",
-                )
             if not state.active_story_run_id:
                 return None
             run = self._owned_run(
@@ -209,6 +218,12 @@ class PlayerStoryStateStore:
                 raise StoryStateError(
                     "invalid_persisted_state",
                     "玩家活动轮次指向了已完成轮次。",
+                )
+            self._player_role(world, run.player_role_id)
+            if state.player_role_id != run.player_role_id:
+                raise StoryStateError(
+                    "player_role_mismatch",
+                    "玩家状态与活动轮次锁定的 PlayerRole 不一致。",
                 )
             state.visit_count = int(state.visit_count or 0) + 1
             state.last_visited_at = visited_at
@@ -721,6 +736,7 @@ class PlayerStoryStateStore:
         player_id: str,
         world: StoryWorld,
         *,
+        player_role_id: str,
         now: datetime,
     ) -> PlayerStoryStateModel:
         state = session.scalar(
@@ -735,7 +751,7 @@ class PlayerStoryStateStore:
             state = PlayerStoryStateModel(
                 player_id=player_id,
                 story_world_id=world.id,
-                player_role_id=world.player_role.id,
+                player_role_id=player_role_id,
                 active_story_run_id=None,
                 visit_count=0,
                 last_visited_at=now,
@@ -743,11 +759,8 @@ class PlayerStoryStateStore:
             )
             session.add(state)
             session.flush()
-        elif state.player_role_id != world.player_role.id:
-            raise StoryStateError(
-                "player_role_mismatch",
-                "已保存的 PlayerRole 与 StoryWorld 固定身份不一致。",
-            )
+        else:
+            state.player_role_id = player_role_id
         return state
 
     def _owned_run(
@@ -989,6 +1002,7 @@ class PlayerStoryStateStore:
             player_id=model.player_id,
             story_world_id=model.story_world_id,
             content_version=model.content_version,
+            player_role_id=model.player_role_id,
             status=status,
             current_chapter_id=model.current_chapter_id,
             current_node_id=model.current_node_id,
@@ -1085,6 +1099,30 @@ class PlayerStoryStateStore:
                 "没有找到已发布的故事世界。",
             )
         return world
+
+    @staticmethod
+    def _player_role(
+        world: StoryWorld,
+        player_role_id: str | None,
+    ) -> PlayerRole:
+        if player_role_id is None:
+            if len(world.player_roles) == 1:
+                return world.player_roles[0]
+            raise StoryStateError(
+                "player_role_required",
+                "开始故事前请选择一个身份。",
+            )
+        resolved_id = _required_text(player_role_id, "player_role_id")
+        player_role = next(
+            (item for item in world.player_roles if item.id == resolved_id),
+            None,
+        )
+        if player_role is None:
+            raise StoryStateError(
+                "player_role_not_found",
+                "PlayerRole 不属于当前 StoryWorld。",
+            )
+        return player_role
 
     @staticmethod
     def _require_current_content(run: StoryRunModel, world: StoryWorld) -> None:

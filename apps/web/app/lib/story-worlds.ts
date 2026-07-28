@@ -15,14 +15,25 @@ export type StoryWorldCharacterDetail = {
     opening_preview: string
     relationship_stage: RelationshipStage
   }
-  player_role: {
+  characters: Array<{
     id: string
     name: string
-    gender: string
-    background: string
-    entry_reason: string
-    character_visible_information: string[]
-  }
+    current_situation: string
+    relationship_stage: RelationshipStage
+  }>
+  player_roles: PlayerRole[]
+}
+
+export type PlayerRole = {
+  id: string
+  name: string
+  age: string
+  gender: string
+  social_position: string
+  background: string
+  entry_reason: string
+  character_visible_information: string[]
+  avatar_url: string | null
 }
 
 export type RelationshipStage = {
@@ -53,6 +64,7 @@ export type StoryRun = {
   id: string
   status: "active" | "completed"
   content_version: string
+  player_role: PlayerRole
   current_node: {
     id: string
     narration: string
@@ -97,17 +109,31 @@ export async function getCurrentStoryRun(storyWorldId: string, characterId: stri
   )).run
 }
 
-export async function startStoryRun(storyWorldId: string, characterId: string) {
+export async function startStoryRun(
+  storyWorldId: string,
+  characterId: string,
+  playerRoleId: string,
+) {
   return (await readApiJson<RunResponse>(
     `${storyWorldBase(storyWorldId)}/runs`,
-    jsonInit("POST", { character_id: characterId }),
+    jsonInit("POST", {
+      character_id: characterId,
+      player_role_id: playerRoleId,
+    }),
   )).run
 }
 
-export async function restartStoryRun(storyWorldId: string, characterId: string) {
+export async function restartStoryRun(
+  storyWorldId: string,
+  characterId: string,
+  playerRoleId: string,
+) {
   return (await readApiJson<RunResponse>(
     `${storyWorldBase(storyWorldId)}/runs/restart`,
-    jsonInit("POST", { character_id: characterId }),
+    jsonInit("POST", {
+      character_id: characterId,
+      player_role_id: playerRoleId,
+    }),
   )).run
 }
 
