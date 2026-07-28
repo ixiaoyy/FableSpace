@@ -1,0 +1,28 @@
+{
+  "id": "story-runtime-api",
+  "name": "story-runtime-api",
+  "title": "实现故事运行时 API",
+  "description": "只实现角色发现、故事入场、消息、选择、状态和重新开始 API。",
+  "status": "completed",
+  "dev_type": null,
+  "scope": null,
+  "package": null,
+  "priority": "P0",
+  "creator": "fable",
+  "assignee": "fable",
+  "createdAt": "2026-07-23",
+  "completedAt": "2026-07-28",
+  "branch": null,
+  "base_branch": "main",
+  "worktree_path": null,
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [
+    "07-27-annie-dialogue-guardrails"
+  ],
+  "parent": "07-23-story-world-domain",
+  "relatedFiles": [],
+  "notes": "",
+  "meta": {}
+}
