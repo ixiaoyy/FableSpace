@@ -8,8 +8,8 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-1.md`
-- **Total Sessions**: 24
-- **Last Active**: 2026-07-27
+- **Total Sessions**: 25
+- **Last Active**: 2026-07-28
 <!-- @@@/auto:current-status -->
 
 ---
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-1.md` | ~808 | Active |
+| `journal-1.md` | ~842 | Active |
 <!-- @@@/auto:active-documents -->
 
 ---
@@ -29,6 +29,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 25 | 2026-07-28 | 长明宫身份与角色入口改造 | `25d30cde`, `26cc9f0f` | `codex/palace-character-entry` |
 | 24 | 2026-07-27 | 结构化角色对话演绎合同 | `335d5d77` | `main` |
 | 23 | 2026-07-27 | 重写安妮初次相遇文案 | `a4b42941` | `main` |
 | 22 | 2026-07-27 | 收敛故事页重复开场 | `a759c34a` | `main` |

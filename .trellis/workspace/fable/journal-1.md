@@ -806,3 +806,37 @@ Split the frontend roadmap into UI-first and integration follow-ups, archived th
 ### Next Steps
 
 - None - task complete
+
+
+## Session 25: 长明宫身份与角色入口改造
+
+**Date**: 2026-07-28
+**Task**: 长明宫身份与角色入口改造
+**Branch**: `codex/palace-character-entry`
+
+### Summary
+
+新增小太监与小宫女审核身份，按 StoryRun 锁定 PlayerRole；重做故事入口为背景、身份和动态角色列表；上传头像并完成前后端、CDN 与移动端验证。
+
+### Main Changes
+
+- Detailed change bullets were not supplied; see the summary above.
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `25d30cde` | (see git log) |
+| `26cc9f0f` | (see git log) |
+
+### Testing
+
+- Validation was not recorded for this session.
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
