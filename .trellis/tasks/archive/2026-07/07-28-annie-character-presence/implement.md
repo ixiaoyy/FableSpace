@@ -19,4 +19,4 @@
 7. [x] 同步 `docs/PRODUCT_BRIEF.md`、`docs/WORLD_SCHEMA.md` 及直接描述安妮身份的权威文档。
 8. [x] 运行内容、Python、前端类型与构建验证。
 9. [x] 启动本地页面做移动端和桌面截图验收，修正后仅运行一次最终相关验证。
-10. [ ] 提交任务实现，归档 Trellis 任务，记录 session，推送到 `main` 并检查发布状态。
+10. [x] 提交任务实现，归档 Trellis 任务，记录 session，推送到 `main` 并检查发布状态。
