@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import logging
 import re
+from math import isfinite
+from urllib.parse import urlparse
 
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -13,6 +15,7 @@ from .application.spaces import SpaceApplicationService
 from .application.story_worlds import StoryWorldApplicationService, SystemStoryDialogueResponder
 from .api.v1.router import api_router
 from .content import STORY_WORLD_REGISTRY
+from .core.llm_clients import LLMConfig, is_supported_backend
 from .core.space import SpaceStore
 from .domain.public_reference import public_reference_code
 from .infrastructure.database import Database
@@ -76,6 +79,71 @@ def create_store(settings: ApiSettings) -> SpaceStore:
     return create_space_store(settings)
 
 
+def build_system_story_llm_config(settings: ApiSettings) -> LLMConfig | None:
+    """Build one validated deployment-level config without exposing secret values."""
+    backend = settings.llm_backend.strip().lower()
+    model = settings.llm_model.strip()
+    api_key = settings.llm_api_key.strip()
+    base_url = settings.llm_base_url.strip()
+    temperature = settings.llm_temperature
+    max_tokens = settings.llm_max_tokens
+    top_p = settings.llm_top_p
+    invalid: list[str] = []
+
+    if not backend or not is_supported_backend(backend):
+        invalid.append("FABLESPACE_LLM_BACKEND")
+    if not model:
+        invalid.append("FABLESPACE_LLM_MODEL")
+    if not api_key:
+        invalid.append("FABLESPACE_LLM_API_KEY")
+
+    parsed_base_url = urlparse(base_url)
+    if (
+        not base_url
+        or parsed_base_url.scheme not in {"http", "https"}
+        or not parsed_base_url.netloc
+    ):
+        invalid.append("FABLESPACE_LLM_BASE_URL")
+
+    if (
+        isinstance(temperature, bool)
+        or not isinstance(temperature, (int, float))
+        or not isfinite(float(temperature))
+        or not 0 <= float(temperature) <= 2
+    ):
+        invalid.append("FABLESPACE_LLM_TEMPERATURE")
+    if (
+        isinstance(max_tokens, bool)
+        or not isinstance(max_tokens, int)
+        or not 1 <= max_tokens <= 4096
+    ):
+        invalid.append("FABLESPACE_LLM_MAX_TOKENS")
+    if (
+        isinstance(top_p, bool)
+        or not isinstance(top_p, (int, float))
+        or not isfinite(float(top_p))
+        or not 0 < float(top_p) <= 1
+    ):
+        invalid.append("FABLESPACE_LLM_TOP_P")
+
+    if invalid:
+        logger.warning(
+            "StoryWorld dialogue is unavailable; missing or invalid settings: %s",
+            ", ".join(invalid),
+        )
+        return None
+
+    return LLMConfig(
+        backend=backend,
+        model=model,
+        api_key=api_key,
+        base_url=base_url,
+        temperature=float(temperature),
+        max_tokens=max_tokens,
+        top_p=float(top_p),
+    )
+
+
 def create_app(settings: ApiSettings | None = None) -> FastAPI:
     """Create the native enterprise FastAPI application."""
 
@@ -94,6 +162,7 @@ def create_app(settings: ApiSettings | None = None) -> FastAPI:
         raise RuntimeError(
             "ParallelLines private mode requires local generated storage to prevent public CDN bypass"
         )
+    story_llm_config = build_system_story_llm_config(resolved)
     generated_storage = create_generated_storage(resolved)
 
     store = create_store(resolved)
@@ -120,7 +189,7 @@ def create_app(settings: ApiSettings | None = None) -> FastAPI:
     story_worlds_service = StoryWorldApplicationService(
         story_database,
         managed_story_worlds,
-        SystemStoryDialogueResponder(),
+        SystemStoryDialogueResponder(story_llm_config),
     )
 
     app = FastAPI(title=resolved.app_name, version=resolved.api_version)

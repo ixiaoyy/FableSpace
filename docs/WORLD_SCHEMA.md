@@ -452,6 +452,10 @@ CharacterRelationship 保存一个 StoryRun 内玩家与具体 Character 的关�
 
 模型、API Key、服务地址和生成参数属于部署级系统配置，不是 StoryWorld 或 owner 数据实体。
 
+- 当前 StoryWorld 对话运行时只读取 `FABLESPACE_LLM_BACKEND`、`FABLESPACE_LLM_MODEL`、`FABLESPACE_LLM_API_KEY`、`FABLESPACE_LLM_BASE_URL`、`FABLESPACE_LLM_TEMPERATURE`、`FABLESPACE_LLM_MAX_TOKENS` 和 `FABLESPACE_LLM_TOP_P`。
+- 七项配置不得回退到仓库 JSON、其他 Key、owner 或 StoryWorld 数据；temperature 范围为 `0..2`，max tokens 范围为 `1..4096`，top-p 范围为 `(0, 1]`。
+- 任一配置缺失或非法时，不阻断公开页面或内容后台启动；实际对话请求返回 `dialogue_unavailable` / HTTP `503`。
+- 配置诊断只记录缺失或非法的环境变量名；provider 失败只记录受支持 backend 和异常类型。
 - 公开 API 和前端不得接收 API Key、隐藏 Prompt 或生成参数。
 - 密钥不得写入日志、消息、事件或 PlayerStoryState。
 - 运维指标不得暴露玩家对话、私有记忆或可还原密钥的信息。
@@ -528,7 +532,7 @@ POST /api/v1/story-worlds/{story_world_id}/runs/restart
 | 客户端提交任意 `player_id`、身份正文或跨世界 `player_role_id` | 拒绝；玩家 ID 由服务端解析，PlayerRole 只从当前发布 StoryWorld 注册表解析 |
 | 未登录或登录会话已过期时请求私有运行时能力 | 返回 `401`，不创建或修改任何玩家状态 |
 | 客户端尝试指定管理内容的最终 `content_version` | 服务端保存时生成当前标识，不采用客户端版本意图 |
-| 管理员 ID 未配置、会话无效或账号不匹配 | 管理 API 返回 `401` / `403`，不读取或写入管理内容 |
+| 会话无效或 ParallelLines 可信角色不是 `admin` | 管理 API 返回 `401` / `403`，不读取或写入管理内容 |
 | 活动轮次的 PlayerRole、章节或节点在当前内容中不存在 | 保留旧轮次历史，停止其活动状态，并从当前有效入口建立新轮次 |
 | 未通过前置条件的剧情动作 | 不改变关键状态，并返回可观察的受控结果 |
 | AI 输出尝试直接写正史、关键标记或结局 | 丢弃该写回并记录安全的诊断信息 |

@@ -87,6 +87,26 @@ def _int_from_env(primary: str, legacy: str, default: int) -> int:
         return default
 
 
+def _optional_int_from_env(primary: str) -> int | None:
+    value = os.environ.get(primary, "").strip()
+    if not value:
+        return None
+    try:
+        return int(value)
+    except ValueError:
+        return None
+
+
+def _optional_float_from_env(primary: str) -> float | None:
+    value = os.environ.get(primary, "").strip()
+    if not value:
+        return None
+    try:
+        return float(value)
+    except ValueError:
+        return None
+
+
 def _bool_from_env(primary: str, legacy: str, default: bool = False) -> bool:
     value = _env_value(primary, legacy).lower()
     if not value:
@@ -153,6 +173,34 @@ class ApiSettings:
             "",
             10 * 1024 * 1024,
         )
+    )
+
+    # Deployment-level StoryWorld dialogue configuration.
+    llm_backend: str = field(
+        default_factory=lambda: _env_value("FABLESPACE_LLM_BACKEND")
+    )
+    llm_model: str = field(
+        default_factory=lambda: _env_value("FABLESPACE_LLM_MODEL")
+    )
+    llm_api_key: str = field(
+        default_factory=lambda: _env_value("FABLESPACE_LLM_API_KEY"),
+        repr=False,
+    )
+    llm_base_url: str = field(
+        default_factory=lambda: _env_value("FABLESPACE_LLM_BASE_URL")
+    )
+    llm_temperature: float | None = field(
+        default_factory=lambda: _optional_float_from_env(
+            "FABLESPACE_LLM_TEMPERATURE"
+        )
+    )
+    llm_max_tokens: int | None = field(
+        default_factory=lambda: _optional_int_from_env(
+            "FABLESPACE_LLM_MAX_TOKENS"
+        )
+    )
+    llm_top_p: float | None = field(
+        default_factory=lambda: _optional_float_from_env("FABLESPACE_LLM_TOP_P")
     )
 
     # Database configuration. `mysql_url` is a legacy alias; `database_url` may also be sqlite:///...

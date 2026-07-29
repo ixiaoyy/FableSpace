@@ -30,7 +30,7 @@ class LLMConfig:
     """LLM configuration — mirrors tavern.py LLMConfig."""
     backend: str = "openai"
     model: str = "gpt-4o-mini"
-    api_key: str = ""
+    api_key: str = field(default="", repr=False)
     base_url: str = ""
     temperature: float = 1.0
     max_tokens: int = 2048
@@ -215,12 +215,17 @@ class OpenAIBackend(LLMBackend):
                     raw=data,
                 )
         except urllib.error.HTTPError as e:
-            error_body = e.read().decode("utf-8") if e.fp else ""
-            logger.error(f"OpenAI API error {e.code}: {error_body}")
-            raise LLMError(f"OpenAI API error {e.code}: {error_body[:200]}") from e
+            logger.error(
+                "LLM backend request failed: backend=openai exception=%s",
+                type(e).__name__,
+            )
+            raise LLMError(f"OpenAI API error {e.code}") from e
         except Exception as e:
-            logger.error(f"OpenAI request failed: {e}")
-            raise LLMError(f"OpenAI request failed: {e}") from e
+            logger.error(
+                "LLM backend request failed: backend=openai exception=%s",
+                type(e).__name__,
+            )
+            raise LLMError("OpenAI request failed") from e
 
     def complete_stream(
         self, messages: list[dict[str, str]], **kwargs
@@ -256,8 +261,11 @@ class OpenAIBackend(LLMBackend):
                         except json.JSONDecodeError:
                             continue
         except Exception as e:
-            logger.error(f"OpenAI stream error: {e}")
-            raise LLMError(f"OpenAI stream failed: {e}") from e
+            logger.error(
+                "LLM backend request failed: backend=openai exception=%s",
+                type(e).__name__,
+            )
+            raise LLMError("OpenAI stream failed") from e
 
     def count_tokens(self, text: str) -> int:
         try:
@@ -338,12 +346,17 @@ class ClaudeBackend(LLMBackend):
                     raw=data,
                 )
         except urllib.error.HTTPError as e:
-            error_body = e.read().decode("utf-8") if e.fp else ""
-            logger.error(f"Claude API error {e.code}: {error_body}")
-            raise LLMError(f"Claude API error {e.code}: {error_body[:200]}") from e
+            logger.error(
+                "LLM backend request failed: backend=claude exception=%s",
+                type(e).__name__,
+            )
+            raise LLMError(f"Claude API error {e.code}") from e
         except Exception as e:
-            logger.error(f"Claude request failed: {e}")
-            raise LLMError(f"Claude request failed: {e}") from e
+            logger.error(
+                "LLM backend request failed: backend=claude exception=%s",
+                type(e).__name__,
+            )
+            raise LLMError("Claude request failed") from e
 
     def complete_stream(
         self, messages: list[dict[str, str]], **kwargs
@@ -1931,6 +1944,11 @@ _BACKENDS: dict[str, type[LLMBackend]] = {
 class LLMError(Exception):
     """Exception raised when LLM API call fails."""
     pass
+
+
+def is_supported_backend(backend: str) -> bool:
+    """Return whether the normalized backend has a registered implementation."""
+    return str(backend or "").strip().lower() in _BACKENDS
 
 
 def create_client(config: LLMConfig) -> LLMBackend:

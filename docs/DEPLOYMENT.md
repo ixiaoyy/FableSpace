@@ -135,6 +135,15 @@ FABLESPACE_AUTH_INTROSPECTION_CACHE_TTL_SECONDS=30
 FABLESPACE_AUTH_INTROSPECTION_TIMEOUT_SECONDS=5
 FABLESPACE_ADMIN_MEDIA_MAX_BYTES=10485760
 
+# 系统 StoryWorld 角色对话。
+FABLESPACE_LLM_BACKEND=custom
+FABLESPACE_LLM_MODEL=deepseek-v4-flash-free
+FABLESPACE_LLM_API_KEY=<系统模型 Key>
+FABLESPACE_LLM_BASE_URL=https://opencode.ai/zen
+FABLESPACE_LLM_TEMPERATURE=0.8
+FABLESPACE_LLM_MAX_TOKENS=1024
+FABLESPACE_LLM_TOP_P=0.9
+
 # Character 编辑页上传；生成文件仍保持 local。
 FABLESPACE_S3_BUCKET=<项目现有桶>
 FABLESPACE_S3_REGION=auto
@@ -154,6 +163,8 @@ FABLESPACE_SSO_TICKET_TTL_SECONDS=60
 ```
 
 两份密钥不得写入仓库、前端构建变量或日志。`configure_shared_services.py` 负责生成或复用密钥并同步两端；手工修改时仍必须重建/重启两个后端。FableSpace 在 `parallellines` 模式下若缺少 SSO 服务密钥或会话密钥会拒绝启动，避免部署时静默退回可伪造的旧身份模式。`FABLESPACE_AUTH_INTROSPECTION_CACHE_TTL_SECONDS` 运行时限制为 1–60 秒；缓存过期后续验主站失败会拒绝访问，不使用过期结果兜底。
+
+StoryWorld 角色对话只读取上述七项 `FABLESPACE_LLM_*` 变量，不回退到仓库配置文件或其他 Key。`FABLESPACE_LLM_TEMPERATURE` 允许 `0..2`，`FABLESPACE_LLM_MAX_TOKENS` 允许 `1..4096`，`FABLESPACE_LLM_TOP_P` 允许 `(0, 1]`。任一变量缺失或非法时，公开页面和内容后台继续可用，对话请求返回 `503`；启动日志只记录缺失或非法的变量名，不记录配置值或密钥。
 
 ParallelLines 必须为账号返回 `fablespace.access` 才能签发并维持会话。
 FableSpace 不注册 creator、owner、故事创建、角色卡、地图或私有 LLM 产品能力。

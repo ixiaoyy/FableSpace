@@ -3,7 +3,7 @@
   "name": "system-llm-runtime",
   "title": "收敛系统 LLM 运行配置",
   "description": "只把 LLM 配置收敛到部署级并删除运行链路对 owner 配置的依赖。",
-  "status": "planning",
+  "status": "in_progress",
   "dev_type": null,
   "scope": null,
   "package": null,

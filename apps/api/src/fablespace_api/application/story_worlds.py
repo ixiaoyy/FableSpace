@@ -2,11 +2,8 @@
 
 from __future__ import annotations
 
-import json
-import os
+import logging
 from datetime import datetime
-from math import isfinite
-from pathlib import Path
 from typing import Protocol
 from uuid import uuid4
 
@@ -34,6 +31,8 @@ from ..infrastructure.story_state_models import (
     StoryRunModel,
 )
 from .story_dialogue import StoryDialoguePolicy
+
+logger = logging.getLogger(__name__)
 
 
 class StoryRuntimeError(RuntimeError):
@@ -145,10 +144,8 @@ def _dialogue_system_message(
 class SystemStoryDialogueResponder:
     """Use the deployment-level public-welfare LLM for bounded character dialogue."""
 
-    def __init__(self, config_path: Path | None = None) -> None:
-        self.config_path = config_path or (
-            Path(__file__).resolve().parents[3] / "config" / "system_public_welfare_llm.json"
-        )
+    def __init__(self, config: LLMConfig | None) -> None:
+        self.config = config
 
     def reply(
         self,
@@ -165,7 +162,12 @@ class SystemStoryDialogueResponder:
         events: list[dict[str, object]],
         player_message: str,
     ) -> str:
-        config = self._load_config()
+        config = self.config
+        if config is None:
+            raise StoryRuntimeError(
+                "dialogue_unavailable",
+                "故事对话配置暂不可用。",
+            )
         system_message = _dialogue_system_message(
             story_world=story_world,
             player_role=player_role,
@@ -186,6 +188,11 @@ class SystemStoryDialogueResponder:
         try:
             response = complete(config, context)
         except LLMError as exc:
+            logger.warning(
+                "StoryWorld LLM request failed: backend=%s exception=%s",
+                config.backend,
+                type(exc).__name__,
+            )
             raise StoryRuntimeError(
                 "dialogue_unavailable",
                 f"{character.name}暂时没有回应，请稍后再试。",
@@ -197,48 +204,6 @@ class SystemStoryDialogueResponder:
                 f"{character.name}暂时没有回应，请稍后再试。",
             )
         return content[:1200]
-
-    def _load_config(self) -> LLMConfig:
-        try:
-            payload = json.loads(self.config_path.read_text(encoding="utf-8"))
-            raw = payload["llm_config"]
-        except (OSError, KeyError, TypeError, json.JSONDecodeError) as exc:
-            raise StoryRuntimeError("dialogue_unavailable", "故事对话配置暂不可用。") from exc
-        if not isinstance(raw, dict):
-            raise StoryRuntimeError("dialogue_unavailable", "故事对话配置暂不可用。")
-        backend = str(raw.get("backend") or "").strip()
-        model = str(raw.get("model") or "").strip()
-        base_url = str(raw.get("base_url") or "").strip()
-        api_key = str(raw.get("api_key") or "").strip()
-        api_key_env = str(raw.get("api_key_env") or "").strip()
-        if not api_key and api_key_env:
-            api_key = os.environ.get(api_key_env, "").strip()
-        try:
-            temperature = float(raw.get("temperature", 0.8))
-            max_tokens = int(raw.get("max_tokens", 1024))
-            top_p = float(raw.get("top_p", 0.9))
-        except (TypeError, ValueError) as exc:
-            raise StoryRuntimeError("dialogue_unavailable", "故事对话配置暂不可用。") from exc
-        if (
-            not backend
-            or not model
-            or not api_key
-            or not isfinite(temperature)
-            or not 0 <= temperature <= 2
-            or not 1 <= max_tokens <= 4096
-            or not isfinite(top_p)
-            or not 0 < top_p <= 1
-        ):
-            raise StoryRuntimeError("dialogue_unavailable", "故事对话配置暂不可用。")
-        return LLMConfig(
-            backend=backend,
-            model=model,
-            api_key=api_key,
-            base_url=base_url,
-            temperature=temperature,
-            max_tokens=max_tokens,
-            top_p=top_p,
-        )
 
 
 class StoryWorldApplicationService:
