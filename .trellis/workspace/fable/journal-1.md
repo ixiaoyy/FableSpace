@@ -873,3 +873,36 @@ Split the frontend roadmap into UI-first and integration follow-ups, archived th
 ### Next Steps
 
 - None - task complete
+
+
+## Session 27: 安妮角色表现与身份差异优化
+
+**Date**: 2026-07-29
+**Task**: 安妮角色表现与身份差异优化
+**Branch**: `codex/palace-character-entry`
+
+### Summary
+
+补齐安妮审核选择后的儿童化动作与短句，显示关系阶段的可观察态度，保留全部 15 节点、30 选择和 5 结局；补交 Tom/Lizzie 头像 sidecar 并完成内容、构建、CDN 与移动端验收。
+
+### Main Changes
+
+- Detailed change bullets were not supplied; see the summary above.
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `989539f1` | (see git log) |
+
+### Testing
+
+- Validation was not recorded for this session.
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
