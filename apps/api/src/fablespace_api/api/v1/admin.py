@@ -39,16 +39,8 @@ class StoryWorldSaveRequest(BaseModel):
 
 
 def require_admin(request: Request, response: Response) -> SessionIdentity:
-    settings = request.app.state.settings
-    configured_id = str(settings.admin_user_id or "").strip()
-    if not configured_id:
-        raise HTTPException(
-            status_code=403,
-            detail="内容后台未配置",
-            headers={"Cache-Control": "no-store"},
-        )
     identity = require_story_session_identity(request)
-    if identity.id != configured_id:
+    if identity.role != "admin":
         raise HTTPException(
             status_code=403,
             detail="当前账号不能访问内容后台",

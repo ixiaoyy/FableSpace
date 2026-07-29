@@ -61,6 +61,11 @@ type StoryAccessState =
 
 type StoryActionKind = "start" | "choice" | "message" | "restart"
 
+type PendingStoryExchange = {
+  kind: "choice" | "message"
+  content: string
+}
+
 type StoryPageState = {
   run: StoryRun | null
   entryMode: "start" | "restart"
@@ -68,6 +73,7 @@ type StoryPageState = {
   runLoading: boolean
   accessState: StoryAccessState
   pendingAction: StoryActionKind | null
+  pendingExchange: PendingStoryExchange | null
   failedAction: StoryActionKind | null
   actionError: string
   message: string
@@ -82,7 +88,11 @@ type StoryPageAction =
   | { type: "restart-ready"; playerRoleId: string }
   | { type: "access-error"; message: string }
   | { type: "session-expired" }
-  | { type: "action-started"; kind: StoryActionKind }
+  | {
+      type: "action-started"
+      kind: StoryActionKind
+      optimisticContent?: string
+    }
   | { type: "action-succeeded"; run: StoryRun | null }
   | { type: "action-failed"; kind: StoryActionKind; message: string }
   | { type: "message-changed"; message: string }
@@ -95,6 +105,7 @@ const INITIAL_STORY_PAGE_STATE: StoryPageState = {
   runLoading: false,
   accessState: "checking",
   pendingAction: null,
+  pendingExchange: null,
   failedAction: null,
   actionError: "",
   message: "",
@@ -126,6 +137,7 @@ function storyPageReducer(
         run: null,
         runLoading: false,
         accessState: "anonymous",
+        pendingExchange: null,
       }
     case "run-loading":
       return {
@@ -141,6 +153,7 @@ function storyPageReducer(
         selectedPlayerRoleId: action.run?.player_role.id || state.selectedPlayerRoleId,
         runLoading: false,
         accessState: "authenticated",
+        pendingExchange: null,
       }
     case "player-role-selected":
       return {
@@ -156,6 +169,7 @@ function storyPageReducer(
         entryMode: "restart",
         selectedPlayerRoleId: action.playerRoleId,
         pendingAction: null,
+        pendingExchange: null,
         failedAction: null,
         actionError: "",
         message: "",
@@ -169,6 +183,7 @@ function storyPageReducer(
         run: null,
         runLoading: false,
         accessState: "error",
+        pendingExchange: null,
         actionError: action.message,
       }
     case "session-expired":
@@ -178,23 +193,39 @@ function storyPageReducer(
         runLoading: false,
         accessState: "expired",
         pendingAction: null,
+        pendingExchange: null,
         failedAction: null,
         actionError: "",
         message: "",
       }
-    case "action-started":
+    case "action-started": {
+      const pendingExchange = (
+        (action.kind === "choice" || action.kind === "message")
+        && action.optimisticContent
+      )
+        ? {
+            kind: action.kind,
+            content: action.optimisticContent,
+          }
+        : null
       return {
         ...state,
         pendingAction: action.kind,
+        pendingExchange,
         failedAction: null,
         actionError: "",
+        message: action.kind === "message" && pendingExchange
+          ? ""
+          : state.message,
       }
+    }
     case "action-succeeded":
       if (state.accessState === "expired") return state
       return {
         ...state,
         run: action.run || state.run,
         pendingAction: null,
+        pendingExchange: null,
         failedAction: null,
         actionError: "",
       }
@@ -203,8 +234,13 @@ function storyPageReducer(
       return {
         ...state,
         pendingAction: null,
+        pendingExchange: null,
         failedAction: action.kind,
         actionError: action.message,
+        message: action.kind === "message"
+          && state.pendingExchange?.kind === "message"
+          ? state.pendingExchange.content
+          : state.message,
       }
     case "message-changed":
       return { ...state, message: action.message }
@@ -214,6 +250,7 @@ function storyPageReducer(
         ...state,
         run: action.run || state.run,
         pendingAction: null,
+        pendingExchange: null,
         failedAction: null,
         actionError: "",
         message: "",
@@ -257,6 +294,7 @@ export default function CharacterStoryRoute() {
     runLoading,
     accessState,
     pendingAction,
+    pendingExchange,
     failedAction,
     actionError,
     message,
@@ -344,10 +382,11 @@ export default function CharacterStoryRoute() {
   async function runAction(
     kind: Exclude<StoryActionKind, "message">,
     action: () => Promise<StoryRun | null>,
+    optimisticContent = "",
   ) {
     if (actionInFlightRef.current) return
     actionInFlightRef.current = true
-    dispatch({ type: "action-started", kind })
+    dispatch({ type: "action-started", kind, optimisticContent })
     try {
       const nextRun = await action()
       dispatch({ type: "action-succeeded", run: nextRun })
@@ -406,7 +445,11 @@ export default function CharacterStoryRoute() {
     const content = message.trim()
     if (!run || !content || actionInFlightRef.current) return
     actionInFlightRef.current = true
-    dispatch({ type: "action-started", kind: "message" })
+    dispatch({
+      type: "action-started",
+      kind: "message",
+      optimisticContent: content,
+    })
     void sendStoryMessage(
       storyWorldId,
       run.id,
@@ -482,10 +525,11 @@ export default function CharacterStoryRoute() {
           detail={detail}
           run={run}
           pendingAction={pendingAction}
+          pendingExchange={pendingExchange}
           failedAction={failedAction}
           actionError={actionError}
           message={message}
-          onChoose={(choiceId) => void runAction(
+          onChoose={(choiceId, choiceLabel) => void runAction(
             "choice",
             () => chooseStoryPath(
               storyWorldId,
@@ -493,6 +537,7 @@ export default function CharacterStoryRoute() {
               route.characterId,
               choiceId,
             ),
+            choiceLabel,
           )}
           onMessageChange={(nextMessage) => dispatch({
             type: "message-changed",
@@ -706,6 +751,7 @@ function StoryRunWorkspace({
   detail,
   run,
   pendingAction,
+  pendingExchange,
   failedAction,
   actionError,
   message,
@@ -717,10 +763,11 @@ function StoryRunWorkspace({
   detail: StoryWorldCharacterDetail
   run: StoryRun
   pendingAction: StoryActionKind | null
+  pendingExchange: PendingStoryExchange | null
   failedAction: StoryActionKind | null
   actionError: string
   message: string
-  onChoose: (choiceId: string) => void
+  onChoose: (choiceId: string, choiceLabel: string) => void
   onMessageChange: (message: string) => void
   onSubmitMessage: (event: FormEvent<HTMLFormElement>) => void
   onRestart: () => void
@@ -730,6 +777,7 @@ function StoryRunWorkspace({
     <div className="annieStoryWorkspace">
       <section
         className="annieStoryRun"
+        data-status={run.status}
         aria-label={`${detail.character.name}的故事`}
       >
         {run.status === "active" ? (
@@ -750,7 +798,12 @@ function StoryRunWorkspace({
           </div>
         ) : null}
 
-        <StoryTimeline detail={detail} run={run} pending={pending} />
+        <StoryTimeline
+          detail={detail}
+          run={run}
+          pending={pending}
+          pendingExchange={pendingExchange}
+        />
 
         {run.status === "active" ? (
           <StoryActions
@@ -796,13 +849,18 @@ function StoryTimeline({
   detail,
   run,
   pending,
+  pendingExchange,
 }: {
   detail: StoryWorldCharacterDetail
   run: StoryRun
   pending: boolean
+  pendingExchange: PendingStoryExchange | null
 }) {
   const timelineRef = useRef<HTMLDivElement>(null)
   const latestEventId = run.events[run.events.length - 1]?.id
+  const pendingExchangeKey = pendingExchange
+    ? `${pendingExchange.kind}:${pendingExchange.content}`
+    : ""
   const timelineEvents = run.events.filter(
     (event) => event.type !== "relationship_changed",
   )
@@ -811,7 +869,7 @@ function StoryTimeline({
     const timeline = timelineRef.current
     if (!timeline) return
     timeline.scrollTo({ top: timeline.scrollHeight, behavior: "auto" })
-  }, [latestEventId, run.current_node.id])
+  }, [latestEventId, pendingExchangeKey, run.current_node.id])
 
   return (
     <div
@@ -820,28 +878,89 @@ function StoryTimeline({
       aria-busy={pending}
       aria-live="polite"
     >
-      {timelineEvents.map((event) => {
+      {timelineEvents.map((event, eventIndex) => {
         const messageEvent = event.type === "message"
-        const eventTone = event.role || event.type
-        const eventLabel = event.type === "choice"
-            ? "你的选择"
-            : event.role === "character"
-              ? event.character_name || detail.character.name
-              : event.role === "player"
-                ? "你"
-                : messageEvent
-                  ? "故事"
-                  : "此刻"
+        const choiceResponse = event.type === "narration"
+          && timelineEvents[eventIndex - 1]?.type === "choice"
+        const characterEvent = event.role === "character" || choiceResponse
+        const playerEvent = event.type === "choice" || event.role === "player"
+        const eventTone = characterEvent
+          ? "character"
+          : playerEvent
+            ? "player"
+            : event.role || event.type
+        const eventLabel = characterEvent
+          ? event.character_name || detail.character.name
+          : playerEvent
+            ? "你"
+            : messageEvent
+              ? "故事"
+              : "此刻"
+        const eventCharacter = event.character_id
+          ? detail.characters.find(
+              (character) => character.id === event.character_id,
+            )
+          : detail.character
+        const eventCharacterRoute = resolveCharacterRouteById(
+          eventCharacter?.id || detail.character.id,
+        )
+        const eventPortrait = eventCharacter?.portrait_url
+          || eventCharacterRoute?.portrait
+          || ""
         return (
           <article
             key={event.id}
-            className={`annieStoryEvent annieStoryEvent--${eventTone}`}
+            className={[
+              "annieStoryEvent",
+              `annieStoryEvent--${eventTone}`,
+              choiceResponse ? "annieStoryEvent--choiceResponse" : "",
+            ].filter(Boolean).join(" ")}
           >
-            <span>{eventLabel}</span>
-            <p>{event.content}</p>
+            {characterEvent && eventPortrait ? (
+              <img
+                className="annieStoryEventAvatar"
+                src={eventPortrait}
+                alt=""
+                loading="lazy"
+              />
+            ) : null}
+            <div className="annieStoryEventBody">
+              <span>{eventLabel}</span>
+              <p>{event.content}</p>
+            </div>
           </article>
         )
       })}
+      {pendingExchange ? (
+        <>
+          <article className="annieStoryEvent annieStoryEvent--player annieStoryEvent--pending">
+            <div className="annieStoryEventBody">
+              <span>你</span>
+              <p>{pendingExchange.content}</p>
+            </div>
+          </article>
+          <article className="annieStoryEvent annieStoryEvent--character annieStoryEvent--typing">
+            {detail.character.portrait_url
+              || resolveCharacterRouteById(detail.character.id)?.portrait ? (
+                <img
+                  className="annieStoryEventAvatar"
+                  src={
+                    detail.character.portrait_url
+                    || resolveCharacterRouteById(detail.character.id)?.portrait
+                  }
+                  alt=""
+                />
+              ) : null}
+            <div className="annieStoryEventBody">
+              <span>{detail.character.name}</span>
+              <p>
+                <LoaderCircle aria-hidden="true" />
+                正在回应…
+              </p>
+            </div>
+          </article>
+        </>
+      ) : null}
     </div>
   )
 }
@@ -863,16 +982,11 @@ function StoryActions({
   failedAction: StoryActionKind | null
   actionError: string
   message: string
-  onChoose: (choiceId: string) => void
+  onChoose: (choiceId: string, choiceLabel: string) => void
   onMessageChange: (message: string) => void
   onSubmitMessage: (event: FormEvent<HTMLFormElement>) => void
 }) {
   const pending = pendingAction !== null
-  const waitingText = pendingAction === "message"
-    ? `${characterName}正在回应…`
-    : pendingAction === "choice"
-      ? "正在记下这个选择…"
-      : ""
   const recoveryText = failedAction === "message"
     ? "回应没有发送，你写的文字还在，可以直接重试。"
     : failedAction === "choice"
@@ -882,8 +996,8 @@ function StoryActions({
   function handleComposerKeyDown(event: KeyboardEvent<HTMLTextAreaElement>) {
     if (
       event.key === "Enter"
-      && (event.ctrlKey || event.metaKey)
       && !event.shiftKey
+      && !event.nativeEvent.isComposing
       && !pending
       && message.trim()
     ) {
@@ -894,12 +1008,6 @@ function StoryActions({
 
   return (
     <div className="annieStoryActionsPanel" aria-busy={pending}>
-      {waitingText ? (
-        <p className="annieStoryActionStatus" aria-live="polite">
-          <LoaderCircle aria-hidden="true" />
-          {waitingText}
-        </p>
-      ) : null}
       {actionError ? (
         <div className="annieStoryActionError" id="annie-story-action-error" role="alert">
           <CircleAlert aria-hidden="true" />
@@ -909,36 +1017,34 @@ function StoryActions({
           </div>
         </div>
       ) : null}
-      <div className="annieStoryChoices">
+      <div className="annieStoryChoices" aria-label="快捷选择">
         {run.current_node.choices.map((choice) => (
           <button
             key={choice.id}
             type="button"
             disabled={pending}
-            onClick={() => onChoose(choice.id)}
+            onClick={() => onChoose(choice.id, choice.label)}
           >
             {choice.label}
           </button>
         ))}
       </div>
       <form className="annieStoryMessageForm" onSubmit={onSubmitMessage}>
-        <label htmlFor="annie-story-message">对{characterName}说</label>
+        <label className="annieStoryVisuallyHidden" htmlFor="annie-story-message">
+          对{characterName}说
+        </label>
         <div>
           <textarea
             id="annie-story-message"
             value={message}
             maxLength={1000}
-            rows={2}
+            rows={1}
             enterKeyHint="send"
             disabled={pending}
-            aria-describedby={
-              actionError
-                ? "annie-story-message-hint annie-story-action-error"
-                : "annie-story-message-hint"
-            }
+            aria-describedby={actionError ? "annie-story-action-error" : undefined}
             onChange={(event) => onMessageChange(event.target.value)}
             onKeyDown={handleComposerKeyDown}
-            placeholder="写下你的回应"
+            placeholder={`对${characterName}说…`}
           />
           <button
             type="submit"
@@ -946,12 +1052,11 @@ function StoryActions({
             aria-label={failedAction === "message" ? "重新发送回应" : "发送回应"}
           >
             <Send aria-hidden="true" />
-            <span>{failedAction === "message" ? "重试" : "发送"}</span>
+            <span className="annieStoryVisuallyHidden">
+              {failedAction === "message" ? "重试" : "发送"}
+            </span>
           </button>
         </div>
-        <p className="annieStoryMessageHint" id="annie-story-message-hint">
-          Ctrl / ⌘ + Enter 发送
-        </p>
       </form>
     </div>
   )

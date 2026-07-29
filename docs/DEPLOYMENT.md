@@ -133,7 +133,6 @@ FABLESPACE_SESSION_COOKIE_SECURE=true
 FABLESPACE_SESSION_TTL_SECONDS=3600
 FABLESPACE_AUTH_INTROSPECTION_CACHE_TTL_SECONDS=30
 FABLESPACE_AUTH_INTROSPECTION_TIMEOUT_SECONDS=5
-FABLESPACE_ADMIN_USER_ID=<唯一管理员的可信账号 ID>
 FABLESPACE_ADMIN_MEDIA_MAX_BYTES=10485760
 
 # Character 编辑页上传；生成文件仍保持 local。
@@ -157,14 +156,18 @@ FABLESPACE_SSO_TICKET_TTL_SECONDS=60
 两份密钥不得写入仓库、前端构建变量或日志。`configure_shared_services.py` 负责生成或复用密钥并同步两端；手工修改时仍必须重建/重启两个后端。FableSpace 在 `parallellines` 模式下若缺少 SSO 服务密钥或会话密钥会拒绝启动，避免部署时静默退回可伪造的旧身份模式。`FABLESPACE_AUTH_INTROSPECTION_CACHE_TTL_SECONDS` 运行时限制为 1–60 秒；缓存过期后续验主站失败会拒绝访问，不使用过期结果兜底。
 
 ParallelLines 必须为账号返回 `fablespace.access` 才能签发并维持会话。
-FableSpace 不注册 creator、owner、admin、故事创建、角色卡、地图或私有
-LLM 产品能力。票据兑换响应需要在身份资料之外返回 `capabilities`、
+FableSpace 不注册 creator、owner、故事创建、角色卡、地图或私有 LLM 产品能力。
+票据兑换响应需要在身份资料之外返回 `capabilities`、
 `authorization_version`、`access_expires_at`，并提供同一服务密钥保护的
 `POST /api/v1/auth/fablespace/introspect`。部署后直接打开 FableSpace 域名
 可浏览首页、角色卡和公开 StoryWorld 角色详情；开始、恢复、推进或重新开始
 故事的 API 必须在票据兑换并建立有效会话后开放，无会话时返回 `401`。
 
-内容后台不新增 ParallelLines capability。后端在已有 `fablespace.access` 可信会话基础上，再将账号 ID 与 `FABLESPACE_ADMIN_USER_ID` 比较；只有唯一匹配账号可以读取 `/api/v1/admin/**`、保存 StoryWorld 或上传 Character 图片。
+内容后台不维护第二份管理员账号或管理员 ID 配置。后端在已有 `fablespace.access`
+可信会话基础上，以 ParallelLines 票据兑换和实时回查返回的 `user.role`
+为准；当前角色为 `admin` 的账号自动获得 `/api/v1/admin/**`、StoryWorld
+保存和 Character 图片上传权限，角色变更会在鉴权缓存过期后生效。普通账号
+即使具备其他 FableSpace 产品 capability 也不能进入内容后台。
 
 未登录玩家从角色页进入故事时，FableSpace 的
 `GET /api/v1/auth/parallellines/start` 先把允许的本站角色路径写入短期签名

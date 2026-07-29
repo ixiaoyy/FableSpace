@@ -11,7 +11,6 @@ This is system-content administration, not owner CRUD or user creation. Homepage
 Environment:
 
 ```text
-FABLESPACE_ADMIN_USER_ID=<trusted account id>
 FABLESPACE_ADMIN_MEDIA_MAX_BYTES=10485760
 FABLESPACE_S3_BUCKET
 FABLESPACE_S3_REGION
@@ -69,7 +68,8 @@ Frontend:
 
 ## 3. Contracts
 
-- The trusted session ID must exactly match `FABLESPACE_ADMIN_USER_ID`; a product capability alone is insufficient.
+- A session must carry `fablespace.access` and be verified through the ParallelLines ticket exchange and live introspection path. Its authoritative `user.role` must be `admin`; no FableSpace-local administrator ID or user registry is maintained.
+- Any trusted ParallelLines administrator is automatically a FableSpace content administrator. Other FableSpace product capabilities do not grant content-backend access.
 - Python content is an idempotent missing-record seed. It never overwrites a managed document.
 - The codec is the only JSON-to-domain boundary. Saving validates the replacement together with every other current world through `StoryWorldRegistry`.
 - A successful save atomically replaces the complete target document and generates the final `content_version` server-side.
@@ -84,9 +84,8 @@ Frontend:
 
 | Condition | Required result |
 |---|---|
-| Admin ID missing | `403`; no management read or write |
 | Session missing / expired | `401`; no management read or write |
-| Session ID differs | `403`; no management read or write |
+| Trusted ParallelLines role is not `admin` | `403`; no management read or write |
 | Path world ID differs from payload ID | `422` |
 | Missing field, duplicate ID, cross-world reference, or broken graph | `422` with field path |
 | Unknown managed StoryWorld | `404` |

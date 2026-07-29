@@ -147,9 +147,6 @@ class ApiSettings:
             5,
         )
     )
-    admin_user_id: str = field(
-        default_factory=lambda: _env_value("FABLESPACE_ADMIN_USER_ID")
-    )
     admin_media_max_bytes: int = field(
         default_factory=lambda: _int_from_env(
             "FABLESPACE_ADMIN_MEDIA_MAX_BYTES",

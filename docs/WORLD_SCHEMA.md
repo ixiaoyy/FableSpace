@@ -473,9 +473,11 @@ CharacterRelationship 保存一个 StoryRun 内玩家与具体 Character 的关�
 
 任何公开响应都不得包含其他玩家标识、对话、进度、关系、记忆、隐藏正史、系统 Prompt 或密钥。
 
-### 单管理员内容 API
+### 管理员内容 API
 
-管理 API 使用现有可信会话，并要求会话账号 ID 与部署环境 `FABLESPACE_ADMIN_USER_ID` 完全一致：
+管理 API 使用现有可信会话，并要求 ParallelLines 票据兑换及实时回查返回的
+`user.role` 为 `admin`。FableSpace 不保存第二份管理员账号或管理员 ID；
+ParallelLines 管理员进入后自动具备内容后台权限：
 
 ```text
 GET  /api/v1/admin/story-worlds

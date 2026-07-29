@@ -44,7 +44,7 @@ https://img.pingxingxian.space/fablespace/media/v1/app/assets/story-worlds/story
 
 ## Character 编辑页上传
 
-- 管理 API 只接受与 `FABLESPACE_ADMIN_USER_ID` 匹配的可信会话。
+- 管理 API 只接受 ParallelLines 实时确认为 `role=admin` 的可信会话。
 - 只允许 PNG、JPEG 和 WebP；服务端同时核对声明 MIME 与真实图片头，并限制原始字节数。
 - 不裁剪、不缩放、不转码；每次上传使用新的 UUID 对象 key，设置 `public,max-age=31536000,immutable`。
 - 上传字节、对象存储凭据和 S3 签名只经过后端；前端只获得 HTTPS URL 和安全元数据。
