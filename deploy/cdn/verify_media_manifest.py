@@ -5,6 +5,8 @@ import json
 from pathlib import Path
 from typing import Any, Sequence
 
+ADMIN_UPLOAD_PREFIX = "admin/"
+
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Verify every media manifest entry against an S3 object listing.")
@@ -35,6 +37,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             key
             for key in remote_objects
             if key == prefix or key.startswith(f"{prefix}/")
+            if not key.startswith(f"{prefix}/{ADMIN_UPLOAD_PREFIX}")
         )
         if unexpected:
             raise ValueError(

@@ -10,7 +10,7 @@
 
 | 概念 | 代码命名 | 说明 |
 |---|---|---|
-| 故事世界 | `StoryWorld` / `story_world_id` | 系统策划、审核并版本化发布的完整故事边界 |
+| 故事世界 | `StoryWorld` / `story_world_id` | 系统策划并由固定管理员维护的完整故事边界 |
 | 角色 | `Character` / `character_id` | 属于一个 StoryWorld、由 AI 在边界内演绎的人物 |
 | 玩家身份 | `PlayerRole` / `player_role_id` | 属于一个 StoryWorld 的固定故事身份 |
 | 玩家故事状态 | `PlayerStoryState` | 按玩家与 StoryWorld 隔离的长期私有状态 |
@@ -24,7 +24,7 @@
 系统内容与玩家运行时数据必须分开：
 
 ```text
-版本化系统内容
+当前系统内容
   StoryWorld
     -> PlayerRole[]
     -> Character[]
@@ -40,11 +40,11 @@
     -> 已完成轮次摘要
 ```
 
-系统内容以仓库内可审查、可校验、可版本化的内容注册表维护，不通过 owner CRUD 写入。数据库保存玩家身份映射和运行时私有数据，不复制一套可被运行时改写的 StoryWorld 正史。
+系统内容以数据库 `managed_story_worlds` 中每个 StoryWorld 一份 JSON 文档维护。它只可由部署级固定管理员通过受保护 API 整体替换，并在写入前转换为不可变领域对象、通过全注册表结构校验。Python 内容注册表只负责首次幂等引导，不在正常运行时覆盖管理员保存内容。玩家运行时仍不能写入或改类 StoryWorld 正史。
 
 ## StoryWorld
 
-StoryWorld 是系统策划、人工审核并可版本化发布的完整故事世界。
+StoryWorld 是系统策划并由固定管理员维护的完整故事世界。
 
 ### 必需字段
 
@@ -55,7 +55,7 @@ StoryWorld 是系统策划、人工审核并可版本化发布的完整故事世
 | `summary` | string | 玩家可见的简短故事处境 |
 | `genre` | string | 内容题材，不改变运行合同 |
 | `publication_status` | `draft` / `published` / `archived` | 唯一发布生命周期 |
-| `content_version` | string | 每次可发布内容版本的稳定标识 |
+| `content_version` | string | 每次后台保存由服务端生成的当前内容标识 |
 | `entry_chapter_id` | string | 必须引用本 StoryWorld 的章节入口 |
 | `player_roles` | PlayerRole[] | 至少一个系统审核身份 |
 | `characters` | Character[] | 至少包含一个属于本世界的角色 |
@@ -63,14 +63,14 @@ StoryWorld 是系统策划、人工审核并可版本化发布的完整故事世
 | `endings` | StoryEnding[] | 至少一个被可达终局节点引用的结局 |
 | `canon_entries` | CanonEntry[] | 固定史实、剧情设定和待核验内容的明确分层 |
 
-Python 系统内容使用 `dataclass(frozen=True, slots=True)` 和 tuple 保存这些字段。内容作者必须显式构造完整合同；注册表不接收任意 dict，不自动补字段，也不把非法状态降级为 `draft`。
+领域层继续使用 `dataclass(frozen=True, slots=True)` 和 tuple 保存这些字段。后台 JSON 必须先经过显式 codec 构造完整领域合同；注册表不接收任意 dict，不自动补字段，也不把非法状态降级为 `draft`。
 
 ### 约束
 
 - 公开发现和新轮次只能使用 `published` 内容。
 - `draft` 不进入公开 API 或玩家运行时。
-- `archived` 停止新玩家开始，但保留既有 StoryRun 的内容版本、进度和回滚依据。
-- Character、PlayerRole、章节、选择和结局引用必须在同一 StoryWorld 与同一内容版本内闭合。
+- `archived` 停止新玩家开始，但保留既有 StoryRun、进度和事件历史。
+- Character、PlayerRole、章节、选择和结局引用必须在同一 StoryWorld 当前文档内闭合。
 - StoryWorld 不包含 `owner_id`、`lat`、`lon`、现实地址、访问密码、营业状态、用户发布配置或私有 LLM 配置。
 - 历史地点是内容事实，不是 StoryWorld 的通用坐标字段。
 
@@ -95,13 +95,19 @@ Character 必须属于一个 StoryWorld，并包含 AI 演绎所需的稳定人�
 | `opening_line` | string | 角色入口的已审核开场 |
 | `relationship_rules` | RelationshipRules | 好感范围、自然对话上限和故事专属关系阶段 |
 
+### 可选字段
+
+| 字段 | 类型 | 约束 |
+|---|---|---|
+| `portrait_url` | string? | 角色展示图片的绝对 HTTPS URL；为空表示继续使用当前前端静态展示资源 |
+
 ### 约束
 
 - 同一 StoryWorld 的 Character 必须有可区分的动机、秘密、语言、交易和拒绝边界，不能只替换姓名。
 - Character 不能脱离 StoryWorld 成为通用聊天角色。
 - Character 不能修改 StoryWorld 正史、PlayerRole 或确定性剧情状态。
 - 运行时演绎必须注入 Character 的身份、年龄和社会地位；关系阶段只能调节亲疏、称呼、坦白程度和合作意愿，不能覆盖这些稳定设定。
-- 角色展示资源属于系统内容版本；图片 URL、对象 key 和 prompt sidecar 继续遵守 [IMAGE_ASSETS_SPEC.md](IMAGE_ASSETS_SPEC.md)。
+- 角色图片可由固定管理员在角色编辑页上传；URL、不可变对象 key、来源记录和静态 / 动态资产边界遵守 [IMAGE_ASSETS_SPEC.md](IMAGE_ASSETS_SPEC.md)。
 - Character 不要求兼容 SillyTavern 字段，也不提供角色卡导入或导出。
 
 ## PlayerRole
@@ -129,11 +135,11 @@ PlayerRole 是玩家在一个 StoryWorld 内可被 StoryRun 锁定的系统预�
 - 每个 StoryRun 必须锁定一个所属 StoryWorld 的 PlayerRole，活动轮次中不得更换。
 - PlayerRole 不能跨 StoryWorld 复用，也不是账号权限、现实身份或公开社交资料。
 - 客户端只能提交所属 StoryWorld 已发布的 `player_role_id`，不能提交任意身份 Prompt、替换 PlayerRole 内容或声明超出故事合同的能力。
-- 1854 年宽街只有“乞丐”；长明宫·雪夜封宫提供“小太监”与“小宫女”，每轮二选一。
+- 1854 年宽街提供原创玩家角色“汤姆·里德”与“莉齐·贝尔”，每轮二选一；安妮分别称其为哥哥或姐姐，但称呼不是独立客户端字段。长明宫·雪夜封宫提供“小太监”与“小宫女”，每轮二选一。
 
 ## 系统故事内容子结构
 
-本节定义 StoryWorldRegistry 接受的只读系统内容。它只描述经过代码审查的故事合同，不是 API 请求、数据库记录或运行时可编辑脚本。
+本节定义 StoryWorldRegistry 接受的系统内容结构。后台 JSON、首次引导内容和运行时读取都必须转换为同一组不可变对象；它不是玩家可编辑脚本，也不允许运行时 AI 写入。
 
 ### 关系规则
 
@@ -242,12 +248,13 @@ PlayerRole 是玩家在一个 StoryWorld 内可被 StoryRun 锁定的系统预�
 
 所有实体 ID 和标记必须是无首尾空白的非空 string。Character、PlayerRole、RelationshipEffect、章节入口、选择目标和终局引用必须在同一 StoryWorld 内闭合。
 
-`StoryWorldRegistry` 是系统内容的唯一结构校验边界：
+`StoryWorldRegistry` 是系统内容的结构校验边界，`ManagedStoryWorldStore` 是当前内容读取与原子替换边界：
 
 - 构造时复制输入 iterable，并一次性校验字段、枚举、ID、引用、关系范围、发布状态和完整剧情图。
 - 失败抛出 `StoryContentValidationError`，包含稳定 `code`、具体 `path` 和开发者可读说明；不修复 ID、不补默认对象、不降级发布状态。
-- 只提供 `get(story_world_id)`、`require(story_world_id)`、`all()` 和 `published()`；返回原始不可变对象和 tuple。
-- 不提供添加、更新、删除、owner CRUD、数据库写入或热更新接口。
+- Registry 只提供 `get(story_world_id)`、`require(story_world_id)`、`all()` 和 `published()`；返回原始不可变对象和 tuple。
+- Store 每次读取数据库文档并经 codec 与 Registry 校验；保存时锁定全部管理记录、替换目标世界、校验完整集合并在一个事务中写入。
+- 首版只允许更新已引导的 StoryWorld，不提供 StoryWorld 创建、删除、owner CRUD 或普通用户写接口。
 
 ## PlayerStoryState
 
@@ -285,10 +292,10 @@ StoryRun 表示一次从开始到结局的故事轮次。
 | `id` | string | 唯一轮次 ID |
 | `player_id` | string | 必须与所属 PlayerStoryState 一致 |
 | `story_world_id` | string | 必须与所属 PlayerStoryState 一致 |
-| `content_version` | string | 轮次开始时锁定的 StoryWorld 版本 |
+| `content_version` | string | 活动轮次最近一次采用的当前 StoryWorld 内容标识 |
 | `player_role_id` | string | 轮次开始时锁定的所属 StoryWorld PlayerRole |
 | `status` | `active` / `completed` | 唯一轮次生命周期 |
-| `current_chapter_id` | string | 必须属于锁定内容版本 |
+| `current_chapter_id` | string | 活动轮次处理请求时必须属于当前 StoryWorld |
 | `current_node_id` | string | 必须属于当前章节 |
 | `key_choices` | collection | 已确认且不可回退的关键选择、幂等载荷及来源事件 |
 | `story_flags` | collection | 仅由已审核剧情动作改变 |
@@ -301,10 +308,11 @@ StoryRun 表示一次从开始到结局的故事轮次。
 ### 约束
 
 - 每个 `player_id + story_world_id` 同时最多一个 `active` StoryRun。
-- `player_role_id` 在 StoryRun 生命周期内不可更换；重新开始新轮次时可以从当前内容版本允许的 PlayerRole 中重新选择。
+- `player_role_id` 在一个有效活动 StoryRun 生命周期内不可更换；内容删除该 PlayerRole 导致轮次失效时，系统停止旧轮次并以当前有效 PlayerRole 建立新轮次。
 - 关键选择在活动轮次中不能撤销；系统不提供章节回退或并行时间线。
 - 完成后可以开始新 StoryRun。新轮次不继承上一轮好感度和故事标记；PlayerStoryState 只保留上一轮结局摘要。
-- 部署新内容版本时不得静默重写旧 StoryRun 的 `content_version`、节点或事件。
+- 管理员保存后，活动轮次下一次请求读取当前 StoryWorld，并把 `content_version` 更新为当前标识；既有消息、事件和关键选择历史不得改写。
+- 当前章节、节点或 PlayerRole 不再存在时，保留旧轮次历史并停止其活动状态，再从当前入口建立新轮次；已完成轮次不迁移为新的剧情状态。
 - `events` 必须保留可观察输入、确定性剧情动作、状态变化原因和来源；不得存储 chain-of-thought。
 
 ### StoryEvent
@@ -402,7 +410,8 @@ CharacterRelationship 保存一个 StoryRun 内玩家与具体 Character 的关�
 
 ```text
 预设选择或自由输入
-  -> 加载锁定的 StoryWorld 内容版本与 StoryRun
+  -> 加载当前 StoryWorld 与 StoryRun
+  -> 校验活动轮次引用并采用当前 content_version
   -> 解析为允许的剧情动作，或保持普通对话
   -> 确定性规则校验前置条件并应用状态变化
   -> 按 StoryRun.player_role_id 构建 Character、PlayerRole、正史、关系和私有记忆上下文
@@ -434,7 +443,7 @@ CharacterRelationship 保存一个 StoryRun 内玩家与具体 Character 的关�
 |---|---|---|
 | `stage` | `opening` / `investigation` / `outcome` | 由当前节点与轮次状态确定，不由客户端提交 |
 | `unlocked_count` | integer | 当前已解锁条目数 |
-| `total_count` | integer | 当前内容版本的审核条目总数 |
+| `total_count` | integer | 当前 StoryWorld 的核验条目总数 |
 | `entries` | HistoricalReferenceEntry[] | 只包含当前阶段已解锁条目；锁定条目的正文和来源不得提前下发 |
 
 `HistoricalReferenceEntry` 只投影审核注册表中的 `id`、`category`、`statement` 和 `sources`。前端必须把 `fixed_fact`、`story_setting`、`needs_verification` 分别显示为“史实”“剧情设定”“待核验”，不得重写分类或让运行时 AI 生成参考条目。`published` 内容不会包含 `needs_verification`；前端可以显示该分类计数为零，但不能用占位文本伪造条目。
@@ -464,6 +473,28 @@ CharacterRelationship 保存一个 StoryRun 内玩家与具体 Character 的关�
 
 任何公开响应都不得包含其他玩家标识、对话、进度、关系、记忆、隐藏正史、系统 Prompt 或密钥。
 
+### 单管理员内容 API
+
+管理 API 使用现有可信会话，并要求会话账号 ID 与部署环境 `FABLESPACE_ADMIN_USER_ID` 完全一致：
+
+```text
+GET  /api/v1/admin/story-worlds
+GET  /api/v1/admin/story-worlds/{story_world_id}
+PUT  /api/v1/admin/story-worlds/{story_world_id}
+     body: { "story_world": <完整 StoryWorld 文档> }
+POST /api/v1/admin/story-worlds/{story_world_id}/characters/{character_id}/portrait
+     multipart: image, source_note
+```
+
+`PUT` 只更新已存在的管理世界；路径 ID 必须与文档 ID 相同。服务端忽略客户端提交的版本意图，每次成功保存生成新的 `content_version`，并把目标文档与其他全部世界共同交给 Registry 校验。管理响应可以包含完整系统内容，但不得包含玩家私有状态、会话 Cookie、对象存储凭据或部署密钥。
+
+管理持久化只新增：
+
+- `managed_story_worlds`：`story_world_id` 主键、完整 `payload_json`、`updated_at`。
+- `managed_media_assets`：角色页内不可变上传的对象 key、HTTPS URL、字节数、SHA-256、MIME、可选宽高、`user-provided` 来源、来源说明与时间。
+
+没有 `managed_homepage`。首版也不提供媒体列表、通用素材选择、对象删除或独立媒体库 API。
+
 ### 当前 P0 StoryWorld API
 
 安妮与长明宫使用同一套 StoryWorld 路由，不通过旧 `/spaces` 合同：
@@ -481,7 +512,7 @@ POST /api/v1/story-worlds/{story_world_id}/runs/restart
      body: { "character_id": "...", "player_role_id": "..." }
 ```
 
-公开详情只返回发布 StoryWorld、Character 公开处境和系统预设 PlayerRole 列表。`character_id` 只能选择当前 StoryWorld 注册表内的 Character；`player_role_id` 只能选择同一 StoryWorld 当前发布的 PlayerRole，不允许携带身份正文。长明宫从魏观海或萧明珠进入时共享同一个 StoryRun，但消息和关系投影归属当前会见角色。运行时请求不接受 `player_id`；服务端从已验证登录会话解析账号身份，无有效会话时返回 `401`，且不得创建或修改玩家状态。运行时响应不回显玩家 ID，但会回显该 StoryRun 锁定的公开 PlayerRole 投影。
+公开详情只返回发布 StoryWorld、Character 公开处境和系统预设 PlayerRole 列表。`character_id` 只能选择当前 StoryWorld 注册表内的 Character；`player_role_id` 只能选择同一 StoryWorld 当前发布的 PlayerRole，不允许携带身份正文。公开角色页可把已发布 `player_role_id` 作为 `/characters/:characterSlug/story?playerRoleId=...` 的预选提示；故事页必须再以公开 PlayerRole 列表校验，活动 StoryRun 仍以服务端锁定身份为准。联动登录回跳白名单只允许规范故事路径和这一个 ASCII ID 查询参数。长明宫从魏观海或萧明珠进入时共享同一个 StoryRun，但消息和关系投影归属当前会见角色。运行时请求不接受 `player_id`；服务端从已验证登录会话解析账号身份，无有效会话时返回 `401`，且不得创建或修改玩家状态。运行时响应不回显玩家 ID，但会回显该 StoryRun 锁定的公开 PlayerRole 投影。
 
 运行时持久化基线使用 `player_story_states`、`story_runs`、`character_relationships`、`story_events`、`story_messages` 和 `private_memories` 六张表。已提交的 004 迁移建立前四张表，005 新增后两张表，006 为 `story_runs` 增加并回填不可为空的 `player_role_id`。完成轮次保留全部有序安全结局摘要；重新开始创建全新 StoryRun，可以重新选择 PlayerRole，但不复制上一轮 affinity、标记、事件、选择、消息或记忆。
 
@@ -490,11 +521,13 @@ POST /api/v1/story-worlds/{story_world_id}/runs/restart
 | 条件 | 处理 |
 |---|---|
 | `publication_status` 或 StoryRun `status` 不在允许枚举 | 拒绝加载或写入，不静默归一 |
-| published StoryWorld 缺少 PlayerRole、Character 或有效内容引用 | 拒绝发布 |
+| published StoryWorld 缺少 PlayerRole、Character 或有效内容引用 | 拒绝保存 |
 | Character、PlayerRole、章节、节点或关系跨 StoryWorld 引用 | 拒绝 |
 | 客户端提交任意 `player_id`、身份正文或跨世界 `player_role_id` | 拒绝；玩家 ID 由服务端解析，PlayerRole 只从当前发布 StoryWorld 注册表解析 |
 | 未登录或登录会话已过期时请求私有运行时能力 | 返回 `401`，不创建或修改任何玩家状态 |
-| 运行时尝试改写锁定 `content_version` | 拒绝 |
+| 客户端尝试指定管理内容的最终 `content_version` | 服务端保存时生成当前标识，不采用客户端版本意图 |
+| 管理员 ID 未配置、会话无效或账号不匹配 | 管理 API 返回 `401` / `403`，不读取或写入管理内容 |
+| 活动轮次的 PlayerRole、章节或节点在当前内容中不存在 | 保留旧轮次历史，停止其活动状态，并从当前有效入口建立新轮次 |
 | 未通过前置条件的剧情动作 | 不改变关键状态，并返回可观察的受控结果 |
 | AI 输出尝试直接写正史、关键标记或结局 | 丢弃该写回并记录安全的诊断信息 |
 | 私有状态被请求到错误玩家或公开端点 | 拒绝且不泄露记录是否存在 |
@@ -516,6 +549,6 @@ POST /api/v1/story-worlds/{story_world_id}/runs/restart
 ## 版本与维护
 
 - 新增字段、枚举或语义变化必须先获得产品确认，并同步本文、相关 API 合同和最小真实验证。
-- 系统内容变化必须增加可追踪的 `content_version`；旧 StoryRun 继续引用原版本。
+- 每次管理保存由服务端生成可追踪的 `content_version`；活动 StoryRun 在下一次请求采用当前内容，不提供旧 StoryWorld 快照选择或回滚。
 - 运行时表变更必须有显式迁移和回滚边界，不依赖兼容默认值掩盖协议变化。
 - 本文不保存一次性 brainstorm、实现日志或历史长版本；过程记录留在 Trellis 任务、提交和发布说明中。

@@ -147,6 +147,16 @@ class ApiSettings:
             5,
         )
     )
+    admin_user_id: str = field(
+        default_factory=lambda: _env_value("FABLESPACE_ADMIN_USER_ID")
+    )
+    admin_media_max_bytes: int = field(
+        default_factory=lambda: _int_from_env(
+            "FABLESPACE_ADMIN_MEDIA_MAX_BYTES",
+            "",
+            10 * 1024 * 1024,
+        )
+    )
 
     # Database configuration. `mysql_url` is a legacy alias; `database_url` may also be sqlite:///...
     storage_backend: str = field(default_factory=_default_storage_backend)

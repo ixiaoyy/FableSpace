@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from ..core.media import public_media_url
 from ..domain.story_world import (
     CanonCategory,
     CanonEntry,
@@ -20,7 +21,11 @@ from ..domain.story_world import (
 
 ANNIE_STORY_WORLD_ID = "history_broad_street_water_1854"
 ANNIE_CHARACTER_ID = "char_history_broad_street_annie"
-ANNIE_PLAYER_ROLE_ID = "role_history_broad_street_beggar"
+ANNIE_TOM_PLAYER_ROLE_ID = "role_history_broad_street_tom_reed"
+ANNIE_LIZZIE_PLAYER_ROLE_ID = "role_history_broad_street_lizzie_bell"
+ANNIE_ROLE_ASSET_ROOT = (
+    "app/assets/story-worlds/history_broad_street_water_1854/player-roles"
+)
 
 SNOW_1855 = "https://wellcomecollection.org/works/uqa27qrt/items"
 PARISH_REPORT_1855 = "https://wellcomecollection.org/works/z8xczc2r"
@@ -39,7 +44,7 @@ ANNIE_REFERENCE_ENTRY_IDS_BY_STAGE = {
     "opening": (
         "fact_outbreak_intensified",
         "setting_annie_is_fictional",
-        "setting_player_is_beggar",
+        "setting_player_roles",
     ),
     "investigation": (
         "fact_snow_investigation_method",
@@ -146,29 +151,54 @@ ANNIE = Character(
     ),
     current_situation=(
         "1854 年 9 月 7 日下午，宽街下起了雨。你在水泵旁的屋檐下避雨，"
-        "脚边的破碗里还剩一点水。安妮抱着缺口陶罐，在两步外停下；"
+        "脚边的锡杯里还剩一点水。安妮抱着缺口陶罐，在两步外停下；"
         "你们从未见过，她没有理由立刻相信你。"
     ),
     opening_line=(
-        "“你碗里……还有一点水吗？”她看了一眼身后的水泵，没有再往前走。"
+        "“你杯里……还有一点水吗？”她看了一眼身后的水泵，没有再往前走。"
         "“妈妈只说，别再碰这口泵。可家里已经一点水也没有了。"
         "要是你的水不是从这里打的……能分我一点吗？”"
     ),
     relationship_rules=ANNIE_RELATIONSHIP_RULES,
 )
 
-PLAYER_ROLE = PlayerRole(
-    id=ANNIE_PLAYER_ROLE_ID,
+TOM_REED_PLAYER_ROLE = PlayerRole(
+    id=ANNIE_TOM_PLAYER_ROLE_ID,
     story_world_id=ANNIE_STORY_WORLD_ID,
-    name="乞丐",
-    age="未设定；安妮不得自行猜测具体年龄。",
-    social_position="苏活区没有权势的贫民，靠零工和施舍生活，与安妮一样容易被体面人忽视。",
-    gender="未说明",
-    background="你靠零工和施舍在苏活区街巷间过活，知道哪些门廊能避雨，也知道穷人的话常被忽视。",
-    entry_reason="你在宽街水泵旁的屋檐下避雨，脚边的破碗里还剩一点水；安妮抱着陶罐，在两步外停下向你求助。",
+    name="汤姆·里德",
+    age="成年，约十八岁；比安妮年长，但没有监护权或公共权威。",
+    social_position="印刷铺杂役 · 苏活区贫民",
+    gender="男性",
+    background="你在附近印刷铺搬纸、清墨，也替铺子送校样。你认得几处门牌和街巷，却没有资格把猜测印成事实。",
+    entry_reason="送纸页时遇雨，你在宽街水泵旁的屋檐下停住。锡杯里还剩一点从印刷铺带来的水，安妮抱着陶罐向你开口。",
     character_visible_information=(
-        "安妮看得出你同样缺水、没有权势。",
+        "安妮称你为“哥哥”。",
+        "你的年长不表示你拥有监护权或替安妮决定的权力。",
+        "安妮看得出你在印刷铺做杂役，同样没有权势。",
         "她不知道你的姓名，也没有理由立刻信任你。",
+    ),
+    avatar_url=public_media_url(
+        f"{ANNIE_ROLE_ASSET_ROOT}/tom-reed/v1/avatar.webp"
+    ),
+)
+
+LIZZIE_BELL_PLAYER_ROLE = PlayerRole(
+    id=ANNIE_LIZZIE_PLAYER_ROLE_ID,
+    story_world_id=ANNIE_STORY_WORLD_ID,
+    name="莉齐·贝尔",
+    age="成年，约十八岁；比安妮年长，但没有监护权或公共权威。",
+    social_position="洗衣店帮工 · 苏活区贫民",
+    gender="女性",
+    background="你在附近洗衣店烧水、晾衣，也替街坊送回叠好的衣物。你记得取水和送衣的门牌，却没有资格替住户作证。",
+    entry_reason="送衣途中遇雨，你在宽街水泵旁的屋檐下停住。锡杯里还剩一点从洗衣店带来的水，安妮抱着陶罐向你开口。",
+    character_visible_information=(
+        "安妮称你为“姐姐”。",
+        "你的年长不表示你拥有监护权或替安妮决定的权力。",
+        "安妮看得出你在洗衣店帮工，同样没有权势。",
+        "她不知道你的姓名，也没有理由立刻信任你。",
+    ),
+    avatar_url=public_media_url(
+        f"{ANNIE_ROLE_ASSET_ROOT}/lizzie-bell/v1/avatar.webp"
     ),
 )
 
@@ -181,8 +211,8 @@ CHAPTER = StoryChapter(
             id="node_water_request",
             narration=(
                 "1854 年 9 月 7 日下午，宽街下起了雨。"
-                "你靠零工和施舍在苏活区过活，此刻正坐在水泵旁的屋檐下避雨。"
-                "脚边的破碗里，还剩着一点水。"
+                "你靠街巷杂役在苏活区过活，此刻正坐在水泵旁的屋檐下避雨。"
+                "脚边的锡杯里，还剩着一点水。"
                 "一个抱着缺口陶罐的女孩在两步外停下。她约莫十岁，裙角已经湿透。"
                 "她没有向来往的店主和车夫开口，只看着同样一身雨水的你。"
                 "你们从未见过。她也没有理由立刻相信你。"
@@ -601,9 +631,9 @@ ANNIE_STORY_WORLD = StoryWorld(
     summary="在不可改写的宽街历史中，帮助原创儿童见证者把饮水来源和亲眼所见分开说清。",
     genre="历史剧情",
     publication_status=PublicationStatus.PUBLISHED,
-    content_version="annie-broad-street-2026-07-27.3",
+    content_version="annie-broad-street-2026-07-28.4",
     entry_chapter_id=CHAPTER.id,
-    player_roles=(PLAYER_ROLE,),
+    player_roles=(TOM_REED_PLAYER_ROLE, LIZZIE_BELL_PLAYER_ROLE),
     characters=(ANNIE,),
     chapters=(CHAPTER,),
     endings=(
@@ -677,9 +707,12 @@ ANNIE_STORY_WORLD = StoryWorld(
             sources=(),
         ),
         CanonEntry(
-            id="setting_player_is_beggar",
+            id="setting_player_roles",
             category=CanonCategory.STORY_SETTING,
-            statement="玩家以没有权势的乞丐身份在水泵旁遇见安妮。",
+            statement=(
+                "汤姆·里德与莉齐·贝尔均为原创玩家身份；每轮只选择其中一人，"
+                "在水泵旁遇见安妮。两人都没有公共权威，安妮分别称其为哥哥或姐姐。"
+            ),
             sources=(),
         ),
         CanonEntry(

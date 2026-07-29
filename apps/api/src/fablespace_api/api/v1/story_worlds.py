@@ -45,6 +45,7 @@ def _raise_http(exc: StoryRuntimeError) -> None:
         "active_run_exists",
         "dialogue_state_changed",
         "player_role_locked",
+        "story_content_changed",
     }:
         status = 409
     elif exc.code in {"player_role_required", "player_role_not_found"}:

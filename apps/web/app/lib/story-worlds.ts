@@ -11,6 +11,7 @@ export type StoryWorldCharacterDetail = {
   character: {
     id: string
     name: string
+    portrait_url: string | null
     current_situation: string
     opening_preview: string
     relationship_stage: RelationshipStage
@@ -18,6 +19,7 @@ export type StoryWorldCharacterDetail = {
   characters: Array<{
     id: string
     name: string
+    portrait_url: string | null
     current_situation: string
     relationship_stage: RelationshipStage
   }>

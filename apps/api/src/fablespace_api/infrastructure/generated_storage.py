@@ -11,6 +11,7 @@ from typing import Any
 from urllib.error import HTTPError, URLError
 from urllib.parse import quote, urlsplit, urlunsplit
 from urllib.request import Request, urlopen
+from uuid import uuid4
 
 
 class GeneratedStorageError(RuntimeError):
@@ -86,14 +87,21 @@ class S3GeneratedStorage:
         segments = [segment for segment in (self.prefix, "generated", normalized.as_posix()) if segment]
         return "/".join(segments)
 
-    def _put_object(self, file_path: str, content: bytes, media_type: str) -> None:
+    def _put_object(
+        self,
+        file_path: str,
+        content: bytes,
+        media_type: str,
+        *,
+        cache_control: str = "public,max-age=86400",
+    ) -> None:
         """Send one signed S3 PUT request with public generated-file cache headers."""
         object_key = self._object_key(file_path)
         base_path = self.endpoint.path.rstrip("/")
         object_path = f"{base_path}/{quote(self.bucket, safe='')}/{quote(object_key, safe='/-_.~')}"
         url = urlunsplit((self.endpoint.scheme, self.endpoint.netloc, object_path, "", ""))
         headers = self._signed_headers("PUT", url, content, media_type)
-        headers["Cache-Control"] = "public,max-age=86400"
+        headers["Cache-Control"] = cache_control
         request = Request(url, data=content, headers=headers, method="PUT")
         try:
             with urlopen(request, timeout=self.timeout) as response:
@@ -146,8 +154,63 @@ class S3GeneratedStorage:
         return hmac.new(service_key, b"aws4_request", hashlib.sha256).digest()
 
 
+class S3AdminMediaStorage(S3GeneratedStorage):
+    """Publish immutable administrator-provided images to the formal media prefix."""
+
+    def publish(
+        self,
+        content: bytes,
+        media_type: str,
+        extension: str,
+    ) -> tuple[str, str]:
+        relative_path = (
+            f"admin/{datetime.now(UTC):%Y/%m/%d}/{uuid4().hex}.{extension}"
+        )
+        self._put_object(
+            relative_path,
+            content,
+            media_type,
+            cache_control="public,max-age=31536000,immutable",
+        )
+        return self._object_key(relative_path), self.public_url(relative_path)
+
+    def _object_key(self, file_path: str) -> str:
+        normalized = PurePosixPath(str(file_path).replace("\\", "/"))
+        if normalized.is_absolute() or ".." in normalized.parts or not normalized.parts:
+            raise GeneratedStorageError("media file path is invalid")
+        segments = [
+            segment
+            for segment in (
+                self.prefix,
+                "media",
+                "v1",
+                normalized.as_posix(),
+            )
+            if segment
+        ]
+        return "/".join(segments)
+
+
 def create_generated_storage(settings: Any) -> LocalGeneratedStorage | S3GeneratedStorage:
     """Create the configured generated-file adapter without contacting its backend."""
     if getattr(settings, "generated_storage_backend", "local") == "s3":
         return S3GeneratedStorage(settings)
     return LocalGeneratedStorage()
+
+
+def create_admin_media_storage(settings: Any) -> S3AdminMediaStorage | None:
+    """Return configured immutable media storage without making a network request."""
+    try:
+        return S3AdminMediaStorage(settings)
+    except GeneratedStorageError:
+        return None
+
+
+__all__ = [
+    "GeneratedStorageError",
+    "LocalGeneratedStorage",
+    "S3AdminMediaStorage",
+    "S3GeneratedStorage",
+    "create_admin_media_storage",
+    "create_generated_storage",
+]

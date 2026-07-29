@@ -22,6 +22,8 @@ https://<cdn-domain>/fablespace/media/v1/<object-key>
 
 图片对象使用稳定、不可变 key，文件响应头为 `public,max-age=31536000,immutable`。内容变化时发布新 key 并更新清单和代码 URL，不覆盖旧对象，也不依赖清 CDN 缓存。JS/CSS 保持在前端站点同源部署。
 
+代码随附图片继续由 `deploy/cdn/media-manifest.json` 管理。固定管理员在 Character 编辑页上传的图片进入 `fablespace/media/v1/admin/`，由 `managed_media_assets` 记录，不写静态 manifest，也不提供媒体库或对象删除。
+
 ## GitHub 配置
 
 先在仓库 `Settings -> Secrets and variables -> Actions` 配置以下内容。Secret 不得写入仓库文件。
@@ -55,7 +57,7 @@ https://<cdn-domain>/fablespace/media/v1/<object-key>
 
 ## R2 / S3 与 CDN
 
-本节默认只用于公开的项目图片。ParallelLines 私密联动模式的运行时生成文件必须保留在本地持久卷，不进入公开 CDN。
+本节用于公开的项目图片和固定管理员提供的 Character 图片。ParallelLines 私密联动模式的运行时生成文件仍必须保留在本地持久卷，不进入公开 CDN；`FABLESPACE_GENERATED_STORAGE_BACKEND=local` 不妨碍受保护的管理员上传使用同一 S3/CDN 配置。
 
 1. 创建私有写入凭据，权限限制到目标桶的对象读写和列举。
 2. 为桶绑定公开 HTTPS 域名，把该域名写入 `CDN_BASE_URL`。
@@ -64,7 +66,7 @@ https://<cdn-domain>/fablespace/media/v1/<object-key>
 5. 不要对仍在 `deploy/cdn/media-manifest.json` 中的对象设置过期规则；删除或替换对象前必须先确认没有代码、seed 或文档 URL 引用。
 
 当 `deploy/cdn/**` 或部署工作流变化，或手动触发部署时，Workflow 会比较清单中每个对象的 key 与字节数，并通过 `CDN_BASE_URL` 实际下载抽样图片；普通前端代码变更不执行全量桶扫描，避免被无关的历史媒体漂移阻塞。全量校验触发后，对象缺失、大小不符、公开域名或 CDN 回源未生效仍会在替换服务器前阻止发布。
-清单为空时，全量校验会要求 `fablespace/media/v1/` 命名空间同样为空；残留未登记对象会直接阻止发布。
+清单为空时，全量校验会要求静态媒体命名空间同样为空；数据库登记的 `fablespace/media/v1/admin/` 动态对象不参与该空清单判断。
 
 ## 服务器首次准备
 
@@ -80,13 +82,15 @@ sudo python3 deploy/server/configure_shared_services.py --cors-origin https://fa
 sudo python3 deploy/server/configure_shared_services.py --cors-origin https://fable.pingxingxian.space
 ```
 
-配置脚本从 `/opt/parallellines/apps/api/.env` 映射数据库和 Redis 连接，默认写入 `FABLESPACE_GENERATED_STORAGE_BACKEND=local`；同时在两端环境文件中补齐私密联动配置。若两端都没有有效 SSO 密钥，脚本生成一份共享高强度随机值；若任一端已有有效值则复用；若两端已有不同的有效值则拒绝继续，避免静默轮换导致登录中断。FableSpace 会话密钥独立生成或复用，不与 SSO 密钥共享。发生实际变更前会生成 `.env.pre-shared-<UTC>` 备份，输出不包含密码或密钥；配置未变化时不会重复备份。脚本会保留无关配置，但会删除 `FABLEMAP_DATABASE_URL`、`FABLESPACE_MYSQL_URL`、`FABLEMAP_MYSQL_URL` 这些已由 `FABLESPACE_DATABASE_URL` 取代的数据库别名，避免新旧连接同时残留。Compose 插值写入仓库根 `.env`，其中后端宿主绑定为 `127.0.0.1:8950`，避免与 ParallelLines 的 `8000` 端口冲突，容器内 API 端口仍为 `8000`。生产部署 workflow 会幂等执行该脚本，并仅在 ParallelLines 环境实际变化时重建其 API/worker 以加载新值。只有独立公开部署才可传入 `--auth-mode legacy --generated-storage s3` 映射 R2 配置；私密联动模式会拒绝公开生成文件存储。
+配置脚本从 `/opt/parallellines/apps/api/.env` 映射数据库和 Redis 连接，默认写入 `FABLESPACE_GENERATED_STORAGE_BACKEND=local`；同时在两端环境文件中补齐私密联动配置。若 ParallelLines 已配置完整 `UPLOAD_S3_*` 与 `UPLOAD_CDN_BASE_URL`，脚本也会映射对应的 `FABLESPACE_S3_*`，供受保护的 Character 图片上传使用，但不会改变生成文件的本地归属。若两端都没有有效 SSO 密钥，脚本生成一份共享高强度随机值；若任一端已有有效值则复用；若两端已有不同的有效值则拒绝继续，避免静默轮换导致登录中断。FableSpace 会话密钥独立生成或复用，不与 SSO 密钥共享。发生实际变更前会生成 `.env.pre-shared-<UTC>` 备份，输出不包含密码或密钥；配置未变化时不会重复备份。脚本会保留无关配置，但会删除 `FABLEMAP_DATABASE_URL`、`FABLESPACE_MYSQL_URL`、`FABLEMAP_MYSQL_URL` 这些已由 `FABLESPACE_DATABASE_URL` 取代的数据库别名，避免新旧连接同时残留。Compose 插值写入仓库根 `.env`，其中后端宿主绑定为 `127.0.0.1:8950`，避免与 ParallelLines 的 `8000` 端口冲突，容器内 API 端口仍为 `8000`。生产部署 workflow 会幂等执行该脚本，并仅在 ParallelLines 环境实际变化时重建其 API/worker 以加载新值。只有独立公开部署才可传入 `--auth-mode legacy --generated-storage s3` 让生成文件进入 R2；私密联动模式会拒绝公开生成文件存储。
 
 在 ParallelLines MySQL 中创建独立库并给现有应用用户授权。实际容器名可用 `docker compose -p parallellines ps` 确认：
 
 ```bash
 docker exec parallellines-db-1 sh -c 'mysql -uroot -p"$MYSQL_ROOT_PASSWORD" -e "CREATE DATABASE IF NOT EXISTS fablespace CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci; GRANT ALL PRIVILEGES ON fablespace.* TO '\''$MYSQL_USER'\''@'\''%'\''; FLUSH PRIVILEGES"'
 ```
+
+内容后台的 schema 基线是 `apps/api/sql/migrations/007_managed_story_content.sql`，只创建 `managed_story_worlds` 与 `managed_media_assets`，不修改玩家记录。应用启动的 SQLAlchemy `create_tables()` 也会幂等创建这两张表；首次上线后会只补入缺失的安妮与长明宫 StoryWorld，不覆盖已经存在的管理文档。
 
 首次迁移前必须先为旧数据库做逻辑备份，再使用非破坏性迁移器执行 dry-run 和正式迁移。迁移器只建表并按主键 upsert，不删除目标行，并显式映射旧库 `tavern_id/tavern_name` 到当前 `space_id/space_name` 字段；实际执行时通过只读 volume 把 `apps/api/.env.pre-shared-*` 映射进临时 backend 容器，再用 `--source-env-file` 和 `--source-env-key FABLEMAP_DATABASE_URL` 读取源连接，避免把密码放进命令行或日志。
 
@@ -129,6 +133,17 @@ FABLESPACE_SESSION_COOKIE_SECURE=true
 FABLESPACE_SESSION_TTL_SECONDS=3600
 FABLESPACE_AUTH_INTROSPECTION_CACHE_TTL_SECONDS=30
 FABLESPACE_AUTH_INTROSPECTION_TIMEOUT_SECONDS=5
+FABLESPACE_ADMIN_USER_ID=<唯一管理员的可信账号 ID>
+FABLESPACE_ADMIN_MEDIA_MAX_BYTES=10485760
+
+# Character 编辑页上传；生成文件仍保持 local。
+FABLESPACE_S3_BUCKET=<项目现有桶>
+FABLESPACE_S3_REGION=auto
+FABLESPACE_S3_ENDPOINT_URL=<S3 endpoint>
+FABLESPACE_S3_ACCESS_KEY_ID=<仅限目标桶的写入 Key>
+FABLESPACE_S3_SECRET_ACCESS_KEY=<对应 Secret>
+FABLESPACE_S3_PREFIX=fablespace
+FABLESPACE_CDN_BASE_URL=https://img.pingxingxian.space
 ```
 
 在 `/opt/parallellines/apps/api/.env` 配置：
@@ -148,6 +163,8 @@ LLM 产品能力。票据兑换响应需要在身份资料之外返回 `capabili
 `POST /api/v1/auth/fablespace/introspect`。部署后直接打开 FableSpace 域名
 可浏览首页、角色卡和公开 StoryWorld 角色详情；开始、恢复、推进或重新开始
 故事的 API 必须在票据兑换并建立有效会话后开放，无会话时返回 `401`。
+
+内容后台不新增 ParallelLines capability。后端在已有 `fablespace.access` 可信会话基础上，再将账号 ID 与 `FABLESPACE_ADMIN_USER_ID` 比较；只有唯一匹配账号可以读取 `/api/v1/admin/**`、保存 StoryWorld 或上传 Character 图片。
 
 未登录玩家从角色页进入故事时，FableSpace 的
 `GET /api/v1/auth/parallellines/start` 先把允许的本站角色路径写入短期签名

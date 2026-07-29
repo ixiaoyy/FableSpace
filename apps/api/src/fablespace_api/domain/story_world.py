@@ -67,6 +67,7 @@ class Character:
     current_situation: str
     opening_line: str
     relationship_rules: RelationshipRules
+    portrait_url: str | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -387,6 +388,15 @@ def _validate_character(character: Character, story_world_id: str, path: str) ->
         f"{path}.relationship_rules",
     )
     _validate_relationship_rules(character.relationship_rules, f"{path}.relationship_rules")
+    if character.portrait_url is not None:
+        portrait_url = _require_text(character.portrait_url, f"{path}.portrait_url")
+        parsed = urlparse(portrait_url)
+        if parsed.scheme != "https" or not parsed.netloc:
+            _fail(
+                "invalid_media_url",
+                f"{path}.portrait_url",
+                "Character portrait URLs must be absolute HTTPS URLs.",
+            )
 
 
 def _validate_relationship_rules(rules: RelationshipRules, path: str) -> None:

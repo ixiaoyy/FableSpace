@@ -1,12 +1,13 @@
 # FableSpace 图片资源规范
 
-本文档约束 AI 生成图片、用户提供图片、页面切图和运行时图片。核心目标：**图片二进制只存放在对象存储，代码、seed 和文档使用 HTTPS URL，来源与哈希由清单追踪**。
+本文档约束 AI 生成图片、管理员提供图片、页面切图和运行时图片。核心目标：**图片二进制只存放在对象存储，代码、seed 和文档使用 HTTPS URL，来源与哈希由静态 manifest 或受控数据库记录追踪**。
 
 ## 存储与引用
 
 - 正式媒体基址固定为 `https://img.pingxingxian.space/fablespace/media/v1`；部署可通过 `VITE_MEDIA_BASE_URL` / `FABLESPACE_MEDIA_BASE_URL` 指向同结构的其他环境。
 - 项目代码不得 import 图片文件，也不得引用 `/assets/...`、`apps/web/...png` 等仓库路径；统一使用完整 HTTPS URL 或 `mediaAssetUrl()`。
-- Git 不保存 PNG、JPG、WebP、GIF、AVIF、ICO、SVG 等图片二进制。`deploy/cdn/media-manifest.json` 保存对象 key、URL、字节数、SHA-256 和 MIME 类型。
+- Git 不保存 PNG、JPG、WebP、GIF、AVIF、ICO、SVG 等图片二进制。随代码管理的静态资产由 `deploy/cdn/media-manifest.json` 保存对象 key、URL、字节数、SHA-256 和 MIME 类型。
+- 固定管理员从 Character 编辑页上传的动态图片不写 Git manifest；`managed_media_assets` 保存对象 key、URL、字节数、SHA-256、MIME、可选宽高、`user-provided` 来源和来源说明。动态记录不提供媒体库、列表或删除接口。
 - `.codex/generated_images`、系统临时目录、浏览器下载目录和聊天预览只算生成来源。被采用的图片必须先上传对象存储并进入清单；未采用的图片只标记为参考稿，不得被项目引用。
 - 替换图片时必须上传新对象并更新实际代码 URL 与清单；只生成或上传但仍引用旧 URL，视为未替换。
 - URL key 一经发布按不可变资源处理。内容变化时使用新 key，禁止原 key 覆盖后依赖清 CDN 缓存。
@@ -20,6 +21,7 @@
 |---|---|
 | `app/assets/home-story-bookshelf/v1/` | 首页故事封面与角色图 |
 | `app/assets/story-worlds/<story-id>/` | 已发布故事自己的封面、场景与角色图 |
+| `admin/<YYYY>/<MM>/<DD>/` | 固定管理员在 Character 编辑页上传的不可变原图 |
 
 示例：
 
@@ -27,7 +29,7 @@
 https://img.pingxingxian.space/fablespace/media/v1/app/assets/story-worlds/story_example/characters/char_example/neutral.webp
 ```
 
-## 上传与验证
+## 静态资产上传与验证
 
 1. 在仓库外准备候选图片，确认尺寸、格式和内容合规。
 2. 选择未被占用的对象 key，上传时设置 `Cache-Control: public,max-age=31536000,immutable` 和正确 `Content-Type`。
@@ -38,9 +40,22 @@ https://img.pingxingxian.space/fablespace/media/v1/app/assets/story-worlds/story
 部署校验脚本位于 `deploy/cdn/`。部署会逐项比较清单与桶内对象的 key 和字节数，并通过 CDN 实际读取抽样资源。
 当清单没有条目时，校验目标变为确认正式媒体命名空间不存在未登记对象。
 
-## NPC prompt sidecar
+`admin/` 是数据库登记的动态命名空间，不参与静态 manifest 的“空清单必须空桶”判断。
 
-NPC 头像、立绘、精灵图和表情组必须保留 prompt sidecar。Sidecar 是文本文件，可以留在仓库；其中 `asset` 和组内图片清单必须写对象存储 URL，不写本地图片路径。
+## Character 编辑页上传
+
+- 管理 API 只接受与 `FABLESPACE_ADMIN_USER_ID` 匹配的可信会话。
+- 只允许 PNG、JPEG 和 WebP；服务端同时核对声明 MIME 与真实图片头，并限制原始字节数。
+- 不裁剪、不缩放、不转码；每次上传使用新的 UUID 对象 key，设置 `public,max-age=31536000,immutable`。
+- 上传字节、对象存储凭据和 S3 签名只经过后端；前端只获得 HTTPS URL 和安全元数据。
+- 上传成功后将 URL 写入当前 Character 的 `portrait_url`。旧对象不覆盖、不自动删除。
+- 首页内容配置和独立媒体库不属于首版。
+
+## Character prompt sidecar
+
+项目生成并随代码管理的 Character 头像、立绘、精灵图和表情组必须保留 prompt sidecar。Sidecar 是文本文件，可以留在仓库；其中 `asset` 和组内图片清单必须写对象存储 URL，不写本地图片路径。
+
+固定管理员提供的 `user-provided` 原图不是项目 AI 生成资产，不要求伪造 prompt sidecar；它必须在 `managed_media_assets` 中保留来源类型、来源说明、尺寸、字节数和哈希。
 
 单张图片推荐：
 
@@ -106,9 +121,9 @@ updated_at: 2026-01-01
 
 `## Final prompt` 只保留自然 / neutral 单图 prompt，不要把五个表情 prompt 全写进去，避免生图工具生成“五表情同框”。找不到原始最终 prompt 时使用 `prompt_type: reverse-engineered`，并明确标注“不是原始生成 prompt”。
 
-## NPC 图片约束
+## Character 图片约束
 
-NPC 资产必须是原创虚构角色插画，不得像真人照片。正向 prompt 应包含 stylized anime/game illustration、non-photoreal fictional NPC、original character、not a real person、no celebrity likeness 等价语义；负向约束必须排除 photorealistic human、real-person portrait、live-action cosplay、stock photo、celebrity likeness 和 DSLR/camera-lens look。
+项目 AI 生成的 Character 资产必须是原创虚构角色插画，不得像真人照片。正向 prompt 应包含 stylized anime/game illustration、non-photoreal fictional character、original character、not a real person、no celebrity likeness 等价语义；负向约束必须排除 photorealistic human、real-person portrait、live-action cosplay、stock photo、celebrity likeness 和 DSLR/camera-lens look。
 
 如果结果像摄影棚人像、cosplay 照、明星脸或现实人物，不得上传到正式媒体命名空间，必须重生或标记为废稿。
 
@@ -122,7 +137,7 @@ NPC 资产必须是原创虚构角色插画，不得像真人照片。正向 pro
 ## 交付检查清单
 
 - [ ] 图片已上传到 `fablespace/media/v1/` 的不可变对象 key。
-- [ ] 清单中的 URL、字节数、SHA-256 和 MIME 类型与对象一致。
+- [ ] 静态清单或动态数据库记录中的 URL、字节数、SHA-256 和 MIME 类型与对象一致。
 - [ ] 代码、seed、文档和 sidecar 已改为 HTTPS URL。
 - [ ] NPC 生成图已有 prompt sidecar，且清单覆盖 expression、尺寸、hash 和 prompt_type。
 - [ ] 已通过 CDN URL 做真实读取验证。

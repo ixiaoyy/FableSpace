@@ -20,8 +20,9 @@ import {
   useReducer,
   useRef,
 } from "react"
-import { Link, useLoaderData, useNavigate } from "react-router"
+import { Link, useLoaderData, useNavigate, useSearchParams } from "react-router"
 
+import { PlayerRoleOption } from "../components/player-role-option"
 import { SESSION_EXPIRED_EVENT } from "../lib/api-client"
 import {
   characterPath,
@@ -39,7 +40,6 @@ import {
   sendStoryMessage,
   startStoryRun,
   type HistoricalReferenceCategory,
-  type PlayerRole,
   type StoryRun,
   type StoryWorldCharacterDetail,
 } from "../lib/story-worlds"
@@ -245,6 +245,7 @@ export default function CharacterStoryRoute() {
   const { detail, slug, error } = useLoaderData<typeof clientLoader>()
   const route = resolveCharacterRoute(slug)
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
   const [pageState, dispatch] = useReducer(
     storyPageReducer,
     INITIAL_STORY_PAGE_STATE,
@@ -261,6 +262,12 @@ export default function CharacterStoryRoute() {
     message,
   } = pageState
   const actionInFlightRef = useRef(false)
+  const requestedPlayerRoleId = searchParams.get("playerRoleId")?.trim() || ""
+  const validatedPlayerRoleId = detail?.player_roles.some(
+    (playerRole) => playerRole.id === requestedPlayerRoleId,
+  )
+    ? requestedPlayerRoleId
+    : ""
 
   const loadPrivateStory = useCallback(async (forceRefresh = false) => {
     if (!detail || !route) return
@@ -295,6 +302,19 @@ export default function CharacterStoryRoute() {
   }, [loadPrivateStory])
 
   useEffect(() => {
+    if (
+      !run
+      && validatedPlayerRoleId
+      && validatedPlayerRoleId !== selectedPlayerRoleId
+    ) {
+      dispatch({
+        type: "player-role-selected",
+        playerRoleId: validatedPlayerRoleId,
+      })
+    }
+  }, [run, selectedPlayerRoleId, validatedPlayerRoleId])
+
+  useEffect(() => {
     const handleSessionExpired = () => {
       actionInFlightRef.current = false
       dispatch({ type: "session-expired" })
@@ -315,9 +335,11 @@ export default function CharacterStoryRoute() {
   }
 
   const storyWorldId = route.storyWorldId
-  const loginHref = storyLoginUrl(characterStoryPath(route.slug))
   const effectivePlayerRoleId = selectedPlayerRoleId
     || (detail.player_roles.length === 1 ? detail.player_roles[0].id : "")
+  const loginHref = storyLoginUrl(
+    characterStoryPath(route.slug, effectivePlayerRoleId),
+  )
 
   async function runAction(
     kind: Exclude<StoryActionKind, "message">,
@@ -441,10 +463,16 @@ export default function CharacterStoryRoute() {
           selectedPlayerRoleId={effectivePlayerRoleId}
           pending={pendingAction !== null}
           actionError={actionError}
-          onPlayerRoleSelect={(playerRoleId) => dispatch({
-            type: "player-role-selected",
-            playerRoleId,
-          })}
+          onPlayerRoleSelect={(playerRoleId) => {
+            dispatch({
+              type: "player-role-selected",
+              playerRoleId,
+            })
+            navigate(
+              characterStoryPath(route.slug, playerRoleId),
+              { replace: true },
+            )
+          }}
           onCharacterSelect={(characterId) => void enterStory(characterId)}
         />
       ) : null}
@@ -471,10 +499,13 @@ export default function CharacterStoryRoute() {
             message: nextMessage,
           })}
           onSubmitMessage={submitMessage}
-          onRestart={() => dispatch({
-            type: "restart-ready",
-            playerRoleId: "",
-          })}
+          onRestart={() => {
+            navigate(characterStoryPath(route.slug), { replace: true })
+            dispatch({
+              type: "restart-ready",
+              playerRoleId: "",
+            })
+          }}
         />
       ) : null}
 
@@ -558,7 +589,7 @@ function StoryEntry({
               >
                 {characterRoute ? (
                   <img
-                    src={characterRoute.portrait}
+                    src={character.portrait_url || characterRoute.portrait}
                     alt=""
                     loading="lazy"
                   />
@@ -587,46 +618,6 @@ function StoryEntry({
         ) : null}
       </div>
     </section>
-  )
-}
-
-function PlayerRoleOption({
-  playerRole,
-  selected,
-  disabled,
-  onSelect,
-}: {
-  playerRole: PlayerRole
-  selected: boolean
-  disabled: boolean
-  onSelect: () => void
-}) {
-  return (
-    <button
-      className="annieStoryIdentityOption"
-      type="button"
-      aria-pressed={selected}
-      disabled={disabled}
-      onClick={onSelect}
-    >
-      <span className="annieStoryIdentityPortrait">
-        {playerRole.avatar_url ? (
-          <img src={playerRole.avatar_url} alt="" />
-        ) : (
-          <span aria-hidden="true">{playerRole.name.slice(0, 1)}</span>
-        )}
-      </span>
-      <span className="annieStoryIdentityCopy">
-        <span>
-          <strong>{playerRole.name}</strong>
-          <small>{playerRole.social_position}</small>
-        </span>
-        <span>{playerRole.entry_reason}</span>
-      </span>
-      <span className="annieStoryIdentityCheck" aria-hidden="true">
-        {selected ? "已选" : "选择"}
-      </span>
-    </button>
   )
 }
 

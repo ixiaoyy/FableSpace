@@ -153,7 +153,7 @@ def build_updates(
     prefix: str,
     generated_storage: str = "local",
 ) -> dict[str, str]:
-    """Map shared services while keeping generated files private unless S3 is explicit."""
+    """Map shared services while keeping generated files local in linked mode."""
     required = [
         "DATABASE_URL",
         "REDIS_URL",
@@ -167,9 +167,6 @@ def build_updates(
         "FABLESPACE_REDIS_URL": redis_url_for(parallellines["REDIS_URL"], redis_db),
         "FABLESPACE_GENERATED_STORAGE_BACKEND": generated_storage,
     }
-    if generated_storage != "s3":
-        return updates
-
     s3_keys = [
         "UPLOAD_S3_BUCKET",
         "UPLOAD_S3_ENDPOINT_URL",
@@ -179,7 +176,11 @@ def build_updates(
     ]
     missing_s3 = [key for key in s3_keys if not parallellines.get(key)]
     if missing_s3:
-        raise ValueError(f"ParallelLines env is missing: {', '.join(missing_s3)}")
+        if generated_storage == "s3":
+            raise ValueError(
+                f"ParallelLines env is missing: {', '.join(missing_s3)}"
+            )
+        return updates
     updates.update(
         {
             "FABLESPACE_S3_BUCKET": parallellines["UPLOAD_S3_BUCKET"],

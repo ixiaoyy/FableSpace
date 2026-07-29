@@ -23,6 +23,7 @@ contracts for the React Router frontend in `apps/web/`.
 | [Type Safety](./type-safety.md) | Type patterns, validation | To fill |
 | [User-Facing UI Copy](./ui-copy-guidelines.md) | Mandatory no-explanatory-copy and collection-structure contract | Active |
 | [Character Routing](./character-routing.md) | Canonical character-first public routes and identity boundary | Active |
+| [Managed StoryWorld Content](../backend/managed-story-content.md) | Admin information architecture and cross-layer current-content contract | Active |
 
 ---
 
@@ -34,9 +35,11 @@ Before changing any user-facing page or component:
 2. Read [Character Routing](./character-routing.md) when changing navigation,
    public routes, login return targets, or character entry surfaces.
 3. Read [Quality Guidelines](./quality-guidelines.md).
-4. Confirm the page structure is driven by its durable product role, not by the
+4. Read [Managed StoryWorld Content](../backend/managed-story-content.md) when
+   changing `/admin`, managed Character media, or current StoryWorld forms.
+5. Confirm the page structure is driven by its durable product role, not by the
    current number of records.
-5. Plan a mobile-first viewport check for visual or interaction changes.
+6. Plan a mobile-first viewport check for visual or interaction changes.
 
 ---
 

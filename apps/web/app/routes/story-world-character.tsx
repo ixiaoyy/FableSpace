@@ -1,7 +1,9 @@
 import type { ClientLoaderFunctionArgs } from "react-router"
-import { ArrowLeft, Feather, ShieldCheck } from "lucide-react"
+import { ArrowLeft, Feather } from "lucide-react"
+import { useState } from "react"
 import { Link, useLoaderData } from "react-router"
 
+import { PlayerRoleOption } from "../components/player-role-option"
 import {
   characterStoryPath,
   resolveCharacterRoute,
@@ -41,6 +43,7 @@ export async function clientLoader({ params }: ClientLoaderFunctionArgs): Promis
 export default function StoryWorldCharacterRoute() {
   const { detail, slug, error } = useLoaderData<typeof clientLoader>()
   const route = resolveCharacterRoute(slug)
+  const [selectedPlayerRoleId, setSelectedPlayerRoleId] = useState("")
 
   if (!detail || !route) {
     return (
@@ -66,40 +69,64 @@ export default function StoryWorldCharacterRoute() {
         <small>{detail.story_world.genre}</small>
       </header>
 
-      <section className="annieStoryHero" aria-labelledby="story-character-name">
-        <div className="annieStoryHeroArt">
-          <img
-            className="annieStoryHeroPortrait"
-            src={route.portrait}
-            alt={`${detail.character.name}角色立绘`}
-          />
-          <span>{detail.story_world.title}</span>
-        </div>
-        <div className="annieStoryHeroCopy">
-          <p className="annieStoryEyebrow">{route.sceneLabel}</p>
-          <h1 id="story-character-name">{detail.character.name}</h1>
-          <p className="annieStorySituation">{detail.character.current_situation}</p>
-          <div className="annieStoryRole">
-            <ShieldCheck aria-hidden="true" />
-            <div>
-              <span>{detail.player_roles.length > 1 ? "本轮可选身份" : "你在这个故事里是"}</span>
-              <div className="annieStoryRoleOptions">
-                {detail.player_roles.map((playerRole) => (
-                  <strong key={playerRole.id}>{playerRole.name}</strong>
-                ))}
-              </div>
-              {detail.player_roles.length === 1 ? (
-                <p>{detail.player_roles[0].background}</p>
-              ) : null}
-            </div>
+      <section className="annieCharacterEntry" aria-labelledby="story-character-name">
+        <div className="annieCharacterIntro">
+          <div className="annieCharacterStoryCopy">
+            <p className="annieStoryEyebrow">{route.sceneLabel}</p>
+            <span>{detail.story_world.title}</span>
+            <h1 id="story-character-name">{detail.character.name}</h1>
+            <p className="annieCharacterScene">{detail.character.current_situation}</p>
           </div>
-          <Link
-            className="annieStoryPrimaryButton"
-            to={characterStoryPath(route.slug)}
+
+          <article className="annieCharacterPresence">
+            <img
+              src={detail.character.portrait_url || route.portrait}
+              alt={`${detail.character.name}头像`}
+            />
+            <div>
+              <span>{detail.character.name}</span>
+              <p>{detail.character.opening_preview}</p>
+            </div>
+          </article>
+        </div>
+
+        <div className="annieCharacterRoleStep">
+          <div className="annieCharacterRoleHeading">
+            <p className="annieStoryEyebrow">你的身份</p>
+            <h2>这一次，你是谁？</h2>
+          </div>
+          <div
+            className="annieStoryIdentityGrid"
+            role="group"
+            aria-label="选择故事身份"
           >
-            <Feather aria-hidden="true" />
-            <span>去见{detail.character.name}</span>
-          </Link>
+            {detail.player_roles.map((playerRole) => (
+              <PlayerRoleOption
+                key={playerRole.id}
+                playerRole={playerRole}
+                selected={selectedPlayerRoleId === playerRole.id}
+                disabled={false}
+                onSelect={() => setSelectedPlayerRoleId(playerRole.id)}
+              />
+            ))}
+          </div>
+        </div>
+
+        <div className="annieCharacterActions">
+          {selectedPlayerRoleId ? (
+            <Link
+              className="annieStoryPrimaryButton"
+              to={characterStoryPath(route.slug, selectedPlayerRoleId)}
+            >
+              <Feather aria-hidden="true" />
+              <span>去见{detail.character.name}</span>
+            </Link>
+          ) : (
+            <button className="annieStoryPrimaryButton" type="button" disabled>
+              <Feather aria-hidden="true" />
+              <span>先选一个身份</span>
+            </button>
+          )}
         </div>
       </section>
     </main>

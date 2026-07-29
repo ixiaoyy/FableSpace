@@ -27,8 +27,9 @@ ACCESS_CAPABILITY = "fablespace.access"
 AUTHORIZATION_LOCK_STRIPES = 64
 LOGIN_RETURN_COOKIE = "fablespace_login_return"
 LOGIN_RETURN_TTL_SECONDS = 10 * 60
-STORY_RETURN_PATH_PATTERN = re.compile(
-    r"^/characters/[A-Za-z0-9_-]+/story$"
+STORY_RETURN_TARGET_PATTERN = re.compile(
+    r"^/characters/[A-Za-z0-9_-]+/story"
+    r"(?:\?playerRoleId=[A-Za-z0-9_-]{1,128})?$"
 )
 
 
@@ -486,7 +487,7 @@ def _decode_login_return_cookie(raw_cookie: str, settings: ApiSettings) -> str:
 
 
 def _safe_story_return_path(raw_path: str) -> str:
-    """Allow only canonical character story paths, rejecting encoded redirect tricks."""
+    """Allow a canonical story path and one reviewed-role selector query."""
     raw_candidate = str(raw_path or "")
     candidate = raw_candidate.strip()
     if (
@@ -496,7 +497,7 @@ def _safe_story_return_path(raw_path: str) -> str:
         or "%" in candidate
         or "\\" in candidate
         or any(ord(character) < 0x20 or ord(character) == 0x7F for character in candidate)
-        or STORY_RETURN_PATH_PATTERN.fullmatch(candidate) is None
+        or STORY_RETURN_TARGET_PATTERN.fullmatch(candidate) is None
     ):
         return "/"
     return candidate

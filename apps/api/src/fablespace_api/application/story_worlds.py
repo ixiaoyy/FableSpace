@@ -20,11 +20,11 @@ from ..content.annie_broad_street import (
 from ..domain.story_world import (
     Character,
     PlayerRole,
+    PublicationStatus,
     RelationshipStage,
     StoryChoice,
     StoryNode,
     StoryWorld,
-    StoryWorldRegistry,
 )
 from ..infrastructure.database import Database
 from ..infrastructure.story_state_models import (
@@ -58,6 +58,12 @@ class StoryDialogueResponder(Protocol):
         events: list[dict[str, object]],
         player_message: str,
     ) -> str: ...
+
+
+class StoryWorldSource(Protocol):
+    def get(self, story_world_id: str) -> StoryWorld | None: ...
+
+    def published(self) -> tuple[StoryWorld, ...]: ...
 
 
 def _dialogue_system_message(
@@ -239,7 +245,7 @@ class StoryWorldApplicationService:
     def __init__(
         self,
         database: Database,
-        registry: StoryWorldRegistry,
+        registry: StoryWorldSource,
         responder: StoryDialogueResponder,
         dialogue_policy: StoryDialoguePolicy | None = None,
     ) -> None:
@@ -262,6 +268,7 @@ class StoryWorldApplicationService:
                 {
                     "id": candidate.id,
                     "name": candidate.name,
+                    "portrait_url": candidate.portrait_url,
                     "current_situation": candidate.current_situation,
                     "relationship_stage": {
                         "id": candidate_stage.id,
@@ -281,6 +288,7 @@ class StoryWorldApplicationService:
             "character": {
                 "id": character.id,
                 "name": character.name,
+                "portrait_url": character.portrait_url,
                 "current_situation": character.current_situation,
                 "opening_preview": character.opening_line,
                 "relationship_stage": {
@@ -305,12 +313,26 @@ class StoryWorldApplicationService:
         world = self._published_world(story_world_id)
         character = self._character(world, character_id)
         with self.database.session_scope() as session:
-            state = session.get(PlayerStoryStateModel, (player_id, world.id))
+            state = session.scalar(
+                select(PlayerStoryStateModel)
+                .where(
+                    PlayerStoryStateModel.player_id == player_id,
+                    PlayerStoryStateModel.story_world_id == world.id,
+                )
+                .with_for_update()
+            )
             if state is None:
                 return None
             run = None
             if state.active_story_run_id:
                 run = session.get(StoryRunModel, state.active_story_run_id)
+                run = self._refresh_active_run(
+                    session,
+                    state,
+                    world,
+                    character,
+                    run,
+                )
             if run is None:
                 run = session.scalar(
                     select(StoryRunModel)
@@ -322,16 +344,17 @@ class StoryWorldApplicationService:
                     .order_by(StoryRunModel.completed_at.desc())
                     .limit(1)
                 )
-            if (
-                run is not None
-                and run.status == "active"
-                and state.player_role_id != run.player_role_id
-            ):
+            if run is None:
+                return None
+            if run.status == "active" and state.player_role_id != run.player_role_id:
                 raise StoryRuntimeError(
                     "invalid_runtime_state",
                     "玩家状态与活动轮次锁定的身份不一致。",
                 )
-            return self._run_projection(session, world, character, run, state) if run else None
+            if not self._run_uses_current_content(world, run):
+                return None
+            session.flush()
+            return self._run_projection(session, world, character, run, state)
 
     def start(
         self,
@@ -348,12 +371,31 @@ class StoryWorldApplicationService:
             if state.active_story_run_id:
                 active = session.get(StoryRunModel, state.active_story_run_id)
                 if active and active.status == "active":
-                    if active.player_role_id != player_role.id:
+                    if (
+                        active.player_role_id != player_role.id
+                        and self._run_uses_current_content(world, active)
+                    ):
                         raise StoryRuntimeError(
                             "player_role_locked",
                             "当前轮次已经锁定了另一个身份。",
                         )
-                    return self._run_projection(session, world, character, active, state)
+                    active = self._refresh_active_run(
+                        session,
+                        state,
+                        world,
+                        character,
+                        active,
+                        replacement_player_role=player_role,
+                    )
+                    if active is not None:
+                        session.flush()
+                        return self._run_projection(
+                            session,
+                            world,
+                            character,
+                            active,
+                            state,
+                        )
             run = self._create_run(session, state, world, character, player_role)
             session.flush()
             return self._run_projection(session, world, character, run, state)
@@ -390,6 +432,34 @@ class StoryWorldApplicationService:
         character = self._character(world, character_id)
         with self.database.session_scope() as session:
             run = self._owned_active_run(session, player_id, world.id, run_id)
+            state = self._active_state_for_update(
+                session,
+                player_id,
+                world.id,
+                run.id,
+            )
+            original_run_id = run.id
+            run = self._refresh_active_run(
+                session,
+                state,
+                world,
+                character,
+                run,
+            )
+            if run is None:
+                raise StoryRuntimeError(
+                    "invalid_runtime_state",
+                    "活动故事轮次不存在。",
+                )
+            if run.id != original_run_id or run.status != "active":
+                session.flush()
+                return self._run_projection(
+                    session,
+                    world,
+                    character,
+                    run,
+                    state,
+                )
             relationship = session.get(
                 CharacterRelationshipModel,
                 (run.id, character.id),
@@ -426,16 +496,47 @@ class StoryWorldApplicationService:
             model_reply=model_reply,
             input_fallback=input_fallback,
         )
+        world = self._published_world(story_world_id)
+        character = self._character(world, character_id)
         with self.database.session_scope() as session:
             run = self._owned_active_run(session, player_id, world.id, run_id)
+            state = self._active_state_for_update(
+                session,
+                player_id,
+                world.id,
+                run.id,
+            )
+            original_run_id = run.id
+            run = self._refresh_active_run(
+                session,
+                state,
+                world,
+                character,
+                run,
+            )
+            if run is None:
+                raise StoryRuntimeError(
+                    "invalid_runtime_state",
+                    "活动故事轮次不存在。",
+                )
+            if (
+                run.id != original_run_id
+                or run.status != "active"
+                or run.content_version != snapshot_content_version
+            ):
+                session.flush()
+                return self._run_projection(
+                    session,
+                    world,
+                    character,
+                    run,
+                    state,
+                )
             if run.current_node_id != snapshot_node_id:
                 raise StoryRuntimeError(
                     "dialogue_state_changed",
                     "故事已经进入下一段，请基于当前情节重新回应。",
                 )
-            state = session.get(PlayerStoryStateModel, (player_id, world.id))
-            if state is None:
-                raise StoryRuntimeError("invalid_runtime_state", "玩家故事状态不存在。")
             relationship = session.get(
                 CharacterRelationshipModel,
                 (run.id, character.id),
@@ -511,9 +612,50 @@ class StoryWorldApplicationService:
         character = self._character(world, character_id)
         with self.database.session_scope() as session:
             run = self._owned_run(session, player_id, world.id, run_id)
-            state = session.get(PlayerStoryStateModel, (player_id, world.id))
-            if state is None:
-                raise StoryRuntimeError("invalid_runtime_state", "玩家故事状态不存在。")
+            if run.status == "active":
+                state = self._active_state_for_update(
+                    session,
+                    player_id,
+                    world.id,
+                    run.id,
+                )
+                original_run_id = run.id
+                run = self._refresh_active_run(
+                    session,
+                    state,
+                    world,
+                    character,
+                    run,
+                )
+                if run is None:
+                    raise StoryRuntimeError(
+                        "invalid_runtime_state",
+                        "活动故事轮次不存在。",
+                    )
+                if run.id != original_run_id or run.status != "active":
+                    session.flush()
+                    return self._run_projection(
+                        session,
+                        world,
+                        character,
+                        run,
+                        state,
+                    )
+            else:
+                state = session.get(
+                    PlayerStoryStateModel,
+                    (player_id, world.id),
+                )
+                if state is None:
+                    raise StoryRuntimeError(
+                        "invalid_runtime_state",
+                        "玩家故事状态不存在。",
+                    )
+                if not self._run_uses_current_content(world, run):
+                    raise StoryRuntimeError(
+                        "story_content_changed",
+                        "故事内容已更新，请重新进入当前故事。",
+                    )
             prior = session.scalar(
                 select(StoryEventModel).where(
                     StoryEventModel.story_run_id == run.id,
@@ -677,6 +819,149 @@ class StoryWorldApplicationService:
         )
         return run
 
+    def _refresh_active_run(
+        self,
+        session,
+        state: PlayerStoryStateModel,
+        world: StoryWorld,
+        entry_character: Character,
+        run: StoryRunModel | None,
+        *,
+        replacement_player_role: PlayerRole | None = None,
+    ) -> StoryRunModel | None:
+        """Adopt current content or replace an invalid active run at the live entry."""
+        if run is None or run.status != "active":
+            state.active_story_run_id = None
+            return None
+        if self._run_uses_current_content(world, run):
+            run.content_version = world.content_version
+            state.player_role_id = run.player_role_id
+            self._ensure_current_relationships(session, run, world)
+            node = self._node(world, run.current_node_id)
+            if node.ending_id:
+                self._complete_current_terminal(session, state, run, world, node.ending_id)
+            return run
+
+        run.status = "completed"
+        run.ending_id = None
+        run.ending_summary = None
+        run.completed_at = datetime.utcnow()
+        state.active_story_run_id = None
+        current_role = next(
+            (
+                player_role
+                for player_role in world.player_roles
+                if player_role.id == run.player_role_id
+            ),
+            None,
+        )
+        player_role = replacement_player_role or current_role or world.player_roles[0]
+        return self._create_run(
+            session,
+            state,
+            world,
+            entry_character,
+            player_role,
+        )
+
+    def _ensure_current_relationships(
+        self,
+        session,
+        run: StoryRunModel,
+        world: StoryWorld,
+    ) -> None:
+        """Add new Character relationships and remap retained values to current rules."""
+        for character in world.characters:
+            relationship = session.get(
+                CharacterRelationshipModel,
+                (run.id, character.id),
+            )
+            if relationship is None:
+                stage = self._stage_for(
+                    character,
+                    character.relationship_rules.initial_affinity,
+                )
+                session.add(
+                    CharacterRelationshipModel(
+                        story_run_id=run.id,
+                        character_id=character.id,
+                        affinity=character.relationship_rules.initial_affinity,
+                        stage=stage.id,
+                        last_change_reason="",
+                        flags=[],
+                    )
+                )
+                continue
+            first_threshold = character.relationship_rules.stages[0].minimum_affinity
+            relationship.affinity = max(
+                first_threshold,
+                min(
+                    character.relationship_rules.maximum_affinity,
+                    max(
+                        character.relationship_rules.minimum_affinity,
+                        relationship.affinity,
+                    ),
+                ),
+            )
+            relationship.stage = self._stage_for(
+                character,
+                relationship.affinity,
+            ).id
+
+    def _complete_current_terminal(
+        self,
+        session,
+        state: PlayerStoryStateModel,
+        run: StoryRunModel,
+        world: StoryWorld,
+        ending_id: str,
+    ) -> None:
+        ending = self._ending(world, ending_id)
+        run.status = "completed"
+        run.ending_id = ending.id
+        run.ending_summary = ending.summary
+        run.completed_at = datetime.utcnow()
+        state.active_story_run_id = None
+        summaries = list(state.completed_run_summaries or [])
+        if not any(
+            isinstance(item, dict) and item.get("story_run_id") == run.id
+            for item in summaries
+        ):
+            summaries.append(
+                {
+                    "story_run_id": run.id,
+                    "ending_id": ending.id,
+                    "title": ending.title,
+                    "summary": ending.summary,
+                }
+            )
+        state.completed_run_summaries = summaries[-10:]
+
+    @staticmethod
+    def _run_uses_current_content(
+        world: StoryWorld,
+        run: StoryRunModel,
+    ) -> bool:
+        if not any(role.id == run.player_role_id for role in world.player_roles):
+            return False
+        chapter = next(
+            (
+                candidate
+                for candidate in world.chapters
+                if candidate.id == run.current_chapter_id
+            ),
+            None,
+        )
+        if chapter is None or not any(
+            node.id == run.current_node_id for node in chapter.nodes
+        ):
+            return False
+        if run.ending_id and not any(
+            ending.id == run.ending_id for ending in world.endings
+        ):
+            return False
+        return True
+
     def _state_for_update(
         self,
         session,
@@ -705,6 +990,28 @@ class StoryWorldApplicationService:
             session.flush()
         else:
             state.player_role_id = player_role.id
+        return state
+
+    @staticmethod
+    def _active_state_for_update(
+        session,
+        player_id: str,
+        story_world_id: str,
+        run_id: str,
+    ) -> PlayerStoryStateModel:
+        state = session.scalar(
+            select(PlayerStoryStateModel)
+            .where(
+                PlayerStoryStateModel.player_id == player_id,
+                PlayerStoryStateModel.story_world_id == story_world_id,
+            )
+            .with_for_update()
+        )
+        if state is None or state.active_story_run_id != run_id:
+            raise StoryRuntimeError(
+                "invalid_runtime_state",
+                "玩家状态与活动故事轮次不一致。",
+            )
         return state
 
     def _owned_run(self, session, player_id: str, story_world_id: str, run_id: str):
@@ -887,7 +1194,10 @@ class StoryWorldApplicationService:
 
     def _published_world(self, story_world_id: str) -> StoryWorld:
         world = self.registry.get(story_world_id)
-        if world is None or world not in self.registry.published():
+        if (
+            world is None
+            or world.publication_status is not PublicationStatus.PUBLISHED
+        ):
             raise StoryRuntimeError("story_world_not_found", "没有找到这个故事世界。")
         return world
 

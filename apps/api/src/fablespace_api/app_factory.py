@@ -18,7 +18,15 @@ from .domain.public_reference import public_reference_code
 from .infrastructure.database import Database
 from .infrastructure.storage import resolve_database_url
 from .infrastructure.settings import ApiSettings
-from .infrastructure.generated_storage import GeneratedStorageError, create_generated_storage
+from .infrastructure.generated_storage import (
+    GeneratedStorageError,
+    create_admin_media_storage,
+    create_generated_storage,
+)
+from .infrastructure.managed_story_content_store import (
+    ManagedMediaAssetStore,
+    ManagedStoryWorldStore,
+)
 from .infrastructure.storage import create_space_store
 
 logger = logging.getLogger(__name__)
@@ -102,9 +110,16 @@ def create_app(settings: ApiSettings | None = None) -> FastAPI:
         echo=resolved.mysql_echo,
     )
     story_database.create_tables()
-    story_worlds_service = StoryWorldApplicationService(
+    managed_story_worlds = ManagedStoryWorldStore(
         story_database,
         STORY_WORLD_REGISTRY,
+    )
+    seeded_story_worlds = managed_story_worlds.seed_missing()
+    if seeded_story_worlds:
+        logger.info("Seeded %s managed StoryWorld documents", seeded_story_worlds)
+    story_worlds_service = StoryWorldApplicationService(
+        story_database,
+        managed_story_worlds,
         SystemStoryDialogueResponder(),
     )
 
@@ -113,6 +128,9 @@ def create_app(settings: ApiSettings | None = None) -> FastAPI:
     app.state.spaces = spaces_service
     app.state.story_worlds = story_worlds_service
     app.state.story_database = story_database
+    app.state.managed_story_worlds = managed_story_worlds
+    app.state.managed_media_assets = ManagedMediaAssetStore(story_database)
+    app.state.admin_media_storage = create_admin_media_storage(resolved)
     app.state.generated_storage = generated_storage
     app.state.access_verifier = ParallelLinesAccessVerifier(resolved)
 
