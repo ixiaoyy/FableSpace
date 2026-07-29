@@ -723,10 +723,29 @@
   font-weight: 700;
 }
 
-.annieStoryRunHeading > p {
+.annieStoryRelationshipPresence {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.annieStoryRelationshipPresence > span {
+  color: #3b2e43;
+  font-family: system-ui, sans-serif;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+}
+
+.annieStoryRelationshipPresence > p {
   margin: 0;
   color: var(--annie-muted);
   line-height: 1.75;
+}
+
+.annieStoryRelationshipPresence > small {
+  color: #785f78;
+  font-family: system-ui, sans-serif;
+  line-height: 1.55;
 }
 
 .annieStoryReferenceRail {

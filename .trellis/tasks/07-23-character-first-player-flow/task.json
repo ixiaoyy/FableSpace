@@ -21,7 +21,8 @@
   "children": [
     "07-23-character-discovery-routes",
     "07-23-story-interaction-ui",
-    "07-23-story-continuity-ui"
+    "07-23-story-continuity-ui",
+    "07-28-annie-character-presence"
   ],
   "parent": "07-22-product-mainline-rebuild",
   "relatedFiles": [],

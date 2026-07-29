@@ -738,7 +738,15 @@ function StoryRunWorkspace({
               <p className="annieStoryEyebrow">此刻</p>
               <h2>{detail.story_world.title}</h2>
             </div>
-            <p>{run.current_node.narration}</p>
+            <div className="annieStoryRelationshipPresence" aria-live="polite">
+              <span>
+                {detail.character.name} · {run.relationship.label}
+              </span>
+              <p>{run.relationship.attitude}</p>
+              {run.relationship.last_change_reason ? (
+                <small>{run.relationship.last_change_reason}</small>
+              ) : null}
+            </div>
           </div>
         ) : null}
 
@@ -795,20 +803,8 @@ function StoryTimeline({
 }) {
   const timelineRef = useRef<HTMLDivElement>(null)
   const latestEventId = run.events[run.events.length - 1]?.id
-  const currentNarrationEventId = run.events.reduce<string | null>(
-    (matchedId, event) => (
-      event.type === "narration"
-      && event.content === run.current_node.narration
-        ? event.id
-        : matchedId
-    ),
-    null,
-  )
   const timelineEvents = run.events.filter(
-    (event) => (
-      event.id !== currentNarrationEventId
-      && event.type !== "relationship_changed"
-    ),
+    (event) => event.type !== "relationship_changed",
   )
 
   useEffect(() => {

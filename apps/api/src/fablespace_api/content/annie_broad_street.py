@@ -112,25 +112,25 @@ ANNIE_RELATIONSHIP_RULES = RelationshipRules(
             id="guarded",
             label="戒备",
             minimum_affinity=-20,
-            attitude="安妮把纸页收回怀里，只肯说眼前能够确认的事。",
+            attitude="安妮把纸页和陶罐都收回怀里，退开两步；她避开你的目光，不再主动问路。",
         ),
         RelationshipStage(
             id="watchful",
             label="试探",
             minimum_affinity=0,
-            attitude="安妮愿意听你说完，但仍在核对你会不会把猜测当成事实。",
+            attitude="安妮仍隔着两步，抱紧陶罐看着你的手和锡杯；她会问一句，但要先听你把话说完。",
         ),
         RelationshipStage(
             id="walking_together",
             label="同行",
             minimum_affinity=4,
-            attitude="安妮允许你陪在身边，一起核对门牌、取水处和亲眼所见。",
+            attitude="安妮愿意贴着墙根和你并肩走，把陶罐换到一只手里，主动指给你看记得的门牌。",
         ),
         RelationshipStage(
             id="trusting",
             label="信任",
             minimum_affinity=10,
-            attitude="安妮相信你会尊重事实，也会让她用自己的话讲完见闻。",
+            attitude="安妮不再躲开你的目光，把纸的一角留给你；她会自己开口，只请你补记门牌。",
         ),
     ),
 )
@@ -269,8 +269,9 @@ CHAPTER = StoryChapter(
         StoryNode(
             id="node_ask_pump",
             narration=(
-                "安妮朝街角看了一眼。她家一直在那里取水；这几天，楼上和对门都有人病倒。"
-                "母亲只说不许再碰，却没有告诉她还能去哪里。"
+                "安妮把陶罐往怀里一缩，回头看了看水泵。"
+                "“我们以前总在这儿打水。可这几天，楼上和对门都有人病了。"
+                "妈妈只说不许碰……她没告诉我还能去哪儿。”"
             ),
             ending_id=None,
             choices=(
@@ -305,7 +306,10 @@ CHAPTER = StoryChapter(
         ),
         StoryNode(
             id="node_trace_water",
-            narration="她的手伸到一半，又收了回去。水看起来都一样，她只肯先听你说清这碗水的来路。",
+            narration=(
+                "安妮的手伸到一半，又收了回去。"
+                "“水看起来都一样。你先告诉我，是从哪儿来的。”"
+            ),
             ending_id=None,
             choices=(
                 _choice(
@@ -339,7 +343,10 @@ CHAPTER = StoryChapter(
         ),
         StoryNode(
             id="node_walk_together",
-            narration="安妮把陶罐抱回怀里，沿墙根避开排在水泵前的人。她问你愿意陪到哪一步。",
+            narration=(
+                "安妮把陶罐抱回怀里，沿墙根避开排在水泵前的人。"
+                "“你能陪我到哪儿？过了那条街，也算吗？”"
+            ),
             ending_id=None,
             choices=(
                 _choice(
@@ -374,8 +381,9 @@ CHAPTER = StoryChapter(
         StoryNode(
             id="node_doctor_list",
             narration=(
-                "街的另一头，有人拿着死亡登记名单，逐户询问死者家里喝过哪里的水。"
-                "Snow 的调查早已开始；安妮能做的，只是把自己确实知道的取水处说清。"
+                "安妮看见街那头有人拿着死亡登记名单，脚步慢了下来。"
+                "“他在问哪家喝了哪里的水。我要是说错了，会不会把别人也写错？”"
+                "Snow 的调查早已开始；她能做的，只是把自己确实知道的取水处说清。"
             ),
             ending_id=None,
             choices=(
@@ -411,8 +419,8 @@ CHAPTER = StoryChapter(
         StoryNode(
             id="node_trace_source",
             narration=(
-                "你们沿来路回找。安妮不认水色，也不认一句保证；她只认取得到的地点、"
-                "看得见的门牌，以及谁亲手提过水。"
+                "你们沿来路回找。安妮蹲下来，用指尖沿着湿漉漉的路面比门牌。"
+                "“我不认水的颜色。我只认你从哪扇门出来，还有谁亲手提过。”"
             ),
             ending_id=None,
             choices=(
@@ -449,7 +457,8 @@ CHAPTER = StoryChapter(
             id="node_doorstep",
             narration=(
                 "两扇门给出的说法并不一样：一户只记得病倒的人，另一户记得是谁去取过水。"
-                "安妮蹲下来，把“亲眼看见”和“听人说”分成两边。"
+                "安妮蹲下来，把纸分成两边。"
+                "“这个是亲眼看见的。这个只是听来的，不能放在一块儿。”"
             ),
             ending_id=None,
             choices=(
@@ -486,7 +495,8 @@ CHAPTER = StoryChapter(
             id="node_contrast_sources",
             narration=(
                 "街坊提到附近济贫院有自己的水源，啤酒厂工人通常也不饮用街泵水。"
-                "安妮在纸边写下“听说”，不肯把还没核对的话装成亲眼所见。"
+                "安妮在纸边慢慢写下“听说”。"
+                "“没问过，就不能当成真的。”"
             ),
             ending_id=None,
             choices=(
@@ -514,7 +524,8 @@ CHAPTER = StoryChapter(
             id="node_record_testimony",
             narration=(
                 "纸上有了三列：哪一扇门、从哪里取水、这句话是谁亲眼看见的。"
-                "安妮把纸压在陶罐下面，决定最后由谁开口。"
+                "安妮把纸压在陶罐下面，没有把它递出去。"
+                "“这回让我自己说。你要是怕我漏了门牌，就在旁边补。”"
             ),
             ending_id=None,
             choices=(
@@ -550,8 +561,8 @@ CHAPTER = StoryChapter(
         StoryNode(
             id="node_record_wary",
             narration=(
-                "安妮把纸抽了回去。她可以原谅弄错，却不肯让猜测冒充见过的事，"
-                "也不肯把自己的话交给别人改。"
+                "安妮把纸抽了回去，手指紧紧压住那行字。"
+                "“弄错了可以划掉。编的不能留。我的话也不能交给别人改。”"
             ),
             ending_id=None,
             choices=(
@@ -578,8 +589,9 @@ CHAPTER = StoryChapter(
         StoryNode(
             id="node_trust_ending",
             narration=(
-                "安妮自己说完每一扇门和每一处取水点。她没有叫你恩人，只把你的门牌"
-                "补在纸角：这是她愿意下次再来找的人。" + FIXED_HISTORY_RESULT
+                "“我自己说。你只补门牌，好吗？”安妮说完每一扇门和每一处取水点。"
+                "她没有叫你恩人，只把你的门牌补在纸角：这是她愿意下次再来找的人。"
+                + FIXED_HISTORY_RESULT
             ),
             choices=(),
             ending_id="ending_witness_heard",
@@ -587,7 +599,8 @@ CHAPTER = StoryChapter(
         StoryNode(
             id="node_safe_ending",
             narration=(
-                "你们并肩走到正在收集说法的人群边。那张纸只是许多住户见闻中的一张；"
+                "“纸上没有的，我们就不说。”安妮和你并肩走到正在收集说法的人群边。"
+                "那张纸只是许多住户见闻中的一张；"
                 "安妮却记住了，你一路都没有替她把不知道的事说成知道。"
                 + FIXED_HISTORY_RESULT
             ),
@@ -597,7 +610,8 @@ CHAPTER = StoryChapter(
         StoryNode(
             id="node_repaired_ending",
             narration=(
-                "你划掉了那句过头的话。安妮盯着墨痕看了一会儿，把纸重新递给你一角。"
+                "你划掉了那句过头的话。安妮盯着墨痕看了一会儿。"
+                "“这道印子别擦掉。别人得知道我们改过。”她把纸重新递给你一角。"
                 "她还没有完全信你，但愿意让你陪着把路走完。" + FIXED_HISTORY_RESULT
             ),
             choices=(),
@@ -606,7 +620,8 @@ CHAPTER = StoryChapter(
         StoryNode(
             id="node_wary_ending",
             narration=(
-                "安妮把纸折回自己口袋，不再让你替她开口。你们走向同一条街，却隔开了"
+                "“纸给我，我自己拿着。”安妮把纸折回口袋，不再让你替她开口。"
+                "你们走向同一条街，却隔开了"
                 "两步。她会记得你曾帮忙，也会记得你更想要一个漂亮答案。"
                 + FIXED_HISTORY_RESULT
             ),
@@ -631,7 +646,7 @@ ANNIE_STORY_WORLD = StoryWorld(
     summary="在不可改写的宽街历史中，帮助原创儿童见证者把饮水来源和亲眼所见分开说清。",
     genre="历史剧情",
     publication_status=PublicationStatus.PUBLISHED,
-    content_version="annie-broad-street-2026-07-28.4",
+    content_version="annie-broad-street-2026-07-29.5",
     entry_chapter_id=CHAPTER.id,
     player_roles=(TOM_REED_PLAYER_ROLE, LIZZIE_BELL_PLAYER_ROLE),
     characters=(ANNIE,),
