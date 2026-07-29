@@ -906,3 +906,36 @@ Split the frontend roadmap into UI-first and integration follow-ups, archived th
 ### Next Steps
 
 - None - task complete
+
+
+## Session 28: 收敛系统 LLM 运行配置
+
+**Date**: 2026-07-29
+**Task**: 收敛系统 LLM 运行配置
+**Branch**: `codex/palace-character-entry`
+
+### Summary
+
+将 StoryWorld 对话模型配置统一迁移到 FABLESPACE_LLM_* 部署变量，增加严格校验、503 降级和日志脱敏，并同步部署与 Schema 文档。
+
+### Main Changes
+
+- Detailed change bullets were not supplied; see the summary above.
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `693c7d55` | (see git log) |
+
+### Testing
+
+- Validation was not recorded for this session.
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
