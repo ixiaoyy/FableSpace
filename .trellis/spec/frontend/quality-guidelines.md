@@ -76,6 +76,27 @@ npm --prefix .\apps\web run typecheck
 npm --prefix .\apps\web run build
 ```
 
+### Verify production SPA deep links
+
+A React Router build proves that a route is bundled, but it does not prove that
+the production web server serves `index.html` for a direct request to that
+route. When adding a new top-level SPA route, update both
+`apps/web/app/routes.ts` and `apps/web/nginx.conf`.
+
+Keep API, generated-file, asset, and unknown-route 404 behavior explicit. Add a
+scoped SPA fallback for the new route instead of turning every unknown path
+into a successful HTML response.
+
+Before declaring the route usable, run the built client through the production
+Nginx configuration and verify:
+
+- the route root returns the SPA entry with `200`;
+- at least one nested deep link returns the SPA entry with `200`;
+- one unrelated unknown path still returns `404`.
+
+For the content backend, this includes `/admin`, `/admin/story-worlds`, and one
+`/admin/story-worlds/:storyWorldId/:section` path.
+
 ### Keep authored choice results in the story timeline
 
 `StoryRun.events` is the ordered player-visible record. The `narration` event
