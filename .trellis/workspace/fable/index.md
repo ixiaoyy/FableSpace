@@ -8,7 +8,7 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-1.md`
-- **Total Sessions**: 32
+- **Total Sessions**: 33
 - **Last Active**: 2026-07-31
 <!-- @@@/auto:current-status -->
 
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-1.md` | ~1073 | Active |
+| `journal-1.md` | ~1106 | Active |
 <!-- @@@/auto:active-documents -->
 
 ---
@@ -29,6 +29,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 33 | 2026-07-31 | 聊天优先角色入口 | `0a80e16c` | `main` |
 | 32 | 2026-07-31 | 删除旧 Space 合同与路由 | `56b9821d` | `codex/palace-character-entry` |
 | 31 | 2026-07-31 | 清退旧地图与坐标能力 | `cb884871` | `codex/palace-character-entry` |
 | 30 | 2026-07-31 | 补全项目开发规范 | `3e468eec` | `codex/palace-character-entry` |

@@ -1071,3 +1071,36 @@ Split the frontend roadmap into UI-first and integration follow-ups, archived th
 ### Next Steps
 
 - None - task complete
+
+
+## Session 33: 聊天优先角色入口
+
+**Date**: 2026-07-31
+**Task**: 聊天优先角色入口
+**Branch**: `main`
+
+### Summary
+
+故事页进入即恢复或建立角色聊天，移除重复剧情介绍与称呼徽章，并完成一次性写入、只读恢复和窄屏验证。
+
+### Main Changes
+
+- Detailed change bullets were not supplied; see the summary above.
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `0a80e16c` | (see git log) |
+
+### Testing
+
+- Validation was not recorded for this session.
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
