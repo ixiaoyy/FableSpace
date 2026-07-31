@@ -126,8 +126,14 @@ jobs:
 
 
             def as_mapping_rows(result):
-                """Materialize SQLAlchemy rows as plain mappings for local audit logic."""
-                return [dict(row._mapping) for row in result]
+                """Materialize rows with driver-independent lowercase column keys."""
+                return [
+                    {
+                        str(key).lower(): value
+                        for key, value in row._mapping.items()
+                    }
+                    for row in result
+                ]
 
 
             def initial_relationship(world, character_id):
