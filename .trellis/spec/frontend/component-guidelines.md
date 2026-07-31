@@ -69,7 +69,10 @@ The project uses both feature CSS and small Tailwind-based primitives:
 ### 1. Scope / Trigger
 
 `/characters/:characterSlug` owns public context and new-run PlayerRole
-selection. `/characters/:characterSlug/story` restores or starts the selected
+selection. For a signed-in returning player it also reads the current
+StoryRun and replaces the first-run identity step with the real current
+situation, latest Character message, locked PlayerRole, and a continuation
+action. `/characters/:characterSlug/story` restores or starts the selected
 Character run and renders the conversation surface without repeating the world
 introduction, role cards, or Character picker.
 
@@ -87,6 +90,11 @@ introduction, role cards, or Character picker.
 - Accept `playerRoleId` only when it matches a PlayerRole in the public
   Character detail. A sole published PlayerRole may be selected automatically;
   multiple roles require an explicit selection on the Character page.
+- The Character page checks access before reading `runs/current`. An active or
+  completed run must render from the returned `StoryRun`; do not repeat the
+  static opening or expose PlayerRole selection as though no run existed.
+- If the Character-page continuity read fails, show a read-only retry instead
+  of treating the failure as `run: null`.
 - Always read `runs/current` before starting. When it returns an active or
   completed run, render that run directly.
 - When it returns `null` and a validated role exists, auto-start at most once
@@ -99,6 +107,11 @@ introduction, role cards, or Character picker.
 
 - Missing or invalid `playerRoleId` with multiple published roles -> link back
   to the Character page to select one; do not guess.
+- Returning player with an active run -> show current node narration, the most
+  recent real message from that Character when available, locked PlayerRole,
+  and `继续对话`.
+- Returning player with a completed run -> show the real ending summary and a
+  `查看结局` action; do not reset the page to the first meeting.
 - Anonymous or expired session -> show the login action with the canonical
   story return URL; do not create anonymous progress.
 - Current-run read failure -> keep the conversation shell and offer a read-only
@@ -117,6 +130,10 @@ introduction, role cards, or Character picker.
 
 - Typecheck and build the web app.
 - Assert an existing run causes no start POST.
+- Assert the Character page does not render identity choices when
+  `runs/current` returns an active or completed run.
+- Assert a failed Character-page continuity read renders retry and no
+  selectable PlayerRole cards.
 - Assert an authenticated `null` run with a valid role causes one start POST
   across rerenders.
 - Assert recovery after a failed write calls only `runs/current`, keeps the

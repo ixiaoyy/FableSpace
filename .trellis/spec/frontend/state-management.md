@@ -32,6 +32,10 @@ cross-route ownership problem is demonstrated and approval is obtained.
 - The server is authoritative for StoryRun, relationships, choices, events,
   messages, memories, and endings.
 - Public route reads use loaders; private continuity uses `GET runs/current`.
+- A public Character loader may add a protected continuity projection after
+  access is confirmed. `active` and `completed` are real run states; a failed
+  continuity read must remain distinct from a confirmed `null` run so the UI
+  cannot accidentally offer a new identity over an existing round.
 - Adopt a new private run only after a successful server response.
 - Never use mock records or another player's state as a loading/error fallback.
 - Do not expose internal affinity; render the server-projected relationship

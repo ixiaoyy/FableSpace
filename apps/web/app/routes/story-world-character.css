@@ -223,6 +223,10 @@ body:has(.annieStoryShell--chat) {
   gap: 1rem;
 }
 
+.annieCharacterRoleStep--continuation {
+  padding-block: 0.25rem;
+}
+
 .annieCharacterRoleHeading {
   display: flex;
   align-items: end;
@@ -238,6 +242,69 @@ body:has(.annieStoryShell--chat) {
   margin: 0;
   font-size: clamp(1.55rem, 3vw, 2.25rem);
   font-weight: 700;
+}
+
+.annieCharacterRunStatus {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding-bottom: 0.35rem;
+  color: var(--annie-muted);
+  font-family: system-ui, sans-serif;
+  font-size: 0.78rem;
+  font-weight: 750;
+}
+
+.annieCharacterRunStatus::before {
+  width: 0.5rem;
+  height: 0.5rem;
+  content: "";
+  border-radius: 50%;
+  background: var(--annie-orange);
+  box-shadow: 0.12rem 0.18rem 0.5rem rgba(191, 82, 13, 0.24);
+}
+
+.annieCharacterRunStatus[data-status="completed"]::before {
+  background: var(--annie-muted);
+  box-shadow: none;
+}
+
+.annieCharacterContinuityError {
+  display: grid;
+  grid-template-columns: 1.35rem minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 1rem 1.1rem;
+  color: #7d281f;
+  border: 1px solid rgba(165, 66, 53, 0.3);
+  border-radius: 0.65rem;
+  background: #fae8df;
+}
+
+.annieCharacterContinuityError > svg {
+  width: 1.2rem;
+}
+
+.annieCharacterContinuityError > strong {
+  font-family: system-ui, sans-serif;
+  font-size: 0.86rem;
+}
+
+.annieCharacterContinuityError .annieStoryRecoveryButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin-top: 0;
+}
+
+.annieCharacterContinuityError .annieStoryRecoveryButton > svg {
+  width: 0.9rem;
+  animation: annie-story-spin 900ms linear infinite;
+}
+
+.annieCharacterContinuityError .annieStoryRecoveryButton:disabled {
+  cursor: wait;
+  opacity: 0.68;
 }
 
 .annieCharacterActions {
@@ -1177,6 +1244,25 @@ body:has(.annieStoryShell--chat) {
 
   .annieCharacterRoleHeading {
     display: block;
+  }
+
+  .annieCharacterRoleStep--continuation .annieCharacterRoleHeading {
+    display: grid;
+    gap: 0.75rem;
+  }
+
+  .annieCharacterRunStatus {
+    justify-self: start;
+    padding-bottom: 0;
+  }
+
+  .annieCharacterContinuityError {
+    grid-template-columns: 1.35rem minmax(0, 1fr);
+  }
+
+  .annieCharacterContinuityError .annieStoryRecoveryButton {
+    grid-column: 2;
+    justify-self: start;
   }
 
   .annieCharacterActions {

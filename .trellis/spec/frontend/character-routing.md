@@ -4,7 +4,8 @@
 
 The frontend uses character-first short routes:
 
-- `/characters/:characterSlug` for the anonymous public character detail.
+- `/characters/:characterSlug` for public character detail, first-run identity
+  selection, and a signed-in player's continuity-aware return entry.
 - `/characters/:characterSlug/story` for authenticated story interaction,
   continuity restoration, and endings.
 
