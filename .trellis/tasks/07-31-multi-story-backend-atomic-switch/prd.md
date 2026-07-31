@@ -24,6 +24,21 @@
   或数据修复。
 - 用户已批准新增并推送仅手动触发的 GitHub Actions 只读审计工作流，以复用现有部署
   Secrets 建立审计通道；工作流不得改变服务器 checkout、镜像、容器或数据库。
+- 2026-07-31 的生产只读审计由 commit `5fbe505a` 运行：
+  [Actions run 30624934752](https://github.com/ixiaoyy/FableSpace/actions/runs/30624934752)。
+  MySQL 8.4.10 在 `READ ONLY` 事务内返回 `AUDIT_DB_WRITES=0`；006 / 008 已落地，当前是
+  精确八表基线，009 目标表 / 列 / 关系键均未提前混入。
+- 两份托管 StoryWorld 均为旧形状且可由当前 codec 完整解析；宽街 payload hash 完整记录，
+  长明宫 hash 的中段被 GitHub Secrets masker 自动遮蔽，后续原子迁移须在服务器内重新计算
+  并比对，不得把被遮蔽日志当作完整 hash 证据。
+- 生产共有 1 条 PlayerStoryState、2 条宽街 StoryRun（1 active、1 completed）、2 条关系、
+  6 条事件，无 StoryMessage / PrivateMemory。状态指针、摘要引用、事件归属和关系合并均无
+  异常；两条关系归为同一长期关系，且都与审核初始值一致。
+- 唯一阻断 cohort 是同一条已封存的宽街 completed run：锁定旧版本
+  `annie-broad-street-2026-07-27.1` 和旧审核身份
+  `role_history_broad_street_beggar`，有 `completed_at`，但没有结局 ID / 摘要。当前
+  `_refresh_active_run()` 在内容或身份失配时正是以该形状封存旧 active run；归档设计也能
+  证明该身份曾是审核 PlayerRole，因此不能把它误判成任意身份或伪造结局。
 
 ## Requirements
 
@@ -74,7 +89,7 @@
 
 ## Acceptance Criteria
 
-- [ ] 只读审计记录实际 Schema 与数据分布，不执行任何写入或 DDL。
+- [x] 只读审计记录实际 Schema 与数据分布，不执行任何写入或 DDL。
 - [ ] 规划文档列出精确表、列、唯一约束、JSON 转换、阻断条件、备份和回滚步骤，并经
   用户审核后才启动实现。
 - [ ] 物理 Schema 精确落为收窄的 `player_story_states`、新
@@ -98,3 +113,13 @@
 - 改写安妮与雪夜封宫的剧情语义、历史事实、角色图片或 PlayerRole。
 - 执行生产迁移、写数据库或修改部署环境；这些需要后续独立执行确认。
 - 修改用户现有 `AGENTS.md` 或 `UI稿/`。
+
+## Open Decision
+
+是否批准把唯一已识别的旧宽街轮次作为“内容失配后封存的历史轮次”原样保留：按固定
+world -> story 映射补 `story_id`，保留其旧 `content_version`、旧审核
+`player_role_id`、事件和 `completed_at`，不伪造结局、不加入完成摘要、永不恢复推进；只有
+同时满足本次审计全部特征的记录可走此分支，任何新增或不完全匹配的记录继续阻断迁移。
+
+推荐批准。这样既不删除或改写历史，也不把它冒充成正常通关；若不批准，009 必须继续
+阻断，另行评审该轮次的数据修复或归档方案。

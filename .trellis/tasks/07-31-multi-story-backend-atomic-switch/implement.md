@@ -6,8 +6,8 @@
 
 - [x] 经用户批准后新增手动只读审计工作流；不进入普通 Deploy paths。
 - [x] 审计脚本强制 MySQL `READ ONLY` 事务，只输出计数、ID、hash 和违规类别。
-- [ ] 运行审计并保存 GitHub Actions run URL、commit、时间和脱敏报告。
-- [ ] 将实际 MySQL 版本、006 / 008 状态、行数、关系冲突和消息可见性结果写回 PRD /
+- [x] 运行审计并保存 GitHub Actions run URL、commit、时间和脱敏报告。
+- [x] 将实际 MySQL 版本、006 / 008 状态、行数、关系冲突和消息可见性结果写回 PRD /
   design；若发现冲突，只提出一个最高价值的迁移决策问题。
 - [ ] 删除已解决的 Open Question，完成 PRD convergence pass，再请用户评审精确 Schema /
   数据影响。

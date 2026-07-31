@@ -313,6 +313,11 @@ stories[] = {
 - 每个 state 创建唯一 story progress；活动指针必须指向同玩家 / 世界 / story 的 active run。
 - 完成摘要从具有有效 `ending_id + ending_summary + completed_at` 的 completed runs 重建，
   再核对旧摘要引用；缺少审核结局或完成时间的 completed run 阻断。
+- 审计识别到一个由现有 `_refresh_active_run()` 产生的精确旧轮次形状。待用户批准后，仅当
+  `status=completed`、`completed_at` 非空、结局 ID / 摘要均空、不在完成摘要中、world 为
+  固定宽街映射、锁定版本与旧审核身份都与本次脱敏 cohort 一致时，允许补固定
+  `story_id` 并原样保留为不可恢复推进的封存历史；不得改写版本 / 身份、生成结局或加入
+  完成摘要。任何额外或不完全匹配的记录仍阻断。
 - 关系合并规则：
   - 所有旧行都没有关系变化事件时，必须与当前审核初始关系完全一致，合并为一条且来源为空；
   - 恰有一个旧 run 有可完整回放并与落库结果一致的关系变化时，保留该最终值与最后事件；
@@ -370,9 +375,22 @@ DDL 前失败可恢复旧镜像并重新开放。DDL 开始后的任何失败都
 - 历史内容：只做结构搬迁；逐项比对安妮文本、选择、效果、正史和来源哈希，记录
   `PASS / FAIL / BLOCKED`，不得用“未改意图”代替证据。
 
-## 10. 审计通道与尚缺证据
+## 10. 生产只读审计证据
 
-本机没有可用的生产运维 SSH 通道，且不能读取 GitHub Secrets。用户已批准新增仅
-`workflow_dispatch` 的只读审计工作流：它复用现有部署 SSH Secrets，在数据库
-`READ ONLY` 事务内生成脱敏报告，不改变服务器 checkout、镜像、容器或数据库。当前尚缺
-该工作流实际运行后的 URL、commit、时间、Schema 和数据分布证据。
+- 权威运行：commit `5fbe505a`，2026-07-31，
+  [Actions run 30624934752](https://github.com/ixiaoyy/FableSpace/actions/runs/30624934752)。
+- 目标：MySQL 8.4.10 / `fablespace`；事务 `READ ONLY`；`AUDIT_DB_WRITES=0`。
+- Schema：精确八表；006 的 `story_runs.player_role_id` 已存在且旧 inline memories 已删除；
+  009 的 progress 表、run `story_id` 和世界级关系键均不存在。
+- 行数：managed worlds 2、managed media 0、states 1、runs 2、relationships 2、events 6、
+  messages 0、memories 0。
+- 两份托管 JSON 均为合法旧形状，固定映射唯一；长明宫 payload hash 中段被 GitHub 自动
+  masker 遮蔽，完整 hash 必须在原子迁移内部重新计算比较。
+- 两条宽街 run 分别为 active / completed。active 无审计问题；completed 的全部四类阻断
+  属于同一 cohort：旧版本 `annie-broad-street-2026-07-27.1`、旧审核身份
+  `role_history_broad_street_beggar`、有完成时间、无结局和摘要。
+- state 活动指针 / 摘要、事件归属、消息 / 记忆来源均无异常。两条轮次级关系均为初始值，
+  可无损合并为一条世界级长期关系。
+
+审计结论为 `BLOCKED`，原因不是 Schema 漂移或未知私有记录，而是上述已识别封存历史尚未
+获得迁移处置批准。PRD 的唯一 Open Decision 解决前不得启动 009 实现。
