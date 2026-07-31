@@ -1204,3 +1204,36 @@ Added a guarded manual 006/008 production repair workflow, retained a verified l
 ### Next Steps
 
 - None - task complete
+
+
+## Session 37: 聊天页移除关系解释文案
+
+**Date**: 2026-07-31
+**Task**: 聊天页移除关系解释文案
+**Branch**: `main`
+
+### Summary
+
+将故事聊天头精简为仅显示角色头像与名称，继续隐藏独立开场旁白，保留关系数据和互动结果；同步前端质量规范并完成移动端验收。
+
+### Main Changes
+
+- Detailed change bullets were not supplied; see the summary above.
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `0a93de68` | (see git log) |
+
+### Testing
+
+- Validation was not recorded for this session.
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
