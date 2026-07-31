@@ -16,10 +16,10 @@ apps/api/src/fablespace_api/
 ```
 
 The old `/spaces` routes, Space application/services, stores, and request
-contracts have been removed. `core/` now retains only the deployment LLM
-client, media URL helper, and one migration-only legacy seed module;
-`contracts/` retains the health response contract. Do not expand either
-location into a second product runtime.
+contracts have been removed. `core/` now retains only current deployment LLM
+and media helpers; `contracts/` retains the health response contract. Do not
+expand either location into a second product runtime or restore legacy seed,
+ORM, or migration helpers.
 
 ## Layer Ownership
 

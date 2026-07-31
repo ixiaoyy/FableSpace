@@ -6,15 +6,13 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PIP_NO_CACHE_DIR=1 \
     PYTHONPATH=/app/apps/api/src \
-    FABLESPACE_OUTPUT_ROOT=/data \
-    FABLESPACE_ENV=production
+    FABLESPACE_OUTPUT_ROOT=/data
 
 WORKDIR /app
 
 COPY apps/api/requirements.txt ./requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY apps/api/config ./apps/api/config
 COPY apps/api/sql ./apps/api/sql
 COPY apps/api/src ./apps/api/src
 

@@ -112,8 +112,6 @@ jobs:
           file: apps/web/Dockerfile
           build-args: |
             VITE_API_BASE=${{ secrets.VITE_API_BASE }}
-            VITE_AMAP_KEY=${{ secrets.VITE_AMAP_KEY }}
-            VITE_AMAP_SECURITY_CODE=${{ secrets.VITE_AMAP_SECURITY_CODE }}
             VITE_MEDIA_BASE_URL=${{ steps.cdn.outputs.media_base_url }}
           tags: ${{ env.FRONTEND_IMAGE }}
           load: true

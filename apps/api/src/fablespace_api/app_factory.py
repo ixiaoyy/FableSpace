@@ -140,10 +140,6 @@ def create_app(settings: ApiSettings | None = None) -> FastAPI:
     generated_storage = create_generated_storage(resolved)
 
     story_database_url = resolve_database_url(resolved)
-    if not story_database_url:
-        story_database_url = (
-            f"sqlite:///{(resolved.output_root / 'story-runtime.sqlite3').resolve().as_posix()}"
-        )
     story_database = Database(
         url=story_database_url,
         pool_size=resolved.mysql_pool_size,

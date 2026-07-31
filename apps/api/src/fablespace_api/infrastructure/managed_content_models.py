@@ -43,4 +43,9 @@ class ManagedMediaAssetModel(Base):
     )
 
 
+from .schema_comments import apply_schema_comments
+
+apply_schema_comments(Base.metadata)
+
+
 __all__ = ["ManagedMediaAssetModel", "ManagedStoryWorldModel"]

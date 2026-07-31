@@ -13,10 +13,23 @@ from datetime import UTC, datetime
 from pathlib import Path
 from urllib.parse import urlsplit, urlunsplit
 
-LEGACY_DATABASE_ENV_KEYS = {
+RETIRED_FABLESPACE_ENV_KEYS = {
+    "FABLEMAP_OUTPUT_ROOT",
+    "FABLEMAP_FRONTEND_ROOT",
+    "FABLEMAP_CORS_ORIGINS",
     "FABLEMAP_DATABASE_URL",
-    "FABLESPACE_MYSQL_URL",
     "FABLEMAP_MYSQL_URL",
+    "FABLEMAP_STORAGE_BACKEND",
+    "FABLEMAP_MYSQL_POOL_SIZE",
+    "FABLEMAP_MYSQL_MAX_OVERFLOW",
+    "FABLEMAP_MYSQL_ECHO",
+    "FABLESPACE_MYSQL_URL",
+    "FABLESPACE_STORAGE_BACKEND",
+    "FABLESPACE_FRONTEND_ROOT",
+    "FABLESPACE_SEED_DEFAULT_SPACES",
+    "FABLESPACE_REDIS_URL",
+    "HF_TOKEN",
+    "OPENCODE_API_KEY",
 }
 
 MIN_SECRET_LENGTH = 32
@@ -40,14 +53,6 @@ def database_url_for(source_url: str, database_name: str) -> str:
     if not parsed.scheme.startswith("mysql+") or not parsed.netloc:
         raise ValueError("ParallelLines DATABASE_URL is not a supported MySQL URL")
     return urlunsplit(("mysql+pymysql", parsed.netloc, f"/{database_name}", parsed.query, ""))
-
-
-def redis_url_for(source_url: str, database_number: int) -> str:
-    """Reuse one Redis endpoint while selecting a separate logical database."""
-    parsed = urlsplit(source_url)
-    if parsed.scheme not in {"redis", "rediss"} or not parsed.netloc:
-        raise ValueError("ParallelLines REDIS_URL is not a supported Redis URL")
-    return urlunsplit((parsed.scheme, parsed.netloc, f"/{database_number}", parsed.query, ""))
 
 
 def update_env_text(
@@ -149,22 +154,16 @@ def write_env_if_changed(path: Path, text: str, timestamp: str) -> tuple[bool, P
 def build_updates(
     parallellines: dict[str, str],
     database_name: str,
-    redis_db: int,
     prefix: str,
     generated_storage: str = "local",
 ) -> dict[str, str]:
-    """Map shared services while keeping generated files local in linked mode."""
-    required = [
-        "DATABASE_URL",
-        "REDIS_URL",
-    ]
+    """Map the shared database and media settings used by FableSpace."""
+    required = ["DATABASE_URL"]
     missing = [key for key in required if not parallellines.get(key)]
     if missing:
         raise ValueError(f"ParallelLines env is missing: {', '.join(missing)}")
     updates = {
-        "FABLESPACE_STORAGE_BACKEND": "database",
         "FABLESPACE_DATABASE_URL": database_url_for(parallellines["DATABASE_URL"], database_name),
-        "FABLESPACE_REDIS_URL": redis_url_for(parallellines["REDIS_URL"], redis_db),
         "FABLESPACE_GENERATED_STORAGE_BACKEND": generated_storage,
     }
     s3_keys = [
@@ -202,7 +201,6 @@ def main() -> None:
     parser.add_argument("--fablespace-env", type=Path, default=Path("/opt/fablespace/apps/api/.env"))
     parser.add_argument("--compose-env", type=Path, default=Path("/opt/fablespace/.env"))
     parser.add_argument("--database-name", default="fablespace")
-    parser.add_argument("--redis-db", type=int, default=1)
     parser.add_argument("--prefix", default="fablespace")
     parser.add_argument("--generated-storage", choices=("local", "s3"), default="local")
     parser.add_argument("--auth-mode", choices=("parallellines", "legacy"), default="parallellines")
@@ -219,8 +217,6 @@ def main() -> None:
 
     if not args.database_name.replace("_", "").isalnum():
         raise SystemExit("database name must contain only letters, digits, and underscores")
-    if args.redis_db < 0:
-        raise SystemExit("redis db must be non-negative")
     if args.generated_storage == "s3" and (
         not args.prefix.strip("/") or ".." in args.prefix
     ):
@@ -256,7 +252,6 @@ def main() -> None:
     updates = build_updates(
         shared_values,
         args.database_name,
-        args.redis_db,
         args.prefix,
         args.generated_storage,
     )
@@ -299,7 +294,7 @@ def main() -> None:
     }
     if args.dry_run:
         print(
-            f"validated database={args.database_name} redis_db={args.redis_db} "
+            f"validated database={args.database_name} "
             f"generated_storage={args.generated_storage} prefix={args.prefix.strip('/')} "
             f"cors_origin={cors_origin} fablespace_keys={len(updates)} "
             f"parallellines_keys={len(parallellines_updates)} "
@@ -318,7 +313,11 @@ def main() -> None:
         parallellines_changed, parallellines_backup = False, None
     fablespace_changed, fablespace_backup = write_env_if_changed(
         args.fablespace_env,
-        update_env_text(fablespace_original, updates, remove_keys=LEGACY_DATABASE_ENV_KEYS),
+        update_env_text(
+            fablespace_original,
+            updates,
+            remove_keys=RETIRED_FABLESPACE_ENV_KEYS,
+        ),
         timestamp,
     )
     compose_changed, _ = write_env_if_changed(
@@ -327,7 +326,7 @@ def main() -> None:
         timestamp,
     )
     print(
-        f"configured database={args.database_name} redis_db={args.redis_db} "
+        f"configured database={args.database_name} "
         f"generated_storage={args.generated_storage} prefix={args.prefix.strip('/')} "
         f"cors_origin={cors_origin} "
         f"parallellines_changed={str(parallellines_changed).lower()} "

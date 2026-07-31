@@ -134,7 +134,6 @@ class PlayerStoryStateStore:
                     current_node_id=node.id,
                     key_choices=[],
                     story_flags=[],
-                    private_memories=[],
                     started_at=started_at,
                 )
                 session.add(run)

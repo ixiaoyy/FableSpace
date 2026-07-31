@@ -70,7 +70,7 @@ https://<cdn-domain>/fablespace/media/v1/<object-key>
 
 ## 服务器首次准备
 
-服务器需要 Git、Docker 和 Docker Compose。生产方案复用 ParallelLines 的 MySQL、Redis，以及项目图片使用的 R2 bucket/CDN；FableSpace 分别使用 `fablespace` database 和 Redis DB `1`，私密运行时生成文件保存在 `fablespace_data` 持久卷。
+服务器需要 Git、Docker 和 Docker Compose。生产方案复用 ParallelLines 的 MySQL、共享 Docker 网络，以及项目图片使用的 R2 bucket/CDN；FableSpace 使用独立的 `fablespace` database，私密运行时生成文件保存在 `fablespace_data` 持久卷。FableSpace 不使用 Redis。
 
 先准备仓库和环境文件：
 
@@ -82,7 +82,9 @@ sudo python3 deploy/server/configure_shared_services.py --cors-origin https://fa
 sudo python3 deploy/server/configure_shared_services.py --cors-origin https://fable.pingxingxian.space
 ```
 
-配置脚本从 `/opt/parallellines/apps/api/.env` 映射数据库和 Redis 连接，默认写入 `FABLESPACE_GENERATED_STORAGE_BACKEND=local`；同时在两端环境文件中补齐私密联动配置。若 ParallelLines 已配置完整 `UPLOAD_S3_*` 与 `UPLOAD_CDN_BASE_URL`，脚本也会映射对应的 `FABLESPACE_S3_*`，供受保护的 Character 图片上传使用，但不会改变生成文件的本地归属。若两端都没有有效 SSO 密钥，脚本生成一份共享高强度随机值；若任一端已有有效值则复用；若两端已有不同的有效值则拒绝继续，避免静默轮换导致登录中断。FableSpace 会话密钥独立生成或复用，不与 SSO 密钥共享。发生实际变更前会生成 `.env.pre-shared-<UTC>` 备份，输出不包含密码或密钥；配置未变化时不会重复备份。脚本会保留无关配置，但会删除 `FABLEMAP_DATABASE_URL`、`FABLESPACE_MYSQL_URL`、`FABLEMAP_MYSQL_URL` 这些已由 `FABLESPACE_DATABASE_URL` 取代的数据库别名，避免新旧连接同时残留。Compose 插值写入仓库根 `.env`，其中后端宿主绑定为 `127.0.0.1:8950`，避免与 ParallelLines 的 `8000` 端口冲突，容器内 API 端口仍为 `8000`。生产部署 workflow 会幂等执行该脚本，并仅在 ParallelLines 环境实际变化时重建其 API/worker 以加载新值。只有独立公开部署才可传入 `--auth-mode legacy --generated-storage s3` 让生成文件进入 R2；私密联动模式会拒绝公开生成文件存储。
+配置脚本从 `/opt/parallellines/apps/api/.env` 只映射 MySQL 连接，默认写入 `FABLESPACE_GENERATED_STORAGE_BACKEND=local`；同时在两端环境文件中补齐私密联动配置。若 ParallelLines 已配置完整 `UPLOAD_S3_*` 与 `UPLOAD_CDN_BASE_URL`，脚本也会映射对应的 `FABLESPACE_S3_*`，供受保护的 Character 图片上传使用，但不会改变生成文件的本地归属。若两端都没有有效 SSO 密钥，脚本生成一份共享高强度随机值；若任一端已有有效值则复用；若两端已有不同的有效值则拒绝继续，避免静默轮换导致登录中断。FableSpace 会话密钥独立生成或复用，不与 SSO 密钥共享。发生实际变更前会生成 `.env.pre-shared-<UTC>` 备份，输出不包含密码或密钥；配置未变化时不会重复备份。
+
+脚本会保留无关配置，并从 FableSpace 环境文件中删除旧 `FABLEMAP_*`、`FABLESPACE_MYSQL_URL`、JSON storage、旧前端 root、默认 Space seed、Redis 和早期模型 Key 等退役键。它不会删除 ParallelLines 自身仍在使用的配置。Compose 插值写入仓库根 `.env`，其中后端宿主绑定为 `127.0.0.1:8950`，避免与 ParallelLines 的 `8000` 端口冲突，容器内 API 端口仍为 `8000`。生产部署 workflow 会幂等执行该脚本，并仅在 ParallelLines 环境实际变化时重建其 API/worker 以加载新值。只有独立公开部署才可传入 `--auth-mode legacy --generated-storage s3` 让生成文件进入 R2；私密联动模式会拒绝公开生成文件存储。
 
 在 ParallelLines MySQL 中创建独立库并给现有应用用户授权。实际容器名可用 `docker compose -p parallellines ps` 确认：
 
@@ -90,9 +92,52 @@ sudo python3 deploy/server/configure_shared_services.py --cors-origin https://fa
 docker exec parallellines-db-1 sh -c 'mysql -uroot -p"$MYSQL_ROOT_PASSWORD" -e "CREATE DATABASE IF NOT EXISTS fablespace CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci; GRANT ALL PRIVILEGES ON fablespace.* TO '\''$MYSQL_USER'\''@'\''%'\''; FLUSH PRIVILEGES"'
 ```
 
-内容后台的 schema 基线是 `apps/api/sql/migrations/007_managed_story_content.sql`，只创建 `managed_story_worlds` 与 `managed_media_assets`，不修改玩家记录。应用启动的 SQLAlchemy `create_tables()` 也会幂等创建这两张表；首次上线后会只补入缺失的安妮与长明宫 StoryWorld，不覆盖已经存在的管理文档。
+### 空库初始化
 
-首次迁移前必须先为旧数据库做逻辑备份，再使用非破坏性迁移器执行 dry-run 和正式迁移。迁移器只建表并按主键 upsert，不删除目标行，并显式映射旧库 `tavern_id/tavern_name` 到当前 `space_id/space_name` 字段；实际执行时通过只读 volume 把 `apps/api/.env.pre-shared-*` 映射进临时 backend 容器，再用 `--source-env-file` 和 `--source-env-key FABLEMAP_DATABASE_URL` 读取源连接，避免把密码放进命令行或日志。
+应用启动的 SQLAlchemy `create_tables()` 是空库基线，只会创建以下 8 张当前表：
+
+- `player_story_states`
+- `story_runs`
+- `character_relationships`
+- `story_events`
+- `story_messages`
+- `private_memories`
+- `managed_story_worlds`
+- `managed_media_assets`
+
+004–007 保留当前 Schema 的演进历史；空库不需要先执行已删除的 FableMap 001–003。首次启动只补入缺失的安妮与长明宫 StoryWorld，不覆盖已经存在的管理文档。
+
+### 已有库的旧 Schema 清退
+
+`apps/api/sql/migrations/008_retire_legacy_space_schema.sql` 是一次性、显式且破坏性的清退迁移。应用启动和 GitHub Actions 都不会执行它。已有部署必须先发布包含当前 8 表 ORM 的代码并通过健康检查，再进入停止写入的维护窗口；旧版本后端不得在该列删除后继续运行。只有在另行获得目标数据库操作授权后，才可使用受保护的 MySQL client option file 执行以下流程；不得使用 `mysql --force`：
+
+```bash
+install -d -m 0700 /secure/fablespace-backups
+BACKUP_PATH="/secure/fablespace-backups/fablespace-$(date -u +%Y%m%dT%H%M%SZ).sql"
+
+mysqldump \
+  --defaults-extra-file=/secure/mysql-client.cnf \
+  --single-transaction \
+  --routines \
+  --triggers \
+  --events \
+  --databases fablespace > "${BACKUP_PATH}"
+
+test -s "${BACKUP_PATH}"
+sha256sum "${BACKUP_PATH}" | tee "${BACKUP_PATH}.sha256"
+
+mysql \
+  --defaults-extra-file=/secure/mysql-client.cnf \
+  --database=fablespace \
+  --show-warnings \
+  < apps/api/sql/migrations/008_retire_legacy_space_schema.sql
+```
+
+执行前必须记录目标主机、数据库名、备份路径、UTC 时间和 SHA-256，并停止或隔离应用写入。迁移先确认 8 张当前表全部存在；若旧 `story_runs.private_memories` 列存在，只接受 SQL `NULL` 或 JSON 空数组 `[]`，其他值会在删除任何目标表或列前终止。随后按外键依赖顺序删除精确的 23 张旧表，并在安全时删除该内联列。旧表已不存在或旧列已删除时可以重复执行。
+
+执行成功后，在同一已授权目标上查询 `information_schema.TABLES`，结果必须精确等于上述 8 张当前表；同时确认 `information_schema.COLUMNS` 中不存在 `story_runs.private_memories`。随后检查 `/api/v1/health`，并用受控账号完成一次最小故事读取与写入验收。任何额外表、缺表、旧列残留或运行时失败都视为未完成，不继续恢复外部流量。
+
+MySQL DDL 会隐式提交，因此迁移中途失败可能已经产生部分删除。失败时停止应用写入，使用执行前逻辑备份恢复整个 `fablespace` database，再重新验证；不使用反向 SQL 猜测恢复旧数据。仅合并仓库代码不代表任何现有数据库已经执行 008。
 
 后端同时连接 Compose 默认网络与外部 `parallellines_default` 网络；前端仍只在 FableSpace 默认网络内访问 backend。若共享网络名称不同，设置 `FABLESPACE_SHARED_NETWORK`。启动命令必须包含共享覆盖文件：
 

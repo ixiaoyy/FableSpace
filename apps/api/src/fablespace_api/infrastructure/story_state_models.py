@@ -45,7 +45,6 @@ class StoryRunModel(Base):
     current_node_id = Column(String(128), nullable=False)
     key_choices = Column(JSON, nullable=False, default=list)
     story_flags = Column(JSON, nullable=False, default=list)
-    private_memories = Column(JSON, nullable=False, default=list)
     ending_id = Column(String(128), nullable=True)
     ending_summary = Column(Text, nullable=True)
     started_at = Column(DateTime, nullable=False, default=datetime.utcnow)

@@ -17,7 +17,7 @@ from sqlalchemy import Engine, create_engine, inspect, text
 
 from fablespace_api.infrastructure.database import Base
 from fablespace_api.infrastructure.env import DEFAULT_ENV_FILE, load_env_file
-from fablespace_api.infrastructure.models import *  # noqa: F401,F403 - register all SQLAlchemy tables
+from fablespace_api.infrastructure.managed_content_models import *  # noqa: F401,F403 - register managed content tables
 from fablespace_api.infrastructure.story_state_models import *  # noqa: F401,F403 - register StoryWorld runtime tables
 from fablespace_api.infrastructure.schema_comments import (
     COLUMN_COMMENTS,
@@ -37,15 +37,11 @@ MYSQL_CURRENT_TIMESTAMP_DEFAULTS = {
 
 
 def _resolve_database_url(explicit_url: str | None, env_file: Path) -> str:
+    """Resolve the explicit or canonical FableSpace database URL."""
     if explicit_url:
         return explicit_url
     load_env_file(env_file, override=False)
-    url = (
-        os.environ.get("FABLESPACE_DATABASE_URL", "").strip()
-        or os.environ.get("FABLEMAP_DATABASE_URL", "").strip()
-        or os.environ.get("FABLESPACE_MYSQL_URL", "").strip()
-        or os.environ.get("FABLEMAP_MYSQL_URL", "").strip()
-    )
+    url = os.environ.get("FABLESPACE_DATABASE_URL", "").strip()
     if not url:
         raise SystemExit("No database URL found. Set FABLESPACE_DATABASE_URL or pass --database-url.")
     return url

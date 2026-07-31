@@ -17,10 +17,8 @@ try:
 except ImportError as exc:  # pragma: no cover - exercised by startup smoke subprocess
     raise ImportError(
         "Database infrastructure requires SQLAlchemy dependencies. "
-        "Install sqlalchemy plus a database driver, or set FABLESPACE_STORAGE_BACKEND=json for explicit dev-only JSON storage."
+        "Install sqlalchemy plus the configured database driver."
     ) from exc
-
-from .settings import ApiSettings
 
 # SQLAlchemy 声明基类
 Base = declarative_base()
@@ -97,37 +95,6 @@ class Database:
         """创建所有表（根据 Base 的 metadata）"""
         Base.metadata.create_all(bind=self.engine)
 
-    def drop_tables(self) -> None:
-        """删除所有表"""
-        Base.metadata.drop_all(bind=self.engine)
-
     def dispose(self) -> None:
         """关闭连接池"""
         self.engine.dispose()
-
-
-def create_database_from_settings(settings: ApiSettings) -> Database | None:
-    """
-    根据 ApiSettings 创建数据库连接
-
-    Returns:
-        Database 实例，或 None（如果显式选择 JSON 存储）
-    """
-    try:
-        from .storage import resolve_database_url
-        database_url = resolve_database_url(settings)
-    except Exception:
-        database_url = getattr(settings, "database_url", None) or getattr(settings, "mysql_url", None)
-    if not database_url:
-        return None
-
-    mysql_pool_size = getattr(settings, "mysql_pool_size", 5)
-    mysql_max_overflow = getattr(settings, "mysql_max_overflow", 10)
-    mysql_echo = getattr(settings, "mysql_echo", False)
-
-    return Database(
-        url=database_url,
-        pool_size=mysql_pool_size,
-        max_overflow=mysql_max_overflow,
-        echo=mysql_echo,
-    )

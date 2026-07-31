@@ -2,7 +2,7 @@
 
 本文档定义角色故事平台的目标 durable data contract。产品边界见 [FABLESPACE_SPACE_PLATFORM.md](FABLESPACE_SPACE_PLATFORM.md)，负面清单见 [WHAT_NOT_TO_BUILD.md](WHAT_NOT_TO_BUILD.md)。
 
-当前应用运行时、公开 API 和前端已经完成旧 Space 合同清退。旧物理表、ORM、迁移和数据库 / 部署配置仍由独立 Schema/config 任务审计，不构成应用兼容要求；新代码不得为了复用这些残留而把坐标、owner、密码、营业状态或 SillyTavern 字段带入新 Schema。
+当前仓库的应用运行时、公开 API、前端、ORM、配置和迁移入口已经完成旧 Space 合同清退。既有部署数据库在人工执行 `008_retire_legacy_space_schema.sql` 前仍可能保留旧物理表，但它们不构成应用兼容要求；新代码不得为了复用这些残留而把坐标、owner、密码、营业状态或 SillyTavern 字段带入新 Schema。
 
 ## 命名与边界
 
@@ -522,7 +522,7 @@ POST /api/v1/story-worlds/{story_world_id}/runs/restart
 
 故事页在加载、刷新、重新进入或另一设备访问时，只通过 `GET runs/current` 恢复该账号在当前 StoryWorld 的活动轮次；没有活动轮次时可以返回最近完成轮次及其安全结局摘要。前端收到任一受保护请求的 `401` 后必须同时失效访问状态缓存和当前私有故事状态，清空未确认输入，并忽略已经过期的迟到响应。消息、选择、开始或重新开始请求不得自动重放；非 `401` 写失败后必须先以 `GET runs/current` 重新取得服务器状态，成功前不得继续写入。现有开始请求复用同一活动轮次，审核选择按已持久化 choice source 去重；自由消息和重新开始通过“失败后先读”处理响应不确定性。
 
-运行时持久化基线使用 `player_story_states`、`story_runs`、`character_relationships`、`story_events`、`story_messages` 和 `private_memories` 六张表。已提交的 004 迁移建立前四张表，005 新增后两张表，006 为 `story_runs` 增加并回填不可为空的 `player_role_id`。完成轮次保留全部有序安全结局摘要；重新开始创建全新 StoryRun，可以重新选择 PlayerRole，但不复制上一轮 affinity、标记、事件、选择、消息或记忆。
+当前物理持久化基线精确包含 8 张表：玩家运行时使用 `player_story_states`、`story_runs`、`character_relationships`、`story_events`、`story_messages` 和 `private_memories`，托管系统内容使用 `managed_story_worlds` 与 `managed_media_assets`。004–007 记录这组 Schema 的历史演进；008 只负责显式清退 23 张旧表和已经由独立 `private_memories` 表取代的 `story_runs.private_memories` 内联列，不在应用启动时自动执行。完成轮次保留全部有序安全结局摘要；重新开始创建全新 StoryRun，可以重新选择 PlayerRole，但不复制上一轮 affinity、标记、事件、选择、消息或记忆。
 
 ## 校验矩阵
 
@@ -552,7 +552,7 @@ POST /api/v1/story-worlds/{story_world_id}/runs/restart
 - owner / 故事世界私有 LLMConfig 和 Token 统计；
 - 旧 GameplayDefinition / GameplaySession 通用玩法合同。
 
-应用级旧类型、服务、路由和前端客户端已经删除，不提供重定向或兼容包装器。剩余旧物理表、ORM、迁移、配置与开发数据只能在独立 Schema/config 清退任务中经过完整引用审计、备份和显式迁移后删除，不得在应用启动时静默清库。
+旧类型、服务、路由、前端客户端、ORM、迁移入口和配置兼容层已经删除，不提供重定向或兼容包装器。已有数据库中的旧物理表只能在确认目标、完成逻辑备份并显式执行 008 后删除；应用启动不得静默清库，仓库完成也不得被表述为数据库已经执行清退。
 
 ## 版本与维护
 

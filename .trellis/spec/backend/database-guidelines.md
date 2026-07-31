@@ -57,7 +57,9 @@ Before creating or editing a migration:
 
 `006_story_run_player_role.sql` is the reference for add/backfill/not-null
 ordering. `007_managed_story_content.sql` is the reference for idempotent
-table creation and named indexes.
+table creation and named indexes. `008_retire_legacy_space_schema.sql` is a
+one-time destructive retirement migration: it is never an empty-database
+baseline and must not run during startup or automated deployment.
 
 ---
 
@@ -122,83 +124,119 @@ append_event(session, run.id)
 
 ---
 
-## Scenario: Isolating legacy physical schema after application contract removal
+## Scenario: Preserving the current eight-table physical baseline
 
 ### 1. Scope / Trigger
 
-- Applies after the Space application/domain/API contract has been removed,
-  while old ORM tables and explicit migration commands await a separately
-  reviewed physical Schema/config retirement.
-- This is an isolation boundary, not permission to extend or call the legacy
-  schema from production runtime code.
+- Applies to ORM registration, `Database.create_tables()`, Schema comments,
+  migrations, deployment documentation, and residual-reference audits.
+- The current baseline contains six private StoryWorld runtime tables and two
+  managed-content tables. Space, owner, visitor, map, social, and SillyTavern
+  tables are not compatibility surfaces.
 
 ### 2. Signatures
 
-```python
-create_legacy_tables(database: Database) -> None
-run_migration(output_root: Path, mysql_url: str, ...) -> dict[str, Any]
-run_database_migration(source_url: str, target_url: str, ...) -> dict[str, Any]
-```
+```text
+Base.metadata.tables == {
+    "player_story_states",
+    "story_runs",
+    "character_relationships",
+    "story_events",
+    "story_messages",
+    "private_memories",
+    "managed_story_worlds",
+    "managed_media_assets",
+}
 
-The remaining physical dependency includes old `taverns`, visitor, chat,
-gameplay, map/social, `space_id`, and coordinate models. Their deletion belongs
-to the reviewed legacy Schema/config task, not to application startup.
+FABLESPACE_DATABASE_URL=<SQLAlchemy URL>
+FABLESPACE_MYSQL_POOL_SIZE=<positive integer>
+FABLESPACE_MYSQL_MAX_OVERFLOW=<non-negative integer>
+FABLESPACE_MYSQL_ECHO=<boolean>
+
+mysql --defaults-extra-file=<secure-option-file> \
+  --database=<explicit-target> \
+  < apps/api/sql/migrations/008_retire_legacy_space_schema.sql
+```
 
 ### 3. Contracts
 
-- Production `app_factory`, API routers, StoryWorld services, and frontend
-  clients must not import the legacy Schema helper or ORM models.
-- Only explicit migration commands may call `create_legacy_tables()`.
-- The isolated helper may preserve existing additive column/rename behavior so
-  those commands remain loadable until their owner task removes them.
-- No Space store, application projection, runtime seed, alias, or public route
-  may be rebuilt around the remaining ORM.
-- Do not remove or alter ORM columns, indexes, migrations, or production data
-  without the required schema-impact review and explicit approval.
+- Production composition registers only `story_state_models` and
+  `managed_content_models` before `Base.metadata.create_all()`.
+- `schema_comments.py` has complete coverage for exactly these eight tables.
+- Do not restore legacy ORM modules, default Space seeds, JSON migration
+  commands, `FABLEMAP_*` aliases, or Redis as a FableSpace dependency.
+- Existing deployed databases may retain legacy physical tables until an
+  authorized operator backs up the named target and explicitly runs 008.
+- Deploy the current eight-table ORM before 008; an older process that still
+  inserts the retired inline column must not run after the column drop.
+- 008 uses a transient stored procedure because MySQL permits `SIGNAL` in
+  stored programs but does not prepare it as a dynamic statement. A successful
+  run drops that procedure; a failed run may leave it behind, and the
+  migration's first statement removes that residue before a retry.
+- Run 008 only through the MySQL client because it contains `DELIMITER`
+  directives. Never add it to application startup or deployment automation.
+- Repository completion is not evidence that any database executed 008.
 
 ### 4. Validation & Error Matrix
 
 | Condition | Required result |
 |---|---|
-| Production app/import graph is inspected | No legacy Schema helper, ORM model, or Space runtime is reachable |
-| Explicit migration module is imported | Legacy ORM metadata is registered without opening a database connection |
-| `/api/v1/spaces/...` is requested | Route is absent; no redirect or compatibility response exists |
-| Physical column removal is requested | Stop and route to schema review, migration, backup, and rollback planning |
+| Current model modules are imported without app creation | `Base.metadata.tables` is exactly the eight-table baseline |
+| Schema comments are audited statically | No missing or stale table/column comment remains |
+| A retired environment key is set | `ApiSettings` ignores it; deployment cleanup may remove it from FableSpace env |
+| 008 preconditions fail | No target table or column is dropped |
+| 008 fails after destructive DDL begins | Stop writes and restore the verified logical backup; do not infer transactional rollback |
+| Database execution is requested without target/backup authorization | Stop before connecting |
 
 ### 5. Good / Base / Bad Cases
 
-- Good: keep the old metadata and migration bootstrap in one explicitly named
-  infrastructure module that production assembly never imports.
-- Base: import a migration command for static validation without constructing
-  an engine or executing SQL.
-- Bad: reintroduce a Space store to make old tables reachable, or delete
-  physical columns without approval and rollback evidence.
+- Good: statically import both current model modules and assert the exact table
+  set without constructing an engine.
+- Base: let `create_tables()` initialize an empty SQLite or MySQL database with
+  the same eight-table metadata.
+- Bad: reintroduce an old model or config alias to make legacy data reachable,
+  or claim physical cleanup from repository-only verification.
 
 ### 6. Tests Required
 
 - Run `py -3 -m compileall -q apps/api/src`.
-- Inspect the FastAPI router and production import graph without creating an
-  app/database; assert the Space route and runtime are absent.
-- Import the isolated helper and assert expected legacy table names exist in
-  `Base.metadata` without constructing a `Database`.
-- Run a residual grep that separates application/runtime hits from owned
-  physical-schema and migration hits.
-- Database integration or migration execution requires explicit database
-  authorization and belongs to the physical schema-removal task.
+- Import both current model modules and assert the exact table set plus
+  `schema_comment_errors(Base.metadata) == []`.
+- Statically parse 008 and assert its 23-table DROP set, single approved column
+  DROP, eight-table guard, and non-empty inline-memory guard.
+- Run a residual grep for retired modules, table names, aliases, Redis, AMap,
+  and old config files. Allow old names only in 008, cleanup constants,
+  prohibition documentation, and archived task evidence.
+- Run `docker compose config --quiet` and
+  `npm --prefix .\apps\web run build` for deployment/frontend residue.
+- Database integration or migration execution always requires separate,
+  explicit authorization.
 
 ### 7. Wrong vs Correct
 
 #### Wrong
 
 ```python
-from fablespace_api.infrastructure.legacy_schema import create_legacy_tables
-
-create_legacy_tables(story_database)  # production startup
+from fablespace_api.infrastructure import models  # retired legacy ORM
 ```
 
 #### Correct
 
 ```python
-# Only an explicit operator-invoked migration command imports this helper.
-from fablespace_api.infrastructure.legacy_schema import create_legacy_tables
+from fablespace_api.infrastructure.database import Base
+from fablespace_api.infrastructure import (
+    managed_content_models,
+    story_state_models,
+)
+
+assert set(Base.metadata.tables) == {
+    "player_story_states",
+    "story_runs",
+    "character_relationships",
+    "story_events",
+    "story_messages",
+    "private_memories",
+    "managed_story_worlds",
+    "managed_media_assets",
+}
 ```

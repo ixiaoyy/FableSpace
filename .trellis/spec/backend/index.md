@@ -4,9 +4,9 @@
 
 These specs cover the FastAPI application in `apps/api/src/fablespace_api/`.
 The current product domain is StoryWorld-first. Application-level Space
-routes, services, contracts, and stores have been removed. Remaining legacy
-ORM/schema migration files are isolated infrastructure owned by the reviewed
-Schema/config retirement task and are not templates for new code.
+routes, services, contracts, stores, ORM, migration entrypoints, and config
+aliases have been removed. The current SQLAlchemy baseline contains only the
+six private runtime tables and two managed-content tables.
 
 ## Guidelines Index
 

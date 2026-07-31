@@ -742,7 +742,6 @@ class StoryWorldApplicationService:
             current_node_id=node.id,
             key_choices=[],
             story_flags=[],
-            private_memories=[],
         )
         session.add(run)
         # Persist the FK parent before separately mapped relationship and event rows.

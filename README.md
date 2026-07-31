@@ -64,7 +64,7 @@ Compose 默认启动两个服务：
 
 - `frontend`：构建 `apps/web/`，由 nginx 暴露 `3000` 端口，并把 `/api`、`/generated` 反向代理到后端。
 - `backend`：运行 `uvicorn fablespace_api.main:app`，暴露 `8000` 端口，数据写入 `/data`。
-- 生产复用 ParallelLines 的 MySQL/Redis 时，使用 `deploy/docker-compose.shared.yml` 覆盖文件；完整初始化、迁移和 R2/CDN 配置见 [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)。
+- 生产复用 ParallelLines 的 MySQL 和共享 Docker 网络时，使用 `deploy/docker-compose.shared.yml` 覆盖文件；完整初始化、迁移和 R2/CDN 配置见 [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)。
 
 查看日志：
 
@@ -131,31 +131,26 @@ Docker Compose 会把后端数据写入 volume `fablespace_data` 对应的数据
 
 ## 非 Docker 运行
 
-如果只想在本机快速预览，也可以先构建前端，再由 Python 后端托管 API 和前端页面。
+非 Docker 模式下，Python 进程只提供 API；前端由 React Router 开发服务器单独运行。
 
-Windows PowerShell：
+先安装依赖并启动后端：
 
 ```powershell
 py -3 -m pip install -r .\apps\api\requirements.txt
 npm --prefix .\apps\web install
-npm --prefix .\apps\web run build
 
 $env:PYTHONPATH = "$PWD\apps\api\src"
-py -3 -m fablespace_api api --no-open
+py -3 -m fablespace_api --host 127.0.0.1 --port 8950
 ```
 
-默认访问：
-
-| 服务 | 地址 |
-|------|------|
-| Web 应用 | `http://127.0.0.1:8950/` |
-| 健康检查 | `http://127.0.0.1:8950/api/health` |
-
-需要改端口时：
+另开一个 PowerShell，指向本地 API 并启动前端：
 
 ```powershell
-py -3 -m fablespace_api api --host 127.0.0.1 --port 8951 --no-open
+$env:VITE_API_BASE = "http://127.0.0.1:8950"
+npm --prefix .\apps\web run dev
 ```
+
+后端健康检查是 `http://127.0.0.1:8950/api/v1/health`；前端地址以开发服务器输出为准。
 
 ## 项目文档
 
