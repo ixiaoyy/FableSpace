@@ -640,8 +640,6 @@ class Space:
     id: str
     name: str
     description: str
-    lat: float
-    lon: float
     address: str = ""
     owner_id: str = ""
     created_at: str = ""
@@ -673,7 +671,7 @@ class Space:
     group_chat_enabled: bool = False  # 是否启用群聊模式
     group_chat_config: dict[str, Any] = field(default_factory=dict)  # { strategy, max_responses_per_turn, min_interval, ... }
     # 时间系统字段
-    timezone: str | None = None  # IANA 时区，不填则从 lat/lon 推断
+    timezone: str | None = None  # IANA 时区
     operating_hours: dict[str, Any] = field(default_factory=dict)  # 营业时间配置
     home_members: list[dict[str, Any]] = field(default_factory=list)
     place_relationships: list[dict[str, Any]] = field(default_factory=list)
@@ -701,8 +699,6 @@ class Space:
             "id": self.id,
             "name": self.name,
             "description": self.description,
-            "lat": self.lat,
-            "lon": self.lon,
             "address": self.address,
             "owner_id": self.owner_id,
             "created_at": self.created_at,
@@ -772,8 +768,6 @@ class Space:
             id=d["id"],
             name=d["name"],
             description=d.get("description", ""),
-            lat=d.get("lat", 0.0),
-            lon=d.get("lon", 0.0),
             address=d.get("address", ""),
             owner_id=d.get("owner_id", ""),
             created_at=d.get("created_at", ""),
@@ -992,11 +986,6 @@ class SpaceStore:
             return True
         for key in ("name", "description", "owner_id", "access", "status"):
             if not str(existing.get(key) or "").strip():
-                return True
-        for key in ("lat", "lon"):
-            try:
-                float(existing.get(key))
-            except (TypeError, ValueError):
                 return True
         for key in ("characters", "world_info", "gameplay_definitions"):
             if not isinstance(existing.get(key), list):

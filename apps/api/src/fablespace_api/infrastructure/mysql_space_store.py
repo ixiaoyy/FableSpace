@@ -48,7 +48,6 @@ from .models import (
     LLMConfigModel,
     TavernMessageModel,
     StateCardModel,
-    TerritoryModel,
 )
 
 logger = logging.getLogger(__name__)
@@ -112,8 +111,6 @@ class MySQLSpaceStore:
             id=model.id,
             name=model.name,
             description=model.description or "",
-            lat=model.lat,
-            lon=model.lon,
             address=model.address or "",
             owner_id=model.owner_id,
             created_at=model.created_at.strftime("%Y-%m-%dT%H:%M:%SZ") if model.created_at else "",
@@ -371,8 +368,9 @@ class MySQLSpaceStore:
                 id=tavern.id,
                 name=tavern.name,
                 description=tavern.description,
-                lat=tavern.lat,
-                lon=tavern.lon,
+                # Retain inert values only until the dedicated schema-removal migration drops these columns.
+                lat=0.0,
+                lon=0.0,
                 address=tavern.address,
                 owner_id=tavern.owner_id,
                 created_at=_parse_datetime(tavern.created_at) or datetime.utcnow(),
@@ -461,8 +459,6 @@ class MySQLSpaceStore:
             # 更新主表字段
             model.name = tavern.name
             model.description = tavern.description
-            model.lat = tavern.lat
-            model.lon = tavern.lon
             model.address = tavern.address
             model.owner_id = tavern.owner_id
             model.access = tavern.access

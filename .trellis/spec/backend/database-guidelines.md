@@ -119,3 +119,92 @@ session.flush()
 session.add(CharacterRelationshipModel(story_run_id=run.id, ...))
 append_event(session, run.id)
 ```
+
+---
+
+## Scenario: Retiring an application field before reviewed physical schema removal
+
+### 1. Scope / Trigger
+
+- Applies only when an approved legacy-retirement task removes a field from
+  application/domain contracts before a separate reviewed migration can remove
+  an existing physical column.
+- The current instance is the old Space `lat` / `lon` retirement. It is not a
+  pattern for adding new compatibility fields or extending the Space runtime.
+
+### 2. Signatures
+
+```python
+Space.from_dict(payload: dict[str, Any]) -> Space
+Space.to_dict() -> dict[str, Any]
+MySQLSpaceStore._to_tavern(model: TavernModel) -> Space
+MySQLSpaceStore.create_space(space: Space) -> Space
+MySQLSpaceStore.update_space(space: Space) -> Space
+```
+
+The temporary physical dependency is `taverns.lat` / `taverns.lon` as legacy
+`NOT NULL` columns. Their deletion belongs to the reviewed legacy Schema
+removal task, not to application startup.
+
+### 3. Contracts
+
+- Legacy input may contain retired fields, but `Space.from_dict()` ignores
+  them and `Space.to_dict()` never writes them to JSON.
+- The MySQL read adapter never projects retired column values into the
+  application object or a public response.
+- Until the physical migration lands, a legacy insert may supply a fixed,
+  semantically inert value solely to satisfy `NOT NULL`; application code must
+  never read or branch on it.
+- Legacy updates leave the physical column unchanged.
+- Do not remove or alter ORM columns, indexes, migrations, or production data
+  without the required schema-impact review and explicit approval.
+
+### 4. Validation & Error Matrix
+
+| Condition | Required result |
+|---|---|
+| Old JSON contains `lat` / `lon` | Load succeeds; application object and next write omit both fields |
+| New JSON record is created | Serialized payload contains neither field |
+| Existing MySQL row has coordinate values | Hydration ignores them |
+| Legacy insert runs before column removal | Adapter writes only the fixed inert value required by the old schema |
+| Legacy Space is updated | Existing physical coordinate columns are not rewritten |
+| Physical column removal is requested | Stop and route to schema review, migration, backup, and rollback planning |
+
+### 5. Good / Base / Bad Cases
+
+- Good: retire the field at content, domain, serialization, and projection
+  boundaries while isolating the old physical constraint in one adapter.
+- Base: read an old JSON document with the retired keys and write it back
+  without those keys.
+- Bad: expose the inert value through an API, infer location from it, or remove
+  the ORM column while deployed databases still require it.
+
+### 6. Tests Required
+
+- Run `py -3 -m compileall -q apps/api/src`.
+- Construct every default legacy Space without a database and assert its seed,
+  dataclass fields, full serialization, and entry projection omit the retired
+  keys.
+- Pass a legacy dict containing the retired keys through `Space.from_dict()`
+  and assert the next serialization omits them.
+- Run a residual grep that separates application/runtime hits from owned
+  physical-schema and migration hits.
+- Database integration or migration execution requires explicit database
+  authorization and belongs to the physical schema-removal task.
+
+### 7. Wrong vs Correct
+
+#### Wrong
+
+```python
+return Space(lat=model.lat, lon=model.lon, ...)
+```
+
+#### Correct
+
+```python
+return Space(...)
+
+# Only inside the isolated legacy insert adapter until the reviewed migration.
+model = TavernModel(lat=0.0, lon=0.0, ...)
+```
