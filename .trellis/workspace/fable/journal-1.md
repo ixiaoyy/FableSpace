@@ -1038,3 +1038,36 @@ Split the frontend roadmap into UI-first and integration follow-ups, archived th
 ### Next Steps
 
 - None - task complete
+
+
+## Session 32: 删除旧 Space 合同与路由
+
+**Date**: 2026-07-31
+**Task**: 删除旧 Space 合同与路由
+**Branch**: `codex/palace-character-entry`
+
+### Summary
+
+首页切换到现有 StoryWorld Character 详情；删除旧 Space 前后端运行时、路由与兼容别名；将旧 ORM 建表逻辑隔离到显式迁移模块，并同步权威文档与 Trellis 规范。
+
+### Main Changes
+
+- Detailed change bullets were not supplied; see the summary above.
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `56b9821d` | (see git log) |
+
+### Testing
+
+- Validation was not recorded for this session.
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
