@@ -39,14 +39,14 @@ focused at existing boundaries: API envelope shape, route registry lookup,
 query values against fetched PlayerRoles, image payload normalization, and
 admin field parsing.
 
-## Assertions and Legacy Debt
+## Assertions
 
 Type assertions are acceptable only after a nearby structural check or for a
 closed `Object.keys` projection. Do not use `as any`, double assertions, or
 non-null assertions to bypass a contract.
 
-`lib/spaces.ts` contains index-signature `any` from the legacy Space client.
-Do not copy it into new StoryWorld types; remove it with the old contract.
+The index-signature `any` boundary from the old Space client has been removed.
+Do not recreate it in StoryWorld clients or homepage projections.
 
 ## Contract Sync
 

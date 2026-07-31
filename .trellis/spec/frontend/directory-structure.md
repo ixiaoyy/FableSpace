@@ -53,6 +53,7 @@ bundled; `nginx.conf` separately proves production deep-link reachability.
 
 ## Legacy Boundary
 
-Files that still expose Space, visitor identity, map, or old product concepts
-are retirement targets. Do not move their contracts into new components,
-create new adapters for them, or use them as the naming standard.
+The old Space client, anonymous visitor identity, `play_identity`, and
+Space-based homepage loaders have been removed. Do not reintroduce their
+contracts, create adapters for retired data, or use them as the naming
+standard.

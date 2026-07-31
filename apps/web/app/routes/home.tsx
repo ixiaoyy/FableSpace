@@ -1,26 +1,29 @@
 import { useLoaderData, useNavigation, useRevalidator } from "react-router"
 
 import { HomeCharacterDiscovery } from "../components/home-character-discovery"
-import { loadHomeStoryCollection } from "../lib/home-story-collection"
-import { errorMessage, type SpaceListResponse } from "../lib/spaces"
+import {
+  loadHomeStoryCollection,
+  type HomeStoryCharacter,
+} from "../lib/home-story-collection"
 
-const EMPTY_LIST_RESULT: SpaceListResponse = { spaces: [], count: 0 }
+const EMPTY_CHARACTERS: HomeStoryCharacter[] = []
 
 type HomeLoaderData = {
-  result: SpaceListResponse
+  characters: HomeStoryCharacter[]
   error: string
 }
 
 export async function clientLoader(): Promise<HomeLoaderData> {
   try {
     return {
-      result: await loadHomeStoryCollection(),
+      characters: await loadHomeStoryCollection(),
       error: "",
     }
   } catch (error) {
+    const message = error instanceof Error ? error.message : String(error || "")
     return {
-      result: EMPTY_LIST_RESULT,
-      error: errorMessage(error),
+      characters: EMPTY_CHARACTERS,
+      error: message || "角色入口暂不可用",
     }
   }
 }
@@ -30,19 +33,19 @@ export default function HomeRoute() {
   const navigation = useNavigation()
   const revalidator = useRevalidator()
   const isLoading = navigation.state === "loading" || revalidator.state === "loading"
-  const result = isLoading ? EMPTY_LIST_RESULT : loaderData.result
+  const characters = isLoading ? EMPTY_CHARACTERS : loaderData.characters
   const loadError = isLoading ? "" : loaderData.error
   const loadState = isLoading
     ? "loading"
     : loadError
       ? "error"
-      : result.spaces.length > 0
+      : characters.length > 0
         ? "ready"
         : "empty"
 
   return (
     <HomeCharacterDiscovery
-      spaces={result.spaces}
+      characters={characters}
       loadState={loadState}
       loadError={loadError}
       onRetry={() => revalidator.revalidate()}

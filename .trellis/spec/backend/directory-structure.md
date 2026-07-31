@@ -15,10 +15,11 @@ apps/api/src/fablespace_api/
 └── main.py                    # Environment load and ASGI app entry
 ```
 
-`core/`, `contracts/`, legacy `application/services/`, and `/spaces` routes
-contain the old Space runtime. They may be audited or removed, but new
-StoryWorld work must not copy their entity names, identity headers, or route
-shape.
+The old `/spaces` routes, Space application/services, stores, and request
+contracts have been removed. `core/` now retains only the deployment LLM
+client, media URL helper, and one migration-only legacy seed module;
+`contracts/` retains the health response contract. Do not expand either
+location into a second product runtime.
 
 ## Layer Ownership
 

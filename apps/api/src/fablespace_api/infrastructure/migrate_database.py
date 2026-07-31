@@ -20,7 +20,7 @@ from sqlalchemy.engine import Engine, make_url
 
 from fablespace_api.infrastructure.database import Base, Database
 from fablespace_api.infrastructure.env import DEFAULT_ENV_FILE, parse_env_file
-from fablespace_api.infrastructure.mysql_space_store import create_mysql_tables
+from fablespace_api.infrastructure.legacy_schema import create_legacy_tables
 from fablespace_api.infrastructure.storage import redact_database_url
 
 
@@ -191,7 +191,7 @@ def run_database_migration(
     target_db = Database(target_url)
     try:
         if not dry_run:
-            create_mysql_tables(target_db)
+            create_legacy_tables(target_db)
 
         tables: dict[str, dict[str, int]] = {}
         totals = {"source": 0, "inserted": 0, "updated": 0, "skipped": 0}

@@ -508,13 +508,16 @@ body:has(.characterDiscoveryPage) {
 }
 
 .characterStoryLine {
+  display: -webkit-box;
+  overflow: hidden;
   margin: 13px 0 0;
   color: #544d50;
   font-size: 14px;
   font-weight: 500;
   line-height: 1.65;
   letter-spacing: 0.04em;
-  white-space: pre-line;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
 }
 
 .characterStoryPrimaryAction {

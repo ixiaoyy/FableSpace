@@ -22,13 +22,13 @@ import {
   characterPath,
   resolveCharacterRouteById,
 } from "../lib/character-routes"
+import type { HomeStoryCharacter } from "../lib/home-story-collection"
 import { WEB_PATHS } from "../lib/web-routes"
-import type { Space, SpaceCharacter } from "../lib/spaces"
 
 import "./home-character-discovery.css"
 
 type HomeCharacterDiscoveryProps = {
-  spaces: Space[]
+  characters: HomeStoryCharacter[]
   loadState: "loading" | "ready" | "empty" | "error"
   loadError: string
   onRetry: () => void
@@ -37,9 +37,6 @@ type HomeCharacterDiscoveryProps = {
 type CharacterPresentation = {
   characterId: string
   portrait: string
-  worldLine: string
-  relationship: string
-  storyLine: string
   ctaLabel: string
   storyLinkLabel: string
   companionIds: string[]
@@ -47,8 +44,8 @@ type CharacterPresentation = {
 }
 
 type FeaturedCharacter = {
-  space: Space
-  character: SpaceCharacter
+  storyWorld: HomeStoryCharacter["storyWorld"]
+  character: HomeStoryCharacter["character"]
   presentation: CharacterPresentation
 }
 
@@ -65,9 +62,6 @@ const CHARACTER_PRESENTATIONS: CharacterPresentation[] = [
     portrait: mediaAssetUrl(
       "app/assets/home-story-bookshelf/v1/characters/char_history_broad_street_annie.webp",
     ),
-    worldLine: "伦敦宽街 · 一碗水",
-    relationship: "初次相遇",
-    storyLine: "她抱着空陶罐，正等你回答。",
     ctaLabel: "去见安妮",
     storyLinkLabel: "看看她的故事",
     companionIds: [WEI_CHARACTER_ID, XIAO_CHARACTER_ID],
@@ -78,9 +72,6 @@ const CHARACTER_PRESENTATIONS: CharacterPresentation[] = [
     portrait: mediaAssetUrl(
       "app/assets/home-story-bookshelf/v1/characters/char_story_palace_eunuch_wei.webp",
     ),
-    worldLine: "长明宫 · 雪夜诏书",
-    relationship: "仍有戒心",
-    storyLine: "他在宫墙外踱步，\n似乎有话要说。",
     ctaLabel: "去见魏观海",
     storyLinkLabel: "看看他的故事",
     companionIds: [WEI_CHARACTER_ID, XIAO_CHARACTER_ID],
@@ -91,9 +82,6 @@ const CHARACTER_PRESENTATIONS: CharacterPresentation[] = [
     portrait: mediaAssetUrl(
       "app/assets/home-story-bookshelf/v1/characters/char_story_palace_princess_xiao.webp",
     ),
-    worldLine: "长明宫 · 雪夜诏书",
-    relationship: "初次相遇",
-    storyLine: "“宫门已经封了。\n你愿意替我查一句真话吗？”",
     ctaLabel: "去见明珠",
     storyLinkLabel: "看看她的故事",
     companionIds: [ANNIE_CHARACTER_ID],
@@ -101,14 +89,12 @@ const CHARACTER_PRESENTATIONS: CharacterPresentation[] = [
   },
 ]
 
-function featuredCharacters(spaces: Space[]) {
-  const byId = new Map<string, { space: Space; character: SpaceCharacter }>()
+function featuredCharacters(characters: HomeStoryCharacter[]) {
+  const byId = new Map<string, HomeStoryCharacter>()
 
-  for (const space of spaces) {
-    for (const character of Array.isArray(space.characters) ? space.characters : []) {
-      if (!character?.id || !character.name) continue
-      byId.set(character.id, { space, character })
-    }
+  for (const entry of characters) {
+    if (!entry.character.id || !entry.character.name) continue
+    byId.set(entry.character.id, entry)
   }
 
   return CHARACTER_PRESENTATIONS.flatMap((presentation) => {
@@ -123,12 +109,15 @@ function primaryPath(entry: FeaturedCharacter) {
 }
 
 export function HomeCharacterDiscovery({
-  spaces,
+  characters: sourceCharacters,
   loadState,
   loadError,
   onRetry,
 }: HomeCharacterDiscoveryProps) {
-  const characters = useMemo(() => featuredCharacters(spaces), [spaces])
+  const characters = useMemo(
+    () => featuredCharacters(sourceCharacters),
+    [sourceCharacters],
+  )
   const [selectedCharacterId, setSelectedCharacterId] = useState(WEI_CHARACTER_ID)
   const initialSelectionRef = useRef(selectedCharacterId)
   const carouselRef = useRef<HTMLDivElement | null>(null)
@@ -377,7 +366,7 @@ function CharacterCard({
   active: boolean
   cardRef: (node: HTMLElement | null) => void
 }) {
-  const { character, presentation } = entry
+  const { storyWorld, character, presentation } = entry
 
   return (
     <article
@@ -400,14 +389,14 @@ function CharacterCard({
         </h2>
         <p className="characterStoryWorld">
           <MapPin aria-hidden="true" />
-          {presentation.worldLine}
+          {storyWorld.title}
         </p>
         <span className="characterStoryRelationship">
           <Feather aria-hidden="true" />
-          {presentation.relationship}
+          {character.relationship_stage.label}
         </span>
         <span className="characterStoryDivider" aria-hidden="true" />
-        <p className="characterStoryLine">{presentation.storyLine}</p>
+        <p className="characterStoryLine">{character.current_situation}</p>
       </div>
       <Link className="characterStoryPrimaryAction" to={primaryPath(entry)}>
         <span>{presentation.ctaLabel}</span>

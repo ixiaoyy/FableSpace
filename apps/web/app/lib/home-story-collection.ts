@@ -1,25 +1,36 @@
-import { loadHistoryPilotSpace } from "./history-pilot-space"
-import { loadLaunchStorySpaces } from "./launch-story-spaces"
+import { CHARACTER_ROUTES } from "./character-routes"
+import {
+  getStoryWorldCharacter,
+  type StoryWorldCharacterDetail,
+} from "./story-worlds"
 
-import type { SpaceListResponse } from "./spaces"
+export type HomeStoryCharacter = {
+  storyWorld: StoryWorldCharacterDetail["story_world"]
+  character: StoryWorldCharacterDetail["character"]
+}
 
 /**
- * Load the two reviewed P0 worlds as one homepage character collection.
- * Every child loader keeps its published access/status/character contract; this function only combines their results.
+ * Load the reviewed homepage characters through the canonical StoryWorld detail contract.
+ * Every response must match its stable frontend route identity; mismatches fail the whole real-data collection.
  */
-export async function loadHomeStoryCollection(): Promise<SpaceListResponse> {
-  const [historyPilot, launchStories] = await Promise.all([
-    loadHistoryPilotSpace(),
-    loadLaunchStorySpaces(),
-  ])
-  const spaces = [...historyPilot.spaces, ...launchStories.spaces]
+export async function loadHomeStoryCollection(): Promise<HomeStoryCharacter[]> {
+  return Promise.all(
+    CHARACTER_ROUTES.map(async (route) => {
+      const detail = await getStoryWorldCharacter(
+        route.storyWorldId,
+        route.characterId,
+      )
+      if (
+        detail.story_world.id !== route.storyWorldId
+        || detail.character.id !== route.characterId
+      ) {
+        throw new Error("角色入口暂不可用")
+      }
 
-  return {
-    spaces,
-    count: spaces.length,
-    total: spaces.length,
-    limit: spaces.length,
-    offset: 0,
-    has_more: false,
-  }
+      return {
+        storyWorld: detail.story_world,
+        character: detail.character,
+      }
+    }),
+  )
 }

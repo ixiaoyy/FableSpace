@@ -39,7 +39,7 @@ from fablespace_api.infrastructure.models import (
     WritebackStateModel,
     StateCardModel,
 )
-from fablespace_api.infrastructure.mysql_space_store import create_mysql_tables
+from fablespace_api.infrastructure.legacy_schema import create_legacy_tables
 from fablespace_api.infrastructure.storage import redact_database_url
 
 logging.basicConfig(
@@ -740,7 +740,7 @@ def run_migration(
         db.drop_tables()
 
     logger.info("创建表结构...")
-    create_mysql_tables(db)
+    create_legacy_tables(db)
 
     # 迁移空间数据
     logger.info("迁移空间数据...")

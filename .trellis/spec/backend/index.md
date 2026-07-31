@@ -3,9 +3,10 @@
 ## Scope
 
 These specs cover the FastAPI application in `apps/api/src/fablespace_api/`.
-The current product domain is StoryWorld-first. Modules under `core/`,
-`contracts/`, and legacy Space routes remain retirement targets and are not
-templates for new StoryWorld code.
+The current product domain is StoryWorld-first. Application-level Space
+routes, services, contracts, and stores have been removed. Remaining legacy
+ORM/schema migration files are isolated infrastructure owned by the reviewed
+Schema/config retirement task and are not templates for new code.
 
 ## Guidelines Index
 
@@ -23,8 +24,8 @@ templates for new StoryWorld code.
 ## Pre-Development Checklist
 
 1. Read root `AGENTS.md` and the relevant authority document under `docs/`.
-2. Confirm the change belongs to the new StoryWorld domain rather than a
-   legacy `core/` or `/spaces` compatibility path.
+2. Confirm the change belongs to the StoryWorld domain and does not reintroduce
+   a Space, anonymous visitor, or `/spaces` compatibility path.
 3. For API, Schema, persistence, content, or deployment work, identify the
    authoritative contract and the exact verification before editing.
 4. Do not connect to a database unless the user explicitly authorizes it.

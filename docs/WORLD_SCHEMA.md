@@ -2,7 +2,7 @@
 
 本文档定义角色故事平台的目标 durable data contract。产品边界见 [FABLESPACE_SPACE_PLATFORM.md](FABLESPACE_SPACE_PLATFORM.md)，负面清单见 [WHAT_NOT_TO_BUILD.md](WHAT_NOT_TO_BUILD.md)。
 
-当前代码仍处于旧 Space 合同向新领域迁移的开发阶段。旧表、旧 API 和旧类型与本文不一致是待实施任务，不构成兼容要求；新代码不得为了复用旧实现而把坐标、owner、密码、营业状态或 SillyTavern 字段带入新 Schema。
+当前应用运行时、公开 API 和前端已经完成旧 Space 合同清退。旧物理表、ORM、迁移和数据库 / 部署配置仍由独立 Schema/config 任务审计，不构成应用兼容要求；新代码不得为了复用这些残留而把坐标、owner、密码、营业状态或 SillyTavern 字段带入新 Schema。
 
 ## 命名与边界
 
@@ -552,7 +552,7 @@ POST /api/v1/story-worlds/{story_world_id}/runs/restart
 - owner / 故事世界私有 LLMConfig 和 Token 统计；
 - 旧 GameplayDefinition / GameplaySession 通用玩法合同。
 
-旧代码与开发数据只能在独立清退任务中经过完整引用审计、备份和显式迁移后删除。不得保留长期新旧双轨，也不得在应用启动时静默清库。
+应用级旧类型、服务、路由和前端客户端已经删除，不提供重定向或兼容包装器。剩余旧物理表、ORM、迁移、配置与开发数据只能在独立 Schema/config 清退任务中经过完整引用审计、备份和显式迁移后删除，不得在应用启动时静默清库。
 
 ## 版本与维护
 

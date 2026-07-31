@@ -122,40 +122,37 @@ append_event(session, run.id)
 
 ---
 
-## Scenario: Retiring an application field before reviewed physical schema removal
+## Scenario: Isolating legacy physical schema after application contract removal
 
 ### 1. Scope / Trigger
 
-- Applies only when an approved legacy-retirement task removes a field from
-  application/domain contracts before a separate reviewed migration can remove
-  an existing physical column.
-- The current instance is the old Space `lat` / `lon` retirement. It is not a
-  pattern for adding new compatibility fields or extending the Space runtime.
+- Applies after the Space application/domain/API contract has been removed,
+  while old ORM tables and explicit migration commands await a separately
+  reviewed physical Schema/config retirement.
+- This is an isolation boundary, not permission to extend or call the legacy
+  schema from production runtime code.
 
 ### 2. Signatures
 
 ```python
-Space.from_dict(payload: dict[str, Any]) -> Space
-Space.to_dict() -> dict[str, Any]
-MySQLSpaceStore._to_tavern(model: TavernModel) -> Space
-MySQLSpaceStore.create_space(space: Space) -> Space
-MySQLSpaceStore.update_space(space: Space) -> Space
+create_legacy_tables(database: Database) -> None
+run_migration(output_root: Path, mysql_url: str, ...) -> dict[str, Any]
+run_database_migration(source_url: str, target_url: str, ...) -> dict[str, Any]
 ```
 
-The temporary physical dependency is `taverns.lat` / `taverns.lon` as legacy
-`NOT NULL` columns. Their deletion belongs to the reviewed legacy Schema
-removal task, not to application startup.
+The remaining physical dependency includes old `taverns`, visitor, chat,
+gameplay, map/social, `space_id`, and coordinate models. Their deletion belongs
+to the reviewed legacy Schema/config task, not to application startup.
 
 ### 3. Contracts
 
-- Legacy input may contain retired fields, but `Space.from_dict()` ignores
-  them and `Space.to_dict()` never writes them to JSON.
-- The MySQL read adapter never projects retired column values into the
-  application object or a public response.
-- Until the physical migration lands, a legacy insert may supply a fixed,
-  semantically inert value solely to satisfy `NOT NULL`; application code must
-  never read or branch on it.
-- Legacy updates leave the physical column unchanged.
+- Production `app_factory`, API routers, StoryWorld services, and frontend
+  clients must not import the legacy Schema helper or ORM models.
+- Only explicit migration commands may call `create_legacy_tables()`.
+- The isolated helper may preserve existing additive column/rename behavior so
+  those commands remain loadable until their owner task removes them.
+- No Space store, application projection, runtime seed, alias, or public route
+  may be rebuilt around the remaining ORM.
 - Do not remove or alter ORM columns, indexes, migrations, or production data
   without the required schema-impact review and explicit approval.
 
@@ -163,30 +160,27 @@ removal task, not to application startup.
 
 | Condition | Required result |
 |---|---|
-| Old JSON contains `lat` / `lon` | Load succeeds; application object and next write omit both fields |
-| New JSON record is created | Serialized payload contains neither field |
-| Existing MySQL row has coordinate values | Hydration ignores them |
-| Legacy insert runs before column removal | Adapter writes only the fixed inert value required by the old schema |
-| Legacy Space is updated | Existing physical coordinate columns are not rewritten |
+| Production app/import graph is inspected | No legacy Schema helper, ORM model, or Space runtime is reachable |
+| Explicit migration module is imported | Legacy ORM metadata is registered without opening a database connection |
+| `/api/v1/spaces/...` is requested | Route is absent; no redirect or compatibility response exists |
 | Physical column removal is requested | Stop and route to schema review, migration, backup, and rollback planning |
 
 ### 5. Good / Base / Bad Cases
 
-- Good: retire the field at content, domain, serialization, and projection
-  boundaries while isolating the old physical constraint in one adapter.
-- Base: read an old JSON document with the retired keys and write it back
-  without those keys.
-- Bad: expose the inert value through an API, infer location from it, or remove
-  the ORM column while deployed databases still require it.
+- Good: keep the old metadata and migration bootstrap in one explicitly named
+  infrastructure module that production assembly never imports.
+- Base: import a migration command for static validation without constructing
+  an engine or executing SQL.
+- Bad: reintroduce a Space store to make old tables reachable, or delete
+  physical columns without approval and rollback evidence.
 
 ### 6. Tests Required
 
 - Run `py -3 -m compileall -q apps/api/src`.
-- Construct every default legacy Space without a database and assert its seed,
-  dataclass fields, full serialization, and entry projection omit the retired
-  keys.
-- Pass a legacy dict containing the retired keys through `Space.from_dict()`
-  and assert the next serialization omits them.
+- Inspect the FastAPI router and production import graph without creating an
+  app/database; assert the Space route and runtime are absent.
+- Import the isolated helper and assert expected legacy table names exist in
+  `Base.metadata` without constructing a `Database`.
 - Run a residual grep that separates application/runtime hits from owned
   physical-schema and migration hits.
 - Database integration or migration execution requires explicit database
@@ -197,14 +191,14 @@ removal task, not to application startup.
 #### Wrong
 
 ```python
-return Space(lat=model.lat, lon=model.lon, ...)
+from fablespace_api.infrastructure.legacy_schema import create_legacy_tables
+
+create_legacy_tables(story_database)  # production startup
 ```
 
 #### Correct
 
 ```python
-return Space(...)
-
-# Only inside the isolated legacy insert adapter until the reviewed migration.
-model = TavernModel(lat=0.0, lon=0.0, ...)
+# Only an explicit operator-invoked migration command imports this helper.
+from fablespace_api.infrastructure.legacy_schema import create_legacy_tables
 ```

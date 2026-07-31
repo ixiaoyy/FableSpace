@@ -11,13 +11,10 @@ from fastapi.responses import FileResponse, JSONResponse, RedirectResponse
 
 from .api.response_envelope import add_api_response_envelope_middleware
 from .api.v1.auth import ParallelLinesAccessVerifier, is_private_access_allowed
-from .application.spaces import SpaceApplicationService
 from .application.story_worlds import StoryWorldApplicationService, SystemStoryDialogueResponder
 from .api.v1.router import api_router
 from .content import STORY_WORLD_REGISTRY
 from .core.llm_clients import LLMConfig, is_supported_backend
-from .core.space import SpaceStore
-from .domain.public_reference import public_reference_code
 from .infrastructure.database import Database
 from .infrastructure.storage import resolve_database_url
 from .infrastructure.settings import ApiSettings
@@ -30,7 +27,6 @@ from .infrastructure.managed_story_content_store import (
     ManagedMediaAssetStore,
     ManagedStoryWorldStore,
 )
-from .infrastructure.storage import create_space_store
 
 logger = logging.getLogger(__name__)
 PRIVATE_GATE_PUBLIC_PATHS = frozenset(
@@ -45,16 +41,6 @@ PRIVATE_GATE_PUBLIC_PATHS = frozenset(
 PUBLIC_STORY_CHARACTER_PATH = re.compile(
     r"^/api/v1/story-worlds/[^/]+/characters/[^/]+$"
 )
-PUBLIC_SPACE_ENTRY_PATH = re.compile(r"^/api/v1/spaces/(?P<space_ref>[^/]+)$")
-PUBLIC_ENTRY_SPACE_IDS = frozenset(
-    {
-        "history_broad_street_water_1854",
-        "story_palace_snow_edict",
-    }
-)
-PUBLIC_ENTRY_SPACE_REFS = PUBLIC_ENTRY_SPACE_IDS | frozenset(
-    public_reference_code("space", space_id) for space_id in PUBLIC_ENTRY_SPACE_IDS
-)
 
 
 def _is_public_api_request(request: Request) -> bool:
@@ -64,19 +50,7 @@ def _is_public_api_request(request: Request) -> bool:
         return True
     if request.method != "GET":
         return False
-    if PUBLIC_STORY_CHARACTER_PATH.fullmatch(path):
-        return True
-    space_match = PUBLIC_SPACE_ENTRY_PATH.fullmatch(path)
-    return bool(
-        space_match
-        and request.query_params.get("view") == "entry"
-        and space_match.group("space_ref") in PUBLIC_ENTRY_SPACE_REFS
-    )
-
-
-def create_store(settings: ApiSettings) -> SpaceStore:
-    """Create the authoritative store backend from runtime settings."""
-    return create_space_store(settings)
+    return bool(PUBLIC_STORY_CHARACTER_PATH.fullmatch(path))
 
 
 def build_system_story_llm_config(settings: ApiSettings) -> LLMConfig | None:
@@ -165,8 +139,6 @@ def create_app(settings: ApiSettings | None = None) -> FastAPI:
     story_llm_config = build_system_story_llm_config(resolved)
     generated_storage = create_generated_storage(resolved)
 
-    store = create_store(resolved)
-    spaces_service = SpaceApplicationService(store)
     story_database_url = resolve_database_url(resolved)
     if not story_database_url:
         story_database_url = (
@@ -194,7 +166,6 @@ def create_app(settings: ApiSettings | None = None) -> FastAPI:
 
     app = FastAPI(title=resolved.app_name, version=resolved.api_version)
     app.state.settings = resolved
-    app.state.spaces = spaces_service
     app.state.story_worlds = story_worlds_service
     app.state.story_database = story_database
     app.state.managed_story_worlds = managed_story_worlds
@@ -213,7 +184,7 @@ def create_app(settings: ApiSettings | None = None) -> FastAPI:
     add_api_response_envelope_middleware(app, path_prefixes=("/api/v1",))
 
     @app.middleware("http")
-    async def private_space_access_gate(request: Request, call_next):
+    async def private_api_access_gate(request: Request, call_next):
         """Validate linked-mode HTTP access, returning 401 or the downstream response."""
         protected_path = request.url.path.startswith(("/api/v1", "/generated/"))
         if (

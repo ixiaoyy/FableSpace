@@ -3,7 +3,7 @@
   "name": "legacy-space-contract-removal",
   "title": "删除旧 Space 合同与路由",
   "description": "只在新链路可用后删除 Space 类型、API、前端路由和兼容别名。",
-  "status": "planning",
+  "status": "in_progress",
   "dev_type": null,
   "scope": null,
   "package": null,
