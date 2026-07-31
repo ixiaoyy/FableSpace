@@ -1137,3 +1137,37 @@ Split the frontend roadmap into UI-first and integration follow-ups, archived th
 ### Next Steps
 
 - None - task complete
+
+
+## Session 35: Repair StoryRun production schema drift
+
+**Date**: 2026-07-31
+**Task**: Repair StoryRun production schema drift
+**Branch**: `main`
+
+### Summary
+
+Added a guarded manual 006/008 production repair workflow, retained a verified logical backup, restored the eight-table StoryRun schema, and confirmed the authenticated Annie chat UI.
+
+### Main Changes
+
+- Detailed change bullets were not supplied; see the summary above.
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `ee9f73b9` | (see git log) |
+| `dc01dfee` | (see git log) |
+
+### Testing
+
+- Validation was not recorded for this session.
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
