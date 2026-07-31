@@ -121,6 +121,25 @@ After implementation:
 - [ ] Checked that derived state points back to the source event identifier
       (`seq`, `id`, `version`) instead of inventing a second cursor
 
+## Deployment Health vs Data-Path Health
+
+When a release changes an ORM model, migration, queue payload, or other durable
+contract, a generic process health endpoint is not enough:
+
+- [ ] Identify how an already-deployed durable store reaches the new contract;
+      table creation helpers commonly do not alter existing tables.
+- [ ] Verify the exact production revision and runtime contract before applying
+      a migration.
+- [ ] Add a post-deploy probe that crosses the changed boundary, such as a real
+      current-ORM query; do not infer data-path health from a static endpoint.
+- [ ] Distinguish repository state, running process state, and physical storage
+      state. Evidence for one does not prove the other two.
+- [ ] Keep destructive repair separate from ordinary deployment, with explicit
+      authorization, backup, preconditions, and failure-state handling.
+
+Project-specific FableSpace migration and repair contracts live in
+[`../backend/database-guidelines.md`](../backend/database-guidelines.md).
+
 ---
 
 ## Cross-Platform Template Consistency
