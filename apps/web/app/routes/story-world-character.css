@@ -520,47 +520,11 @@ body:has(.annieStoryShell--chat) {
   font-weight: 800;
 }
 
-.annieStoryConversationHeader > div {
-  display: grid;
-  gap: 0.22rem;
-  min-width: 0;
-}
-
-.annieStoryConversationHeader > div > span {
-  display: flex;
-  align-items: baseline;
-  gap: 0.65rem;
-  min-width: 0;
-}
-
 .annieStoryConversationHeader strong {
+  min-width: 0;
+  overflow: hidden;
   color: #3b2e43;
   font-size: 1.05rem;
-}
-
-.annieStoryConversationHeader span small {
-  color: var(--annie-orange-strong);
-  font-family: system-ui, sans-serif;
-  font-size: 0.68rem;
-  font-weight: 800;
-}
-
-.annieStoryConversationHeader p {
-  margin: 0;
-  overflow: hidden;
-  color: var(--annie-muted);
-  font-size: 0.82rem;
-  line-height: 1.5;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.annieStoryConversationHeader > div > small {
-  overflow: hidden;
-  color: #785f78;
-  font-family: system-ui, sans-serif;
-  font-size: 0.68rem;
-  line-height: 1.45;
   text-overflow: ellipsis;
   white-space: nowrap;
 }

@@ -143,12 +143,14 @@ const timelineEvents = storyEvents.filter(
 )
 ```
 
-Render the updated relationship `label`, authored `attitude`, and optional
-`last_change_reason` in a separate compact status surface. Never render the
-internal `affinity` value. After changing this projection, verify a narrow
-viewport starts with the Character opening message, shows the sequence “player
-choice → authored Character action or reply,” and automatically scrolls to
-that reply.
+The chat header renders Character identity only: portrait or monogram plus
+name. Do not render relationship `label`, `attitude`, `last_change_reason`, or
+the internal `affinity` value there. These fields remain part of the run
+contract and runtime logic; the player experiences the relationship through
+dialogue and authored interaction results instead of a page-level
+interpretation. After changing this projection, verify a narrow viewport starts
+with the Character opening message, shows the sequence “player choice →
+authored Character action or reply,” and automatically scrolls to that reply.
 
 ---
 

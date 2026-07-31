@@ -24,7 +24,8 @@
     "07-23-story-continuity-ui",
     "07-28-annie-character-presence",
     "07-31-chat-first-character-entry",
-    "07-31-chat-only-story-timeline"
+    "07-31-chat-only-story-timeline",
+    "07-31-chat-relationship-copy-removal"
   ],
   "parent": "07-22-product-mainline-rebuild",
   "relatedFiles": [],

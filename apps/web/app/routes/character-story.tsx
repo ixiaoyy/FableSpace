@@ -585,10 +585,7 @@ function StoryConversationGate({
       className="annieStoryConversationGate"
       aria-label={`${detail.character.name}的对话`}
     >
-      <CharacterConversationHeader
-        detail={detail}
-        relationship={detail.character.relationship_stage}
-      />
+      <CharacterConversationHeader detail={detail} />
       <div className="annieStoryConversationState" aria-live="polite">
         {accessState === "checking" ? (
           <>
@@ -700,13 +697,11 @@ function StoryConversationGate({
   )
 }
 
-/** Returns a compact header for the supplied Character and public or run relationship state. */
+/** Returns a compact identity-only header for the supplied Character. */
 function CharacterConversationHeader({
   detail,
-  relationship,
 }: {
   detail: StoryWorldCharacterDetail
-  relationship: StoryRun["relationship"]
 }) {
   const portrait = detail.character.portrait_url
     || resolveCharacterRouteById(detail.character.id)?.portrait
@@ -720,16 +715,7 @@ function CharacterConversationHeader({
           {detail.character.name.slice(0, 1)}
         </span>
       )}
-      <div>
-        <span>
-          <strong>{detail.character.name}</strong>
-          <small>{relationship.label}</small>
-        </span>
-        <p>{relationship.attitude}</p>
-        {relationship.last_change_reason ? (
-          <small>{relationship.last_change_reason}</small>
-        ) : null}
-      </div>
+      <strong>{detail.character.name}</strong>
     </div>
   )
 }
@@ -770,10 +756,7 @@ function StoryRunWorkspace({
         aria-label={`${detail.character.name}的故事`}
       >
         {run.status === "active" ? (
-          <CharacterConversationHeader
-            detail={detail}
-            relationship={run.relationship}
-          />
+          <CharacterConversationHeader detail={detail} />
         ) : null}
 
         <StoryTimeline
