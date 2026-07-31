@@ -1,0 +1,1045 @@
+name: Audit multi-story migration readiness
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirmation:
+        description: Type AUDIT-MULTI-STORY-FABLESPACE-PRODUCTION
+        required: true
+        type: string
+
+concurrency:
+  group: fablespace-production
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    name: Read-only production audit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate confirmation and deployment secrets
+        env:
+          CONFIRMATION: ${{ inputs.confirmation }}
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+        run: |
+          set -euo pipefail
+          if [ "${CONFIRMATION}" != "AUDIT-MULTI-STORY-FABLESPACE-PRODUCTION" ]; then
+            echo "::error::Confirmation did not match the required read-only audit phrase"
+            exit 1
+          fi
+          for name in DEPLOY_HOST DEPLOY_USER DEPLOY_SSH_KEY; do
+            if [ -z "${!name:-}" ]; then
+              echo "::error::Missing required GitHub Actions secret: ${name}"
+              exit 1
+            fi
+          done
+
+      - name: Audit production in a read-only transaction
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          port: ${{ secrets.DEPLOY_PORT || '22' }}
+          command_timeout: 15m
+          script: |
+            set -eu
+            FABLESPACE_PATH="${{ vars.DEPLOY_PATH || '/opt/fablespace' }}"
+            cd "${FABLESPACE_PATH}"
+
+            if sudo docker compose version >/dev/null 2>&1; then
+              compose() {
+                sudo docker compose "$@"
+              }
+            else
+              compose() {
+                sudo docker-compose "$@"
+              }
+            fi
+
+            COMPOSE_FILES="-f docker-compose.yml -f deploy/docker-compose.shared.yml"
+            RUNNING_BACKEND_CONTAINER="$(compose ${COMPOSE_FILES} ps -q backend)"
+            if [ -z "${RUNNING_BACKEND_CONTAINER}" ] ||
+               [ "$(printf '%s\n' "${RUNNING_BACKEND_CONTAINER}" | wc -l)" -ne 1 ] ||
+               [ "$(sudo docker inspect -f '{{.State.Running}}' "${RUNNING_BACKEND_CONTAINER}")" != "true" ]; then
+              echo "Expected exactly one running FableSpace backend container"
+              exit 1
+            fi
+
+            compose ${COMPOSE_FILES} exec -T backend python - <<'PY'
+            from __future__ import annotations
+
+            from collections import Counter, defaultdict
+            from hashlib import sha256
+            import json
+            import math
+
+            from sqlalchemy import text
+
+            from fablespace_api.content.story_world_codec import story_world_from_payload
+            from fablespace_api.infrastructure.database import Database
+            from fablespace_api.infrastructure.settings import ApiSettings
+            from fablespace_api.infrastructure.storage import resolve_database_url
+
+
+            EXPECTED_TABLES = {
+                "character_relationships",
+                "managed_media_assets",
+                "managed_story_worlds",
+                "player_story_states",
+                "private_memories",
+                "story_events",
+                "story_messages",
+                "story_runs",
+            }
+            TARGET_STORY_IDS = {
+                "history_broad_street_water_1854": "broad_street_water_1854",
+                "story_palace_snow_edict": "palace_snow_edict",
+            }
+
+
+            def json_value(value):
+                """Decode one driver JSON value without accepting another payload type."""
+                if isinstance(value, (bytes, bytearray)):
+                    value = value.decode("utf-8")
+                if isinstance(value, str):
+                    return json.loads(value)
+                return value
+
+
+            def canonical_hash(value):
+                """Return a stable payload hash while keeping document content out of logs."""
+                encoded = json.dumps(
+                    value,
+                    ensure_ascii=False,
+                    sort_keys=True,
+                    separators=(",", ":"),
+                ).encode("utf-8")
+                return sha256(encoded).hexdigest()
+
+
+            def as_mapping_rows(result):
+                """Materialize SQLAlchemy rows as plain mappings for local audit logic."""
+                return [dict(row._mapping) for row in result]
+
+
+            def initial_relationship(world, character_id):
+                """Return the reviewed initial affinity and stage for one system Character."""
+                character = next(
+                    (item for item in world.characters if item.id == character_id),
+                    None,
+                )
+                if character is None:
+                    return None
+                affinity = float(character.relationship_rules.initial_affinity)
+                stages = [
+                    stage
+                    for stage in character.relationship_rules.stages
+                    if affinity >= float(stage.minimum_affinity)
+                ]
+                if not stages:
+                    return None
+                return character, affinity, stages[-1].id
+
+
+            def choice_effects(world):
+                """Index reviewed relationship effects by choice and Character for replay checks."""
+                indexed = {}
+                for chapter in world.chapters:
+                    for node in chapter.nodes:
+                        for choice in node.choices:
+                            for effect in choice.relationship_effects:
+                                indexed[(choice.id, effect.character_id)] = effect
+                return indexed
+
+
+            settings = ApiSettings()
+            database = Database(
+                resolve_database_url(settings),
+                pool_size=1,
+                max_overflow=0,
+                echo=False,
+            )
+            report = {
+                "audit_contract": "multi-story-readiness-v1",
+                "database": {},
+                "managed_story_worlds": [],
+                "runtime": {},
+                "schema": {},
+            }
+            blockers = []
+
+            try:
+                if database.engine.dialect.name != "mysql":
+                    raise RuntimeError("Production audit requires the MySQL deployment backend")
+
+                with database.engine.connect() as connection:
+                    connection.exec_driver_sql("START TRANSACTION READ ONLY")
+                    try:
+                        database_name = connection.execute(text("SELECT DATABASE()" )).scalar_one()
+                        if database_name != "fablespace":
+                            raise RuntimeError("Connected database is not the fixed fablespace target")
+                        report["database"] = {
+                            "name": database_name,
+                            "server_version": connection.execute(
+                                text("SELECT VERSION()")
+                            ).scalar_one(),
+                            "transaction": "READ ONLY",
+                        }
+
+                        table_rows = as_mapping_rows(
+                            connection.execute(
+                                text(
+                                    """
+                                    SELECT table_name
+                                    FROM information_schema.tables
+                                    WHERE table_schema = DATABASE()
+                                      AND table_type = 'BASE TABLE'
+                                    ORDER BY table_name
+                                    """
+                                )
+                            )
+                        )
+                        table_names = {row["table_name"] for row in table_rows}
+                        report["schema"]["tables"] = sorted(table_names)
+                        report["schema"]["expected_eight_table_baseline"] = (
+                            table_names == EXPECTED_TABLES
+                        )
+                        if table_names != EXPECTED_TABLES:
+                            blockers.append("schema_not_expected_eight_table_baseline")
+
+                        relevant_tables = sorted(
+                            table_names
+                            & (EXPECTED_TABLES | {"player_story_progress"})
+                        )
+                        column_rows = as_mapping_rows(
+                            connection.execute(
+                                text(
+                                    """
+                                    SELECT
+                                        table_name,
+                                        column_name,
+                                        column_type,
+                                        is_nullable,
+                                        extra,
+                                        generation_expression
+                                    FROM information_schema.columns
+                                    WHERE table_schema = DATABASE()
+                                      AND table_name IN (
+                                        'player_story_states',
+                                        'player_story_progress',
+                                        'story_runs',
+                                        'character_relationships',
+                                        'story_events',
+                                        'story_messages',
+                                        'private_memories',
+                                        'managed_story_worlds',
+                                        'managed_media_assets'
+                                      )
+                                    ORDER BY table_name, ordinal_position
+                                    """
+                                )
+                            )
+                        )
+                        columns_by_table = defaultdict(list)
+                        for row in column_rows:
+                            columns_by_table[row["table_name"]].append(
+                                {
+                                    "name": row["column_name"],
+                                    "type": row["column_type"],
+                                    "nullable": row["is_nullable"],
+                                    "extra": row["extra"],
+                                    "generation": row["generation_expression"] or "",
+                                }
+                            )
+                        report["schema"]["columns"] = dict(columns_by_table)
+
+                        index_rows = as_mapping_rows(
+                            connection.execute(
+                                text(
+                                    """
+                                    SELECT
+                                        table_name,
+                                        index_name,
+                                        non_unique,
+                                        GROUP_CONCAT(
+                                            column_name ORDER BY seq_in_index SEPARATOR ','
+                                        ) AS columns
+                                    FROM information_schema.statistics
+                                    WHERE table_schema = DATABASE()
+                                      AND table_name IN (
+                                        'player_story_states',
+                                        'player_story_progress',
+                                        'story_runs',
+                                        'character_relationships',
+                                        'story_events',
+                                        'story_messages',
+                                        'private_memories'
+                                      )
+                                    GROUP BY table_name, index_name, non_unique
+                                    ORDER BY table_name, index_name
+                                    """
+                                )
+                            )
+                        )
+                        report["schema"]["indexes"] = index_rows
+
+                        foreign_key_rows = as_mapping_rows(
+                            connection.execute(
+                                text(
+                                    """
+                                    SELECT
+                                        kcu.table_name,
+                                        kcu.constraint_name,
+                                        GROUP_CONCAT(
+                                            kcu.column_name
+                                            ORDER BY kcu.ordinal_position SEPARATOR ','
+                                        ) AS columns,
+                                        kcu.referenced_table_name,
+                                        GROUP_CONCAT(
+                                            kcu.referenced_column_name
+                                            ORDER BY kcu.ordinal_position SEPARATOR ','
+                                        ) AS referenced_columns,
+                                        rc.delete_rule
+                                    FROM information_schema.key_column_usage AS kcu
+                                    JOIN information_schema.referential_constraints AS rc
+                                      ON rc.constraint_schema = kcu.constraint_schema
+                                     AND rc.constraint_name = kcu.constraint_name
+                                    WHERE kcu.constraint_schema = DATABASE()
+                                      AND kcu.referenced_table_name IS NOT NULL
+                                    GROUP BY
+                                        kcu.table_name,
+                                        kcu.constraint_name,
+                                        kcu.referenced_table_name,
+                                        rc.delete_rule
+                                    ORDER BY kcu.table_name, kcu.constraint_name
+                                    """
+                                )
+                            )
+                        )
+                        report["schema"]["foreign_keys"] = foreign_key_rows
+
+                        row_counts = {}
+                        for table_name in relevant_tables:
+                            row_counts[table_name] = int(
+                                connection.execute(
+                                    text(f"SELECT COUNT(*) FROM `{table_name}`")
+                                ).scalar_one()
+                            )
+                        report["schema"]["row_counts"] = row_counts
+
+                        column_names = {
+                            table_name: {
+                                item["name"] for item in columns_by_table[table_name]
+                            }
+                            for table_name in columns_by_table
+                        }
+                        report["schema"]["migration_006_shape"] = {
+                            "player_role_id_present": (
+                                "player_role_id" in column_names.get("story_runs", set())
+                            ),
+                            "inline_private_memories_absent": (
+                                "private_memories" not in column_names.get("story_runs", set())
+                            ),
+                        }
+                        if not all(report["schema"]["migration_006_shape"].values()):
+                            blockers.append("migration_006_008_baseline_incomplete")
+                        report["schema"]["target_shape_already_present"] = {
+                            "player_story_progress_table": (
+                                "player_story_progress" in table_names
+                            ),
+                            "story_run_story_id": (
+                                "story_id" in column_names.get("story_runs", set())
+                            ),
+                            "world_relationship_key": (
+                                "player_id"
+                                in column_names.get("character_relationships", set())
+                            ),
+                        }
+                        if any(
+                            report["schema"]["target_shape_already_present"].values()
+                        ):
+                            blockers.append("target_schema_partially_or_fully_present")
+
+                        managed_rows = []
+                        worlds = {}
+                        effects_by_world = {}
+                        if "managed_story_worlds" in table_names:
+                            managed_rows = as_mapping_rows(
+                                connection.execute(
+                                    text(
+                                        """
+                                        SELECT story_world_id, payload_json
+                                        FROM managed_story_worlds
+                                        ORDER BY story_world_id
+                                        """
+                                    )
+                                )
+                            )
+                        for row in managed_rows:
+                            world_id = row["story_world_id"]
+                            item = {"story_world_id": world_id}
+                            try:
+                                payload = json_value(row["payload_json"])
+                                item["payload_sha256"] = canonical_hash(payload)
+                                item["legacy_shape"] = all(
+                                    key in payload
+                                    for key in (
+                                        "entry_chapter_id",
+                                        "chapters",
+                                        "endings",
+                                    )
+                                )
+                                item["target_shape"] = "stories" in payload
+                                world = story_world_from_payload(payload)
+                                worlds[world.id] = world
+                                effects_by_world[world.id] = choice_effects(world)
+                                item.update(
+                                    {
+                                        "codec": "valid",
+                                        "character_count": len(world.characters),
+                                        "chapter_count": len(world.chapters),
+                                        "content_version": world.content_version,
+                                        "mapped_story_id": TARGET_STORY_IDS.get(world.id),
+                                    }
+                                )
+                                if world.id != world_id:
+                                    blockers.append("managed_payload_id_mismatch")
+                                if world.id not in TARGET_STORY_IDS:
+                                    blockers.append("unknown_managed_story_world")
+                                if not item["legacy_shape"] or item["target_shape"]:
+                                    blockers.append("managed_payload_shape_not_strictly_legacy")
+                            except Exception as exc:
+                                item.update(
+                                    {
+                                        "codec": "invalid",
+                                        "error_type": exc.__class__.__name__,
+                                        "error_code": getattr(exc, "code", ""),
+                                        "error_path": getattr(exc, "path", ""),
+                                    }
+                                )
+                                blockers.append("managed_payload_invalid")
+                            report["managed_story_worlds"].append(item)
+                        if {row["story_world_id"] for row in managed_rows} != set(
+                            TARGET_STORY_IDS
+                        ):
+                            blockers.append("managed_story_world_set_unexpected")
+
+                        runs = []
+                        if "story_runs" in table_names:
+                            run_role_expression = (
+                                "player_role_id"
+                                if "player_role_id"
+                                in column_names.get("story_runs", set())
+                                else "NULL AS player_role_id"
+                            )
+                            runs = as_mapping_rows(
+                                connection.execute(
+                                    text(
+                                        f"""
+                                        SELECT
+                                            id,
+                                            player_id,
+                                            story_world_id,
+                                            content_version,
+                                            {run_role_expression},
+                                            status,
+                                            current_chapter_id,
+                                            current_node_id,
+                                            ending_id,
+                                            ending_summary,
+                                            started_at,
+                                            completed_at
+                                        FROM story_runs
+                                        """
+                                    )
+                                )
+                            )
+                        runs_by_id = {row["id"]: row for row in runs}
+                        run_counts = Counter(
+                            (row["story_world_id"], row["status"]) for row in runs
+                        )
+                        invalid_role_count = 0
+                        invalid_graph_position_count = 0
+                        stale_content_version_count = 0
+                        invalid_completed_ending_count = 0
+                        for run in runs:
+                            world = worlds.get(run["story_world_id"])
+                            role_ids = (
+                                {role.id for role in world.player_roles}
+                                if world is not None
+                                else set()
+                            )
+                            if run.get("player_role_id") not in role_ids:
+                                invalid_role_count += 1
+                            if world is None:
+                                invalid_graph_position_count += 1
+                                stale_content_version_count += 1
+                                if run["status"] == "completed":
+                                    invalid_completed_ending_count += 1
+                                continue
+                            if run["content_version"] != world.content_version:
+                                stale_content_version_count += 1
+                            chapter = next(
+                                (
+                                    item
+                                    for item in world.chapters
+                                    if item.id == run["current_chapter_id"]
+                                ),
+                                None,
+                            )
+                            if chapter is None or run["current_node_id"] not in {
+                                node.id for node in chapter.nodes
+                            }:
+                                invalid_graph_position_count += 1
+                            if run["status"] == "completed" and run["ending_id"] not in {
+                                ending.id for ending in world.endings
+                            }:
+                                invalid_completed_ending_count += 1
+                        report["runtime"]["story_runs"] = {
+                            "counts": [
+                                {
+                                    "story_world_id": world_id,
+                                    "status": status,
+                                    "count": count,
+                                }
+                                for (world_id, status), count in sorted(run_counts.items())
+                            ],
+                            "unknown_world_count": sum(
+                                1
+                                for row in runs
+                                if row["story_world_id"] not in TARGET_STORY_IDS
+                            ),
+                            "blank_player_role_count": sum(
+                                1
+                                for row in runs
+                                if not str(row.get("player_role_id") or "").strip()
+                            ),
+                            "invalid_player_role_count": invalid_role_count,
+                            "invalid_graph_position_count": (
+                                invalid_graph_position_count
+                            ),
+                            "content_version_mismatch_count": (
+                                stale_content_version_count
+                            ),
+                            "invalid_completed_ending_count": (
+                                invalid_completed_ending_count
+                            ),
+                            "invalid_status_count": sum(
+                                1
+                                for row in runs
+                                if row["status"] not in {"active", "completed"}
+                            ),
+                            "completed_without_reviewed_ending_count": sum(
+                                1
+                                for row in runs
+                                if row["status"] == "completed"
+                                and (
+                                    not row["ending_id"]
+                                    or not row["ending_summary"]
+                                    or row["completed_at"] is None
+                                )
+                            ),
+                        }
+                        if report["runtime"]["story_runs"]["unknown_world_count"]:
+                            blockers.append("unmapped_story_runs")
+                        if report["runtime"]["story_runs"]["blank_player_role_count"]:
+                            blockers.append("story_run_role_missing")
+                        if report["runtime"]["story_runs"]["invalid_player_role_count"]:
+                            blockers.append("story_run_role_not_reviewed")
+                        if report["runtime"]["story_runs"]["invalid_graph_position_count"]:
+                            blockers.append("story_run_graph_position_invalid")
+                        if report["runtime"]["story_runs"][
+                            "content_version_mismatch_count"
+                        ]:
+                            blockers.append("story_run_content_version_unavailable")
+                        if report["runtime"]["story_runs"][
+                            "invalid_completed_ending_count"
+                        ]:
+                            blockers.append("story_run_ending_not_reviewed")
+                        if report["runtime"]["story_runs"]["invalid_status_count"]:
+                            blockers.append("story_run_status_invalid")
+                        if report["runtime"]["story_runs"][
+                            "completed_without_reviewed_ending_count"
+                        ]:
+                            blockers.append("completed_run_without_reviewed_ending")
+
+                        active_scopes = Counter(
+                            (row["player_id"], row["story_world_id"])
+                            for row in runs
+                            if row["status"] == "active"
+                        )
+                        report["runtime"]["story_runs"]["duplicate_active_scope_count"] = sum(
+                            1 for count in active_scopes.values() if count > 1
+                        )
+                        if report["runtime"]["story_runs"]["duplicate_active_scope_count"]:
+                            blockers.append("duplicate_active_story_scope")
+
+                        states = []
+                        if "player_story_states" in table_names:
+                            state_columns = column_names.get("player_story_states", set())
+                            required_state_columns = {
+                                "player_id",
+                                "story_world_id",
+                                "active_story_run_id",
+                                "completed_run_summaries",
+                            }
+                            if required_state_columns.issubset(state_columns):
+                                states = as_mapping_rows(
+                                    connection.execute(
+                                        text(
+                                            """
+                                            SELECT
+                                                player_id,
+                                                story_world_id,
+                                                active_story_run_id,
+                                                completed_run_summaries
+                                            FROM player_story_states
+                                            """
+                                        )
+                                    )
+                                )
+                            else:
+                                blockers.append("player_story_state_shape_unexpected")
+
+                        state_keys = {
+                            (row["player_id"], row["story_world_id"]) for row in states
+                        }
+                        orphan_run_count = sum(
+                            1
+                            for row in runs
+                            if (row["player_id"], row["story_world_id"])
+                            not in state_keys
+                        )
+                        active_pointer_error_count = 0
+                        summary_error_count = 0
+                        for state in states:
+                            active_id = state["active_story_run_id"]
+                            if active_id:
+                                active = runs_by_id.get(active_id)
+                                if (
+                                    active is None
+                                    or active["player_id"] != state["player_id"]
+                                    or active["story_world_id"] != state["story_world_id"]
+                                    or active["status"] != "active"
+                                ):
+                                    active_pointer_error_count += 1
+                            try:
+                                summaries = json_value(state["completed_run_summaries"])
+                            except Exception:
+                                summaries = None
+                            if not isinstance(summaries, list):
+                                summary_error_count += 1
+                                continue
+                            for summary in summaries:
+                                if not isinstance(summary, dict):
+                                    summary_error_count += 1
+                                    continue
+                                completed = runs_by_id.get(summary.get("story_run_id"))
+                                if (
+                                    completed is None
+                                    or completed["player_id"] != state["player_id"]
+                                    or completed["story_world_id"]
+                                    != state["story_world_id"]
+                                    or completed["status"] != "completed"
+                                    or summary.get("ending_id") != completed["ending_id"]
+                                ):
+                                    summary_error_count += 1
+                        report["runtime"]["player_story_states"] = {
+                            "count": len(states),
+                            "orphan_run_count": orphan_run_count,
+                            "active_pointer_error_count": active_pointer_error_count,
+                            "completed_summary_error_count": summary_error_count,
+                        }
+                        if orphan_run_count:
+                            blockers.append("orphan_story_runs")
+                        if active_pointer_error_count:
+                            blockers.append("invalid_active_run_pointer")
+                        if summary_error_count:
+                            blockers.append("invalid_completed_run_summary")
+
+                        events = []
+                        if "story_events" in table_names:
+                            events = as_mapping_rows(
+                                connection.execute(
+                                    text(
+                                        """
+                                        SELECT
+                                            id,
+                                            story_run_id,
+                                            sequence,
+                                            event_type,
+                                            character_id,
+                                            source_kind,
+                                            source_id,
+                                            payload,
+                                            content
+                                        FROM story_events
+                                        ORDER BY story_run_id, sequence
+                                        """
+                                    )
+                                )
+                            )
+                        events_by_id = {row["id"]: row for row in events}
+                        relationship_events = defaultdict(list)
+                        event_character_error_count = 0
+                        for event in events:
+                            run = runs_by_id.get(event["story_run_id"])
+                            if run is None:
+                                event_character_error_count += 1
+                                continue
+                            world = worlds.get(run["story_world_id"])
+                            participant_ids = (
+                                {item.id for item in world.characters} if world else set()
+                            )
+                            if event["character_id"] and (
+                                event["character_id"] not in participant_ids
+                            ):
+                                event_character_error_count += 1
+                            if (
+                                event["event_type"] == "relationship_changed"
+                                and event["character_id"]
+                            ):
+                                relationship_events[
+                                    (event["story_run_id"], event["character_id"])
+                                ].append(event)
+
+                        relationships = []
+                        relationship_columns = column_names.get(
+                            "character_relationships", set()
+                        )
+                        legacy_relationship_columns = {
+                            "story_run_id",
+                            "character_id",
+                            "affinity",
+                            "stage",
+                            "last_change_reason",
+                            "flags",
+                        }
+                        if (
+                            "character_relationships" in table_names
+                            and legacy_relationship_columns.issubset(
+                                relationship_columns
+                            )
+                        ):
+                            relationships = as_mapping_rows(
+                                connection.execute(
+                                    text(
+                                        """
+                                        SELECT
+                                            story_run_id,
+                                            character_id,
+                                            affinity,
+                                            stage,
+                                            last_change_reason,
+                                            flags
+                                        FROM character_relationships
+                                        """
+                                    )
+                                )
+                            )
+                        elif "character_relationships" in table_names:
+                            blockers.append("relationship_shape_unexpected")
+
+                        grouped_relationships = defaultdict(list)
+                        orphan_relationship_count = 0
+                        for relationship in relationships:
+                            run = runs_by_id.get(relationship["story_run_id"])
+                            if run is None:
+                                orphan_relationship_count += 1
+                                continue
+                            grouped_relationships[
+                                (
+                                    run["player_id"],
+                                    run["story_world_id"],
+                                    relationship["character_id"],
+                                )
+                            ].append((run, relationship))
+
+                        relationship_summary = Counter()
+                        for (_, world_id, character_id), group in grouped_relationships.items():
+                            world = worlds.get(world_id)
+                            initial = (
+                                initial_relationship(world, character_id)
+                                if world is not None
+                                else None
+                            )
+                            if initial is None:
+                                relationship_summary["invalid_character_or_rules"] += 1
+                                continue
+                            character, initial_affinity, initial_stage = initial
+                            changed_runs = {
+                                run["id"]
+                                for run, _ in group
+                                if relationship_events.get((run["id"], character_id))
+                            }
+                            untouched_rows_valid = True
+                            changed_row = None
+                            for run, relationship in group:
+                                try:
+                                    flags = json_value(relationship["flags"])
+                                except Exception:
+                                    flags = None
+                                if run["id"] in changed_runs:
+                                    changed_row = (run, relationship, flags)
+                                    continue
+                                if (
+                                    not isinstance(flags, list)
+                                    or flags
+                                    or not math.isclose(
+                                        float(relationship["affinity"]),
+                                        initial_affinity,
+                                        rel_tol=0,
+                                        abs_tol=1e-9,
+                                    )
+                                    or relationship["stage"] != initial_stage
+                                    or str(relationship["last_change_reason"] or "")
+                                ):
+                                    untouched_rows_valid = False
+
+                            if not untouched_rows_valid:
+                                relationship_summary["no_event_but_non_initial"] += 1
+                                continue
+                            if not changed_runs:
+                                relationship_summary["mergeable_initial"] += 1
+                                continue
+                            if len(changed_runs) > 1 or changed_row is None:
+                                relationship_summary["multiple_changed_runs"] += 1
+                                continue
+
+                            run, relationship, stored_flags = changed_row
+                            replay_affinity = initial_affinity
+                            replay_flags = []
+                            replay_reason = ""
+                            replay_valid = isinstance(stored_flags, list)
+                            for event in relationship_events[(run["id"], character_id)]:
+                                try:
+                                    payload = json_value(event["payload"])
+                                except Exception:
+                                    payload = None
+                                if not isinstance(payload, dict):
+                                    replay_valid = False
+                                    break
+                                delta = payload.get("affinity_delta")
+                                if isinstance(delta, bool) or not isinstance(delta, (int, float)):
+                                    replay_valid = False
+                                    break
+                                replay_affinity = max(
+                                    float(character.relationship_rules.minimum_affinity),
+                                    min(
+                                        float(character.relationship_rules.maximum_affinity),
+                                        replay_affinity + float(delta),
+                                    ),
+                                )
+                                effect_flags = payload.get("set_flags")
+                                if effect_flags is None and payload.get("source_choice_id"):
+                                    effect = effects_by_world.get(world_id, {}).get(
+                                        (
+                                            payload["source_choice_id"],
+                                            character_id,
+                                        )
+                                    )
+                                    effect_flags = list(effect.set_flags) if effect else None
+                                if effect_flags is None:
+                                    effect_flags = []
+                                if (
+                                    not isinstance(effect_flags, list)
+                                    or any(
+                                        not isinstance(flag, str) or not flag
+                                        for flag in effect_flags
+                                    )
+                                ):
+                                    replay_valid = False
+                                    break
+                                replay_flags = list(
+                                    dict.fromkeys([*replay_flags, *effect_flags])
+                                )
+                                replay_reason = str(
+                                    payload.get("reason") or event["content"] or ""
+                                )
+                            replay_stage_candidates = [
+                                stage
+                                for stage in character.relationship_rules.stages
+                                if replay_affinity >= float(stage.minimum_affinity)
+                            ]
+                            replay_stage = (
+                                replay_stage_candidates[-1].id
+                                if replay_stage_candidates
+                                else ""
+                            )
+                            if (
+                                not replay_valid
+                                or not math.isclose(
+                                    float(relationship["affinity"]),
+                                    replay_affinity,
+                                    rel_tol=0,
+                                    abs_tol=1e-9,
+                                )
+                                or relationship["stage"] != replay_stage
+                                or list(stored_flags) != replay_flags
+                                or str(relationship["last_change_reason"] or "")
+                                != replay_reason
+                            ):
+                                relationship_summary["single_changed_replay_mismatch"] += 1
+                            else:
+                                relationship_summary["mergeable_single_changed"] += 1
+
+                        report["runtime"]["character_relationships"] = {
+                            "row_count": len(relationships),
+                            "group_count": len(grouped_relationships),
+                            "orphan_count": orphan_relationship_count,
+                            **dict(sorted(relationship_summary.items())),
+                        }
+                        relationship_blocker_keys = {
+                            "invalid_character_or_rules",
+                            "multiple_changed_runs",
+                            "no_event_but_non_initial",
+                            "single_changed_replay_mismatch",
+                        }
+                        if orphan_relationship_count or any(
+                            relationship_summary[key]
+                            for key in relationship_blocker_keys
+                        ):
+                            blockers.append("relationship_merge_not_unique")
+
+                        messages = []
+                        if "story_messages" in table_names:
+                            messages = as_mapping_rows(
+                                connection.execute(
+                                    text(
+                                        """
+                                        SELECT
+                                            story_run_id,
+                                            role,
+                                            character_id,
+                                            visible_to_character_ids,
+                                            source_event_id,
+                                            source_event_sequence
+                                        FROM story_messages
+                                        """
+                                    )
+                                )
+                            )
+                        message_errors = Counter()
+                        for message in messages:
+                            run = runs_by_id.get(message["story_run_id"])
+                            if run is None:
+                                message_errors["orphan_run"] += 1
+                                continue
+                            world = worlds.get(run["story_world_id"])
+                            participants = (
+                                {item.id for item in world.characters} if world else set()
+                            )
+                            try:
+                                visible = json_value(message["visible_to_character_ids"])
+                            except Exception:
+                                visible = None
+                            if (
+                                not isinstance(visible, list)
+                                or any(
+                                    not isinstance(item, str) or item not in participants
+                                    for item in visible
+                                )
+                                or len(visible) != len(set(visible))
+                            ):
+                                message_errors["invalid_visibility"] += 1
+                            if message["role"] not in {"player", "character", "system"}:
+                                message_errors["invalid_role"] += 1
+                            if (
+                                message["character_id"] is not None
+                                and message["character_id"] not in participants
+                            ):
+                                message_errors["invalid_character"] += 1
+                            if (
+                                message["role"] == "character"
+                                and message["character_id"] not in participants
+                            ):
+                                message_errors["character_speaker_missing"] += 1
+                            source = events_by_id.get(message["source_event_id"])
+                            if (
+                                source is None
+                                or source["story_run_id"] != message["story_run_id"]
+                                or int(source["sequence"])
+                                != int(message["source_event_sequence"])
+                            ):
+                                message_errors["invalid_source_event"] += 1
+                        report["runtime"]["story_messages"] = {
+                            "count": len(messages),
+                            **dict(sorted(message_errors.items())),
+                        }
+                        if message_errors:
+                            blockers.append("message_visibility_or_source_invalid")
+
+                        memories = []
+                        if "private_memories" in table_names:
+                            memories = as_mapping_rows(
+                                connection.execute(
+                                    text(
+                                        """
+                                        SELECT
+                                            story_run_id,
+                                            source_event_id,
+                                            source_event_sequence,
+                                            character_id
+                                        FROM private_memories
+                                        """
+                                    )
+                                )
+                            )
+                        memory_errors = Counter()
+                        for memory in memories:
+                            run = runs_by_id.get(memory["story_run_id"])
+                            if run is None:
+                                memory_errors["orphan_run"] += 1
+                                continue
+                            world = worlds.get(run["story_world_id"])
+                            participants = (
+                                {item.id for item in world.characters} if world else set()
+                            )
+                            if (
+                                memory["character_id"] is not None
+                                and memory["character_id"] not in participants
+                            ):
+                                memory_errors["invalid_character"] += 1
+                            source = events_by_id.get(memory["source_event_id"])
+                            if (
+                                source is None
+                                or source["story_run_id"] != memory["story_run_id"]
+                                or int(source["sequence"])
+                                != int(memory["source_event_sequence"])
+                            ):
+                                memory_errors["invalid_source_event"] += 1
+                        report["runtime"]["private_memories"] = {
+                            "count": len(memories),
+                            **dict(sorted(memory_errors.items())),
+                        }
+                        report["runtime"]["story_events"] = {
+                            "count": len(events),
+                            "invalid_character_or_run_count": event_character_error_count,
+                            "event_type_counts": dict(
+                                sorted(Counter(row["event_type"] for row in events).items())
+                            ),
+                            "source_kind_counts": dict(
+                                sorted(Counter(row["source_kind"] for row in events).items())
+                            ),
+                        }
+                        if memory_errors:
+                            blockers.append("memory_source_invalid")
+                        if event_character_error_count:
+                            blockers.append("event_character_or_run_invalid")
+                    finally:
+                        connection.rollback()
+            finally:
+                database.dispose()
+
+            report["verdict"] = "BLOCKED" if blockers else "PASS"
+            report["blockers"] = sorted(set(blockers))
+            print(json.dumps(report, ensure_ascii=False, indent=2, sort_keys=True, default=str))
+            print(f"AUDIT_VERDICT={report['verdict']}")
+            print("AUDIT_DB_WRITES=0")
+            PY
