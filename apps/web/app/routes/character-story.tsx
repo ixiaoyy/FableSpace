@@ -3,7 +3,6 @@ import {
   ArrowLeft,
   BookOpenText,
   ChevronDown,
-  ChevronRight,
   CircleAlert,
   ExternalLink,
   LoaderCircle,
@@ -20,13 +19,11 @@ import {
   useReducer,
   useRef,
 } from "react"
-import { Link, useLoaderData, useNavigate, useSearchParams } from "react-router"
+import { Link, useLoaderData, useSearchParams } from "react-router"
 
-import { PlayerRoleOption } from "../components/player-role-option"
 import { SESSION_EXPIRED_EVENT } from "../lib/api-client"
 import {
   characterPath,
-  characterRoutesForWorld,
   characterStoryPath,
   resolveCharacterRoute,
   resolveCharacterRouteById,
@@ -72,8 +69,6 @@ type PendingStoryExchange = {
 
 type StoryPageState = {
   run: StoryRun | null
-  entryMode: "start" | "restart"
-  selectedPlayerRoleId: string
   runLoading: boolean
   accessState: StoryAccessState
   pendingAction: StoryActionKind | null
@@ -88,8 +83,6 @@ type StoryPageAction =
   | { type: "access-anonymous" }
   | { type: "run-loading" }
   | { type: "run-loaded"; run: StoryRun | null }
-  | { type: "player-role-selected"; playerRoleId: string }
-  | { type: "restart-ready"; playerRoleId: string }
   | { type: "access-error"; message: string }
   | { type: "session-expired" }
   | {
@@ -104,8 +97,6 @@ type StoryPageAction =
 
 const INITIAL_STORY_PAGE_STATE: StoryPageState = {
   run: null,
-  entryMode: "start",
-  selectedPlayerRoleId: "",
   runLoading: false,
   accessState: "checking",
   pendingAction: null,
@@ -160,30 +151,8 @@ function storyPageReducer(
       return {
         ...state,
         run: action.run,
-        entryMode: "start",
-        selectedPlayerRoleId: action.run?.player_role.id || state.selectedPlayerRoleId,
         runLoading: false,
         accessState: "authenticated",
-        pendingAction: null,
-        pendingExchange: null,
-        failedAction: null,
-        actionError: "",
-        message: "",
-      }
-    case "player-role-selected":
-      if (state.accessState === "expired" || state.failedAction !== null) {
-        return state
-      }
-      return {
-        ...state,
-        selectedPlayerRoleId: action.playerRoleId,
-      }
-    case "restart-ready":
-      return {
-        ...state,
-        run: null,
-        entryMode: "restart",
-        selectedPlayerRoleId: action.playerRoleId,
         pendingAction: null,
         pendingExchange: null,
         failedAction: null,
@@ -300,7 +269,6 @@ export async function clientLoader({ params }: ClientLoaderFunctionArgs): Promis
 export default function CharacterStoryRoute() {
   const { detail, slug, error } = useLoaderData<typeof clientLoader>()
   const route = resolveCharacterRoute(slug)
-  const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const [pageState, dispatch] = useReducer(
     storyPageReducer,
@@ -308,8 +276,6 @@ export default function CharacterStoryRoute() {
   )
   const {
     run,
-    entryMode,
-    selectedPlayerRoleId,
     runLoading,
     accessState,
     pendingAction,
@@ -319,12 +285,19 @@ export default function CharacterStoryRoute() {
     message,
   } = pageState
   const actionInFlightRef = useRef(false)
+  const autoEntryAttemptedRef = useRef("")
   const privateLoadVersionRef = useRef(0)
   const requestedPlayerRoleId = searchParams.get("playerRoleId")?.trim() || ""
   const validatedPlayerRoleId = detail?.player_roles.some(
     (playerRole) => playerRole.id === requestedPlayerRoleId,
   )
     ? requestedPlayerRoleId
+    : ""
+  const effectivePlayerRoleId = validatedPlayerRoleId
+    || (detail?.player_roles.length === 1 ? detail.player_roles[0].id : "")
+  const storyWorldId = route?.storyWorldId || ""
+  const autoEntryKey = route && effectivePlayerRoleId
+    ? `${route.storyWorldId}:${route.characterId}:${effectivePlayerRoleId}`
     : ""
 
   const loadPrivateStory = useCallback(async (forceRefresh = false) => {
@@ -367,18 +340,67 @@ export default function CharacterStoryRoute() {
     }
   }, [loadPrivateStory])
 
+  /** Runs one non-message write and returns its completion promise while failed writes remain frozen. */
+  const runAction = useCallback(async (
+    kind: Exclude<StoryActionKind, "message">,
+    action: () => Promise<StoryRun | null>,
+    optimisticContent = "",
+  ) => {
+    if (actionInFlightRef.current || failedAction !== null) return
+    actionInFlightRef.current = true
+    dispatch({ type: "action-started", kind, optimisticContent })
+    try {
+      const nextRun = await action()
+      dispatch({ type: "action-succeeded", run: nextRun })
+    } catch (reason) {
+      dispatch({
+        type: "action-failed",
+        kind,
+        message: reason instanceof Error
+          ? reason.message
+          : "这一步暂时没有完成。",
+      })
+    } finally {
+      actionInFlightRef.current = false
+    }
+  }, [failedAction])
+
+  /** Starts the routed Character with the validated PlayerRole and returns the guarded write promise. */
+  const startCurrentRole = useCallback(() => {
+    if (!route || !effectivePlayerRoleId || !autoEntryKey) return
+    autoEntryAttemptedRef.current = autoEntryKey
+    return runAction(
+      "start",
+      () => startStoryRun(
+        route.storyWorldId,
+        route.characterId,
+        effectivePlayerRoleId,
+      ),
+    )
+  }, [autoEntryKey, effectivePlayerRoleId, route, runAction])
+
   useEffect(() => {
     if (
-      !run
-      && validatedPlayerRoleId
-      && validatedPlayerRoleId !== selectedPlayerRoleId
+      accessState !== "authenticated"
+      || run
+      || runLoading
+      || pendingAction !== null
+      || failedAction !== null
+      || !autoEntryKey
+      || autoEntryAttemptedRef.current === autoEntryKey
     ) {
-      dispatch({
-        type: "player-role-selected",
-        playerRoleId: validatedPlayerRoleId,
-      })
+      return
     }
-  }, [run, selectedPlayerRoleId, validatedPlayerRoleId])
+    void startCurrentRole()
+  }, [
+    accessState,
+    autoEntryKey,
+    failedAction,
+    pendingAction,
+    run,
+    runLoading,
+    startCurrentRole,
+  ])
 
   useEffect(() => {
     const handleSessionExpired = () => {
@@ -402,78 +424,9 @@ export default function CharacterStoryRoute() {
     )
   }
 
-  const storyWorldId = route.storyWorldId
-  const effectivePlayerRoleId = selectedPlayerRoleId
-    || (detail.player_roles.length === 1 ? detail.player_roles[0].id : "")
-  const writeBlocked = pendingAction !== null || failedAction !== null
   const loginHref = storyLoginUrl(
     characterStoryPath(route.slug, effectivePlayerRoleId),
   )
-
-  async function runAction(
-    kind: Exclude<StoryActionKind, "message">,
-    action: () => Promise<StoryRun | null>,
-    optimisticContent = "",
-  ) {
-    if (actionInFlightRef.current || failedAction !== null) return
-    actionInFlightRef.current = true
-    dispatch({ type: "action-started", kind, optimisticContent })
-    try {
-      const nextRun = await action()
-      dispatch({ type: "action-succeeded", run: nextRun })
-    } catch (reason) {
-      dispatch({
-        type: "action-failed",
-        kind,
-        message: reason instanceof Error
-          ? reason.message
-          : "这一步暂时没有完成。",
-      })
-    } finally {
-      actionInFlightRef.current = false
-    }
-  }
-
-  async function enterStory(characterId: string) {
-    if (
-      !effectivePlayerRoleId
-      || actionInFlightRef.current
-      || failedAction !== null
-    ) return
-    const characterRoute = resolveCharacterRouteById(characterId)
-    if (!characterRoute) return
-
-    actionInFlightRef.current = true
-    const actionKind = entryMode === "restart" ? "restart" : "start"
-    dispatch({ type: "action-started", kind: actionKind })
-    try {
-      const nextRun = entryMode === "restart"
-        ? await restartStoryRun(
-          storyWorldId,
-          characterId,
-          effectivePlayerRoleId,
-        )
-        : await startStoryRun(
-          storyWorldId,
-          characterId,
-          effectivePlayerRoleId,
-        )
-      dispatch({ type: "action-succeeded", run: nextRun })
-      if (characterRoute.slug !== route.slug) {
-        navigate(characterStoryPath(characterRoute.slug))
-      }
-    } catch (reason) {
-      dispatch({
-        type: "action-failed",
-        kind: actionKind,
-        message: reason instanceof Error
-          ? reason.message
-          : "故事入口暂时没有打开。",
-      })
-    } finally {
-      actionInFlightRef.current = false
-    }
-  }
 
   function submitMessage(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -514,51 +467,33 @@ export default function CharacterStoryRoute() {
   }
 
   return (
-    <main className="annieStoryShell" data-story-theme={route.theme}>
+    <main
+      className="annieStoryShell annieStoryShell--chat"
+      data-story-theme={route.theme}
+    >
       <CharacterStoryHeader
         characterName={detail.character.name}
         characterSlug={route.slug}
       />
 
-      {!run && accessState !== "authenticated" ? (
-        <section className="annieStoryOpening" aria-labelledby="annie-story-title">
-          <p className="annieStoryEyebrow">{route.sceneLabel}</p>
-          <h1 id="annie-story-title">{detail.story_world.title}</h1>
-          <p>{detail.character.current_situation}</p>
-        </section>
-      ) : null}
-
-      <StoryAccessPanels
-        accessState={accessState}
-        runLoading={runLoading}
-        actionError={run ? "" : actionError}
-        loginHref={loginHref}
-        onRetry={() => void loadPrivateStory(true)}
-      />
-
-      {accessState === "authenticated" && !run && !runLoading ? (
-        <StoryEntry
+      {!run ? (
+        <StoryConversationGate
           detail={detail}
-          sceneLabel={route.sceneLabel}
-          selectedPlayerRoleId={effectivePlayerRoleId}
-          writeDisabled={writeBlocked}
+          accessState={accessState}
+          runLoading={runLoading}
+          pendingAction={pendingAction}
+          failedAction={failedAction}
           actionError={actionError}
-          onPlayerRoleSelect={(playerRoleId) => {
-            dispatch({
-              type: "player-role-selected",
-              playerRoleId,
-            })
-            navigate(
-              characterStoryPath(route.slug, playerRoleId),
-              { replace: true },
-            )
-          }}
-          onCharacterSelect={(characterId) => void enterStory(characterId)}
-          onReload={() => void loadPrivateStory(true)}
+          hasPlayerRole={Boolean(effectivePlayerRoleId)}
+          entryAttempted={autoEntryAttemptedRef.current === autoEntryKey}
+          loginHref={loginHref}
+          characterHref={characterPath(route.slug)}
+          onRetry={() => void loadPrivateStory(true)}
+          onStart={() => void startCurrentRole()}
         />
       ) : null}
 
-      {accessState === "authenticated" && run ? (
+      {run ? (
         <StoryRunWorkspace
           detail={detail}
           run={run}
@@ -582,13 +517,14 @@ export default function CharacterStoryRoute() {
             message: nextMessage,
           })}
           onSubmitMessage={submitMessage}
-          onRestart={() => {
-            navigate(characterStoryPath(route.slug), { replace: true })
-            dispatch({
-              type: "restart-ready",
-              playerRoleId: "",
-            })
-          }}
+          onRestart={() => void runAction(
+            "restart",
+            () => restartStoryRun(
+              storyWorldId,
+              route.characterId,
+              run.player_role.id,
+            ),
+          )}
           onReload={() => void loadPrivateStory(true)}
         />
       ) : null}
@@ -616,200 +552,185 @@ function CharacterStoryHeader({
   )
 }
 
-function StoryEntry({
+/** Returns access and recovery UI for the supplied Character; retry remains a read-only reconciliation. */
+function StoryConversationGate({
   detail,
-  sceneLabel,
-  selectedPlayerRoleId,
-  writeDisabled,
-  actionError,
-  onPlayerRoleSelect,
-  onCharacterSelect,
-  onReload,
-}: {
-  detail: StoryWorldCharacterDetail
-  sceneLabel: string
-  selectedPlayerRoleId: string
-  writeDisabled: boolean
-  actionError: string
-  onPlayerRoleSelect: (playerRoleId: string) => void
-  onCharacterSelect: (characterId: string) => void
-  onReload: () => void
-}) {
-  const routes = characterRoutesForWorld(detail.story_world.id)
-  const routeByCharacterId = new Map<string, (typeof routes)[number]>(
-    routes.map((characterRoute) => [characterRoute.characterId, characterRoute]),
-  )
-
-  return (
-    <section className="annieStoryEntry" aria-labelledby="annie-story-entry-title">
-      <div className="annieStoryEntryContext">
-        <p className="annieStoryEyebrow">{sceneLabel}</p>
-        <h1 id="annie-story-entry-title">{detail.story_world.title}</h1>
-        <p>{detail.story_world.summary}</p>
-      </div>
-
-      <div className="annieStoryEntryStep">
-        <div className="annieStoryEntryStepHeading">
-          <span aria-hidden="true">壹</span>
-          <div>
-            <p className="annieStoryEyebrow">你是谁</p>
-            <h2>选择此行的身份</h2>
-          </div>
-        </div>
-        <div
-          className="annieStoryIdentityGrid"
-          role="group"
-          aria-label="选择故事身份"
-        >
-          {detail.player_roles.map((playerRole) => (
-            <PlayerRoleOption
-              key={playerRole.id}
-              playerRole={playerRole}
-              selected={selectedPlayerRoleId === playerRole.id}
-              disabled={writeDisabled}
-              onSelect={() => onPlayerRoleSelect(playerRole.id)}
-            />
-          ))}
-        </div>
-      </div>
-
-      <div className="annieStoryEntryStep">
-        <div className="annieStoryEntryStepHeading">
-          <span aria-hidden="true">贰</span>
-          <div>
-            <p className="annieStoryEyebrow">去见谁</p>
-            <h2>选择第一个对话的人</h2>
-          </div>
-        </div>
-        <div className="annieStoryCharacterList">
-          {detail.characters.map((character) => {
-            const characterRoute = routeByCharacterId.get(character.id)
-            return (
-              <button
-                key={character.id}
-                className="annieStoryCharacterOption"
-                type="button"
-                disabled={!selectedPlayerRoleId || writeDisabled || !characterRoute}
-                onClick={() => onCharacterSelect(character.id)}
-              >
-                {characterRoute ? (
-                  <img
-                    src={character.portrait_url || characterRoute.portrait}
-                    alt=""
-                    loading="lazy"
-                  />
-                ) : (
-                  <span className="annieStoryCharacterMonogram" aria-hidden="true">
-                    {character.name.slice(0, 1)}
-                  </span>
-                )}
-                <span className="annieStoryCharacterCopy">
-                  <span>
-                    <strong>{character.name}</strong>
-                    <small>{character.relationship_stage.label}</small>
-                  </span>
-                  <span>{character.current_situation}</span>
-                </span>
-                <ChevronRight aria-hidden="true" />
-              </button>
-            )
-          })}
-        </div>
-        {!selectedPlayerRoleId ? (
-          <p className="annieStoryEntryHint">先选定你的身份。</p>
-        ) : null}
-        {actionError ? (
-          <div className="annieStoryEntryRecovery" role="alert">
-            <p className="annieStoryError">{actionError}</p>
-            <button
-              className="annieStoryRecoveryButton"
-              type="button"
-              onClick={onReload}
-            >
-              重新载入
-            </button>
-          </div>
-        ) : null}
-      </div>
-    </section>
-  )
-}
-
-function StoryAccessPanels({
   accessState,
   runLoading,
+  pendingAction,
+  failedAction,
   actionError,
+  hasPlayerRole,
+  entryAttempted,
   loginHref,
+  characterHref,
   onRetry,
+  onStart,
 }: {
+  detail: StoryWorldCharacterDetail
   accessState: StoryAccessState
   runLoading: boolean
+  pendingAction: StoryActionKind | null
+  failedAction: StoryActionKind | null
   actionError: string
+  hasPlayerRole: boolean
+  entryAttempted: boolean
   loginHref: string
+  characterHref: string
   onRetry: () => void
+  onStart: () => void
 }) {
   return (
-    <>
-      {accessState === "checking" ? (
-        <StoryLoadingPanel eyebrow="片刻" title="正在确认登录状态" />
-      ) : null}
-      {runLoading ? (
-        <StoryLoadingPanel eyebrow="回访" title="正在找回上次停下的地方" />
-      ) : null}
-      {accessState === "anonymous" ? (
-        <section className="annieStoryAccess" aria-labelledby="annie-story-access-title">
-          <LockKeyhole aria-hidden="true" />
-          <h2 id="annie-story-access-title">登录后进入故事</h2>
-          <a className="annieStoryPrimaryButton" href={loginHref}>
-            <LogIn aria-hidden="true" />
-            登录
-          </a>
-        </section>
-      ) : null}
-      {accessState === "expired" ? (
-        <section className="annieStoryAccess annieStoryAccess--expired" role="alert">
-          <CircleAlert aria-hidden="true" />
-          <p className="annieStoryEyebrow">会话已结束</p>
-          <h2>重新登录后继续</h2>
-          <a className="annieStoryPrimaryButton" href={loginHref}>
-            <LogIn aria-hidden="true" />
-            重新登录
-          </a>
-        </section>
-      ) : null}
-      {accessState === "error" ? (
-        <section className="annieStoryAccess">
-          <CircleAlert aria-hidden="true" />
-          <h2>故事暂时无法打开</h2>
-          {actionError ? <p className="annieStoryError" role="alert">{actionError}</p> : null}
-          <button
-            className="annieStoryPrimaryButton"
-            type="button"
-            onClick={onRetry}
-          >
-            重试
-          </button>
-        </section>
-      ) : null}
-    </>
+    <section
+      className="annieStoryConversationGate"
+      aria-label={`${detail.character.name}的对话`}
+    >
+      <CharacterConversationHeader
+        detail={detail}
+        relationship={detail.character.relationship_stage}
+      />
+      <div className="annieStoryConversationState" aria-live="polite">
+        {accessState === "checking" ? (
+          <>
+            <LoaderCircle aria-hidden="true" />
+            <p>正在连接{detail.character.name}…</p>
+          </>
+        ) : null}
+        {runLoading ? (
+          <>
+            <LoaderCircle aria-hidden="true" />
+            <p>正在恢复对话…</p>
+          </>
+        ) : null}
+        {pendingAction === "start" ? (
+          <>
+            <LoaderCircle aria-hidden="true" />
+            <p>正在打开对话…</p>
+          </>
+        ) : null}
+        {accessState === "anonymous" ? (
+          <>
+            <LockKeyhole aria-hidden="true" />
+            <p>登录后继续与{detail.character.name}对话。</p>
+            <a className="annieStoryPrimaryButton" href={loginHref}>
+              <LogIn aria-hidden="true" />
+              登录
+            </a>
+          </>
+        ) : null}
+        {accessState === "expired" ? (
+          <>
+            <CircleAlert aria-hidden="true" />
+            <p>登录已过期。</p>
+            <a className="annieStoryPrimaryButton" href={loginHref}>
+              <LogIn aria-hidden="true" />
+              重新登录
+            </a>
+          </>
+        ) : null}
+        {accessState === "error" ? (
+          <>
+            <CircleAlert aria-hidden="true" />
+            <p>{actionError || "暂时连不上对话。"}</p>
+            <button
+              className="annieStoryPrimaryButton"
+              type="button"
+              onClick={onRetry}
+            >
+              重新连接
+            </button>
+          </>
+        ) : null}
+        {accessState === "authenticated"
+          && !runLoading
+          && pendingAction === null
+          && !hasPlayerRole ? (
+            <>
+              <CircleAlert aria-hidden="true" />
+              <p>先在角色页选择本轮身份。</p>
+              <Link className="annieStoryPrimaryButton" to={characterHref}>
+                选择身份
+              </Link>
+            </>
+          ) : null}
+        {accessState === "authenticated"
+          && failedAction === "start" ? (
+            <>
+              <CircleAlert aria-hidden="true" />
+              <p>{actionError || "对话暂时没有打开。"}</p>
+              <button
+                className="annieStoryPrimaryButton"
+                type="button"
+                onClick={onRetry}
+              >
+                重新载入
+              </button>
+            </>
+          ) : null}
+        {accessState === "authenticated"
+          && !runLoading
+          && pendingAction === null
+          && failedAction === null
+          && hasPlayerRole
+          && entryAttempted ? (
+            <>
+              <p>可以重新尝试打开对话。</p>
+              <button
+                className="annieStoryPrimaryButton"
+                type="button"
+                onClick={onStart}
+              >
+                开始对话
+              </button>
+            </>
+          ) : null}
+        {accessState === "authenticated"
+          && !runLoading
+          && pendingAction === null
+          && failedAction === null
+          && hasPlayerRole
+          && !entryAttempted ? (
+            <>
+              <LoaderCircle aria-hidden="true" />
+              <p>正在打开对话…</p>
+            </>
+          ) : null}
+      </div>
+    </section>
   )
 }
 
-function StoryLoadingPanel({
-  eyebrow,
-  title,
+/** Returns a compact header for the supplied Character and public or run relationship state. */
+function CharacterConversationHeader({
+  detail,
+  relationship,
 }: {
-  eyebrow: string
-  title: string
+  detail: StoryWorldCharacterDetail
+  relationship: StoryRun["relationship"]
 }) {
+  const portrait = detail.character.portrait_url
+    || resolveCharacterRouteById(detail.character.id)?.portrait
+
   return (
-    <section className="annieStoryStatusPanel" aria-live="polite">
-      <span className="annieStoryStatusMark" aria-hidden="true" />
+    <div className="annieStoryConversationHeader">
+      {portrait ? (
+        <img src={portrait} alt="" />
+      ) : (
+        <span className="annieStoryConversationMonogram" aria-hidden="true">
+          {detail.character.name.slice(0, 1)}
+        </span>
+      )}
       <div>
-        <p className="annieStoryEyebrow">{eyebrow}</p>
-        <h2>{title}</h2>
+        <span>
+          <strong>{detail.character.name}</strong>
+          <small>{relationship.label}</small>
+        </span>
+        <p>{relationship.attitude}</p>
+        {relationship.last_change_reason ? (
+          <small>{relationship.last_change_reason}</small>
+        ) : null}
       </div>
-    </section>
+    </div>
   )
 }
 
@@ -849,21 +770,10 @@ function StoryRunWorkspace({
         aria-label={`${detail.character.name}的故事`}
       >
         {run.status === "active" ? (
-          <div className="annieStoryRunHeading">
-            <div>
-              <p className="annieStoryEyebrow">此刻</p>
-              <h2>{detail.story_world.title}</h2>
-            </div>
-            <div className="annieStoryRelationshipPresence" aria-live="polite">
-              <span>
-                {detail.character.name} · {run.relationship.label}
-              </span>
-              <p>{run.relationship.attitude}</p>
-              {run.relationship.last_change_reason ? (
-                <small>{run.relationship.last_change_reason}</small>
-              ) : null}
-            </div>
-          </div>
+          <CharacterConversationHeader
+            detail={detail}
+            relationship={run.relationship}
+          />
         ) : null}
 
         <StoryTimeline

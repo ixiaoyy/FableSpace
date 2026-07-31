@@ -11,10 +11,6 @@ export function PlayerRoleOption({
   disabled: boolean
   onSelect: () => void
 }) {
-  const characterAddress = playerRole.character_visible_information.find(
-    (information) => information.startsWith("安妮称你"),
-  )
-
   return (
     <button
       className="annieStoryIdentityOption"
@@ -36,9 +32,6 @@ export function PlayerRoleOption({
           <small>{playerRole.social_position}</small>
         </span>
         <span>{playerRole.background}</span>
-        {characterAddress ? (
-          <span className="annieStoryIdentityAddress">{characterAddress}</span>
-        ) : null}
       </span>
       <span className="annieStoryIdentityCheck" aria-hidden="true">
         {selected ? "已选" : "选择"}

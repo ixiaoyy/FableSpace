@@ -1,3 +1,11 @@
+body:has(.annieStoryShell) {
+  margin: 0;
+}
+
+body:has(.annieStoryShell--chat) {
+  overflow: hidden;
+}
+
 .annieStoryShell {
   --annie-paper: #fff8eb;
   --annie-paper-deep: #f5ead6;
@@ -32,6 +40,19 @@
     radial-gradient(circle at 88% 7%, rgba(118, 85, 111, 0.12), transparent 24rem),
     radial-gradient(circle at 8% 30%, rgba(182, 83, 61, 0.1), transparent 28rem),
     var(--annie-paper);
+}
+
+.annieStoryShell--chat {
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+  min-height: 100dvh;
+  padding-bottom: 0;
+  overflow: hidden;
+}
+
+.annieStoryShell--chat > .annieStoryHeader {
+  flex: 0 0 auto;
 }
 
 .annieStoryShell *,
@@ -90,12 +111,8 @@
 }
 
 .annieCharacterEntry,
-.annieStoryOpening,
-.annieStoryEntry,
 .annieStoryWorkspace,
-.annieStoryAccess,
-.annieStoryStatusPanel,
-.annieStoryError {
+.annieStoryConversationGate {
   width: min(1120px, 90vw);
   margin-inline: auto;
 }
@@ -236,7 +253,6 @@
   letter-spacing: 0.06em;
 }
 
-.annieStoryOpening h1,
 .annieStoryCentered h1 {
   margin: 0;
   color: #33273a;
@@ -293,7 +309,6 @@
 .annieStoryRecoveryButton:focus-visible,
 .annieStoryHeader a:focus-visible,
 .annieStoryIdentityOption:focus-visible,
-.annieStoryCharacterOption:focus-visible,
 .annieStoryChoices button:focus-visible,
 .annieStoryMessageForm textarea:focus-visible,
 .annieStoryMessageForm button:focus-visible,
@@ -302,105 +317,6 @@
 .annieStoryReferenceSources a:focus-visible {
   outline: 3px solid rgba(114, 86, 216, 0.55);
   outline-offset: 3px;
-}
-
-.annieStoryOpening {
-  position: relative;
-  padding: clamp(3rem, 7vw, 5.5rem) 0 clamp(1.8rem, 4vw, 3rem);
-}
-
-.annieStoryOpening::after {
-  display: block;
-  width: min(22rem, 70%);
-  height: 1px;
-  margin-top: 1.8rem;
-  content: "";
-  background: linear-gradient(90deg, var(--annie-orange), rgba(233, 119, 24, 0));
-}
-
-.annieStoryOpening h1 {
-  max-width: 13ch;
-  font-size: clamp(2.6rem, 6vw, 4.8rem);
-}
-
-.annieStoryOpening > p:last-child {
-  max-width: 58ch;
-  margin: 1rem 0 0;
-  color: var(--annie-muted);
-  font-size: 1rem;
-  line-height: 1.85;
-}
-
-.annieStoryEntry {
-  display: grid;
-  gap: clamp(2rem, 5vw, 3.5rem);
-  padding: clamp(2.5rem, 6vw, 5rem) 0;
-  animation: annie-page-open 520ms cubic-bezier(0.16, 1, 0.3, 1) both;
-}
-
-.annieStoryEntryContext {
-  position: relative;
-  display: grid;
-  gap: 0.85rem;
-  max-width: 48rem;
-  padding-left: clamp(1.25rem, 3vw, 2.2rem);
-}
-
-.annieStoryEntryContext::before {
-  position: absolute;
-  inset: 0 auto 0 0;
-  width: 3px;
-  content: "";
-  background: linear-gradient(var(--annie-orange), rgba(182, 83, 61, 0.15));
-}
-
-.annieStoryEntryContext h1 {
-  max-width: 13ch;
-  margin: 0;
-  font-size: clamp(2.65rem, 6vw, 5rem);
-  font-weight: 720;
-  line-height: 1.05;
-  letter-spacing: -0.045em;
-}
-
-.annieStoryEntryContext > p:last-child {
-  max-width: 62ch;
-  margin: 0;
-  color: var(--annie-muted);
-  font-size: 1rem;
-  line-height: 1.9;
-}
-
-.annieStoryEntryStep {
-  display: grid;
-  gap: 1rem;
-}
-
-.annieStoryEntryStepHeading {
-  display: flex;
-  align-items: center;
-  gap: 0.85rem;
-  padding-bottom: 0.8rem;
-  border-bottom: 1px solid var(--annie-line);
-}
-
-.annieStoryEntryStepHeading > span {
-  display: grid;
-  place-items: center;
-  width: 2.25rem;
-  height: 2.25rem;
-  flex: 0 0 auto;
-  color: var(--annie-orange-strong);
-  border: 1px solid rgba(182, 83, 61, 0.34);
-  border-radius: 50%;
-  background: rgba(255, 250, 241, 0.8);
-  font-size: 0.78rem;
-  font-weight: 800;
-}
-
-.annieStoryEntryStepHeading h2 {
-  margin: 0.1rem 0 0;
-  font-size: clamp(1.25rem, 2vw, 1.55rem);
 }
 
 .annieStoryIdentityGrid {
@@ -501,16 +417,6 @@
   line-height: 1.6;
 }
 
-.annieStoryIdentityCopy .annieStoryIdentityAddress {
-  width: fit-content;
-  padding: 0.22rem 0.5rem;
-  color: #514198;
-  border-radius: 999px;
-  background: rgba(114, 86, 216, 0.1);
-  font-size: 0.68rem;
-  font-weight: 800;
-}
-
 .annieStoryIdentityCheck {
   position: absolute;
   top: 0.8rem;
@@ -523,120 +429,6 @@
 
 .annieStoryIdentityOption[aria-pressed="true"] .annieStoryIdentityCheck {
   color: var(--annie-orange-strong);
-}
-
-.annieStoryCharacterList {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr));
-  gap: 0.75rem;
-}
-
-.annieStoryCharacterOption {
-  display: grid;
-  grid-template-columns: 3.6rem minmax(0, 1fr) 1.25rem;
-  align-items: center;
-  gap: 0.9rem;
-  min-height: 5.7rem;
-  padding: 0.75rem;
-  color: var(--annie-ink);
-  text-align: left;
-  border: 1px solid var(--annie-line);
-  border-radius: 0.65rem 0.65rem 0.2rem 0.2rem;
-  background: rgba(255, 252, 244, 0.64);
-  cursor: pointer;
-  transition:
-    color 180ms cubic-bezier(0.22, 1, 0.36, 1),
-    border-color 180ms cubic-bezier(0.22, 1, 0.36, 1),
-    background-color 180ms cubic-bezier(0.22, 1, 0.36, 1),
-    transform 180ms cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-.annieStoryCharacterOption:hover:not(:disabled) {
-  color: var(--annie-orange-strong);
-  border-color: rgba(182, 83, 61, 0.4);
-  background: rgba(255, 252, 244, 0.98);
-  transform: translateX(2px);
-}
-
-.annieStoryCharacterOption:disabled {
-  cursor: not-allowed;
-  opacity: 0.5;
-}
-
-.annieStoryCharacterOption > img,
-.annieStoryCharacterMonogram {
-  width: 3.6rem;
-  height: 4.15rem;
-  object-fit: cover;
-  border-radius: 1.8rem 1.8rem 0.3rem 0.3rem;
-  background: var(--annie-paper-deep);
-}
-
-.annieStoryCharacterMonogram {
-  display: grid;
-  place-items: center;
-  color: var(--annie-orange-strong);
-  font-weight: 800;
-}
-
-.annieStoryCharacterCopy {
-  display: grid;
-  gap: 0.4rem;
-  min-width: 0;
-}
-
-.annieStoryCharacterCopy > span:first-child {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 0.7rem;
-}
-
-.annieStoryCharacterCopy strong {
-  font-size: 1.05rem;
-}
-
-.annieStoryCharacterCopy small {
-  flex: 0 0 auto;
-  color: var(--annie-muted);
-  font-size: 0.7rem;
-}
-
-.annieStoryCharacterCopy > span:last-child {
-  display: -webkit-box;
-  overflow: hidden;
-  color: var(--annie-muted);
-  font-size: 0.78rem;
-  line-height: 1.55;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-}
-
-.annieStoryCharacterOption > svg {
-  width: 1rem;
-  color: var(--annie-orange);
-}
-
-.annieStoryEntryHint {
-  margin: 0;
-  color: var(--annie-muted);
-  font-size: 0.8rem;
-  text-align: right;
-}
-
-.annieStoryEntry .annieStoryError {
-  width: 100%;
-  margin: 0;
-  text-align: left;
-}
-
-.annieStoryEntryRecovery {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
-  width: 100%;
 }
 
 .annieStoryRecoveryButton {
@@ -652,85 +444,141 @@
   cursor: pointer;
 }
 
-.annieStoryEntryRecovery .annieStoryRecoveryButton {
-  margin-top: 0;
-}
-
 .annieStoryRecoveryButton:hover {
   border-color: #7d281f;
   background: rgba(255, 255, 255, 0.82);
 }
 
-.annieStoryError {
-  padding: 1rem;
-  color: #9b2f25;
-  text-align: center;
-}
-
-.annieStoryStatusPanel {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  min-height: 7rem;
-  margin-bottom: 1.5rem;
-  padding: 1.3rem 1.5rem;
-  border-block: 1px solid var(--annie-line);
-  background: rgba(255, 252, 244, 0.6);
-}
-
-.annieStoryStatusPanel h2 {
-  margin: 0;
-  font-size: 1.25rem;
-  font-weight: 700;
-}
-
-.annieStoryStatusMark {
-  width: 0.85rem;
-  height: 0.85rem;
-  border: 2px solid var(--annie-orange);
-  border-radius: 50%;
-  animation: annie-story-pulse 1.6s ease-out infinite;
-}
-
-.annieStoryAccess {
+.annieStoryConversationGate {
   display: grid;
-  justify-items: center;
-  gap: 1rem;
-  padding: clamp(3rem, 8vw, 5rem) 1.5rem;
-  text-align: center;
-  border-block: 1px solid var(--annie-line);
-  background: rgba(255, 252, 244, 0.72);
+  grid-template-rows: auto minmax(0, 1fr);
+  flex: 1 1 auto;
+  min-height: 0;
+  padding: clamp(0.75rem, 2vw, 1.25rem) 0;
+  animation: annie-page-open 420ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
-.annieStoryAccess > svg {
-  width: 1.6rem;
+.annieStoryConversationGate .annieStoryConversationHeader {
+  border: 1px solid rgba(78, 61, 87, 0.16);
+  border-bottom: 0;
+  border-radius: 1rem 1rem 0 0;
+}
+
+.annieStoryConversationState {
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 0.9rem;
+  min-height: 0;
+  padding: clamp(2rem, 7vw, 4rem);
+  text-align: center;
+  border: 1px solid rgba(78, 61, 87, 0.16);
+  border-radius: 0 0 0.45rem 0.45rem;
+  background: rgba(255, 252, 244, 0.94);
+  box-shadow: 0.75rem 0.9rem 2rem rgba(78, 53, 73, 0.1);
+}
+
+.annieStoryConversationState > svg {
+  width: 1.45rem;
   color: var(--annie-lavender);
 }
 
-.annieStoryAccess--expired {
-  background: rgba(250, 228, 218, 0.54);
+.annieStoryConversationState > .lucide-loader-circle {
+  animation: annie-story-spin 900ms linear infinite;
 }
 
-.annieStoryAccess--expired > svg,
-.annieStoryAccess--expired .annieStoryEyebrow {
-  color: #a54235;
-}
-
-.annieStoryAccess h2 {
+.annieStoryConversationState > p {
+  max-width: 34rem;
   margin: 0;
-  font-size: 1.75rem;
-  font-weight: 700;
+  color: var(--annie-muted);
+  line-height: 1.7;
+}
+
+.annieStoryConversationHeader {
+  display: grid;
+  grid-template-columns: 3rem minmax(0, 1fr);
+  align-items: center;
+  gap: 0.85rem;
+  min-width: 0;
+  padding: 0.85rem 1rem;
+  border-bottom: 1px solid var(--annie-line);
+  background: rgba(245, 234, 214, 0.72);
+}
+
+.annieStoryConversationHeader > img,
+.annieStoryConversationMonogram {
+  display: grid;
+  place-items: center;
+  width: 3rem;
+  height: 3rem;
+  object-fit: cover;
+  object-position: center 28%;
+  color: var(--annie-paper);
+  border-radius: 50%;
+  background: #403a49;
+  font-size: 1rem;
+  font-weight: 800;
+}
+
+.annieStoryConversationHeader > div {
+  display: grid;
+  gap: 0.22rem;
+  min-width: 0;
+}
+
+.annieStoryConversationHeader > div > span {
+  display: flex;
+  align-items: baseline;
+  gap: 0.65rem;
+  min-width: 0;
+}
+
+.annieStoryConversationHeader strong {
+  color: #3b2e43;
+  font-size: 1.05rem;
+}
+
+.annieStoryConversationHeader span small {
+  color: var(--annie-orange-strong);
+  font-family: system-ui, sans-serif;
+  font-size: 0.68rem;
+  font-weight: 800;
+}
+
+.annieStoryConversationHeader p {
+  margin: 0;
+  overflow: hidden;
+  color: var(--annie-muted);
+  font-size: 0.82rem;
+  line-height: 1.5;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.annieStoryConversationHeader > div > small {
+  overflow: hidden;
+  color: #785f78;
+  font-family: system-ui, sans-serif;
+  font-size: 0.68rem;
+  line-height: 1.45;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .annieStoryWorkspace {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(15.5rem, 18rem);
   gap: clamp(1rem, 2vw, 1.5rem);
-  align-items: start;
+  align-items: stretch;
+  flex: 1 1 auto;
+  min-height: 0;
+  padding: clamp(0.75rem, 2vw, 1.25rem) 0;
 }
 
 .annieStoryRun {
+  height: 100%;
   min-width: 0;
+  min-height: 0;
   overflow: hidden;
   border: 1px solid rgba(78, 61, 87, 0.16);
   border-radius: 1rem 1rem 0.45rem 0.45rem;
@@ -738,51 +586,18 @@
   box-shadow: 0.75rem 0.9rem 2rem rgba(78, 53, 73, 0.1);
 }
 
-.annieStoryRunHeading {
+.annieStoryRun[data-status="active"] {
   display: grid;
-  grid-template-columns: minmax(11rem, 0.38fr) 1fr;
-  align-items: end;
-  gap: 2rem;
-  padding: 1.5rem 1.75rem;
-  border-bottom: 1px solid var(--annie-line);
-  background: rgba(245, 234, 214, 0.52);
+  grid-template-rows: auto minmax(0, 1fr) auto;
 }
 
-.annieStoryRunHeading h2 {
-  margin: 0;
-  color: #3b2e43;
-  font-size: 1.7rem;
-  font-weight: 700;
-}
-
-.annieStoryRelationshipPresence {
-  display: grid;
-  gap: 0.35rem;
-}
-
-.annieStoryRelationshipPresence > span {
-  color: #3b2e43;
-  font-family: system-ui, sans-serif;
-  font-size: 0.72rem;
-  font-weight: 800;
-  letter-spacing: 0.06em;
-}
-
-.annieStoryRelationshipPresence > p {
-  margin: 0;
-  color: var(--annie-muted);
-  line-height: 1.75;
-}
-
-.annieStoryRelationshipPresence > small {
-  color: #785f78;
-  font-family: system-ui, sans-serif;
-  line-height: 1.55;
+.annieStoryRun[data-status="completed"] {
+  overflow: auto;
 }
 
 .annieStoryReferenceRail {
-  position: sticky;
-  top: 5.75rem;
+  min-height: 0;
+  overflow: auto;
 }
 
 .annieStoryReferences {
@@ -801,6 +616,11 @@
   padding: 1.5rem clamp(1.2rem, 5vw, 4.5rem) 2rem;
   overflow: auto;
   scroll-padding-block: 1rem;
+}
+
+.annieStoryShell--chat .annieStoryTimeline {
+  min-height: 0;
+  max-height: none;
 }
 
 .annieStoryEvent {
@@ -1327,15 +1147,6 @@
   }
 }
 
-@keyframes annie-story-pulse {
-  70% {
-    box-shadow: 0 0 0 0.55rem rgba(233, 119, 24, 0);
-  }
-  100% {
-    box-shadow: 0 0 0 0 rgba(233, 119, 24, 0);
-  }
-}
-
 @keyframes annie-story-spin {
   to {
     transform: rotate(360deg);
@@ -1356,6 +1167,10 @@
 @media (max-width: 760px) {
   .annieStoryShell {
     padding-bottom: 3rem;
+  }
+
+  .annieStoryShell--chat {
+    padding-bottom: 0;
   }
 
   .annieStoryHeader {
@@ -1411,30 +1226,9 @@
     width: 100%;
   }
 
-  .annieStoryOpening,
-  .annieStoryEntry,
   .annieStoryWorkspace,
-  .annieStoryAccess,
-  .annieStoryStatusPanel,
-  .annieStoryError {
-    width: calc(100% - 2rem);
-  }
-
-  .annieStoryOpening {
-    padding-top: 2.5rem;
-  }
-
-  .annieStoryOpening h1 {
-    font-size: 2.8rem;
-  }
-
-  .annieStoryEntry {
-    gap: 2.4rem;
-    padding-top: 2.2rem;
-  }
-
-  .annieStoryEntryContext h1 {
-    font-size: clamp(2.35rem, 10vw, 3.2rem);
+  .annieStoryConversationGate {
+    width: calc(100% - 1rem);
   }
 
   .annieStoryIdentityOption {
@@ -1469,14 +1263,6 @@
     display: none;
   }
 
-  .annieStoryIdentityCopy .annieStoryIdentityAddress {
-    max-width: calc(100% - 2rem);
-    overflow: hidden;
-    font-size: 0.6rem;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
   .annieStoryIdentityCheck {
     top: auto;
     right: 0.65rem;
@@ -1493,13 +1279,16 @@
     grid-column: 1 / -1;
   }
 
-  .annieStoryCharacterList {
-    grid-template-columns: 1fr;
-  }
-
   .annieStoryWorkspace {
     grid-template-columns: 1fr;
-    gap: 1rem;
+    grid-template-rows: minmax(0, 1fr) auto;
+    gap: 0.5rem;
+    width: calc(100% - 1rem);
+    padding: 0.5rem 0;
+  }
+
+  .annieStoryConversationGate {
+    padding: 0.5rem 0;
   }
 
   .annieStoryRun {
@@ -1507,16 +1296,19 @@
   }
 
   .annieStoryRun[data-status="active"] {
-    display: grid;
-    grid-template-rows: auto minmax(0, 1fr) auto;
-    height: calc(100dvh - 5.5rem);
-    min-height: 30rem;
-    max-height: 48rem;
+    height: 100%;
   }
 
-  .annieStoryRunHeading {
-    grid-template-columns: 1fr;
-    gap: 0.8rem;
+  .annieStoryConversationHeader {
+    grid-template-columns: 2.6rem minmax(0, 1fr);
+    gap: 0.7rem;
+    padding: 0.65rem 0.75rem;
+  }
+
+  .annieStoryConversationHeader > img,
+  .annieStoryConversationMonogram {
+    width: 2.6rem;
+    height: 2.6rem;
   }
 
   .annieStoryTimeline {
@@ -1567,11 +1359,7 @@
   }
 
   .annieStoryReferenceRail {
-    position: static;
-  }
-
-  .annieStoryAccess h2 {
-    font-size: 1.5rem;
+    max-height: min(38dvh, 20rem);
   }
 
   .annieStoryEnding h2 {
@@ -1598,9 +1386,6 @@
     -webkit-line-clamp: 1;
   }
 
-  .annieStoryIdentityCopy .annieStoryIdentityAddress {
-    max-width: 100%;
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {
