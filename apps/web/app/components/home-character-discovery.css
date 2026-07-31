@@ -19,11 +19,13 @@ body:has(.characterDiscoveryPage) {
   --character-orange-deep: #df7e0d;
   --character-lavender: #7256d8;
   --character-lavender-soft: #e5dcff;
+  --character-bottom-nav-height: calc(64px + env(safe-area-inset-bottom));
   position: relative;
   z-index: 0;
   width: min(100%, 450px);
   min-height: 100svh;
   margin: 0 auto;
+  padding-bottom: var(--character-bottom-nav-height);
   overflow: hidden;
   color: var(--character-ink);
   background-color: var(--character-paper);
@@ -303,7 +305,7 @@ body:has(.characterDiscoveryPage) {
   scroll-padding-inline: 24px;
   scroll-snap-type: x mandatory;
   scrollbar-width: none;
-  touch-action: pan-x;
+  touch-action: pan-x pan-y;
 }
 
 .characterCarouselViewport::-webkit-scrollbar {
@@ -766,7 +768,7 @@ body:has(.characterDiscoveryPage) {
   bottom: 0;
   display: grid;
   width: min(100%, 450px);
-  min-height: calc(64px + env(safe-area-inset-bottom));
+  min-height: var(--character-bottom-nav-height);
   grid-template-columns: repeat(3, 1fr);
   padding: 5px 30px max(4px, env(safe-area-inset-bottom));
   border-top: 1px solid rgba(213, 173, 122, 0.44);
