@@ -939,3 +939,36 @@ Split the frontend roadmap into UI-first and integration follow-ups, archived th
 ### Next Steps
 
 - None - task complete
+
+
+## Session 29: 跨设备恢复与会话失效收尾
+
+**Date**: 2026-07-31
+**Task**: 跨设备恢复与会话失效收尾
+**Branch**: `codex/palace-character-entry`
+
+### Summary
+
+完成 StoryWorld 故事页访问缓存失效、401 私有状态清理、写失败冻结与只读恢复，补齐状态管理规范并通过前端构建和定向合同审计。
+
+### Main Changes
+
+- Detailed change bullets were not supplied; see the summary above.
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `03ee5eed` | (see git log) |
+
+### Testing
+
+- Validation was not recorded for this session.
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
