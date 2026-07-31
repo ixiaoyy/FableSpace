@@ -25,6 +25,15 @@ export type AccessStatus = {
 let accessStatusRequest: Promise<AccessStatus> | null = null
 let cachedAccessStatus: AccessStatus | null = null
 let accessStatusExpiresAt = 0
+let accessStatusGeneration = 0
+
+/** Invalidate both settled and in-flight access decisions without aborting callers. */
+export function invalidateAccessStatusCache(): void {
+  accessStatusGeneration += 1
+  accessStatusRequest = null
+  cachedAccessStatus = null
+  accessStatusExpiresAt = 0
+}
 
 /**
  * Reads the public access-gate status through one shared request and bounded linked-mode cache.
@@ -33,26 +42,31 @@ let accessStatusExpiresAt = 0
  */
 export function getAccessStatus(forceRefresh = false): Promise<AccessStatus> {
   if (forceRefresh) {
-    cachedAccessStatus = null
-    accessStatusExpiresAt = 0
+    invalidateAccessStatusCache()
   }
   if (!forceRefresh && cachedAccessStatus && Date.now() < accessStatusExpiresAt) {
     return Promise.resolve(cachedAccessStatus)
   }
   if (accessStatusRequest) return accessStatusRequest
 
-  accessStatusRequest = readApiJson<AccessStatus>("/api/v1/auth/status")
+  const requestGeneration = accessStatusGeneration
+  const request = readApiJson<AccessStatus>("/api/v1/auth/status")
     .then((status) => {
-      cachedAccessStatus = status
-      accessStatusExpiresAt = status.auth_mode === PARALLELLINES_AUTH_MODE
-        ? Date.now() + ACCESS_STATUS_REFRESH_INTERVAL_MS
-        : Number.POSITIVE_INFINITY
+      if (requestGeneration === accessStatusGeneration) {
+        cachedAccessStatus = status
+        accessStatusExpiresAt = status.auth_mode === PARALLELLINES_AUTH_MODE
+          ? Date.now() + ACCESS_STATUS_REFRESH_INTERVAL_MS
+          : Number.POSITIVE_INFINITY
+      }
       return status
     })
     .finally(() => {
-      accessStatusRequest = null
+      if (accessStatusRequest === request) {
+        accessStatusRequest = null
+      }
     })
-  return accessStatusRequest
+  accessStatusRequest = request
+  return request
 }
 
 /**
@@ -87,7 +101,5 @@ export async function resolveCurrentSessionUserId(fallback = ""): Promise<string
  */
 export async function logoutCurrentSession(): Promise<void> {
   await readApiJson<{ ok: boolean }>("/api/v1/auth/logout", { method: "POST" })
-  accessStatusRequest = null
-  cachedAccessStatus = null
-  accessStatusExpiresAt = 0
+  invalidateAccessStatusCache()
 }

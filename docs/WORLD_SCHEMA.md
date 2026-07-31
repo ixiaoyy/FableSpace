@@ -520,6 +520,8 @@ POST /api/v1/story-worlds/{story_world_id}/runs/restart
 
 公开详情只返回发布 StoryWorld、Character 公开处境和系统预设 PlayerRole 列表。`character_id` 只能选择当前 StoryWorld 注册表内的 Character；`player_role_id` 只能选择同一 StoryWorld 当前发布的 PlayerRole，不允许携带身份正文。公开角色页可把已发布 `player_role_id` 作为 `/characters/:characterSlug/story?playerRoleId=...` 的预选提示；故事页必须再以公开 PlayerRole 列表校验，活动 StoryRun 仍以服务端锁定身份为准。联动登录回跳白名单只允许规范故事路径和这一个 ASCII ID 查询参数。长明宫从魏观海或萧明珠进入时共享同一个 StoryRun，但消息和关系投影归属当前会见角色。运行时请求不接受 `player_id`；服务端从已验证登录会话解析账号身份，无有效会话时返回 `401`，且不得创建或修改玩家状态。运行时响应不回显玩家 ID，但会回显该 StoryRun 锁定的公开 PlayerRole 投影。
 
+故事页在加载、刷新、重新进入或另一设备访问时，只通过 `GET runs/current` 恢复该账号在当前 StoryWorld 的活动轮次；没有活动轮次时可以返回最近完成轮次及其安全结局摘要。前端收到任一受保护请求的 `401` 后必须同时失效访问状态缓存和当前私有故事状态，清空未确认输入，并忽略已经过期的迟到响应。消息、选择、开始或重新开始请求不得自动重放；非 `401` 写失败后必须先以 `GET runs/current` 重新取得服务器状态，成功前不得继续写入。现有开始请求复用同一活动轮次，审核选择按已持久化 choice source 去重；自由消息和重新开始通过“失败后先读”处理响应不确定性。
+
 运行时持久化基线使用 `player_story_states`、`story_runs`、`character_relationships`、`story_events`、`story_messages` 和 `private_memories` 六张表。已提交的 004 迁移建立前四张表，005 新增后两张表，006 为 `story_runs` 增加并回填不可为空的 `player_role_id`。完成轮次保留全部有序安全结局摘要；重新开始创建全新 StoryRun，可以重新选择 PlayerRole，但不复制上一轮 affinity、标记、事件、选择、消息或记忆。
 
 ## 校验矩阵

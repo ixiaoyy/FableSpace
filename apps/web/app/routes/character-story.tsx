@@ -31,7 +31,11 @@ import {
   resolveCharacterRoute,
   resolveCharacterRouteById,
 } from "../lib/character-routes"
-import { getAccessStatus, storyLoginUrl } from "../lib/session"
+import {
+  getAccessStatus,
+  invalidateAccessStatusCache,
+  storyLoginUrl,
+} from "../lib/session"
 import {
   chooseStoryPath,
   getCurrentStoryRun,
@@ -132,20 +136,27 @@ function storyPageReducer(
     case "access-checking":
       return { ...state, accessState: "checking", actionError: "" }
     case "access-anonymous":
+      if (state.accessState === "expired") return state
       return {
         ...state,
         run: null,
         runLoading: false,
         accessState: "anonymous",
+        pendingAction: null,
         pendingExchange: null,
+        failedAction: null,
+        actionError: "",
+        message: "",
       }
     case "run-loading":
+      if (state.accessState === "expired") return state
       return {
         ...state,
         runLoading: true,
         accessState: "authenticated",
       }
     case "run-loaded":
+      if (state.accessState === "expired") return state
       return {
         ...state,
         run: action.run,
@@ -153,14 +164,19 @@ function storyPageReducer(
         selectedPlayerRoleId: action.run?.player_role.id || state.selectedPlayerRoleId,
         runLoading: false,
         accessState: "authenticated",
+        pendingAction: null,
         pendingExchange: null,
+        failedAction: null,
+        actionError: "",
+        message: "",
       }
     case "player-role-selected":
+      if (state.accessState === "expired" || state.failedAction !== null) {
+        return state
+      }
       return {
         ...state,
         selectedPlayerRoleId: action.playerRoleId,
-        failedAction: null,
-        actionError: "",
       }
     case "restart-ready":
       return {
@@ -243,6 +259,9 @@ function storyPageReducer(
           : state.message,
       }
     case "message-changed":
+      if (state.accessState === "expired" || state.failedAction !== null) {
+        return state
+      }
       return { ...state, message: action.message }
     case "message-sent":
       if (state.accessState === "expired") return state
@@ -300,6 +319,7 @@ export default function CharacterStoryRoute() {
     message,
   } = pageState
   const actionInFlightRef = useRef(false)
+  const privateLoadVersionRef = useRef(0)
   const requestedPlayerRoleId = searchParams.get("playerRoleId")?.trim() || ""
   const validatedPlayerRoleId = detail?.player_roles.some(
     (playerRole) => playerRole.id === requestedPlayerRoleId,
@@ -309,9 +329,12 @@ export default function CharacterStoryRoute() {
 
   const loadPrivateStory = useCallback(async (forceRefresh = false) => {
     if (!detail || !route) return
+    const requestVersion = privateLoadVersionRef.current + 1
+    privateLoadVersionRef.current = requestVersion
     dispatch({ type: "access-checking" })
     try {
       const access = await getAccessStatus(forceRefresh)
+      if (requestVersion !== privateLoadVersionRef.current) return
       if (!access.access_allowed || !access.user) {
         dispatch({ type: "access-anonymous" })
         return
@@ -321,11 +344,13 @@ export default function CharacterStoryRoute() {
         route.storyWorldId,
         route.characterId,
       )
+      if (requestVersion !== privateLoadVersionRef.current) return
       dispatch({
         type: "run-loaded",
         run: currentRun,
       })
     } catch (reason) {
+      if (requestVersion !== privateLoadVersionRef.current) return
       dispatch({
         type: "access-error",
         message: reason instanceof Error
@@ -337,6 +362,9 @@ export default function CharacterStoryRoute() {
 
   useEffect(() => {
     void loadPrivateStory()
+    return () => {
+      privateLoadVersionRef.current += 1
+    }
   }, [loadPrivateStory])
 
   useEffect(() => {
@@ -355,6 +383,8 @@ export default function CharacterStoryRoute() {
   useEffect(() => {
     const handleSessionExpired = () => {
       actionInFlightRef.current = false
+      privateLoadVersionRef.current += 1
+      invalidateAccessStatusCache()
       dispatch({ type: "session-expired" })
     }
     window.addEventListener(SESSION_EXPIRED_EVENT, handleSessionExpired)
@@ -375,6 +405,7 @@ export default function CharacterStoryRoute() {
   const storyWorldId = route.storyWorldId
   const effectivePlayerRoleId = selectedPlayerRoleId
     || (detail.player_roles.length === 1 ? detail.player_roles[0].id : "")
+  const writeBlocked = pendingAction !== null || failedAction !== null
   const loginHref = storyLoginUrl(
     characterStoryPath(route.slug, effectivePlayerRoleId),
   )
@@ -384,7 +415,7 @@ export default function CharacterStoryRoute() {
     action: () => Promise<StoryRun | null>,
     optimisticContent = "",
   ) {
-    if (actionInFlightRef.current) return
+    if (actionInFlightRef.current || failedAction !== null) return
     actionInFlightRef.current = true
     dispatch({ type: "action-started", kind, optimisticContent })
     try {
@@ -404,7 +435,11 @@ export default function CharacterStoryRoute() {
   }
 
   async function enterStory(characterId: string) {
-    if (!effectivePlayerRoleId || actionInFlightRef.current) return
+    if (
+      !effectivePlayerRoleId
+      || actionInFlightRef.current
+      || failedAction !== null
+    ) return
     const characterRoute = resolveCharacterRouteById(characterId)
     if (!characterRoute) return
 
@@ -443,7 +478,12 @@ export default function CharacterStoryRoute() {
   function submitMessage(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     const content = message.trim()
-    if (!run || !content || actionInFlightRef.current) return
+    if (
+      !run
+      || !content
+      || actionInFlightRef.current
+      || failedAction !== null
+    ) return
     actionInFlightRef.current = true
     dispatch({
       type: "action-started",
@@ -475,13 +515,10 @@ export default function CharacterStoryRoute() {
 
   return (
     <main className="annieStoryShell" data-story-theme={route.theme}>
-      <header className="annieStoryHeader">
-        <Link to={characterPath(route.slug)} aria-label={`返回${detail.character.name}的人物页`}>
-          <ArrowLeft aria-hidden="true" />
-        </Link>
-        <span>FableSpace</span>
-        <small>{detail.character.name}</small>
-      </header>
+      <CharacterStoryHeader
+        characterName={detail.character.name}
+        characterSlug={route.slug}
+      />
 
       {!run && accessState !== "authenticated" ? (
         <section className="annieStoryOpening" aria-labelledby="annie-story-title">
@@ -504,7 +541,7 @@ export default function CharacterStoryRoute() {
           detail={detail}
           sceneLabel={route.sceneLabel}
           selectedPlayerRoleId={effectivePlayerRoleId}
-          pending={pendingAction !== null}
+          writeDisabled={writeBlocked}
           actionError={actionError}
           onPlayerRoleSelect={(playerRoleId) => {
             dispatch({
@@ -517,6 +554,7 @@ export default function CharacterStoryRoute() {
             )
           }}
           onCharacterSelect={(characterId) => void enterStory(characterId)}
+          onReload={() => void loadPrivateStory(true)}
         />
       ) : null}
 
@@ -551,6 +589,7 @@ export default function CharacterStoryRoute() {
               playerRoleId: "",
             })
           }}
+          onReload={() => void loadPrivateStory(true)}
         />
       ) : null}
 
@@ -558,22 +597,43 @@ export default function CharacterStoryRoute() {
   )
 }
 
+/** Renders the canonical story header back to the current Character detail page. */
+function CharacterStoryHeader({
+  characterName,
+  characterSlug,
+}: {
+  characterName: string
+  characterSlug: string
+}) {
+  return (
+    <header className="annieStoryHeader">
+      <Link to={characterPath(characterSlug)} aria-label={`返回${characterName}的人物页`}>
+        <ArrowLeft aria-hidden="true" />
+      </Link>
+      <span>FableSpace</span>
+      <small>{characterName}</small>
+    </header>
+  )
+}
+
 function StoryEntry({
   detail,
   sceneLabel,
   selectedPlayerRoleId,
-  pending,
+  writeDisabled,
   actionError,
   onPlayerRoleSelect,
   onCharacterSelect,
+  onReload,
 }: {
   detail: StoryWorldCharacterDetail
   sceneLabel: string
   selectedPlayerRoleId: string
-  pending: boolean
+  writeDisabled: boolean
   actionError: string
   onPlayerRoleSelect: (playerRoleId: string) => void
   onCharacterSelect: (characterId: string) => void
+  onReload: () => void
 }) {
   const routes = characterRoutesForWorld(detail.story_world.id)
   const routeByCharacterId = new Map<string, (typeof routes)[number]>(
@@ -606,7 +666,7 @@ function StoryEntry({
               key={playerRole.id}
               playerRole={playerRole}
               selected={selectedPlayerRoleId === playerRole.id}
-              disabled={pending}
+              disabled={writeDisabled}
               onSelect={() => onPlayerRoleSelect(playerRole.id)}
             />
           ))}
@@ -629,7 +689,7 @@ function StoryEntry({
                 key={character.id}
                 className="annieStoryCharacterOption"
                 type="button"
-                disabled={!selectedPlayerRoleId || pending || !characterRoute}
+                disabled={!selectedPlayerRoleId || writeDisabled || !characterRoute}
                 onClick={() => onCharacterSelect(character.id)}
               >
                 {characterRoute ? (
@@ -659,7 +719,16 @@ function StoryEntry({
           <p className="annieStoryEntryHint">先选定你的身份。</p>
         ) : null}
         {actionError ? (
-          <p className="annieStoryError" role="alert">{actionError}</p>
+          <div className="annieStoryEntryRecovery" role="alert">
+            <p className="annieStoryError">{actionError}</p>
+            <button
+              className="annieStoryRecoveryButton"
+              type="button"
+              onClick={onReload}
+            >
+              重新载入
+            </button>
+          </div>
         ) : null}
       </div>
     </section>
@@ -686,9 +755,6 @@ function StoryAccessPanels({
       ) : null}
       {runLoading ? (
         <StoryLoadingPanel eyebrow="回访" title="正在找回上次停下的地方" />
-      ) : null}
-      {actionError && accessState !== "expired" && accessState !== "error" ? (
-        <p className="annieStoryError" role="alert">{actionError}</p>
       ) : null}
       {accessState === "anonymous" ? (
         <section className="annieStoryAccess" aria-labelledby="annie-story-access-title">
@@ -759,6 +825,7 @@ function StoryRunWorkspace({
   onMessageChange,
   onSubmitMessage,
   onRestart,
+  onReload,
 }: {
   detail: StoryWorldCharacterDetail
   run: StoryRun
@@ -771,6 +838,7 @@ function StoryRunWorkspace({
   onMessageChange: (message: string) => void
   onSubmitMessage: (event: FormEvent<HTMLFormElement>) => void
   onRestart: () => void
+  onReload: () => void
 }) {
   const pending = pendingAction !== null
   return (
@@ -816,6 +884,7 @@ function StoryRunWorkspace({
             onChoose={onChoose}
             onMessageChange={onMessageChange}
             onSubmitMessage={onSubmitMessage}
+            onReload={onReload}
           />
         ) : run.ending ? (
           <div className="annieStoryEnding">
@@ -975,6 +1044,7 @@ function StoryActions({
   onChoose,
   onMessageChange,
   onSubmitMessage,
+  onReload,
 }: {
   characterName: string
   run: StoryRun
@@ -985,20 +1055,17 @@ function StoryActions({
   onChoose: (choiceId: string, choiceLabel: string) => void
   onMessageChange: (message: string) => void
   onSubmitMessage: (event: FormEvent<HTMLFormElement>) => void
+  onReload: () => void
 }) {
   const pending = pendingAction !== null
-  const recoveryText = failedAction === "message"
-    ? "回应没有发送，你写的文字还在，可以直接重试。"
-    : failedAction === "choice"
-      ? "选择没有记录，可以重新选择。"
-      : actionError
+  const writeDisabled = pending || failedAction !== null
 
   function handleComposerKeyDown(event: KeyboardEvent<HTMLTextAreaElement>) {
     if (
       event.key === "Enter"
       && !event.shiftKey
       && !event.nativeEvent.isComposing
-      && !pending
+      && !writeDisabled
       && message.trim()
     ) {
       event.preventDefault()
@@ -1007,13 +1074,24 @@ function StoryActions({
   }
 
   return (
-    <div className="annieStoryActionsPanel" aria-busy={pending}>
+    <div
+      className="annieStoryActionsPanel"
+      aria-busy={pending}
+      data-recovery-required={failedAction !== null ? "true" : undefined}
+    >
       {actionError ? (
         <div className="annieStoryActionError" id="annie-story-action-error" role="alert">
           <CircleAlert aria-hidden="true" />
-          <div>
+          <div className="annieStoryActionErrorBody">
             <strong>{actionError}</strong>
-            <span>{recoveryText}</span>
+            <span>重新载入后继续。</span>
+            <button
+              className="annieStoryRecoveryButton"
+              type="button"
+              onClick={onReload}
+            >
+              重新载入
+            </button>
           </div>
         </div>
       ) : null}
@@ -1022,7 +1100,7 @@ function StoryActions({
           <button
             key={choice.id}
             type="button"
-            disabled={pending}
+            disabled={writeDisabled}
             onClick={() => onChoose(choice.id, choice.label)}
           >
             {choice.label}
@@ -1040,7 +1118,7 @@ function StoryActions({
             maxLength={1000}
             rows={1}
             enterKeyHint="send"
-            disabled={pending}
+            disabled={writeDisabled}
             aria-describedby={actionError ? "annie-story-action-error" : undefined}
             onChange={(event) => onMessageChange(event.target.value)}
             onKeyDown={handleComposerKeyDown}
@@ -1048,13 +1126,11 @@ function StoryActions({
           />
           <button
             type="submit"
-            disabled={pending || !message.trim()}
-            aria-label={failedAction === "message" ? "重新发送回应" : "发送回应"}
+            disabled={writeDisabled || !message.trim()}
+            aria-label="发送回应"
           >
             <Send aria-hidden="true" />
-            <span className="annieStoryVisuallyHidden">
-              {failedAction === "message" ? "重试" : "发送"}
-            </span>
+            <span className="annieStoryVisuallyHidden">发送</span>
           </button>
         </div>
       </form>

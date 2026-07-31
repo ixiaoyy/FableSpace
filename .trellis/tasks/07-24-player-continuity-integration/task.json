@@ -3,7 +3,7 @@
   "name": "player-continuity-integration",
   "title": "接入跨设备恢复与会话失效",
   "description": "在界面完成后接入跨设备恢复、登录回跳和会话失效的完整数据语义。",
-  "status": "planning",
+  "status": "in_progress",
   "dev_type": null,
   "scope": null,
   "package": null,

@@ -290,6 +290,7 @@
 }
 
 .annieStoryPrimaryButton:focus-visible,
+.annieStoryRecoveryButton:focus-visible,
 .annieStoryHeader a:focus-visible,
 .annieStoryIdentityOption:focus-visible,
 .annieStoryCharacterOption:focus-visible,
@@ -629,6 +630,37 @@
   text-align: left;
 }
 
+.annieStoryEntryRecovery {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+.annieStoryRecoveryButton {
+  flex: 0 0 auto;
+  min-height: 2.25rem;
+  margin-top: 0.65rem;
+  padding: 0.45rem 0.8rem;
+  color: #7d281f;
+  font: 700 0.78rem/1 system-ui, sans-serif;
+  border: 1px solid rgba(125, 40, 31, 0.38);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.48);
+  cursor: pointer;
+}
+
+.annieStoryEntryRecovery .annieStoryRecoveryButton {
+  margin-top: 0;
+}
+
+.annieStoryRecoveryButton:hover {
+  border-color: #7d281f;
+  background: rgba(255, 255, 255, 0.82);
+}
+
 .annieStoryError {
   padding: 1rem;
   color: #9b2f25;
@@ -901,6 +933,10 @@
   display: block;
 }
 
+.annieStoryActionErrorBody {
+  min-width: 0;
+}
+
 .annieStoryActionError strong {
   font-family: system-ui, sans-serif;
   font-size: 0.86rem;
@@ -961,6 +997,11 @@
 .annieStoryChoices button:disabled {
   cursor: wait;
   opacity: 0.52;
+}
+
+.annieStoryActionsPanel[data-recovery-required="true"] .annieStoryChoices button:disabled,
+.annieStoryActionsPanel[data-recovery-required="true"] .annieStoryMessageForm textarea:disabled {
+  cursor: not-allowed;
 }
 
 .annieStoryMessageForm label {

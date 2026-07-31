@@ -2,25 +2,39 @@
 
 ## Goal
 
-在界面完成后接入跨设备恢复、登录回跳和会话失效的完整数据语义。
+收口现有 StoryWorld 故事页的账号连续性：登录后从服务器恢复真实轮次；会话失效或写入结果不确定时，不显示成功、不自动重放写请求，必须先以只读请求重新取得服务器进度。
+
+## Background
+
+- `GET /api/v1/story-worlds/{story_world_id}/runs/current` 已由服务端会话解析 `player_id`，并按 `player_id + story_world_id` 返回活动轮次或最近完成轮次。
+- Character 故事页已在加载时调用 `getAccessStatus()` 和 `getCurrentStoryRun()`，并为首次未登录、会话失效、活动轮次和结局建立独立界面状态。
+- 登录回跳已使用短期签名 Cookie，只允许规范 `/characters/:characterSlug/story` 深链和一个已审核 `playerRoleId` 查询参数。
+- `api-client.ts` 已在受保护请求返回 `401` 时广播会话失效事件，但 `session.ts` 的 30 秒访问状态缓存不会随该事件失效。
+- 非 `401` 写失败会保留最后一次已确认的 `run`，但当前文案仍鼓励直接重试消息或选择；当服务端已经写入而响应丢失时，这会形成重复提交风险。
 
 ## Requirements
 
-- 以前一子任务的界面状态为唯一前台消费面，补齐跨设备恢复、登录回跳和会话失效的数据语义。
-- 开始前重新核对 StoryWorld 运行时 API 与服务端会话合同；本任务不得依赖旧 Space 或客户端 `player_id`。
-- 恢复、选择、消息与重新开始必须保持账号范围隔离、幂等边界和不自动重放写操作。
-- 本任务不重新设计页面视觉，不引入独立回忆产品面。
+- 保留现有 StoryWorld API、服务端可信会话和 `PlayerStoryState` 隔离边界；不得新增客户端 `player_id`、旧 Space 适配器或匿名状态。
+- 页面加载、刷新、再次进入及另一设备访问时，只通过 `GET runs/current` 恢复该账号的活动轮次或最近结局。
+- 任一受保护请求返回 `401` 时，立即清空前端访问状态缓存，并把故事页切换到会话失效状态。
+- 会话失效后清空待发送内容、停止 pending，不接受迟到的成功响应，也不自动重放消息、选择、开始或重新开始请求。
+- 非 `401` 写失败后保留最后一次已确认的服务器画面，但暂停新的写操作；玩家必须先执行只读“重新载入”，成功取得当前轮次后才能继续。
+- 重新载入成功后以服务器响应覆盖本地轮次，清除失败状态和未确认草稿；重新载入本身不得触发任何写 API。
+- 保留已有幂等边界：开始请求复用活动轮次，审核选择按 choice source 去重；自由消息和重新开始不做自动重试，以重新读取服务器状态消除响应不确定性。
+- 只调整现有状态流和必要错误操作，不重新设计页面视觉，不增加独立回忆、个人中心、轮询或实时同步产品面。
+- 同步 `WORLD_SCHEMA.md` 中的恢复、会话失效与写失败恢复合同。
 
 ## Acceptance Criteria
 
-- [ ] 登录后刷新、再次进入和跨设备访问恢复同一账号的真实活动轮次或结局摘要。
-- [ ] 登录回跳保持原 Character 深链。
-- [ ] 会话失效后的写操作不显示成功，重新登录后不重复提交。
-- [ ] 不泄露其他玩家关系、消息、记忆或结局。
-- [ ] API/Schema 文档与相关最小真实验证同步完成。
+- [x] 登录后刷新、再次进入和另一设备访问会从服务器恢复同一账号的真实活动轮次或最近结局。
+- [x] 登录回跳保持原 Character 深链及已校验的 PlayerRole 预选。
+- [x] `401` 同时失效访问状态缓存和故事页私有状态；迟到响应不显示成功。
+- [x] 写失败后不能直接再次提交；只读重新载入成功后才恢复写操作，且不会自动重放原请求。
+- [x] 页面和 API 均不接收客户端 `player_id`，也不泄露其他玩家关系、消息、记忆或结局。
+- [x] `WORLD_SCHEMA.md`、前端类型检查和构建通过，定向状态验证不连接数据库。
 
-## Notes
+## Out of Scope
 
-- Keep `prd.md` focused on requirements, constraints, and acceptance criteria.
-- Lightweight tasks can remain PRD-only.
-- For complex tasks, add `design.md` for technical design and `implement.md` for execution planning before `task.py start`.
+- 新增 API 字段、数据库迁移、客户端幂等键或后台任务。
+- 页面视觉重做、独立回忆页面、跨设备实时推送或多标签页同步。
+- 旧 Space / VisitorState 清退；由后续叶子任务处理。
