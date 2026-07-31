@@ -1,51 +1,57 @@
-# Type Safety
+# Frontend Type Safety
 
-> Type safety patterns in this project.
+## Compiler Reality
 
----
+`apps/web/tsconfig.json` uses TypeScript with `isolatedModules`,
+`moduleResolution: "Bundler"`, and `noEmit`; `strict` is currently `false`.
+Do not claim strict mode coverage. New code should still use precise boundary
+types and avoid widening the existing legacy `any` debt.
 
-## Overview
+## Type Ownership
 
-<!--
-Document your project's type safety conventions here.
+- Define API response/request types beside their client in `app/lib/`.
+  `lib/story-worlds.ts` and `lib/admin-content.ts` are the references.
+- Route-only loader/action types stay in the route module.
+- Reusable component props may export a named type; one-use props are commonly
+  typed inline.
+- Import types with `import type` when no runtime value is required.
+- Do not add a Character Schema field just to satisfy frontend routing. Stable
+  route metadata belongs in `lib/character-routes.ts`.
 
-Questions to answer:
-- What type system do you use?
-- How are types organized?
-- What validation library do you use?
-- How do you handle type inference?
--->
+## Boundary Patterns
 
-(To be filled by the team)
+- Use `satisfies` to check registries/configuration without losing literal
+  inference:
 
----
+  ```ts
+  export const CHARACTER_ROUTES = [...] as const satisfies readonly CharacterRoute[]
+  ```
 
-## Type Organization
+- Use discriminated unions for closed states and action types, as in
+  `StoryAccessState` and `StoryPageAction`.
+- Use `Record<Union, Value>` for exhaustive label/projection maps.
+- Use `unknown` for parsed/untrusted payloads and narrow before property access.
+- Centralize API-envelope narrowing in `lib/api-client.ts`; feature components
+  must not cast raw fetch results.
 
-<!-- Where types are defined, shared types vs local types -->
+There is no Zod or other frontend runtime schema library. Runtime checks are
+focused at existing boundaries: API envelope shape, route registry lookup,
+query values against fetched PlayerRoles, image payload normalization, and
+admin field parsing.
 
-(To be filled by the team)
+## Assertions and Legacy Debt
 
----
+Type assertions are acceptable only after a nearby structural check or for a
+closed `Object.keys` projection. Do not use `as any`, double assertions, or
+non-null assertions to bypass a contract.
 
-## Validation
+`lib/spaces.ts` contains index-signature `any` from the legacy Space client.
+Do not copy it into new StoryWorld types; remove it with the old contract.
 
-<!-- Runtime validation patterns (Zod, Yup, io-ts, etc.) -->
+## Contract Sync
 
-(To be filled by the team)
+Frontend unions and field optionality must match `docs/WORLD_SCHEMA.md` and the
+actual API projection. Do not invent fields, relax enums, expose `player_id`,
+or render internal `affinity`.
 
----
-
-## Common Patterns
-
-<!-- Type utilities, generics, type guards -->
-
-(To be filled by the team)
-
----
-
-## Forbidden Patterns
-
-<!-- any, type assertions, etc. -->
-
-(To be filled by the team)
+Run `npm --prefix .\apps\web run typecheck` for every type or API-client change.

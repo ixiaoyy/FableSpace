@@ -1,54 +1,49 @@
-# State Management
-
-> How state is managed in this project.
-
----
-
-## Overview
-
-<!--
-Document your project's state management conventions here.
-
-Questions to answer:
-- What state management solution do you use?
-- How is local vs global state decided?
-- How do you handle server state?
-- What are the patterns for derived state?
--->
-
-(To be filled by the team)
-
----
+# Frontend State Management
 
 ## State Categories
 
-<!-- Local state, global state, server state, URL state -->
+- **Route/server read state**: React Router `clientLoader`,
+  `useLoaderData`, navigation state, and `useRevalidator`.
+- **URL state**: route params and reviewed query values such as
+  `playerRoleId`; validate them against server data before use.
+- **Local interaction state**: `useState` for a small independent value and
+  `useReducer` for coupled transitions.
+- **External browser state**: a focused provider/subscription such as
+  `ThemeProvider`.
+- **Small shared request cache**: module-owned logic such as access status in
+  `lib/session.ts`, with an explicit invalidation contract.
 
-(To be filled by the team)
+The repository has no general global state library. Add one only after a real
+cross-route ownership problem is demonstrated and approval is obtained.
 
----
+## Local State Rules
 
-## When to Use Global State
+- Use `useState` for independent selection/input values.
+- Use one discriminated action union and one reducer when pending, success,
+  failure, draft, optimistic display, and access state must change together.
+  `storyPageReducer` in `routes/character-story.tsx` is the reference.
+- Derive booleans such as `writeBlocked` and effective IDs from source state
+  during render.
+- Do not keep a second local copy of server state unless it is an explicit
+  editable draft, such as the admin StoryWorld form.
 
-<!-- Criteria for promoting state to global -->
+## Server State Rules
 
-(To be filled by the team)
-
----
-
-## Server State
-
-<!-- How server data is cached and synchronized -->
-
-(To be filled by the team)
-
----
+- The server is authoritative for StoryRun, relationships, choices, events,
+  messages, memories, and endings.
+- Public route reads use loaders; private continuity uses `GET runs/current`.
+- Adopt a new private run only after a successful server response.
+- Never use mock records or another player's state as a loading/error fallback.
+- Do not expose internal affinity; render the server-projected relationship
+  label, attitude, and change reason.
 
 ## Common Mistakes
 
-<!-- State management mistakes your team has made -->
-
-(To be filled by the team)
+- Clearing a loading flag without clearing its coupled optimistic exchange.
+- Accepting a late response after route/session generation changed.
+- Enabling controls while a write result is uncertain.
+- Treating URL input as a trusted PlayerRole or persistent identity.
+- Promoting one page's reducer state into a global store without another owner.
 
 ---
 

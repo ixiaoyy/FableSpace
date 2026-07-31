@@ -1,51 +1,61 @@
-# Logging Guidelines
+# Backend Logging
 
-> How logging is done in this project.
+## Local Pattern
 
----
+Use the standard library:
 
-## Overview
+```python
+import logging
 
-<!--
-Document your project's logging conventions here.
+logger = logging.getLogger(__name__)
+logger.info("Seeded %s managed StoryWorld documents", count)
+```
 
-Questions to answer:
-- What logging library do you use?
-- What are the log levels and when to use each?
-- What should be logged?
-- What should NOT be logged (PII, secrets)?
--->
+Use parameterized messages rather than f-strings so formatting is deferred and
+values stay separately reviewable. Module loggers are defined near imports.
 
-(To be filled by the team)
+## Levels
 
----
+- `debug`: local diagnostic detail that is disabled in normal operation.
+- `info`: startup mode, redacted backend selection, safe counts, or a completed
+  operational transition.
+- `warning`: a recoverable dependency/policy degradation where the request may
+  continue or return a controlled error.
+- `error`: a known operation cannot proceed and the caller will receive a
+  failure.
+- `exception`: only inside an active exception handler when a traceback is
+  necessary, such as the global unhandled API boundary.
 
-## Log Levels
+## Safe Context
 
-<!-- When to use each level: debug, info, warn, error -->
+Log stable operational identifiers only when needed: request method/path,
+StoryWorld or Character ID, safe counts, adapter type, or exception class.
+Redact connection URLs with `redact_database_url()` before logging them.
 
-(To be filled by the team)
+Never log:
 
----
+- API keys, SSO/session secrets, cookies, authorization headers, or full
+  database URLs;
+- player messages, memories, private state, relationship details, or endings;
+- full LLM prompts/responses or arbitrary upstream response bodies;
+- local file contents or media upload bytes.
 
-## Structured Logging
+`ApiSettings.llm_api_key` uses `repr=False`; do not defeat that protection by
+serializing the dataclass or environment.
 
-<!-- Log format, required fields -->
+## Failure Examples
 
-(To be filled by the team)
+Correct:
 
----
+```python
+logger.warning("Dialogue backend unavailable for world=%s: %s", world_id, exc.__class__.__name__)
+```
 
-## What to Log
+Wrong:
 
-<!-- Important events to log -->
+```python
+logger.error(f"Request failed with key={settings.llm_api_key}: {exc}")
+```
 
-(To be filled by the team)
-
----
-
-## What NOT to Log
-
-<!-- Sensitive data, PII, secrets -->
-
-(To be filled by the team)
+For unexpected API errors, follow `app_factory.unhandled_exception_handler`:
+log method/path with `logger.exception` and return a generic client message.

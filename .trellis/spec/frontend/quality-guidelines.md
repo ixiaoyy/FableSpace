@@ -1,42 +1,49 @@
-# Quality Guidelines
-
-> Code quality standards for frontend development.
-
----
-
-## Overview
-
-<!--
-Document your project's quality standards here.
-
-Questions to answer:
-- What patterns are forbidden?
-- What linting rules do you enforce?
-- What are your testing requirements?
-- What code review standards apply?
--->
-
-(To be filled by the team)
-
----
-
-## Forbidden Patterns
-
-<!-- Patterns that should never be used and why -->
-
-(To be filled by the team)
-
----
+# Frontend Quality Guidelines
 
 ## Required Patterns
 
-<!-- Patterns that must always be used -->
+- Keep public navigation on `/characters/:characterSlug` and
+  `/characters/:characterSlug/story`.
+- Put new route API calls in `app/lib/`; resolve the player on the server.
+- Represent loading, empty, error, expired-session, continuity, and ending
+  states explicitly from real data.
+- Keep interactive surfaces usable on mobile/narrow screens and expose
+  keyboard/focus/accessible-name behavior.
+- Follow `ui-copy-guidelines.md`: product UI shows content, state, and actions,
+  not explanatory implementation prose.
+- Add a method-level comment for every new helper/method when its purpose,
+  parameters, return, or constraints are not obvious.
 
-(To be filled by the team)
+## Forbidden Patterns
 
----
+- New frontend `/story-worlds/...` deep links, `/spaces` routes, global
+  identity gates, or client-supplied `player_id`.
+- Placeholder Character/world/statistics/time/memory data used to hide a real
+  loading, empty, or failure state.
+- Automatic retry of StoryWorld writes after an uncertain response.
+- New large UI/state/map dependencies without approval.
+- Expansion of legacy product/Space compatibility modules.
+- Unrelated formatting, dependency upgrades, or visual redesign in a scoped
+  behavior fix.
 
-## Testing Requirements
+## Verification Requirements
+
+The package exposes only `typecheck` and `build`; there is no lint or frontend
+test script. Do not claim nonexistent checks.
+
+| Changed scope | Minimum fresh verification |
+|---|---|
+| Frontend code/style | `npm --prefix .\apps\web run build` |
+| Type/API-client contract | Typecheck and build |
+| React component/state flow | Above plus changed-scope React Doctor when available; no score regression |
+| Visual/interaction behavior | Above plus mobile reasoning; browser acceptance when requested or materially necessary |
+| New production route | Build plus Nginx direct-deep-link/unknown-route checks |
+| Image reference | URL/key/manifest/hash checks, zero Git image binaries, then build |
+
+Playwright is installed as a development dependency but is not a universal
+precondition. Do not add a test system solely to verify one task.
+
+### Verify the staged snapshot in a dirty worktree
 
 ### Verify the staged snapshot in a dirty worktree
 
@@ -134,6 +141,16 @@ reply” and automatically scrolls to that reply.
 
 ## Code Review Checklist
 
-<!-- What reviewers should check -->
-
-(To be filled by the team)
+- Does the route/component use real data and the canonical Character path?
+- Are URL/query values validated before becoming domain IDs?
+- Can a stale async response overwrite a newer route/session generation?
+- Are all write controls blocked together during pending/uncertain states?
+- Are semantic controls, labels, focus states, and live/error announcements
+  present where needed?
+- Does mobile show the latest authored result and keep the primary action
+  reachable without horizontal overflow?
+- Do types match the backend projection without exposing private/internal
+  fields?
+- Were both staged and unstaged paths considered before claiming the commit
+  snapshot builds?
+- Was the smallest relevant fresh verification run after the final edit?

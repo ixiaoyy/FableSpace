@@ -16,7 +16,7 @@ Do not render:
 
 - paragraphs that explain what a page or section is for;
 - instructions that restate what visible controls already do;
-- explanations of why a character, Space, result, or status is shown;
+- explanations of why a Character, world, result, or status is shown;
 - product, AI, privacy, access, data, rollout, or implementation boundaries;
 - labels that teach the content model instead of presenting content;
 - empty/error/loading prose that describes fallback or internal behavior.
@@ -29,7 +29,7 @@ Examples that must not appear in the UI:
 
 // Wrong: explains content provenance and availability.
 <span>真实历史背景中的原创角色</span>
-<span>所在空间可进入</span>
+<span>所在世界可进入</span>
 
 // Wrong: exposes fallback behavior.
 <p>页面不会用其他公开角色填补这个入口。</p>
@@ -39,7 +39,7 @@ Examples that must not appear in the UI:
 
 Keep only content or interface state that the user directly needs:
 
-- character, Space, place, chapter, and item names;
+- Character, StoryWorld, place, chapter, and item names;
 - in-world dialogue, scene prose, and authored story content;
 - short action labels such as `进入`, `回应`, `重试`, and `回访`;
 - concise field labels, values, dates, counts, and necessary status words;

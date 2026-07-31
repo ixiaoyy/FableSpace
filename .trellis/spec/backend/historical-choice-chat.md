@@ -1,97 +1,108 @@
-# Reviewed Historical Choice Chat
-
-> Executable contract for mirroring a published historical Gameplay choice into private character chat without allowing runtime generation to add historical facts.
+# Reviewed Historical Choice and Dialogue
 
 ## 1. Scope / Trigger
 
-This contract applies when a visitor selects a structured choice in a published historical Gameplay and the UI writes that same choice into private chat. Free-form visitor chat is outside this path and continues through the configured chat backend.
+Use this contract when a published historical StoryWorld offers reviewed
+choices and also accepts free Character dialogue. Structured choices control
+story state; AI dialogue may interpret player input and perform bounded
+Character portrayal, but it cannot author history or deterministic outcomes.
 
-Use this path when live verification shows that prompt-only constraints can still invent names, household details, dates, casualty details, object appearance, or historical causality.
+Reference implementation:
+`application/story_worlds.StoryWorldApplicationService`.
 
 ## 2. Signatures
 
-- Frontend: `sendPrivateChat(message, extraContext)` posts the existing `ChatRequest` payload.
-- Marker: the system context content starts with `fablespace:reviewed-historical-choice`.
-- Backend: `RuntimeApplicationMixin.chat(...)` recognizes the marker only for a space listed in `REVIEWED_HISTORICAL_CHOICE_SPACE_IDS`.
-- Response source: `resolve_public_welfare_rules_response(...)` returns the reviewed in-character line for the selected label.
+```text
+POST /api/v1/story-worlds/{story_world_id}/runs/{run_id}/choices
+body: { "character_id": "...", "choice_id": "..." }
 
-No request field, response field, Gameplay field, or database column is added by this contract.
+POST /api/v1/story-worlds/{story_world_id}/runs/{run_id}/messages
+body: { "character_id": "...", "content": "..." }
+```
+
+Reviewed choice source:
+
+```text
+StoryChoice(
+  id,
+  next_node_id,
+  set_flags,
+  relationship_effects,
+  ...
+)
+```
 
 ## 3. Contracts
 
-Request excerpt:
-
-```json
-{
-  "message": "“你自己说，我在旁边补门牌。”",
-  "extra_context": [
-    {
-      "role": "system",
-      "content": "fablespace:reviewed-historical-choice\n..."
-    }
-  ]
-}
-```
-
-- `message`: the exact visible Gameplay choice label.
-- `extra_context`: uses the existing chat contract; at least one item must have `role: "system"` and content beginning with the exact marker.
-- Space ID: must be explicitly allow-listed in `REVIEWED_HISTORICAL_CHOICE_SPACE_IDS`.
-- Response: remains the existing chat response shape and is persisted through the normal private-message path.
-- Free-form chat, marker-less requests, and non-allow-listed spaces must not be routed to the reviewed-choice resolver.
+- A choice ID must exist on the current reviewed node and satisfy its required
+  and blocked flags.
+- Applying a choice writes a player choice event with
+  `source_kind="reviewed_choice"` and `source_id=choice.id`.
+- Repeating the same reviewed source is idempotent: return the current run
+  rather than applying flags or relationship effects again.
+- Only authored choice data changes key choices, story flags, deterministic
+  relationship effects, current node, and ending.
+- The authored narration for the next node is appended to the ordered event
+  timeline and remains visible to the player.
+- Free dialogue writes `source_kind="free_input"`. The dialogue policy may
+  apply a small bounded relationship signal; it cannot change nodes, key
+  choices, story flags, canon categories, or endings.
+- Historical canon entries remain `fixed_fact`, `story_setting`, or
+  `needs_verification`; runtime AI cannot promote or create a fixed fact.
 
 ## 4. Validation & Error Matrix
 
 | Condition | Required behavior |
 |---|---|
-| Allow-listed space + exact marker + reviewed rule match | Return the deterministic reviewed response; do not call the LLM. |
-| Allow-listed space + exact marker + no specific rule match | Return that space's reviewed fallback response. |
-| Allow-listed space without the marker | Use the configured chat backend. |
-| Marker on a non-allow-listed space | Ignore the marker and use the configured chat backend. |
-| Historical Gameplay advance fails after chat succeeds | Surface the existing UI error; do not invent or force a scene transition. |
-| Empty choice label or no active session/character | Do not send chat or advance Gameplay. |
+| Unknown or currently blocked choice | `409 choice_unavailable`; no write |
+| Same reviewed choice source already exists | Return current projection; no duplicate effect |
+| StoryRun already completed | `409 run_completed` |
+| Persisted run uses replaced content | `409 story_content_changed` or current-content recovery |
+| Dialogue model is unavailable | `503 dialogue_unavailable`; no fabricated Character reply |
+| Dialogue output violates policy | Replace/reject it according to `StoryDialoguePolicy`; do not change reviewed state |
+| Relationship signal exceeds natural-turn bound | Clamp/reject it to the Character's reviewed rules |
 
 ## 5. Good / Base / Bad Cases
 
-- Good: a published choice such as `“你自己说，我在旁边补门牌。”` produces the reviewed Annie response and then advances the existing Gameplay session.
-- Base: a visitor types a free-form question to Annie; it follows normal chat behavior and receives the historical character prompt constraints.
-- Bad: adding a generic system message to `extra_context` must not activate deterministic historical-choice handling.
-- Bad: using the marker alone in another Space must not change its response backend.
+- Good: an authored Annie choice records the choice, applies its reviewed
+  relationship reason, advances to the reviewed node, and preserves the public
+  historical outcome.
+- Base: a free player message receives a short in-character response and at
+  most a bounded natural relationship effect.
+- Bad: parse an LLM reply for a `next_node_id`, story flag, or ending.
+- Bad: remove the authored next-node narration because the same text also
+  appears in the current-node projection.
 
 ## 6. Tests Required
 
-For every allow-listed historical Space:
-
-1. Assert a marked structured choice returns the expected reviewed rule response.
-2. Assert an overlapping choice label selects the most specific rule before a generic evidence rule.
-3. Assert an unmarked free-form request does not enter the reviewed-choice branch.
-4. Assert the full Gameplay graph has closed node links and all completion nodes preserve the same public-history outcome.
-5. Run the retained Python syntax check and frontend typecheck/build.
-6. In a narrow live viewport, complete one path and confirm chat write, scene advance, private relationship ending, source unlock, and revisit.
+- Validate the full StoryWorld registry, graph reachability, choice references,
+  canon categories, and `content_version`.
+- Verify one reviewed choice applies each flag/effect once and appends the
+  authored narration in order.
+- Verify unavailable and repeated choices leave deterministic state unchanged.
+- Verify free input cannot set reviewed flags, choose a node, or complete a run.
+- Run `py -3 -m compileall -q apps/api/src` and the relevant frontend
+  typecheck/build.
+- For historical content, record a PASS/FAIL/BLOCKED integrity verdict with
+  inspected evidence.
 
 ## 7. Wrong vs Correct
 
-### Wrong
+Wrong:
 
 ```python
-# Any system context silently bypasses the configured chat backend.
-uses_reviewed_choice = any(item.get("role") == "system" for item in extra_context)
+decision = json.loads(model_reply)
+run.current_node_id = decision["next_node_id"]
 ```
 
-This is too broad and can change unrelated free-form chat behavior.
-
-### Correct
+Correct:
 
 ```python
-uses_reviewed_choice = (
-    space_id in REVIEWED_HISTORICAL_CHOICE_SPACE_IDS
-    and any(
-        item.get("role") == "system"
-        and str(item.get("content") or "").startswith(
-            REVIEWED_HISTORICAL_CHOICE_CONTEXT_MARKER
-        )
-        for item in extra_context
-    )
-)
+choice = require_available_reviewed_choice(world, run, choice_id)
+append_choice_event(source_id=choice.id)
+apply_reviewed_effects(choice)
+run.current_node_id = choice.next_node_id
 ```
 
-The exact marker and explicit space allow-list keep this behavior scoped to reviewed structured choices.
+The reviewed StoryWorld graph, not runtime generation, owns deterministic
+state.

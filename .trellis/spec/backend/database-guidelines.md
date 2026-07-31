@@ -1,46 +1,63 @@
 # Database Guidelines
 
-> Database patterns and conventions for this project.
+## Storage Boundary
 
----
+The current private StoryWorld runtime uses SQLAlchemy 2.x models in
+`infrastructure/story_state_models.py` and transactional operations in
+`infrastructure/player_story_state_store.py`. `Database.session_scope()` owns
+commit, rollback, and close. Store methods must not leak a live `Session`.
 
-## Overview
+Do not query any database, including for diagnostics, without explicit user
+authorization.
 
-<!--
-Document your project's database conventions here.
+## Query and Transaction Patterns
 
-Questions to answer:
-- What ORM/query library do you use?
-- How are migrations managed?
-- What are the naming conventions for tables/columns?
-- How do you handle transactions?
--->
+- Use `select(...)`, `session.scalar(...)`, or `session.scalars(...)`; keep
+  query construction inside infrastructure stores.
+- Scope private reads and writes by the trusted `player_id` plus
+  `story_world_id`. `_owned_run()` demonstrates the required ownership filter.
+- Use `.with_for_update()` for state that controls active-run or sequence
+  transitions. Do not implement read-modify-write state changes across
+  separate transactions.
+- Let `session_scope()` commit once for the aggregate. Call `flush()` only when
+  database ordering or generated state is required before the final commit.
+- Convert `IntegrityError` into a stable domain/application conflict and let
+  the context manager roll back.
+- Persist structured events with source IDs, sequence numbers, and a
+  `rule_source` so writes remain traceable and replayable.
 
-(To be filled by the team)
+## Models and Naming
 
----
+- Tables and columns use `snake_case`; table names are plural.
+- Primary domain IDs use bounded `String` columns. Player state uses the
+  composite key `(player_id, story_world_id)`.
+- Foreign keys name their delete behavior explicitly; child StoryRun rows use
+  `ondelete="CASCADE"`.
+- Prefix unique indexes with `uq_`, ordinary indexes with `idx_`, foreign keys
+  with `fk_`, and checks with `ck_`. See
+  `infrastructure/story_state_models.py`.
+- Use JSON columns for bounded structured payloads only. Validate and normalize
+  values at the store/domain boundary before persistence.
 
-## Query Patterns
+## Migration Rules
 
-<!-- How should queries be written? Batch operations? -->
+SQL migrations live in `apps/api/sql/migrations/` and use an ordered numeric
+prefix. A requirement may have at most one migration version; combine all
+approved tables/columns for that requirement into it.
 
-(To be filled by the team)
+Before creating or editing a migration:
 
----
+1. Present the proposed tables/columns, affected code, data backfill, rollout,
+   and rollback boundary for human review.
+2. Wait for explicit approval. Do not create a migration file, table, or column
+   speculatively.
+3. Keep migration SQL explicit and fail on invalid preconditions. Never clear
+   or silently rebuild production data during application startup.
+4. Sync `docs/WORLD_SCHEMA.md` and deployment documentation when applicable.
 
-## Migrations
-
-<!-- How to create and run migrations -->
-
-(To be filled by the team)
-
----
-
-## Naming Conventions
-
-<!-- Table names, column names, index names -->
-
-(To be filled by the team)
+`006_story_run_player_role.sql` is the reference for add/backfill/not-null
+ordering. `007_managed_story_content.sql` is the reference for idempotent
+table creation and named indexes.
 
 ---
 

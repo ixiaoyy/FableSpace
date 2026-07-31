@@ -1,41 +1,42 @@
 # Backend Development Guidelines
 
-> Best practices for backend development in this project.
+## Scope
 
----
-
-## Overview
-
-This directory contains guidelines for backend development. Fill in each file with your project's specific conventions.
-
----
+These specs cover the FastAPI application in `apps/api/src/fablespace_api/`.
+The current product domain is StoryWorld-first. Modules under `core/`,
+`contracts/`, and legacy Space routes remain retirement targets and are not
+templates for new StoryWorld code.
 
 ## Guidelines Index
 
-| Guide | Description | Status |
-|-------|-------------|--------|
-| [Directory Structure](./directory-structure.md) | Module organization and file layout | To fill |
-| [Database Guidelines](./database-guidelines.md) | ORM patterns, queries, migrations | Active |
-| [StoryRun PlayerRole Lock](./player-role-run-lock.md) | Cross-layer identity selection, persistence, API errors, and dialogue source of truth | Active |
-| [Error Handling](./error-handling.md) | Error types, handling strategies | To fill |
-| [Quality Guidelines](./quality-guidelines.md) | Code standards, forbidden patterns | To fill |
-| [Logging Guidelines](./logging-guidelines.md) | Structured logging, log levels | To fill |
-| [Reviewed Historical Choice Chat](./historical-choice-chat.md) | Deterministic chat contract for structured historical Gameplay choices | Active |
-| [Managed StoryWorld Content](./managed-story-content.md) | Single-admin current content, managed images, runtime adoption, and admin API | Active |
+| Guide | Use it for |
+|---|---|
+| [Directory Structure](./directory-structure.md) | Choosing domain, application, API, content, or infrastructure ownership |
+| [Database Guidelines](./database-guidelines.md) | SQLAlchemy models, transactions, locking, and reviewed migrations |
+| [Error Handling](./error-handling.md) | Stable application errors, HTTP mapping, and response envelopes |
+| [Logging Guidelines](./logging-guidelines.md) | Safe module logging and secret/private-state redaction |
+| [Quality Guidelines](./quality-guidelines.md) | Required checks, documentation sync, and forbidden shortcuts |
+| [StoryRun PlayerRole Lock](./player-role-run-lock.md) | PlayerRole validation and immutable StoryRun identity |
+| [Reviewed Historical Choice and Dialogue](./historical-choice-chat.md) | Deterministic historical choice and bounded dialogue boundaries |
+| [Managed StoryWorld Content](./managed-story-content.md) | Admin content, managed media, and runtime adoption |
 
----
+## Pre-Development Checklist
 
-## How to Fill These Guidelines
+1. Read root `AGENTS.md` and the relevant authority document under `docs/`.
+2. Confirm the change belongs to the new StoryWorld domain rather than a
+   legacy `core/` or `/spaces` compatibility path.
+3. For API, Schema, persistence, content, or deployment work, identify the
+   authoritative contract and the exact verification before editing.
+4. Do not connect to a database unless the user explicitly authorizes it.
+5. Do not create or modify a migration until the proposed schema and impact
+   have received explicit human approval.
 
-For each guideline file:
+## Verification Baseline
 
-1. Document your project's **actual conventions** (not ideals)
-2. Include **code examples** from your codebase
-3. List **forbidden patterns** and why
-4. Add **common mistakes** your team has made
-
-The goal is to help AI assistants and new team members understand how YOUR project works.
-
----
-
-**Language**: All documentation should be written in **English**.
+- Python source: `py -3 -m compileall -q apps/api/src`
+- API, Schema, or persistence: also sync `docs/WORLD_SCHEMA.md` and run a
+  scoped real validation that does not silently use a database.
+- StoryWorld content: run registry/reference/version validation; historical
+  content also follows `../guides/historical-content-integrity.md`.
+- The repository intentionally has no pytest suite. Do not create or reference
+  `tests/` unless the user explicitly restores that system.

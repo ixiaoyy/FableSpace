@@ -23,7 +23,7 @@ These guides help you **ask the right questions before coding**.
 |-------|---------|-------------|
 | [Code Reuse Thinking Guide](./code-reuse-thinking-guide.md) | Identify patterns and reduce duplication | When you notice repeated patterns |
 | [Cross-Layer Thinking Guide](./cross-layer-thinking-guide.md) | Think through data flow across layers | Features spanning multiple layers |
-| [Historical Content Integrity Guide](./historical-content-integrity.md) | Keep historical simulation on a verified, immutable timeline | Historical Space, NPC, timeline, source, or story work |
+| [Historical Content Integrity Guide](./historical-content-integrity.md) | Keep historical simulation on a verified, immutable timeline | Historical StoryWorld, Character, timeline, source, or story work |
 
 ---
 
@@ -54,7 +54,7 @@ These guides help you **ask the right questions before coding**.
 
 ### When to Think About Historical Integrity
 
-- [ ] You are planning or implementing a historical Space, NPC, timeline, or source entry
+- [ ] You are planning or implementing a historical StoryWorld, Character, timeline, or source entry
 - [ ] Player choices may interact with a real event or person
 - [ ] An original scene fills a gap not described by surviving sources
 - [ ] AI-generated dialogue mentions historical facts, motives, quotations, or outcomes
