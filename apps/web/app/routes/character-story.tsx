@@ -840,8 +840,14 @@ function StoryTimeline({
   const pendingExchangeKey = pendingExchange
     ? `${pendingExchange.kind}:${pendingExchange.content}`
     : ""
-  const timelineEvents = run.events.filter(
+  const storyEvents = run.events.filter(
     (event) => event.type !== "relationship_changed",
+  )
+  const timelineEvents = storyEvents.filter(
+    (event, eventIndex) => (
+      event.type !== "narration"
+      || storyEvents[eventIndex - 1]?.type === "choice"
+    ),
   )
 
   useEffect(() => {
