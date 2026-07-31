@@ -1171,3 +1171,36 @@ Added a guarded manual 006/008 production repair workflow, retained a verified l
 ### Next Steps
 
 - None - task complete
+
+
+## Session 36: 故事页纯聊天时间线
+
+**Date**: 2026-07-31
+**Task**: 故事页纯聊天时间线
+**Branch**: `main`
+
+### Summary
+
+隐藏未紧随审核选择的介绍性 narration，保留角色开场、玩家选择和选择结果；完成前端构建与 390px 窄屏交互验收。
+
+### Main Changes
+
+- Detailed change bullets were not supplied; see the summary above.
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `955805cc` | (see git log) |
+
+### Testing
+
+- Validation was not recorded for this session.
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete

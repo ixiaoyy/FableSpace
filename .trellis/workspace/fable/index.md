@@ -8,7 +8,7 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-1.md`
-- **Total Sessions**: 35
+- **Total Sessions**: 36
 - **Last Active**: 2026-07-31
 <!-- @@@/auto:current-status -->
 
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-1.md` | ~1173 | Active |
+| `journal-1.md` | ~1206 | Active |
 <!-- @@@/auto:active-documents -->
 
 ---
@@ -29,6 +29,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 36 | 2026-07-31 | 故事页纯聊天时间线 | `955805cc` | `main` |
 | 35 | 2026-07-31 | Repair StoryRun production schema drift | `ee9f73b9`, `dc01dfee` | `main` |
 | 34 | 2026-07-31 | 清退旧 Schema 配置与部署引用 | `6d29d661` | `main` |
 | 33 | 2026-07-31 | 聊天优先角色入口 | `0a80e16c` | `main` |
