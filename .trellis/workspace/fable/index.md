@@ -8,7 +8,7 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-1.md`
-- **Total Sessions**: 30
+- **Total Sessions**: 31
 - **Last Active**: 2026-07-31
 <!-- @@@/auto:current-status -->
 
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-1.md` | ~1007 | Active |
+| `journal-1.md` | ~1040 | Active |
 <!-- @@@/auto:active-documents -->
 
 ---
@@ -29,6 +29,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 31 | 2026-07-31 | 清退旧地图与坐标能力 | `cb884871` | `codex/palace-character-entry` |
 | 30 | 2026-07-31 | 补全项目开发规范 | `3e468eec` | `codex/palace-character-entry` |
 | 29 | 2026-07-31 | 跨设备恢复与会话失效收尾 | `03ee5eed` | `codex/palace-character-entry` |
 | 28 | 2026-07-29 | 收敛系统 LLM 运行配置 | `693c7d55` | `codex/palace-character-entry` |

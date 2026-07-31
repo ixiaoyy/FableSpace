@@ -1005,3 +1005,36 @@ Split the frontend roadmap into UI-first and integration follow-ups, archived th
 ### Next Steps
 
 - None - task complete
+
+
+## Session 31: 清退旧地图与坐标能力
+
+**Date**: 2026-07-31
+**Task**: 清退旧地图与坐标能力
+**Branch**: `codex/palace-character-entry`
+
+### Summary
+
+从旧 Space 应用对象、完整序列化、默认种子和 MySQL 领域投影中移除 lat/lon；保留旧 NOT NULL 列的隔离占位边界并将物理表列清退归属后续 Schema 任务。完成无数据库实例验证、Python 编译、前端 typecheck/build 与地图残留分类审计。
+
+### Main Changes
+
+- Detailed change bullets were not supplied; see the summary above.
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `cb884871` | (see git log) |
+
+### Testing
+
+- Validation was not recorded for this session.
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
