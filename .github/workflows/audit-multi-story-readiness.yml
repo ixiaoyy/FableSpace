@@ -41,15 +41,17 @@ jobs:
 
       - name: Audit production in a read-only transaction
         uses: appleboy/ssh-action@v1.0.3
+        env:
+          FABLESPACE_PATH: ${{ vars.DEPLOY_PATH || '/opt/fablespace' }}
         with:
           host: ${{ secrets.DEPLOY_HOST }}
           username: ${{ secrets.DEPLOY_USER }}
           key: ${{ secrets.DEPLOY_SSH_KEY }}
           port: ${{ secrets.DEPLOY_PORT || '22' }}
           command_timeout: 15m
+          envs: FABLESPACE_PATH
           script: |
             set -eu
-            FABLESPACE_PATH="${{ vars.DEPLOY_PATH || '/opt/fablespace' }}"
             cd "${FABLESPACE_PATH}"
 
             if sudo docker compose version >/dev/null 2>&1; then
