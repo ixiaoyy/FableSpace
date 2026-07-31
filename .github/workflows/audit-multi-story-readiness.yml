@@ -476,6 +476,9 @@ jobs:
                         invalid_graph_position_count = 0
                         stale_content_version_count = 0
                         invalid_completed_ending_count = 0
+                        run_issue_cohorts = Counter()
+                        invalid_role_cohorts = Counter()
+                        stale_version_cohorts = Counter()
                         for run in runs:
                             world = worlds.get(run["story_world_id"])
                             role_ids = (
@@ -483,32 +486,78 @@ jobs:
                                 if world is not None
                                 else set()
                             )
-                            if run.get("player_role_id") not in role_ids:
-                                invalid_role_count += 1
-                            if world is None:
-                                invalid_graph_position_count += 1
-                                stale_content_version_count += 1
-                                if run["status"] == "completed":
-                                    invalid_completed_ending_count += 1
-                                continue
-                            if run["content_version"] != world.content_version:
-                                stale_content_version_count += 1
-                            chapter = next(
-                                (
-                                    item
-                                    for item in world.chapters
-                                    if item.id == run["current_chapter_id"]
-                                ),
-                                None,
+                            invalid_role = run.get("player_role_id") not in role_ids
+                            stale_version = (
+                                world is None
+                                or run["content_version"] != world.content_version
                             )
-                            if chapter is None or run["current_node_id"] not in {
-                                node.id for node in chapter.nodes
-                            }:
+                            if world is None:
+                                invalid_graph_position = True
+                            else:
+                                chapter = next(
+                                    (
+                                        item
+                                        for item in world.chapters
+                                        if item.id == run["current_chapter_id"]
+                                    ),
+                                    None,
+                                )
+                                invalid_graph_position = (
+                                    chapter is None
+                                    or run["current_node_id"]
+                                    not in {node.id for node in chapter.nodes}
+                                )
+                            invalid_completed_ending = (
+                                run["status"] == "completed"
+                                and (
+                                    world is None
+                                    or run["ending_id"]
+                                    not in {ending.id for ending in world.endings}
+                                )
+                            )
+                            issues = []
+                            if invalid_role:
+                                invalid_role_count += 1
+                                issues.append("player_role_not_reviewed")
+                                invalid_role_cohorts[
+                                    (
+                                        run["story_world_id"],
+                                        run["status"],
+                                        str(run.get("player_role_id") or ""),
+                                    )
+                                ] += 1
+                            if invalid_graph_position:
                                 invalid_graph_position_count += 1
-                            if run["status"] == "completed" and run["ending_id"] not in {
-                                ending.id for ending in world.endings
-                            }:
+                                issues.append("graph_position_invalid")
+                            if stale_version:
+                                stale_content_version_count += 1
+                                issues.append("content_version_unavailable")
+                                stale_version_cohorts[
+                                    (
+                                        run["story_world_id"],
+                                        run["status"],
+                                        str(run["content_version"] or ""),
+                                        str(world.content_version if world else ""),
+                                    )
+                                ] += 1
+                            if invalid_completed_ending:
                                 invalid_completed_ending_count += 1
+                                issues.append("ending_not_reviewed")
+                            if run["status"] == "completed":
+                                if not run["ending_id"]:
+                                    issues.append("ending_id_missing")
+                                if not run["ending_summary"]:
+                                    issues.append("ending_summary_missing")
+                                if run["completed_at"] is None:
+                                    issues.append("completed_at_missing")
+                            if issues:
+                                run_issue_cohorts[
+                                    (
+                                        run["story_world_id"],
+                                        run["status"],
+                                        tuple(sorted(set(issues))),
+                                    )
+                                ] += 1
                         report["runtime"]["story_runs"] = {
                             "counts": [
                                 {
@@ -538,6 +587,43 @@ jobs:
                             "invalid_completed_ending_count": (
                                 invalid_completed_ending_count
                             ),
+                            "issue_cohorts": [
+                                {
+                                    "story_world_id": world_id,
+                                    "status": status,
+                                    "issues": list(issues),
+                                    "count": count,
+                                }
+                                for (world_id, status, issues), count in sorted(
+                                    run_issue_cohorts.items()
+                                )
+                            ],
+                            "invalid_role_cohorts": [
+                                {
+                                    "story_world_id": world_id,
+                                    "status": status,
+                                    "stored_player_role_id": role_id,
+                                    "count": count,
+                                }
+                                for (world_id, status, role_id), count in sorted(
+                                    invalid_role_cohorts.items()
+                                )
+                            ],
+                            "content_version_mismatch_cohorts": [
+                                {
+                                    "story_world_id": world_id,
+                                    "status": status,
+                                    "stored_content_version": stored_version,
+                                    "current_content_version": current_version,
+                                    "count": count,
+                                }
+                                for (
+                                    world_id,
+                                    status,
+                                    stored_version,
+                                    current_version,
+                                ), count in sorted(stale_version_cohorts.items())
+                            ],
                             "invalid_status_count": sum(
                                 1
                                 for row in runs
@@ -1050,4 +1136,6 @@ jobs:
             print(json.dumps(report, ensure_ascii=False, indent=2, sort_keys=True, default=str))
             print(f"AUDIT_VERDICT={report['verdict']}")
             print("AUDIT_DB_WRITES=0")
+            if blockers:
+                raise SystemExit(2)
             PY
