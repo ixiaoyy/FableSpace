@@ -1104,3 +1104,36 @@ Split the frontend roadmap into UI-first and integration follow-ups, archived th
 ### Next Steps
 
 - None - task complete
+
+
+## Session 34: 清退旧 Schema 配置与部署引用
+
+**Date**: 2026-07-31
+**Task**: 清退旧 Schema 配置与部署引用
+**Branch**: `main`
+
+### Summary
+
+删除旧 Space ORM、迁移入口和配置兼容层，新增受保护的 008 退役迁移，将持久化基线收敛为 8 张当前表，并同步部署与权威文档；仅完成仓库工作，未连接或执行数据库。
+
+### Main Changes
+
+- Detailed change bullets were not supplied; see the summary above.
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `6d29d661` | (see git log) |
+
+### Testing
+
+- Validation was not recorded for this session.
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
