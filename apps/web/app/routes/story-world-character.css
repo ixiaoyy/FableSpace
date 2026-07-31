@@ -310,7 +310,6 @@ body:has(.annieStoryShell--chat) {
 .annieStoryHeader a:focus-visible,
 .annieStoryIdentityOption:focus-visible,
 .annieStoryChoices button:focus-visible,
-.annieStoryMessageForm textarea:focus-visible,
 .annieStoryMessageForm button:focus-visible,
 .annieStoryTimeline:focus-visible,
 .annieStoryReferences summary:focus-visible,
