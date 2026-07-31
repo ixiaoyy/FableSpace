@@ -240,3 +240,118 @@ assert set(Base.metadata.tables) == {
     "managed_media_assets",
 }
 ```
+
+---
+
+## Scenario: Repairing missing StoryRun role data before legacy retirement
+
+### 1. Scope / Trigger
+
+- Applies when a deployed MySQL database is behind the current StoryRun ORM:
+  `story_runs.player_role_id` is absent and the old inline
+  `story_runs.private_memories` column may still exist.
+- This is an authorized maintenance operation, not an application startup,
+  ordinary deployment, or general migration runner.
+
+### 2. Signatures
+
+```text
+workflow_dispatch confirmation:
+APPLY-006-AND-008-FABLESPACE-PRODUCTION
+
+target checkout: /opt/fablespace
+target database: fablespace
+backup directory: /opt/fablespace/backups/story-run-schema-repair/
+
+006_story_run_player_role.sql
+  -> verify VARCHAR(128) NOT NULL and complete backfill
+  -> 008_retire_legacy_space_schema.sql
+  -> verify the exact eight-table baseline
+```
+
+### 3. Contracts
+
+- Require explicit authorization for the named production database and the
+  destructive 008 table/column set before dispatch.
+- Pin the reviewed 006 and 008 file SHA-256 values. Do not accept database,
+  SQL, path, host command, or migration inputs from the dispatch form.
+- The maintenance workflow and ordinary production deploy share the same
+  non-canceling concurrency group.
+- Verify the server commit and current ORM before stopping writes. The ORM must
+  require `StoryRunModel.player_role_id` and must not map the retired inline
+  memory column.
+- Stop the backend, create a non-empty full logical backup, retain its
+  SHA-256, and keep credentials inside the database container.
+- Before DDL, require all eight current tables, no table outside the eight
+  current plus the exact 23 reviewed legacy names, an entirely absent run-role
+  column, unique player-state keys, complete bounded role backfill, and only
+  empty inline memories when that column exists.
+- Execute 006 first and verify its schema/data/row-count postconditions before
+  executing 008. Run 008 through the MySQL client so `DELIMITER` is honored.
+- A pre-DDL failure may restart the verified backend image. Any failure after
+  DDL begins leaves the backend stopped and the backup intact for a separately
+  approved whole-database restore.
+- `/api/v1/health` does not read StoryRun tables. A successful repair also
+  requires a real current-ORM StoryRun query and an authenticated browser
+  acceptance check.
+
+### 4. Validation & Error Matrix
+
+| Condition | Required result |
+|---|---|
+| Confirmation, commit, or migration hash differs | Stop before database access or DDL |
+| Backup fails or is empty | Delete only the partial backup file, restart the verified backend, and fail |
+| Run role already exists or is nullable mid-migration | Stop; do not rerun 006 |
+| A run cannot map to one non-empty role of at most 128 characters | Stop before DDL |
+| An unreviewed extra table or non-empty inline memory exists | Stop before DDL |
+| 006 fails or its postconditions differ | Keep backend stopped; preserve backup for manual recovery |
+| 008 fails or final tables differ from the exact eight | Keep backend stopped; preserve backup for manual recovery |
+| Health succeeds but the current ORM StoryRun query fails | Keep backend stopped; repair is incomplete |
+
+### 5. Good / Base / Bad Cases
+
+- Good: dispatch the pinned repair after the matching Deploy reaches the same
+  commit; retain the backup path and hash, then validate the authenticated
+  story page.
+- Base: for an empty database, let current `create_tables()` build the eight
+  tables; do not run historical migrations.
+- Bad: add 006/008 to startup or ordinary Deploy, rerun a partially committed
+  006, use `mysql --force`, or treat a static health response as proof that the
+  runtime schema matches the ORM.
+
+### 6. Tests Required
+
+- Parse both workflow YAML files and assert manual-only repair triggering plus
+  the shared non-canceling concurrency group.
+- Statically assert the exact confirmation phrase, fixed path/database,
+  approved migration hashes, 006-before-008 order, and absence of arbitrary
+  SQL/database inputs or `mysql --force`.
+- Statically compare the workflow's allowed legacy tables with 008's exact
+  23-table DROP set and its final expected table list with the ORM eight-table
+  baseline.
+- Run `py -3 -m compileall -q apps/api/src deploy/server`,
+  `docker compose config --quiet`, and
+  `npm --prefix .\apps\web run build`.
+- Database execution remains a separate explicitly authorized production
+  validation and must report the retained backup path and SHA-256.
+
+### 7. Wrong vs Correct
+
+#### Wrong
+
+```text
+push main -> application startup -> blindly rerun 006 -> automatically run 008
+```
+
+#### Correct
+
+```text
+authorized dispatch
+  -> verify commit / ORM / migration hashes
+  -> stop writes
+  -> full backup + SHA-256
+  -> preflight
+  -> 006 + postflight
+  -> 008 + exact baseline postflight
+  -> backend health + real ORM query + authenticated browser acceptance
+```

@@ -107,9 +107,44 @@ docker exec parallellines-db-1 sh -c 'mysql -uroot -p"$MYSQL_ROOT_PASSWORD" -e "
 
 004–007 保留当前 Schema 的演进历史；空库不需要先执行已删除的 FableMap 001–003。首次启动只补入缺失的安妮与长明宫 StoryWorld，不覆盖已经存在的管理文档。
 
-### 已有库的旧 Schema 清退
+### 已有库的受控 006/008 修复与旧 Schema 清退
 
-`apps/api/sql/migrations/008_retire_legacy_space_schema.sql` 是一次性、显式且破坏性的清退迁移。应用启动和 GitHub Actions 都不会执行它。已有部署必须先发布包含当前 8 表 ORM 的代码并通过健康检查，再进入停止写入的维护窗口；旧版本后端不得在该列删除后继续运行。只有在另行获得目标数据库操作授权后，才可使用受保护的 MySQL client option file 执行以下流程；不得使用 `mysql --force`：
+普通 push 部署和应用启动都不会执行 SQL 迁移。生产库缺少
+`story_runs.player_role_id`、同时还保留旧内联
+`story_runs.private_memories` 时，只能在单独获得目标库与破坏性范围授权后，
+手动触发
+[`repair-story-run-schema.yml`](../.github/workflows/repair-story-run-schema.yml)。
+该入口固定操作 `/opt/fablespace` 的 `fablespace` database，要求输入精确确认词
+`APPLY-006-AND-008-FABLESPACE-PRODUCTION`，并锁定当前审核过的 006、008 文件
+SHA-256；它不接受数据库名、SQL 或 shell 参数。
+
+专用修复与普通 `Deploy` 共用 `fablespace-production` concurrency group，且都不
+取消已经运行的生产操作。执行顺序固定为：
+
+1. 校验服务器提交、迁移哈希和当前 ORM；构建当前 backend 镜像。
+2. 定位唯一运行中的 ParallelLines MySQL 容器，停止 FableSpace backend 写入。
+3. 把完整逻辑备份写到
+   `/opt/fablespace/backups/story-run-schema-repair/`，文件权限为 `0600`，并生成
+   同名 `.sha256`。
+4. 在任何 DDL 前确认当前 8 张表完整、没有 006/008 清单之外的表、
+   `story_runs.player_role_id` 完全不存在、每条 StoryRun 都能唯一回填有效
+   PlayerRole；若内联记忆列仍存在，只接受 SQL `NULL` 或 JSON 空数组。
+5. 依次执行 `006_story_run_player_role.sql` 和
+   `008_retire_legacy_space_schema.sql`，每一步都验证列定义、数据、行数和最终
+   8 表集合。
+6. 重建 backend，检查 `/api/v1/health`，并使用当前 SQLAlchemy
+   `StoryRunModel` 发起一次真实查询。
+
+DDL 前失败时 workflow 会重新启动已经核验的 backend 镜像；任一 DDL 开始后
+失败时则保持 backend 停止，并保留备份和日志供人工整库恢复。它不会自动导入
+备份、猜测反向 SQL，也不会把备份或玩家数据上传为 GitHub artifact。成功日志
+只输出维护时间、服务器备份路径和 SHA-256。
+
+`apps/api/sql/migrations/008_retire_legacy_space_schema.sql` 仍是一份一次性、显式
+且破坏性的清退迁移。无法使用上述受控 workflow 的自托管环境也必须先发布包含
+当前 8 表 ORM 的代码并通过健康检查，再进入停止写入的维护窗口；旧版本后端不得
+在该列删除后继续运行。只有在另行获得目标 database 操作授权后，才可使用受保护
+的 MySQL client option file 执行以下流程；不得使用 `mysql --force`：
 
 ```bash
 install -d -m 0700 /secure/fablespace-backups
@@ -135,7 +170,7 @@ mysql \
 
 执行前必须记录目标主机、数据库名、备份路径、UTC 时间和 SHA-256，并停止或隔离应用写入。迁移先确认 8 张当前表全部存在；若旧 `story_runs.private_memories` 列存在，只接受 SQL `NULL` 或 JSON 空数组 `[]`，其他值会在删除任何目标表或列前终止。随后按外键依赖顺序删除精确的 23 张旧表，并在安全时删除该内联列。旧表已不存在或旧列已删除时可以重复执行。
 
-执行成功后，在同一已授权目标上查询 `information_schema.TABLES`，结果必须精确等于上述 8 张当前表；同时确认 `information_schema.COLUMNS` 中不存在 `story_runs.private_memories`。随后检查 `/api/v1/health`，并用受控账号完成一次最小故事读取与写入验收。任何额外表、缺表、旧列残留或运行时失败都视为未完成，不继续恢复外部流量。
+执行成功后，在同一已授权目标上查询 `information_schema.TABLES`，结果必须精确等于上述 8 张当前表；同时确认 `information_schema.COLUMNS` 中不存在 `story_runs.private_memories`。随后检查 `/api/v1/health`，用当前 ORM 完成一次 StoryRun 查询，并用受控账号完成一次最小故事读取与写入验收。任何额外表、缺表、旧列残留或运行时失败都视为未完成，不继续恢复外部流量。健康端点本身不读取故事表，不能单独作为 Schema 一致性的证据。
 
 MySQL DDL 会隐式提交，因此迁移中途失败可能已经产生部分删除。失败时停止应用写入，使用执行前逻辑备份恢复整个 `fablespace` database，再重新验证；不使用反向 SQL 猜测恢复旧数据。仅合并仓库代码不代表任何现有数据库已经执行 008。
 

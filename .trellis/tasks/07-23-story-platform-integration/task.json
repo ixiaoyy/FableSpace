@@ -18,7 +18,9 @@
   "commit": null,
   "pr_url": null,
   "subtasks": [],
-  "children": [],
+  "children": [
+    "07-31-story-run-production-schema-repair"
+  ],
   "parent": "07-22-product-mainline-rebuild",
   "relatedFiles": [],
   "notes": "",

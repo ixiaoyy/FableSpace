@@ -10,11 +10,12 @@ on:
       - "deploy/**"
       - "docker-compose.yml"
       - ".github/workflows/deploy.yml"
+      - ".github/workflows/repair-story-run-schema.yml"
   workflow_dispatch:
 
 concurrency:
   group: fablespace-production
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 permissions:
   contents: read
@@ -46,6 +47,7 @@ jobs:
               - 'deploy/docker-compose.shared.yml'
               - 'docker-compose.yml'
               - '.github/workflows/deploy.yml'
+              - '.github/workflows/repair-story-run-schema.yml'
             media:
               - 'deploy/cdn/**'
               - '.github/workflows/deploy.yml'
