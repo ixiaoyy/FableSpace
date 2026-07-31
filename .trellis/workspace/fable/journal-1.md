@@ -972,3 +972,36 @@ Split the frontend roadmap into UI-first and integration follow-ups, archived th
 ### Next Steps
 
 - None - task complete
+
+
+## Session 30: 补全项目开发规范
+
+**Date**: 2026-07-31
+**Task**: 补全项目开发规范
+**Branch**: `codex/palace-character-entry`
+
+### Summary
+
+基于权威产品文档、项目配置和代表性前后端实现，补全 Trellis 后端、前端与历史内容开发规范；清除模板占位内容，修复规范索引与内部链接，并明确 StoryWorld/Character 主线及旧 Space 能力清退边界。
+
+### Main Changes
+
+- Detailed change bullets were not supplied; see the summary above.
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `3e468eec` | (see git log) |
+
+### Testing
+
+- Validation was not recorded for this session.
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
