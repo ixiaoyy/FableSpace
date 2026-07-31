@@ -1237,3 +1237,36 @@ Added a guarded manual 006/008 production repair workflow, retained a verified l
 ### Next Steps
 
 - None - task complete
+
+
+## Session 38: 修复聊天输入框焦点样式
+
+**Date**: 2026-07-31
+**Task**: 修复聊天输入框焦点样式
+**Branch**: `main`
+
+### Summary
+
+移除 textarea 重复的矩形 focus-visible 描边，保留胶囊容器焦点环与发送按钮焦点；完成桌面和 390px 窄屏视觉验收。
+
+### Main Changes
+
+- Detailed change bullets were not supplied; see the summary above.
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `27fa3ea5` | (see git log) |
+
+### Testing
+
+- Validation was not recorded for this session.
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
