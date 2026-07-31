@@ -8,7 +8,7 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-1.md`
-- **Total Sessions**: 38
+- **Total Sessions**: 39
 - **Last Active**: 2026-07-31
 <!-- @@@/auto:current-status -->
 
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-1.md` | ~1272 | Active |
+| `journal-1.md` | ~1305 | Active |
 <!-- @@@/auto:active-documents -->
 
 ---
@@ -29,6 +29,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 39 | 2026-07-31 | 冻结多故事权威合同与迁移边界 | `dad5bbba` | `main` |
 | 38 | 2026-07-31 | 修复聊天输入框焦点样式 | `27fa3ea5` | `main` |
 | 37 | 2026-07-31 | 聊天页移除关系解释文案 | `0a93de68` | `main` |
 | 36 | 2026-07-31 | 故事页纯聊天时间线 | `955805cc` | `main` |

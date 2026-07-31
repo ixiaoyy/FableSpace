@@ -1270,3 +1270,36 @@ Added a guarded manual 006/008 production repair workflow, retained a verified l
 ### Next Steps
 
 - None - task complete
+
+
+## Session 39: 冻结多故事权威合同与迁移边界
+
+**Date**: 2026-07-31
+**Task**: 冻结多故事权威合同与迁移边界
+**Branch**: `main`
+
+### Summary
+
+统一四份权威文档中的 ReviewedStory、分故事进度、跨故事长期关系、Character-first 纯聊天入口与原子迁移边界；未修改代码、迁移或数据库。
+
+### Main Changes
+
+- Detailed change bullets were not supplied; see the summary above.
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `dad5bbba` | (see git log) |
+
+### Testing
+
+- Validation was not recorded for this session.
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
