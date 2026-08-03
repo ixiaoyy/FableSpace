@@ -1336,3 +1336,36 @@ Added a guarded manual 006/008 production repair workflow, retained a verified l
 ### Next Steps
 
 - None - task complete
+
+
+## Session 41: 修复生产 StoryWorld LLM Key 传播
+
+**Date**: 2026-08-03
+**Task**: 修复生产 StoryWorld LLM Key 传播
+**Branch**: `main`
+
+### Summary
+
+定位并修复部署脚本无条件删除公共模型 Key 的跨层传播问题，从受控备份恢复原 Key，增加新镜像真实 Compose 配置预检并完成生产验收。
+
+### Main Changes
+
+- Detailed change bullets were not supplied; see the summary above.
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `ebc842be` | (see git log) |
+
+### Testing
+
+- Validation was not recorded for this session.
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
