@@ -10,6 +10,7 @@ import argparse
 import re
 import secrets
 import shutil
+import sys
 from datetime import UTC, datetime
 from pathlib import Path
 from urllib.parse import urlsplit, urlunsplit
@@ -157,14 +158,15 @@ def write_env_if_changed(path: Path, text: str, timestamp: str) -> tuple[bool, P
 def recover_public_welfare_llm_key(
     env_path: Path,
     current_values: dict[str, str],
+    supplied_key: str = "",
 ) -> tuple[dict[str, str], str, str | None]:
     """Return a safe Key update and status for the configured public model route.
 
-    The Key may only be recovered from this environment file's own
-    ``.pre-shared-*`` backups. Secret values are returned for the controlled
-    env rewrite but must never be included in diagnostics. The resolved
-    variable name is returned only so the env reconciler can exempt that exact
-    target from legacy-key removal.
+    A supplied deployment Key takes precedence; otherwise the Key may only be
+    recovered from this environment file's own ``.pre-shared-*`` backups.
+    Secret values are returned for the controlled env rewrite but must never be
+    included in diagnostics. The resolved variable name is returned only so
+    the env reconciler can exempt that exact target from legacy-key removal.
     """
 
     key_env_name = current_values.get(PUBLIC_WELFARE_LLM_KEY_POINTER, "").strip()
@@ -174,6 +176,10 @@ def recover_public_welfare_llm_key(
         raise ValueError(
             f"{PUBLIC_WELFARE_LLM_KEY_POINTER} must name a valid environment variable"
         )
+    if supplied_key:
+        if current_values.get(key_env_name, "").strip() == supplied_key:
+            return {}, "existing", key_env_name
+        return {key_env_name: supplied_key}, "synced", key_env_name
     if current_values.get(key_env_name, "").strip():
         return {}, "existing", key_env_name
 
@@ -254,8 +260,19 @@ def main() -> None:
         default="http://api:8000/api/v1",
         help="ParallelLines API URL reachable from the FableSpace backend container",
     )
+    parser.add_argument(
+        "--story-llm-key-stdin",
+        action="store_true",
+        help="Read the existing public-welfare provider Key from standard input",
+    )
     parser.add_argument("--dry-run", action="store_true")
     args = parser.parse_args()
+
+    supplied_story_llm_key = ""
+    if args.story_llm_key_stdin:
+        supplied_story_llm_key = sys.stdin.read().strip()
+        if not supplied_story_llm_key:
+            raise SystemExit("StoryWorld LLM Key input is empty")
 
     if not args.database_name.replace("_", "").isalnum():
         raise SystemExit("database name must contain only letters, digits, and underscores")
@@ -305,6 +322,7 @@ def main() -> None:
         ) = recover_public_welfare_llm_key(
             args.fablespace_env,
             fablespace_values,
+            supplied_story_llm_key,
         )
     except ValueError as exc:
         raise SystemExit(str(exc)) from exc

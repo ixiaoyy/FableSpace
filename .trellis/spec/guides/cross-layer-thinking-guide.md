@@ -160,14 +160,24 @@ Before changing a deployment-level config source:
 - [ ] Make the deploy output expose a fixed, non-sensitive readiness state and
       fail before container replacement when an explicitly configured pointer
       cannot resolve.
-- [ ] Validate the actual production data path after deploy. Generic process
-      health and a successful image build do not prove provider configuration.
+- [ ] Validate the provider before container replacement with fixed non-user
+      text. Config-object construction, generic process health, and a successful
+      image build do not prove that credentials, model, endpoint, and production
+      network work together.
+- [ ] Preserve safe failure categories across the provider adapter boundary.
+      Catch-all fallback loops must retain HTTP status or network/response class
+      without logging URLs, credentials, prompts, or response bodies.
 
 **FableSpace example**: StoryWorld runtime correctly reused
 `FABLEMAP_DEFAULT_FREE_LLM_API_KEY_ENV=OPENCODE_API_KEY`, but the server
 reconciler still classified `OPENCODE_API_KEY` as retired and removed it from
 the exact `apps/api/.env` passed to Docker. Local provider probes and process
 health both passed while production dialogue remained unavailable.
+
+**Follow-up failure**: restoring any historical Key made `LLMConfig`
+construction pass, but the provider returned HTTP 500 in production while the
+current local Key succeeded. A deployment gate that stops at configuration
+shape cannot distinguish a present-but-stale credential from a usable one.
 
 ---
 

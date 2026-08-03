@@ -66,17 +66,24 @@ FABLEMAP_DEFAULT_FREE_LLM_API_KEY_ENV -> <server-side key environment name>
   replacing the backend container. A configured pointer with neither a current
   nor recoverable Key must fail deployment instead of publishing a known-broken
   dialogue path.
+- The protected deployment secret with the same provider Key name may be sent
+  to the reconciler only through standard input. The reconciler writes it to
+  the already referenced server variable atomically, reports only
+  `story_llm_key=synced|existing`, and never creates a second runtime config
+  source.
 - Production deployment must run `build_system_story_llm_config(ApiSettings())`
   inside the newly built backend image with the real Compose environment before
-  replacing the running container. This preflight must not create the FastAPI
-  app, connect to a database, or call the provider.
+  replacing the running container. It must then call the provider with fixed,
+  non-user probe text and require a non-empty response. Neither preflight may
+  create the FastAPI app, connect to a database, or read player state.
 - Neither source may read a repository JSON file, owner content, StoryWorld
   content, a database row, or a client payload.
 - `SystemStoryDialogueResponder` receives only `LLMConfig | None`; it does not
   resolve environment variables or know which source was selected.
 - Logs may contain the fixed source label and fixed missing/invalid setting
-  names. They must not contain Key values, Key pointer target values, prompts,
-  player messages, or provider response bodies.
+  names. Provider diagnostics may contain a fixed candidate label, HTTP status,
+  or exception class. They must not contain Key values, Key pointer target
+  values, URLs, prompts, player messages, or provider response bodies.
 
 ## 4. Validation & Error Matrix
 
@@ -90,8 +97,10 @@ FABLEMAP_DEFAULT_FREE_LLM_API_KEY_ENV -> <server-side key environment name>
 | Provider call fails or returns empty content | Return controlled `dialogue_unavailable`; do not fabricate a Character reply |
 | Deployment sees a valid public Key pointer and current target value | Preserve it; report only `story_llm_key=existing` |
 | Deployment sees a missing target and a tool-owned backup contains it | Restore it; report only `story_llm_key=recovered` |
+| Deployment receives a protected Key on standard input | Atomically sync the existing pointer target; report only `story_llm_key=synced|existing` |
 | Deployment sees a dangling/invalid pointer with no safe recovery | Fail before backend replacement without logging env values |
 | Newly built production image cannot construct `LLMConfig` from real Compose env | Fail before backend replacement |
+| Provider probe returns HTTP/network/response failure or empty content | Emit only the redacted category and fail before backend replacement |
 
 ## 5. Good / Base / Bad Cases
 
@@ -117,10 +126,11 @@ FABLEMAP_DEFAULT_FREE_LLM_API_KEY_ENV -> <server-side key environment name>
 - Assert an invalid Key environment name and a missing referenced Key return
   `None` with diagnostics containing only fixed setting names.
 - Exercise deployment reconciliation with temporary env files for existing,
-  recovered, not-configured, invalid-pointer, and unrecoverable states. Assert
-  neither command output nor rendered diagnostics contains the test Key.
+  synced, recovered, not-configured, invalid-pointer, and unrecoverable states.
+  Assert neither command output nor rendered diagnostics contains the test Key.
 - Run `py -3 -m compileall -q apps/api/src`. A minimal provider probe may send
-  non-user test text and assert only that the response is non-empty.
+  fixed non-user test text and assert only that the response is non-empty. The
+  production deploy must run this probe with the real Compose environment.
 
 ## 7. Wrong vs Correct
 

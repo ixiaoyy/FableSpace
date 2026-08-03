@@ -188,14 +188,21 @@ jobs:
 
       - name: Update backend service
         uses: appleboy/ssh-action@v1.0.3
+        env:
+          OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
         with:
           host: ${{ secrets.DEPLOY_HOST }}
           username: ${{ secrets.DEPLOY_USER }}
           key: ${{ secrets.DEPLOY_SSH_KEY }}
           port: ${{ secrets.DEPLOY_PORT || '22' }}
+          envs: OPENCODE_API_KEY
           command_timeout: 20m
           script: |
             set -eu
+            if [ -z "${OPENCODE_API_KEY:-}" ]; then
+              echo "Missing required GitHub Actions secret: OPENCODE_API_KEY"
+              exit 1
+            fi
             FABLESPACE_PATH="${{ vars.DEPLOY_PATH || '/opt/fablespace' }}"
             cd "${FABLESPACE_PATH}"
             git remote set-url origin "https://github.com/${{ github.repository }}.git"
@@ -203,7 +210,8 @@ jobs:
             git reset --hard origin/main
             sudo install -m 0755 deploy/server/fablelog /usr/local/bin/fablelog
 
-            CONFIG_OUTPUT="$(sudo python3 deploy/server/configure_shared_services.py --cors-origin https://fable.pingxingxian.space)"
+            CONFIG_OUTPUT="$(printf '%s' "${OPENCODE_API_KEY}" | sudo python3 deploy/server/configure_shared_services.py --cors-origin https://fable.pingxingxian.space --story-llm-key-stdin)"
+            unset OPENCODE_API_KEY
             printf '%s\n' "${CONFIG_OUTPUT}"
             case "${CONFIG_OUTPUT}" in
               *parallellines_changed=true*)
