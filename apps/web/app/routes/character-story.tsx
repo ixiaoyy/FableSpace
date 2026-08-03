@@ -848,22 +848,27 @@ function StoryTimeline({
     >
       {timelineEvents.map((event, eventIndex) => {
         const messageEvent = event.type === "message"
+        const choiceEvent = event.type === "choice"
         const choiceResponse = event.type === "narration"
           && timelineEvents[eventIndex - 1]?.type === "choice"
         const characterEvent = event.role === "character" || choiceResponse
-        const playerEvent = event.type === "choice" || event.role === "player"
-        const eventTone = characterEvent
-          ? "character"
-          : playerEvent
-            ? "player"
-            : event.role || event.type
-        const eventLabel = characterEvent
-          ? event.character_name || detail.character.name
-          : playerEvent
-            ? "你"
-            : messageEvent
-              ? "故事"
-              : "此刻"
+        const playerMessageEvent = event.role === "player" && !choiceEvent
+        const eventTone = choiceEvent
+          ? "choice"
+          : characterEvent
+            ? "character"
+            : playerMessageEvent
+              ? "player"
+              : event.role || event.type
+        const eventLabel = choiceEvent
+          ? "你的选择"
+          : characterEvent
+            ? event.character_name || detail.character.name
+            : playerMessageEvent
+              ? "你"
+              : messageEvent
+                ? "故事"
+                : "此刻"
         const eventCharacter = event.character_id
           ? detail.characters.find(
               (character) => character.id === event.character_id,
@@ -901,9 +906,17 @@ function StoryTimeline({
       })}
       {pendingExchange ? (
         <>
-          <article className="annieStoryEvent annieStoryEvent--player annieStoryEvent--pending">
+          <article
+            className={[
+              "annieStoryEvent",
+              pendingExchange.kind === "choice"
+                ? "annieStoryEvent--choice"
+                : "annieStoryEvent--player",
+              "annieStoryEvent--pending",
+            ].join(" ")}
+          >
             <div className="annieStoryEventBody">
-              <span>你</span>
+              <span>{pendingExchange.kind === "choice" ? "你的选择" : "你"}</span>
               <p>{pendingExchange.content}</p>
             </div>
           </article>
@@ -983,7 +996,6 @@ function StoryActions({
           <CircleAlert aria-hidden="true" />
           <div className="annieStoryActionErrorBody">
             <strong>{actionError}</strong>
-            <span>重新载入后继续。</span>
             <button
               className="annieStoryRecoveryButton"
               type="button"

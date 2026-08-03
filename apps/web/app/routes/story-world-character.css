@@ -714,6 +714,30 @@ body:has(.annieStoryShell--chat) {
   background: #e8e1fb;
 }
 
+.annieStoryEvent--choice {
+  grid-template-columns: minmax(0, 1fr);
+  justify-self: end;
+  max-width: min(78%, 38rem);
+}
+
+.annieStoryEvent--choice .annieStoryEventBody > span {
+  display: block;
+  text-align: right;
+}
+
+.annieStoryEvent--choice .annieStoryEventBody > p {
+  margin-top: 0.3rem;
+  padding: 0.55rem 0;
+  color: #4c4055;
+  line-height: 1.7;
+  text-align: right;
+  border: 0;
+  border-block: 1px solid rgba(114, 86, 216, 0.24);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
 .annieStoryEvent--system {
   grid-template-columns: 1fr;
   justify-self: center;
@@ -1381,9 +1405,17 @@ body:has(.annieStoryShell--chat) {
     height: 2.35rem;
   }
 
-  .annieStoryEvent--player {
+  .annieStoryEvent--player,
+  .annieStoryEvent--choice {
     grid-template-columns: minmax(0, 1fr);
+  }
+
+  .annieStoryEvent--player {
     max-width: 86%;
+  }
+
+  .annieStoryEvent--choice {
+    max-width: 92%;
   }
 
   .annieStoryEvent--system {

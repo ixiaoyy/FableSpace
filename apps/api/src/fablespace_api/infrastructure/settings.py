@@ -1,17 +1,43 @@
 from __future__ import annotations
 
 import os
+import re
 from dataclasses import dataclass, field
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[5]
 DEFAULT_OUTPUT_ROOT = REPO_ROOT / ".fablespace-api"
+STORY_LLM_ENV_NAMES = (
+    "FABLESPACE_LLM_BACKEND",
+    "FABLESPACE_LLM_MODEL",
+    "FABLESPACE_LLM_API_KEY",
+    "FABLESPACE_LLM_BASE_URL",
+    "FABLESPACE_LLM_TEMPERATURE",
+    "FABLESPACE_LLM_MAX_TOKENS",
+    "FABLESPACE_LLM_TOP_P",
+)
+ENVIRONMENT_VARIABLE_NAME = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
 
 
 def _env_value(name: str, default: str = "") -> str:
-    """Return one trimmed canonical environment value or its default."""
+    """Return one trimmed environment value or its default."""
 
     return os.environ.get(name, "").strip() or default
+
+
+def _any_env_value(names: tuple[str, ...]) -> bool:
+    """Return whether deployment supplied any non-empty variable in one config group."""
+
+    return any(bool(_env_value(name)) for name in names)
+
+
+def _default_public_welfare_llm_api_key() -> str:
+    """Resolve the existing server-side public-welfare key without exposing its value."""
+
+    key_env_name = _env_value("FABLEMAP_DEFAULT_FREE_LLM_API_KEY_ENV")
+    if not ENVIRONMENT_VARIABLE_NAME.fullmatch(key_env_name):
+        return ""
+    return _env_value(key_env_name)
 
 
 def _path_from_env(name: str, default: Path) -> Path:
@@ -195,6 +221,31 @@ class ApiSettings:
     llm_top_p: float | None = field(
         default_factory=lambda: _optional_float_from_env(
             "FABLESPACE_LLM_TOP_P"
+        )
+    )
+    llm_explicitly_configured: bool = field(
+        default_factory=lambda: _any_env_value(STORY_LLM_ENV_NAMES)
+    )
+
+    # Existing deployment-level public-welfare route. StoryWorld reuses this
+    # only when the complete FABLESPACE_LLM_* override group is absent.
+    public_welfare_llm_backend: str = field(
+        default_factory=lambda: _env_value(
+            "FABLEMAP_DEFAULT_FREE_LLM_BACKEND"
+        )
+    )
+    public_welfare_llm_model: str = field(
+        default_factory=lambda: _env_value(
+            "FABLEMAP_DEFAULT_FREE_LLM_MODEL"
+        )
+    )
+    public_welfare_llm_api_key: str = field(
+        default_factory=_default_public_welfare_llm_api_key,
+        repr=False,
+    )
+    public_welfare_llm_base_url: str = field(
+        default_factory=lambda: _env_value(
+            "FABLEMAP_DEFAULT_FREE_LLM_BASE_URL"
         )
     )
 

@@ -215,14 +215,12 @@ FABLESPACE_AUTH_INTROSPECTION_CACHE_TTL_SECONDS=30
 FABLESPACE_AUTH_INTROSPECTION_TIMEOUT_SECONDS=5
 FABLESPACE_ADMIN_MEDIA_MAX_BYTES=10485760
 
-# 系统 StoryWorld 角色对话。
-FABLESPACE_LLM_BACKEND=custom
-FABLESPACE_LLM_MODEL=deepseek-v4-flash-free
-FABLESPACE_LLM_API_KEY=<系统模型 Key>
-FABLESPACE_LLM_BASE_URL=https://opencode.ai/zen
-FABLESPACE_LLM_TEMPERATURE=0.8
-FABLESPACE_LLM_MAX_TOKENS=1024
-FABLESPACE_LLM_TOP_P=0.9
+# 已有部署级公共模型路由；StoryWorld 默认直接复用。
+FABLEMAP_DEFAULT_FREE_LLM_BACKEND=custom
+FABLEMAP_DEFAULT_FREE_LLM_MODEL=deepseek-v4-flash-free
+FABLEMAP_DEFAULT_FREE_LLM_BASE_URL=https://opencode.ai/zen
+FABLEMAP_DEFAULT_FREE_LLM_API_KEY_ENV=OPENCODE_API_KEY
+OPENCODE_API_KEY=<现有系统模型 Key>
 
 # Character 编辑页上传；生成文件仍保持 local。
 FABLESPACE_S3_BUCKET=<项目现有桶>
@@ -244,7 +242,9 @@ FABLESPACE_SSO_TICKET_TTL_SECONDS=60
 
 两份密钥不得写入仓库、前端构建变量或日志。`configure_shared_services.py` 负责生成或复用密钥并同步两端；手工修改时仍必须重建/重启两个后端。FableSpace 在 `parallellines` 模式下若缺少 SSO 服务密钥或会话密钥会拒绝启动，避免部署时静默退回可伪造的旧身份模式。`FABLESPACE_AUTH_INTROSPECTION_CACHE_TTL_SECONDS` 运行时限制为 1–60 秒；缓存过期后续验主站失败会拒绝访问，不使用过期结果兜底。
 
-StoryWorld 角色对话只读取上述七项 `FABLESPACE_LLM_*` 变量，不回退到仓库配置文件或其他 Key。`FABLESPACE_LLM_TEMPERATURE` 允许 `0..2`，`FABLESPACE_LLM_MAX_TOKENS` 允许 `1..4096`，`FABLESPACE_LLM_TOP_P` 允许 `(0, 1]`。任一变量缺失或非法时，公开页面和内容后台继续可用，对话请求返回 `503`；启动日志只记录缺失或非法的变量名，不记录配置值或密钥。
+StoryWorld 默认复用上述已有部署级公共模型路由：backend、model 和 base URL 来自 `FABLEMAP_DEFAULT_FREE_LLM_*`，`FABLEMAP_DEFAULT_FREE_LLM_API_KEY_ENV` 只保存服务端 Key 的环境变量名，运行时在内存中解析实际 Key；生成参数沿用 `temperature=0.8`、`max_tokens=1024`、`top_p=0.9`。无需为 StoryWorld 复制同一把 Key。
+
+需要独立覆盖时，可以同时提供 `FABLESPACE_LLM_BACKEND`、`FABLESPACE_LLM_MODEL`、`FABLESPACE_LLM_API_KEY`、`FABLESPACE_LLM_BASE_URL`、`FABLESPACE_LLM_TEMPERATURE`、`FABLESPACE_LLM_MAX_TOKENS` 和 `FABLESPACE_LLM_TOP_P`。只要其中任一项出现，运行时就严格校验整组且不与公共路由混用；temperature 允许 `0..2`，max tokens 允许 `1..4096`，top-p 允许 `(0, 1]`。所选来源缺失或非法时，公开页面和内容后台继续可用，对话请求返回 `503`。两种来源都只读取后端部署环境，不读取仓库 JSON、owner、StoryWorld 或数据库；启动日志只记录固定配置字段名，不记录配置值、Key 指针目标值或密钥。修改后必须重建或重启 FableSpace 后端。
 
 ParallelLines 必须为账号返回 `fablespace.access` 才能签发并维持会话。
 FableSpace 不注册 creator、owner、故事创建、角色卡、地图或私有 LLM 产品能力。

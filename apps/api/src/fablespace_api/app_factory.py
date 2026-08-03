@@ -54,22 +54,56 @@ def _is_public_api_request(request: Request) -> bool:
 
 
 def build_system_story_llm_config(settings: ApiSettings) -> LLMConfig | None:
-    """Build one validated deployment-level config without exposing secret values."""
-    backend = settings.llm_backend.strip().lower()
-    model = settings.llm_model.strip()
-    api_key = settings.llm_api_key.strip()
-    base_url = settings.llm_base_url.strip()
-    temperature = settings.llm_temperature
-    max_tokens = settings.llm_max_tokens
-    top_p = settings.llm_top_p
+    """Build the explicit override or existing public-welfare deployment config."""
+    explicit_config = settings.llm_explicitly_configured or any(
+        (
+            settings.llm_backend.strip(),
+            settings.llm_model.strip(),
+            settings.llm_api_key.strip(),
+            settings.llm_base_url.strip(),
+            settings.llm_temperature is not None,
+            settings.llm_max_tokens is not None,
+            settings.llm_top_p is not None,
+        )
+    )
+    if explicit_config:
+        source = "fablespace"
+        backend = settings.llm_backend.strip().lower()
+        model = settings.llm_model.strip()
+        api_key = settings.llm_api_key.strip()
+        base_url = settings.llm_base_url.strip()
+        temperature = settings.llm_temperature
+        max_tokens = settings.llm_max_tokens
+        top_p = settings.llm_top_p
+        setting_names = {
+            "backend": "FABLESPACE_LLM_BACKEND",
+            "model": "FABLESPACE_LLM_MODEL",
+            "api_key": "FABLESPACE_LLM_API_KEY",
+            "base_url": "FABLESPACE_LLM_BASE_URL",
+        }
+    else:
+        source = "public_welfare"
+        backend = settings.public_welfare_llm_backend.strip().lower()
+        model = settings.public_welfare_llm_model.strip()
+        api_key = settings.public_welfare_llm_api_key.strip()
+        base_url = settings.public_welfare_llm_base_url.strip()
+        temperature = 0.8
+        max_tokens = 1024
+        top_p = 0.9
+        setting_names = {
+            "backend": "FABLEMAP_DEFAULT_FREE_LLM_BACKEND",
+            "model": "FABLEMAP_DEFAULT_FREE_LLM_MODEL",
+            "api_key": "FABLEMAP_DEFAULT_FREE_LLM_API_KEY_ENV",
+            "base_url": "FABLEMAP_DEFAULT_FREE_LLM_BASE_URL",
+        }
     invalid: list[str] = []
 
     if not backend or not is_supported_backend(backend):
-        invalid.append("FABLESPACE_LLM_BACKEND")
+        invalid.append(setting_names["backend"])
     if not model:
-        invalid.append("FABLESPACE_LLM_MODEL")
+        invalid.append(setting_names["model"])
     if not api_key:
-        invalid.append("FABLESPACE_LLM_API_KEY")
+        invalid.append(setting_names["api_key"])
 
     parsed_base_url = urlparse(base_url)
     if (
@@ -77,32 +111,34 @@ def build_system_story_llm_config(settings: ApiSettings) -> LLMConfig | None:
         or parsed_base_url.scheme not in {"http", "https"}
         or not parsed_base_url.netloc
     ):
-        invalid.append("FABLESPACE_LLM_BASE_URL")
+        invalid.append(setting_names["base_url"])
 
-    if (
-        isinstance(temperature, bool)
-        or not isinstance(temperature, (int, float))
-        or not isfinite(float(temperature))
-        or not 0 <= float(temperature) <= 2
-    ):
-        invalid.append("FABLESPACE_LLM_TEMPERATURE")
-    if (
-        isinstance(max_tokens, bool)
-        or not isinstance(max_tokens, int)
-        or not 1 <= max_tokens <= 4096
-    ):
-        invalid.append("FABLESPACE_LLM_MAX_TOKENS")
-    if (
-        isinstance(top_p, bool)
-        or not isinstance(top_p, (int, float))
-        or not isfinite(float(top_p))
-        or not 0 < float(top_p) <= 1
-    ):
-        invalid.append("FABLESPACE_LLM_TOP_P")
+    if explicit_config:
+        if (
+            isinstance(temperature, bool)
+            or not isinstance(temperature, (int, float))
+            or not isfinite(float(temperature))
+            or not 0 <= float(temperature) <= 2
+        ):
+            invalid.append("FABLESPACE_LLM_TEMPERATURE")
+        if (
+            isinstance(max_tokens, bool)
+            or not isinstance(max_tokens, int)
+            or not 1 <= max_tokens <= 4096
+        ):
+            invalid.append("FABLESPACE_LLM_MAX_TOKENS")
+        if (
+            isinstance(top_p, bool)
+            or not isinstance(top_p, (int, float))
+            or not isfinite(float(top_p))
+            or not 0 < float(top_p) <= 1
+        ):
+            invalid.append("FABLESPACE_LLM_TOP_P")
 
     if invalid:
         logger.warning(
-            "StoryWorld dialogue is unavailable; missing or invalid settings: %s",
+            "StoryWorld dialogue is unavailable; source=%s missing or invalid settings: %s",
+            source,
             ", ".join(invalid),
         )
         return None

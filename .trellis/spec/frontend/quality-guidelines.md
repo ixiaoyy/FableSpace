@@ -116,6 +116,13 @@ page, and the authored opening Character message starts the conversation.
 However, a narration immediately following a reviewed `choice` must remain as
 the visible result of that interaction.
 
+A reviewed `choice` contains the player's authored action intent, not a
+verbatim player utterance. Render persisted and optimistic choices as a
+distinct action record labelled `你的选择`; do not reuse the player speech
+bubble or label it `你`. Only a free-input `message` with `role="player"` is
+player dialogue. Use `PendingStoryExchange.kind` to preserve the same semantic
+distinction before and after the server response.
+
 First remove non-timeline relationship events, then keep narration only when
 the preceding visible event is the player's choice. Do not compare narration
 content or IDs with `current_node`; the legitimate choice result commonly is
@@ -127,6 +134,9 @@ Wrong:
 const events = run.events.filter(
   (event) => event.type !== "narration",
 )
+
+const playerEvent = event.type === "choice" || event.role === "player"
+const label = playerEvent ? "你" : "此刻"
 ```
 
 Correct:
@@ -141,6 +151,12 @@ const timelineEvents = storyEvents.filter(
     || storyEvents[index - 1]?.type === "choice"
   ),
 )
+
+const label = event.type === "choice"
+  ? "你的选择"
+  : event.role === "player"
+    ? "你"
+    : "此刻"
 ```
 
 The chat header renders Character identity only: portrait or monogram plus
@@ -149,7 +165,7 @@ the internal `affinity` value there. These fields remain part of the run
 contract and runtime logic; the player experiences the relationship through
 dialogue and authored interaction results instead of a page-level
 interpretation. After changing this projection, verify a narrow viewport starts
-with the Character opening message, shows the sequence “player choice →
+with the Character opening message, shows the sequence “你的选择 →
 authored Character action or reply,” and automatically scrolls to that reply.
 
 ---

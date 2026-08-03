@@ -560,9 +560,9 @@ CharacterRelationship 保存一个玩家在一个 StoryWorld 内与具体 Charac
 
 模型、API Key、服务地址和生成参数属于部署级系统配置，不是 StoryWorld 或 owner 数据实体。
 
-- 当前 StoryWorld 对话运行时只读取 `FABLESPACE_LLM_BACKEND`、`FABLESPACE_LLM_MODEL`、`FABLESPACE_LLM_API_KEY`、`FABLESPACE_LLM_BASE_URL`、`FABLESPACE_LLM_TEMPERATURE`、`FABLESPACE_LLM_MAX_TOKENS` 和 `FABLESPACE_LLM_TOP_P`。
-- 七项配置不得回退到仓库 JSON、其他 Key、owner 或 StoryWorld 数据；temperature 范围为 `0..2`，max tokens 范围为 `1..4096`，top-p 范围为 `(0, 1]`。
-- 任一配置缺失或非法时，不阻断公开页面或内容后台启动；实际对话请求返回 `dialogue_unavailable` / HTTP `503`。
+- 当前 StoryWorld 对话默认复用部署中已有的公共模型路由：`FABLEMAP_DEFAULT_FREE_LLM_BACKEND`、`FABLEMAP_DEFAULT_FREE_LLM_MODEL`、`FABLEMAP_DEFAULT_FREE_LLM_BASE_URL` 和 `FABLEMAP_DEFAULT_FREE_LLM_API_KEY_ENV`；最后一项只提供服务端 Key 环境变量名，实际 Key 只在服务端内存解析。生成参数固定沿用 `temperature=0.8`、`max_tokens=1024`、`top-p=0.9`。
+- 部署可以用 `FABLESPACE_LLM_BACKEND`、`FABLESPACE_LLM_MODEL`、`FABLESPACE_LLM_API_KEY`、`FABLESPACE_LLM_BASE_URL`、`FABLESPACE_LLM_TEMPERATURE`、`FABLESPACE_LLM_MAX_TOKENS` 和 `FABLESPACE_LLM_TOP_P` 完整覆盖公共路由。只要任一覆盖变量出现，就必须严格校验整组且不得与公共路由拼接；temperature 范围为 `0..2`，max tokens 范围为 `1..4096`，top-p 范围为 `(0, 1]`。
+- 两种来源都只属于部署环境，不得回退到仓库 JSON、owner、StoryWorld 或数据库。所选来源缺失或非法时，不阻断公开页面或内容后台启动；实际对话请求返回 `dialogue_unavailable` / HTTP `503`。
 - 配置诊断只记录缺失或非法的环境变量名；provider 失败只记录受支持 backend 和异常类型。
 - 公开 API 和前端不得接收 API Key、隐藏 Prompt 或生成参数。
 - 密钥不得写入日志、消息、事件或 PlayerStoryState。

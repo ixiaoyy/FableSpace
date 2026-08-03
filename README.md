@@ -101,15 +101,10 @@ docker compose up --build -d
 | `FABLESPACE_DATABASE_URL` | 首选 SQLAlchemy 数据库 URL；留空时使用默认 SQLite |
 | `FABLESPACE_OUTPUT_ROOT` | 后端输出目录；Docker Compose 中为 `/data` |
 | `FABLESPACE_CORS_ORIGINS` | 前后端分离部署时允许的浏览器来源 |
-| `FABLESPACE_LLM_BACKEND` | 系统 StoryWorld 对话使用的受支持 backend |
-| `FABLESPACE_LLM_MODEL` | 系统对话模型名 |
-| `FABLESPACE_LLM_API_KEY` | 系统对话服务密钥；不要提交真实值 |
-| `FABLESPACE_LLM_BASE_URL` | 系统对话服务的绝对 HTTP(S) 地址 |
-| `FABLESPACE_LLM_TEMPERATURE` | 生成温度，范围 `0..2` |
-| `FABLESPACE_LLM_MAX_TOKENS` | 最大输出 token，范围 `1..4096` |
-| `FABLESPACE_LLM_TOP_P` | top-p，范围 `(0, 1]` |
+| `FABLESPACE_LLM_*` | 可选的 StoryWorld 系统对话覆盖组；七项必须同时提供 |
+| `FABLEMAP_DEFAULT_FREE_LLM_*` | 已有部署级公共模型路由；未配置覆盖组时由 StoryWorld 复用 |
 
-七项 LLM 变量缺失或非法时，主站与内容后台仍可启动，角色对话请求返回 `503`。
+现有部署可以继续使用 `FABLEMAP_DEFAULT_FREE_LLM_BACKEND`、`FABLEMAP_DEFAULT_FREE_LLM_MODEL`、`FABLEMAP_DEFAULT_FREE_LLM_BASE_URL` 和 `FABLEMAP_DEFAULT_FREE_LLM_API_KEY_ENV`，无需复制 API Key。只有需要为 StoryWorld 显式覆盖公共路由时才设置完整七项 `FABLESPACE_LLM_*`；覆盖组部分缺失或所选来源非法时，主站与内容后台仍可启动，角色对话请求返回 `503`。
 
 前端环境示例位于 `apps/web/.env.example`。Docker 默认使用同源 `/api` 调用后端；如果你自行构建或分离部署前端，可以按需设置：
 

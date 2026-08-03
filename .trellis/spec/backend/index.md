@@ -4,9 +4,12 @@
 
 These specs cover the FastAPI application in `apps/api/src/fablespace_api/`.
 The current product domain is StoryWorld-first. Application-level Space
-routes, services, contracts, stores, ORM, migration entrypoints, and config
-aliases have been removed. The current SQLAlchemy baseline contains only the
-six private runtime tables and two managed-content tables.
+routes, services, contracts, stores, ORM, migration entrypoints, and product
+config aliases have been removed. StoryWorld dialogue may reuse the existing
+deployment-level public-welfare model route only as defined in
+`system-story-llm-config.md`; this does not restore a Space runtime. The current
+SQLAlchemy baseline contains only the six private runtime tables and two
+managed-content tables.
 
 ## Guidelines Index
 
@@ -19,6 +22,7 @@ six private runtime tables and two managed-content tables.
 | [Quality Guidelines](./quality-guidelines.md) | Required checks, documentation sync, and forbidden shortcuts |
 | [StoryRun PlayerRole Lock](./player-role-run-lock.md) | PlayerRole validation and immutable StoryRun identity |
 | [Reviewed Historical Choice and Dialogue](./historical-choice-chat.md) | Deterministic historical choice and bounded dialogue boundaries |
+| [System Story LLM Config](./system-story-llm-config.md) | Deployment config source priority, shared route reuse, and secret boundaries |
 | [Managed StoryWorld Content](./managed-story-content.md) | Admin content, managed media, and runtime adoption |
 
 ## Pre-Development Checklist
@@ -31,6 +35,8 @@ six private runtime tables and two managed-content tables.
 4. Do not connect to a database unless the user explicitly authorizes it.
 5. Do not create or modify a migration until the proposed schema and impact
    have received explicit human approval.
+6. Read [System Story LLM Config](./system-story-llm-config.md) before changing
+   model environment variables, provider wiring, or dialogue availability.
 
 ## Verification Baseline
 
