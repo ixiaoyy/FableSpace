@@ -1303,3 +1303,36 @@ Added a guarded manual 006/008 production repair workflow, retained a verified l
 ### Next Steps
 
 - None - task complete
+
+
+## Session 40: 修复故事选择语义与公共模型配置
+
+**Date**: 2026-08-03
+**Task**: 修复故事选择语义与公共模型配置
+**Branch**: `main`
+
+### Summary
+
+将审核选择恢复为行动记录，并让 StoryWorld 默认复用现有公益 LLM 路由；同步配置契约、部署文档与验证记录。
+
+### Main Changes
+
+- Detailed change bullets were not supplied; see the summary above.
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `f710459a` | (see git log) |
+
+### Testing
+
+- Validation was not recorded for this session.
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
