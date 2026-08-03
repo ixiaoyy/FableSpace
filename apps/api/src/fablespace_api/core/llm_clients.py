@@ -1223,6 +1223,26 @@ class XAIBackend(LLMBackend):
 # ─── Custom / Generic OpenAI-Compatible Backend ───────────────────────────────
 
 
+def _custom_failure_diagnostic(exc: Exception) -> str:
+    """Classify one custom-provider failure without exposing URLs or response bodies."""
+
+    import urllib.error
+
+    if isinstance(exc, urllib.error.HTTPError):
+        return f"http_{exc.code}"
+    if isinstance(exc, urllib.error.URLError):
+        return f"network_{type(exc.reason).__name__}"
+    if isinstance(exc, TimeoutError):
+        return "network_timeout"
+    if isinstance(exc, json.JSONDecodeError):
+        return "invalid_json"
+    if isinstance(exc, UnicodeDecodeError):
+        return "invalid_utf8"
+    if isinstance(exc, (IndexError, KeyError, TypeError)):
+        return "invalid_response"
+    return f"unexpected_{type(exc).__name__}"
+
+
 class CustomBackend(LLMBackend):
     """Generic OpenAI-compatible API — for custom deployments."""
 
@@ -1234,8 +1254,14 @@ class CustomBackend(LLMBackend):
             raise LLMError("Custom backend requires base_url")
 
         url = self.config.base_url.rstrip("/")
+        failures: list[str] = []
         # Try common paths
-        for path in ["/v1/chat/completions", "/chat/completions", "/completions"]:
+        candidates = (
+            ("v1_chat", "/v1/chat/completions"),
+            ("chat", "/chat/completions"),
+            ("completions", "/completions"),
+        )
+        for candidate, path in candidates:
             try_url = url + path
             body = self._build_body(messages, self.config.model, stream=False, **kwargs)
             # Some custom backends don't support seed
@@ -1258,11 +1284,17 @@ class CustomBackend(LLMBackend):
                         content = data["text"]
                     elif "output" in data:
                         content = data["output"]
-                    return LLMResponse(content=content, model=data.get("model", self.config.model), usage=data.get("usage", {}), raw=data)
-            except (urllib.error.HTTPError, Exception):
+                    if content:
+                        return LLMResponse(content=content, model=data.get("model", self.config.model), usage=data.get("usage", {}), raw=data)
+                    failures.append(f"{candidate}=empty_content")
+            except Exception as exc:
+                failures.append(f"{candidate}={_custom_failure_diagnostic(exc)}")
                 continue
 
-        raise LLMError(f"Custom backend: no compatible endpoint found at {url}")
+        raise LLMError(
+            "Custom backend request failed",
+            diagnostic=",".join(failures) or "no_candidate_result",
+        )
 
     def complete_stream(self, messages: list[dict[str, str]], **kwargs) -> Generator[LLMResponse, None, None]:
         import urllib.request
@@ -1943,7 +1975,12 @@ _BACKENDS: dict[str, type[LLMBackend]] = {
 
 class LLMError(Exception):
     """Exception raised when LLM API call fails."""
-    pass
+
+    def __init__(self, message: str, *, diagnostic: str = "") -> None:
+        """Create an LLM failure with an optional pre-redacted operational diagnostic."""
+
+        super().__init__(message)
+        self.diagnostic = diagnostic
 
 
 def is_supported_backend(backend: str) -> bool:

@@ -238,9 +238,15 @@ jobs:
             fi
 
             COMPOSE_FILES="-f docker-compose.yml -f deploy/docker-compose.shared.yml"
+            echo "Current StoryWorld LLM failure summary (redacted):"
+            $COMPOSE $COMPOSE_FILES logs --since=24h backend 2>&1 \
+              | grep -E 'StoryWorld LLM request failed|LLM backend request failed' \
+              | tail -n 40 || true
             $COMPOSE $COMPOSE_FILES build backend
             $COMPOSE $COMPOSE_FILES run --rm --no-deps backend python -c "from fablespace_api.app_factory import build_system_story_llm_config; from fablespace_api.infrastructure.settings import ApiSettings; raise SystemExit(0 if build_system_story_llm_config(ApiSettings()) is not None else 1)"
             echo "StoryWorld LLM configuration validated"
+            $COMPOSE $COMPOSE_FILES run --rm --no-deps backend python -m fablespace_api.story_llm_probe
+            echo "StoryWorld LLM provider call validated"
             $COMPOSE $COMPOSE_FILES up -d --no-build backend
             BACKEND_READY=false
             for ATTEMPT in $(seq 1 30); do
