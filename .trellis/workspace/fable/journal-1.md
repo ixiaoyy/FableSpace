@@ -1369,3 +1369,38 @@ Added a guarded manual 006/008 production repair workflow, retained a verified l
 ### Next Steps
 
 - None - task complete
+
+
+## Session 42: 修复故事对白呈现与生产 LLM 出口
+
+**Date**: 2026-08-03
+**Task**: 修复故事对白呈现与生产 LLM 出口
+**Branch**: `main`
+
+### Summary
+
+分离角色对白与叙事投影，为旧混合记录提供只读兼容；配置仅作用于 CustomBackend 的 Mihomo 出口，并以生产结构化 provider 探针和前后端健康检查完成验收。
+
+### Main Changes
+
+- Detailed change bullets were not supplied; see the summary above.
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `3f720273` | (see git log) |
+| `241e6156` | (see git log) |
+| `a8bd6f0c` | (see git log) |
+
+### Testing
+
+- Validation was not recorded for this session.
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete

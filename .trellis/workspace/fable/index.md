@@ -8,7 +8,7 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-1.md`
-- **Total Sessions**: 41
+- **Total Sessions**: 42
 - **Last Active**: 2026-08-03
 <!-- @@@/auto:current-status -->
 
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-1.md` | ~1371 | Active |
+| `journal-1.md` | ~1406 | Active |
 <!-- @@@/auto:active-documents -->
 
 ---
@@ -29,6 +29,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 42 | 2026-08-03 | 修复故事对白呈现与生产 LLM 出口 | `3f720273`, `241e6156`, `a8bd6f0c` | `main` |
 | 41 | 2026-08-03 | 修复生产 StoryWorld LLM Key 传播 | `ebc842be` | `main` |
 | 40 | 2026-08-03 | 修复故事选择语义与公共模型配置 | `f710459a` | `main` |
 | 39 | 2026-07-31 | 冻结多故事权威合同与迁移边界 | `dad5bbba` | `main` |
