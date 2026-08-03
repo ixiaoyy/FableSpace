@@ -7,6 +7,7 @@ in both server-side env files. It never prints credentials or generated secrets.
 from __future__ import annotations
 
 import argparse
+import re
 import secrets
 import shutil
 from datetime import UTC, datetime
@@ -33,6 +34,8 @@ RETIRED_FABLESPACE_ENV_KEYS = {
 }
 
 MIN_SECRET_LENGTH = 32
+PUBLIC_WELFARE_LLM_KEY_POINTER = "FABLEMAP_DEFAULT_FREE_LLM_API_KEY_ENV"
+ENVIRONMENT_VARIABLE_NAME = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
 
 
 def parse_env(path: Path) -> dict[str, str]:
@@ -151,6 +154,45 @@ def write_env_if_changed(path: Path, text: str, timestamp: str) -> tuple[bool, P
     return True, backup_path
 
 
+def recover_public_welfare_llm_key(
+    env_path: Path,
+    current_values: dict[str, str],
+) -> tuple[dict[str, str], str, str | None]:
+    """Return a safe Key update and status for the configured public model route.
+
+    The Key may only be recovered from this environment file's own
+    ``.pre-shared-*`` backups. Secret values are returned for the controlled
+    env rewrite but must never be included in diagnostics. The resolved
+    variable name is returned only so the env reconciler can exempt that exact
+    target from legacy-key removal.
+    """
+
+    key_env_name = current_values.get(PUBLIC_WELFARE_LLM_KEY_POINTER, "").strip()
+    if not key_env_name:
+        return {}, "not-configured", None
+    if not ENVIRONMENT_VARIABLE_NAME.fullmatch(key_env_name):
+        raise ValueError(
+            f"{PUBLIC_WELFARE_LLM_KEY_POINTER} must name a valid environment variable"
+        )
+    if current_values.get(key_env_name, "").strip():
+        return {}, "existing", key_env_name
+
+    backup_paths = sorted(
+        env_path.parent.glob(f"{env_path.name}.pre-shared-*"),
+        key=lambda backup_path: backup_path.name,
+        reverse=True,
+    )
+    for backup_path in backup_paths:
+        backup_values = parse_env(backup_path)
+        recovered_value = backup_values.get(key_env_name, "").strip()
+        if recovered_value:
+            return {key_env_name: recovered_value}, "recovered", key_env_name
+
+    raise ValueError(
+        f"{PUBLIC_WELFARE_LLM_KEY_POINTER} references a missing server-side Key"
+    )
+
+
 def build_updates(
     parallellines: dict[str, str],
     database_name: str,
@@ -255,6 +297,18 @@ def main() -> None:
         args.prefix,
         args.generated_storage,
     )
+    try:
+        (
+            story_llm_updates,
+            story_llm_key_source,
+            story_llm_key_env_name,
+        ) = recover_public_welfare_llm_key(
+            args.fablespace_env,
+            fablespace_values,
+        )
+    except ValueError as exc:
+        raise SystemExit(str(exc)) from exc
+    updates.update(story_llm_updates)
     updates["FABLESPACE_CORS_ORIGINS"] = cors_origin
     parallellines_updates: dict[str, str] = {}
     sso_secret_source = "not-managed"
@@ -298,6 +352,7 @@ def main() -> None:
             f"generated_storage={args.generated_storage} prefix={args.prefix.strip('/')} "
             f"cors_origin={cors_origin} fablespace_keys={len(updates)} "
             f"parallellines_keys={len(parallellines_updates)} "
+            f"story_llm_key={story_llm_key_source} "
             f"sso_secret={sso_secret_source} session_secret={cookie_secret_source}"
         )
         return
@@ -316,7 +371,11 @@ def main() -> None:
         update_env_text(
             fablespace_original,
             updates,
-            remove_keys=RETIRED_FABLESPACE_ENV_KEYS,
+            remove_keys=(
+                RETIRED_FABLESPACE_ENV_KEYS - {story_llm_key_env_name}
+                if story_llm_key_env_name
+                else RETIRED_FABLESPACE_ENV_KEYS
+            ),
         ),
         timestamp,
     )
@@ -329,6 +388,7 @@ def main() -> None:
         f"configured database={args.database_name} "
         f"generated_storage={args.generated_storage} prefix={args.prefix.strip('/')} "
         f"cors_origin={cors_origin} "
+        f"story_llm_key={story_llm_key_source} "
         f"parallellines_changed={str(parallellines_changed).lower()} "
         f"fablespace_changed={str(fablespace_changed).lower()} "
         f"compose_changed={str(compose_changed).lower()} "

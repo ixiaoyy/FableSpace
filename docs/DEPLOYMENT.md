@@ -11,7 +11,8 @@ push main
   -> 媒体/CDN 配置或部署工作流变化时，对照 media-manifest.json 核对桶内全部图片对象
   -> 全量媒体校验触发时，通过 CDN 域名读取抽样图片做真实校验
   -> 前端 Docker 镜像上传到服务器并替换 frontend
-  -> 后端变化时在服务器重建 backend 并检查 /api/v1/health
+  -> 后端变化时在服务器重建镜像，以真实 Compose 环境预检 StoryWorld LLM 配置
+  -> 预检通过后替换 backend 并检查 /api/v1/health
 ```
 
 项目图片路径使用：
@@ -82,9 +83,9 @@ sudo python3 deploy/server/configure_shared_services.py --cors-origin https://fa
 sudo python3 deploy/server/configure_shared_services.py --cors-origin https://fable.pingxingxian.space
 ```
 
-配置脚本从 `/opt/parallellines/apps/api/.env` 只映射 MySQL 连接，默认写入 `FABLESPACE_GENERATED_STORAGE_BACKEND=local`；同时在两端环境文件中补齐私密联动配置。若 ParallelLines 已配置完整 `UPLOAD_S3_*` 与 `UPLOAD_CDN_BASE_URL`，脚本也会映射对应的 `FABLESPACE_S3_*`，供受保护的 Character 图片上传使用，但不会改变生成文件的本地归属。若两端都没有有效 SSO 密钥，脚本生成一份共享高强度随机值；若任一端已有有效值则复用；若两端已有不同的有效值则拒绝继续，避免静默轮换导致登录中断。FableSpace 会话密钥独立生成或复用，不与 SSO 密钥共享。发生实际变更前会生成 `.env.pre-shared-<UTC>` 备份，输出不包含密码或密钥；配置未变化时不会重复备份。
+配置脚本从 `/opt/parallellines/apps/api/.env` 只映射 MySQL 连接，默认写入 `FABLESPACE_GENERATED_STORAGE_BACKEND=local`；同时在两端环境文件中补齐私密联动配置。若 ParallelLines 已配置完整 `UPLOAD_S3_*` 与 `UPLOAD_CDN_BASE_URL`，脚本也会映射对应的 `FABLESPACE_S3_*`，供受保护的 Character 图片上传使用，但不会改变生成文件的本地归属。若两端都没有有效 SSO 密钥，脚本生成一份共享高强度随机值；若任一端已有有效值则复用；若两端已有不同的有效值则拒绝继续，避免静默轮换导致登录中断。FableSpace 会话密钥独立生成或复用，不与 SSO 密钥共享。发生实际变更前会生成 `.env.pre-shared-<UTC>` 备份，输出不包含密码或密钥；配置未变化时不会重复备份。公共模型路由若通过 `FABLEMAP_DEFAULT_FREE_LLM_API_KEY_ENV` 引用服务端 Key，脚本会保留当前目标变量；若目标变量曾被旧版脚本误删，只从同目录自身生成的 `.env.pre-shared-*` 备份按时间倒序恢复。指针非法或没有当前值及可恢复备份时，脚本会在替换后端容器前失败。
 
-脚本会保留无关配置，并从 FableSpace 环境文件中删除旧 `FABLEMAP_*`、`FABLESPACE_MYSQL_URL`、JSON storage、旧前端 root、默认 Space seed、Redis 和早期模型 Key 等退役键。它不会删除 ParallelLines 自身仍在使用的配置。Compose 插值写入仓库根 `.env`，其中后端宿主绑定为 `127.0.0.1:8950`，避免与 ParallelLines 的 `8000` 端口冲突，容器内 API 端口仍为 `8000`。生产部署 workflow 会幂等执行该脚本，并仅在 ParallelLines 环境实际变化时重建其 API/worker 以加载新值。只有独立公开部署才可传入 `--auth-mode legacy --generated-storage s3` 让生成文件进入 R2；私密联动模式会拒绝公开生成文件存储。
+脚本会保留无关配置，并从 FableSpace 环境文件中删除已明确列出的旧存储、旧前端 root、默认 Space seed、Redis 等退役键；不得删除当前公共模型 Key 指针所引用的变量。它不会删除 ParallelLines 自身仍在使用的配置。Compose 插值写入仓库根 `.env`，其中后端宿主绑定为 `127.0.0.1:8950`，避免与 ParallelLines 的 `8000` 端口冲突，容器内 API 端口仍为 `8000`。生产部署 workflow 会幂等执行该脚本，并仅在 ParallelLines 环境实际变化时重建其 API/worker 以加载新值。只有独立公开部署才可传入 `--auth-mode legacy --generated-storage s3` 让生成文件进入 R2；私密联动模式会拒绝公开生成文件存储。
 
 在 ParallelLines MySQL 中创建独立库并给现有应用用户授权。实际容器名可用 `docker compose -p parallellines ps` 确认：
 
@@ -243,6 +244,8 @@ FABLESPACE_SSO_TICKET_TTL_SECONDS=60
 两份密钥不得写入仓库、前端构建变量或日志。`configure_shared_services.py` 负责生成或复用密钥并同步两端；手工修改时仍必须重建/重启两个后端。FableSpace 在 `parallellines` 模式下若缺少 SSO 服务密钥或会话密钥会拒绝启动，避免部署时静默退回可伪造的旧身份模式。`FABLESPACE_AUTH_INTROSPECTION_CACHE_TTL_SECONDS` 运行时限制为 1–60 秒；缓存过期后续验主站失败会拒绝访问，不使用过期结果兜底。
 
 StoryWorld 默认复用上述已有部署级公共模型路由：backend、model 和 base URL 来自 `FABLEMAP_DEFAULT_FREE_LLM_*`，`FABLEMAP_DEFAULT_FREE_LLM_API_KEY_ENV` 只保存服务端 Key 的环境变量名，运行时在内存中解析实际 Key；生成参数沿用 `temperature=0.8`、`max_tokens=1024`、`top_p=0.9`。无需为 StoryWorld 复制同一把 Key。
+
+每次服务器配置会输出固定的非敏感状态 `story_llm_key=not-configured|existing|recovered`。该状态只说明目标 Key 是否未配置、原本存在或从脚本自身备份恢复，不包含指针值或 Key；生产对话依赖公共路由时，部署日志必须为 `existing` 或 `recovered`。Workflow 随后用刚构建的 backend 镜像和真实 Compose 环境调用运行时配置构造器；只有完整配置能够生成 `LLMConfig` 才替换当前 backend。该预检不连接数据库、不调用模型服务，也不输出 Key。
 
 需要独立覆盖时，可以同时提供 `FABLESPACE_LLM_BACKEND`、`FABLESPACE_LLM_MODEL`、`FABLESPACE_LLM_API_KEY`、`FABLESPACE_LLM_BASE_URL`、`FABLESPACE_LLM_TEMPERATURE`、`FABLESPACE_LLM_MAX_TOKENS` 和 `FABLESPACE_LLM_TOP_P`。只要其中任一项出现，运行时就严格校验整组且不与公共路由混用；temperature 允许 `0..2`，max tokens 允许 `1..4096`，top-p 允许 `(0, 1]`。所选来源缺失或非法时，公开页面和内容后台继续可用，对话请求返回 `503`。两种来源都只读取后端部署环境，不读取仓库 JSON、owner、StoryWorld 或数据库；启动日志只记录固定配置字段名，不记录配置值、Key 指针目标值或密钥。修改后必须重建或重启 FableSpace 后端。
 

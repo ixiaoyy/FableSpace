@@ -60,6 +60,16 @@ FABLEMAP_DEFAULT_FREE_LLM_API_KEY_ENV -> <server-side key environment name>
 - Resolve `FABLEMAP_DEFAULT_FREE_LLM_API_KEY_ENV` only when it is a valid
   environment-variable name. The referenced Key remains server-side and is
   stored in `repr=False` settings/config fields.
+- Server deployment tooling must preserve the referenced Key in
+  `apps/api/.env`. If an earlier version of that same tool removed it, the tool
+  may recover it only from its own sibling `.env.pre-shared-*` backups before
+  replacing the backend container. A configured pointer with neither a current
+  nor recoverable Key must fail deployment instead of publishing a known-broken
+  dialogue path.
+- Production deployment must run `build_system_story_llm_config(ApiSettings())`
+  inside the newly built backend image with the real Compose environment before
+  replacing the running container. This preflight must not create the FastAPI
+  app, connect to a database, or call the provider.
 - Neither source may read a repository JSON file, owner content, StoryWorld
   content, a database row, or a client payload.
 - `SystemStoryDialogueResponder` receives only `LLMConfig | None`; it does not
@@ -78,6 +88,10 @@ FABLEMAP_DEFAULT_FREE_LLM_API_KEY_ENV -> <server-side key environment name>
 | Any explicit field present; another explicit field missing/invalid | Return `None`; do not fall back or mix sources |
 | Explicit temperature outside `0..2`, max tokens outside `1..4096`, or top-p outside `(0, 1]` | Return `None` with fixed variable-name diagnostic |
 | Provider call fails or returns empty content | Return controlled `dialogue_unavailable`; do not fabricate a Character reply |
+| Deployment sees a valid public Key pointer and current target value | Preserve it; report only `story_llm_key=existing` |
+| Deployment sees a missing target and a tool-owned backup contains it | Restore it; report only `story_llm_key=recovered` |
+| Deployment sees a dangling/invalid pointer with no safe recovery | Fail before backend replacement without logging env values |
+| Newly built production image cannot construct `LLMConfig` from real Compose env | Fail before backend replacement |
 
 ## 5. Good / Base / Bad Cases
 
@@ -102,6 +116,9 @@ FABLEMAP_DEFAULT_FREE_LLM_API_KEY_ENV -> <server-side key environment name>
   back.
 - Assert an invalid Key environment name and a missing referenced Key return
   `None` with diagnostics containing only fixed setting names.
+- Exercise deployment reconciliation with temporary env files for existing,
+  recovered, not-configured, invalid-pointer, and unrecoverable states. Assert
+  neither command output nor rendered diagnostics contains the test Key.
 - Run `py -3 -m compileall -q apps/api/src`. A minimal provider probe may send
   non-user test text and assert only that the response is non-empty.
 

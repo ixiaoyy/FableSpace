@@ -140,6 +140,35 @@ contract, a generic process health endpoint is not enough:
 Project-specific FableSpace migration and repair contracts live in
 [`../backend/database-guidelines.md`](../backend/database-guidelines.md).
 
+## Deployment Environment Rewrite Boundary
+
+An ignored production `.env` is still a cross-layer contract when deployment
+tooling rewrites it. Runtime parsing can be correct locally while the deployed
+container is broken because a reconciler removed, renamed, or failed to pass a
+referenced variable.
+
+Before changing a deployment-level config source:
+
+- [ ] Trace `developer env → server reconciler → Docker env_file/environment →
+      runtime settings`; do not stop at the runtime parser.
+- [ ] Search every retirement/removal list for both the pointer variable and
+      the server-side variable it references.
+- [ ] Verify ignored real env files have an explicit migration or recovery
+      path; updating `.env.example` does not migrate a server.
+- [ ] Ensure recovery reads only a narrowly owned backup location and never
+      logs secret values or full env contents.
+- [ ] Make the deploy output expose a fixed, non-sensitive readiness state and
+      fail before container replacement when an explicitly configured pointer
+      cannot resolve.
+- [ ] Validate the actual production data path after deploy. Generic process
+      health and a successful image build do not prove provider configuration.
+
+**FableSpace example**: StoryWorld runtime correctly reused
+`FABLEMAP_DEFAULT_FREE_LLM_API_KEY_ENV=OPENCODE_API_KEY`, but the server
+reconciler still classified `OPENCODE_API_KEY` as retired and removed it from
+the exact `apps/api/.env` passed to Docker. Local provider probes and process
+health both passed while production dialogue remained unavailable.
+
 ---
 
 ## Cross-Platform Template Consistency
