@@ -1246,6 +1246,22 @@ def _custom_failure_diagnostic(exc: Exception) -> str:
 class CustomBackend(LLMBackend):
     """Generic OpenAI-compatible API — for custom deployments."""
 
+    def _open_request(self, request: Any, timeout: int) -> Any:
+        """Open one custom-provider request through its optional scoped proxy."""
+
+        import urllib.request
+
+        proxy_url = str(self.config.extra.get("proxy_url") or "").strip()
+        if not proxy_url:
+            return urllib.request.urlopen(request, timeout=timeout)
+        proxy_handler = urllib.request.ProxyHandler(
+            {"http": proxy_url, "https": proxy_url}
+        )
+        return urllib.request.build_opener(proxy_handler).open(
+            request,
+            timeout=timeout,
+        )
+
     def complete(self, messages: list[dict[str, str]], **kwargs) -> LLMResponse:
         import urllib.request
         import urllib.error
@@ -1275,7 +1291,7 @@ class CustomBackend(LLMBackend):
             )
 
             try:
-                with urllib.request.urlopen(req, timeout=120) as resp:
+                with self._open_request(req, timeout=120) as resp:
                     data = json.loads(resp.read().decode("utf-8"))
                     content = ""
                     if "choices" in data:
@@ -1316,7 +1332,7 @@ class CustomBackend(LLMBackend):
             )
 
             try:
-                with urllib.request.urlopen(req, timeout=120) as resp:
+                with self._open_request(req, timeout=120) as resp:
                     for line in resp:
                         line = line.decode("utf-8").strip()
                         if not line or not line.startswith("data: "):

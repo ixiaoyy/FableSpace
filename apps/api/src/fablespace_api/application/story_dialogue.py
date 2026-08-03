@@ -2,12 +2,14 @@
 
 from __future__ import annotations
 
+import json
 import re
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 
 NATURAL_RUN_MAX_POSITIVE_DELTA = 3.0
 MAX_DIALOGUE_REPLY_LENGTH = 240
+MAX_DIALOGUE_NARRATION_LENGTH = 180
 
 _CHILD_SAFETY_INPUT_PATTERNS = tuple(
     re.compile(pattern, re.IGNORECASE)
@@ -125,17 +127,26 @@ _RELATIONSHIP_SIGNAL_PATTERNS: tuple[
 )
 
 _SAFE_REPLIES = {
-    "child_safety": "安妮往后退了半步，把水桶抱紧了些：“别这样说。我们只谈找水和眼前能看见的事。”",
-    "fabricated_source": "安妮摇头：“没听见的话不能写成谁说过。我们只记自己能核对的见闻。”",
-    "history_rewrite": "安妮看了看雨里的水泵：“我们只能做眼前能做的事，不能把还没发生的事说成已经发生。”",
-    "modern_medical": "安妮皱起眉：“这些词我听不懂。我只知道家里不让我再碰这口泵的水。”",
-    "unsafe_output": "安妮停了一下：“我只能说自己眼前看见、耳边听见的事。别替别人，也别替我补话。”",
+    "child_safety": "别这样说。我们只谈找水和眼前能看见的事。",
+    "fabricated_source": "没听见的话不能写成谁说过。我们只记自己能核对的见闻。",
+    "history_rewrite": "我们只能做眼前能做的事，不能把还没发生的事说成已经发生。",
+    "modern_medical": "这些词我听不懂。我只知道家里不让我再碰这口泵的水。",
+    "unsafe_output": "我只能说自己眼前看见、耳边听见的事。别替别人，也别替我补话。",
 }
 
 
 @dataclass(frozen=True, slots=True)
+class StoryDialogueOutput:
+    dialogue: str
+    narration_before: str = ""
+    narration_after: str = ""
+
+
+@dataclass(frozen=True, slots=True)
 class StoryDialogueDecision:
-    reply: str
+    dialogue: str
+    narration_before: str
+    narration_after: str
     boundary_reason: str
     model_output_replaced: bool
     relationship_signal: str | None
@@ -146,6 +157,60 @@ class StoryRelationshipEffect:
     signal: str
     affinity_delta: float
     reason: str
+
+
+def parse_story_dialogue_output(raw_output: str) -> StoryDialogueOutput | None:
+    """Parse the fixed dialogue JSON contract without accepting surrounding prose."""
+
+    normalized = str(raw_output or "").strip()
+    if normalized.startswith("```") and normalized.endswith("```"):
+        lines = normalized.splitlines()
+        if len(lines) >= 3 and lines[0].strip().lower() in {"```", "```json"}:
+            normalized = "\n".join(lines[1:-1]).strip()
+    try:
+        payload = json.loads(normalized)
+    except (json.JSONDecodeError, TypeError):
+        return None
+    if not isinstance(payload, dict):
+        return None
+    allowed_keys = {"dialogue", "narration_before", "narration_after"}
+    if set(payload) != allowed_keys:
+        return None
+    dialogue = payload.get("dialogue")
+    narration_before = payload.get("narration_before", "")
+    narration_after = payload.get("narration_after", "")
+    if not isinstance(dialogue, str) or not dialogue.strip():
+        return None
+    if not isinstance(narration_before, str) or not isinstance(narration_after, str):
+        return None
+    return StoryDialogueOutput(
+        dialogue=dialogue.strip(),
+        narration_before=narration_before.strip(),
+        narration_after=narration_after.strip(),
+    )
+
+
+def contains_character_narration(dialogue: str, character_name: str) -> bool:
+    """Detect a narrow third-person Character action accidentally placed in dialogue."""
+
+    if not character_name.strip():
+        return False
+    action = (
+        r"把|将|拿|放|压|伸|收|抬|低|摇|点|退|走|看|望|问|说|答|"
+        r"皱|笑|哭|停|转|决定"
+    )
+    return bool(
+        re.search(
+            rf"(?:^|[。！？；]\s*){re.escape(character_name.strip())}(?:{action})",
+            dialogue,
+        )
+    )
+
+
+def _narration_contains_spoken_text(narration: str) -> bool:
+    """Reject narration that still embeds quoted Character speech."""
+
+    return any(marker in narration for marker in ('“', '”', '「', '」', '『', '』', '"'))
 
 
 class StoryDialoguePolicy:
@@ -166,23 +231,40 @@ class StoryDialoguePolicy:
     def decide(
         self,
         *,
+        character_name: str,
         player_message: str,
-        model_reply: str | None,
+        model_reply: StoryDialogueOutput | None,
         input_fallback: tuple[str, str] | None,
     ) -> StoryDialogueDecision:
         if input_fallback is not None:
             reason, reply = input_fallback
             return StoryDialogueDecision(
-                reply=reply,
+                dialogue=reply,
+                narration_before="",
+                narration_after="",
                 boundary_reason=reason,
                 model_output_replaced=True,
                 relationship_signal=None,
             )
 
-        reply = str(model_reply or "").strip()
-        if not reply or any(pattern.search(reply) for pattern in _OUTPUT_FORBIDDEN_PATTERNS):
+        dialogue = model_reply.dialogue.strip() if model_reply else ""
+        narration_before = model_reply.narration_before.strip() if model_reply else ""
+        narration_after = model_reply.narration_after.strip() if model_reply else ""
+        combined_output = "\n".join((dialogue, narration_before, narration_after))
+        invalid_presentation = (
+            contains_character_narration(dialogue, character_name)
+            or _narration_contains_spoken_text(narration_before)
+            or _narration_contains_spoken_text(narration_after)
+        )
+        if (
+            not dialogue
+            or invalid_presentation
+            or any(pattern.search(combined_output) for pattern in _OUTPUT_FORBIDDEN_PATTERNS)
+        ):
             return StoryDialogueDecision(
-                reply=_SAFE_REPLIES["unsafe_output"],
+                dialogue=_SAFE_REPLIES["unsafe_output"],
+                narration_before="",
+                narration_after="",
                 boundary_reason="unsafe_output",
                 model_output_replaced=True,
                 relationship_signal=None,
@@ -190,7 +272,9 @@ class StoryDialoguePolicy:
 
         signal = self._relationship_signal(player_message)
         return StoryDialogueDecision(
-            reply=reply[:MAX_DIALOGUE_REPLY_LENGTH],
+            dialogue=dialogue[:MAX_DIALOGUE_REPLY_LENGTH],
+            narration_before=narration_before[:MAX_DIALOGUE_NARRATION_LENGTH],
+            narration_after=narration_after[:MAX_DIALOGUE_NARRATION_LENGTH],
             boundary_reason="allowed",
             model_output_replaced=False,
             relationship_signal=signal,
@@ -257,9 +341,13 @@ class StoryDialoguePolicy:
 
 
 __all__ = [
+    "MAX_DIALOGUE_NARRATION_LENGTH",
     "MAX_DIALOGUE_REPLY_LENGTH",
     "NATURAL_RUN_MAX_POSITIVE_DELTA",
     "StoryDialogueDecision",
+    "StoryDialogueOutput",
     "StoryDialoguePolicy",
     "StoryRelationshipEffect",
+    "contains_character_narration",
+    "parse_story_dialogue_output",
 ]

@@ -223,6 +223,9 @@ class ApiSettings:
             "FABLESPACE_LLM_TOP_P"
         )
     )
+    llm_proxy_url: str = field(
+        default_factory=lambda: _env_value("FABLESPACE_LLM_PROXY_URL")
+    )
     llm_explicitly_configured: bool = field(
         default_factory=lambda: _any_env_value(STORY_LLM_ENV_NAMES)
     )

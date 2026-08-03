@@ -95,7 +95,7 @@ jobs:
 
             # Return success only when the backend can serve its local health endpoint.
             backend_is_healthy() {
-              compose -f docker-compose.yml -f deploy/docker-compose.shared.yml \
+              compose -f docker-compose.yml -f deploy/docker-compose.shared.yml -f deploy/docker-compose.llm-proxy.yml \
                 exec -T backend python -c \
                 "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/v1/health', timeout=3).read()" \
                 >/dev/null 2>&1
@@ -110,7 +110,7 @@ jobs:
                 if [ "${DDL_STARTED}" = "false" ]; then
                   echo "Repair stopped before DDL; restarting the verified backend image"
                   BACKEND_RECOVERED=false
-                  if compose -f docker-compose.yml -f deploy/docker-compose.shared.yml \
+                  if compose -f docker-compose.yml -f deploy/docker-compose.shared.yml -f deploy/docker-compose.llm-proxy.yml \
                     up -d --no-deps --no-build --force-recreate backend; then
                     for ATTEMPT in $(seq 1 30); do
                       if backend_is_healthy; then
@@ -127,7 +127,7 @@ jobs:
                   fi
                 else
                   echo "Repair failed after DDL began; stopping backend for manual recovery"
-                  if ! compose -f docker-compose.yml -f deploy/docker-compose.shared.yml \
+                  if ! compose -f docker-compose.yml -f deploy/docker-compose.shared.yml -f deploy/docker-compose.llm-proxy.yml \
                     stop backend >/dev/null 2>&1; then
                     echo "CRITICAL: unable to confirm the backend is stopped after DDL failure"
                   else
@@ -140,7 +140,7 @@ jobs:
             trap cleanup EXIT
             trap 'exit 1' HUP INT TERM
 
-            RUNNING_BACKEND_CONTAINER="$(compose -f docker-compose.yml -f deploy/docker-compose.shared.yml ps -q backend)"
+            RUNNING_BACKEND_CONTAINER="$(compose -f docker-compose.yml -f deploy/docker-compose.shared.yml -f deploy/docker-compose.llm-proxy.yml ps -q backend)"
             if [ -z "${RUNNING_BACKEND_CONTAINER}" ] ||
                [ "$(printf '%s\n' "${RUNNING_BACKEND_CONTAINER}" | wc -l)" -ne 1 ] ||
                [ "$(sudo docker inspect -f '{{.State.Running}}' "${RUNNING_BACKEND_CONTAINER}")" != "true" ]; then
@@ -151,7 +151,7 @@ jobs:
               echo "Running backend is not healthy before maintenance"
               exit 1
             fi
-            compose -f docker-compose.yml -f deploy/docker-compose.shared.yml \
+            compose -f docker-compose.yml -f deploy/docker-compose.shared.yml -f deploy/docker-compose.llm-proxy.yml \
               exec -T backend python -c "${ORM_ASSERTION}"
 
             echo "Building the backend image from the verified checkout"
@@ -180,7 +180,7 @@ jobs:
             }
 
             echo "Stopping backend writes before the production backup"
-            compose -f docker-compose.yml -f deploy/docker-compose.shared.yml stop backend
+            compose -f docker-compose.yml -f deploy/docker-compose.shared.yml -f deploy/docker-compose.llm-proxy.yml stop backend
             BACKEND_STOPPED=true
 
             if [ -L "${FABLESPACE_PATH}/backups" ] || [ -L "${BACKUP_DIR}" ]; then
@@ -332,7 +332,7 @@ jobs:
             fi
 
             echo "Schema verified; recreating backend from the prepared image"
-            compose -f docker-compose.yml -f deploy/docker-compose.shared.yml \
+            compose -f docker-compose.yml -f deploy/docker-compose.shared.yml -f deploy/docker-compose.llm-proxy.yml \
               up -d --no-deps --no-build --force-recreate backend
             BACKEND_READY=false
             for ATTEMPT in $(seq 1 30); do
@@ -347,7 +347,7 @@ jobs:
               exit 1
             fi
 
-            compose -f docker-compose.yml -f deploy/docker-compose.shared.yml \
+            compose -f docker-compose.yml -f deploy/docker-compose.shared.yml -f deploy/docker-compose.llm-proxy.yml \
               exec -T backend python -c \
               "from sqlalchemy import select; from fablespace_api.infrastructure.database import Database; from fablespace_api.infrastructure.settings import ApiSettings; from fablespace_api.infrastructure.storage import resolve_database_url; from fablespace_api.infrastructure.story_state_models import StoryRunModel; settings = ApiSettings(); database = Database(resolve_database_url(settings), settings.mysql_pool_size, settings.mysql_max_overflow, echo=settings.mysql_echo); session = database.get_session(); session.execute(select(StoryRunModel).limit(1)).first(); session.close(); database.dispose()"
 

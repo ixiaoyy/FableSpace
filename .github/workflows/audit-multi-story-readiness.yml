@@ -64,7 +64,7 @@ jobs:
               }
             fi
 
-            COMPOSE_FILES="-f docker-compose.yml -f deploy/docker-compose.shared.yml"
+            COMPOSE_FILES="-f docker-compose.yml -f deploy/docker-compose.shared.yml -f deploy/docker-compose.llm-proxy.yml"
             RUNNING_BACKEND_CONTAINER="$(compose ${COMPOSE_FILES} ps -q backend)"
             if [ -z "${RUNNING_BACKEND_CONTAINER}" ] ||
                [ "$(printf '%s\n' "${RUNNING_BACKEND_CONTAINER}" | wc -l)" -ne 1 ] ||

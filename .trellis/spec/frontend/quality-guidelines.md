@@ -110,11 +110,13 @@ For the content backend, this includes `/admin`, `/admin/story-worlds`, and one
 appended after a reviewed choice is that choice's authored result, not merely a
 duplicate of `current_node.narration`.
 
-The chat-first story page does not render an initial or otherwise standalone
+The chat-first story page does not render an initial, unassociated
 `narration` event: public Character context already exists on the Character
 page, and the authored opening Character message starts the conversation.
 However, a narration immediately following a reviewed `choice` must remain as
-the visible result of that interaction.
+the visible result of that interaction. Generated narration associated with a
+`character_id` must also remain visible before or after that Character's
+spoken message.
 
 A reviewed `choice` contains the player's authored action intent, not a
 verbatim player utterance. Render persisted and optimistic choices as a
@@ -123,10 +125,15 @@ bubble or label it `你`. Only a free-input `message` with `role="player"` is
 player dialogue. Use `PendingStoryExchange.kind` to preserve the same semantic
 distinction before and after the server response.
 
-First remove non-timeline relationship events, then keep narration only when
-the preceding visible event is the player's choice. Do not compare narration
-content or IDs with `current_node`; the legitimate choice result commonly is
-the current node narration.
+First remove non-timeline relationship events, then keep narration when it is
+the result of the player's preceding choice or is explicitly associated with a
+Character. Do not compare narration content or IDs with `current_node`; the
+legitimate choice result commonly is the current node narration.
+
+Only a `message` with `role="character"` is a Character speech bubble. Every
+`narration` event uses the separate `此刻` presentation without Character
+avatar or Character-name label, even when `character_id` identifies whose
+observable action it describes.
 
 Wrong:
 
@@ -148,15 +155,20 @@ const storyEvents = run.events.filter(
 const timelineEvents = storyEvents.filter(
   (event, index) => (
     event.type !== "narration"
+    || event.character_id !== null
     || storyEvents[index - 1]?.type === "choice"
   ),
 )
 
 const label = event.type === "choice"
   ? "你的选择"
-  : event.role === "player"
-    ? "你"
-    : "此刻"
+  : event.type === "narration"
+    ? "此刻"
+    : event.role === "character"
+      ? event.character_name
+      : event.role === "player"
+        ? "你"
+        : "此刻"
 ```
 
 The chat header renders Character identity only: portrait or monogram plus
@@ -166,7 +178,7 @@ contract and runtime logic; the player experiences the relationship through
 dialogue and authored interaction results instead of a page-level
 interpretation. After changing this projection, verify a narrow viewport starts
 with the Character opening message, shows the sequence “你的选择 →
-authored Character action or reply,” and automatically scrolls to that reply.
+独立叙事或角色对白,” and automatically scrolls to the latest result.
 
 ---
 

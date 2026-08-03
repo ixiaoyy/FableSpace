@@ -829,6 +829,7 @@ function StoryTimeline({
   const timelineEvents = storyEvents.filter(
     (event, eventIndex) => (
       event.type !== "narration"
+      || event.character_id !== null
       || storyEvents[eventIndex - 1]?.type === "choice"
     ),
   )
@@ -846,29 +847,32 @@ function StoryTimeline({
       aria-busy={pending}
       aria-live="polite"
     >
-      {timelineEvents.map((event, eventIndex) => {
+      {timelineEvents.map((event) => {
         const messageEvent = event.type === "message"
         const choiceEvent = event.type === "choice"
-        const choiceResponse = event.type === "narration"
-          && timelineEvents[eventIndex - 1]?.type === "choice"
-        const characterEvent = event.role === "character" || choiceResponse
+        const narrationEvent = event.type === "narration"
+        const characterEvent = event.role === "character"
         const playerMessageEvent = event.role === "player" && !choiceEvent
         const eventTone = choiceEvent
           ? "choice"
-          : characterEvent
-            ? "character"
-            : playerMessageEvent
-              ? "player"
-              : event.role || event.type
+          : narrationEvent
+            ? "narration"
+            : characterEvent
+              ? "character"
+              : playerMessageEvent
+                ? "player"
+                : event.role || event.type
         const eventLabel = choiceEvent
           ? "你的选择"
-          : characterEvent
-            ? event.character_name || detail.character.name
-            : playerMessageEvent
-              ? "你"
-              : messageEvent
-                ? "故事"
-                : "此刻"
+          : narrationEvent
+            ? "此刻"
+            : characterEvent
+              ? event.character_name || detail.character.name
+              : playerMessageEvent
+                ? "你"
+                : messageEvent
+                  ? "故事"
+                  : "此刻"
         const eventCharacter = event.character_id
           ? detail.characters.find(
               (character) => character.id === event.character_id,
@@ -886,7 +890,6 @@ function StoryTimeline({
             className={[
               "annieStoryEvent",
               `annieStoryEvent--${eventTone}`,
-              choiceResponse ? "annieStoryEvent--choiceResponse" : "",
             ].filter(Boolean).join(" ")}
           >
             {characterEvent && eventPortrait ? (

@@ -47,6 +47,18 @@ StoryChoice(
 - Free dialogue writes `source_kind="free_input"`. The dialogue policy may
   apply a small bounded relationship signal; it cannot change nodes, key
   choices, story flags, canon categories, or endings.
+- The model response is a fixed JSON object with string fields `dialogue`,
+  `narration_before`, and `narration_after`. `dialogue` contains only words the
+  Character actually speaks. Observable third-person action belongs in the
+  narration fields; quoted speech, player action, and internal thought do not.
+- Persist generated output in presentation order as optional system-role
+  `narration` events around one Character-role `message`. Only that Character
+  message enters later Character dialogue context; narration remains
+  player-visible presentation and grants no Character knowledge.
+- If a legacy `free_input` Character event contains an explicit third-person
+  action by that Character, project it as narration and exclude it from later
+  Character context. Do not rewrite the stored event or invent a missing line
+  of speech.
 - Historical canon entries remain `fixed_fact`, `story_setting`, or
   `needs_verification`; runtime AI cannot promote or create a fixed fact.
 
@@ -59,6 +71,8 @@ StoryChoice(
 | StoryRun already completed | `409 run_completed` |
 | Persisted run uses replaced content | `409 story_content_changed` or current-content recovery |
 | Dialogue model is unavailable | `503 dialogue_unavailable`; no fabricated Character reply |
+| Dialogue response is not the exact three-field JSON contract | Replace it with policy-owned direct dialogue; persist no model narration |
+| `dialogue` contains third-person Character action, or narration contains speech | Replace it with policy-owned direct dialogue; persist no mixed presentation |
 | Dialogue output violates policy | Replace/reject it according to `StoryDialoguePolicy`; do not change reviewed state |
 | Relationship signal exceeds natural-turn bound | Clamp/reject it to the Character's reviewed rules |
 
@@ -69,7 +83,11 @@ StoryChoice(
   historical outcome.
 - Base: a free player message receives a short in-character response and at
   most a bounded natural relationship effect.
+- Good: a generated observable action is persisted as a system narration event
+  before or after a separate Character message containing only spoken words.
 - Bad: parse an LLM reply for a `next_node_id`, story flag, or ending.
+- Bad: persist `安妮把纸压在陶罐下面` as `role="character"` merely because it
+  came from the Character dialogue model.
 - Bad: remove the authored next-node narration because the same text also
   appears in the current-node projection.
 
@@ -81,6 +99,12 @@ StoryChoice(
   authored narration in order.
 - Verify unavailable and repeated choices leave deterministic state unchanged.
 - Verify free input cannot set reviewed flags, choose a node, or complete a run.
+- Verify the exact dialogue JSON contract is required; malformed output,
+  mixed Character narration, and speech embedded in narration all produce a
+  direct-dialogue safe replacement with no model narration.
+- Verify generated narration is ordered around the Character message, is not
+  added to later Character context, and an old mixed event projects as
+  narration without modifying persistence.
 - Run `py -3 -m compileall -q apps/api/src` and the relevant frontend
   typecheck/build.
 - For historical content, record a PASS/FAIL/BLOCKED integrity verdict with
@@ -102,6 +126,23 @@ choice = require_available_reviewed_choice(world, run, choice_id)
 append_choice_event(source_id=choice.id)
 apply_reviewed_effects(choice)
 run.current_node_id = choice.next_node_id
+```
+
+For generated presentation, the corresponding correct boundary is:
+
+```python
+output = parse_story_dialogue_output(model_content)
+decision = dialogue_policy.decide(
+    character_name=character.name,
+    player_message=player_message,
+    model_reply=output,
+    input_fallback=input_fallback,
+)
+if decision.narration_before:
+    append_narration(decision.narration_before, role="system")
+append_message(decision.dialogue, role="character")
+if decision.narration_after:
+    append_narration(decision.narration_after, role="system")
 ```
 
 The reviewed StoryWorld graph, not runtime generation, owns deterministic

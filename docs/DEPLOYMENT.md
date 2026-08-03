@@ -12,8 +12,9 @@ push main
   -> 全量媒体校验触发时，通过 CDN 域名读取抽样图片做真实校验
   -> 前端 Docker 镜像上传到服务器并替换 frontend
   -> 后端变化时在服务器重建镜像，以真实 Compose 环境预检 StoryWorld LLM 配置
-  -> 用固定非用户文本真实调用 StoryWorld provider
-  -> 配置与 provider 调用均通过后替换 backend 并检查 /api/v1/health
+  -> 从受保护 Secret 协调 LLM 专用代理并校验配置与内部监听
+  -> 用固定非用户文本经专用代理真实调用 provider，并校验结构化对白合同
+  -> 配置与有效对白合同均通过后替换 backend 并检查 /api/v1/health
 ```
 
 项目图片路径使用：
@@ -49,6 +50,7 @@ https://<cdn-domain>/fablespace/media/v1/<object-key>
 | `DEPLOY_SSH_KEY` | 是 | 部署私钥 |
 | `DEPLOY_PORT` | 否 | SSH 端口，默认 `22` |
 | `OPENCODE_API_KEY` | 是 | 现有公共福利模型路由 Key；部署时经标准输入同步到服务器同名变量，不写入仓库或日志 |
+| `FABLESPACE_LLM_PROXY_SUBSCRIPTION_URL` | 是 | LLM 专用代理订阅；只经标准输入写入服务器 root 权限配置，不写入仓库、普通 env 或日志 |
 | `CDN_BASE_URL` | 是 | 对象存储绑定的 HTTPS CDN 域名，不带 release 路径 |
 | `CDN_S3_BUCKET` | 是 | 对象存储桶名 |
 | `CDN_S3_ENDPOINT_URL` | 是 | S3 endpoint；R2 形如 `https://<account-id>.r2.cloudflarestorage.com` |
@@ -177,10 +179,14 @@ mysql \
 
 MySQL DDL 会隐式提交，因此迁移中途失败可能已经产生部分删除。失败时停止应用写入，使用执行前逻辑备份恢复整个 `fablespace` database，再重新验证；不使用反向 SQL 猜测恢复旧数据。仅合并仓库代码不代表任何现有数据库已经执行 008。
 
-后端同时连接 Compose 默认网络与外部 `parallellines_default` 网络；前端仍只在 FableSpace 默认网络内访问 backend。若共享网络名称不同，设置 `FABLESPACE_SHARED_NETWORK`。启动命令必须包含共享覆盖文件：
+后端同时连接 Compose 默认网络、外部 `parallellines_default` 网络与项目私有 `llm_egress` 网络；前端仍只在 FableSpace 默认网络内访问 backend，`llm-proxy` 只连接 `llm_egress` 且不映射宿主端口。若共享网络名称不同，设置 `FABLESPACE_SHARED_NETWORK`。启动命令必须同时包含共享服务与 LLM 代理覆盖文件：
 
 ```bash
-sudo docker compose -f docker-compose.yml -f deploy/docker-compose.shared.yml up -d --build
+sudo docker compose \
+  -f docker-compose.yml \
+  -f deploy/docker-compose.shared.yml \
+  -f deploy/docker-compose.llm-proxy.yml \
+  up -d --build
 ```
 
 ## 运行日志
@@ -247,7 +253,9 @@ FABLESPACE_SSO_TICKET_TTL_SECONDS=60
 
 StoryWorld 默认复用上述已有部署级公共模型路由：backend、model 和 base URL 来自 `FABLEMAP_DEFAULT_FREE_LLM_*`，`FABLEMAP_DEFAULT_FREE_LLM_API_KEY_ENV` 只保存服务端 Key 的环境变量名，运行时在内存中解析实际 Key；生成参数沿用 `temperature=0.8`、`max_tokens=1024`、`top_p=0.9`。无需为 StoryWorld 复制同一把 Key。
 
-每次服务器配置会输出固定的非敏感状态 `story_llm_key=not-configured|existing|recovered|synced`。该状态只说明目标 Key 是否未配置、原本存在、从脚本自身备份恢复或由受保护部署 Secret 同步，不包含指针值或 Key；生产对话依赖公共路由时，部署日志必须为 `existing`、`recovered` 或 `synced`。Workflow 随后用刚构建的 backend 镜像和真实 Compose 环境先调用运行时配置构造器，再以固定短提示真实调用 provider；两个预检都通过才替换当前 backend。探针不创建 FastAPI 应用、不连接数据库、不读取玩家状态，只输出 backend 与预先脱敏的 HTTP/网络/响应分类，不输出 Key、URL、prompt 或响应正文。
+生产 LLM 出口使用固定摘要的 Mihomo 容器。`deploy/server/configure_llm_proxy.py` 只接受标准输入中的 HTTPS 订阅，原子写入 `/opt/fablespace-secrets/llm-proxy/config.yaml`，目录和文件权限分别为 `0700`、`0600`；输出只有 `llm_proxy_config=validated|written|existing`。订阅 URL、节点和代理响应不得出现在仓库、`apps/api/.env`、Compose 环境或日志中。`deploy/docker-compose.llm-proxy.yml` 只把非敏感内部地址 `FABLESPACE_LLM_PROXY_URL=http://llm-proxy:7890` 交给 backend，运行时仅 `CustomBackend` 的 provider opener 使用它，不设置全进程 `HTTP_PROXY` / `HTTPS_PROXY`。
+
+每次服务器配置会输出固定的非敏感状态 `story_llm_key=not-configured|existing|recovered|synced`。该状态只说明目标 Key 是否未配置、原本存在、从脚本自身备份恢复或由受保护部署 Secret 同步，不包含指针值或 Key；生产对话依赖公共路由时，部署日志必须为 `existing`、`recovered` 或 `synced`。Workflow 随后用刚构建的 backend 镜像和真实 Compose 环境先调用运行时配置构造器，校验代理配置与内部监听，再以固定短提示真实调用 provider，并要求响应能解析为仅含字符串字段 `dialogue`、`narration_before`、`narration_after` 的对白合同；非空文本本身不算通过。所有预检均通过才替换当前 backend。探针不创建 FastAPI 应用、不连接数据库、不读取玩家状态，只输出 backend 与预先脱敏的 HTTP/网络/响应分类，不输出 Key、订阅、节点、URL、prompt 或响应正文。
 
 需要独立覆盖时，可以同时提供 `FABLESPACE_LLM_BACKEND`、`FABLESPACE_LLM_MODEL`、`FABLESPACE_LLM_API_KEY`、`FABLESPACE_LLM_BASE_URL`、`FABLESPACE_LLM_TEMPERATURE`、`FABLESPACE_LLM_MAX_TOKENS` 和 `FABLESPACE_LLM_TOP_P`。只要其中任一项出现，运行时就严格校验整组且不与公共路由混用；temperature 允许 `0..2`，max tokens 允许 `1..4096`，top-p 允许 `(0, 1]`。所选来源缺失或非法时，公开页面和内容后台继续可用，对话请求返回 `503`。两种来源都只读取后端部署环境，不读取仓库 JSON、owner、StoryWorld 或数据库；启动日志只记录固定配置字段名，不记录配置值、Key 指针目标值或密钥。修改后必须重建或重启 FableSpace 后端。
 

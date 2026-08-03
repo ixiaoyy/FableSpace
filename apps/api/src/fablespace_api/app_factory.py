@@ -113,6 +113,30 @@ def build_system_story_llm_config(settings: ApiSettings) -> LLMConfig | None:
     ):
         invalid.append(setting_names["base_url"])
 
+    proxy_url = settings.llm_proxy_url.strip()
+    if proxy_url:
+        parsed_proxy_url = urlparse(proxy_url)
+        try:
+            parsed_proxy_url.port
+        except ValueError:
+            invalid_proxy_port = True
+        else:
+            invalid_proxy_port = False
+        if (
+            backend != "custom"
+            or parsed_proxy_url.scheme not in {"http", "https"}
+            or not parsed_proxy_url.netloc
+            or not parsed_proxy_url.hostname
+            or invalid_proxy_port
+            or parsed_proxy_url.username is not None
+            or parsed_proxy_url.password is not None
+            or parsed_proxy_url.path not in {"", "/"}
+            or parsed_proxy_url.params
+            or parsed_proxy_url.query
+            or parsed_proxy_url.fragment
+        ):
+            invalid.append("FABLESPACE_LLM_PROXY_URL")
+
     if explicit_config:
         if (
             isinstance(temperature, bool)
@@ -151,6 +175,7 @@ def build_system_story_llm_config(settings: ApiSettings) -> LLMConfig | None:
         temperature=float(temperature),
         max_tokens=max_tokens,
         top_p=float(top_p),
+        extra={"proxy_url": proxy_url} if proxy_url else {},
     )
 
 

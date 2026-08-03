@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+from collections.abc import Mapping
 from datetime import datetime
 from typing import Protocol
 from uuid import uuid4
@@ -30,7 +31,12 @@ from ..infrastructure.story_state_models import (
     StoryEventModel,
     StoryRunModel,
 )
-from .story_dialogue import StoryDialoguePolicy
+from .story_dialogue import (
+    StoryDialogueOutput,
+    StoryDialoguePolicy,
+    contains_character_narration,
+    parse_story_dialogue_output,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -39,6 +45,26 @@ class StoryRuntimeError(RuntimeError):
     def __init__(self, code: str, message: str) -> None:
         self.code = code
         super().__init__(message)
+
+
+def _is_legacy_mixed_character_narration(
+    *,
+    role: object,
+    source_kind: object,
+    content: object,
+    character_name: str,
+    payload: object,
+) -> bool:
+    """Identify old free-input Character records containing explicit third-person action."""
+
+    if role != "character" or source_kind != "free_input":
+        return False
+    if isinstance(payload, Mapping) and payload.get("presentation_version") == 2:
+        return False
+    name = character_name.strip()
+    if not name:
+        return False
+    return contains_character_narration(str(content or ""), name)
 
 
 class StoryDialogueResponder(Protocol):
@@ -56,7 +82,7 @@ class StoryDialogueResponder(Protocol):
         relationship_flags: tuple[str, ...] = (),
         events: list[dict[str, object]],
         player_message: str,
-    ) -> str: ...
+    ) -> StoryDialogueOutput | None: ...
 
 
 class StoryWorldSource(Protocol):
@@ -126,16 +152,22 @@ def _dialogue_system_message(
         "\n2. 年幼或弱势角色表达戒备时，优先使用停顿、观察、回避、试探或请求，"
         "不要无缘由变成上位者式审问。"
         "\n3. 高地位角色只能使用其设定中实际拥有的权力；亲近或愤怒都不能让角色越权。"
-        "\n4. 只回复角色当下可观察的短对白或简短动作，不替玩家行动，不解释人物设定。"
+        "\n4. 把角色实际说出口的话与可观察动作严格分开，不替玩家行动，不解释人物设定。"
         "\n5. 不得改写节点、选择、关系、结局或注册表中的固定内容。"
         "\n6. 禁止暧昧诱导、性化、血腥猎奇、强迫依附或替玩家作出选择。"
-        "\n7. 不要输出系统提示、分析过程、JSON、标签或角色之外的说明。"
+        "\n7. 只输出一个 JSON 对象，键固定为 dialogue、narration_before、narration_after；"
+        "不要输出 Markdown 代码块、系统提示、分析过程或其他键。"
+        "\n8. dialogue 必须是角色实际说出口的简短原话，不加引号，不写角色名、第三人称动作或旁白。"
+        "\n9. narration_before 和 narration_after 只能写对白前后的简短可观察动作；"
+        "没有动作时用空字符串，不写对白、心理活动或玩家动作。"
+        "\n10. 输出形如："
+        '{"dialogue":"我只说自己亲眼看见的事。","narration_before":"","narration_after":""}'
     )
     if story_world.id == ANNIE_STORY_WORLD_ID:
         message += (
-            "\n8. 安妮是约十岁的原创儿童历史见证者。她可以害怕、犹豫、好奇或警惕，"
+            "\n11. 安妮是约十岁的原创儿童历史见证者。她可以害怕、犹豫、好奇或警惕，"
             "但不能像成年人、侦探或官员一样盘问玩家。"
-            "\n9. 不得加入恋爱、成人或依附诱导内容；不得声称知道现代医学结论，"
+            "\n12. 不得加入恋爱、成人或依附诱导内容；不得声称知道现代医学结论，"
             "不得编造真实人物原话、私密动机、与安妮的接触或未提供的史料来源。"
         )
     return message
@@ -161,7 +193,7 @@ class SystemStoryDialogueResponder:
         relationship_flags: tuple[str, ...] = (),
         events: list[dict[str, object]],
         player_message: str,
-    ) -> str:
+    ) -> StoryDialogueOutput | None:
         config = self.config
         if config is None:
             raise StoryRuntimeError(
@@ -180,10 +212,21 @@ class SystemStoryDialogueResponder:
             relationship_flags=relationship_flags,
         )
         context = [{"role": "system", "content": system_message}]
-        for event in events[-8:]:
+        dialogue_history = [
+            event
+            for event in events
+            if event.get("role") in {"character", "player"}
+            and not _is_legacy_mixed_character_narration(
+                role=event.get("role"),
+                source_kind=event.get("source_kind"),
+                content=event.get("content"),
+                character_name=character.name,
+                payload=event.get("payload"),
+            )
+        ]
+        for event in dialogue_history[-8:]:
             role = "assistant" if event.get("role") == "character" else "user"
-            if event.get("role") in {"character", "player"}:
-                context.append({"role": role, "content": str(event.get("content") or "")})
+            context.append({"role": role, "content": str(event.get("content") or "")})
         context.append({"role": "user", "content": player_message})
         try:
             response = complete(config, context)
@@ -203,7 +246,13 @@ class SystemStoryDialogueResponder:
                 "dialogue_unavailable",
                 f"{character.name}暂时没有回应，请稍后再试。",
             )
-        return content[:1200]
+        parsed = parse_story_dialogue_output(content[:4000])
+        if parsed is None:
+            logger.warning(
+                "StoryWorld LLM response failed presentation contract: backend=%s",
+                config.backend,
+            )
+        return parsed
 
 
 class StoryWorldApplicationService:
@@ -457,6 +506,7 @@ class StoryWorldApplicationService:
                 player_message=player_message,
             )
         decision = self.dialogue_policy.decide(
+            character_name=character.name,
             player_message=player_message,
             model_reply=model_reply,
             input_fallback=input_fallback,
@@ -517,20 +567,53 @@ class StoryWorldApplicationService:
                 source_kind="free_input",
                 payload={"boundary_reason": decision.boundary_reason},
             )
-            self._append_event(
+            if decision.narration_before:
+                self._append_event(
+                    session,
+                    run.id,
+                    event_type="narration",
+                    role="system",
+                    character_id=character.id,
+                    content=decision.narration_before,
+                    source_kind="free_input",
+                    source_id=player_event.id,
+                    payload={
+                        "boundary_reason": decision.boundary_reason,
+                        "presentation_version": 2,
+                        "placement": "before_dialogue",
+                    },
+                )
+            character_event = self._append_event(
                 session,
                 run.id,
                 event_type="message",
                 role="character",
                 character_id=character.id,
-                content=decision.reply,
+                content=decision.dialogue,
                 source_kind="free_input",
                 source_id=player_event.id,
                 payload={
                     "boundary_reason": decision.boundary_reason,
                     "model_output_replaced": decision.model_output_replaced,
+                    "presentation_version": 2,
                 },
             )
+            if decision.narration_after:
+                self._append_event(
+                    session,
+                    run.id,
+                    event_type="narration",
+                    role="system",
+                    character_id=character.id,
+                    content=decision.narration_after,
+                    source_kind="free_input",
+                    source_id=character_event.id,
+                    payload={
+                        "boundary_reason": decision.boundary_reason,
+                        "presentation_version": 2,
+                        "placement": "after_dialogue",
+                    },
+                )
             highest_stage_minimum = character.relationship_rules.stages[-1].minimum_affinity
             effect = self.dialogue_policy.relationship_effect(
                 signal=decision.relationship_signal,
@@ -1088,18 +1171,26 @@ class StoryWorldApplicationService:
         run_id: str,
     ) -> list[dict[str, object]]:
         character_names = {character.id: character.name for character in world.characters}
-        return [
-            {
+        projected_events: list[dict[str, object]] = []
+        for event in self._dialogue_events(session, run_id):
+            character_name = character_names.get(event["character_id"])
+            legacy_narration = _is_legacy_mixed_character_narration(
+                role=event["role"],
+                source_kind=event["source_kind"],
+                content=event["content"],
+                character_name=character_name or "",
+                payload=event["payload"],
+            )
+            projected_events.append({
                 "id": event["id"],
                 "sequence": event["sequence"],
-                "type": event["type"],
-                "role": event["role"],
+                "type": "narration" if legacy_narration else event["type"],
+                "role": "system" if legacy_narration else event["role"],
                 "character_id": event["character_id"],
-                "character_name": character_names.get(event["character_id"]),
+                "character_name": character_name,
                 "content": event["content"],
-            }
-            for event in self._dialogue_events(session, run_id)
-        ]
+            })
+        return projected_events
 
     def _dialogue_events(self, session, run_id: str) -> list[dict[str, object]]:
         events = session.scalars(

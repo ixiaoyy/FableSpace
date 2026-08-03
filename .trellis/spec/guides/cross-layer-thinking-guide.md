@@ -167,6 +167,9 @@ Before changing a deployment-level config source:
 - [ ] Preserve safe failure categories across the provider adapter boundary.
       Catch-all fallback loops must retain HTTP status or network/response class
       without logging URLs, credentials, prompts, or response bodies.
+- [ ] Scope alternate egress to the adapter that needs it. A process-wide
+      `HTTP_PROXY` / `HTTPS_PROXY` can silently reroute authentication, storage,
+      health, and other integrations; verify non-target traffic stays direct.
 
 **FableSpace example**: StoryWorld runtime correctly reused
 `FABLEMAP_DEFAULT_FREE_LLM_API_KEY_ENV=OPENCODE_API_KEY`, but the server
@@ -174,10 +177,33 @@ reconciler still classified `OPENCODE_API_KEY` as retired and removed it from
 the exact `apps/api/.env` passed to Docker. Local provider probes and process
 health both passed while production dialogue remained unavailable.
 
-**Follow-up failure**: restoring any historical Key made `LLMConfig`
-construction pass, but the provider returned HTTP 500 in production while the
-current local Key succeeded. A deployment gate that stops at configuration
-shape cannot distinguish a present-but-stale credential from a usable one.
+**Follow-up failure**: production and a forced-direct local probe returned the
+same provider HTTP 500/404 pattern with the same Key, while an earlier local
+probe through the system proxy succeeded. Key equality and server geography do
+not prove route equivalence: validate the exact provider contract from the
+production egress path before replacement, and distinguish provider HTTP
+failure from DNS/TCP/TLS failure without exposing the endpoint or credential.
+
+## Generated Speech and Narration Boundary
+
+When one model response feeds both a chat transcript and story presentation,
+do not infer presentation type from the caller (“Character model”). Make the
+semantic boundary structural and trace it through prompt, parser, policy,
+persistence, context construction, API projection, and UI styling.
+
+- [ ] Give spoken dialogue and observable narration separate typed fields.
+- [ ] Persist only actual spoken words as `role=character`; render narration as
+      a system presentation without Character avatar or speaker label.
+- [ ] Exclude presentation narration from later Character speech context.
+- [ ] Reject mixed output at the policy boundary and use a pure-dialogue safe
+      replacement; prompt instructions alone are not validation.
+- [ ] Handle legacy mixed records through a narrow read-time projection when
+      possible; do not rewrite history or fabricate missing dialogue.
+- [ ] Test the provider probe against the same structured contract required by
+      runtime, not merely a non-empty response.
+
+See [`../backend/historical-choice-chat.md`](../backend/historical-choice-chat.md)
+for the executable response and persistence contract.
 
 ---
 

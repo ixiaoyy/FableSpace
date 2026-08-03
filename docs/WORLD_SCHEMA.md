@@ -426,7 +426,7 @@ StoryRun 表示一次从开始到结局的故事轮次。
 | `id` | string | 唯一事件 ID |
 | `story_run_id` | string | 所属 StoryRun |
 | `sequence` | integer | 同一 StoryRun 内唯一且严格递增 |
-| `event_type` | string | `run_started`、`message`、`choice`、`character_decision`、`relationship_changed`、`node_changed`、`memory_added`、`character_visit`、`run_completed` 等受控事件类型 |
+| `event_type` | string | `run_started`、`message`、`narration`、`choice`、`character_decision`、`relationship_changed`、`node_changed`、`memory_added`、`character_visit`、`run_completed` 等受控事件类型 |
 | `character_id` | string? | 角色消息或访问事件必须指向锁定 ReviewedStory 的参与 Character |
 | `role` | `player` / `character` / `system`? | 消息或叙事的可观察发出方 |
 | `content` | string | 玩家可观察正文 |
@@ -435,7 +435,7 @@ StoryRun 表示一次从开始到结局的故事轮次。
 | `payload` | object | 保存结构化可观察结果和确定性 `rule_source`，不保存模型思维链 |
 | `created_at` | ISO timestamp | 事件创建时间 |
 
-自由消息只追加消息及其来源事件，不改变节点、关键选择、故事标记、长期关系或结局。`reviewed_choice` 事件必须引用当前节点中可用的发布 choice，`reviewed_decision` 必须引用相同事实下唯一命中的 DecisionRule，随后才允许在同一事务内确定性写入关系、标记、节点与结局。事件序号由持久化层分配，调用方不得自行维护第二套游标。
+自由消息只追加消息及其来源事件，不改变节点、关键选择、故事标记、长期关系或结局。模型生成结果必须结构化区分 `dialogue`、`narration_before` 与 `narration_after`：Character `message` 只保存角色实际说出口的 `dialogue`；可观察动作按顺序保存为 `role=system` 的独立 `narration` 事件，不进入 Character 对话上下文，也不授予 Character 新知识。结构非法或把第三人称动作混入对白时必须使用系统审核的纯对白安全替代，不得把整段模型文本作为 Character 消息。`reviewed_choice` 事件必须引用当前节点中可用的发布 choice，`reviewed_decision` 必须引用相同事实下唯一命中的 DecisionRule，随后才允许在同一事务内确定性写入关系、标记、节点与结局。事件序号由持久化层分配，调用方不得自行维护第二套游标。
 
 ### StoryMessage
 
@@ -454,7 +454,7 @@ StoryMessage 将可回放消息从通用事件载荷中独立出来，同时保�
 | `source_event_sequence` | integer | 来源事件在轮次内的序号 |
 | `created_at` | ISO timestamp | 消息创建时间 |
 
-消息只追加，不提供原地更新或删除接口。玩家始终可以查看自己的时间线；Character 上下文只能注入 `visible_to_character_ids` 包含自身的消息。`system` / `action` 叙述对玩家可见不等于已向任何 Character 公开，系统也不得因为两个 Character 参与同一故事而自动共享消息。
+消息只追加，不提供原地更新或删除接口。`role=character` 的消息正文只能是对应 Character 实际说出口的话，不得包含角色名开头的第三人称动作或剧情说明。玩家始终可以查看自己的时间线；Character 上下文只能注入 `visible_to_character_ids` 包含自身的消息。`system` / `action` 叙述对玩家可见不等于已向任何 Character 公开，系统也不得因为两个 Character 参与同一故事而自动共享消息。
 
 ### PrivateMemory
 
