@@ -33,6 +33,7 @@
 - [ ] 史学争议保留争议范围与来源，没有把单一解释包装成定论。
 - [ ] 每条原创设定已检查最远后果，不会改变固定史实。
 - [ ] 真实人物没有无出处的“原话”、私密动机或确定性心理描写。
+- [ ] 真实人物若作为 Character，已按后端托管内容规范启用显式第三人称剧情转述边界；开场、自由回应、事件 payload、关系效果和全部结局保持同一审核模式。
 - [ ] `史实`、`剧情设定`、`待核验` 分开记录，运行时 AI 不能改变状态。
 - [ ] 任一关键前提无法核验时停止发布，而不是让 AI 补空白。
 
@@ -56,4 +57,5 @@
 - [产品简报](../../../docs/PRODUCT_BRIEF.md)
 - [角色故事平台主线](../../../docs/FABLESPACE_SPACE_PLATFORM.md)
 - [故事世界 Schema](../../../docs/WORLD_SCHEMA.md)
+- [托管 StoryWorld 内容与真人转述合同](../backend/managed-story-content.md)
 - [安妮宽街系统内容](../../../apps/api/src/fablespace_api/content/annie_broad_street.py)

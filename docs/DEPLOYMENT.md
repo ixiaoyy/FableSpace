@@ -110,7 +110,7 @@ docker exec parallellines-db-1 sh -c 'mysql -uroot -p"$MYSQL_ROOT_PASSWORD" -e "
 - `managed_story_worlds`
 - `managed_media_assets`
 
-004–007 保留当前 Schema 的演进历史；空库不需要先执行已删除的 FableMap 001–003。首次启动只补入缺失的安妮与长明宫 StoryWorld，不覆盖已经存在的管理文档。
+004–007 保留当前 Schema 的演进历史；空库不需要先执行已删除的 FableMap 001–003。首次启动只补入缺失的安妮与先天二年·虔化门 StoryWorld，不覆盖已经存在的管理文档。
 
 ### 已有库的受控 006/008 修复与旧 Schema 清退
 

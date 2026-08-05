@@ -183,7 +183,7 @@ PlayerRole 是玩家在一个 StoryWorld 内可被 StoryRun 锁定的系统预�
 - 每个 StoryRun 必须锁定一个所属 StoryWorld 的 PlayerRole，活动轮次中不得更换。
 - PlayerRole 不能跨 StoryWorld 复用，也不是账号权限、现实身份或公开社交资料。
 - 客户端只能提交所属 StoryWorld 已发布的 `player_role_id`，不能提交任意身份 Prompt、替换 PlayerRole 内容或声明超出故事合同的能力。
-- 1854 年宽街提供原创玩家角色“汤姆·里德”与“莉齐·贝尔”，每轮二选一；安妮分别称其为哥哥或姐姐，但称呼不是独立客户端字段。长明宫·雪夜封宫提供“小太监”与“小宫女”，每轮二选一。
+- 1854 年宽街提供原创玩家角色“汤姆·里德”与“莉齐·贝尔”，每轮二选一；安妮分别称其为哥哥或姐姐，但称呼不是独立客户端字段。先天二年·虔化门提供成年“内侍小使”与“宫人”，每轮二选一；两者只能处理记录来源，不拥有调兵、传诏或替真人决策的能力。
 
 ## 系统故事内容子结构
 
@@ -435,7 +435,7 @@ StoryRun 表示一次从开始到结局的故事轮次。
 | `payload` | object | 保存结构化可观察结果和确定性 `rule_source`，不保存模型思维链 |
 | `created_at` | ISO timestamp | 事件创建时间 |
 
-自由消息只追加消息及其来源事件，不改变节点、关键选择、故事标记、长期关系或结局。模型生成结果必须结构化区分 `dialogue`、`narration_before` 与 `narration_after`：Character `message` 只保存角色实际说出口的 `dialogue`；可观察动作按顺序保存为 `role=system` 的独立 `narration` 事件，不进入 Character 对话上下文，也不授予 Character 新知识。结构非法或把第三人称动作混入对白时必须使用系统审核的纯对白安全替代，不得把整段模型文本作为 Character 消息。`reviewed_choice` 事件必须引用当前节点中可用的发布 choice，`reviewed_decision` 必须引用相同事实下唯一命中的 DecisionRule，随后才允许在同一事务内确定性写入关系、标记、节点与结局。事件序号由持久化层分配，调用方不得自行维护第二套游标。
+自由消息只追加消息及其来源事件，不改变节点、关键选择、故事标记、长期关系或结局。模型生成结果必须结构化区分 `dialogue`、`narration_before` 与 `narration_after`：默认情况下，Character `message` 只保存角色实际说出口的 `dialogue`；可观察动作按顺序保存为 `role=system` 的独立 `narration` 事件，不进入 Character 对话上下文，也不授予 Character 新知识。结构非法或把第三人称动作混入普通对白时必须使用系统审核的纯对白安全替代，不得把整段模型文本作为 Character 消息。经历史内容审核的真人 Character 是唯一例外：其 `dialogue` 保存带固定“剧情转述（非史料原话）”前缀的第三人称转述，事件 payload 标记 `historical_projection=true`，禁止第一人称、引号和生成式动作，两个 narration 字段必须为空。`reviewed_choice` 事件必须引用当前节点中可用的发布 choice，`reviewed_decision` 必须引用相同事实下唯一命中的 DecisionRule，随后才允许在同一事务内确定性写入关系、标记、节点与结局。事件序号由持久化层分配，调用方不得自行维护第二套游标。
 
 ### StoryMessage
 
@@ -614,7 +614,7 @@ POST /api/v1/admin/story-worlds/{story_world_id}/characters/{character_id}/portr
 
 ### 目标 P0 StoryWorld API
 
-原子迁移完成后，安妮与长明宫继续使用同一套 StoryWorld 后端路由，不通过旧 `/spaces` 合同；所有私有运行时路由都显式包含 `story_id`：
+原子迁移完成后，安妮与先天二年·虔化门继续使用同一套 StoryWorld 后端路由，不通过旧 `/spaces` 合同；所有私有运行时路由都显式包含 `story_id`：
 
 ```text
 GET  /api/v1/story-worlds/{story_world_id}/characters/{character_id}
@@ -633,7 +633,7 @@ POST /api/v1/story-worlds/{story_world_id}/stories/{story_id}/runs/restart
 
 公开角色页使用 `/characters/:characterSlug`，以 `/characters/:characterSlug/story?storyId=...&playerRoleId=...` 进入互动。`storyId` 与 `playerRoleId` 都必须再次用公开白名单校验；活动 StoryRun 以服务端锁定三元组为准。登录回跳白名单只允许规范 Character 故事路径和这两个 ASCII ID 参数。前端不新增 `/story-worlds/...` 页面或深链。
 
-长明宫从魏观海或萧明珠进入同一个 `palace_snow_edict` StoryRun，但每条消息按 `visible_to_character_ids` 投影到当前会见 Character。跨 Character 选择只返回已审核的目标 Character 和动作，由玩家明确点击后导航；服务端不得自动切换当前 Character。运行时请求不接受 `player_id`；服务端从已验证登录会话解析账号身份，无有效会话时返回 `401`，且不得创建或修改玩家状态。运行时响应不回显玩家 ID，但会回显该 StoryRun 锁定的公开 Story 与 PlayerRole 投影。
+先天二年·虔化门从高力士或太平公主进入同一个 `palace_snow_edict` StoryRun，但每条消息按 `visible_to_character_ids` 投影到当前会见 Character。跨 Character 选择只返回已审核的目标 Character 和动作，由玩家明确点击后导航；服务端不得自动切换当前 Character。真人自由回应必须带固定“剧情转述（非史料原话）”前缀，并以 Character 姓名作第三人称主语；输出校验拒绝第一人称、引号、生成式动作、无出处原话、私人心理、密谋细节或无同场证据的直接会面。关系效果固定为零，玩家只改变自己的记录方式和原创普通宫人的局部处境。运行时请求不接受 `player_id`；服务端从已验证登录会话解析账号身份，无有效会话时返回 `401`，且不得创建或修改玩家状态。运行时响应不回显玩家 ID，但会回显该 StoryRun 锁定的公开 Story 与 PlayerRole 投影。
 
 故事页在加载、刷新、重新进入或另一设备访问时，只通过对应 `story_id` 的 `GET runs/current` 恢复该账号在该故事的活动轮次；没有活动轮次时可以返回该故事最近完成轮次及其安全结局摘要。前端收到任一受保护请求的 `401` 后必须同时失效访问状态缓存和当前私有故事状态，清空未确认输入，并忽略已经过期的迟到响应。消息、选择、开始或重新开始请求不得自动重放；非 `401` 写失败后必须先读取相同 `story_id` 的 current 状态，成功前不得继续写入。现有开始请求只复用相同玩家、世界、故事的活动轮次，审核选择按已持久化 choice source 去重；自由消息和重新开始通过“失败后先读”处理响应不确定性。
 
@@ -662,7 +662,7 @@ POST /api/v1/story-worlds/{story_world_id}/stories/{story_id}/runs/restart
 | `story_world_id` | 目标 `story_id` | 发布 / 类型 / 参与 Character |
 |---|---|---|
 | `history_broad_street_water_1854` | `broad_street_water_1854` | `published` / `growth` / 安妮（焦点 Character） |
-| `story_palace_snow_edict` | `palace_snow_edict` | `published` / `ensemble` / 魏观海、萧明珠 |
+| `story_palace_snow_edict` | `palace_snow_edict` | `published` / `ensemble` / 高力士、太平公主 |
 
 映射只用于这两个已审核世界。未知 StoryWorld、无法唯一映射的 StoryRun、异常 JSON、重复进度或无法确定来源 / 合并结果的关系记录必须阻止迁移；不得使用数组第一项、Character、标题、`content_version` 或通用默认 `story_id` 猜测。
 

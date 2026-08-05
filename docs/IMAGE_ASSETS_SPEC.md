@@ -95,7 +95,7 @@ updated_at: 2026-01-01
 
 - No readable brand text / logo / watermark.
 - No existing IP or living-artist imitation.
-- No photorealistic human / real-person portrait / celebrity likeness / live-action cosplay / stock photo.
+- No photorealistic human / living-person or celebrity likeness / live-action cosplay / stock photo.
 - No private data / API key / exact private address.
 
 ## Style recipe / source
@@ -123,7 +123,9 @@ updated_at: 2026-01-01
 
 ## Character 图片约束
 
-项目 AI 生成的 Character 资产必须是原创虚构角色插画，不得像真人照片。正向 prompt 应包含 stylized anime/game illustration、non-photoreal fictional character、original character、not a real person、no celebrity likeness 等价语义；负向约束必须排除 photorealistic human、real-person portrait、live-action cosplay、stock photo、celebrity likeness 和 DSLR/camera-lens look。
+项目 AI 生成的 Character 资产必须是非摄影插画，不得像真人照片。原创 Character 的正向 prompt 应包含 stylized anime/game illustration、non-photoreal fictional character、original character、not a real person、no celebrity likeness 等价语义；负向约束必须排除 photorealistic human、living-person or celebrity likeness、live-action cosplay、stock photo 和 DSLR/camera-lens look。
+
+已经通过历史内容审核的已故真实人物可以使用非摄影、非复原宣称的历史化艺术形象。Prompt 与 sidecar 必须明确：这是依据时代、年龄和公开身份设计的 `historically informed artistic interpretation`，不是经鉴定的真实肖像；不得照搬影视演员、在世人物或现成艺术作品的脸，也不得用生成图证明人物相貌、服饰细节或具体行动。人物在事件发生时的大致年龄、身份层级、时代服饰与禁止采用的后世样式须进入视觉审核记录。
 
 如果结果像摄影棚人像、cosplay 照、明星脸或现实人物，不得上传到正式媒体命名空间，必须重生或标记为废稿。
 
