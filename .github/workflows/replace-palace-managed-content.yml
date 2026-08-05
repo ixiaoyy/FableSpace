@@ -1,0 +1,161 @@
+name: Replace palace managed content
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirmation:
+        description: Type REPLACE-PALACE-XIANTIAN-2026-08-05
+        required: true
+        type: string
+
+concurrency:
+  group: fablespace-production
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  replace:
+    name: Replace the reviewed palace StoryWorld
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Validate confirmation and deployment secrets
+        env:
+          CONFIRMATION: ${{ inputs.confirmation }}
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+        run: |
+          set -euo pipefail
+          if [ "${CONFIRMATION}" != "REPLACE-PALACE-XIANTIAN-2026-08-05" ]; then
+            echo "::error::Confirmation did not match the required production replacement phrase"
+            exit 1
+          fi
+          for name in DEPLOY_HOST DEPLOY_USER DEPLOY_SSH_KEY; do
+            if [ -z "${!name:-}" ]; then
+              echo "::error::Missing required GitHub Actions secret: ${name}"
+              exit 1
+            fi
+          done
+
+      - name: Replace palace managed content on production
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          port: ${{ secrets.DEPLOY_PORT || '22' }}
+          command_timeout: 10m
+          script: |
+            set -eu
+
+            FABLESPACE_PATH="${{ vars.DEPLOY_PATH || '/opt/fablespace' }}"
+            EXPECTED_SHA="${{ github.sha }}"
+            REPLACEMENT_SCRIPT="apps/api/src/fablespace_api/infrastructure/replace_palace_story_world.py"
+            REPLACEMENT_SCRIPT_SHA256="cb52e9c422ace3b3a20723da9d95704fffff6977cbeb6ae60e2a17904b5391d9"
+
+            cd "${FABLESPACE_PATH}"
+            if [ "$(git rev-parse HEAD)" != "${EXPECTED_SHA}" ]; then
+              echo "Server checkout does not match the workflow commit"
+              exit 1
+            fi
+            if [ ! -f "${REPLACEMENT_SCRIPT}" ] ||
+               [ "$(sha256sum "${REPLACEMENT_SCRIPT}" | awk '{print $1}')" != "${REPLACEMENT_SCRIPT_SHA256}" ]; then
+              echo "Reviewed replacement script hash does not match"
+              exit 1
+            fi
+
+            if sudo docker compose version >/dev/null 2>&1; then
+              compose() {
+                sudo docker compose "$@"
+              }
+            else
+              compose() {
+                sudo docker-compose "$@"
+              }
+            fi
+            COMPOSE_FILES="-f docker-compose.yml -f deploy/docker-compose.shared.yml -f deploy/docker-compose.llm-proxy.yml"
+
+            BACKEND_CONTAINER="$(compose $COMPOSE_FILES ps -q backend)"
+            if [ -z "${BACKEND_CONTAINER}" ] ||
+               [ "$(printf '%s\n' "${BACKEND_CONTAINER}" | wc -l)" -ne 1 ] ||
+               [ "$(sudo docker inspect -f '{{.State.Running}}' "${BACKEND_CONTAINER}")" != "true" ]; then
+              echo "Expected exactly one running FableSpace backend container"
+              exit 1
+            fi
+            if ! compose $COMPOSE_FILES exec -T backend python -c \
+              "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/v1/health', timeout=3).read()"; then
+              echo "Backend health check failed before managed-content replacement"
+              exit 1
+            fi
+
+            CONTAINER_SCRIPT_SHA256="$(compose $COMPOSE_FILES exec -T backend python -c \
+              "import hashlib; import fablespace_api.infrastructure.replace_palace_story_world as module; print(hashlib.sha256(open(module.__file__, 'rb').read()).hexdigest())")"
+            if [ "${CONTAINER_SCRIPT_SHA256}" != "${REPLACEMENT_SCRIPT_SHA256}" ]; then
+              echo "Running backend does not contain the reviewed replacement script"
+              exit 1
+            fi
+
+            compose $COMPOSE_FILES exec -T backend python -m \
+              fablespace_api.infrastructure.replace_palace_story_world \
+              --confirmation REPLACE-PALACE-XIANTIAN-2026-08-05
+
+            compose $COMPOSE_FILES exec -T backend python - <<'PY'
+            import json
+            from urllib.request import urlopen
+
+            world_id = "story_palace_snow_edict"
+            expected_version = "palace-xiantian-coup-2026-08-05.1"
+            expected_characters = (
+                (
+                    "char_story_palace_eunuch_wei",
+                    "高力士",
+                    "https://img.pingxingxian.space/fablespace/media/v1/app/assets/story-worlds/story_palace_snow_edict/characters/gao-lishi/v1/portrait.webp",
+                ),
+                (
+                    "char_story_palace_princess_xiao",
+                    "太平公主",
+                    "https://img.pingxingxian.space/fablespace/media/v1/app/assets/story-worlds/story_palace_snow_edict/characters/taiping-princess/v1/portrait.webp",
+                ),
+            )
+            expected_roles = (
+                (
+                    "role_story_palace_little_eunuch",
+                    "内侍小使",
+                    "https://img.pingxingxian.space/fablespace/media/v1/app/assets/story-worlds/story_palace_snow_edict/player-roles/inner-attendant/v1/avatar.webp",
+                ),
+                (
+                    "role_story_palace_little_maid",
+                    "宫人",
+                    "https://img.pingxingxian.space/fablespace/media/v1/app/assets/story-worlds/story_palace_snow_edict/player-roles/palace-woman/v1/avatar.webp",
+                ),
+            )
+
+            for character_id, expected_name, _ in expected_characters:
+                url = (
+                    "http://127.0.0.1:8000/api/v1/story-worlds/"
+                    f"{world_id}/characters/{character_id}"
+                )
+                with urlopen(url, timeout=5) as response:
+                    payload = json.load(response)
+                world = payload["story_world"]
+                assert world["id"] == world_id
+                assert world["title"] == "先天二年·虔化门"
+                assert world["content_version"] == expected_version
+                assert payload["character"]["name"] == expected_name
+                assert tuple(
+                    (item["id"], item["name"], item["portrait_url"])
+                    for item in payload["characters"]
+                ) == expected_characters
+                assert tuple(
+                    (item["id"], item["name"], item["avatar_url"])
+                    for item in payload["player_roles"]
+                ) == expected_roles
+
+            print(
+                "public_story_world_verified=1 "
+                f"story_world_id={world_id} content_version={expected_version}"
+            )
+            PY
