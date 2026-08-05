@@ -1404,3 +1404,40 @@ Added a guarded manual 006/008 production repair workflow, retained a verified l
 ### Next Steps
 
 - None - task complete
+
+
+## Session 43: 完成先天政变宫廷改编与旧素材清退
+
+**Date**: 2026-08-05
+**Task**: 完成先天政变宫廷改编与旧素材清退
+**Branch**: `main`
+
+### Summary
+
+将旧架空宫廷世界替换为先天二年虔化门历史改编，发布并核验四张新图，精确删除四个旧远端对象和 sidecar，清退一次性生产工作流，完成本地与线上验收。
+
+### Main Changes
+
+- Detailed change bullets were not supplied; see the summary above.
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `0a73841f` | (see git log) |
+| `4c908811` | (see git log) |
+| `66959b13` | (see git log) |
+| `ae49f426` | (see git log) |
+| `fa7ba4c2` | (see git log) |
+
+### Testing
+
+- Validation was not recorded for this session.
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete

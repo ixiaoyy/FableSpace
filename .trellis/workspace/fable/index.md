@@ -8,8 +8,8 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-1.md`
-- **Total Sessions**: 42
-- **Last Active**: 2026-08-03
+- **Total Sessions**: 43
+- **Last Active**: 2026-08-05
 <!-- @@@/auto:current-status -->
 
 ---
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-1.md` | ~1406 | Active |
+| `journal-1.md` | ~1443 | Active |
 <!-- @@@/auto:active-documents -->
 
 ---
@@ -29,6 +29,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 43 | 2026-08-05 | 完成先天政变宫廷改编与旧素材清退 | `0a73841f`, `4c908811`, `66959b13`, `ae49f426`, `fa7ba4c2` | `main` |
 | 42 | 2026-08-03 | 修复故事对白呈现与生产 LLM 出口 | `3f720273`, `241e6156`, `a8bd6f0c` | `main` |
 | 41 | 2026-08-03 | 修复生产 StoryWorld LLM Key 传播 | `ebc842be` | `main` |
 | 40 | 2026-08-03 | 修复故事选择语义与公共模型配置 | `f710459a` | `main` |
