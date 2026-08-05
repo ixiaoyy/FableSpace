@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import re
 from collections.abc import Mapping
 from datetime import datetime
 from typing import Protocol
@@ -17,6 +18,7 @@ from ..content.annie_broad_street import (
 )
 from ..content.palace_snow_edict import PALACE_STORY_WORLD_ID
 from ..domain.story_world import (
+    CanonEntry,
     Character,
     PlayerRole,
     PublicationStatus,
@@ -37,9 +39,14 @@ from .story_dialogue import (
     StoryDialoguePolicy,
     contains_character_narration,
     parse_story_dialogue_output,
+    serialize_story_dialogue_output,
 )
 
 logger = logging.getLogger(__name__)
+
+_OPENING_LINE_QUOTED_SPEECH = re.compile(
+    r'“([^”]+)”|「([^」]+)」|『([^』]+)』|"([^"]+)"'
+)
 
 
 class StoryRuntimeError(RuntimeError):
@@ -66,6 +73,202 @@ def _is_legacy_mixed_character_narration(
     if not name:
         return False
     return contains_character_narration(str(content or ""), name)
+
+
+def _is_output_failure_character_event(event: Mapping[str, object]) -> bool:
+    """Return whether a Character event is a policy replacement for failed model output."""
+
+    if event.get("role") != "character":
+        return False
+    payload = event.get("payload")
+    if not isinstance(payload, Mapping):
+        return False
+    if payload.get("model_output_replaced") is not True:
+        return False
+    replacement_source = payload.get("replacement_source")
+    if replacement_source is not None:
+        return replacement_source == "model_policy"
+    # Pre-provenance Annie events used a dedicated output-only reason. The palace
+    # reason was ambiguous, so retaining those old events is safer than silently
+    # discarding an input-policy response.
+    return payload.get("boundary_reason") == "unsafe_output"
+
+
+def _dialogue_history(
+    events: list[dict[str, object]],
+    *,
+    character_id: str,
+    character_name: str,
+) -> list[dict[str, object]]:
+    """Project one Character's model-visible history without failed output pairs.
+
+    ``events`` must be in persisted sequence order. The returned list preserves that
+    order, omits narration and other Characters, and removes both an output-failure
+    Character replacement and its paired player event so fixed safety text cannot
+    reinforce itself.
+    """
+
+    visible_character_event_ids: set[str] = set()
+    visible_player_event_ids: set[str] = set()
+    for event in events:
+        if event.get("role") != "character" or event.get("character_id") != character_id:
+            continue
+        if _is_output_failure_character_event(event):
+            continue
+        if _is_legacy_mixed_character_narration(
+            role=event.get("role"),
+            source_kind=event.get("source_kind"),
+            content=event.get("content"),
+            character_name=character_name,
+            payload=event.get("payload"),
+        ):
+            continue
+        event_id = str(event.get("id") or "")
+        if event_id:
+            visible_character_event_ids.add(event_id)
+        source_id = str(event.get("source_id") or "")
+        if source_id:
+            visible_player_event_ids.add(source_id)
+
+    return [
+        event
+        for event in events
+        if (
+            event.get("role") == "character"
+            and str(event.get("id") or "") in visible_character_event_ids
+        )
+        or (
+            event.get("role") == "player"
+            and str(event.get("id") or "") in visible_player_event_ids
+        )
+    ]
+
+
+def _opening_line_dialogue(content: object) -> str:
+    """Return reviewed speech from an authored opening line without its mixed action.
+
+    ``content`` is the authored line stored on the opening Character event. When the
+    line contains explicit quotation marks, only their reviewed speech is returned;
+    an already pure, unquoted opening (such as historical projection text) is kept.
+    """
+
+    normalized = str(content or "").strip()
+    quoted_parts = [
+        next(part for part in match.groups() if part is not None).strip()
+        for match in _OPENING_LINE_QUOTED_SPEECH.finditer(normalized)
+    ]
+    return "\n".join(part for part in quoted_parts if part) or normalized
+
+
+def _is_story_entry_node(story_world: StoryWorld, current_node: StoryNode) -> bool:
+    """Return whether ``current_node`` is the reviewed entry node for its world."""
+
+    entry_chapter = next(
+        chapter
+        for chapter in story_world.chapters
+        if chapter.id == story_world.entry_chapter_id
+    )
+    return current_node.id == entry_chapter.entry_node_id
+
+
+def _dialogue_canon_entries(
+    story_world: StoryWorld,
+    current_node: StoryNode,
+) -> tuple[CanonEntry, ...]:
+    """Return canon entries unlocked for the current dialogue stage.
+
+    Annie's opening sees only opening-stage references; later active nodes also
+    receive investigation-stage entries. Other reviewed worlds retain their full
+    canon because they do not use Annie's staged reference contract.
+    """
+
+    if story_world.id != ANNIE_STORY_WORLD_ID:
+        return tuple(story_world.canon_entries)
+    visible_stages = (
+        ("opening",)
+        if _is_story_entry_node(story_world, current_node)
+        else ("opening", "investigation")
+    )
+    visible_ids = {
+        entry_id
+        for stage in visible_stages
+        for entry_id in ANNIE_REFERENCE_ENTRY_IDS_BY_STAGE[stage]
+    }
+    return tuple(
+        entry for entry in story_world.canon_entries if entry.id in visible_ids
+    )
+
+
+def _character_history_json(event: Mapping[str, object]) -> str:
+    """Serialize one Character history event as the exact three-field model contract.
+
+    Authored ``opening_line`` events first discard action outside reviewed quotes.
+    Persisted narration is never reconstructed here because it grants no Character
+    knowledge; both narration fields therefore remain empty in the returned JSON.
+    """
+
+    content = event.get("content")
+    if event.get("source_kind") == "authored" and event.get("source_id") == "opening_line":
+        content = _opening_line_dialogue(content)
+    return serialize_story_dialogue_output(
+        StoryDialogueOutput(
+            dialogue=str(content or "").strip(),
+            narration_before="",
+            narration_after="",
+        )
+    )
+
+
+def _repair_story_dialogue_output(
+    *,
+    config: LLMConfig,
+    context: list[dict[str, str]],
+    candidate: str,
+    unavailable_message: str,
+) -> StoryDialogueOutput | None:
+    """Request one non-persistent format-only repair and return strict parsed output.
+
+    ``context`` is the original bounded dialogue request and ``candidate`` is its
+    non-empty malformed response. The repair may only restore the three-field JSON
+    shape; policy, historical, and child-safety validation still run afterward.
+    """
+
+    repair_context = [
+        *context,
+        {"role": "assistant", "content": candidate},
+        {
+            "role": "user",
+            "content": (
+                "上一条回复不符合规定的 JSON 格式。保持语义和事实，不补充新内容；把角色说出口"
+                "的对白放入 dialogue，把可观察动作按先后放入 narration_before 或 "
+                "narration_after。不要放宽历史、儿童或玩家行动边界。只输出一个 JSON 对象，且"
+                "必须恰好包含三个字符串字段：dialogue、narration_before、narration_after。"
+            ),
+        },
+    ]
+    try:
+        response = complete(config, repair_context)
+    except LLMError as exc:
+        logger.warning(
+            "StoryWorld LLM format repair failed: backend=%s exception=%s",
+            config.backend,
+            type(exc).__name__,
+        )
+        raise StoryRuntimeError("dialogue_unavailable", unavailable_message) from exc
+    repaired_content = str(getattr(response, "content", "") or "").strip()
+    if not repaired_content:
+        logger.warning(
+            "StoryWorld LLM format repair returned empty content: backend=%s",
+            config.backend,
+        )
+        raise StoryRuntimeError("dialogue_unavailable", unavailable_message)
+    parsed = parse_story_dialogue_output(repaired_content[:4000])
+    if parsed is None:
+        logger.warning(
+            "StoryWorld LLM response failed presentation contract after one repair: backend=%s",
+            config.backend,
+        )
+    return parsed
 
 
 class StoryDialogueResponder(Protocol):
@@ -107,7 +310,7 @@ def _dialogue_system_message(
     is_historical_projection = story_world.id == PALACE_STORY_WORLD_ID
     facts = "\n".join(
         f"- [{entry.category.value}] {entry.statement}"
-        for entry in story_world.canon_entries
+        for entry in _dialogue_canon_entries(story_world, current_node)
     )
     visible_information = "\n".join(
         f"- {information}"
@@ -204,6 +407,13 @@ def _dialogue_system_message(
             "但不能像成年人、侦探或官员一样盘问玩家。"
             "\n12. 不得加入恋爱、成人或依附诱导内容；不得声称知道现代医学结论，"
             "不得编造真实人物原话、私密动机、与安妮的接触或未提供的史料来源。"
+            "\n13. 除当前节点、角色设定和已解锁 CanonEntry 外，不得新增"
+            "具体人物、家庭、门牌、职业、亲属、疾病或死亡、发生先后、对话或亲眼见闻；"
+            "尤其不得虚构某户取水后病倒，或安妮母亲说过开场设定以外的话。"
+            "遇到未提供的细节，安妮必须直接说自己没看见、不知道或还没有说过。"
+            "玩家提供的细节只能明确归因为‘你刚才说’，不得改写成安妮的亲眼见闻或事实。"
+            "\n14. 每次最多说一至三句短句；可以追问眼前情况，但不得用街区概括、统计或"
+            "因果判断填补缺失见闻。"
         )
     return message
 
@@ -247,21 +457,19 @@ class SystemStoryDialogueResponder:
             relationship_flags=relationship_flags,
         )
         context = [{"role": "system", "content": system_message}]
-        dialogue_history = [
-            event
-            for event in events
-            if event.get("role") in {"character", "player"}
-            and not _is_legacy_mixed_character_narration(
-                role=event.get("role"),
-                source_kind=event.get("source_kind"),
-                content=event.get("content"),
-                character_name=character.name,
-                payload=event.get("payload"),
-            )
-        ]
+        dialogue_history = _dialogue_history(
+            events,
+            character_id=character.id,
+            character_name=character.name,
+        )
         for event in dialogue_history[-8:]:
             role = "assistant" if event.get("role") == "character" else "user"
-            context.append({"role": role, "content": str(event.get("content") or "")})
+            history_content = (
+                _character_history_json(event)
+                if role == "assistant"
+                else str(event.get("content") or "")
+            )
+            context.append({"role": role, "content": history_content})
         context.append({"role": "user", "content": player_message})
         try:
             response = complete(config, context)
@@ -283,9 +491,11 @@ class SystemStoryDialogueResponder:
             )
         parsed = parse_story_dialogue_output(content[:4000])
         if parsed is None:
-            logger.warning(
-                "StoryWorld LLM response failed presentation contract: backend=%s",
-                config.backend,
+            parsed = _repair_story_dialogue_output(
+                config=config,
+                context=context,
+                candidate=content[:4000],
+                unavailable_message=f"{character.name}暂时没有回应，请稍后再试。",
             )
         return parsed
 
@@ -622,6 +832,10 @@ class StoryWorldApplicationService:
             model_reply=model_reply,
             input_fallback=input_fallback,
             historical_projection=world.id == PALACE_STORY_WORLD_ID,
+            enforce_annie_opening_evidence=(
+                world.id == ANNIE_STORY_WORLD_ID
+                and _is_story_entry_node(world, node)
+            ),
         )
         world = self._published_world(story_world_id)
         character = self._character(world, character_id)
@@ -707,6 +921,7 @@ class StoryWorldApplicationService:
                 payload={
                     "boundary_reason": decision.boundary_reason,
                     "model_output_replaced": decision.model_output_replaced,
+                    "replacement_source": decision.replacement_source,
                     "presentation_version": 2,
                     "historical_projection": world.id == PALACE_STORY_WORLD_ID,
                 },

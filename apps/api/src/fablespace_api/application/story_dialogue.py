@@ -72,6 +72,19 @@ _OUTPUT_FORBIDDEN_PATTERNS = tuple(
     )
 )
 
+_ANNIE_UNSUPPORTED_DETAIL_PATTERNS = tuple(
+    re.compile(pattern)
+    for pattern in (
+        r"(?:亲眼)?看见.{0,80}(?:那家|那户|一家|有人|对门|邻居|叔叔|老婆婆|"
+        r"老奶奶|女儿).{0,80}(?:吐|病|倒下|起不来|死|没了)",
+        r"(?:那家|那户|一家|有人|对门|邻居|叔叔|老婆婆|老奶奶|女儿).{0,60}"
+        r"(?:吐|病|倒下|起不来|死|没了).{0,60}(?:打水|提水|水泵|泵的水)",
+        r"(?:收旧货|收破烂|街尾.{0,4}(?:老婆婆|老奶奶)|叔叔.{0,4}女儿)",
+        r"(?:妈妈|母亲).{0,12}(?:叫我闭嘴|让我闭嘴|别管闲事)",
+        r"(?:倒下|病倒).{0,16}(?:都是|全是).{0,20}(?:打水|提水|水泵|泵的水)",
+    )
+)
+
 _RELATIONSHIP_SIGNAL_PATTERNS: tuple[
     tuple[str, str, tuple[re.Pattern[str], ...]], ...
 ] = (
@@ -132,6 +145,7 @@ _SAFE_REPLIES = {
     "fabricated_source": "没听见的话不能写成谁说过。我们只记自己能核对的见闻。",
     "history_rewrite": "我们只能做眼前能做的事，不能把还没发生的事说成已经发生。",
     "modern_medical": "这些词我听不懂。我只知道家里不让我再碰这口泵的水。",
+    "unsupported_detail": "那件事我没有亲眼看见，不能替别人说。先问我眼前这一件吧。",
     "unsafe_output": "我只能说自己眼前看见、耳边听见的事。别替别人，也别替我补话。",
 }
 
@@ -150,6 +164,7 @@ class StoryDialogueDecision:
     narration_after: str
     boundary_reason: str
     model_output_replaced: bool
+    replacement_source: str | None
     relationship_signal: str | None
 
 
@@ -188,6 +203,20 @@ def parse_story_dialogue_output(raw_output: str) -> StoryDialogueOutput | None:
         dialogue=dialogue.strip(),
         narration_before=narration_before.strip(),
         narration_after=narration_after.strip(),
+    )
+
+
+def serialize_story_dialogue_output(output: StoryDialogueOutput) -> str:
+    """Serialize one dialogue result using the exact three-field model contract."""
+
+    return json.dumps(
+        {
+            "dialogue": output.dialogue,
+            "narration_before": output.narration_before,
+            "narration_after": output.narration_after,
+        },
+        ensure_ascii=False,
+        separators=(",", ":"),
     )
 
 
@@ -237,8 +266,14 @@ class StoryDialoguePolicy:
         model_reply: StoryDialogueOutput | None,
         input_fallback: tuple[str, str] | None,
         historical_projection: bool = False,
+        enforce_annie_opening_evidence: bool = False,
     ) -> StoryDialogueDecision:
-        """Validate one model reply, with a stricter third-person mode for real people."""
+        """Validate one reply and record which policy supplied any replacement.
+
+        ``enforce_annie_opening_evidence`` enables the narrow entry-node guard;
+        later reviewed nodes may contain household testimony that must not be
+        rejected solely for using the same vocabulary.
+        """
 
         if historical_projection:
             return self._decide_historical_projection(
@@ -254,6 +289,7 @@ class StoryDialoguePolicy:
                 narration_after="",
                 boundary_reason=reason,
                 model_output_replaced=True,
+                replacement_source="input_policy",
                 relationship_signal=None,
             )
 
@@ -266,6 +302,24 @@ class StoryDialoguePolicy:
             or _narration_contains_spoken_text(narration_before)
             or _narration_contains_spoken_text(narration_after)
         )
+        unsupported_detail = (
+            character_name == "安妮"
+            and enforce_annie_opening_evidence
+            and any(
+                pattern.search(combined_output)
+                for pattern in _ANNIE_UNSUPPORTED_DETAIL_PATTERNS
+            )
+        )
+        if unsupported_detail:
+            return StoryDialogueDecision(
+                dialogue=_SAFE_REPLIES["unsupported_detail"],
+                narration_before="",
+                narration_after="",
+                boundary_reason="unsupported_detail",
+                model_output_replaced=True,
+                replacement_source="model_policy",
+                relationship_signal=None,
+            )
         if (
             not dialogue
             or invalid_presentation
@@ -277,6 +331,7 @@ class StoryDialoguePolicy:
                 narration_after="",
                 boundary_reason="unsafe_output",
                 model_output_replaced=True,
+                replacement_source="model_policy",
                 relationship_signal=None,
             )
 
@@ -287,6 +342,7 @@ class StoryDialoguePolicy:
             narration_after=narration_after[:MAX_DIALOGUE_NARRATION_LENGTH],
             boundary_reason="allowed",
             model_output_replaced=False,
+            replacement_source=None,
             relationship_signal=signal,
         )
 
@@ -328,6 +384,9 @@ class StoryDialoguePolicy:
                 narration_after="",
                 boundary_reason="historical_projection_replaced",
                 model_output_replaced=True,
+                replacement_source=(
+                    "input_policy" if input_fallback is not None else "model_policy"
+                ),
                 relationship_signal=None,
             )
         return StoryDialogueDecision(
@@ -336,6 +395,7 @@ class StoryDialoguePolicy:
             narration_after="",
             boundary_reason="historical_projection_allowed",
             model_output_replaced=False,
+            replacement_source=None,
             relationship_signal=None,
         )
 
@@ -410,4 +470,5 @@ __all__ = [
     "StoryRelationshipEffect",
     "contains_character_narration",
     "parse_story_dialogue_output",
+    "serialize_story_dialogue_output",
 ]

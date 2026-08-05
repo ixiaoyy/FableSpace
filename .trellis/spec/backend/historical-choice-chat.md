@@ -55,6 +55,32 @@ StoryChoice(
   `narration` events around one Character-role `message`. Only that Character
   message enters later Character dialogue context; narration remains
   player-visible presentation and grants no Character knowledge.
+- Serialize every prior Character message entering the model as the same exact
+  three-field JSON contract required from the next response. For an authored
+  opening line that still mixes quoted speech with action, include only its
+  reviewed quoted speech in model context; do not rewrite the stored event.
+- Exclude a rejected model-output event and its source player event from later
+  model context so a policy-owned replacement cannot become a self-reinforcing
+  assistant example. Persist `replacement_source=model_policy|input_policy` on
+  replaced Character events so input-policy replacements remain valid history
+  and use the same JSON serialization. Legacy palace replacements without this
+  provenance remain visible because their reason alone is ambiguous.
+- Scope model-visible history to the current Character. Include player events
+  only when paired through that Character response's `source_id`; never inject
+  another Character's player/response pair from a shared StoryRun.
+- Annie dialogue receives only CanonEntry groups already unlocked by the same
+  opening/investigation stage contract used by the player projection. At the
+  entry node, prompt and output policy forbid inventing a specific household,
+  relative, illness/death sequence, private family quote, or claimed
+  observation. A player-supplied detail may be attributed only as something
+  the player said; it does not become Character knowledge or a verified fact.
+  Do not apply that narrow entry guard to later reviewed nodes whose authored
+  content explicitly introduces household testimony.
+- A non-empty first response that fails the JSON contract may receive one
+  in-memory format-repair request. The repaired response still passes the full
+  dialogue policy; a second non-empty format failure uses the existing safe
+  replacement. A repair provider error or empty response remains
+  `503 dialogue_unavailable`; no attempt writes state before validation.
 - If a legacy `free_input` Character event contains an explicit third-person
   action by that Character, project it as narration and exclude it from later
   Character context. Do not rewrite the stored event or invent a missing line
@@ -71,7 +97,7 @@ StoryChoice(
 | StoryRun already completed | `409 run_completed` |
 | Persisted run uses replaced content | `409 story_content_changed` or current-content recovery |
 | Dialogue model is unavailable | `503 dialogue_unavailable`; no fabricated Character reply |
-| Dialogue response is not the exact three-field JSON contract | Replace it with policy-owned direct dialogue; persist no model narration |
+| First dialogue response is not the exact three-field JSON contract | Attempt one in-memory format repair; if it still fails, replace it with policy-owned direct dialogue and persist no model narration |
 | `dialogue` contains third-person Character action, or narration contains speech | Replace it with policy-owned direct dialogue; persist no mixed presentation |
 | Dialogue output violates policy | Replace/reject it according to `StoryDialoguePolicy`; do not change reviewed state |
 | Relationship signal exceeds natural-turn bound | Clamp/reject it to the Character's reviewed rules |
@@ -102,6 +128,14 @@ StoryChoice(
 - Verify the exact dialogue JSON contract is required; malformed output,
   mixed Character narration, and speech embedded in narration all produce a
   direct-dialogue safe replacement with no model narration.
+- Verify Character history uses the exact JSON contract, an authored mixed
+  opening contributes only quoted speech, rejected output pairs are excluded,
+  input-policy replacements remain visible, another Character's history is
+  isolated, staged CanonEntry visibility does not leak outcome references, and
+  one successful format repair prevents a fixed-replacement loop.
+- Verify Annie's entry guard rejects an invented household/illness/private
+  quote while preserving contextual recall; verify the same lexical material
+  is not globally rejected after reviewed investigation content unlocks it.
 - Verify generated narration is ordered around the Character message, is not
   added to later Character context, and an old mixed event projects as
   narration without modifying persistence.
