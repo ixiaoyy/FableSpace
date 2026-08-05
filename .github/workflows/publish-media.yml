@@ -29,6 +29,7 @@ jobs:
       MEDIA_EXPECTED_SHA256: ${{ github.event.client_payload.sha256 }}
       MEDIA_CONTENT_BASE64: ${{ github.event.client_payload.content_base64 }}
       MEDIA_SOURCE_URL: ${{ github.event.client_payload.source_url }}
+      MEDIA_SOURCE_ENCODING: ${{ github.event.client_payload.source_encoding }}
     steps:
       - name: Validate and publish immutable object
         shell: bash
@@ -96,6 +97,7 @@ jobs:
           CDN_S3_PREFIX="${CDN_S3_PREFIX%/}"
           FULL_OBJECT_KEY="${CDN_S3_PREFIX}/media/v1/${MEDIA_OBJECT_KEY}"
           MEDIA_FILE="/tmp/fablespace-media.webp"
+          SOURCE_FILE="/tmp/fablespace-media-source"
           EXISTING_FILE="/tmp/fablespace-existing-media.webp"
           DELIVERED_FILE="/tmp/fablespace-delivered-media.webp"
 
@@ -113,8 +115,13 @@ jobs:
               --show-error \
               --proto '=https' \
               --tlsv1.2 \
-              --output "${MEDIA_FILE}" \
+              --output "${SOURCE_FILE}" \
               "${MEDIA_SOURCE_URL}"
+            case "${MEDIA_SOURCE_ENCODING:-raw}" in
+              raw) mv "${SOURCE_FILE}" "${MEDIA_FILE}" ;;
+              base64) base64 --decode "${SOURCE_FILE}" > "${MEDIA_FILE}" ;;
+              *) echo "::error::Unsupported temporary source encoding"; exit 1 ;;
+            esac
           fi
           ACTUAL_BYTES="$(wc -c < "${MEDIA_FILE}" | tr -d ' ')"
           ACTUAL_SHA256="$(sha256sum "${MEDIA_FILE}" | cut -d' ' -f1)"
