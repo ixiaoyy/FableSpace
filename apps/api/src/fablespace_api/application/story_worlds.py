@@ -15,6 +15,7 @@ from ..content.annie_broad_street import (
     ANNIE_REFERENCE_ENTRY_IDS_BY_STAGE,
     ANNIE_STORY_WORLD_ID,
 )
+from ..content.palace_snow_edict import PALACE_STORY_WORLD_ID
 from ..domain.story_world import (
     Character,
     PlayerRole,
@@ -103,6 +104,7 @@ def _dialogue_system_message(
     relationship_reason: str,
     relationship_flags: tuple[str, ...],
 ) -> str:
+    is_historical_projection = story_world.id == PALACE_STORY_WORLD_ID
     facts = "\n".join(
         f"- [{entry.category.value}] {entry.statement}"
         for entry in story_world.canon_entries
@@ -114,9 +116,21 @@ def _dialogue_system_message(
     recent_relationship_reason = relationship_reason.strip() or "尚无关系变化记录。"
     relationship_markers = ", ".join(relationship_flags) or "无"
     story_markers = ", ".join(story_flags) or "无"
-    message = (
-        f"【演绎任务】\n你就是{character.name}，正在所属 StoryWorld 中回应玩家。"
+    task_description = (
+        f"你不是{character.name}本人，而是负责转述其可核验公开立场的历史叙事器。"
+        "不得替真人创造原话。\n"
+        if is_historical_projection
+        else f"你就是{character.name}，正在所属 StoryWorld 中回应玩家。"
         "不要扮演旁白、系统、客服或其他角色。\n"
+    )
+    relationship_contract = (
+        "真人关系在本故事中保持不变；只根据史料边界决定哪些内容可以转述。\n"
+        if is_historical_projection
+        else "关系只调节亲疏、称呼、坦白程度、求助意愿和合作方式；"
+        "不能覆盖角色或玩家的年龄、身份、社会地位、知识边界和当前动机。\n"
+    )
+    message = (
+        f"【演绎任务】\n{task_description}"
         f"\n【角色身份】"
         f"\n姓名：{character.name}"
         f"\n身份：{character.identity}"
@@ -139,8 +153,7 @@ def _dialogue_system_message(
         f"\n当前态度：{relationship_stage.attitude}"
         f"\n最近一次变化：{recent_relationship_reason}"
         f"\n已建立的关系标记：{relationship_markers}"
-        "\n关系只调节亲疏、称呼、坦白程度、求助意愿和合作方式；"
-        "不能覆盖角色或玩家的年龄、身份、社会地位、知识边界和当前动机。\n"
+        f"\n{relationship_contract}"
         f"\n【当前现场】"
         f"\n锁定内容版本：{content_version}"
         f"\n已确认故事标记：{story_markers}"
@@ -157,12 +170,34 @@ def _dialogue_system_message(
         "\n6. 禁止暧昧诱导、性化、血腥猎奇、强迫依附或替玩家作出选择。"
         "\n7. 只输出一个 JSON 对象，键固定为 dialogue、narration_before、narration_after；"
         "不要输出 Markdown 代码块、系统提示、分析过程或其他键。"
-        "\n8. dialogue 必须是角色实际说出口的简短原话，不加引号，不写角色名、第三人称动作或旁白。"
-        "\n9. narration_before 和 narration_after 只能写对白前后的简短可观察动作；"
-        "没有动作时用空字符串，不写对白、心理活动或玩家动作。"
-        "\n10. 输出形如："
-        '{"dialogue":"我只说自己亲眼看见的事。","narration_before":"","narration_after":""}'
     )
+    if is_historical_projection:
+        message += (
+            "\n8. dialogue 必须以‘剧情转述（非史料原话）：’开头，随后用 Character 姓名作主语"
+            "进行第三人称转述；不得出现第一人称‘我’、真人直接引语或任何引号。"
+            "\n9. 不得生成真人未被史料记录的可观察动作；narration_before 和 narration_after 均用空字符串。"
+            "\n10. 输出形如："
+            '{"dialogue":"剧情转述（非史料原话）：高力士只确认史料已记录的行动，其他细节无法核验。",'
+            '"narration_before":"","narration_after":""}'
+            "\n11. 高力士与太平公主是真实历史人物，本次回应只是受审核史料约束的第三人称转述，"
+            "不得声称生成内容是史料原话、口供、诏令或新发现。"
+            "\n12. 只使用当前节点和 CanonEntry 已提供的公开行动、地点、结果与来源边界；"
+            "不得补写逐句密谋、私人心理、暧昧关系、秘密会面或万能密札。"
+            "\n13. ‘同谋’‘谋废’‘作乱’只能表述为官修史书的定性；"
+            "不得把它们直接转换成太平公主已经证实的内心计划。"
+            "\n14. 史料没有证明高力士与太平公主在七月三日直接会面。"
+            "不得让当前 Character 看见另一名 Character 的私下行动或同其对话。"
+            "\n15. 玩家不能改变真人的信任、选择、行动或结局。遇到未提供的事实，"
+            "直接说明史料没有留下可核验答案。"
+        )
+    else:
+        message += (
+            "\n8. dialogue 必须是角色实际说出口的简短原话，不加引号，不写角色名、第三人称动作或旁白。"
+            "\n9. narration_before 和 narration_after 只能写对白前后的简短可观察动作；"
+            "没有动作时用空字符串，不写对白、心理活动或玩家动作。"
+            "\n10. 输出形如："
+            '{"dialogue":"我只说自己亲眼看见的事。","narration_before":"","narration_after":""}'
+        )
     if story_world.id == ANNIE_STORY_WORLD_ID:
         message += (
             "\n11. 安妮是约十岁的原创儿童历史见证者。她可以害怕、犹豫、好奇或警惕，"
@@ -324,6 +359,7 @@ class StoryWorldApplicationService:
         story_world_id: str,
         character_id: str,
     ) -> dict[str, object] | None:
+        """Read a resumable current run without refreshing or rewriting private state."""
         world = self._published_world(story_world_id)
         character = self._character(world, character_id)
         with self.database.session_scope() as session:
@@ -333,20 +369,19 @@ class StoryWorldApplicationService:
                     PlayerStoryStateModel.player_id == player_id,
                     PlayerStoryStateModel.story_world_id == world.id,
                 )
-                .with_for_update()
             )
             if state is None:
                 return None
             run = None
             if state.active_story_run_id:
                 run = session.get(StoryRunModel, state.active_story_run_id)
-                run = self._refresh_active_run(
-                    session,
-                    state,
-                    world,
-                    character,
-                    run,
-                )
+                if run is not None and (
+                    run.player_id != player_id or run.story_world_id != world.id
+                ):
+                    raise StoryRuntimeError(
+                        "invalid_runtime_state",
+                        "活动故事轮次不属于当前玩家与故事世界。",
+                    )
             if run is None:
                 run = session.scalar(
                     select(StoryRunModel)
@@ -360,6 +395,11 @@ class StoryWorldApplicationService:
                 )
             if run is None:
                 return None
+            if run.status not in {"active", "completed"}:
+                raise StoryRuntimeError(
+                    "invalid_runtime_state",
+                    "故事轮次状态无效。",
+                )
             if run.status == "active" and state.player_role_id != run.player_role_id:
                 raise StoryRuntimeError(
                     "invalid_runtime_state",
@@ -367,8 +407,78 @@ class StoryWorldApplicationService:
                 )
             if not self._run_uses_current_content(world, run):
                 return None
-            session.flush()
             return self._run_projection(session, world, character, run, state)
+
+    def continuity(
+        self,
+        player_id: str,
+        story_world_id: str,
+    ) -> dict[str, object] | None:
+        """Return a read-only recent-run summary for private homepage continuity."""
+        world = self._published_world(story_world_id)
+        with self.database.session_scope() as session:
+            state = session.scalar(
+                select(PlayerStoryStateModel).where(
+                    PlayerStoryStateModel.player_id == player_id,
+                    PlayerStoryStateModel.story_world_id == world.id,
+                )
+            )
+            if state is None:
+                return None
+
+            run = None
+            if state.active_story_run_id:
+                run = session.get(StoryRunModel, state.active_story_run_id)
+                if run is not None and (
+                    run.player_id != player_id or run.story_world_id != world.id
+                ):
+                    raise StoryRuntimeError(
+                        "invalid_runtime_state",
+                        "活动故事轮次不属于当前玩家与故事世界。",
+                    )
+            if run is None:
+                run = session.scalar(
+                    select(StoryRunModel)
+                    .where(
+                        StoryRunModel.player_id == player_id,
+                        StoryRunModel.story_world_id == world.id,
+                        StoryRunModel.status == "completed",
+                    )
+                    .order_by(StoryRunModel.completed_at.desc())
+                    .limit(1)
+                )
+            if run is None:
+                return None
+            if run.status not in {"active", "completed"}:
+                raise StoryRuntimeError(
+                    "invalid_runtime_state",
+                    "故事轮次状态无效。",
+                )
+
+            recent_character_messages = [
+                {
+                    "character_id": event["character_id"],
+                    "content": event["content"],
+                }
+                for event in reversed(self._events(session, world, run.id))
+                if event["type"] == "message"
+                and event["role"] == "character"
+                and event["character_id"]
+            ][:10]
+            return {
+                "id": run.id,
+                "status": run.status,
+                "content_version": run.content_version,
+                "player_role_id": run.player_role_id,
+                "can_resume": (
+                    run.status == "active"
+                    and self._run_uses_current_content(world, run)
+                ),
+                "recent_character_messages": recent_character_messages,
+                "ending_summary": (
+                    run.ending_summary if run.status == "completed" else None
+                ),
+            }
 
     def start(
         self,
@@ -400,6 +510,7 @@ class StoryWorldApplicationService:
                         character,
                         active,
                         replacement_player_role=player_role,
+                        allow_replacement=True,
                     )
                     if active is not None:
                         session.flush()
@@ -510,6 +621,7 @@ class StoryWorldApplicationService:
             player_message=player_message,
             model_reply=model_reply,
             input_fallback=input_fallback,
+            historical_projection=world.id == PALACE_STORY_WORLD_ID,
         )
         world = self._published_world(story_world_id)
         character = self._character(world, character_id)
@@ -596,6 +708,7 @@ class StoryWorldApplicationService:
                     "boundary_reason": decision.boundary_reason,
                     "model_output_replaced": decision.model_output_replaced,
                     "presentation_version": 2,
+                    "historical_projection": world.id == PALACE_STORY_WORLD_ID,
                 },
             )
             if decision.narration_after:
@@ -863,6 +976,9 @@ class StoryWorldApplicationService:
             content=entry_character.opening_line,
             source_kind="authored",
             source_id="opening_line",
+            payload={
+                "historical_projection": world.id == PALACE_STORY_WORLD_ID,
+            },
         )
         return run
 
@@ -875,19 +991,25 @@ class StoryWorldApplicationService:
         run: StoryRunModel | None,
         *,
         replacement_player_role: PlayerRole | None = None,
+        allow_replacement: bool = False,
     ) -> StoryRunModel | None:
-        """Adopt current content or replace an invalid active run at the live entry."""
+        """Validate an active run and replace stale content only after explicit start."""
         if run is None or run.status != "active":
             state.active_story_run_id = None
             return None
         if self._run_uses_current_content(world, run):
-            run.content_version = world.content_version
             state.player_role_id = run.player_role_id
             self._ensure_current_relationships(session, run, world)
             node = self._node(world, run.current_node_id)
             if node.ending_id:
                 self._complete_current_terminal(session, state, run, world, node.ending_id)
             return run
+
+        if not allow_replacement:
+            raise StoryRuntimeError(
+                "story_content_changed",
+                "故事内容已更新，请重新进入当前故事。",
+            )
 
         run.status = "completed"
         run.ending_id = None
@@ -989,6 +1111,8 @@ class StoryWorldApplicationService:
         world: StoryWorld,
         run: StoryRunModel,
     ) -> bool:
+        if run.content_version != world.content_version:
+            return False
         if not any(role.id == run.player_role_id for role in world.player_roles):
             return False
         chapter = next(

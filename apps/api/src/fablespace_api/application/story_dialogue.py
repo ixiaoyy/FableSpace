@@ -10,6 +10,7 @@ from dataclasses import dataclass
 NATURAL_RUN_MAX_POSITIVE_DELTA = 3.0
 MAX_DIALOGUE_REPLY_LENGTH = 240
 MAX_DIALOGUE_NARRATION_LENGTH = 180
+HISTORICAL_PROJECTION_PREFIX = "剧情转述（非史料原话）："
 
 _CHILD_SAFETY_INPUT_PATTERNS = tuple(
     re.compile(pattern, re.IGNORECASE)
@@ -235,7 +236,16 @@ class StoryDialoguePolicy:
         player_message: str,
         model_reply: StoryDialogueOutput | None,
         input_fallback: tuple[str, str] | None,
+        historical_projection: bool = False,
     ) -> StoryDialogueDecision:
+        """Validate one model reply, with a stricter third-person mode for real people."""
+
+        if historical_projection:
+            return self._decide_historical_projection(
+                character_name=character_name,
+                model_reply=model_reply,
+                input_fallback=input_fallback,
+            )
         if input_fallback is not None:
             reason, reply = input_fallback
             return StoryDialogueDecision(
@@ -278,6 +288,55 @@ class StoryDialoguePolicy:
             boundary_reason="allowed",
             model_output_replaced=False,
             relationship_signal=signal,
+        )
+
+    @staticmethod
+    def _decide_historical_projection(
+        *,
+        character_name: str,
+        model_reply: StoryDialogueOutput | None,
+        input_fallback: tuple[str, str] | None,
+    ) -> StoryDialogueDecision:
+        """Require labeled third-person paraphrase and suppress unsourced actions for real people."""
+
+        fallback = (
+            f"{HISTORICAL_PROJECTION_PREFIX}{character_name}只确认史料已记录的公开行动；"
+            "其他细节无法核验。"
+        )
+        dialogue = model_reply.dialogue.strip() if model_reply else ""
+        body = dialogue.removeprefix(HISTORICAL_PROJECTION_PREFIX)
+        combined_output = "\n".join(
+            (
+                dialogue,
+                model_reply.narration_before if model_reply else "",
+                model_reply.narration_after if model_reply else "",
+            )
+        )
+        invalid = (
+            input_fallback is not None
+            or not dialogue.startswith(HISTORICAL_PROJECTION_PREFIX)
+            or character_name not in body
+            or "我" in body
+            or any(marker in combined_output for marker in ('“', '”', '「', '」', '『', '』', '"'))
+            or bool(model_reply and (model_reply.narration_before or model_reply.narration_after))
+            or any(pattern.search(combined_output) for pattern in _OUTPUT_FORBIDDEN_PATTERNS)
+        )
+        if invalid:
+            return StoryDialogueDecision(
+                dialogue=fallback,
+                narration_before="",
+                narration_after="",
+                boundary_reason="historical_projection_replaced",
+                model_output_replaced=True,
+                relationship_signal=None,
+            )
+        return StoryDialogueDecision(
+            dialogue=dialogue[:MAX_DIALOGUE_REPLY_LENGTH],
+            narration_before="",
+            narration_after="",
+            boundary_reason="historical_projection_allowed",
+            model_output_replaced=False,
+            relationship_signal=None,
         )
 
     def relationship_effect(
@@ -341,6 +400,7 @@ class StoryDialoguePolicy:
 
 
 __all__ = [
+    "HISTORICAL_PROJECTION_PREFIX",
     "MAX_DIALOGUE_NARRATION_LENGTH",
     "MAX_DIALOGUE_REPLY_LENGTH",
     "NATURAL_RUN_MAX_POSITIVE_DELTA",

@@ -1,9 +1,9 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-07-28T11:06:18+00:00",
+  "generated_at": "2026-08-05T05:43:57Z",
   "media_base_url": "https://img.pingxingxian.space/fablespace/media/v1",
   "tracked_image_count": 8,
-  "tracked_image_bytes": 869846,
+  "tracked_image_bytes": 849820,
   "migrate_count": 8,
   "delete_count": 0,
   "entries": [
@@ -17,22 +17,22 @@
       "url": "https://img.pingxingxian.space/fablespace/media/v1/app/assets/home-story-bookshelf/v1/characters/char_history_broad_street_annie.webp"
     },
     {
-      "source": "apps/web/app/assets/home-story-bookshelf/v1/characters/char_story_palace_eunuch_wei.webp",
+      "source": "apps/web/app/assets/story-worlds/story_palace_snow_edict/characters/gao-lishi/v1/portrait.webp",
       "disposition": "migrate",
-      "bytes": 179672,
-      "sha256": "eef86ca0a215a1f129413af4585441bf60fecb9e0ba73dd1a733af6b9f099132",
+      "bytes": 168892,
+      "sha256": "568b07233ad3936ee97e9b906121e05fcc212635cc43005a84da2c41da86bb9b",
       "content_type": "image/webp",
-      "object_key": "app/assets/home-story-bookshelf/v1/characters/char_story_palace_eunuch_wei.webp",
-      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/assets/home-story-bookshelf/v1/characters/char_story_palace_eunuch_wei.webp"
+      "object_key": "app/assets/story-worlds/story_palace_snow_edict/characters/gao-lishi/v1/portrait.webp",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/assets/story-worlds/story_palace_snow_edict/characters/gao-lishi/v1/portrait.webp"
     },
     {
-      "source": "apps/web/app/assets/home-story-bookshelf/v1/characters/char_story_palace_princess_xiao.webp",
+      "source": "apps/web/app/assets/story-worlds/story_palace_snow_edict/characters/taiping-princess/v1/portrait.webp",
       "disposition": "migrate",
-      "bytes": 228834,
-      "sha256": "c8a79cf1dcffb540f155c7725c872db0c778be8f8e76969108bb8b6600bd5872",
+      "bytes": 170234,
+      "sha256": "1f68a61cd7f7cc06963939c8fe2c6e383205affe039ab15c13eaf50b36720a29",
       "content_type": "image/webp",
-      "object_key": "app/assets/home-story-bookshelf/v1/characters/char_story_palace_princess_xiao.webp",
-      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/assets/home-story-bookshelf/v1/characters/char_story_palace_princess_xiao.webp"
+      "object_key": "app/assets/story-worlds/story_palace_snow_edict/characters/taiping-princess/v1/portrait.webp",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/assets/story-worlds/story_palace_snow_edict/characters/taiping-princess/v1/portrait.webp"
     },
     {
       "source": "apps/web/app/assets/home-story-bookshelf/v1/ui/books-quill.webp",
@@ -44,22 +44,22 @@
       "url": "https://img.pingxingxian.space/fablespace/media/v1/app/assets/home-story-bookshelf/v1/ui/books-quill.webp"
     },
     {
-      "source": "apps/web/app/assets/story-worlds/story_palace_snow_edict/player-roles/little-eunuch/v1/avatar.webp",
+      "source": "apps/web/app/assets/story-worlds/story_palace_snow_edict/player-roles/inner-attendant/v1/avatar.webp",
       "disposition": "migrate",
-      "bytes": 71934,
-      "sha256": "49d8b8e36775e8ca4e5326a88d92b10bdf2186d4468e0a9a72057a51c674c8e4",
+      "bytes": 114776,
+      "sha256": "34e0a0411f6bd148ae94d311928c97b14f5a7b09a6e014d35c6314667b082be5",
       "content_type": "image/webp",
-      "object_key": "app/assets/story-worlds/story_palace_snow_edict/player-roles/little-eunuch/v1/avatar.webp",
-      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/assets/story-worlds/story_palace_snow_edict/player-roles/little-eunuch/v1/avatar.webp"
+      "object_key": "app/assets/story-worlds/story_palace_snow_edict/player-roles/inner-attendant/v1/avatar.webp",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/assets/story-worlds/story_palace_snow_edict/player-roles/inner-attendant/v1/avatar.webp"
     },
     {
-      "source": "apps/web/app/assets/story-worlds/story_palace_snow_edict/player-roles/little-palace-maid/v1/avatar.webp",
+      "source": "apps/web/app/assets/story-worlds/story_palace_snow_edict/player-roles/palace-woman/v1/avatar.webp",
       "disposition": "migrate",
-      "bytes": 81062,
-      "sha256": "96006aaeb90785a0b0ccaa898fa34229595b0d19b7bf9d415f84de8800576ea3",
+      "bytes": 87574,
+      "sha256": "aaeb3522836b2b587c1b9117bf654d15039f1715fa0543aa8b694ecc06ffd195",
       "content_type": "image/webp",
-      "object_key": "app/assets/story-worlds/story_palace_snow_edict/player-roles/little-palace-maid/v1/avatar.webp",
-      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/assets/story-worlds/story_palace_snow_edict/player-roles/little-palace-maid/v1/avatar.webp"
+      "object_key": "app/assets/story-worlds/story_palace_snow_edict/player-roles/palace-woman/v1/avatar.webp",
+      "url": "https://img.pingxingxian.space/fablespace/media/v1/app/assets/story-worlds/story_palace_snow_edict/player-roles/palace-woman/v1/avatar.webp"
     },
     {
       "source": "apps/web/app/assets/story-worlds/history_broad_street_water_1854/player-roles/tom-reed/v1/avatar.webp",

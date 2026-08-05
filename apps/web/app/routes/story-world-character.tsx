@@ -1,4 +1,4 @@
-import type { ClientLoaderFunctionArgs } from "react-router"
+import type { ClientLoaderFunctionArgs, MetaFunction } from "react-router"
 import { ArrowLeft, CircleAlert, Feather, LoaderCircle } from "lucide-react"
 import { useState } from "react"
 import { Link, useLoaderData, useRevalidator } from "react-router"
@@ -85,6 +85,13 @@ export async function clientLoader({ params }: ClientLoaderFunctionArgs): Promis
     }
   }
 }
+
+/** Use the loaded public Character name in the detail page browser title. */
+export const meta: MetaFunction<typeof clientLoader> = ({ data }) => [{
+  title: data?.detail
+    ? `${data.detail.character.name}｜FableSpace`
+    : "角色｜FableSpace",
+}]
 
 export default function StoryWorldCharacterRoute() {
   const { detail, continuity, slug, error } = useLoaderData<typeof clientLoader>()

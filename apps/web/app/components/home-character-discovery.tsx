@@ -20,15 +20,21 @@ import { Link } from "react-router"
 import { mediaAssetUrl } from "../lib/media-assets"
 import {
   characterPath,
+  characterStoryPath,
   resolveCharacterRouteById,
 } from "../lib/character-routes"
-import type { HomeStoryCharacter } from "../lib/home-story-collection"
+import type {
+  HomeStoryCharacter,
+  HomeStoryContinuity,
+} from "../lib/home-story-collection"
+import type { StoryRunContinuity } from "../lib/story-worlds"
 import { WEB_PATHS } from "../lib/web-routes"
 
 import "./home-character-discovery.css"
 
 type HomeCharacterDiscoveryProps = {
   characters: HomeStoryCharacter[]
+  continuity: HomeStoryContinuity
   loadState: "loading" | "ready" | "empty" | "error"
   loadError: string
   onRetry: () => void
@@ -39,8 +45,6 @@ type CharacterPresentation = {
   portrait: string
   ctaLabel: string
   storyLinkLabel: string
-  companionIds: string[]
-  companionLine: string
 }
 
 type FeaturedCharacter = {
@@ -50,8 +54,8 @@ type FeaturedCharacter = {
 }
 
 const ANNIE_CHARACTER_ID = "char_history_broad_street_annie"
-const WEI_CHARACTER_ID = "char_story_palace_eunuch_wei"
-const XIAO_CHARACTER_ID = "char_story_palace_princess_xiao"
+const GAO_LISHI_CHARACTER_ID = "char_story_palace_eunuch_wei"
+const TAIPING_PRINCESS_CHARACTER_ID = "char_story_palace_princess_xiao"
 const BOOKS_QUILL_DECORATION = mediaAssetUrl(
   "app/assets/home-story-bookshelf/v1/ui/books-quill.webp",
 )
@@ -64,28 +68,22 @@ const CHARACTER_PRESENTATIONS: CharacterPresentation[] = [
     ),
     ctaLabel: "去见安妮",
     storyLinkLabel: "看看她的故事",
-    companionIds: [WEI_CHARACTER_ID, XIAO_CHARACTER_ID],
-    companionLine: "宫墙深处，还有人等你回去。",
   },
   {
-    characterId: WEI_CHARACTER_ID,
+    characterId: GAO_LISHI_CHARACTER_ID,
     portrait: mediaAssetUrl(
-      "app/assets/home-story-bookshelf/v1/characters/char_story_palace_eunuch_wei.webp",
+      "app/assets/story-worlds/story_palace_snow_edict/characters/gao-lishi/v1/portrait.webp",
     ),
-    ctaLabel: "去见魏观海",
+    ctaLabel: "去见高力士",
     storyLinkLabel: "看看他的故事",
-    companionIds: [WEI_CHARACTER_ID, XIAO_CHARACTER_ID],
-    companionLine: "宫墙深处，还有人等你回去。",
   },
   {
-    characterId: XIAO_CHARACTER_ID,
+    characterId: TAIPING_PRINCESS_CHARACTER_ID,
     portrait: mediaAssetUrl(
-      "app/assets/home-story-bookshelf/v1/characters/char_story_palace_princess_xiao.webp",
+      "app/assets/story-worlds/story_palace_snow_edict/characters/taiping-princess/v1/portrait.webp",
     ),
-    ctaLabel: "去见明珠",
+    ctaLabel: "去见太平公主",
     storyLinkLabel: "看看她的故事",
-    companionIds: [ANNIE_CHARACTER_ID],
-    companionLine: "伦敦宽街 · 一碗水",
   },
 ]
 
@@ -110,6 +108,7 @@ function primaryPath(entry: FeaturedCharacter) {
 
 export function HomeCharacterDiscovery({
   characters: sourceCharacters,
+  continuity,
   loadState,
   loadError,
   onRetry,
@@ -118,7 +117,9 @@ export function HomeCharacterDiscovery({
     () => featuredCharacters(sourceCharacters),
     [sourceCharacters],
   )
-  const [selectedCharacterId, setSelectedCharacterId] = useState(WEI_CHARACTER_ID)
+  const [selectedCharacterId, setSelectedCharacterId] = useState(
+    GAO_LISHI_CHARACTER_ID,
+  )
   const initialSelectionRef = useRef(selectedCharacterId)
   const carouselRef = useRef<HTMLDivElement | null>(null)
   const cardRefs = useRef<Record<string, HTMLElement | null>>({})
@@ -224,6 +225,12 @@ export function HomeCharacterDiscovery({
   const effectiveLoadError = loadState === "ready" && !hasReadyCharacters
     ? "角色暂不可用"
     : loadError
+  const activeRun = activeEntry && continuity.status === "ready"
+    ? continuity.runsByStoryWorld[activeEntry.storyWorld.id] || null
+    : null
+  const identityLabel = continuity.identity?.display_name?.trim()
+    || continuity.identity?.username
+    || "未登录"
 
   return (
     <main className="characterDiscoveryPage">
@@ -232,8 +239,16 @@ export function HomeCharacterDiscovery({
           <span>FableSpace</span>
           <Sparkles aria-hidden="true" />
         </Link>
-        <span className="characterDiscoveryProfile" aria-hidden="true">
-          <UserRound aria-hidden="true" />
+        <span
+          className="characterDiscoveryProfile"
+          aria-label={continuity.identity ? `已登录：${identityLabel}` : "未登录"}
+          title={identityLabel}
+        >
+          {continuity.identity?.avatar_url ? (
+            <img src={continuity.identity.avatar_url} alt="" />
+          ) : (
+            <UserRound aria-hidden="true" />
+          )}
         </span>
       </header>
 
@@ -329,10 +344,13 @@ export function HomeCharacterDiscovery({
                   <strong>{activeEntry.presentation.storyLinkLabel}</strong>
                   <span aria-hidden="true" />
                 </Link>
-                <LastCompanion
-                  activeEntry={activeEntry}
-                  characters={characters}
-                />
+                {activeRun ? (
+                  <LastCompanion
+                    activeEntry={activeEntry}
+                    characters={characters}
+                    run={activeRun}
+                  />
+                ) : null}
               </>
             ) : null}
           </div>
@@ -340,15 +358,15 @@ export function HomeCharacterDiscovery({
       )}
 
       <nav className="characterDiscoveryBottomNav" aria-label="底部导航">
-        <Link className="is-active" to={WEB_PATHS.home}>
+        <Link className="is-active" to={WEB_PATHS.home} aria-current="page">
           <UserRound aria-hidden="true" />
           <span>角色</span>
         </Link>
-        <span aria-disabled="true">
+        <span aria-disabled="true" aria-label="回忆，暂未开放">
           <NotebookText aria-hidden="true" />
           <span>回忆</span>
         </span>
-        <span aria-disabled="true">
+        <span aria-disabled="true" aria-label="我的，暂未开放">
           <UserRound aria-hidden="true" />
           <span>我的</span>
         </span>
@@ -406,17 +424,50 @@ function CharacterCard({
   )
 }
 
+/** Render the latest real Character exchange for the selected StoryWorld. */
 function LastCompanion({
   activeEntry,
   characters,
+  run,
 }: {
   activeEntry: FeaturedCharacter
   characters: FeaturedCharacter[]
+  run: StoryRunContinuity
 }) {
-  const companions = activeEntry.presentation.companionIds.flatMap((characterId) => {
-    const companion = characters.find(({ character }) => character.id === characterId)
-    return companion ? [companion] : []
-  })
+  const worldCharacters = characters.filter(
+    ({ storyWorld }) => storyWorld.id === activeEntry.storyWorld.id,
+  )
+  const companions: FeaturedCharacter[] = []
+  const companionIds = new Set<string>()
+
+  let latestCharacterMessage: StoryRunContinuity["recent_character_messages"][number] | null = null
+
+  for (const message of run.recent_character_messages) {
+    if (companionIds.has(message.character_id)) continue
+    const companion = worldCharacters.find(
+      ({ character }) => character.id === message.character_id,
+    )
+    if (!companion) continue
+    latestCharacterMessage ||= message
+    companions.push(companion)
+    companionIds.add(message.character_id)
+    if (companions.length === 2) break
+  }
+
+  const latestCompanion = companions[0]
+  const latestRoute = latestCompanion
+    ? resolveCharacterRouteById(latestCompanion.character.id)
+    : null
+  if (!latestCharacterMessage || !latestCompanion || !latestRoute) return null
+
+  const continuationLine = run.status === "completed"
+    ? run.ending_summary || latestCharacterMessage.content
+    : latestCharacterMessage.content
+  const actionLabel = run.status === "completed"
+    ? "结局"
+    : run.can_resume
+      ? "继续"
+      : "重新进入"
 
   return (
     <section className="characterLastCompanion" aria-labelledby="last-companion-title">
@@ -428,19 +479,18 @@ function LastCompanion({
         <span aria-hidden="true" />
         <BookOpenText aria-hidden="true" />
       </div>
-      <Link className="characterLastCompanionRow" to={primaryPath(activeEntry)}>
+      <Link
+        className="characterLastCompanionRow"
+        to={characterStoryPath(latestRoute.slug, run.player_role_id)}
+      >
         <span className="characterLastCompanionPortraits" aria-hidden="true">
           {companions.map(({ character, presentation }) => (
-            <img
-              key={character.id}
-              src={presentation.portrait}
-              alt=""
-            />
+            <img key={character.id} src={presentation.portrait} alt="" />
           ))}
         </span>
-        <span>{activeEntry.presentation.companionLine}</span>
+        <span>{continuationLine}</span>
         <strong>
-          继续
+          {actionLabel}
           <ChevronRight aria-hidden="true" />
         </strong>
       </Link>

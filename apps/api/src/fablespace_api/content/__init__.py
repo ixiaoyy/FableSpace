@@ -2,10 +2,10 @@
 
 from .annie_broad_street import ANNIE_CHARACTER_ID, ANNIE_STORY_WORLD, ANNIE_STORY_WORLD_ID
 from .palace_snow_edict import (
+    GAO_LISHI_CHARACTER_ID,
     PALACE_STORY_WORLD,
     PALACE_STORY_WORLD_ID,
-    WEI_CHARACTER_ID,
-    XIAO_CHARACTER_ID,
+    TAIPING_PRINCESS_CHARACTER_ID,
 )
 from ..domain.story_world import StoryWorldRegistry
 
@@ -15,9 +15,9 @@ __all__ = [
     "ANNIE_CHARACTER_ID",
     "ANNIE_STORY_WORLD",
     "ANNIE_STORY_WORLD_ID",
+    "GAO_LISHI_CHARACTER_ID",
     "PALACE_STORY_WORLD",
     "PALACE_STORY_WORLD_ID",
     "STORY_WORLD_REGISTRY",
-    "WEI_CHARACTER_ID",
-    "XIAO_CHARACTER_ID",
+    "TAIPING_PRINCESS_CHARACTER_ID",
 ]

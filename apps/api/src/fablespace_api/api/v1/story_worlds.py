@@ -78,6 +78,21 @@ def get_current_run(story_world_id: str, character_id: str, request: Request):
         _raise_http(exc)
 
 
+@router.get("/{story_world_id}/runs/continuity")
+def get_run_continuity(story_world_id: str, request: Request):
+    """Return the signed-in player's latest read-only continuity for one StoryWorld."""
+    player_id = _player_id(request)
+    try:
+        return {
+            "continuity": _service(request).continuity(
+                player_id,
+                story_world_id,
+            )
+        }
+    except StoryRuntimeError as exc:
+        _raise_http(exc)
+
+
 @router.post("/{story_world_id}/runs")
 def start_run(story_world_id: str, payload: RunEntryRequest, request: Request):
     player_id = _player_id(request)

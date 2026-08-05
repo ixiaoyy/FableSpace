@@ -21,22 +21,22 @@ export const CHARACTER_ROUTES = [
     theme: "broad-street",
   },
   {
-    slug: "wei",
+    slug: "gao-lishi",
     storyWorldId: "story_palace_snow_edict",
     characterId: "char_story_palace_eunuch_wei",
-    sceneLabel: "长明宫 · 五更前",
+    sceneLabel: "唐长安宫城 · 713",
     portrait: mediaAssetUrl(
-      "app/assets/home-story-bookshelf/v1/characters/char_story_palace_eunuch_wei.webp",
+      "app/assets/story-worlds/story_palace_snow_edict/characters/gao-lishi/v1/portrait.webp",
     ),
     theme: "palace",
   },
   {
-    slug: "mingzhu",
+    slug: "taiping-princess",
     storyWorldId: "story_palace_snow_edict",
     characterId: "char_story_palace_princess_xiao",
-    sceneLabel: "长明宫 · 五更前",
+    sceneLabel: "唐长安宫城 · 713",
     portrait: mediaAssetUrl(
-      "app/assets/home-story-bookshelf/v1/characters/char_story_palace_princess_xiao.webp",
+      "app/assets/story-worlds/story_palace_snow_edict/characters/taiping-princess/v1/portrait.webp",
     ),
     theme: "palace",
   },

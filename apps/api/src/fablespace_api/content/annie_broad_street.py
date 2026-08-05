@@ -44,6 +44,7 @@ ANNIE_REFERENCE_ENTRY_IDS_BY_STAGE = {
     "opening": (
         "fact_outbreak_intensified",
         "setting_annie_is_fictional",
+        "setting_opening_rain",
         "setting_player_roles",
     ),
     "investigation": (
@@ -646,7 +647,7 @@ ANNIE_STORY_WORLD = StoryWorld(
     summary="在不可改写的宽街历史中，帮助原创儿童见证者把饮水来源和亲眼所见分开说清。",
     genre="历史剧情",
     publication_status=PublicationStatus.PUBLISHED,
-    content_version="annie-broad-street-2026-07-29.5",
+    content_version="annie-broad-street-2026-08-05.6",
     entry_chapter_id=CHAPTER.id,
     player_roles=(TOM_REED_PLAYER_ROLE, LIZZIE_BELL_PLAYER_ROLE),
     characters=(ANNIE,),
@@ -719,6 +720,15 @@ ANNIE_STORY_WORLD = StoryWorld(
             id="setting_annie_is_fictional",
             category=CanonCategory.STORY_SETTING,
             statement="安妮及她与玩家的相遇均为原创剧情，不对应史料中可识别的真实儿童。",
+            sources=(),
+        ),
+        CanonEntry(
+            id="setting_opening_rain",
+            category=CanonCategory.STORY_SETTING,
+            statement=(
+                "9 月 7 日下午的降雨、屋檐避雨与淋湿衣裙属于开场氛围设定，"
+                "不作为当日气象史实或霍乱传播的因果证据。"
+            ),
             sources=(),
         ),
         CanonEntry(

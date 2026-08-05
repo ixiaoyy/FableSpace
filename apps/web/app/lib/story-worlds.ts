@@ -94,6 +94,21 @@ export type StoryRun = {
 
 type RunResponse = { run: StoryRun | null }
 
+export type StoryRunContinuity = {
+  id: string
+  status: "active" | "completed"
+  content_version: string
+  player_role_id: string
+  can_resume: boolean
+  recent_character_messages: Array<{
+    character_id: string
+    content: string
+  }>
+  ending_summary: string | null
+}
+
+type ContinuityResponse = { continuity: StoryRunContinuity | null }
+
 function storyWorldBase(storyWorldId: string) {
   return `/api/v1/story-worlds/${encodeURIComponent(storyWorldId)}`
 }
@@ -109,6 +124,13 @@ export async function getCurrentStoryRun(storyWorldId: string, characterId: stri
   return (await readApiJson<RunResponse>(
     `${storyWorldBase(storyWorldId)}/runs/current?${query.toString()}`,
   )).run
+}
+
+/** Read the latest private run summary without refreshing or advancing StoryRun state. */
+export async function getStoryRunContinuity(storyWorldId: string) {
+  return (await readApiJson<ContinuityResponse>(
+    `${storyWorldBase(storyWorldId)}/runs/continuity`,
+  )).continuity
 }
 
 export async function startStoryRun(

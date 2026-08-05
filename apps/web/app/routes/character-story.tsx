@@ -1,4 +1,4 @@
-import type { ClientLoaderFunctionArgs } from "react-router"
+import type { ClientLoaderFunctionArgs, MetaFunction } from "react-router"
 import {
   ArrowLeft,
   BookOpenText,
@@ -265,6 +265,13 @@ export async function clientLoader({ params }: ClientLoaderFunctionArgs): Promis
     }
   }
 }
+
+/** Use the loaded Character name to distinguish the private story page title. */
+export const meta: MetaFunction<typeof clientLoader> = ({ data }) => [{
+  title: data?.detail
+    ? `${data.detail.character.name}的故事｜FableSpace`
+    : "故事｜FableSpace",
+}]
 
 export default function CharacterStoryRoute() {
   const { detail, slug, error } = useLoaderData<typeof clientLoader>()
@@ -611,7 +618,7 @@ function StoryConversationGate({
             <p>登录后继续与{detail.character.name}对话。</p>
             <a className="annieStoryPrimaryButton" href={loginHref}>
               <LogIn aria-hidden="true" />
-              登录
+              前往平行线登录
             </a>
           </>
         ) : null}
@@ -621,7 +628,7 @@ function StoryConversationGate({
             <p>登录已过期。</p>
             <a className="annieStoryPrimaryButton" href={loginHref}>
               <LogIn aria-hidden="true" />
-              重新登录
+              重新前往平行线登录
             </a>
           </>
         ) : null}

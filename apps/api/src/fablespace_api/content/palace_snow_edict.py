@@ -1,4 +1,4 @@
-"""Reviewed StoryWorld content for the fictional Snow Edict palace story."""
+"""Reviewed StoryWorld content for the 713 Xiantian palace coup."""
 
 from __future__ import annotations
 
@@ -9,7 +9,6 @@ from ..domain.story_world import (
     Character,
     PlayerRole,
     PublicationStatus,
-    RelationshipEffect,
     RelationshipRules,
     RelationshipStage,
     StoryChapter,
@@ -20,141 +19,176 @@ from ..domain.story_world import (
 )
 
 PALACE_STORY_WORLD_ID = "story_palace_snow_edict"
-WEI_CHARACTER_ID = "char_story_palace_eunuch_wei"
-XIAO_CHARACTER_ID = "char_story_palace_princess_xiao"
+GAO_LISHI_CHARACTER_ID = "char_story_palace_eunuch_wei"
+TAIPING_PRINCESS_CHARACTER_ID = "char_story_palace_princess_xiao"
 PALACE_PLAYER_ROLE_ID = "role_story_palace_little_eunuch"
 PALACE_MAID_PLAYER_ROLE_ID = "role_story_palace_little_maid"
-PALACE_ROLE_ASSET_ROOT = (
-    "app/assets/story-worlds/story_palace_snow_edict/player-roles"
+PALACE_ASSET_ROOT = "app/assets/story-worlds/story_palace_snow_edict"
+FIXED_XIANTIAN_OUTCOME = (
+    "太平公主一方失败，公主随后被赐死；玄宗取得更完整的最高权力。"
+)
+
+OLD_TANG_XUANZONG = "https://zh.wikisource.org/zh/舊唐書/卷8"
+OLD_TANG_GAO_LISHI = "https://zh.wikisource.org/zh/舊唐書/卷184"
+NEW_TANG_TAIPING = "https://zh.wikisource.org/zh/新唐書/卷83"
+TANG_WEN_2012 = "https://www.gdwx.fudan.edu.cn/tw/list.htm"
+GAO_LISHI_STUDY = (
+    "https://lishiwenhua.snnu.edu.cn/pucheng/uploadfile/2020/0422/"
+    "202109282219.pdf"
 )
 
 
-def _relationship_rules(
-    *,
-    initial_affinity: int,
-    wary_attitude: str,
-    open_attitude: str,
-    trusted_attitude: str,
-) -> RelationshipRules:
+def _historical_relationship_rules(attitude: str) -> RelationshipRules:
+    """Keep real-person relationships immutable while satisfying the runtime contract."""
+
     return RelationshipRules(
         minimum_affinity=0,
         maximum_affinity=100,
-        initial_affinity=initial_affinity,
-        natural_turn_max_delta=3,
+        initial_affinity=50,
+        natural_turn_max_delta=0,
         stages=(
             RelationshipStage(
-                id="wary",
-                label="仍有戒心",
+                id="historical_distance",
+                label="史料所见",
                 minimum_affinity=0,
-                attitude=wary_attitude,
-            ),
-            RelationshipStage(
-                id="open",
-                label="愿意听你",
-                minimum_affinity=45,
-                attitude=open_attitude,
-            ),
-            RelationshipStage(
-                id="trusted",
-                label="把后背交给你",
-                minimum_affinity=70,
-                attitude=trusted_attitude,
+                attitude=attitude,
             ),
         ),
     )
 
 
-WEI_GUANHAI = Character(
-    id=WEI_CHARACTER_ID,
+GAO_LISHI = Character(
+    id=GAO_LISHI_CHARACTER_ID,
     story_world_id=PALACE_STORY_WORLD_ID,
-    name="魏观海",
-    identity="长明宫掌印太监，皇帝近侍，负责守住寝殿、玉玺与未宣诏书。",
-    age="未明确；只确定为资深成年内侍，不得自行给出具体岁数。",
-    social_position="宫中高阶内侍，能约束低阶内侍并调度宫门事务，但仍受皇权、诏书与宫规制约。",
-    motive="在五更朝会前稳住长明宫，也守住自己最后一次忠诚。",
-    secret="皇帝短暂醒过，并命他暂时不见公主；同一封诏书也要收回他的掌印。",
-    voice="慢而稳，礼数周全，常以规矩施压；真正动怒时反而更温和。",
-    current_situation="皇帝昏迷，魏观海守着寝殿、玉玺与一封未宣诏书，五更前谁也不准入内。",
-    opening_line="小崽子，抬头。咱家只问一句：方才水门边那半枚腰牌，是谁交到你手里的？",
-    relationship_rules=_relationship_rules(
-        initial_affinity=35,
-        wary_attitude="他把你当作宫册之外的一枚活棋，问得客气，却一句也没有放松。",
-        open_attitude="他开始把你说的话当作证词，而不只是可以利用的口信。",
-        trusted_attitude="他肯让你站在诏书旁边，见证自己最不愿承认的代价。",
+    name="高力士",
+    identity=(
+        "唐玄宗近侍、内给事；《旧唐书》记其在先天二年参与诛萧至忠、岑羲等人的行动。"
+    ),
+    age="成年；本故事不采用有争议的具体生年推算。",
+    social_position=(
+        "玄宗身边的内侍，可随行传命并参与七月三日的宫门行动；"
+        "不能把他后来获得的高位倒置到事变发生之前。"
+    ),
+    motive=(
+        "只依据公开行动呈现：协助玄宗一方执行七月三日的先制行动；"
+        "不推断未被史料记录的私人动机。"
+    ),
+    secret=(
+        "没有经核验的私人秘密；不得虚构他与太平公主私会、暗约、逐句密议或未载密令。"
+    ),
+    voice=(
+        "只使用带固定标识的第三人称剧情转述，不生成高力士的第一人称原话。"
+        "转述只谈已审核的行动、门次和消息来源；遇到史料空白时明确说无法证实。"
+    ),
+    current_situation=(
+        "先天二年七月三日，史籍记高力士随玄宗一方出武德殿、入虔化门；"
+        "具体逐句传令没有留存。"
+    ),
+    opening_line=(
+        "剧情转述（非史料原话）：高力士只确认《旧唐书》记载的随行与入门，"
+        "并要求来者把亲见、转述和后来的定性分开。"
+    ),
+    relationship_rules=_historical_relationship_rules(
+        "他只按史料边界核对你的记录，不产生可改写历史的私人好感或敌意。"
+    ),
+    portrait_url=public_media_url(
+        f"{PALACE_ASSET_ROOT}/characters/gao-lishi/v1/portrait.webp"
     ),
 )
 
-XIAO_MINGZHU = Character(
-    id=XIAO_CHARACTER_ID,
+TAIPING_PRINCESS = Character(
+    id=TAIPING_PRINCESS_CHARACTER_ID,
     story_world_id=PALACE_STORY_WORLD_ID,
-    name="萧明珠",
-    identity="皇帝之女、长明宫公主。",
-    age="未明确；不得自行给出具体岁数。",
-    social_position="皇族公主，地位远高于低阶内侍；习惯发号施令，但不能越过封宫、诏书和宫规直接决定正史。",
-    motive="亲眼确认父皇安危，也把被自己连累的小内侍带出来。",
-    secret="她命人偷了半枚水门腰牌，混乱中一名小内侍因此被扣作同谋。",
-    voice="语速快、命令多，情绪写在脸上；被说中软处先发火，冷静后会承担。",
-    current_situation="萧明珠被拦在父皇寝殿外，袖中藏着半枚腰牌，正准备从冷宫水门闯入。",
-    opening_line="别跪了。你熟水门，也没人会防你。先替我把被扣的小内侍找出来，再带我去见父皇。",
-    relationship_rules=_relationship_rules(
-        initial_affinity=40,
-        wary_attitude="她把你当临时随从，急着要答案，还没有准备听你的反对。",
-        open_attitude="她开始先问你的判断，再决定要不要把命令说出口。",
-        trusted_attitude="她愿意把自己的错交给你当面指出，也肯为你的选择挡下一次宫规。",
+    name="太平公主",
+    identity=(
+        "唐高宗与武则天之女、唐睿宗之妹、唐玄宗之姑；"
+        "713 年先天政变中失败一方的核心真实人物。"
+    ),
+    age="成年；史料不能支持一个无争议的具体生年，剧情不指定岁数。",
+    social_position=(
+        "拥有公主府、政治网络和显著朝廷影响力的成年公主；"
+        "她的公开结局固定，玩家无权替她调兵、废立或改变处置。"
+    ),
+    motive=(
+        "只呈现可见政治立场：反对玄宗独掌权力；"
+        "关于是否预定举兵、如何谋划，按史书指控和研究争议分别记录。"
+    ),
+    secret=(
+        "没有经核验的私人秘密；不得把正史的“同谋”“谋废”“作乱”直接改写成她的内心独白。"
+    ),
+    voice=(
+        "只使用带固定标识的第三人称剧情转述，不生成太平公主的第一人称原话。"
+        "转述克制而有地位感，只追问记录依据，不补写密谋、心理或私下会面。"
+    ),
+    current_situation=(
+        "史籍记宫城行动发生后她闻变入南山，三日后出；"
+        "她在七月三日的精确位置与逐句反应均未获核验。"
+    ),
+    opening_line=(
+        "剧情转述（非史料原话）：太平公主要求来者说明同谋、谋废、作乱"
+        "分别出自哪类记录，而不是把后来的定性冒充亲见。"
+    ),
+    relationship_rules=_historical_relationship_rules(
+        "她只质询证词如何形成；玩家不能改变真实人物的私人关系或历史选择。"
+    ),
+    portrait_url=public_media_url(
+        f"{PALACE_ASSET_ROOT}/characters/taiping-princess/v1/portrait.webp"
     ),
 )
 
 PALACE_PLAYER_ROLE = PlayerRole(
     id=PALACE_PLAYER_ROLE_ID,
     story_world_id=PALACE_STORY_WORLD_ID,
-    name="小太监",
-    age="成年，约十八岁；“小”表示低阶与资历浅，不得称为儿童。",
-    social_position="长明宫最低阶的内侍杂役，能传话、跑腿和查证，没有开门、宣诏或替上位者决策的权力。",
+    name="内侍小使",
+    age="成年，约十八岁；“小使”表示低阶与资历浅，不得称为儿童。",
+    social_position=(
+        "宫城中的低阶内侍，只能传递日常口信、核对门次和抄录名单，"
+        "没有调动禁军、传诏或处置真实人物的权力。"
+    ),
     gender="男性",
-    background="你在长明宫做最不起眼的杂役，熟悉水门、药房后廊和宫门名册，却没有替任何一方开门的权力。",
-    entry_reason="送炭途中，你捡到半枚水门腰牌，也听见被扣的小内侍在值房里喊冤。",
+    background=(
+        "你在宫门与内廷之间做杂务，认得门次、值名与传话格式；"
+        "具体官署属于剧情设定，不冒充唐代确切品秩。"
+    ),
+    entry_reason=(
+        "七月三日，几份互相矛盾的口信同时经过宫门。你被要求把亲见、转述和后来定性分栏抄清。"
+    ),
     character_visible_information=(
-        "你是长明宫低阶内侍，能在外廊和水门之间走动。",
-        "你捡到了半枚水门腰牌，但尚未交给任何人。",
-        "你可以传话、查证、拒绝站队，也必须承担被发现后的后果。",
+        "你是成年低阶内侍，可以核对谁在何处传过话，但不能证明传话内容必然属实。",
+        "你知道史籍后来记高力士随行进入虔化门；具体逐句命令没有保存。",
+        "你不得替玄宗、高力士或太平公主作出历史决定。",
     ),
     avatar_url=public_media_url(
-        f"{PALACE_ROLE_ASSET_ROOT}/little-eunuch/v1/avatar.webp"
+        f"{PALACE_ASSET_ROOT}/player-roles/inner-attendant/v1/avatar.webp"
     ),
 )
 
 PALACE_MAID_PLAYER_ROLE = PlayerRole(
     id=PALACE_MAID_PLAYER_ROLE_ID,
     story_world_id=PALACE_STORY_WORLD_ID,
-    name="小宫女",
-    age="成年，约十八岁；“小”表示低阶与资历浅，不得称为儿童。",
-    social_position="长明宫最低阶的宫女杂役，能递话、送物和查证，没有进入禁地、传旨或替上位者决策的权力。",
+    name="宫人",
+    age="成年，约十八岁；不得称为儿童。",
+    social_position=(
+        "宫城中的普通宫人，只能整理值次、递送抄本和区分消息来源，"
+        "没有出入禁地、调动禁军或替公主发令的权力。"
+    ),
     gender="女性",
-    background="你在承香殿与尚食局之间递送物件，熟悉女官值次、药房后廊和各宫夜灯，却没有替任何一方开门的权力。",
-    entry_reason="送回空药匣时，你捡到半枚水门腰牌，也听见被扣的小内侍在值房里喊冤。",
+    background=(
+        "你负责整理宫人值次与出入抄本；"
+        "具体职名属于剧情设定，不宣称对应一个已经核验的唐代女官品秩。"
+    ),
+    entry_reason=(
+        "宫城异动后，几份把“听说”写成“亲见”的抄本混在一起。你被要求先分清它们从哪里来。"
+    ),
     character_visible_information=(
-        "你是长明宫低阶宫女，能在承香殿、尚食局和外廊之间走动。",
-        "你捡到了半枚水门腰牌，但尚未交给任何人。",
-        "你可以递话、查证、拒绝站队，也必须承担被发现后的后果。",
+        "你是成年普通宫人，可以比对抄本和传话来源，但没有一份能证明全部密谋的万能文书。",
+        "你知道正史对太平公主一方有明确指控，也知道后世研究质疑官方叙事的删改。",
+        "你不得替真实人物补写私会、心理或未被记录的逐句对白。",
     ),
     avatar_url=public_media_url(
-        f"{PALACE_ROLE_ASSET_ROOT}/little-palace-maid/v1/avatar.webp"
+        f"{PALACE_ASSET_ROOT}/player-roles/palace-woman/v1/avatar.webp"
     ),
 )
-
-
-def _effect(
-    character_id: str,
-    affinity_delta: int,
-    reason: str,
-    *flags: str,
-) -> RelationshipEffect:
-    return RelationshipEffect(
-        character_id=character_id,
-        affinity_delta=affinity_delta,
-        reason=reason,
-        set_flags=tuple(flags),
-    )
 
 
 def _choice(
@@ -164,8 +198,9 @@ def _choice(
     *,
     is_key: bool = False,
     set_flags: tuple[str, ...] = (),
-    effects: tuple[RelationshipEffect, ...] = (),
 ) -> StoryChoice:
+    """Create one reviewed choice that changes records, never historical people."""
+
     return StoryChoice(
         id=choice_id,
         label=label,
@@ -174,258 +209,323 @@ def _choice(
         required_flags=(),
         blocked_flags=(),
         set_flags=set_flags,
-        relationship_effects=effects,
+        relationship_effects=(),
     )
 
 
 PALACE_CHAPTER = StoryChapter(
-    id="chapter_fifth_watch",
-    title="五更前开门",
-    entry_node_id="node_snow_gate",
+    id="chapter_seventh_month_third",
+    title="七月三日",
+    entry_node_id="node_wude_palace",
     nodes=(
         StoryNode(
-            id="node_snow_gate",
-            narration="大雪压住宫墙。寝殿门内，魏观海守着玉玺和未宣诏书；门外，萧明珠攥着半枚水门腰牌。五更鼓响前，你只能先接住一边的话。",
+            id="node_wude_palace",
+            narration=(
+                "先天二年七月三日，武德殿外传令骤密。正史后来写下太平公主一方原定次日举兵；"
+                "眼下你能核对的只有人名、门次和每句话的来源。无论你怎样选择，宫门内的先制行动已经开始。"
+            ),
             choices=(
                 _choice(
-                    "choice_hear_wei",
-                    "先问魏观海：为什么不敢宣诏？",
-                    "node_wei_terms",
-                    effects=(
-                        _effect(WEI_CHARACTER_ID, 5, "你没有急着定罪，而是先逼他把规矩说清。"),
-                    ),
+                    "choice_check_gate_sequence",
+                    "先核对武德殿到虔化门的门次",
+                    "node_gate_sequence",
+                    set_flags=("checked_gate_sequence",),
                 ),
                 _choice(
-                    "choice_hear_xiao",
-                    "先问萧明珠：被扣的小内侍怎么办？",
-                    "node_xiao_debt",
-                    effects=(
-                        _effect(XIAO_CHARACTER_ID, 5, "你没有顺着她闯门，先问她愿不愿承担后果。"),
-                    ),
+                    "choice_trace_accusation",
+                    "先追查“同谋”“谋废”从哪份口信而来",
+                    "node_accusation_wording",
+                    set_flags=("traced_accusation",),
                 ),
                 _choice(
-                    "choice_check_guardroom",
-                    "谁也不帮，先去值房找被扣的小内侍",
-                    "node_guardroom",
-                    effects=(
-                        _effect(WEI_CHARACTER_ID, 2, "你先查人证，没有替任何一方传未经核实的话。"),
-                        _effect(XIAO_CHARACTER_ID, 4, "你先去救她连累的人，让她无法继续回避。"),
-                    ),
+                    "choice_check_attendants",
+                    "先把普通宫人与被指控者的名单分开",
+                    "node_attendant_list",
+                    set_flags=("checked_attendant_list",),
                 ),
             ),
             ending_id=None,
         ),
         StoryNode(
-            id="node_wei_terms",
-            narration="魏观海没有否认重新封过诏书，只把一盏冷透的御膳推到你面前：皇帝醒过一次，留下了两句互相撕扯的命令。",
+            id="node_gate_sequence",
+            narration=(
+                "后来的本纪列出高力士等人出武德殿、入虔化门的路线。"
+                "你手里的门次抄本是剧情设定：它能核对先后，却不能证明每个人当时心里所想。"
+            ),
             choices=(
                 _choice(
-                    "choice_ask_edict_witness",
-                    "要求当着公主与值守官的面拆封",
-                    "node_confrontation",
-                    set_flags=("demanded_joint_witness",),
-                    effects=(
-                        _effect(WEI_CHARACTER_ID, 7, "你给他留了守住真话的程序，而不是逼他私下投降。"),
-                        _effect(XIAO_CHARACTER_ID, 2, "你替她争到见证，却没有把诏书直接交给她。"),
-                    ),
+                    "choice_record_seen_only",
+                    "只登记亲见的人名与门次",
+                    "node_record_decision",
+                    set_flags=("separated_observation",),
                 ),
                 _choice(
-                    "choice_carry_wei_message",
-                    "替他传话，但不隐瞒诏书会收回掌印",
-                    "node_confrontation",
-                    set_flags=("carried_full_message",),
-                    effects=(
-                        _effect(WEI_CHARACTER_ID, 5, "你答应传话，却拒绝替他删掉最痛的一句。"),
-                        _effect(XIAO_CHARACTER_ID, 4, "你把完整代价带到她面前，没有拿半句话哄她。"),
-                    ),
+                    "choice_mark_message_source",
+                    "把每条转述标上最早可追到的来源",
+                    "node_record_decision",
+                    set_flags=("attributed_message",),
                 ),
             ),
             ending_id=None,
         ),
         StoryNode(
-            id="node_xiao_debt",
-            narration="萧明珠先发了火，随后把金簪和半枚腰牌一同放下。她承认小内侍是替她取牌才被扣，却仍坚持父皇的门必须在今夜打开。",
+            id="node_accusation_wording",
+            narration=(
+                "同一阵营在不同记载里被写作“同谋”“谋废”或“作乱”。"
+                "这些字能改变后世怎样理解人，却不是一份保存完整的口供。"
+            ),
             choices=(
                 _choice(
-                    "choice_release_attendant_first",
-                    "先让她用自己的名义放出小内侍",
-                    "node_confrontation",
-                    set_flags=("attendant_released",),
-                    effects=(
-                        _effect(XIAO_CHARACTER_ID, 8, "你逼她先为已经发生的伤害负责。"),
-                        _effect(WEI_CHARACTER_ID, 3, "你先补上名册里的罪责，再谈破门。"),
-                    ),
+                    "choice_attribute_charge",
+                    "保留指控，但注明是谁、依据什么提出",
+                    "node_record_decision",
+                    set_flags=("attributed_charge",),
                 ),
                 _choice(
-                    "choice_verify_badge",
-                    "拿腰牌去对宫门名册，不替她硬闯",
-                    "node_confrontation",
-                    set_flags=("badge_verified",),
-                    effects=(
-                        _effect(XIAO_CHARACTER_ID, 5, "你肯替她查证，却没有把忠诚变成服从。"),
-                        _effect(WEI_CHARACTER_ID, 4, "你按名册查腰牌，让事情回到可追溯的证据上。"),
-                    ),
+                    "choice_hold_unverified_detail",
+                    "把无法核验的逐句密谋留作空白",
+                    "node_record_decision",
+                    set_flags=("withheld_unverified_detail",),
                 ),
             ),
             ending_id=None,
         ),
         StoryNode(
-            id="node_guardroom",
-            narration="值房里，小内侍说腰牌只剩半枚，另一半在药房后廊。名册还记着一个本不该在雪夜入宫的太医名字。",
+            id="node_attendant_list",
+            narration=(
+                "被传唤、守门和递送抄本的普通宫人挤在一张临时名单里。"
+                "他们是剧情中的原创普通人，不该因为靠近宫门就被写成史籍中没有的同党。"
+            ),
             choices=(
                 _choice(
-                    "choice_bring_witness",
-                    "带着小内侍和名册回到寝殿",
-                    "node_confrontation",
-                    set_flags=("brought_witness",),
-                    effects=(
-                        _effect(WEI_CHARACTER_ID, 5, "你带回可核对的人证，没有拿传闻逼宫。"),
-                        _effect(XIAO_CHARACTER_ID, 5, "你救出被她连累的人，也没有替她抹掉责任。"),
-                    ),
+                    "choice_separate_attendants",
+                    "把普通当值者另列，不并入被指控名单",
+                    "node_record_decision",
+                    set_flags=("separated_attendants",),
                 ),
                 _choice(
-                    "choice_find_second_badge",
-                    "先去药房后廊找另一半腰牌",
-                    "node_confrontation",
-                    set_flags=("badge_completed",),
-                    effects=(
-                        _effect(WEI_CHARACTER_ID, 3, "你补全了宫门记录，让他的规矩经得起查。"),
-                        _effect(XIAO_CHARACTER_ID, 4, "你替她找到进门的证据，却没有偷偷使用。"),
-                    ),
+                    "choice_preserve_parallel_lists",
+                    "保留两份原始次序，不替任何一方合并",
+                    "node_record_decision",
+                    set_flags=("preserved_parallel_lists",),
                 ),
             ),
             ending_id=None,
         ),
         StoryNode(
-            id="node_confrontation",
-            narration="五更前最后一遍更鼓从雪里传来。魏观海把诏书放在灯下，萧明珠站在寝殿门前。现在必须有人决定：门怎样开，诏书怎样见光。",
+            id="node_record_decision",
+            narration=(
+                "虔化门一线的控制已经改变，史籍记萧至忠、岑羲等随后被处置。"
+                "你不能让这一切发生或不发生，只能决定自己的抄本是否把行动、指控和未知混成同一句话。"
+            ),
             choices=(
                 _choice(
-                    "choice_joint_opening",
-                    "让两人共同验印，由值守官记录后开门",
-                    "node_ending_joint",
+                    "choice_end_sequence",
+                    "只写行动顺序，不替真人判定内心",
+                    "node_ending_sequence",
                     is_key=True,
-                    effects=(
-                        _effect(WEI_CHARACTER_ID, 12, "你让他能以见证人的身份交出权力。", "shared_witness"),
-                        _effect(XIAO_CHARACTER_ID, 12, "你让她先承担记录，再获得开门的资格。", "shared_witness"),
-                    ),
+                    set_flags=("ending_sequence_only",),
                 ),
                 _choice(
-                    "choice_publish_edict",
-                    "不开寝殿，先在五更朝会上宣读完整诏书",
-                    "node_ending_edict",
+                    "choice_end_attributed",
+                    "记下正史指控，同时注明出处与立场",
+                    "node_ending_attributed",
                     is_key=True,
-                    effects=(
-                        _effect(WEI_CHARACTER_ID, 10, "你选择让完整诏书先于流言见光。", "edict_published"),
-                        _effect(XIAO_CHARACTER_ID, 3, "你没有替她破门，但让她听见父皇留下的全部命令。"),
-                    ),
+                    set_flags=("ending_attributed_charge",),
                 ),
                 _choice(
-                    "choice_force_gate",
-                    "把完整腰牌交给萧明珠，强行开门",
-                    "node_ending_breach",
+                    "choice_end_parallel",
+                    "把相互冲突的说法并列保留",
+                    "node_ending_parallel",
                     is_key=True,
-                    effects=(
-                        _effect(WEI_CHARACTER_ID, -10, "你越过了他守住的程序，也让他再不能独占真相。"),
-                        _effect(XIAO_CHARACTER_ID, 7, "你帮她见到父皇，却要求她亲自承担破门罪责。", "gate_forced"),
-                    ),
+                    set_flags=("ending_parallel_accounts",),
                 ),
                 _choice(
-                    "choice_walk_away",
-                    "交回腰牌，拒绝替任何人做最后决定",
-                    "node_ending_silence",
+                    "choice_end_attendants",
+                    "只带走普通宫人的交接名单",
+                    "node_ending_attendants",
                     is_key=True,
-                    effects=(
-                        _effect(WEI_CHARACTER_ID, -2, "你拒绝成为他手里不留名的棋子。"),
-                        _effect(XIAO_CHARACTER_ID, -2, "你拒绝让她把自己的选择交给一个小内侍承担。"),
-                    ),
+                    set_flags=("ending_attendant_record",),
                 ),
             ),
             ending_id=None,
         ),
         StoryNode(
-            id="node_ending_joint",
-            narration="值守官落下第一笔记录。魏观海交出诏书，萧明珠亲手补上腰牌名册。寝殿门在两个人都不能独占的见证下打开。",
+            id="node_ending_sequence",
+            narration=(
+                "你的抄本止于可核对的门次和人名。"
+                f"{FIXED_XIANTIAN_OUTCOME}"
+                "你没有替任何真人补写一个无人能证实的念头。"
+            ),
             choices=(),
-            ending_id="ending_joint_witness",
+            ending_id="ending_sequence_only",
         ),
         StoryNode(
-            id="node_ending_edict",
-            narration="五更朝会先听见完整诏书：收回掌印，也暂缓公主入殿。魏观海失去权柄，却没有让最后一道命令死在自己手里。",
+            id="node_ending_attributed",
+            narration=(
+                "“同谋”“谋废”“作乱”都留在纸上，旁边也留下各自出处。"
+                f"{FIXED_XIANTIAN_OUTCOME}"
+                "但定性不再冒充你亲眼见过的密谋。"
+            ),
             choices=(),
-            ending_id="ending_edict_first",
+            ending_id="ending_attributed_charge",
         ),
         StoryNode(
-            id="node_ending_breach",
-            narration="完整腰牌合上，宫门应声而开。萧明珠终于见到昏睡的父皇，也在名册末页写下自己的名字，承认这是她下的令。",
+            id="node_ending_parallel",
+            narration=(
+                "两份互相冲突的记录没有被强行抹平。"
+                f"{FIXED_XIANTIAN_OUTCOME}"
+                "而后来读到这页的人仍能看见正史之外存在证据缺口。"
+            ),
             choices=(),
-            ending_id="ending_forced_gate",
+            ending_id="ending_parallel_accounts",
         ),
         StoryNode(
-            id="node_ending_silence",
-            narration="你把腰牌放回灯下，退出争执。五更鼓响后，两个人只能用自己的名字作决定，再也不能把后果藏在一个无名小太监身上。",
+            id="node_ending_attendants",
+            narration=(
+                "你只保住了普通宫人的交接名单，没有把他们填进胜负双方的罪名里。"
+                f"{FIXED_XIANTIAN_OUTCOME}"
+                "这些原创小人物却不必被你虚构成同党。"
+            ),
             choices=(),
-            ending_id="ending_refused_burden",
+            ending_id="ending_attendant_record",
         ),
     ),
 )
 
 PALACE_STORY_WORLD = StoryWorld(
     id=PALACE_STORY_WORLD_ID,
-    title="长明宫·雪夜诏书",
-    summary="皇帝昏迷、寝殿封锁。魏观海与萧明珠必须在五更前决定谁来开门，谁来承担诏书见光后的代价。",
-    genre="架空宫廷",
+    title="先天二年·虔化门",
+    summary=(
+        "713 年七月三日，玄宗一方先制入宫。高力士与太平公主分处史书两端，"
+        "玩家只能核对记录如何形成，不能改写政变结局。"
+    ),
+    genre="历史宫廷",
     publication_status=PublicationStatus.PUBLISHED,
-    content_version="palace-snow-edict-2026-07-28.1",
+    content_version="palace-xiantian-coup-2026-08-05.1",
     entry_chapter_id=PALACE_CHAPTER.id,
     player_roles=(PALACE_PLAYER_ROLE, PALACE_MAID_PLAYER_ROLE),
-    characters=(WEI_GUANHAI, XIAO_MINGZHU),
+    characters=(GAO_LISHI, TAIPING_PRINCESS),
     chapters=(PALACE_CHAPTER,),
     endings=(
         StoryEnding(
-            id="ending_joint_witness",
-            title="共同见证",
-            summary="诏书、腰牌与开门都留下记录。魏观海交出权力，萧明珠承担责任，两人共同见证寝殿开门。",
+            id="ending_sequence_only",
+            title="只记所见",
+            summary=(
+                "你只保存可核对的行动顺序。"
+                f"{FIXED_XIANTIAN_OUTCOME}"
+                "公开历史没有改变。"
+            ),
         ),
         StoryEnding(
-            id="ending_edict_first",
-            title="诏书先见光",
-            summary="寝殿暂未开启，完整诏书先被宣读。魏观海失去掌印，萧明珠也第一次听完一道不偏爱她的命令。",
+            id="ending_attributed_charge",
+            title="指控有源",
+            summary=(
+                "正史指控被保留，也被注明来源与立场。"
+                f"{FIXED_XIANTIAN_OUTCOME}"
+            ),
         ),
         StoryEnding(
-            id="ending_forced_gate",
-            title="破门之后",
-            summary="萧明珠强行开门并署名承担后果；魏观海失去控制，却也再不能把真相锁在门内。",
+            id="ending_parallel_accounts",
+            title="两说并存",
+            summary=(
+                "冲突记录被并列保存，没有被合成一个万能真相。"
+                f"{FIXED_XIANTIAN_OUTCOME}"
+            ),
         ),
         StoryEnding(
-            id="ending_refused_burden",
-            title="把名字还给他们",
-            summary="你拒绝替任何一方背负最后决定。五更到来时，魏观海与萧明珠只能用自己的名字面对后果。",
+            id="ending_attendant_record",
+            title="无名者的名单",
+            summary=(
+                "你只保护原创普通宫人的记录，不改变任何真人行动。"
+                f"{FIXED_XIANTIAN_OUTCOME}"
+            ),
         ),
     ),
     canon_entries=(
         CanonEntry(
-            id="setting_fictional_dynasty",
-            category=CanonCategory.STORY_SETTING,
-            statement="长明宫、曜宁朝及本故事全部人物与事件均为原创架空设定。",
-            sources=(),
+            id="fact_xiantian_action_date",
+            category=CanonCategory.FIXED_FACT,
+            statement=(
+                "先天二年七月三日，玄宗一方先制行动；正史称太平公主相关人员原定次日举兵。"
+            ),
+            sources=(OLD_TANG_XUANZONG, NEW_TANG_TAIPING),
         ),
         CanonEntry(
-            id="setting_snow_edict",
-            category=CanonCategory.STORY_SETTING,
-            statement="皇帝服药后昏迷；魏观海封锁寝殿，一封未宣诏书必须在五更前处理。",
-            sources=(),
+            id="fact_gao_lishi_participated",
+            category=CanonCategory.FIXED_FACT,
+            statement=(
+                "高力士是玄宗一方参与行动的内侍；《旧唐书》本纪、传记与《新唐书》均记其参与。"
+            ),
+            sources=(OLD_TANG_XUANZONG, OLD_TANG_GAO_LISHI, GAO_LISHI_STUDY),
         ),
         CanonEntry(
-            id="setting_gate_rules",
-            category=CanonCategory.STORY_SETTING,
-            statement="寝殿只能凭掌印、完整腰牌或可核验口谕开启；使用腰牌会在宫门名册留下记录。",
-            sources=(),
+            id="fact_action_route",
+            category=CanonCategory.FIXED_FACT,
+            statement=(
+                "史籍把武德殿、虔化门、北阙、内客省与朝堂列入七月三日行动路线。"
+            ),
+            sources=(OLD_TANG_XUANZONG, NEW_TANG_TAIPING),
+        ),
+        CanonEntry(
+            id="fact_taiping_outcome",
+            category=CanonCategory.FIXED_FACT,
+            statement=(
+                "太平公主一方失败；《新唐书》记她闻变入南山、三日后出并被赐死于宅第。"
+            ),
+            sources=(NEW_TANG_TAIPING, TANG_WEN_2012),
+        ),
+        CanonEntry(
+            id="fact_power_transfer",
+            category=CanonCategory.FIXED_FACT,
+            statement=(
+                "事变后玄宗取得更完整的最高权力，睿宗交出军国政刑裁决；同年改元开元。"
+            ),
+            sources=(OLD_TANG_XUANZONG, TANG_WEN_2012),
+        ),
+        CanonEntry(
+            id="fact_official_accusations_are_contested",
+            category=CanonCategory.FIXED_FACT,
+            statement=(
+                "“同谋”“谋废”“作乱”是官修史书对太平公主一方的定性；"
+                "同行评审研究指出相关国史叙述存在政治遮蔽与人物重塑。"
+                "本条只确认两类来源及其立场，不确认指控等同完整内心真相。"
+            ),
+            sources=(OLD_TANG_XUANZONG, NEW_TANG_TAIPING, TANG_WEN_2012),
         ),
         CanonEntry(
             id="setting_player_roles",
             category=CanonCategory.STORY_SETTING,
-            statement="玩家每轮从长明宫小太监或小宫女中选择一个身份，可传话、查证、站队或拒绝参与，但不能开门、宣诏或改写人物既有秘密。",
+            statement=(
+                "内侍小使与宫人均为原创成年 PlayerRole，只能核对门次、抄本和消息来源，"
+                "没有调兵、传诏或处置真人的权力。"
+            ),
+            sources=(),
+        ),
+        CanonEntry(
+            id="setting_record_devices",
+            category=CanonCategory.STORY_SETTING,
+            statement=(
+                "玩家接触的门次抄本、临时名单和具体口信是玩法装置，不冒充已发现的唐代原件。"
+            ),
+            sources=(),
+        ),
+        CanonEntry(
+            id="setting_dramatized_projection",
+            category=CanonCategory.STORY_SETTING,
+            statement=(
+                "高力士与太平公主的开场和自由回应使用带固定标识的第三人称剧情转述，"
+                "不是史料原话；"
+                "二人不在无同场证据的原创场景里直接会面。"
+            ),
+            sources=(),
+        ),
+        CanonEntry(
+            id="setting_private_endings",
+            category=CanonCategory.STORY_SETTING,
+            statement=(
+                "四个结局只改变玩家留下记录的方式；太平公主失败与死亡、玄宗掌权等公共结果始终一致。"
+            ),
             sources=(),
         ),
     ),
@@ -433,10 +533,10 @@ PALACE_STORY_WORLD = StoryWorld(
 
 
 __all__ = [
+    "GAO_LISHI_CHARACTER_ID",
     "PALACE_MAID_PLAYER_ROLE_ID",
     "PALACE_PLAYER_ROLE_ID",
     "PALACE_STORY_WORLD",
     "PALACE_STORY_WORLD_ID",
-    "WEI_CHARACTER_ID",
-    "XIAO_CHARACTER_ID",
+    "TAIPING_PRINCESS_CHARACTER_ID",
 ]

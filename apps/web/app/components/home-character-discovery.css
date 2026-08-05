@@ -22,7 +22,7 @@ body:has(.characterDiscoveryPage) {
   --character-bottom-nav-height: calc(64px + env(safe-area-inset-bottom));
   position: relative;
   z-index: 0;
-  width: min(100%, 450px);
+  width: min(100%, 1120px);
   min-height: 100svh;
   margin: 0 auto;
   padding-bottom: var(--character-bottom-nav-height);
@@ -45,8 +45,8 @@ body:has(.characterDiscoveryPage) {
   display: flex;
   height: 70px;
   align-items: center;
-  justify-content: space-between;
-  padding: 20px 25px 0;
+  justify-content: flex-start;
+  padding: 20px clamp(24px, 4vw, 48px) 0;
 }
 
 .characterDiscoveryBrand {
@@ -80,12 +80,24 @@ body:has(.characterDiscoveryPage) {
   width: 34px;
   height: 34px;
   place-items: center;
+  margin-left: auto;
+  overflow: hidden;
   padding: 0;
   border: 2px solid #fff;
   border-radius: 50%;
   color: #aa9079;
   background: #e7d8c3;
   box-shadow: 0 0 0 1px #ead9bd;
+}
+
+.characterDiscoveryProfile img,
+.characterDiscoveryProfile svg {
+  width: 100%;
+  height: 100%;
+}
+
+.characterDiscoveryProfile img {
+  object-fit: cover;
 }
 
 .characterDiscoveryProfile svg {
@@ -97,6 +109,7 @@ body:has(.characterDiscoveryPage) {
 
 .characterDiscoveryContent {
   position: relative;
+  padding-bottom: max(36px, env(safe-area-inset-bottom));
 }
 
 .characterDiscoveryIntro {
@@ -212,7 +225,7 @@ body:has(.characterDiscoveryPage) {
   width: 92px;
   height: 92px;
   border-radius: 50%;
-  transition: width 180ms ease, height 180ms ease, transform 180ms ease;
+  transition: transform 180ms ease;
 }
 
 .characterSelectorPortrait::before,
@@ -239,9 +252,7 @@ body:has(.characterDiscoveryPage) {
 }
 
 .characterSelector.is-active .characterSelectorPortrait {
-  width: 112px;
-  height: 112px;
-  transform: none;
+  transform: scale(1.2174);
 }
 
 .characterSelector.is-active .characterSelectorPortrait::before {
@@ -357,7 +368,7 @@ body:has(.characterDiscoveryPage) {
   right: auto;
   left: 31%;
   width: 69%;
-  object-fit: fill;
+  object-fit: cover;
 }
 
 .characterStoryCard[data-character-id="char_history_broad_street_annie"] .characterStoryPortrait {
@@ -386,11 +397,11 @@ body:has(.characterDiscoveryPage) {
     linear-gradient(
       90deg,
       #fff8e9 0%,
-      #fff8e9 30%,
-      rgba(255, 248, 233, 0.96) 34%,
-      rgba(255, 248, 233, 0.7) 39%,
-      rgba(255, 248, 233, 0.15) 47%,
-      transparent 54%
+      #fff8e9 36%,
+      rgba(255, 248, 233, 0.98) 44%,
+      rgba(255, 248, 233, 0.84) 54%,
+      rgba(255, 248, 233, 0.45) 66%,
+      transparent 78%
     );
 }
 
@@ -511,11 +522,12 @@ body:has(.characterDiscoveryPage) {
   display: -webkit-box;
   overflow: hidden;
   margin: 13px 0 0;
-  color: #544d50;
+  color: #352f37;
   font-size: 14px;
-  font-weight: 500;
+  font-weight: 600;
   line-height: 1.65;
   letter-spacing: 0.04em;
+  text-shadow: 0 1px 2px rgba(255, 248, 233, 0.96);
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
 }
@@ -527,7 +539,7 @@ body:has(.characterDiscoveryPage) {
   left: 47px;
   z-index: 2;
   display: flex;
-  height: 40px;
+  min-height: 46px;
   align-items: center;
   justify-content: center;
   gap: 13px;
@@ -566,28 +578,38 @@ body:has(.characterDiscoveryPage) {
 
 .characterCarouselDots {
   display: flex;
-  height: 15px;
+  min-height: 44px;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  margin-top: 2px;
+  gap: 0;
+  margin-top: 0;
 }
 
 .characterCarouselDots button {
-  width: 6px;
-  height: 6px;
+  position: relative;
+  display: grid;
+  width: 44px;
+  height: 44px;
+  place-items: center;
   padding: 0;
   border: 0;
-  border-radius: 50%;
-  background: #ded5c8;
+  background: transparent;
   cursor: pointer;
-  transition: width 160ms ease, background 160ms ease;
 }
 
-.characterCarouselDots button.is-active {
-  width: 7px;
-  height: 7px;
+.characterCarouselDots button::after {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #ded5c8;
+  content: "";
+  transform: scale(0.75);
+  transition: transform 160ms ease, background 160ms ease;
+}
+
+.characterCarouselDots button.is-active::after {
   background: var(--character-lavender);
+  transform: scale(1);
 }
 
 .characterCarouselDots button:focus-visible {
@@ -726,14 +748,13 @@ body:has(.characterDiscoveryPage) {
 }
 
 .characterLastCompanionRow > span:nth-child(2) {
-  overflow: visible;
+  min-width: 0;
+  overflow: hidden;
   font-size: 13px;
   font-weight: 500;
   line-height: 1.4;
   letter-spacing: 0.02em;
-  text-overflow: clip;
-  transform: scaleX(0.86);
-  transform-origin: left center;
+  text-overflow: ellipsis;
   white-space: nowrap;
 }
 
@@ -824,7 +845,7 @@ body:has(.characterDiscoveryPage) {
 }
 
 .characterDiscoveryBottomNav [aria-disabled="true"] {
-  cursor: default;
+  cursor: not-allowed;
 }
 
 .characterDiscoveryState {
@@ -846,7 +867,7 @@ body:has(.characterDiscoveryPage) {
   max-width: 320px;
   margin: 12px 0 0;
   color: var(--character-muted);
-  font-family: Inter, "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+  font-family: "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
   font-size: 14px;
   line-height: 1.65;
 }
@@ -873,11 +894,109 @@ body:has(.characterDiscoveryPage) {
   height: 16px;
 }
 
-@media (min-width: 451px) {
+@media (min-width: 960px) {
   .characterDiscoveryPage {
     min-height: 100vh;
   }
 
+  .characterDiscoveryHeader {
+    height: 78px;
+    padding-top: 24px;
+  }
+
+  .characterDiscoveryIntro {
+    width: min(620px, 100%);
+    padding-top: 28px;
+  }
+
+  .characterDiscoveryStage {
+    display: grid;
+    grid-template-columns: minmax(180px, 220px) minmax(0, 1fr);
+    grid-template-rows: auto auto auto;
+    column-gap: clamp(32px, 4vw, 52px);
+    align-items: start;
+    padding: 28px clamp(32px, 4vw, 48px) 20px;
+  }
+
+  .characterSelectorList {
+    display: grid;
+    height: auto;
+    grid-column: 1;
+    grid-row: 1 / span 3;
+    grid-template-columns: 1fr;
+    gap: 10px;
+    margin: 0;
+    padding: 0;
+  }
+
+  .characterSelector,
+  .characterSelector.is-active {
+    min-height: 104px;
+    grid-template-columns: 88px minmax(0, 1fr);
+    place-items: center start;
+    align-content: center;
+    padding: 8px;
+    border-radius: 18px;
+  }
+
+  .characterSelectorPortrait {
+    width: 74px;
+    height: 74px;
+  }
+
+  .characterSelector.is-active .characterSelectorPortrait {
+    transform: scale(1.1622);
+  }
+
+  .characterSelector strong,
+  .characterSelector.is-active strong {
+    margin: 0 0 0 14px;
+    font-size: 16px;
+  }
+
+  .characterCarouselViewport {
+    grid-column: 2;
+    grid-row: 1;
+    margin-top: 0;
+    overflow: hidden;
+    scroll-padding-inline: 0;
+  }
+
+  .characterCarouselTrack {
+    display: block;
+    width: 100%;
+    padding: 0;
+  }
+
+  .characterStoryCard {
+    display: none;
+    width: 100%;
+    height: 360px;
+  }
+
+  .characterStoryCard.is-active {
+    display: block;
+  }
+
+  .characterCarouselDots {
+    display: none;
+  }
+
+  .characterStoryTextLink {
+    grid-column: 2;
+    grid-row: 2;
+    margin-top: 12px;
+  }
+
+  .characterLastCompanion {
+    grid-column: 2;
+    grid-row: 3;
+    margin-top: 12px;
+    padding: 0;
+  }
+}
+
+@media (min-width: 451px) {
   .characterDiscoveryBottomNav {
     border-right: 1px solid rgba(213, 173, 122, 0.28);
     border-left: 1px solid rgba(213, 173, 122, 0.28);
@@ -904,8 +1023,7 @@ body:has(.characterDiscoveryPage) {
   }
 
   .characterSelector.is-active .characterSelectorPortrait {
-    width: 102px;
-    height: 102px;
+    transform: scale(1.2439);
   }
 
   .characterStoryCard {
@@ -922,6 +1040,7 @@ body:has(.characterDiscoveryPage) {
 
   .characterStoryPrimaryAction {
     right: 35px;
+    bottom: 56px;
     left: 35px;
   }
 
@@ -935,7 +1054,7 @@ body:has(.characterDiscoveryPage) {
   .characterSelectorPortrait,
   .characterStoryCard,
   .characterStoryPrimaryAction,
-  .characterCarouselDots button {
+  .characterCarouselDots button::after {
     transition: none;
   }
 
