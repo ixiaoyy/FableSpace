@@ -2188,6 +2188,7 @@ def validate_assets(*, repository_root: Path) -> dict[str, object]:
     approval = repository_root / "deploy" / "release-approval.txt"
     contract = repository_root / "deploy" / "server" / "migration_009_contract.py"
     tool = repository_root / "deploy" / "server" / "migration_009_tool.py"
+    apply_script = repository_root / "deploy" / "server" / "apply_multi_story_009.sh"
     workflow = repository_root / ".github" / "workflows" / "apply-multi-story-009.yml"
     migrations = sorted((repository_root / "apps" / "api" / "sql" / "migrations").glob("009_*.sql"))
     if migrations != [migration]:
@@ -2198,8 +2199,10 @@ def validate_assets(*, repository_root: Path) -> dict[str, object]:
         approval_bytes = approval.read_bytes()
         contract_bytes = contract.read_bytes()
         tool_bytes = tool.read_bytes()
+        apply_script_bytes = apply_script.read_bytes()
+        apply_script_text = apply_script_bytes.decode("utf-8")
         workflow_text = workflow.read_text(encoding="utf-8")
-    except OSError as exc:
+    except (OSError, UnicodeDecodeError) as exc:
         raise Migration009ToolError("migration_asset_unreadable") from exc
     if marker_bytes != b"009_multi_story_atomic_switch\n":
         raise Migration009ToolError("schema_revision_marker_invalid")
@@ -2235,29 +2238,67 @@ def validate_assets(*, repository_root: Path) -> dict[str, object]:
     expected_action = f"appleboy/ssh-action@{SSH_ACTION_COMMIT}"
     workflow_fragments = {
         expected_action,
+        'APPLY_SCRIPT_RELATIVE="deploy/server/apply_multi_story_009.sh"',
+        "git fetch --force --no-tags origin",
+        "refs/heads/main:refs/remotes/origin/main",
+        'git show "${EXPECTED_SHA}:${APPLY_SCRIPT_RELATIVE}"',
+        'git rev-parse --verify "refs/remotes/origin/main^{commit}"',
+        'exec env EXPECTED_SHA="${EXPECTED_SHA}"',
+        'FABLESPACE_EXPORTED_APPLY_SCRIPT="${APPLY_SCRIPT_TEMP}"',
+        '/bin/sh "${APPLY_SCRIPT_TEMP}"',
+    }
+    apply_script_fragments = {
         "enable_database_write_exclusion",
         "release_database_write_exclusion",
         "SET GLOBAL read_only = ON",
         "SET GLOBAL read_only = OFF",
+        "FIRST_WRITE_STARTED=true",
+        "trap cleanup EXIT",
     }
     if any(fragment not in workflow_text for fragment in workflow_fragments):
         raise Migration009ToolError("migration_workflow_contract_incomplete")
+    if any(fragment not in apply_script_text for fragment in apply_script_fragments):
+        raise Migration009ToolError("migration_apply_script_contract_incomplete")
     if re.search(r"appleboy/ssh-action@(?![0-9a-f]{40}(?:\s|#))", workflow_text):
         raise Migration009ToolError("migration_workflow_action_not_commit_pinned")
+    if workflow_text.count(expected_action) != 1:
+        raise Migration009ToolError("migration_workflow_action_count_invalid")
+    if re.search(r"\bscript_path\s*:", workflow_text):
+        raise Migration009ToolError("migration_workflow_script_path_forbidden")
+    if "${{" in apply_script_text:
+        raise Migration009ToolError("migration_apply_script_expression_forbidden")
+    bootstrap_marker = "          script: |\n"
+    if workflow_text.count(bootstrap_marker) != 1:
+        raise Migration009ToolError("migration_workflow_bootstrap_invalid")
+    bootstrap_text = workflow_text.split(bootstrap_marker, 1)[1]
+    if len(bootstrap_text) >= 21_000:
+        raise Migration009ToolError("migration_workflow_bootstrap_too_large")
     pinned_assets = {
         "migration": sha256(migration.read_bytes()).hexdigest(),
         "contract": sha256(contract_bytes).hexdigest(),
         "tool": sha256(tool_bytes).hexdigest(),
         "marker": sha256(marker_bytes).hexdigest(),
         "approval": sha256(approval_bytes).hexdigest(),
+        "apply_script": sha256(apply_script_bytes).hexdigest(),
     }
     for asset, digest in pinned_assets.items():
-        matches = re.findall(
-            rf'(?:expected_{asset}_sha|EXPECTED_{asset.upper()}_SHA)="([0-9a-f]{{64}})"',
+        lower_matches = re.findall(
+            rf'expected_{asset}_sha="([0-9a-f]{{64}})"',
             workflow_text,
         )
-        if len(matches) != 2 or set(matches) != {digest}:
+        upper_matches = re.findall(
+            rf'EXPECTED_{asset.upper()}_SHA="([0-9a-f]{{64}})"',
+            workflow_text if asset == "apply_script" else apply_script_text,
+        )
+        if lower_matches != [digest] or upper_matches != [digest]:
             raise Migration009ToolError("migration_workflow_asset_hash_mismatch")
+        if asset != "apply_script" and re.search(
+            rf'expected_{asset}_sha="[0-9a-f]{{64}}"',
+            apply_script_text,
+        ):
+            raise Migration009ToolError("migration_apply_script_hash_anchor_invalid")
+    if re.search(r"EXPECTED_APPLY_SCRIPT_SHA=", apply_script_text):
+        raise Migration009ToolError("migration_apply_script_self_hash_forbidden")
     return {
         "contract": TOOL_CONTRACT,
         "migration_id": MIGRATION_ID,
@@ -2265,6 +2306,7 @@ def validate_assets(*, repository_root: Path) -> dict[str, object]:
         "migration_sha256": pinned_assets["migration"],
         "marker_sha256": pinned_assets["marker"],
         "approval_sha256": pinned_assets["approval"],
+        "apply_script_sha256": pinned_assets["apply_script"],
         "ssh_action_commit": SSH_ACTION_COMMIT,
     }
 

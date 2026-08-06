@@ -1,0 +1,558 @@
+#!/bin/sh
+
+set -eu
+
+: "${EXPECTED_SHA:?EXPECTED_SHA must identify the workflow commit}"
+
+if [ -n "${FABLESPACE_EXPORTED_APPLY_SCRIPT:-}" ]; then
+  # Remove only the verified temporary copy already opened by this /bin/sh process.
+  if [ "$0" != "${FABLESPACE_EXPORTED_APPLY_SCRIPT}" ]; then
+    echo "Exported 009 apply script path does not match the running script"
+    exit 1
+  fi
+  case "${FABLESPACE_EXPORTED_APPLY_SCRIPT}" in
+    /tmp/fablespace-apply-009.*) ;;
+    *) echo "Exported 009 apply script escaped the fixed temporary path"; exit 1 ;;
+  esac
+  rm -f -- "${FABLESPACE_EXPORTED_APPLY_SCRIPT}"
+  unset FABLESPACE_EXPORTED_APPLY_SCRIPT
+fi
+
+FABLESPACE_PATH="/opt/fablespace"
+DATABASE_NAME="fablespace"
+EXPECTED_MIGRATION_SHA="7cba47e90f6b1fcdbb9ee55913acab1b1490796f374f197ee3c78adc63201ea1"
+EXPECTED_CONTRACT_SHA="b8b536c6ba003db84d85bf0bbc121df534997e65c3c50d26a664e28e119ae345"
+EXPECTED_TOOL_SHA="8cc4cd4ca49ee5f7a75871a67807e855c9e215034a151b4fe925ed808032c72f"
+EXPECTED_MARKER_SHA="3bbc627cd746d6cb919998aabdd063d4c894ceaf4f6fdd81c0093ddbfda74bea"
+EXPECTED_APPROVAL_SHA="ede40dcdf52df2b18f7e7994138e3df9917028307b21d0ba8d26b91a06a02ca8"
+MIGRATION_RELATIVE="apps/api/sql/migrations/009_multi_story_atomic_switch.sql"
+CONTRACT_RELATIVE="deploy/server/migration_009_contract.py"
+TOOL_RELATIVE="deploy/server/migration_009_tool.py"
+MARKER_RELATIVE="deploy/schema-revision.txt"
+APPROVAL_RELATIVE="deploy/release-approval.txt"
+MARKER_DIR="/opt/fablespace-schema"
+MARKER_PATH="${MARKER_DIR}/revision"
+APPROVAL_PATH="${MARKER_DIR}/release-approval"
+BACKUP_DIR="${FABLESPACE_PATH}/backups/multi-story-009"
+RELEASE_DIR="/tmp/fablespace-release-009-${EXPECTED_SHA}"
+MAINTENANCE_ROOT=""
+RESTORE_CONTAINER=""
+SERVICES_STOPPED=false
+FIRST_WRITE_STARTED=false
+OLD_BACKEND_CONTAINER=""
+OLD_FRONTEND_CONTAINER=""
+OLD_MEMORY_CONTAINER=""
+BACKUP_PATH=""
+BACKUP_SHA=""
+APPROVAL_TEMP=""
+APPROVAL_GUARD_ACTIVE=false
+SHARED_NETWORK_NAME=""
+DATABASE_WRITE_EXCLUSION_ACTIVE=false
+
+cd "${FABLESPACE_PATH}"
+
+if sudo docker compose version >/dev/null 2>&1; then
+  # Run the fixed release composition through the available Docker Compose v2 CLI.
+  compose() {
+    sudo docker compose "$@"
+  }
+else
+  # Run the fixed release composition through the legacy Docker Compose CLI.
+  compose() {
+    sudo docker-compose "$@"
+  }
+fi
+
+COMPOSE_FILES="-f docker-compose.yml -f deploy/docker-compose.shared.yml -f deploy/docker-compose.llm-proxy.yml"
+
+backend_is_healthy() {
+  # Verify the backend currently serves its local health endpoint.
+  compose ${COMPOSE_FILES} exec -T backend python -c \
+    "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/v1/health', timeout=3).read()" \
+    >/dev/null 2>&1
+}
+
+snapshot_database() {
+  # Execute only the generated fixed read-only snapshot SQL in the named DB container.
+  container_id="$1"
+  query_path="$2"
+  output_path="$3"
+  sudo docker exec -i "${container_id}" sh -c \
+    'export MYSQL_PWD="$MYSQL_ROOT_PASSWORD"; exec mysql -uroot --database=fablespace --batch --skip-column-names --raw' \
+    < "${query_path}" > "${output_path}"
+  chmod 0600 "${output_path}"
+}
+
+enable_database_write_exclusion() {
+  # read_only is server-wide: normal accounts cannot write, while this root
+  # maintenance session retains CONNECTION_ADMIN write authority for 009.
+  state="$(sudo docker exec "${DB_CONTAINER}" sh -c \
+    'export MYSQL_PWD="$MYSQL_ROOT_PASSWORD"; exec mysql -uroot --batch --skip-column-names --execute="SELECT CONCAT(@@GLOBAL.read_only, CHAR(58), @@GLOBAL.super_read_only)"')"
+  if [ "${state}" != "0:0" ]; then
+    echo "009 requires the database server to begin with read_only=OFF and super_read_only=OFF"
+    return 1
+  fi
+  DATABASE_WRITE_EXCLUSION_ACTIVE=true
+  sudo docker exec "${DB_CONTAINER}" sh -c \
+    'export MYSQL_PWD="$MYSQL_ROOT_PASSWORD"; exec mysql -uroot --execute="SET GLOBAL read_only = ON"'
+  state="$(sudo docker exec "${DB_CONTAINER}" sh -c \
+    'export MYSQL_PWD="$MYSQL_ROOT_PASSWORD"; exec mysql -uroot --batch --skip-column-names --execute="SELECT CONCAT(@@GLOBAL.read_only, CHAR(58), @@GLOBAL.super_read_only)"')"
+  if [ "${state}" != "1:0" ]; then
+    echo "Could not verify the MySQL read_only maintenance gate"
+    return 1
+  fi
+}
+
+release_database_write_exclusion() {
+  # Restore the exact reviewed pre-migration OFF/OFF state on every exit.
+  if [ "${DATABASE_WRITE_EXCLUSION_ACTIVE}" != "true" ]; then
+    return 0
+  fi
+  sudo docker exec "${DB_CONTAINER}" sh -c \
+    'export MYSQL_PWD="$MYSQL_ROOT_PASSWORD"; exec mysql -uroot --execute="SET GLOBAL read_only = OFF"'
+  state="$(sudo docker exec "${DB_CONTAINER}" sh -c \
+    'export MYSQL_PWD="$MYSQL_ROOT_PASSWORD"; exec mysql -uroot --batch --skip-column-names --execute="SELECT CONCAT(@@GLOBAL.read_only, CHAR(58), @@GLOBAL.super_read_only)"')"
+  if [ "${state}" != "0:0" ]; then
+    echo "CRITICAL: could not restore the MySQL read_only state"
+    return 1
+  fi
+  DATABASE_WRITE_EXCLUSION_ACTIVE=false
+}
+
+cleanup() {
+  # Preserve the backup after first write; only pre-write failures restart exact old containers.
+  status=$?
+  trap - EXIT HUP INT TERM
+  if [ -n "${RESTORE_CONTAINER}" ]; then
+    sudo docker rm -f "${RESTORE_CONTAINER}" >/dev/null 2>&1 || true
+  fi
+  if [ "${APPROVAL_GUARD_ACTIVE}" = "true" ]; then
+    if ! sudo rm -f -- "${APPROVAL_PATH}"; then
+      echo "CRITICAL: could not clear the incomplete runtime release approval"
+      status=1
+    fi
+  fi
+  if [ -n "${APPROVAL_TEMP}" ]; then
+    sudo rm -f -- "${APPROVAL_TEMP}" >/dev/null 2>&1 || true
+  fi
+  exclusion_release_failed=false
+  if [ "${DATABASE_WRITE_EXCLUSION_ACTIVE}" = "true" ] &&
+     ! release_database_write_exclusion; then
+    exclusion_release_failed=true
+    status=1
+  fi
+  if [ "${status}" -ne 0 ] && [ "${SERVICES_STOPPED}" = "true" ]; then
+    if [ "${FIRST_WRITE_STARTED}" = "false" ] &&
+       [ "${exclusion_release_failed}" = "false" ]; then
+      echo "009 stopped before its first write; restarting the unchanged containers"
+      if [ -n "${OLD_BACKEND_CONTAINER}" ]; then
+        sudo docker start "${OLD_BACKEND_CONTAINER}" >/dev/null || true
+      fi
+      if [ -n "${OLD_FRONTEND_CONTAINER}" ]; then
+        sudo docker start "${OLD_FRONTEND_CONTAINER}" >/dev/null || true
+      fi
+      if [ -n "${OLD_MEMORY_CONTAINER}" ]; then
+        sudo docker start "${OLD_MEMORY_CONTAINER}" >/dev/null || true
+      fi
+    else
+      if [ "${FIRST_WRITE_STARTED}" = "true" ]; then
+        echo "CRITICAL: 009 failed after its first write; all FableSpace services remain stopped"
+      else
+        echo "CRITICAL: 009 stopped before its first write, but database gate cleanup failed"
+      fi
+      if [ "${exclusion_release_failed}" = "true" ]; then
+        echo "CRITICAL: database read_only cleanup failed; do not restart any writer"
+      fi
+      cd "${FABLESPACE_PATH}"
+      compose ${COMPOSE_FILES} stop backend frontend memory-worker >/dev/null 2>&1 || true
+      if [ -n "${BACKUP_PATH}" ]; then
+        echo "Verified backup retained at: ${BACKUP_PATH}"
+        echo "Verified backup SHA-256: ${BACKUP_SHA}"
+      fi
+      echo "Do not run reverse SQL. Whole-database restore requires separate approval."
+    fi
+  fi
+  if [ -n "${MAINTENANCE_ROOT}" ] && [ -d "${MAINTENANCE_ROOT}" ]; then
+    find "${MAINTENANCE_ROOT}" -type f -exec chmod 0600 {} \; >/dev/null 2>&1 || true
+    rm -rf -- "${MAINTENANCE_ROOT}"
+  fi
+  if [ "${status}" -ne 0 ] && [ "${FIRST_WRITE_STARTED}" = "false" ] &&
+     [ -d "${RELEASE_DIR}" ]; then
+    cd "${FABLESPACE_PATH}"
+    git worktree remove "${RELEASE_DIR}" >/dev/null 2>&1 || true
+  fi
+  exit "${status}"
+}
+trap cleanup EXIT
+trap 'exit 1' HUP INT TERM
+
+if [ -n "$(git status --porcelain --untracked-files=no)" ]; then
+  echo "Production checkout has tracked changes; refusing the atomic switch"
+  exit 1
+fi
+git fetch --force --no-tags origin \
+  'refs/heads/main:refs/remotes/origin/main'
+if [ "$(git rev-parse --verify "refs/remotes/origin/main^{commit}")" != "${EXPECTED_SHA}" ]; then
+  echo "origin/main does not match the workflow commit"
+  exit 1
+fi
+if [ -e "${RELEASE_DIR}" ]; then
+  echo "Pinned 009 release directory already exists"
+  exit 1
+fi
+git worktree add --detach "${RELEASE_DIR}" "${EXPECTED_SHA}"
+
+cd "${RELEASE_DIR}"
+if [ "$(sha256sum "${MIGRATION_RELATIVE}" | awk '{print $1}')" != "${EXPECTED_MIGRATION_SHA}" ] ||
+   [ "$(sha256sum "${CONTRACT_RELATIVE}" | awk '{print $1}')" != "${EXPECTED_CONTRACT_SHA}" ] ||
+   [ "$(sha256sum "${TOOL_RELATIVE}" | awk '{print $1}')" != "${EXPECTED_TOOL_SHA}" ] ||
+   [ "$(sha256sum "${MARKER_RELATIVE}" | awk '{print $1}')" != "${EXPECTED_MARKER_SHA}" ] ||
+   [ "$(sha256sum "${APPROVAL_RELATIVE}" | awk '{print $1}')" != "${EXPECTED_APPROVAL_SHA}" ]; then
+  echo "Pinned 009 asset hash mismatch"
+  exit 1
+fi
+python3 "${TOOL_RELATIVE}" validate-assets --repository-root "${RELEASE_DIR}"
+
+if [ -z "${CDN_BASE_URL:-}" ]; then
+  echo "CDN_BASE_URL is required to build the pinned frontend"
+  exit 1
+fi
+case "${CDN_BASE_URL}" in
+  https://*) ;;
+  *) echo "CDN_BASE_URL must use HTTPS"; exit 1 ;;
+esac
+CDN_S3_PREFIX="${CDN_S3_PREFIX#/}"
+CDN_S3_PREFIX="${CDN_S3_PREFIX%/}"
+case "${CDN_S3_PREFIX}" in
+  ""|*..*) echo "CDN_S3_PREFIX is invalid"; exit 1 ;;
+esac
+MEDIA_BASE_URL="${CDN_BASE_URL%/}/${CDN_S3_PREFIX}/media/v1"
+
+cd "${FABLESPACE_PATH}"
+OLD_BACKEND_CONTAINER="$(compose ${COMPOSE_FILES} ps -q backend)"
+OLD_FRONTEND_CONTAINER="$(compose ${COMPOSE_FILES} ps -q frontend)"
+if compose ${COMPOSE_FILES} config --services | grep -qx memory-worker; then
+  OLD_MEMORY_CONTAINER="$(compose ${COMPOSE_FILES} ps -q memory-worker)"
+fi
+if [ -z "${OLD_BACKEND_CONTAINER}" ] || [ -z "${OLD_FRONTEND_CONTAINER}" ] ||
+   [ "$(sudo docker inspect -f '{{.State.Running}}' "${OLD_BACKEND_CONTAINER}")" != "true" ] ||
+   [ "$(sudo docker inspect -f '{{.State.Running}}' "${OLD_FRONTEND_CONTAINER}")" != "true" ]; then
+  echo "Expected one running backend and frontend before 009"
+  exit 1
+fi
+if ! backend_is_healthy; then
+  echo "Current backend is not healthy before 009"
+  exit 1
+fi
+if [ ! -f "${FABLESPACE_PATH}/apps/api/.env" ]; then
+  echo "Production backend environment file is missing"
+  exit 1
+fi
+if grep -Eiq \
+  '^[[:space:]]*FABLESPACE_MEMORY_(FORMATION|RECALL)_ENABLED[[:space:]]*=[[:space:]]*(1|true|yes|on)[[:space:]]*$' \
+  "${FABLESPACE_PATH}/apps/api/.env"; then
+  echo "009 requires both memory feature flags to remain disabled"
+  exit 1
+fi
+export FABLESPACE_MEMORY_FORMATION_ENABLED=false
+export FABLESPACE_MEMORY_RECALL_ENABLED=false
+
+if [ ! -d /opt/parallellines ]; then
+  echo "ParallelLines deployment directory is missing"
+  exit 1
+fi
+cd /opt/parallellines
+DB_CONTAINER="$(compose ps -q db)"
+cd "${FABLESPACE_PATH}"
+if [ -z "${DB_CONTAINER}" ] ||
+   [ "$(sudo docker inspect -f '{{.State.Running}}' "${DB_CONTAINER}")" != "true" ]; then
+  echo "Expected one running fixed database container"
+  exit 1
+fi
+SHARED_NETWORK_NAME="$(
+  sudo docker inspect "${OLD_BACKEND_CONTAINER}" "${DB_CONTAINER}" |
+    python3 -c 'import json, sys; rows = json.load(sys.stdin); common = sorted(set(rows[0]["NetworkSettings"]["Networks"]) & set(rows[1]["NetworkSettings"]["Networks"])); (_ for _ in ()).throw(SystemExit("Expected exactly one shared backend/database network")) if len(common) != 1 else None; print(common[0])'
+)"
+if [ -z "${SHARED_NETWORK_NAME}" ]; then
+  echo "Could not resolve the existing shared backend/database network"
+  exit 1
+fi
+
+if [ -L "${FABLESPACE_PATH}/backups" ] || [ -L "${BACKUP_DIR}" ]; then
+  echo "Backup paths must not be symbolic links"
+  exit 1
+fi
+mkdir -p "${BACKUP_DIR}"
+chmod 0700 "${BACKUP_DIR}"
+resolved_backup_dir="$(readlink -f "${BACKUP_DIR}")"
+case "${resolved_backup_dir}" in
+  "${FABLESPACE_PATH}/backups/multi-story-009") ;;
+  *) echo "Backup directory escaped the fixed protected path"; exit 1 ;;
+esac
+
+MAINTENANCE_ROOT="$(mktemp -d "${FABLESPACE_PATH}/.migration-009.XXXXXX")"
+chmod 0700 "${MAINTENANCE_ROOT}"
+case "$(readlink -f "${MAINTENANCE_ROOT}")" in
+  "${FABLESPACE_PATH}"/.migration-009.*) ;;
+  *) echo "Maintenance directory escaped the fixed workspace"; exit 1 ;;
+esac
+BASELINE_QUERY="${MAINTENANCE_ROOT}/baseline-snapshot.sql"
+TARGET_QUERY="${MAINTENANCE_ROOT}/target-snapshot.sql"
+INITIAL_SNAPSHOT="${MAINTENANCE_ROOT}/initial.jsonl"
+STOPPED_SNAPSHOT="${MAINTENANCE_ROOT}/stopped.jsonl"
+FINAL_SNAPSHOT="${MAINTENANCE_ROOT}/final-stopped.jsonl"
+RESTORED_SNAPSHOT="${MAINTENANCE_ROOT}/restored.jsonl"
+AFTER_SNAPSHOT="${MAINTENANCE_ROOT}/after.jsonl"
+INITIAL_REPORT="${MAINTENANCE_ROOT}/initial-preflight.json"
+STOPPED_REPORT="${MAINTENANCE_ROOT}/stopped-preflight.json"
+FINAL_REPORT="${MAINTENANCE_ROOT}/final-preflight.json"
+INITIAL_PLAN="${MAINTENANCE_ROOT}/initial-plan.sql"
+STOPPED_PLAN="${MAINTENANCE_ROOT}/stopped-plan.sql"
+FINAL_PLAN="${MAINTENANCE_ROOT}/final-plan.sql"
+
+cd "${RELEASE_DIR}"
+python3 "${TOOL_RELATIVE}" snapshot-sql --phase baseline > "${BASELINE_QUERY}"
+python3 "${TOOL_RELATIVE}" snapshot-sql --phase target > "${TARGET_QUERY}"
+chmod 0600 "${BASELINE_QUERY}" "${TARGET_QUERY}"
+
+echo "Building target images from the pinned release before stopping writes"
+sudo docker build \
+  --file "${RELEASE_DIR}/apps/api/Dockerfile" \
+  --tag "fablespace-backend:009-${EXPECTED_SHA}" \
+  "${RELEASE_DIR}"
+sudo docker build \
+  --build-arg "VITE_API_BASE=${VITE_API_BASE:-}" \
+  --build-arg "VITE_MEDIA_BASE_URL=${MEDIA_BASE_URL}" \
+  --file "${RELEASE_DIR}/apps/web/Dockerfile" \
+  --tag "fablespace-frontend:009-${EXPECTED_SHA}" \
+  "${RELEASE_DIR}"
+sudo docker tag "$(sudo docker inspect -f '{{.Image}}' "${OLD_BACKEND_CONTAINER}")" \
+  "fablespace-backend:pre-009-${EXPECTED_SHA}"
+sudo docker tag "$(sudo docker inspect -f '{{.Image}}' "${OLD_FRONTEND_CONTAINER}")" \
+  "fablespace-frontend:pre-009-${EXPECTED_SHA}"
+
+snapshot_database "${DB_CONTAINER}" "${BASELINE_QUERY}" "${INITIAL_SNAPSHOT}"
+python3 "${TOOL_RELATIVE}" preflight \
+  --snapshot "${INITIAL_SNAPSHOT}" \
+  --report "${INITIAL_REPORT}" \
+  --plan-sql "${INITIAL_PLAN}"
+chmod 0600 "${INITIAL_REPORT}" "${INITIAL_PLAN}"
+
+echo "Stopping all FableSpace traffic and writers"
+if [ -n "${OLD_MEMORY_CONTAINER}" ]; then
+  sudo docker stop "${OLD_MEMORY_CONTAINER}" >/dev/null
+fi
+sudo docker stop "${OLD_FRONTEND_CONTAINER}" "${OLD_BACKEND_CONTAINER}" >/dev/null
+SERVICES_STOPPED=true
+
+timestamp="$(date -u +%Y%m%dT%H%M%SZ)"
+BACKUP_PATH="${BACKUP_DIR}/fablespace-before-009-${EXPECTED_SHA}-${timestamp}.sql"
+case "${BACKUP_PATH}" in
+  "${BACKUP_DIR}"/fablespace-before-009-*.sql) ;;
+  *) echo "Backup file escaped the protected directory"; exit 1 ;;
+esac
+
+if [ -L "${MARKER_DIR}" ] || [ -L "${MARKER_PATH}" ] ||
+   [ -L "${APPROVAL_PATH}" ]; then
+  echo "Schema revision and release approval paths must not be symbolic links"
+  exit 1
+fi
+if [ -e "${APPROVAL_PATH}" ]; then
+  echo "Runtime release approval already exists; refusing to reapply one-shot 009"
+  exit 1
+fi
+APPROVAL_GUARD_ACTIVE=true
+if [ -f "${MARKER_PATH}" ]; then
+  sudo cp "${MARKER_PATH}" "${BACKUP_PATH}.marker-before"
+  sudo chmod 0600 "${BACKUP_PATH}.marker-before"
+  marker_before_sha="$(sudo sha256sum "${MARKER_PATH}" | awk '{print $1}')"
+  printf 'state=present\nsha256=%s\n' "${marker_before_sha}" \
+    > "${BACKUP_PATH}.marker-state"
+else
+  printf 'state=absent\n' > "${BACKUP_PATH}.marker-state"
+fi
+chmod 0600 "${BACKUP_PATH}.marker-state"
+
+snapshot_database "${DB_CONTAINER}" "${BASELINE_QUERY}" "${STOPPED_SNAPSHOT}"
+cd "${RELEASE_DIR}"
+python3 "${TOOL_RELATIVE}" preflight \
+  --snapshot "${STOPPED_SNAPSHOT}" \
+  --report "${STOPPED_REPORT}" \
+  --plan-sql "${STOPPED_PLAN}"
+chmod 0600 "${STOPPED_REPORT}" "${STOPPED_PLAN}"
+python3 "${TOOL_RELATIVE}" compare-preflights \
+  --left "${INITIAL_REPORT}" --right "${STOPPED_REPORT}"
+python3 "${TOOL_RELATIVE}" compare-snapshots \
+  --left "${INITIAL_SNAPSHOT}" --right "${STOPPED_SNAPSHOT}"
+
+echo "Creating the complete fixed-database logical backup"
+if ! sudo docker exec "${DB_CONTAINER}" sh -c \
+  'export MYSQL_PWD="$MYSQL_ROOT_PASSWORD"; exec mysqldump -uroot --single-transaction --routines --triggers --events --hex-blob --no-tablespaces --databases fablespace' \
+  > "${BACKUP_PATH}"; then
+  rm -f -- "${BACKUP_PATH}"
+  echo "Logical backup failed before 009"
+  exit 1
+fi
+chmod 0600 "${BACKUP_PATH}"
+if [ ! -s "${BACKUP_PATH}" ]; then
+  rm -f -- "${BACKUP_PATH}"
+  echo "Logical backup is empty"
+  exit 1
+fi
+BACKUP_SHA="$(sha256sum "${BACKUP_PATH}" | awk '{print $1}')"
+printf '%s  %s\n' "${BACKUP_SHA}" "$(basename "${BACKUP_PATH}")" \
+  > "${BACKUP_PATH}.sha256"
+chmod 0600 "${BACKUP_PATH}.sha256"
+
+echo "Restoring the backup into an isolated container using the exact DB image"
+DB_IMAGE_ID="$(sudo docker inspect -f '{{.Image}}' "${DB_CONTAINER}")"
+RESTORE_CONTAINER="fablespace-009-restore-${timestamp}"
+RESTORE_PASSWORD="$(openssl rand -hex 24)"
+sudo docker run -d --name "${RESTORE_CONTAINER}" \
+  -e "MYSQL_ROOT_PASSWORD=${RESTORE_PASSWORD}" \
+  "${DB_IMAGE_ID}" >/dev/null
+restore_ready=false
+for attempt in $(seq 1 60); do
+  if sudo docker exec -e "MYSQL_PWD=${RESTORE_PASSWORD}" "${RESTORE_CONTAINER}" \
+    mysqladmin -uroot ping --silent >/dev/null 2>&1; then
+    restore_ready=true
+    break
+  fi
+  sleep 2
+done
+if [ "${restore_ready}" != "true" ]; then
+  echo "Isolated restore database did not become ready"
+  exit 1
+fi
+sudo docker exec -i -e "MYSQL_PWD=${RESTORE_PASSWORD}" "${RESTORE_CONTAINER}" \
+  mysql -uroot < "${BACKUP_PATH}"
+sudo docker exec -i -e "MYSQL_PWD=${RESTORE_PASSWORD}" "${RESTORE_CONTAINER}" \
+  mysql -uroot --database="${DATABASE_NAME}" --batch --skip-column-names --raw \
+  < "${BASELINE_QUERY}" > "${RESTORED_SNAPSHOT}"
+chmod 0600 "${RESTORED_SNAPSHOT}"
+cd "${RELEASE_DIR}"
+python3 "${TOOL_RELATIVE}" compare-snapshots \
+  --left "${STOPPED_SNAPSHOT}" --right "${RESTORED_SNAPSHOT}"
+python3 "${TOOL_RELATIVE}" backup-manifest \
+  --preflight "${STOPPED_REPORT}" \
+  --backup "${BACKUP_PATH}" \
+  --restored "${RESTORED_SNAPSHOT}" \
+  --report "${BACKUP_PATH}.manifest.json"
+chmod 0600 "${BACKUP_PATH}.manifest.json"
+sudo docker rm -f "${RESTORE_CONTAINER}" >/dev/null
+RESTORE_CONTAINER=""
+unset RESTORE_PASSWORD
+
+echo "Enabling the MySQL read_only maintenance gate before the final snapshot"
+enable_database_write_exclusion
+
+echo "Repeating the exact database-gated preflight after backup verification"
+snapshot_database "${DB_CONTAINER}" "${BASELINE_QUERY}" "${FINAL_SNAPSHOT}"
+python3 "${TOOL_RELATIVE}" preflight \
+  --snapshot "${FINAL_SNAPSHOT}" \
+  --report "${FINAL_REPORT}" \
+  --plan-sql "${FINAL_PLAN}"
+chmod 0600 "${FINAL_REPORT}" "${FINAL_PLAN}"
+python3 "${TOOL_RELATIVE}" compare-preflights \
+  --left "${STOPPED_REPORT}" --right "${FINAL_REPORT}"
+python3 "${TOOL_RELATIVE}" compare-snapshots \
+  --left "${STOPPED_SNAPSHOT}" --right "${FINAL_SNAPSHOT}"
+cp "${FINAL_REPORT}" "${BACKUP_PATH}.preflight.json"
+chmod 0600 "${BACKUP_PATH}.preflight.json"
+
+echo "Applying the one reviewed 009 plan and migration in one MySQL session"
+FIRST_WRITE_STARTED=true
+(
+  sed -n '1,$p' "${FINAL_PLAN}"
+  sed -n '1,$p' "${RELEASE_DIR}/${MIGRATION_RELATIVE}"
+) | sudo docker exec -i "${DB_CONTAINER}" sh -c \
+  'export MYSQL_PWD="$MYSQL_ROOT_PASSWORD"; exec mysql -uroot --database=fablespace --show-warnings'
+
+snapshot_database "${DB_CONTAINER}" "${TARGET_QUERY}" "${AFTER_SNAPSHOT}"
+cd "${RELEASE_DIR}"
+python3 "${TOOL_RELATIVE}" postflight \
+  --before "${FINAL_SNAPSHOT}" \
+  --after "${AFTER_SNAPSHOT}" \
+  --report "${BACKUP_PATH}.postflight.json"
+chmod 0600 "${BACKUP_PATH}.postflight.json"
+
+sudo docker run --rm --entrypoint python \
+  "fablespace-backend:009-${EXPECTED_SHA}" -c \
+  "from fablespace_api.infrastructure.database import Base; from fablespace_api.infrastructure import managed_content_models, story_state_models; from fablespace_api.infrastructure.schema_comments import schema_comment_errors; assert len(Base.metadata.tables) == 11; assert schema_comment_errors(Base.metadata) == []"
+
+sudo docker run --rm \
+  --network "${SHARED_NETWORK_NAME}" \
+  --env-file "${FABLESPACE_PATH}/apps/api/.env" \
+  --entrypoint python \
+  "fablespace-backend:009-${EXPECTED_SHA}" -c \
+  "from fablespace_api.infrastructure.database import Database; from fablespace_api.infrastructure.settings import ApiSettings; from fablespace_api.infrastructure.storage import resolve_database_url; from fablespace_api.infrastructure.schema_revision import assert_target_schema; settings = ApiSettings(); database = Database(resolve_database_url(settings), settings.mysql_pool_size, settings.mysql_max_overflow, echo=settings.mysql_echo); assert_target_schema(database.engine); database.dispose()"
+
+echo "Writing the exact target revision marker while traffic remains stopped"
+sudo install -d -m 0755 "${MARKER_DIR}"
+marker_temp="$(sudo mktemp "${MARKER_DIR}/.revision.009.XXXXXX")"
+sudo cp "${RELEASE_DIR}/${MARKER_RELATIVE}" "${marker_temp}"
+sudo chmod 0644 "${marker_temp}"
+if [ "$(sudo sha256sum "${marker_temp}" | awk '{print $1}')" != "${EXPECTED_MARKER_SHA}" ]; then
+  echo "Temporary schema marker hash mismatch"
+  exit 1
+fi
+sudo mv -T "${marker_temp}" "${MARKER_PATH}"
+
+echo "Restoring the reviewed MySQL writable state before service startup"
+release_database_write_exclusion
+
+echo "Switching the clean checkout and immutable image tags to the pinned commit"
+cd "${FABLESPACE_PATH}"
+git reset --hard "${EXPECTED_SHA}"
+sudo docker tag "fablespace-backend:009-${EXPECTED_SHA}" fablespace-backend:local
+sudo docker tag "fablespace-frontend:009-${EXPECTED_SHA}" fablespace-frontend:local
+
+compose ${COMPOSE_FILES} up -d --no-build backend
+backend_ready=false
+for attempt in $(seq 1 40); do
+  if backend_is_healthy; then
+    backend_ready=true
+    break
+  fi
+  sleep 3
+done
+if [ "${backend_ready}" != "true" ]; then
+  echo "Target backend did not become healthy"
+  exit 1
+fi
+compose ${COMPOSE_FILES} up -d --no-build memory-worker frontend
+compose ${COMPOSE_FILES} exec -T backend python -c \
+  "from sqlalchemy import select; from fablespace_api.infrastructure.database import Database; from fablespace_api.infrastructure.settings import ApiSettings; from fablespace_api.infrastructure.storage import resolve_database_url; from fablespace_api.infrastructure.story_state_models import StoryRunModel; settings = ApiSettings(); database = Database(resolve_database_url(settings), settings.mysql_pool_size, settings.mysql_max_overflow, echo=settings.mysql_echo); session = database.get_session(); session.execute(select(StoryRunModel).limit(1)).first(); session.close(); database.dispose()"
+if ! compose ${COMPOSE_FILES} ps --services --status running | grep -qx memory-worker; then
+  echo "Memory worker is not running with its default-off feature flags"
+  exit 1
+fi
+if ! curl --fail --silent --show-error --max-time 5 \
+  "http://127.0.0.1:${FABLESPACE_WEB_BIND:-3000}/" >/dev/null; then
+  echo "Target frontend health check failed"
+  exit 1
+fi
+
+echo "Preparing the runtime release approval after every target health check passed"
+APPROVAL_TEMP="$(sudo mktemp "${MARKER_DIR}/.release-approval.009.XXXXXX")"
+sudo cp "${RELEASE_DIR}/${APPROVAL_RELATIVE}" "${APPROVAL_TEMP}"
+sudo chmod 0644 "${APPROVAL_TEMP}"
+if [ "$(sudo sha256sum "${APPROVAL_TEMP}" | awk '{print $1}')" != "${EXPECTED_APPROVAL_SHA}" ]; then
+  echo "Temporary runtime release approval hash mismatch"
+  exit 1
+fi
+
+if [ -n "${MAINTENANCE_ROOT}" ] && [ -d "${MAINTENANCE_ROOT}" ]; then
+  rm -rf -- "${MAINTENANCE_ROOT}"
+  MAINTENANCE_ROOT=""
+fi
+git worktree remove "${RELEASE_DIR}"
+echo "Pinned commit: ${EXPECTED_SHA}"
+echo "Backup retained at: ${BACKUP_PATH}"
+echo "Backup SHA-256: ${BACKUP_SHA}"
+echo "Committing the runtime release approval as the terminal apply operation"
+sudo mv -T "${APPROVAL_TEMP}" "${APPROVAL_PATH}"
+APPROVAL_TEMP=""
+trap - EXIT HUP INT TERM
+APPROVAL_GUARD_ACTIVE=false
+SERVICES_STOPPED=false

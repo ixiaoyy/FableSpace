@@ -1,3 +1,4 @@
 # Keep text-based image assets byte-stable across Windows and Linux.
 *.svg text eol=lf
+*.sh text eol=lf
 deploy/schema-revision.txt text eol=lf
