@@ -36,23 +36,6 @@ export function WorldSettingsPanel({
             value={storyWorld.summary}
           />
         </Field>
-        <Field label="入口章节">
-          <select
-            onChange={(event) =>
-              onChange({
-                ...storyWorld,
-                entry_chapter_id: event.target.value,
-              })
-            }
-            value={storyWorld.entry_chapter_id}
-          >
-            {storyWorld.chapters.map((chapter) => (
-              <option key={chapter.id} value={chapter.id}>
-                {chapter.title}
-              </option>
-            ))}
-          </select>
-        </Field>
         <Field label="世界 ID">
           <input disabled value={storyWorld.id} />
         </Field>

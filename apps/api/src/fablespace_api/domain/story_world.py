@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from enum import Enum
 from math import isfinite
 from types import MappingProxyType
-from typing import Iterable, Mapping, NoReturn
+from typing import Iterable, Mapping, NoReturn, TypeAlias
 from urllib.parse import urlparse
 
 
@@ -18,6 +18,28 @@ class CanonCategory(str, Enum):
     FIXED_FACT = "fixed_fact"
     STORY_SETTING = "story_setting"
     NEEDS_VERIFICATION = "needs_verification"
+
+
+class StoryKind(str, Enum):
+    GROWTH = "growth"
+    ENSEMBLE = "ensemble"
+
+
+class StoryNodePresentationKind(str, Enum):
+    CHARACTER = "character"
+    SYSTEM = "system"
+    ACTION = "action"
+
+
+class DecisionPredicateKind(str, Enum):
+    STORY_FLAG = "story_flag"
+    INVESTIGATION_RESULT = "investigation_result"
+    PLAYER_COMMITMENT = "player_commitment"
+    CURRENT_CHARACTER = "current_character"
+    RELATIONSHIP_RANGE = "relationship_range"
+
+
+PredicateValue: TypeAlias = bool | int | float | str
 
 
 @dataclass(frozen=True, slots=True)
@@ -64,8 +86,6 @@ class Character:
     motive: str
     secret: str
     voice: str
-    current_situation: str
-    opening_line: str
     relationship_rules: RelationshipRules
     portrait_url: str | None = None
 
@@ -99,6 +119,8 @@ class StoryChoice:
 @dataclass(frozen=True, slots=True)
 class StoryNode:
     id: str
+    presentation_kind: StoryNodePresentationKind
+    character_id: str | None
     narration: str
     choices: tuple[StoryChoice, ...]
     ending_id: str | None
@@ -120,6 +142,60 @@ class StoryEnding:
 
 
 @dataclass(frozen=True, slots=True)
+class StoryCharacterParticipation:
+    character_id: str
+    current_situation: str
+    opening_line: str
+    can_start: bool
+
+
+@dataclass(frozen=True, slots=True)
+class DecisionPredicate:
+    kind: DecisionPredicateKind
+    flag: str | None = None
+    expected: bool | None = None
+    result_id: str | None = None
+    expected_value: PredicateValue | None = None
+    action_id: str | None = None
+    character_id: str | None = None
+    minimum_affinity: int | float | None = None
+    maximum_affinity: int | float | None = None
+
+
+@dataclass(frozen=True, slots=True)
+class DecisionRule:
+    id: str
+    conditions: tuple[DecisionPredicate, ...]
+    next_node_id: str
+    set_flags: tuple[str, ...]
+    relationship_effects: tuple[RelationshipEffect, ...]
+    reason: str
+
+
+@dataclass(frozen=True, slots=True)
+class CharacterDecision:
+    id: str
+    character_id: str
+    trigger_node_id: str
+    rules: tuple[DecisionRule, ...]
+
+
+@dataclass(frozen=True, slots=True)
+class ReviewedStory:
+    id: str
+    title: str
+    summary: str
+    kind: StoryKind
+    publication_status: PublicationStatus
+    focus_character_id: str | None
+    participants: tuple[StoryCharacterParticipation, ...]
+    entry_chapter_id: str
+    chapters: tuple[StoryChapter, ...]
+    endings: tuple[StoryEnding, ...]
+    character_decisions: tuple[CharacterDecision, ...]
+
+
+@dataclass(frozen=True, slots=True)
 class StoryWorld:
     id: str
     title: str
@@ -127,11 +203,9 @@ class StoryWorld:
     genre: str
     publication_status: PublicationStatus
     content_version: str
-    entry_chapter_id: str
     player_roles: tuple[PlayerRole, ...]
     characters: tuple[Character, ...]
-    chapters: tuple[StoryChapter, ...]
-    endings: tuple[StoryEnding, ...]
+    stories: tuple[ReviewedStory, ...]
     canon_entries: tuple[CanonEntry, ...]
 
 
@@ -225,7 +299,6 @@ def _validate_story_world(
             "Publication status must be draft, published, or archived.",
         )
     _require_id(story_world.content_version, f"{path}.content_version")
-    _require_id(story_world.entry_chapter_id, f"{path}.entry_chapter_id")
 
     player_roles = _require_tuple(story_world.player_roles, f"{path}.player_roles")
     if not player_roles:
@@ -275,51 +348,31 @@ def _validate_story_world(
         )
         character_by_id[character.id] = character
 
-    endings = _validate_endings(story_world.endings, path)
     canon_entries = _validate_canon_entries(story_world.canon_entries, path)
-    (
-        chapters,
-        node_by_id,
-        node_paths,
-        choice_targets,
-        terminal_endings,
-    ) = _validate_chapters(story_world.chapters, character_by_id, path)
-
-    chapter_by_id = {chapter.id: chapter for chapter in chapters}
-    entry_chapter = chapter_by_id.get(story_world.entry_chapter_id)
-    if entry_chapter is None:
+    stories = _require_tuple(story_world.stories, f"{path}.stories")
+    if not stories:
         _fail(
-            "missing_reference",
-            f"{path}.entry_chapter_id",
-            f"Entry chapter {story_world.entry_chapter_id!r} does not exist in this StoryWorld.",
+            "missing_story",
+            f"{path}.stories",
+            "A StoryWorld must contain at least one ReviewedStory.",
         )
-
-    for choice_path, next_node_id in choice_targets:
-        if next_node_id not in node_by_id:
-            _fail(
-                "missing_reference",
-                f"{choice_path}.next_node_id",
-                f"Next node {next_node_id!r} does not exist in this StoryWorld.",
-            )
-
-    ending_ids = set(endings)
-    for node_path, ending_id in terminal_endings:
-        if ending_id not in ending_ids:
-            _fail(
-                "missing_reference",
-                f"{node_path}.ending_id",
-                f"Ending {ending_id!r} does not exist in this StoryWorld.",
-            )
-
-    _validate_story_graph(
-        entry_chapter.entry_node_id,
-        node_by_id,
-        node_paths,
-        endings,
-        path,
-    )
+    story_ids: dict[str, str] = {}
+    published_story_count = 0
+    for story_index, story in enumerate(stories):
+        story_path = f"{path}.stories[{story_index}]"
+        _require_instance(story, ReviewedStory, story_path)
+        _record_id(story_ids, story.id, f"{story_path}.id", "ReviewedStory")
+        _validate_reviewed_story(story, character_by_id, story_path)
+        if story.publication_status is PublicationStatus.PUBLISHED:
+            published_story_count += 1
 
     if story_world.publication_status is PublicationStatus.PUBLISHED:
+        if published_story_count == 0:
+            _fail(
+                "missing_published_story",
+                f"{path}.stories",
+                "A published StoryWorld must contain at least one published ReviewedStory.",
+            )
         for canon_id, (canon_entry, canon_path) in canon_entries.items():
             if canon_entry.category is CanonCategory.NEEDS_VERIFICATION:
                 _fail(
@@ -380,8 +433,6 @@ def _validate_character(character: Character, story_world_id: str, path: str) ->
     _require_text(character.motive, f"{path}.motive")
     _require_text(character.secret, f"{path}.secret")
     _require_text(character.voice, f"{path}.voice")
-    _require_text(character.current_situation, f"{path}.current_situation")
-    _require_text(character.opening_line, f"{path}.opening_line")
     _require_instance(
         character.relationship_rules,
         RelationshipRules,
@@ -467,21 +518,389 @@ def _validate_relationship_rules(rules: RelationshipRules, path: str) -> None:
         )
 
 
+def _validate_reviewed_story(
+    story: ReviewedStory,
+    character_by_id: Mapping[str, Character],
+    path: str,
+) -> None:
+    """Validate one story as an isolated graph inside its containing world."""
+    _require_id(story.id, f"{path}.id")
+    _require_text(story.title, f"{path}.title")
+    _require_text(story.summary, f"{path}.summary")
+    if not isinstance(story.kind, StoryKind):
+        _fail(
+            "invalid_story_kind",
+            f"{path}.kind",
+            "ReviewedStory kind must be growth or ensemble.",
+        )
+    if not isinstance(story.publication_status, PublicationStatus):
+        _fail(
+            "invalid_publication_status",
+            f"{path}.publication_status",
+            "Publication status must be draft, published, or archived.",
+        )
+
+    participants = _require_tuple(story.participants, f"{path}.participants")
+    if not participants:
+        _fail(
+            "missing_story_participant",
+            f"{path}.participants",
+            "A ReviewedStory must contain at least one Character participant.",
+        )
+    participant_ids: dict[str, str] = {}
+    start_participant_count = 0
+    for participant_index, participant in enumerate(participants):
+        participant_path = f"{path}.participants[{participant_index}]"
+        _require_instance(participant, StoryCharacterParticipation, participant_path)
+        participant_id = _record_id(
+            participant_ids,
+            participant.character_id,
+            f"{participant_path}.character_id",
+            "StoryCharacterParticipation",
+        )
+        if participant_id not in character_by_id:
+            _fail(
+                "missing_reference",
+                f"{participant_path}.character_id",
+                f"Participant Character {participant_id!r} does not exist in this StoryWorld.",
+            )
+        _require_text(participant.current_situation, f"{participant_path}.current_situation")
+        _require_text(participant.opening_line, f"{participant_path}.opening_line")
+        if not isinstance(participant.can_start, bool):
+            _fail(
+                "invalid_boolean",
+                f"{participant_path}.can_start",
+                "StoryCharacterParticipation can_start must be a boolean.",
+            )
+        if participant.can_start:
+            start_participant_count += 1
+
+    if (
+        story.publication_status is PublicationStatus.PUBLISHED
+        and start_participant_count == 0
+    ):
+        _fail(
+            "missing_start_participant",
+            f"{path}.participants",
+            "A published ReviewedStory must allow at least one participant to start it.",
+        )
+
+    if story.kind is StoryKind.GROWTH:
+        focus_character_id = _require_id(
+            story.focus_character_id,
+            f"{path}.focus_character_id",
+        )
+        if focus_character_id not in participant_ids:
+            _fail(
+                "missing_reference",
+                f"{path}.focus_character_id",
+                f"Growth story focus Character {focus_character_id!r} must participate in the story.",
+            )
+    elif story.kind is StoryKind.ENSEMBLE and story.focus_character_id is not None:
+        _fail(
+            "invalid_focus_character",
+            f"{path}.focus_character_id",
+            "Ensemble stories cannot define a focus Character.",
+        )
+
+    _require_id(story.entry_chapter_id, f"{path}.entry_chapter_id")
+    endings = _validate_endings(story.endings, path)
+    (
+        chapters,
+        node_by_id,
+        node_paths,
+        choice_targets,
+        terminal_endings,
+    ) = _validate_chapters(
+        story.chapters,
+        character_by_id,
+        participant_ids,
+        path,
+    )
+
+    chapter_by_id = {chapter.id: chapter for chapter in chapters}
+    entry_chapter = chapter_by_id.get(story.entry_chapter_id)
+    if entry_chapter is None:
+        _fail(
+            "missing_reference",
+            f"{path}.entry_chapter_id",
+            f"Entry chapter {story.entry_chapter_id!r} does not exist in this ReviewedStory.",
+        )
+
+    for choice_path, next_node_id in choice_targets:
+        if next_node_id not in node_by_id:
+            _fail(
+                "missing_reference",
+                f"{choice_path}.next_node_id",
+                f"Next node {next_node_id!r} does not exist in this ReviewedStory.",
+            )
+
+    ending_ids = set(endings)
+    for node_path, ending_id in terminal_endings:
+        if ending_id not in ending_ids:
+            _fail(
+                "missing_reference",
+                f"{node_path}.ending_id",
+                f"Ending {ending_id!r} does not exist in this ReviewedStory.",
+            )
+
+    decision_targets = _validate_character_decisions(
+        story.character_decisions,
+        node_by_id,
+        character_by_id,
+        participant_ids,
+        path,
+    )
+    _validate_story_graph(
+        entry_chapter.entry_node_id,
+        node_by_id,
+        node_paths,
+        endings,
+        decision_targets,
+        path,
+    )
+
+
+def _validate_character_decisions(
+    raw_decisions: object,
+    node_by_id: Mapping[str, StoryNode],
+    character_by_id: Mapping[str, Character],
+    participant_ids: Mapping[str, str],
+    story_path: str,
+) -> Mapping[str, tuple[str, ...]]:
+    """Validate ordered CharacterDecision rules and return their graph edges."""
+    decisions = _require_tuple(raw_decisions, f"{story_path}.character_decisions")
+    decision_ids: dict[str, str] = {}
+    trigger_paths: dict[str, str] = {}
+    decision_targets: dict[str, tuple[str, ...]] = {}
+    for decision_index, decision in enumerate(decisions):
+        decision_path = f"{story_path}.character_decisions[{decision_index}]"
+        _require_instance(decision, CharacterDecision, decision_path)
+        _record_id(decision_ids, decision.id, f"{decision_path}.id", "CharacterDecision")
+        character_id = _require_id(decision.character_id, f"{decision_path}.character_id")
+        if character_id not in participant_ids:
+            _fail(
+                "missing_reference",
+                f"{decision_path}.character_id",
+                f"Decision Character {character_id!r} does not participate in this ReviewedStory.",
+            )
+        trigger_node_id = _require_id(
+            decision.trigger_node_id,
+            f"{decision_path}.trigger_node_id",
+        )
+        previous_trigger_path = trigger_paths.get(trigger_node_id)
+        if previous_trigger_path is not None:
+            _fail(
+                "duplicate_decision_trigger",
+                f"{decision_path}.trigger_node_id",
+                f"Trigger node {trigger_node_id!r} already has a CharacterDecision at {previous_trigger_path}.",
+            )
+        trigger_node = node_by_id.get(trigger_node_id)
+        if trigger_node is None:
+            _fail(
+                "missing_reference",
+                f"{decision_path}.trigger_node_id",
+                f"Trigger node {trigger_node_id!r} does not exist in this ReviewedStory.",
+            )
+        if (
+            trigger_node.presentation_kind is not StoryNodePresentationKind.CHARACTER
+            or trigger_node.character_id != character_id
+        ):
+            _fail(
+                "invalid_decision_context",
+                f"{decision_path}.trigger_node_id",
+                "A CharacterDecision trigger must be a Character node bound to the deciding Character.",
+            )
+        trigger_paths[trigger_node_id] = decision_path
+
+        rules = _require_tuple(decision.rules, f"{decision_path}.rules")
+        if not rules:
+            _fail(
+                "missing_decision_rule",
+                f"{decision_path}.rules",
+                "A CharacterDecision must contain at least one ordered rule.",
+            )
+        rule_ids: dict[str, str] = {}
+        targets: list[str] = []
+        for rule_index, rule in enumerate(rules):
+            rule_path = f"{decision_path}.rules[{rule_index}]"
+            _require_instance(rule, DecisionRule, rule_path)
+            _record_id(rule_ids, rule.id, f"{rule_path}.id", "DecisionRule")
+            conditions = _require_tuple(rule.conditions, f"{rule_path}.conditions")
+            is_fallback = rule_index == len(rules) - 1
+            if is_fallback and conditions:
+                _fail(
+                    "missing_decision_fallback",
+                    f"{rule_path}.conditions",
+                    "The final DecisionRule must be an unconditional fallback.",
+                )
+            if not is_fallback and not conditions:
+                _fail(
+                    "shadowed_decision_rule",
+                    f"{rule_path}.conditions",
+                    "Only the final DecisionRule can be unconditional.",
+                )
+            for condition_index, condition in enumerate(conditions):
+                _validate_decision_predicate(
+                    condition,
+                    character_by_id,
+                    participant_ids,
+                    f"{rule_path}.conditions[{condition_index}]",
+                )
+
+            next_node_id = _require_id(rule.next_node_id, f"{rule_path}.next_node_id")
+            if next_node_id not in node_by_id:
+                _fail(
+                    "missing_reference",
+                    f"{rule_path}.next_node_id",
+                    f"Decision result node {next_node_id!r} does not exist in this ReviewedStory.",
+                )
+            _validate_flags(rule.set_flags, f"{rule_path}.set_flags")
+            effects = _require_tuple(
+                rule.relationship_effects,
+                f"{rule_path}.relationship_effects",
+            )
+            for effect_index, effect in enumerate(effects):
+                _validate_relationship_effect(
+                    effect,
+                    character_by_id,
+                    participant_ids,
+                    f"{rule_path}.relationship_effects[{effect_index}]",
+                )
+            _require_text(rule.reason, f"{rule_path}.reason")
+            targets.append(next_node_id)
+        decision_targets[trigger_node_id] = tuple(targets)
+    return MappingProxyType(decision_targets)
+
+
+def _validate_decision_predicate(
+    predicate: object,
+    character_by_id: Mapping[str, Character],
+    participant_ids: Mapping[str, str],
+    path: str,
+) -> None:
+    """Validate one predicate against the closed set of supported fact readers."""
+    _require_instance(predicate, DecisionPredicate, path)
+    if not isinstance(predicate.kind, DecisionPredicateKind):
+        _fail(
+            "invalid_decision_predicate",
+            f"{path}.kind",
+            "Decision predicate kind is not supported.",
+        )
+
+    fields_by_kind = {
+        DecisionPredicateKind.STORY_FLAG: frozenset({"flag", "expected"}),
+        DecisionPredicateKind.INVESTIGATION_RESULT: frozenset(
+            {"result_id", "expected_value"}
+        ),
+        DecisionPredicateKind.PLAYER_COMMITMENT: frozenset({"action_id", "expected"}),
+        DecisionPredicateKind.CURRENT_CHARACTER: frozenset({"character_id"}),
+        DecisionPredicateKind.RELATIONSHIP_RANGE: frozenset(
+            {"character_id", "minimum_affinity", "maximum_affinity"}
+        ),
+    }
+    all_fields = (
+        "flag",
+        "expected",
+        "result_id",
+        "expected_value",
+        "action_id",
+        "character_id",
+        "minimum_affinity",
+        "maximum_affinity",
+    )
+    allowed_fields = fields_by_kind[predicate.kind]
+    for field_name in all_fields:
+        if field_name not in allowed_fields and getattr(predicate, field_name) is not None:
+            _fail(
+                "invalid_decision_predicate",
+                f"{path}.{field_name}",
+                f"Field {field_name!r} is not allowed for {predicate.kind.value!r} predicates.",
+            )
+
+    if predicate.kind is DecisionPredicateKind.STORY_FLAG:
+        _require_id(predicate.flag, f"{path}.flag")
+        _require_boolean(predicate.expected, f"{path}.expected")
+        return
+    if predicate.kind is DecisionPredicateKind.INVESTIGATION_RESULT:
+        _require_id(predicate.result_id, f"{path}.result_id")
+        _require_predicate_value(predicate.expected_value, f"{path}.expected_value")
+        return
+    if predicate.kind is DecisionPredicateKind.PLAYER_COMMITMENT:
+        _require_id(predicate.action_id, f"{path}.action_id")
+        _require_boolean(predicate.expected, f"{path}.expected")
+        return
+
+    character_id = _require_id(predicate.character_id, f"{path}.character_id")
+    if character_id not in participant_ids:
+        _fail(
+            "missing_reference",
+            f"{path}.character_id",
+            f"Predicate Character {character_id!r} does not participate in this ReviewedStory.",
+        )
+    if predicate.kind is DecisionPredicateKind.CURRENT_CHARACTER:
+        return
+
+    minimum = (
+        None
+        if predicate.minimum_affinity is None
+        else _require_number(predicate.minimum_affinity, f"{path}.minimum_affinity")
+    )
+    maximum = (
+        None
+        if predicate.maximum_affinity is None
+        else _require_number(predicate.maximum_affinity, f"{path}.maximum_affinity")
+    )
+    if minimum is None and maximum is None:
+        _fail(
+            "invalid_relationship_range",
+            path,
+            "A relationship_range predicate must define at least one affinity boundary.",
+        )
+    if minimum is not None and maximum is not None and minimum > maximum:
+        _fail(
+            "invalid_relationship_range",
+            path,
+            "Predicate minimum affinity cannot exceed maximum affinity.",
+        )
+    relationship_rules = character_by_id[character_id].relationship_rules
+    if minimum is not None and not (
+        relationship_rules.minimum_affinity
+        <= minimum
+        <= relationship_rules.maximum_affinity
+    ):
+        _fail(
+            "invalid_relationship_range",
+            f"{path}.minimum_affinity",
+            "Predicate minimum affinity must fall within the Character relationship range.",
+        )
+    if maximum is not None and not (
+        relationship_rules.minimum_affinity
+        <= maximum
+        <= relationship_rules.maximum_affinity
+    ):
+        _fail(
+            "invalid_relationship_range",
+            f"{path}.maximum_affinity",
+            "Predicate maximum affinity must fall within the Character relationship range.",
+        )
+
+
 def _validate_endings(
     raw_endings: object,
-    world_path: str,
+    story_path: str,
 ) -> dict[str, tuple[StoryEnding, str]]:
-    endings = _require_tuple(raw_endings, f"{world_path}.endings")
+    endings = _require_tuple(raw_endings, f"{story_path}.endings")
     if not endings:
         _fail(
             "missing_ending",
-            f"{world_path}.endings",
-            "A StoryWorld must contain at least one ending.",
+            f"{story_path}.endings",
+            "A ReviewedStory must contain at least one ending.",
         )
     ending_ids: dict[str, str] = {}
     ending_by_id: dict[str, tuple[StoryEnding, str]] = {}
     for ending_index, ending in enumerate(endings):
-        ending_path = f"{world_path}.endings[{ending_index}]"
+        ending_path = f"{story_path}.endings[{ending_index}]"
         _require_instance(ending, StoryEnding, ending_path)
         _record_id(ending_ids, ending.id, f"{ending_path}.id", "StoryEnding")
         _require_text(ending.title, f"{ending_path}.title")
@@ -529,7 +948,8 @@ def _validate_canon_entries(
 def _validate_chapters(
     raw_chapters: object,
     character_by_id: Mapping[str, Character],
-    world_path: str,
+    participant_ids: Mapping[str, str],
+    story_path: str,
 ) -> tuple[
     tuple[StoryChapter, ...],
     dict[str, StoryNode],
@@ -537,12 +957,12 @@ def _validate_chapters(
     tuple[tuple[str, str], ...],
     tuple[tuple[str, str], ...],
 ]:
-    chapters = _require_tuple(raw_chapters, f"{world_path}.chapters")
+    chapters = _require_tuple(raw_chapters, f"{story_path}.chapters")
     if not chapters:
         _fail(
             "missing_chapter",
-            f"{world_path}.chapters",
-            "A StoryWorld must contain at least one chapter.",
+            f"{story_path}.chapters",
+            "A ReviewedStory must contain at least one chapter.",
         )
 
     chapter_ids: dict[str, str] = {}
@@ -554,7 +974,7 @@ def _validate_chapters(
     terminal_endings: list[tuple[str, str]] = []
 
     for chapter_index, chapter in enumerate(chapters):
-        chapter_path = f"{world_path}.chapters[{chapter_index}]"
+        chapter_path = f"{story_path}.chapters[{chapter_index}]"
         _require_instance(chapter, StoryChapter, chapter_path)
         _record_id(chapter_ids, chapter.id, f"{chapter_path}.id", "StoryChapter")
         _require_text(chapter.title, f"{chapter_path}.title")
@@ -575,6 +995,26 @@ def _validate_chapters(
             chapter_node_ids.add(node.id)
             node_by_id[node.id] = node
             node_paths[node.id] = node_path
+            if not isinstance(node.presentation_kind, StoryNodePresentationKind):
+                _fail(
+                    "invalid_node_presentation",
+                    f"{node_path}.presentation_kind",
+                    "StoryNode presentation kind must be character, system, or action.",
+                )
+            if node.presentation_kind is StoryNodePresentationKind.CHARACTER:
+                character_id = _require_id(node.character_id, f"{node_path}.character_id")
+                if character_id not in participant_ids:
+                    _fail(
+                        "missing_reference",
+                        f"{node_path}.character_id",
+                        f"Node Character {character_id!r} does not participate in this ReviewedStory.",
+                    )
+            elif node.character_id is not None:
+                _fail(
+                    "invalid_node_character",
+                    f"{node_path}.character_id",
+                    "System and action nodes cannot be bound to a Character.",
+                )
             _require_text(node.narration, f"{node_path}.narration")
             choices = _require_tuple(node.choices, f"{node_path}.choices")
             if node.ending_id is None:
@@ -631,6 +1071,7 @@ def _validate_chapters(
                     _validate_relationship_effect(
                         effect,
                         character_by_id,
+                        participant_ids,
                         f"{choice_path}.relationship_effects[{effect_index}]",
                     )
                 choice_targets.append((choice_path, choice.next_node_id))
@@ -654,8 +1095,11 @@ def _validate_chapters(
 def _validate_relationship_effect(
     effect: object,
     character_by_id: Mapping[str, Character],
+    participant_ids: Mapping[str, str],
     path: str,
 ) -> None:
+    """Validate one effect against both its StoryWorld and ReviewedStory scope."""
+
     _require_instance(effect, RelationshipEffect, path)
     _require_id(effect.character_id, f"{path}.character_id")
     character = character_by_id.get(effect.character_id)
@@ -664,6 +1108,12 @@ def _validate_relationship_effect(
             "missing_reference",
             f"{path}.character_id",
             f"Relationship effect Character {effect.character_id!r} does not exist in this StoryWorld.",
+        )
+    if effect.character_id not in participant_ids:
+        _fail(
+            "missing_reference",
+            f"{path}.character_id",
+            f"Relationship effect Character {effect.character_id!r} does not participate in this ReviewedStory.",
         )
     affinity_delta = _require_number(effect.affinity_delta, f"{path}.affinity_delta")
     _require_text(effect.reason, f"{path}.reason")
@@ -691,7 +1141,8 @@ def _validate_story_graph(
     node_by_id: Mapping[str, StoryNode],
     node_paths: Mapping[str, str],
     endings: Mapping[str, tuple[StoryEnding, str]],
-    world_path: str,
+    decision_targets: Mapping[str, tuple[str, ...]],
+    story_path: str,
 ) -> None:
     reachable: set[str] = set()
     pending = [entry_node_id]
@@ -700,10 +1151,13 @@ def _validate_story_graph(
         if node_id in reachable:
             continue
         reachable.add(node_id)
+        next_node_ids = tuple(
+            choice.next_node_id for choice in node_by_id[node_id].choices
+        ) + decision_targets.get(node_id, ())
         pending.extend(
-            choice.next_node_id
-            for choice in node_by_id[node_id].choices
-            if choice.next_node_id not in reachable
+            next_node_id
+            for next_node_id in next_node_ids
+            if next_node_id not in reachable
         )
 
     for node_id, node_path in node_paths.items():
@@ -711,7 +1165,7 @@ def _validate_story_graph(
             _fail(
                 "unreachable_node",
                 f"{node_path}.id",
-                f"StoryNode {node_id!r} is unreachable from the StoryWorld entry node.",
+                f"StoryNode {node_id!r} is unreachable from the ReviewedStory entry node.",
             )
 
     reachable_endings = {
@@ -722,8 +1176,8 @@ def _validate_story_graph(
     if not reachable_endings:
         _fail(
             "unreachable_ending",
-            f"{world_path}.endings",
-            "The StoryWorld entry node must reach at least one ending.",
+            f"{story_path}.endings",
+            "The ReviewedStory entry node must reach at least one ending.",
         )
     for ending_id, (_, ending_path) in endings.items():
         if ending_id not in reachable_endings:
@@ -821,6 +1275,32 @@ def _require_number(value: object, path: str) -> int | float:
     return value
 
 
+def _require_boolean(value: object, path: str) -> bool:
+    """Require a real boolean rather than a truthy scalar."""
+    if not isinstance(value, bool):
+        _fail(
+            "invalid_boolean",
+            path,
+            "Decision predicate expected values must be booleans.",
+        )
+    return value
+
+
+def _require_predicate_value(value: object, path: str) -> PredicateValue:
+    """Require a finite JSON scalar supported by investigation predicates."""
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, str):
+        return _require_text(value, path)
+    if isinstance(value, (int, float)):
+        return _require_number(value, path)
+    _fail(
+        "invalid_predicate_value",
+        path,
+        "Investigation result predicates require a boolean, number, or non-empty string.",
+    )
+
+
 def _fail(code: str, path: str, message: str) -> NoReturn:
     raise StoryContentValidationError(code, path, message)
 
@@ -829,16 +1309,25 @@ __all__ = [
     "CanonCategory",
     "CanonEntry",
     "Character",
+    "CharacterDecision",
+    "DecisionPredicate",
+    "DecisionPredicateKind",
+    "DecisionRule",
     "PlayerRole",
+    "PredicateValue",
     "PublicationStatus",
     "RelationshipEffect",
     "RelationshipRules",
     "RelationshipStage",
+    "ReviewedStory",
     "StoryChapter",
+    "StoryCharacterParticipation",
     "StoryChoice",
     "StoryContentValidationError",
     "StoryEnding",
+    "StoryKind",
     "StoryNode",
+    "StoryNodePresentationKind",
     "StoryWorld",
     "StoryWorldRegistry",
 ]

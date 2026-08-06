@@ -27,6 +27,7 @@ import type {
   HomeStoryCharacter,
   HomeStoryContinuity,
 } from "../lib/home-story-collection"
+import { homeStoryContinuityKey } from "../lib/home-story-collection"
 import type { StoryRunContinuity } from "../lib/story-worlds"
 import { WEB_PATHS } from "../lib/web-routes"
 
@@ -50,6 +51,7 @@ type CharacterPresentation = {
 type FeaturedCharacter = {
   storyWorld: HomeStoryCharacter["storyWorld"]
   character: HomeStoryCharacter["character"]
+  stories: HomeStoryCharacter["stories"]
   presentation: CharacterPresentation
 }
 
@@ -104,6 +106,11 @@ function featuredCharacters(characters: HomeStoryCharacter[]) {
 function primaryPath(entry: FeaturedCharacter) {
   const route = resolveCharacterRouteById(entry.character.id)
   return route ? characterPath(route.slug) : WEB_PATHS.home
+}
+
+/** Return the only reviewed Story for a Character, leaving multi-story entries explicitly unresolved. */
+function singleCharacterStory(entry: FeaturedCharacter) {
+  return entry.stories.length === 1 ? entry.stories[0] : null
 }
 
 export function HomeCharacterDiscovery({
@@ -225,8 +232,11 @@ export function HomeCharacterDiscovery({
   const effectiveLoadError = loadState === "ready" && !hasReadyCharacters
     ? "角色暂不可用"
     : loadError
-  const activeRun = activeEntry && continuity.status === "ready"
-    ? continuity.runsByStoryWorld[activeEntry.storyWorld.id] || null
+  const activeStory = activeEntry ? singleCharacterStory(activeEntry) : null
+  const activeRun = activeEntry && activeStory && continuity.status === "ready"
+    ? continuity.runsByStory[
+        homeStoryContinuityKey(activeEntry.storyWorld.id, activeStory.id)
+      ] || null
     : null
   const identityLabel = continuity.identity?.display_name?.trim()
     || continuity.identity?.username
@@ -385,6 +395,7 @@ function CharacterCard({
   cardRef: (node: HTMLElement | null) => void
 }) {
   const { storyWorld, character, presentation } = entry
+  const story = singleCharacterStory(entry)
 
   return (
     <article
@@ -414,7 +425,9 @@ function CharacterCard({
           {character.relationship_stage.label}
         </span>
         <span className="characterStoryDivider" aria-hidden="true" />
-        <p className="characterStoryLine">{character.current_situation}</p>
+        <p className="characterStoryLine">
+          {story?.current_situation || storyWorld.summary}
+        </p>
       </div>
       <Link className="characterStoryPrimaryAction" to={primaryPath(entry)}>
         <span>{presentation.ctaLabel}</span>
@@ -481,7 +494,11 @@ function LastCompanion({
       </div>
       <Link
         className="characterLastCompanionRow"
-        to={characterStoryPath(latestRoute.slug, run.player_role_id)}
+        to={characterStoryPath(
+          latestRoute.slug,
+          run.story_id,
+          run.player_role_id,
+        )}
       >
         <span className="characterLastCompanionPortraits" aria-hidden="true">
           {companions.map(({ character, presentation }) => (

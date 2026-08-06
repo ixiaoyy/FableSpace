@@ -11,13 +11,28 @@ from fastapi.responses import FileResponse, JSONResponse, RedirectResponse
 
 from .api.response_envelope import add_api_response_envelope_middleware
 from .api.v1.auth import ParallelLinesAccessVerifier, is_private_access_allowed
-from .application.story_worlds import StoryWorldApplicationService, SystemStoryDialogueResponder
+from .application.story_memory import (
+    PRODUCTION_PROMOTION_RULE_REGISTRY,
+    StoryMemoryPolicy,
+    StoryMemoryRecallService,
+)
+from .application.story_worlds import (
+    StoryWorldApplicationService,
+    SystemStoryDialogueResponder,
+)
 from .api.v1.router import api_router
 from .content import STORY_WORLD_REGISTRY
 from .core.llm_clients import LLMConfig, is_supported_backend
 from .infrastructure.database import Database
 from .infrastructure.storage import resolve_database_url
 from .infrastructure.settings import ApiSettings
+from .infrastructure.schema_revision import (
+    SchemaStartupMode,
+    assert_target_schema,
+    inspect_schema_startup,
+    resolve_schema_revision_marker_path,
+    write_local_schema_revision,
+)
 from .infrastructure.generated_storage import (
     GeneratedStorageError,
     create_admin_media_storage,
@@ -27,6 +42,8 @@ from .infrastructure.managed_story_content_store import (
     ManagedMediaAssetStore,
     ManagedStoryWorldStore,
 )
+from .infrastructure.player_story_state_store import PlayerStoryStateStore
+from .infrastructure.story_memory_store import StoryMemoryStore
 
 logger = logging.getLogger(__name__)
 PRIVATE_GATE_PUBLIC_PATHS = frozenset(
@@ -207,18 +224,49 @@ def create_app(settings: ApiSettings | None = None) -> FastAPI:
         max_overflow=resolved.mysql_max_overflow,
         echo=resolved.mysql_echo,
     )
-    story_database.create_tables()
+    schema_marker_path = resolve_schema_revision_marker_path(
+        output_root=resolved.output_root,
+        configured_path=resolved.schema_revision_marker_path,
+    )
+    schema_startup = inspect_schema_startup(
+        story_database.engine,
+        marker_path=schema_marker_path,
+        allow_local_bootstrap=(
+            not resolved.database_url.strip()
+            and resolved.schema_revision_marker_path is None
+        ),
+    )
+    if schema_startup.mode is SchemaStartupMode.BOOTSTRAP_LOCAL:
+        story_database.create_tables()
     managed_story_worlds = ManagedStoryWorldStore(
         story_database,
         STORY_WORLD_REGISTRY,
     )
-    seeded_story_worlds = managed_story_worlds.seed_missing()
-    if seeded_story_worlds:
-        logger.info("Seeded %s managed StoryWorld documents", seeded_story_worlds)
-    story_worlds_service = StoryWorldApplicationService(
+    if schema_startup.mode is SchemaStartupMode.BOOTSTRAP_LOCAL:
+        seeded_story_worlds = managed_story_worlds.seed_missing()
+        if seeded_story_worlds:
+            logger.info("Seeded %s managed StoryWorld documents", seeded_story_worlds)
+        assert_target_schema(story_database.engine)
+        write_local_schema_revision(schema_startup.marker_path)
+    story_memory_store = StoryMemoryStore(
+        story_database,
+        formation_enabled=resolved.memory_formation_enabled,
+    )
+    player_story_state_store = PlayerStoryStateStore(
         story_database,
         managed_story_worlds,
-        SystemStoryDialogueResponder(story_llm_config),
+        story_memory_store,
+    )
+    story_memory_recall = StoryMemoryRecallService(
+        story_memory_store,
+        enabled=resolved.memory_recall_enabled,
+        policy=StoryMemoryPolicy(PRODUCTION_PROMOTION_RULE_REGISTRY),
+    )
+    story_worlds_service = StoryWorldApplicationService(
+        registry=managed_story_worlds,
+        state_store=player_story_state_store,
+        responder=SystemStoryDialogueResponder(story_llm_config),
+        memory_recall=story_memory_recall,
     )
 
     app = FastAPI(title=resolved.app_name, version=resolved.api_version)
@@ -226,6 +274,9 @@ def create_app(settings: ApiSettings | None = None) -> FastAPI:
     app.state.story_worlds = story_worlds_service
     app.state.story_database = story_database
     app.state.managed_story_worlds = managed_story_worlds
+    app.state.player_story_state_store = player_story_state_store
+    app.state.story_memory_store = story_memory_store
+    app.state.story_memory_recall = story_memory_recall
     app.state.managed_media_assets = ManagedMediaAssetStore(story_database)
     app.state.admin_media_storage = create_admin_media_storage(resolved)
     app.state.generated_storage = generated_storage

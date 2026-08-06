@@ -3,13 +3,13 @@ set -eu
 
 service="${1:-backend}"
 case "${service}" in
-  backend|frontend)
+  backend|frontend|memory-worker)
     ;;
   all)
     service=""
     ;;
   *)
-    echo "usage: fablelog [backend|frontend|all]" >&2
+    echo "usage: fablelog [backend|frontend|memory-worker|all]" >&2
     exit 2
     ;;
 esac

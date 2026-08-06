@@ -75,7 +75,12 @@ def list_story_worlds(request: Request) -> dict[str, object]:
                 "title": record.story_world.title,
                 "summary": record.story_world.summary,
                 "genre": record.story_world.genre,
-                "chapter_count": len(record.story_world.chapters),
+                "story_count": len(record.story_world.stories),
+                "published_story_count": sum(
+                    1
+                    for story in record.story_world.stories
+                    if story.publication_status == "published"
+                ),
                 "character_count": len(record.story_world.characters),
                 "updated_at": _timestamp(record),
             }

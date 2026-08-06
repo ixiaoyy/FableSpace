@@ -60,8 +60,6 @@ export function CharactersPanel({
       motive: "",
       secret: "",
       voice: "",
-      current_situation: "",
-      opening_line: "",
       portrait_url: null,
       relationship_rules: {
         minimum_affinity: -100,
@@ -258,27 +256,6 @@ function CharacterIdentityFields({
             }
             rows={4}
             value={character.voice}
-          />
-        </Field>
-        <Field label="当前处境" wide>
-          <textarea
-            onChange={(event) =>
-              onChange({
-                ...character,
-                current_situation: event.target.value,
-              })
-            }
-            rows={4}
-            value={character.current_situation}
-          />
-        </Field>
-        <Field label="开场对白" wide>
-          <textarea
-            onChange={(event) =>
-              onChange({ ...character, opening_line: event.target.value })
-            }
-            rows={4}
-            value={character.opening_line}
           />
         </Field>
       </div>

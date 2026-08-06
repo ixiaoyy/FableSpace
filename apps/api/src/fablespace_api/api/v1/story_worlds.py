@@ -35,7 +35,13 @@ def _player_id(request: Request) -> str:
 
 
 def _raise_http(exc: StoryRuntimeError) -> None:
-    if exc.code in {"story_world_not_found", "character_not_found", "run_not_found"}:
+    if exc.code in {
+        "story_world_not_found",
+        "story_not_found",
+        "story_mismatch",
+        "character_not_found",
+        "run_not_found",
+    }:
         status = 404
     elif exc.code == "dialogue_unavailable":
         status = 503
@@ -43,12 +49,21 @@ def _raise_http(exc: StoryRuntimeError) -> None:
         "choice_unavailable",
         "run_completed",
         "active_run_exists",
+        "character_context_mismatch",
+        "choice_idempotency_conflict",
         "dialogue_state_changed",
+        "persistence_conflict",
         "player_role_locked",
+        "relationship_source_conflict",
         "story_content_changed",
     }:
         status = 409
-    elif exc.code in {"player_role_required", "player_role_not_found"}:
+    elif exc.code in {
+        "player_role_required",
+        "player_role_not_found",
+        "story_not_published",
+        "character_not_in_story",
+    }:
         status = 422
     else:
         status = 500
@@ -63,14 +78,20 @@ def get_character_detail(story_world_id: str, character_id: str, request: Reques
         _raise_http(exc)
 
 
-@router.get("/{story_world_id}/runs/current")
-def get_current_run(story_world_id: str, character_id: str, request: Request):
+@router.get("/{story_world_id}/stories/{story_id}/runs/current")
+def get_current_run(
+    story_world_id: str,
+    story_id: str,
+    character_id: str,
+    request: Request,
+):
     player_id = _player_id(request)
     try:
         return {
             "run": _service(request).current(
                 player_id,
                 story_world_id,
+                story_id,
                 character_id,
             )
         }
@@ -78,29 +99,36 @@ def get_current_run(story_world_id: str, character_id: str, request: Request):
         _raise_http(exc)
 
 
-@router.get("/{story_world_id}/runs/continuity")
-def get_run_continuity(story_world_id: str, request: Request):
-    """Return the signed-in player's latest read-only continuity for one StoryWorld."""
+@router.get("/{story_world_id}/stories/{story_id}/runs/continuity")
+def get_run_continuity(story_world_id: str, story_id: str, request: Request):
+    """Return the signed-in player's latest read-only continuity for one ReviewedStory."""
     player_id = _player_id(request)
     try:
         return {
             "continuity": _service(request).continuity(
                 player_id,
                 story_world_id,
+                story_id,
             )
         }
     except StoryRuntimeError as exc:
         _raise_http(exc)
 
 
-@router.post("/{story_world_id}/runs")
-def start_run(story_world_id: str, payload: RunEntryRequest, request: Request):
+@router.post("/{story_world_id}/stories/{story_id}/runs")
+def start_run(
+    story_world_id: str,
+    story_id: str,
+    payload: RunEntryRequest,
+    request: Request,
+):
     player_id = _player_id(request)
     try:
         return {
             "run": _service(request).start(
                 player_id,
                 story_world_id,
+                story_id,
                 payload.character_id,
                 payload.player_role_id,
             )
@@ -109,14 +137,20 @@ def start_run(story_world_id: str, payload: RunEntryRequest, request: Request):
         _raise_http(exc)
 
 
-@router.post("/{story_world_id}/runs/restart")
-def restart_run(story_world_id: str, payload: RunEntryRequest, request: Request):
+@router.post("/{story_world_id}/stories/{story_id}/runs/restart")
+def restart_run(
+    story_world_id: str,
+    story_id: str,
+    payload: RunEntryRequest,
+    request: Request,
+):
     player_id = _player_id(request)
     try:
         return {
             "run": _service(request).restart(
                 player_id,
                 story_world_id,
+                story_id,
                 payload.character_id,
                 payload.player_role_id,
             )
@@ -125,9 +159,10 @@ def restart_run(story_world_id: str, payload: RunEntryRequest, request: Request)
         _raise_http(exc)
 
 
-@router.post("/{story_world_id}/runs/{run_id}/messages")
+@router.post("/{story_world_id}/stories/{story_id}/runs/{run_id}/messages")
 def post_message(
     story_world_id: str,
+    story_id: str,
     run_id: str,
     payload: MessageRequest,
     request: Request,
@@ -141,6 +176,7 @@ def post_message(
             "run": _service(request).message(
                 player_id,
                 story_world_id,
+                story_id,
                 run_id,
                 payload.character_id,
                 content,
@@ -150,9 +186,10 @@ def post_message(
         _raise_http(exc)
 
 
-@router.post("/{story_world_id}/runs/{run_id}/choices")
+@router.post("/{story_world_id}/stories/{story_id}/runs/{run_id}/choices")
 def post_choice(
     story_world_id: str,
+    story_id: str,
     run_id: str,
     payload: ChoiceRequest,
     request: Request,
@@ -163,6 +200,7 @@ def post_choice(
             "run": _service(request).choose(
                 player_id,
                 story_world_id,
+                story_id,
                 run_id,
                 payload.character_id,
                 payload.choice_id,

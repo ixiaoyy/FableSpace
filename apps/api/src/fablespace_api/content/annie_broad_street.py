@@ -12,14 +12,19 @@ from ..domain.story_world import (
     RelationshipEffect,
     RelationshipRules,
     RelationshipStage,
+    ReviewedStory,
     StoryChapter,
+    StoryCharacterParticipation,
     StoryChoice,
     StoryEnding,
+    StoryKind,
     StoryNode,
+    StoryNodePresentationKind,
     StoryWorld,
 )
 
 ANNIE_STORY_WORLD_ID = "history_broad_street_water_1854"
+ANNIE_STORY_ID = "broad_street_water_1854"
 ANNIE_CHARACTER_ID = "char_history_broad_street_annie"
 ANNIE_TOM_PLAYER_ROLE_ID = "role_history_broad_street_tom_reed"
 ANNIE_LIZZIE_PLAYER_ROLE_ID = "role_history_broad_street_lizzie_bell"
@@ -136,6 +141,18 @@ ANNIE_RELATIONSHIP_RULES = RelationshipRules(
     ),
 )
 
+ANNIE_CURRENT_SITUATION = (
+    "1854 年 9 月 7 日下午，宽街下起了雨。你在水泵旁的屋檐下避雨，"
+    "脚边的锡杯里还剩一点水。安妮抱着缺口陶罐，在两步外停下；"
+    "你们从未见过，她没有理由立刻相信你。"
+)
+
+ANNIE_OPENING_LINE = (
+    "“你杯里……还有一点水吗？”她看了一眼身后的水泵，没有再往前走。"
+    "“妈妈只说，别再碰这口泵。可家里已经一点水也没有了。"
+    "要是你的水不是从这里打的……能分我一点吗？”"
+)
+
 ANNIE = Character(
     id=ANNIE_CHARACTER_ID,
     story_world_id=ANNIE_STORY_WORLD_ID,
@@ -149,16 +166,6 @@ ANNIE = Character(
         "像约十岁的女孩一样说短句，常先观察再提问；紧张时会停顿、抱紧陶罐或后退。"
         "她的警惕通过试探、请求和保留表现，不使用审问、训斥或成年人的抽象分析。"
         "只说亲眼见到、亲耳听到和闻到的事，不使用现代医学术语。"
-    ),
-    current_situation=(
-        "1854 年 9 月 7 日下午，宽街下起了雨。你在水泵旁的屋檐下避雨，"
-        "脚边的锡杯里还剩一点水。安妮抱着缺口陶罐，在两步外停下；"
-        "你们从未见过，她没有理由立刻相信你。"
-    ),
-    opening_line=(
-        "“你杯里……还有一点水吗？”她看了一眼身后的水泵，没有再往前走。"
-        "“妈妈只说，别再碰这口泵。可家里已经一点水也没有了。"
-        "要是你的水不是从这里打的……能分我一点吗？”"
     ),
     relationship_rules=ANNIE_RELATIONSHIP_RULES,
 )
@@ -210,6 +217,8 @@ CHAPTER = StoryChapter(
     nodes=(
         StoryNode(
             id="node_water_request",
+            presentation_kind=StoryNodePresentationKind.SYSTEM,
+            character_id=None,
             narration=(
                 "1854 年 9 月 7 日下午，宽街下起了雨。"
                 "你靠街巷杂役在苏活区过活，此刻正坐在水泵旁的屋檐下避雨。"
@@ -269,6 +278,8 @@ CHAPTER = StoryChapter(
         ),
         StoryNode(
             id="node_ask_pump",
+            presentation_kind=StoryNodePresentationKind.SYSTEM,
+            character_id=None,
             narration=(
                 "安妮把陶罐往怀里一缩，回头看了看水泵。"
                 "“我们以前总在这儿打水。可这几天，楼上和对门都有人病了。"
@@ -307,6 +318,8 @@ CHAPTER = StoryChapter(
         ),
         StoryNode(
             id="node_trace_water",
+            presentation_kind=StoryNodePresentationKind.SYSTEM,
+            character_id=None,
             narration=(
                 "安妮的手伸到一半，又收了回去。"
                 "“水看起来都一样。你先告诉我，是从哪儿来的。”"
@@ -344,6 +357,8 @@ CHAPTER = StoryChapter(
         ),
         StoryNode(
             id="node_walk_together",
+            presentation_kind=StoryNodePresentationKind.SYSTEM,
+            character_id=None,
             narration=(
                 "安妮把陶罐抱回怀里，沿墙根避开排在水泵前的人。"
                 "“你能陪我到哪儿？过了那条街，也算吗？”"
@@ -381,6 +396,8 @@ CHAPTER = StoryChapter(
         ),
         StoryNode(
             id="node_doctor_list",
+            presentation_kind=StoryNodePresentationKind.SYSTEM,
+            character_id=None,
             narration=(
                 "安妮看见街那头有人拿着死亡登记名单，脚步慢了下来。"
                 "“他在问哪家喝了哪里的水。我要是说错了，会不会把别人也写错？”"
@@ -419,6 +436,8 @@ CHAPTER = StoryChapter(
         ),
         StoryNode(
             id="node_trace_source",
+            presentation_kind=StoryNodePresentationKind.SYSTEM,
+            character_id=None,
             narration=(
                 "你们沿来路回找。安妮蹲下来，用指尖沿着湿漉漉的路面比门牌。"
                 "“我不认水的颜色。我只认你从哪扇门出来，还有谁亲手提过。”"
@@ -456,6 +475,8 @@ CHAPTER = StoryChapter(
         ),
         StoryNode(
             id="node_doorstep",
+            presentation_kind=StoryNodePresentationKind.SYSTEM,
+            character_id=None,
             narration=(
                 "两扇门给出的说法并不一样：一户只记得病倒的人，另一户记得是谁去取过水。"
                 "安妮蹲下来，把纸分成两边。"
@@ -494,6 +515,8 @@ CHAPTER = StoryChapter(
         ),
         StoryNode(
             id="node_contrast_sources",
+            presentation_kind=StoryNodePresentationKind.SYSTEM,
+            character_id=None,
             narration=(
                 "街坊提到附近济贫院有自己的水源，啤酒厂工人通常也不饮用街泵水。"
                 "安妮在纸边慢慢写下“听说”。"
@@ -523,6 +546,8 @@ CHAPTER = StoryChapter(
         ),
         StoryNode(
             id="node_record_testimony",
+            presentation_kind=StoryNodePresentationKind.SYSTEM,
+            character_id=None,
             narration=(
                 "纸上有了三列：哪一扇门、从哪里取水、这句话是谁亲眼看见的。"
                 "安妮把纸压在陶罐下面，没有把它递出去。"
@@ -561,6 +586,8 @@ CHAPTER = StoryChapter(
         ),
         StoryNode(
             id="node_record_wary",
+            presentation_kind=StoryNodePresentationKind.SYSTEM,
+            character_id=None,
             narration=(
                 "安妮把纸抽了回去，手指紧紧压住那行字。"
                 "“弄错了可以划掉。编的不能留。我的话也不能交给别人改。”"
@@ -589,6 +616,8 @@ CHAPTER = StoryChapter(
         ),
         StoryNode(
             id="node_trust_ending",
+            presentation_kind=StoryNodePresentationKind.SYSTEM,
+            character_id=None,
             narration=(
                 "“我自己说。你只补门牌，好吗？”安妮说完每一扇门和每一处取水点。"
                 "她没有叫你恩人，只把你的门牌补在纸角：这是她愿意下次再来找的人。"
@@ -599,6 +628,8 @@ CHAPTER = StoryChapter(
         ),
         StoryNode(
             id="node_safe_ending",
+            presentation_kind=StoryNodePresentationKind.SYSTEM,
+            character_id=None,
             narration=(
                 "“纸上没有的，我们就不说。”安妮和你并肩走到正在收集说法的人群边。"
                 "那张纸只是许多住户见闻中的一张；"
@@ -610,6 +641,8 @@ CHAPTER = StoryChapter(
         ),
         StoryNode(
             id="node_repaired_ending",
+            presentation_kind=StoryNodePresentationKind.SYSTEM,
+            character_id=None,
             narration=(
                 "你划掉了那句过头的话。安妮盯着墨痕看了一会儿。"
                 "“这道印子别擦掉。别人得知道我们改过。”她把纸重新递给你一角。"
@@ -620,6 +653,8 @@ CHAPTER = StoryChapter(
         ),
         StoryNode(
             id="node_wary_ending",
+            presentation_kind=StoryNodePresentationKind.SYSTEM,
+            character_id=None,
             narration=(
                 "“纸给我，我自己拿着。”安妮把纸折回口袋，不再让你替她开口。"
                 "你们走向同一条街，却隔开了"
@@ -631,6 +666,8 @@ CHAPTER = StoryChapter(
         ),
         StoryNode(
             id="node_distant_ending",
+            presentation_kind=StoryNodePresentationKind.SYSTEM,
+            character_id=None,
             narration=(
                 "你在岔路口停下。安妮没有追，也没有责怪，只抱着空陶罐继续贴墙往前走。"
                 "故事不替你补写她之后找到什么。" + FIXED_HISTORY_RESULT
@@ -648,35 +685,54 @@ ANNIE_STORY_WORLD = StoryWorld(
     genre="历史剧情",
     publication_status=PublicationStatus.PUBLISHED,
     content_version="annie-broad-street-2026-08-05.6",
-    entry_chapter_id=CHAPTER.id,
     player_roles=(TOM_REED_PLAYER_ROLE, LIZZIE_BELL_PLAYER_ROLE),
     characters=(ANNIE,),
-    chapters=(CHAPTER,),
-    endings=(
-        StoryEnding(
-            id="ending_witness_heard",
-            title="被认真听见",
-            summary="你让安妮用自己的话讲完见闻，只补充能核对的门牌。她愿意在以后再次来找你。",
-        ),
-        StoryEnding(
-            id="ending_left_the_pump",
-            title="离开水泵",
-            summary="你们共同交出一张普通的住户见闻。它没有改变公共历史，却让安妮记住你没有替她编造答案。",
-        ),
-        StoryEnding(
-            id="ending_record_repaired",
-            title="留下改痕",
-            summary="你公开划掉了猜测。安妮仍有保留，但愿意让你陪着把剩下的路走完。",
-        ),
-        StoryEnding(
-            id="ending_annie_wary",
-            title="隔着两步",
-            summary="你坚持用更吓人的说法代替可核对见闻。安妮带走纸页，也收回了让你替她开口的信任。",
-        ),
-        StoryEnding(
-            id="ending_no_answer",
-            title="雨中的背影",
-            summary="你拒绝继续介入。安妮独自离开，故事不替你补写她之后的命运。",
+    stories=(
+        ReviewedStory(
+            id=ANNIE_STORY_ID,
+            title="1854 年宽街",
+            summary="在不可改写的宽街历史中，帮助原创儿童见证者把饮水来源和亲眼所见分开说清。",
+            kind=StoryKind.GROWTH,
+            publication_status=PublicationStatus.PUBLISHED,
+            focus_character_id=ANNIE_CHARACTER_ID,
+            participants=(
+                StoryCharacterParticipation(
+                    character_id=ANNIE_CHARACTER_ID,
+                    current_situation=ANNIE_CURRENT_SITUATION,
+                    opening_line=ANNIE_OPENING_LINE,
+                    can_start=True,
+                ),
+            ),
+            entry_chapter_id=CHAPTER.id,
+            chapters=(CHAPTER,),
+            endings=(
+                StoryEnding(
+                    id="ending_witness_heard",
+                    title="被认真听见",
+                    summary="你让安妮用自己的话讲完见闻，只补充能核对的门牌。她愿意在以后再次来找你。",
+                ),
+                StoryEnding(
+                    id="ending_left_the_pump",
+                    title="离开水泵",
+                    summary="你们共同交出一张普通的住户见闻。它没有改变公共历史，却让安妮记住你没有替她编造答案。",
+                ),
+                StoryEnding(
+                    id="ending_record_repaired",
+                    title="留下改痕",
+                    summary="你公开划掉了猜测。安妮仍有保留，但愿意让你陪着把剩下的路走完。",
+                ),
+                StoryEnding(
+                    id="ending_annie_wary",
+                    title="隔着两步",
+                    summary="你坚持用更吓人的说法代替可核对见闻。安妮带走纸页，也收回了让你替她开口的信任。",
+                ),
+                StoryEnding(
+                    id="ending_no_answer",
+                    title="雨中的背影",
+                    summary="你拒绝继续介入。安妮独自离开，故事不替你补写她之后的命运。",
+                ),
+            ),
+            character_decisions=(),
         ),
     ),
     canon_entries=(

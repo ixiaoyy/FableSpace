@@ -2,6 +2,9 @@ import { jsonInit, readApiJson } from "./api-client"
 
 export type PublicationStatus = "draft" | "published" | "archived"
 export type CanonCategory = "fixed_fact" | "story_setting" | "needs_verification"
+export type StoryKind = "growth" | "ensemble"
+export type StoryNodePresentationKind = "character" | "system" | "action"
+export type PredicateValue = string | number | boolean
 
 export type CanonEntry = {
   id: string
@@ -35,8 +38,6 @@ export type Character = {
   motive: string
   secret: string
   voice: string
-  current_situation: string
-  opening_line: string
   portrait_url: string | null
   relationship_rules: RelationshipRules
 }
@@ -74,6 +75,8 @@ export type StoryChoice = {
 
 export type StoryNode = {
   id: string
+  presentation_kind: StoryNodePresentationKind
+  character_id: string | null
   narration: string
   choices: StoryChoice[]
   ending_id: string | null
@@ -92,6 +95,59 @@ export type StoryEnding = {
   summary: string
 }
 
+export type StoryCharacterParticipation = {
+  character_id: string
+  current_situation: string
+  opening_line: string
+  can_start: boolean
+}
+
+export type DecisionPredicate =
+  | { kind: "story_flag"; flag: string; expected: boolean }
+  | {
+      kind: "investigation_result"
+      result_id: string
+      expected_value: PredicateValue
+    }
+  | { kind: "player_commitment"; action_id: string; expected: boolean }
+  | { kind: "current_character"; character_id: string }
+  | {
+      kind: "relationship_range"
+      character_id: string
+      minimum_affinity?: number
+      maximum_affinity?: number
+    }
+
+export type DecisionRule = {
+  id: string
+  conditions: DecisionPredicate[]
+  next_node_id: string
+  set_flags: string[]
+  relationship_effects: RelationshipEffect[]
+  reason: string
+}
+
+export type CharacterDecision = {
+  id: string
+  character_id: string
+  trigger_node_id: string
+  rules: DecisionRule[]
+}
+
+export type ReviewedStory = {
+  id: string
+  title: string
+  summary: string
+  kind: StoryKind
+  publication_status: PublicationStatus
+  focus_character_id: string | null
+  participants: StoryCharacterParticipation[]
+  entry_chapter_id: string
+  chapters: StoryChapter[]
+  endings: StoryEnding[]
+  character_decisions: CharacterDecision[]
+}
+
 export type StoryWorldDocument = {
   id: string
   title: string
@@ -99,11 +155,9 @@ export type StoryWorldDocument = {
   genre: string
   publication_status: PublicationStatus
   content_version: string
-  entry_chapter_id: string
   player_roles: PlayerRole[]
   characters: Character[]
-  chapters: StoryChapter[]
-  endings: StoryEnding[]
+  stories: ReviewedStory[]
   canon_entries: CanonEntry[]
 }
 
@@ -112,7 +166,8 @@ export type StoryWorldSummary = {
   title: string
   summary: string
   genre: string
-  chapter_count: number
+  story_count: number
+  published_story_count: number
   character_count: number
   updated_at: string
 }

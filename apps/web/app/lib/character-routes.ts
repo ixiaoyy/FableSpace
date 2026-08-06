@@ -60,11 +60,17 @@ export function characterPath(slug: string) {
   return `/characters/${encodeURIComponent(slug)}`
 }
 
-export function characterStoryPath(slug: string, playerRoleId = "") {
+export function characterStoryPath(
+  slug: string,
+  storyId: string,
+  playerRoleId = "",
+) {
   const path = `${characterPath(slug)}/story`
-  const resolvedPlayerRoleId = playerRoleId.trim()
-  if (!resolvedPlayerRoleId) return path
+  const resolvedStoryId = storyId.trim()
+  if (!resolvedStoryId) return path
 
-  const query = new URLSearchParams({ playerRoleId: resolvedPlayerRoleId })
+  const resolvedPlayerRoleId = playerRoleId.trim()
+  const query = new URLSearchParams({ storyId: resolvedStoryId })
+  if (resolvedPlayerRoleId) query.set("playerRoleId", resolvedPlayerRoleId)
   return `${path}?${query.toString()}`
 }

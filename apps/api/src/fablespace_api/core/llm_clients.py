@@ -18,6 +18,7 @@ import logging
 import time
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
+from math import isfinite
 from typing import Any, Generator, Optional
 
 logger = logging.getLogger(__name__)
@@ -1228,6 +1229,8 @@ def _custom_failure_diagnostic(exc: Exception) -> str:
 
     import urllib.error
 
+    if isinstance(exc, LLMError) and exc.diagnostic:
+        return exc.diagnostic
     if isinstance(exc, urllib.error.HTTPError):
         return f"http_{exc.code}"
     if isinstance(exc, urllib.error.URLError):
@@ -1246,7 +1249,7 @@ def _custom_failure_diagnostic(exc: Exception) -> str:
 class CustomBackend(LLMBackend):
     """Generic OpenAI-compatible API — for custom deployments."""
 
-    def _open_request(self, request: Any, timeout: int) -> Any:
+    def _open_request(self, request: Any, timeout: float) -> Any:
         """Open one custom-provider request through its optional scoped proxy."""
 
         import urllib.request
@@ -1262,12 +1265,39 @@ class CustomBackend(LLMBackend):
             timeout=timeout,
         )
 
-    def complete(self, messages: list[dict[str, str]], **kwargs) -> LLMResponse:
+    def complete(
+        self,
+        messages: list[dict[str, str]],
+        *,
+        request_deadline_monotonic: float | None = None,
+        response_byte_limit: int | None = None,
+        **kwargs,
+    ) -> LLMResponse:
+        """Try compatible endpoints within one absolute deadline and raw-byte bound."""
+
         import urllib.request
         import urllib.error
 
         if not self.config.base_url:
             raise LLMError("Custom backend requires base_url")
+        if request_deadline_monotonic is not None and (
+            isinstance(request_deadline_monotonic, bool)
+            or not isinstance(request_deadline_monotonic, (int, float))
+            or not isfinite(float(request_deadline_monotonic))
+        ):
+            raise LLMError(
+                "Custom backend deadline is invalid",
+                diagnostic="invalid_deadline",
+            )
+        if response_byte_limit is not None and (
+            isinstance(response_byte_limit, bool)
+            or not isinstance(response_byte_limit, int)
+            or response_byte_limit < 1
+        ):
+            raise LLMError(
+                "Custom backend response limit is invalid",
+                diagnostic="invalid_response_limit",
+            )
 
         url = self.config.base_url.rstrip("/")
         failures: list[str] = []
@@ -1278,6 +1308,14 @@ class CustomBackend(LLMBackend):
             ("completions", "/completions"),
         )
         for candidate, path in candidates:
+            if request_deadline_monotonic is None:
+                request_timeout = 120.0
+            else:
+                remaining = float(request_deadline_monotonic) - time.monotonic()
+                if remaining <= 0:
+                    failures.append("deadline_exhausted")
+                    break
+                request_timeout = min(120.0, remaining)
             try_url = url + path
             body = self._build_body(messages, self.config.model, stream=False, **kwargs)
             # Some custom backends don't support seed
@@ -1291,8 +1329,26 @@ class CustomBackend(LLMBackend):
             )
 
             try:
-                with self._open_request(req, timeout=120) as resp:
-                    data = json.loads(resp.read().decode("utf-8"))
+                with self._open_request(req, timeout=request_timeout) as resp:
+                    raw_response = (
+                        resp.read()
+                        if response_byte_limit is None
+                        else resp.read(response_byte_limit + 1)
+                    )
+                    if (
+                        response_byte_limit is not None
+                        and len(raw_response) > response_byte_limit
+                    ):
+                        raise LLMError(
+                            "Custom backend response is too large",
+                            diagnostic="response_too_large",
+                        )
+                    if (
+                        request_deadline_monotonic is not None
+                        and time.monotonic() > request_deadline_monotonic
+                    ):
+                        raise TimeoutError("Custom backend deadline exhausted")
+                    data = json.loads(raw_response.decode("utf-8"))
                     content = ""
                     if "choices" in data:
                         content = data["choices"][0]["message"].get("content", "")
@@ -1301,6 +1357,11 @@ class CustomBackend(LLMBackend):
                     elif "output" in data:
                         content = data["output"]
                     if content:
+                        if (
+                            request_deadline_monotonic is not None
+                            and time.monotonic() > request_deadline_monotonic
+                        ):
+                            raise TimeoutError("Custom backend deadline exhausted")
                         return LLMResponse(content=content, model=data.get("model", self.config.model), usage=data.get("usage", {}), raw=data)
                     failures.append(f"{candidate}=empty_content")
             except Exception as exc:
@@ -2015,14 +2076,101 @@ def create_client(config: LLMConfig) -> LLMBackend:
     return backend_cls(config)
 
 
+def _complete_before_deadline(
+    client: LLMBackend,
+    messages: list[dict[str, str]],
+    *,
+    deadline_monotonic: float,
+    kwargs: dict[str, Any],
+) -> LLMResponse:
+    """Run one transport on a daemon and discard any result after the wall-clock deadline."""
+
+    from queue import Empty, Queue
+    from threading import Thread
+
+    remaining = deadline_monotonic - time.monotonic()
+    if remaining <= 0:
+        raise LLMError(
+            "LLM request deadline exhausted",
+            diagnostic="deadline_exhausted",
+        )
+    result_queue: Queue[tuple[bool, object]] = Queue(maxsize=1)
+
+    def invoke() -> None:
+        """Place one response or exception in the private bounded result queue."""
+
+        try:
+            result_queue.put((True, client.complete(messages, **kwargs)))
+        except Exception as exc:
+            result_queue.put((False, exc))
+
+    Thread(
+        target=invoke,
+        name="fablespace-bounded-llm-call",
+        daemon=True,
+    ).start()
+    try:
+        succeeded, result = result_queue.get(timeout=remaining)
+    except Empty as exc:
+        raise LLMError(
+            "LLM request deadline exhausted",
+            diagnostic="deadline_exhausted",
+        ) from exc
+    if not succeeded:
+        if isinstance(result, Exception):
+            raise result
+        raise LLMError(
+            "LLM request failed",
+            diagnostic="invalid_thread_result",
+        )
+    if not isinstance(result, LLMResponse):
+        raise LLMError(
+            "LLM response type is invalid",
+            diagnostic="invalid_response",
+        )
+    if time.monotonic() > deadline_monotonic:
+        raise LLMError(
+            "LLM request deadline exhausted",
+            diagnostic="deadline_exhausted",
+        )
+    return result
+
+
+def _enforce_content_byte_limit(
+    response: LLMResponse,
+    response_byte_limit: int | None,
+) -> LLMResponse:
+    """Reject a completed non-Custom response that exceeds the caller's byte bound."""
+
+    if response_byte_limit is None:
+        return response
+    if (
+        isinstance(response_byte_limit, bool)
+        or not isinstance(response_byte_limit, int)
+        or response_byte_limit < 1
+    ):
+        raise LLMError(
+            "LLM response limit is invalid",
+            diagnostic="invalid_response_limit",
+        )
+    if len(response.content.encode("utf-8")) > response_byte_limit:
+        raise LLMError(
+            "LLM response is too large",
+            diagnostic="response_too_large",
+        )
+    return response
+
+
 def complete(
     config: LLMConfig,
     messages: list[dict[str, str]],
     stream: bool = False,
+    request_deadline_monotonic: float | None = None,
+    response_byte_limit: int | None = None,
     **kwargs,
 ) -> LLMResponse | Generator[LLMResponse, None, None]:
     """
-    Convenience function: create client and call complete() in one step.
+    Convenience function: create a client and call it with optional adapter-only bounds.
     Usage:
         response = complete(config, messages)
         for chunk in complete(config, messages, stream=True):
@@ -2030,8 +2178,36 @@ def complete(
     """
     client = create_client(config)
     if stream and client.supports_streaming():
+        if request_deadline_monotonic is not None or response_byte_limit is not None:
+            raise LLMError(
+                "Bounded streaming calls are not supported",
+                diagnostic="bounded_stream_unsupported",
+            )
         return client.complete_stream(messages, **kwargs)
-    return client.complete(messages, **kwargs)
+    if request_deadline_monotonic is not None:
+        if (
+            isinstance(request_deadline_monotonic, bool)
+            or not isinstance(request_deadline_monotonic, (int, float))
+            or not isfinite(float(request_deadline_monotonic))
+        ):
+            raise LLMError(
+                "LLM request deadline is invalid",
+                diagnostic="invalid_deadline",
+            )
+    bounded_kwargs = dict(kwargs)
+    if isinstance(client, CustomBackend):
+        bounded_kwargs["request_deadline_monotonic"] = request_deadline_monotonic
+        bounded_kwargs["response_byte_limit"] = response_byte_limit
+    if request_deadline_monotonic is None:
+        response = client.complete(messages, **bounded_kwargs)
+    else:
+        response = _complete_before_deadline(
+            client,
+            messages,
+            deadline_monotonic=float(request_deadline_monotonic),
+            kwargs=bounded_kwargs,
+        )
+    return _enforce_content_byte_limit(response, response_byte_limit)
 
 
 # ─── Default models per backend ───────────────────────────────────────────────

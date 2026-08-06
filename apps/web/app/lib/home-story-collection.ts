@@ -14,18 +14,24 @@ import {
 export type HomeStoryCharacter = {
   storyWorld: StoryWorldCharacterDetail["story_world"]
   character: StoryWorldCharacterDetail["character"]
+  stories: StoryWorldCharacterDetail["stories"]
 }
 
 export type HomeStoryContinuity = {
   status: "anonymous" | "ready" | "unavailable"
   identity: CurrentSessionIdentity | null
-  runsByStoryWorld: Record<string, StoryRunContinuity | null>
+  runsByStory: Record<string, StoryRunContinuity | null>
 }
 
 export const EMPTY_HOME_STORY_CONTINUITY: HomeStoryContinuity = {
   status: "anonymous",
   identity: null,
-  runsByStoryWorld: {},
+  runsByStory: {},
+}
+
+/** Return the stable in-memory key for one world-scoped reviewed Story. */
+export function homeStoryContinuityKey(storyWorldId: string, storyId: string) {
+  return `${storyWorldId}:${storyId}`
 }
 
 /**
@@ -49,6 +55,7 @@ export async function loadHomeStoryCollection(): Promise<HomeStoryCharacter[]> {
       return {
         storyWorld: detail.story_world,
         character: detail.character,
+        stories: detail.stories,
       }
     }),
   )
@@ -56,7 +63,7 @@ export async function loadHomeStoryCollection(): Promise<HomeStoryCharacter[]> {
 
 /**
  * Load private homepage continuity only after the trusted session confirms a player.
- * One read-only continuity request is issued per StoryWorld; failures stay separate from public Character discovery.
+ * Reads are deduplicated by explicit world and Story IDs; ambiguous Character entries are left for their detail page.
  */
 export async function loadHomeStoryContinuity(
   characters: HomeStoryCharacter[],
@@ -72,27 +79,33 @@ export async function loadHomeStoryContinuity(
     return EMPTY_HOME_STORY_CONTINUITY
   }
 
-  const storyWorldIds = [...new Set(
-    characters.map((entry) => entry.storyWorld.id),
-  )]
+  const storyScopes = new Map<string, { storyWorldId: string; storyId: string }>()
+  for (const entry of characters) {
+    if (entry.stories.length !== 1) continue
+    const storyId = entry.stories[0].id
+    const key = homeStoryContinuityKey(entry.storyWorld.id, storyId)
+    storyScopes.set(key, { storyWorldId: entry.storyWorld.id, storyId })
+  }
 
-  try {
-    const runEntries = await Promise.all(
-      storyWorldIds.map(async (storyWorldId) => ([
-        storyWorldId,
-        await getStoryRunContinuity(storyWorldId),
-      ] as const)),
-    )
-    return {
-      status: "ready",
-      identity: access.user,
-      runsByStoryWorld: Object.fromEntries(runEntries),
-    }
-  } catch {
-    return {
-      status: "unavailable",
-      identity: access.user,
-      runsByStoryWorld: {},
-    }
+  const runEntries = await Promise.all(
+    [...storyScopes.entries()].map(async ([key, scope]) => {
+      try {
+        const continuity = await getStoryRunContinuity(
+          scope.storyWorldId,
+          scope.storyId,
+        )
+        return [
+          key,
+          continuity?.story_id === scope.storyId ? continuity : null,
+        ] as const
+      } catch {
+        return [key, null] as const
+      }
+    }),
+  )
+  return {
+    status: "ready",
+    identity: access.user,
+    runsByStory: Object.fromEntries(runEntries),
   }
 }

@@ -8,8 +8,8 @@ import {
 } from "react-router"
 import { AdminShell, sectionLabel, type AdminSection } from "../components/admin/admin-shell"
 import { BackgroundPanel } from "../components/admin/background-panel"
-import { ChaptersPanel } from "../components/admin/chapters-panel"
 import { CharactersPanel } from "../components/admin/characters-panel"
+import { StoriesPanel } from "../components/admin/stories-panel"
 import { WorldSettingsPanel } from "../components/admin/world-settings-panel"
 import {
   getManagedStoryWorld,
@@ -27,7 +27,7 @@ export const meta: MetaFunction = () => [{ title: "内容后台｜FableSpace" }]
 const ADMIN_SECTIONS = new Set<AdminSection>([
   "settings",
   "background",
-  "chapters",
+  "stories",
   "characters",
 ])
 const ADMIN_DATE_FORMATTER = new Intl.DateTimeFormat("zh-CN", {
@@ -194,8 +194,8 @@ export default function AdminRoute() {
           </div>
           {section === "background" ? (
             <BackgroundPanel onChange={changeDraft} storyWorld={draft} />
-          ) : section === "chapters" ? (
-            <ChaptersPanel onChange={changeDraft} storyWorld={draft} />
+          ) : section === "stories" ? (
+            <StoriesPanel onChange={changeDraft} storyWorld={draft} />
           ) : section === "characters" ? (
             <CharactersPanel
               onChange={changeDraft}
@@ -219,7 +219,7 @@ function WorldList({ storyWorlds }: { storyWorlds: StoryWorldSummary[] }) {
     <section className="admin-world-list">
       <div className="admin-table-heading">
         <span>故事世界</span>
-        <span>章节</span>
+        <span>故事</span>
         <span>角色</span>
         <span>最后修改</span>
         <span aria-hidden="true" />
@@ -241,7 +241,7 @@ function WorldList({ storyWorlds }: { storyWorlds: StoryWorldSummary[] }) {
           </span>
           <span className="admin-world-count">
             <BookOpen aria-hidden="true" size={16} />
-            {storyWorld.chapter_count}
+            {storyWorld.story_count}
           </span>
           <span className="admin-world-count">
             <Users aria-hidden="true" size={16} />

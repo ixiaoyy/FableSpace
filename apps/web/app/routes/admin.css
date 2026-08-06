@@ -812,6 +812,47 @@
   margin-top: 9px;
 }
 
+.admin-story-subnav {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid var(--admin-line);
+  background: var(--admin-soft);
+}
+
+.admin-rule-kind {
+  color: var(--admin-muted);
+  font-size: 0.7rem;
+}
+
+.admin-predicate-list {
+  margin-bottom: 16px;
+}
+
+.admin-predicate-row {
+  display: grid;
+  grid-template-columns: minmax(130px, 0.8fr) minmax(150px, 1fr) minmax(150px, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid var(--admin-line);
+  background: rgb(255 255 255 / 0.72);
+}
+
+.admin-predicate-value {
+  display: grid;
+  grid-template-columns: minmax(86px, 0.55fr) minmax(100px, 1fr);
+  gap: 8px;
+}
+
+.admin-predicate-bounds {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(72px, 1fr));
+  gap: 8px;
+}
+
 .admin-stage-row {
   display: grid;
   grid-template-columns: minmax(120px, 0.7fr) 110px minmax(220px, 1.4fr) auto;
@@ -865,6 +906,14 @@
   }
 
   .admin-effect-row .admin-text-button {
+    justify-self: start;
+  }
+
+  .admin-predicate-row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .admin-predicate-row .admin-text-button {
     justify-self: start;
   }
 }
@@ -1044,10 +1093,17 @@
   }
 
   .admin-stage-row,
-  .admin-effect-row {
+  .admin-effect-row,
+  .admin-predicate-row {
     grid-template-columns: 1fr;
     padding: 14px;
     border: 1px solid var(--admin-line);
+  }
+
+  .admin-story-subnav,
+  .admin-predicate-value,
+  .admin-predicate-bounds {
+    grid-template-columns: 1fr;
   }
 
   .admin-node-card > summary > div:first-child {

@@ -2,12 +2,12 @@ import { BookOpen, Check, ChevronLeft, Save } from "lucide-react"
 import { Link, NavLink } from "react-router"
 import type { ReactNode } from "react"
 
-export type AdminSection = "settings" | "background" | "chapters" | "characters"
+export type AdminSection = "settings" | "background" | "stories" | "characters"
 
 const SECTION_LABELS: Record<AdminSection, string> = {
   settings: "世界设置",
   background: "背景设定",
-  chapters: "章节管理",
+  stories: "故事管理",
   characters: "角色管理",
 }
 

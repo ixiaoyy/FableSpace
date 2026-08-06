@@ -28,9 +28,9 @@ AUTHORIZATION_LOCK_STRIPES = 64
 LOGIN_RETURN_COOKIE = "fablespace_login_return"
 LOGIN_RETURN_TTL_SECONDS = 10 * 60
 STORY_RETURN_TARGET_PATTERN = re.compile(
-    r"^/characters/[A-Za-z0-9_-]+/story"
-    r"(?:\?playerRoleId=[A-Za-z0-9_-]{1,128})?$"
+    r"^/characters/[A-Za-z0-9_-]+/story$"
 )
+STORY_RETURN_ID_PATTERN = re.compile(r"^[A-Za-z0-9_-]{1,128}$")
 
 
 class SessionIdentity(BaseModel):
@@ -487,7 +487,7 @@ def _decode_login_return_cookie(raw_cookie: str, settings: ApiSettings) -> str:
 
 
 def _safe_story_return_path(raw_path: str) -> str:
-    """Allow a canonical story path and one reviewed-role selector query."""
+    """Canonicalize one story path with required Story and optional PlayerRole IDs."""
     raw_candidate = str(raw_path or "")
     candidate = raw_candidate.strip()
     if (
@@ -497,10 +497,28 @@ def _safe_story_return_path(raw_path: str) -> str:
         or "%" in candidate
         or "\\" in candidate
         or any(ord(character) < 0x20 or ord(character) == 0x7F for character in candidate)
-        or STORY_RETURN_TARGET_PATTERN.fullmatch(candidate) is None
     ):
         return "/"
-    return candidate
+    path, separator, query = candidate.partition("?")
+    if STORY_RETURN_TARGET_PATTERN.fullmatch(path) is None or not separator or not query:
+        return "/"
+    values: dict[str, str] = {}
+    for pair in query.split("&"):
+        key, equals, value = pair.partition("=")
+        if (
+            not equals
+            or key not in {"storyId", "playerRoleId"}
+            or key in values
+            or STORY_RETURN_ID_PATTERN.fullmatch(value) is None
+        ):
+            return "/"
+        values[key] = value
+    if "storyId" not in values:
+        return "/"
+    canonical = f"{path}?storyId={values['storyId']}"
+    if "playerRoleId" in values:
+        canonical += f"&playerRoleId={values['playerRoleId']}"
+    return canonical
 
 
 def _decode_session_cookie(raw_cookie: str, settings: ApiSettings) -> SessionIdentity | None:

@@ -15,6 +15,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY apps/api/sql ./apps/api/sql
 COPY apps/api/src ./apps/api/src
+COPY deploy/schema-revision.txt ./deploy/schema-revision.txt
 
 RUN useradd --create-home --shell /usr/sbin/nologin fablespace \
     && mkdir -p /data \

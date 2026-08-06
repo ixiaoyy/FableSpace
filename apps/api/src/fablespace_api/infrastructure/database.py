@@ -60,6 +60,7 @@ class Database:
             pool_recycle=pool_recycle,
             pool_pre_ping=True,  # 每次使用前检查连接是否有效
             echo=echo,
+            hide_parameters=True,
             connect_args=connect_args,
         )
         self.SessionLocal = sessionmaker(

@@ -47,6 +47,13 @@ def _path_from_env(name: str, default: Path) -> Path:
     return Path(value) if value else default
 
 
+def _optional_path_from_env(name: str) -> Path | None:
+    """Return one configured path or None so callers can derive it from final settings."""
+
+    value = _env_value(name)
+    return Path(value) if value else None
+
+
 def _default_output_root() -> Path:
     """Return the persisted runtime root used by SQLite and generated files."""
 
@@ -254,6 +261,23 @@ class ApiSettings:
 
     # Database configuration. Empty `database_url` uses output_root/fablespace.sqlite3.
     database_url: str = field(default_factory=_default_database_url)
+    schema_revision_marker_path: Path | None = field(
+        default_factory=lambda: _optional_path_from_env(
+            "FABLESPACE_SCHEMA_REVISION_MARKER_PATH"
+        )
+    )
+    memory_formation_enabled: bool = field(
+        default_factory=lambda: _bool_from_env(
+            "FABLESPACE_MEMORY_FORMATION_ENABLED",
+            False,
+        )
+    )
+    memory_recall_enabled: bool = field(
+        default_factory=lambda: _bool_from_env(
+            "FABLESPACE_MEMORY_RECALL_ENABLED",
+            False,
+        )
+    )
     mysql_pool_size: int = field(
         default_factory=lambda: _int_from_env(
             "FABLESPACE_MYSQL_POOL_SIZE",

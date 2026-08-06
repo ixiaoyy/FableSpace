@@ -11,14 +11,19 @@ from ..domain.story_world import (
     PublicationStatus,
     RelationshipRules,
     RelationshipStage,
+    ReviewedStory,
     StoryChapter,
+    StoryCharacterParticipation,
     StoryChoice,
     StoryEnding,
+    StoryKind,
     StoryNode,
+    StoryNodePresentationKind,
     StoryWorld,
 )
 
 PALACE_STORY_WORLD_ID = "story_palace_snow_edict"
+PALACE_STORY_ID = "palace_snow_edict"
 GAO_LISHI_CHARACTER_ID = "char_story_palace_eunuch_wei"
 TAIPING_PRINCESS_CHARACTER_ID = "char_story_palace_princess_xiao"
 PALACE_PLAYER_ROLE_ID = "role_story_palace_little_eunuch"
@@ -57,6 +62,16 @@ def _historical_relationship_rules(attitude: str) -> RelationshipRules:
     )
 
 
+GAO_LISHI_CURRENT_SITUATION = (
+    "先天二年七月三日，史籍记高力士随玄宗一方出武德殿、入虔化门；"
+    "具体逐句传令没有留存。"
+)
+
+GAO_LISHI_OPENING_LINE = (
+    "剧情转述（非史料原话）：高力士只确认《旧唐书》记载的随行与入门，"
+    "并要求来者把亲见、转述和后来的定性分开。"
+)
+
 GAO_LISHI = Character(
     id=GAO_LISHI_CHARACTER_ID,
     story_world_id=PALACE_STORY_WORLD_ID,
@@ -80,20 +95,22 @@ GAO_LISHI = Character(
         "只使用带固定标识的第三人称剧情转述，不生成高力士的第一人称原话。"
         "转述只谈已审核的行动、门次和消息来源；遇到史料空白时明确说无法证实。"
     ),
-    current_situation=(
-        "先天二年七月三日，史籍记高力士随玄宗一方出武德殿、入虔化门；"
-        "具体逐句传令没有留存。"
-    ),
-    opening_line=(
-        "剧情转述（非史料原话）：高力士只确认《旧唐书》记载的随行与入门，"
-        "并要求来者把亲见、转述和后来的定性分开。"
-    ),
     relationship_rules=_historical_relationship_rules(
         "他只按史料边界核对你的记录，不产生可改写历史的私人好感或敌意。"
     ),
     portrait_url=public_media_url(
         f"{PALACE_ASSET_ROOT}/characters/gao-lishi/v1/portrait.webp"
     ),
+)
+
+TAIPING_PRINCESS_CURRENT_SITUATION = (
+    "史籍记宫城行动发生后她闻变入南山，三日后出；"
+    "她在七月三日的精确位置与逐句反应均未获核验。"
+)
+
+TAIPING_PRINCESS_OPENING_LINE = (
+    "剧情转述（非史料原话）：太平公主要求来者说明同谋、谋废、作乱"
+    "分别出自哪类记录，而不是把后来的定性冒充亲见。"
 )
 
 TAIPING_PRINCESS = Character(
@@ -119,14 +136,6 @@ TAIPING_PRINCESS = Character(
     voice=(
         "只使用带固定标识的第三人称剧情转述，不生成太平公主的第一人称原话。"
         "转述克制而有地位感，只追问记录依据，不补写密谋、心理或私下会面。"
-    ),
-    current_situation=(
-        "史籍记宫城行动发生后她闻变入南山，三日后出；"
-        "她在七月三日的精确位置与逐句反应均未获核验。"
-    ),
-    opening_line=(
-        "剧情转述（非史料原话）：太平公主要求来者说明同谋、谋废、作乱"
-        "分别出自哪类记录，而不是把后来的定性冒充亲见。"
     ),
     relationship_rules=_historical_relationship_rules(
         "她只质询证词如何形成；玩家不能改变真实人物的私人关系或历史选择。"
@@ -220,6 +229,8 @@ PALACE_CHAPTER = StoryChapter(
     nodes=(
         StoryNode(
             id="node_wude_palace",
+            presentation_kind=StoryNodePresentationKind.SYSTEM,
+            character_id=None,
             narration=(
                 "先天二年七月三日，武德殿外传令骤密。正史后来写下太平公主一方原定次日举兵；"
                 "眼下你能核对的只有人名、门次和每句话的来源。无论你怎样选择，宫门内的先制行动已经开始。"
@@ -248,6 +259,8 @@ PALACE_CHAPTER = StoryChapter(
         ),
         StoryNode(
             id="node_gate_sequence",
+            presentation_kind=StoryNodePresentationKind.SYSTEM,
+            character_id=None,
             narration=(
                 "后来的本纪列出高力士等人出武德殿、入虔化门的路线。"
                 "你手里的门次抄本是剧情设定：它能核对先后，却不能证明每个人当时心里所想。"
@@ -270,6 +283,8 @@ PALACE_CHAPTER = StoryChapter(
         ),
         StoryNode(
             id="node_accusation_wording",
+            presentation_kind=StoryNodePresentationKind.SYSTEM,
+            character_id=None,
             narration=(
                 "同一阵营在不同记载里被写作“同谋”“谋废”或“作乱”。"
                 "这些字能改变后世怎样理解人，却不是一份保存完整的口供。"
@@ -292,6 +307,8 @@ PALACE_CHAPTER = StoryChapter(
         ),
         StoryNode(
             id="node_attendant_list",
+            presentation_kind=StoryNodePresentationKind.SYSTEM,
+            character_id=None,
             narration=(
                 "被传唤、守门和递送抄本的普通宫人挤在一张临时名单里。"
                 "他们是剧情中的原创普通人，不该因为靠近宫门就被写成史籍中没有的同党。"
@@ -314,6 +331,8 @@ PALACE_CHAPTER = StoryChapter(
         ),
         StoryNode(
             id="node_record_decision",
+            presentation_kind=StoryNodePresentationKind.SYSTEM,
+            character_id=None,
             narration=(
                 "虔化门一线的控制已经改变，史籍记萧至忠、岑羲等随后被处置。"
                 "你不能让这一切发生或不发生，只能决定自己的抄本是否把行动、指控和未知混成同一句话。"
@@ -352,6 +371,8 @@ PALACE_CHAPTER = StoryChapter(
         ),
         StoryNode(
             id="node_ending_sequence",
+            presentation_kind=StoryNodePresentationKind.SYSTEM,
+            character_id=None,
             narration=(
                 "你的抄本止于可核对的门次和人名。"
                 f"{FIXED_XIANTIAN_OUTCOME}"
@@ -362,6 +383,8 @@ PALACE_CHAPTER = StoryChapter(
         ),
         StoryNode(
             id="node_ending_attributed",
+            presentation_kind=StoryNodePresentationKind.SYSTEM,
+            character_id=None,
             narration=(
                 "“同谋”“谋废”“作乱”都留在纸上，旁边也留下各自出处。"
                 f"{FIXED_XIANTIAN_OUTCOME}"
@@ -372,6 +395,8 @@ PALACE_CHAPTER = StoryChapter(
         ),
         StoryNode(
             id="node_ending_parallel",
+            presentation_kind=StoryNodePresentationKind.SYSTEM,
+            character_id=None,
             narration=(
                 "两份互相冲突的记录没有被强行抹平。"
                 f"{FIXED_XIANTIAN_OUTCOME}"
@@ -382,6 +407,8 @@ PALACE_CHAPTER = StoryChapter(
         ),
         StoryNode(
             id="node_ending_attendants",
+            presentation_kind=StoryNodePresentationKind.SYSTEM,
+            character_id=None,
             narration=(
                 "你只保住了普通宫人的交接名单，没有把他们填进胜负双方的罪名里。"
                 f"{FIXED_XIANTIAN_OUTCOME}"
@@ -403,43 +430,71 @@ PALACE_STORY_WORLD = StoryWorld(
     genre="历史宫廷",
     publication_status=PublicationStatus.PUBLISHED,
     content_version="palace-xiantian-coup-2026-08-05.1",
-    entry_chapter_id=PALACE_CHAPTER.id,
     player_roles=(PALACE_PLAYER_ROLE, PALACE_MAID_PLAYER_ROLE),
     characters=(GAO_LISHI, TAIPING_PRINCESS),
-    chapters=(PALACE_CHAPTER,),
-    endings=(
-        StoryEnding(
-            id="ending_sequence_only",
-            title="只记所见",
+    stories=(
+        ReviewedStory(
+            id=PALACE_STORY_ID,
+            title="先天二年·虔化门",
             summary=(
-                "你只保存可核对的行动顺序。"
-                f"{FIXED_XIANTIAN_OUTCOME}"
-                "公开历史没有改变。"
+                "713 年七月三日，玄宗一方先制入宫。高力士与太平公主分处史书两端，"
+                "玩家只能核对记录如何形成，不能改写政变结局。"
             ),
-        ),
-        StoryEnding(
-            id="ending_attributed_charge",
-            title="指控有源",
-            summary=(
-                "正史指控被保留，也被注明来源与立场。"
-                f"{FIXED_XIANTIAN_OUTCOME}"
+            kind=StoryKind.ENSEMBLE,
+            publication_status=PublicationStatus.PUBLISHED,
+            focus_character_id=None,
+            participants=(
+                StoryCharacterParticipation(
+                    character_id=GAO_LISHI_CHARACTER_ID,
+                    current_situation=GAO_LISHI_CURRENT_SITUATION,
+                    opening_line=GAO_LISHI_OPENING_LINE,
+                    can_start=True,
+                ),
+                StoryCharacterParticipation(
+                    character_id=TAIPING_PRINCESS_CHARACTER_ID,
+                    current_situation=TAIPING_PRINCESS_CURRENT_SITUATION,
+                    opening_line=TAIPING_PRINCESS_OPENING_LINE,
+                    can_start=True,
+                ),
             ),
-        ),
-        StoryEnding(
-            id="ending_parallel_accounts",
-            title="两说并存",
-            summary=(
-                "冲突记录被并列保存，没有被合成一个万能真相。"
-                f"{FIXED_XIANTIAN_OUTCOME}"
+            entry_chapter_id=PALACE_CHAPTER.id,
+            chapters=(PALACE_CHAPTER,),
+            endings=(
+                StoryEnding(
+                    id="ending_sequence_only",
+                    title="只记所见",
+                    summary=(
+                        "你只保存可核对的行动顺序。"
+                        f"{FIXED_XIANTIAN_OUTCOME}"
+                        "公开历史没有改变。"
+                    ),
+                ),
+                StoryEnding(
+                    id="ending_attributed_charge",
+                    title="指控有源",
+                    summary=(
+                        "正史指控被保留，也被注明来源与立场。"
+                        f"{FIXED_XIANTIAN_OUTCOME}"
+                    ),
+                ),
+                StoryEnding(
+                    id="ending_parallel_accounts",
+                    title="两说并存",
+                    summary=(
+                        "冲突记录被并列保存，没有被合成一个万能真相。"
+                        f"{FIXED_XIANTIAN_OUTCOME}"
+                    ),
+                ),
+                StoryEnding(
+                    id="ending_attendant_record",
+                    title="无名者的名单",
+                    summary=(
+                        "你只保护原创普通宫人的记录，不改变任何真人行动。"
+                        f"{FIXED_XIANTIAN_OUTCOME}"
+                    ),
+                ),
             ),
-        ),
-        StoryEnding(
-            id="ending_attendant_record",
-            title="无名者的名单",
-            summary=(
-                "你只保护原创普通宫人的记录，不改变任何真人行动。"
-                f"{FIXED_XIANTIAN_OUTCOME}"
-            ),
+            character_decisions=(),
         ),
     ),
     canon_entries=(

@@ -21,7 +21,10 @@ import "./story-world-character.css"
 
 type CharacterContinuity = {
   status: "anonymous" | "ready" | "unavailable"
-  run: StoryRun | null
+  stories: Record<string, {
+    status: "ready" | "unavailable"
+    run: StoryRun | null
+  }>
 }
 
 type LoaderData = {
@@ -36,7 +39,7 @@ export async function clientLoader({ params }: ClientLoaderFunctionArgs): Promis
   if (!route) {
     return {
       detail: null,
-      continuity: { status: "anonymous", run: null },
+      continuity: { status: "anonymous", stories: {} },
       slug: "",
       error: "这个角色尚未公开。",
     }
@@ -49,24 +52,43 @@ export async function clientLoader({ params }: ClientLoaderFunctionArgs): Promis
     )
     let continuity: CharacterContinuity = {
       status: "anonymous",
-      run: null,
+      stories: {},
     }
 
     try {
       const access = await getAccessStatus()
       if (access.access_allowed && access.user) {
+        const storyEntries = await Promise.all(
+          detail.stories.map(async (story) => {
+            try {
+              const run = await getCurrentStoryRun(
+                route.storyWorldId,
+                story.id,
+                route.characterId,
+              )
+              return [
+                story.id,
+                run && run.story.id !== story.id
+                  ? { status: "unavailable", run: null }
+                  : { status: "ready", run },
+              ] as const
+            } catch {
+              return [
+                story.id,
+                { status: "unavailable", run: null },
+              ] as const
+            }
+          }),
+        )
         continuity = {
           status: "ready",
-          run: await getCurrentStoryRun(
-            route.storyWorldId,
-            route.characterId,
-          ),
+          stories: Object.fromEntries(storyEntries),
         }
       }
     } catch {
       continuity = {
         status: "unavailable",
-        run: null,
+        stories: {},
       }
     }
 
@@ -79,7 +101,7 @@ export async function clientLoader({ params }: ClientLoaderFunctionArgs): Promis
   } catch (error) {
     return {
       detail: null,
-      continuity: { status: "anonymous", run: null },
+      continuity: { status: "anonymous", stories: {} },
       slug: route.slug,
       error: error instanceof Error ? error.message : "故事暂时无法打开。",
     }
@@ -97,7 +119,18 @@ export default function StoryWorldCharacterRoute() {
   const { detail, continuity, slug, error } = useLoaderData<typeof clientLoader>()
   const route = resolveCharacterRoute(slug)
   const revalidator = useRevalidator()
-  const [selectedPlayerRoleId, setSelectedPlayerRoleId] = useState("")
+  const defaultStoryId = detail?.stories.length === 1
+    ? detail.stories[0].id
+    : ""
+  const [storySelection, setStorySelection] = useState(() => ({
+    slug,
+    storyId: defaultStoryId,
+  }))
+  const [playerRoleSelection, setPlayerRoleSelection] = useState(() => ({
+    slug,
+    storyId: defaultStoryId,
+    playerRoleId: "",
+  }))
 
   if (!detail || !route) {
     return (
@@ -110,7 +143,29 @@ export default function StoryWorldCharacterRoute() {
     )
   }
 
-  const run = continuity.run
+  const selectedStoryId = storySelection.slug === slug
+    ? storySelection.storyId
+    : defaultStoryId
+  const effectiveStoryId = detail.stories.some(
+    (story) => story.id === selectedStoryId,
+  )
+    ? selectedStoryId
+    : defaultStoryId
+  const selectedStory = detail.stories.find(
+    (story) => story.id === effectiveStoryId,
+  ) || null
+  const selectedPlayerRoleId = playerRoleSelection.slug === slug
+    && playerRoleSelection.storyId === effectiveStoryId
+    ? playerRoleSelection.playerRoleId
+    : ""
+  const selectedContinuity = selectedStory
+    ? continuity.stories[selectedStory.id]
+    : null
+  const continuityUnavailable = continuity.status === "unavailable"
+    || selectedContinuity?.status === "unavailable"
+  const run = selectedContinuity?.status === "ready"
+    ? selectedContinuity.run
+    : null
   const latestCharacterMessage = run
     ? [...run.events].reverse().find((event) => (
         event.type === "message"
@@ -122,10 +177,11 @@ export default function StoryWorldCharacterRoute() {
     ? run.status === "completed"
       ? run.ending?.summary || run.current_node.narration
       : run.current_node.narration
-    : detail.character.current_situation
+    : selectedStory?.current_situation || detail.story_world.summary
   const characterPresence = latestCharacterMessage?.content
     || run?.current_node.narration
-    || detail.character.opening_preview
+    || selectedStory?.opening_preview
+    || detail.story_world.summary
 
   return (
     <main
@@ -144,7 +200,7 @@ export default function StoryWorldCharacterRoute() {
         <div className="annieCharacterIntro">
           <div className="annieCharacterStoryCopy">
             <p className="annieStoryEyebrow">{route.sceneLabel}</p>
-            <span>{detail.story_world.title}</span>
+            <span>{selectedStory?.title || detail.story_world.title}</span>
             <h1 id="story-character-name">{detail.character.name}</h1>
             <p className="annieCharacterScene">{currentSituation}</p>
           </div>
@@ -161,7 +217,44 @@ export default function StoryWorldCharacterRoute() {
           </article>
         </div>
 
-        {continuity.status === "unavailable" ? (
+        {detail.stories.length > 1 ? (
+          <div className="annieCharacterStoryStep">
+            <div className="annieCharacterRoleHeading">
+              <div>
+                <p className="annieStoryEyebrow">故事</p>
+                <h2>这一次，从哪里开始？</h2>
+              </div>
+            </div>
+            <div className="annieCharacterStoryGrid" role="group" aria-label="选择故事">
+              {detail.stories.map((story) => (
+                <button
+                  key={story.id}
+                  className="annieCharacterStoryOption"
+                  type="button"
+                  aria-pressed={story.id === effectiveStoryId}
+                  onClick={() => {
+                    setStorySelection({ slug, storyId: story.id })
+                    setPlayerRoleSelection({
+                      slug,
+                      storyId: story.id,
+                      playerRoleId: "",
+                    })
+                  }}
+                >
+                  <strong>{story.title}</strong>
+                  <span>{story.summary}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        ) : null}
+
+        {!selectedStory ? (
+          <div className="annieCharacterContinuityError" role="status">
+            <CircleAlert aria-hidden="true" />
+            <strong>暂无可进入故事</strong>
+          </div>
+        ) : continuityUnavailable ? (
           <div className="annieCharacterContinuityError" role="alert">
             <CircleAlert aria-hidden="true" />
             <strong>当前进度暂时无法载入</strong>
@@ -207,7 +300,7 @@ export default function StoryWorldCharacterRoute() {
             <div className="annieCharacterActions">
               <Link
                 className="annieStoryPrimaryButton"
-                to={characterStoryPath(route.slug)}
+                to={characterStoryPath(route.slug, selectedStory.id)}
               >
                 <Feather aria-hidden="true" />
                 <span>{run.status === "active" ? "继续对话" : "查看结局"}</span>
@@ -232,7 +325,11 @@ export default function StoryWorldCharacterRoute() {
                     playerRole={playerRole}
                     selected={selectedPlayerRoleId === playerRole.id}
                     disabled={false}
-                    onSelect={() => setSelectedPlayerRoleId(playerRole.id)}
+                    onSelect={() => setPlayerRoleSelection({
+                      slug,
+                      storyId: selectedStory.id,
+                      playerRoleId: playerRole.id,
+                    })}
                   />
                 ))}
               </div>
@@ -242,7 +339,11 @@ export default function StoryWorldCharacterRoute() {
               {selectedPlayerRoleId ? (
                 <Link
                   className="annieStoryPrimaryButton"
-                  to={characterStoryPath(route.slug, selectedPlayerRoleId)}
+                  to={characterStoryPath(
+                    route.slug,
+                    selectedStory.id,
+                    selectedPlayerRoleId,
+                  )}
                 >
                   <Feather aria-hidden="true" />
                   <span>去见{detail.character.name}</span>

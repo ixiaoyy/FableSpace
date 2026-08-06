@@ -11,6 +11,7 @@ on:
       - "docker-compose.yml"
       - ".github/workflows/deploy.yml"
       - ".github/workflows/repair-story-run-schema.yml"
+      - ".github/workflows/apply-multi-story-009.yml"
   workflow_dispatch:
 
 concurrency:
@@ -43,12 +44,14 @@ jobs:
             frontend:
               - 'apps/web/**'
             infrastructure:
+              - 'deploy/schema-revision.txt'
               - 'deploy/server/**'
               - 'deploy/docker-compose.shared.yml'
               - 'deploy/docker-compose.llm-proxy.yml'
               - 'docker-compose.yml'
               - '.github/workflows/deploy.yml'
               - '.github/workflows/repair-story-run-schema.yml'
+              - '.github/workflows/apply-multi-story-009.yml'
             media:
               - 'deploy/cdn/**'
               - '.github/workflows/deploy.yml'
@@ -210,10 +213,45 @@ jobs:
               exit 1
             fi
             FABLESPACE_PATH="${{ vars.DEPLOY_PATH || '/opt/fablespace' }}"
+            EXPECTED_SHA="${{ github.sha }}"
+            EXPECTED_REF="${{ github.ref }}"
+            if [ "${EXPECTED_REF}" != "refs/heads/main" ]; then
+              echo "Deploy must be dispatched from main"
+              exit 1
+            fi
             cd "${FABLESPACE_PATH}"
             git remote set-url origin "https://github.com/${{ github.repository }}.git"
             git fetch --prune origin main
-            git reset --hard origin/main
+            if ! git cat-file -e "${EXPECTED_SHA}^{commit}" 2>/dev/null; then
+              echo "Workflow commit is unavailable after fetching main"
+              exit 1
+            fi
+            if ! git merge-base --is-ancestor "${EXPECTED_SHA}" origin/main; then
+              echo "Workflow commit is not in the approved main history"
+              exit 1
+            fi
+            TARGET_SCHEMA_MARKER="$(mktemp)"
+            TARGET_RELEASE_APPROVAL="$(mktemp)"
+            trap 'rm -f "${TARGET_SCHEMA_MARKER}" "${TARGET_RELEASE_APPROVAL}"' EXIT
+            git show "${EXPECTED_SHA}:deploy/schema-revision.txt" > "${TARGET_SCHEMA_MARKER}"
+            git show "${EXPECTED_SHA}:deploy/release-approval.txt" > "${TARGET_RELEASE_APPROVAL}"
+            if [ ! -f /opt/fablespace-schema/revision ]; then
+              echo "Verified schema revision marker is missing; run the controlled 009 workflow first"
+              exit 1
+            fi
+            if ! sudo cmp -s "${TARGET_SCHEMA_MARKER}" /opt/fablespace-schema/revision; then
+              echo "Verified schema revision does not match the workflow commit; deployment is blocked"
+              exit 1
+            fi
+            if [ ! -f /opt/fablespace-schema/release-approval ]; then
+              echo "Runtime release approval is missing; the controlled 009 workflow did not complete"
+              exit 1
+            fi
+            if ! sudo cmp -s "${TARGET_RELEASE_APPROVAL}" /opt/fablespace-schema/release-approval; then
+              echo "Runtime release approval does not match the workflow commit; deployment is blocked"
+              exit 1
+            fi
+            git reset --hard "${EXPECTED_SHA}"
             sudo install -m 0755 deploy/server/fablelog /usr/local/bin/fablelog
 
             CONFIG_OUTPUT="$(printf '%s' "${OPENCODE_API_KEY}" | sudo python3 deploy/server/configure_shared_services.py --cors-origin https://fable.pingxingxian.space --story-llm-key-stdin)"
@@ -259,7 +297,7 @@ jobs:
             $COMPOSE $COMPOSE_FILES logs --since=24h backend 2>&1 \
               | grep -E 'StoryWorld LLM request failed|LLM backend request failed' \
               | tail -n 40 || true
-            $COMPOSE $COMPOSE_FILES build backend
+            $COMPOSE $COMPOSE_FILES build backend memory-worker
             $COMPOSE $COMPOSE_FILES pull llm-proxy
             if ! $COMPOSE $COMPOSE_FILES run --rm --no-deps llm-proxy -t -d /root/.config/mihomo >/dev/null 2>&1; then
               echo "LLM proxy configuration validation failed"
@@ -294,7 +332,7 @@ jobs:
               exit 1
             fi
             echo "StoryWorld LLM provider call validated"
-            $COMPOSE $COMPOSE_FILES up -d --no-build backend
+            $COMPOSE $COMPOSE_FILES up -d --no-build backend memory-worker
             BACKEND_READY=false
             for ATTEMPT in $(seq 1 30); do
               if $COMPOSE $COMPOSE_FILES exec -T backend python -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/v1/health', timeout=3).read()" >/dev/null 2>&1; then
@@ -363,10 +401,45 @@ jobs:
           command_timeout: 20m
           script: |
             set -eu
+            EXPECTED_SHA="${{ github.sha }}"
+            EXPECTED_REF="${{ github.ref }}"
+            if [ "${EXPECTED_REF}" != "refs/heads/main" ]; then
+              echo "Deploy must be dispatched from main"
+              exit 1
+            fi
             cd "${{ vars.DEPLOY_PATH || '/opt/fablespace' }}"
             git remote set-url origin "https://github.com/${{ github.repository }}.git"
             git fetch --prune origin main
-            git reset --hard origin/main
+            if ! git cat-file -e "${EXPECTED_SHA}^{commit}" 2>/dev/null; then
+              echo "Workflow commit is unavailable after fetching main"
+              exit 1
+            fi
+            if ! git merge-base --is-ancestor "${EXPECTED_SHA}" origin/main; then
+              echo "Workflow commit is not in the approved main history"
+              exit 1
+            fi
+            TARGET_SCHEMA_MARKER="$(mktemp)"
+            TARGET_RELEASE_APPROVAL="$(mktemp)"
+            trap 'rm -f "${TARGET_SCHEMA_MARKER}" "${TARGET_RELEASE_APPROVAL}"' EXIT
+            git show "${EXPECTED_SHA}:deploy/schema-revision.txt" > "${TARGET_SCHEMA_MARKER}"
+            git show "${EXPECTED_SHA}:deploy/release-approval.txt" > "${TARGET_RELEASE_APPROVAL}"
+            if [ ! -f /opt/fablespace-schema/revision ]; then
+              echo "Verified schema revision marker is missing; run the controlled 009 workflow first"
+              exit 1
+            fi
+            if ! sudo cmp -s "${TARGET_SCHEMA_MARKER}" /opt/fablespace-schema/revision; then
+              echo "Verified schema revision does not match the workflow commit; deployment is blocked"
+              exit 1
+            fi
+            if [ ! -f /opt/fablespace-schema/release-approval ]; then
+              echo "Runtime release approval is missing; the controlled 009 workflow did not complete"
+              exit 1
+            fi
+            if ! sudo cmp -s "${TARGET_RELEASE_APPROVAL}" /opt/fablespace-schema/release-approval; then
+              echo "Runtime release approval does not match the workflow commit; deployment is blocked"
+              exit 1
+            fi
+            git reset --hard "${EXPECTED_SHA}"
 
             if sudo docker compose version >/dev/null 2>&1; then
               COMPOSE="sudo docker compose"
