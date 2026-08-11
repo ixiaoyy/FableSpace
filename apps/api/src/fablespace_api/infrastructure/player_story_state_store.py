@@ -35,6 +35,7 @@ from ..domain.story_world import (
     DecisionPredicate,
     DecisionPredicateKind,
     PlayerRole,
+    PostEndingMessageMode,
     PredicateValue,
     PublicationStatus,
     RelationshipEffect,
@@ -43,9 +44,12 @@ from ..domain.story_world import (
     StoryChapter,
     StoryCharacterParticipation,
     StoryChoice,
+    StoryChoicePresentation,
     StoryEnding,
+    StoryExperienceMode,
     StoryNode,
     StoryNodePresentationKind,
+    StoryReplayPolicy,
     StoryWorld,
     StoryWorldRegistry,
 )
@@ -91,6 +95,8 @@ class StoryRunAggregate:
     relationships: tuple[CharacterRelationship, ...]
     events: tuple[StoryEvent, ...]
     messages: tuple[StoryMessage, ...]
+    current_node: StoryNode
+    interaction_character_id: str | None
 
 
 @dataclass(frozen=True, slots=True)
@@ -109,7 +115,8 @@ class DialogueWriteGuard:
     story_run_id: str
     story_id: str
     character_id: str
-    content_version: str
+    run_content_version: str
+    reviewed_content_version: str
     current_chapter_id: str
     current_node_id: str
     last_event_sequence: int
@@ -125,6 +132,7 @@ class DialogueSnapshot:
     story: ReviewedStory
     participation: StoryCharacterParticipation
     run: StoryRun
+    current_node: StoryNode
     relationship: CharacterRelationship
     visible_messages: tuple[StoryMessage, ...]
     write_guard: DialogueWriteGuard
@@ -362,6 +370,11 @@ class PlayerStoryStateStore:
                     world.id,
                     story.id,
                 )
+                self._require_story_allows_new_run(
+                    session,
+                    progress,
+                    story,
+                )
                 active = self._active_run_for_progress(
                     session,
                     state,
@@ -457,6 +470,11 @@ class PlayerStoryStateStore:
                     world.id,
                     story.id,
                 )
+                self._require_story_allows_new_run(
+                    session,
+                    progress,
+                    story,
+                )
                 active = self._active_run_for_progress(
                     session,
                     state,
@@ -485,7 +503,6 @@ class PlayerStoryStateStore:
                         world.id,
                         story.id,
                     )
-
                 run = self._start_new_run(
                     session,
                     state,
@@ -573,6 +590,20 @@ class PlayerStoryStateStore:
             )
             if state is None or progress is None:
                 return None
+            permanent_result = self._permanent_completed_run(
+                session,
+                player_id,
+                world.id,
+                story.id,
+                story,
+            )
+            if permanent_result is not None:
+                return self._aggregate(
+                    session,
+                    world,
+                    story,
+                    permanent_result,
+                )
             if progress.active_story_run_id:
                 run = self._owned_run(
                     session,
@@ -705,6 +736,147 @@ class PlayerStoryStateStore:
                 recent_character_messages=recent,
             )
 
+    def visit_character(
+        self,
+        player_id: str,
+        story_world_id: str,
+        story_id: str,
+        run_id: str,
+        character_id: str,
+        *,
+        now: datetime | None = None,
+    ) -> StoryRunAggregate:
+        """Switch one active narrative run to an approved story-internal Character.
+
+        The trusted participant definition supplies access flags, arrival text,
+        first-visit flags, and opening dialogue. The method returns the updated
+        aggregate and never creates a public Character route or a second StoryRun.
+        """
+
+        player_id = _required_text(player_id, "player_id")
+        visited_at = now or datetime.utcnow()
+        try:
+            with self.database.session_scope() as session:
+                world = self._published_world_in_session(
+                    session,
+                    story_world_id,
+                    for_write=True,
+                )
+                story = self._published_story(world, story_id)
+                if not self._uses_story_internal_visits(story):
+                    raise StoryStateError(
+                        "character_visit_unavailable",
+                        "这个故事没有可切换的调查对象。",
+                    )
+                try:
+                    participation = self._participation(world, story, character_id)
+                except StoryStateError as exc:
+                    if exc.code not in {"character_not_found", "participant_mismatch"}:
+                        raise
+                    raise StoryStateError(
+                        "character_visit_unavailable",
+                        "这个 Character 不是当前故事允许的调查对象。",
+                    ) from exc
+                state, progress, run = self._active_scope_for_update(
+                    session,
+                    player_id,
+                    world.id,
+                    story.id,
+                    run_id,
+                )
+                self._require_current_content(run, world, story)
+                flags = set(_string_list(run.story_flags, "story_flags"))
+                if not set(participation.visit_required_flags).issubset(flags):
+                    raise StoryStateError(
+                        "character_visit_unavailable",
+                        "这个调查对象当前无法访问。",
+                    )
+                if (
+                    self._interaction_character_id_for_run(session, run)
+                    == participation.character_id
+                ):
+                    return self._aggregate(session, world, story, run)
+
+                first_visit = session.scalar(
+                    select(StoryEventModel.id)
+                    .where(
+                        StoryEventModel.story_run_id == run.id,
+                        StoryEventModel.event_type == "character_visit",
+                        StoryEventModel.character_id == participation.character_id,
+                    )
+                    .limit(1)
+                ) is None
+                visit_event = self._append_event(
+                    session,
+                    run,
+                    event_type="character_visit",
+                    role="system",
+                    character_id=participation.character_id,
+                    content=participation.arrival_narration,
+                    source_kind="authored",
+                    source_id=f"visit:{participation.character_id}",
+                    rule_source="story_participation.visit",
+                    payload={
+                        "character_id": participation.character_id,
+                        "location_label": participation.location_label,
+                        "first_visit": first_visit,
+                        "set_flags": (
+                            list(participation.visit_set_flags)
+                            if first_visit
+                            else []
+                        ),
+                    },
+                    created_at=visited_at,
+                )
+                last_event = visit_event
+                if first_visit:
+                    run.story_flags = list(
+                        dict.fromkeys(
+                            [
+                                *_string_list(run.story_flags, "story_flags"),
+                                *participation.visit_set_flags,
+                            ]
+                        )
+                    )
+                    last_event = self._append_opening_message(
+                        session,
+                        run,
+                        participation,
+                        created_at=visited_at,
+                        source_id=f"visit_opening:{participation.character_id}",
+                    )
+                    unlock_event = self._append_new_historical_reference_unlocks(
+                        session,
+                        run,
+                        world,
+                        story,
+                        previous_flags=flags,
+                        created_at=visited_at,
+                    )
+                    if unlock_event is not None:
+                        last_event = unlock_event
+                self._touch_scope(
+                    state,
+                    progress,
+                    visited_at,
+                    count_visit=False,
+                )
+                if first_visit:
+                    self._enqueue_memory(
+                        session,
+                        run,
+                        story,
+                        (participation.character_id,),
+                        last_event.sequence,
+                    )
+                session.flush()
+                return self._aggregate(session, world, story, run)
+        except IntegrityError as exc:
+            raise StoryStateError(
+                "persistence_conflict",
+                "调查对象切换发生并发冲突，请重新读取。",
+            ) from exc
+
     def get_dialogue_snapshot(
         self,
         player_id: str,
@@ -724,22 +896,43 @@ class PlayerStoryStateStore:
             )
             story = self._published_story(world, story_id)
             participation = self._participation(world, story, character_id)
-            run = self._owned_active_run(
+            run = self._owned_run(
                 session,
                 player_id,
                 world.id,
                 story.id,
                 run_id,
             )
-            self._require_current_content(run, world, story)
-            self._require_interaction_character(
-                self._node_in_chapter(
+            if run.status == StoryRunStatus.ACTIVE.value:
+                self._require_current_content(run, world, story)
+            else:
+                self._require_post_ending_mode(
+                    run,
+                    world,
                     story,
-                    run.current_chapter_id,
-                    run.current_node_id,
-                ),
-                participation.character_id,
+                    PostEndingMessageMode.LLM,
+                )
+            current_node = self._current_node_for_projection(
+                session,
+                run,
+                world,
+                story,
             )
+            if run.status == StoryRunStatus.ACTIVE.value:
+                self._require_story_interaction_character(
+                    session,
+                    run,
+                    story,
+                    current_node,
+                    participation.character_id,
+                )
+            else:
+                self._require_post_ending_interaction_character(
+                    session,
+                    run,
+                    story,
+                    participation.character_id,
+                )
             relationship = self._relationship_for_update(
                 session,
                 player_id,
@@ -767,13 +960,15 @@ class PlayerStoryStateStore:
                 story=story,
                 participation=participation,
                 run=projected_run,
+                current_node=current_node,
                 relationship=self._relationship_domain(relationship),
                 visible_messages=visible_messages,
                 write_guard=DialogueWriteGuard(
                     story_run_id=run.id,
                     story_id=run.story_id,
                     character_id=participation.character_id,
-                    content_version=run.content_version,
+                    run_content_version=run.content_version,
+                    reviewed_content_version=world.content_version,
                     current_chapter_id=run.current_chapter_id,
                     current_node_id=run.current_node_id,
                     last_event_sequence=last_sequence,
@@ -863,25 +1058,51 @@ class PlayerStoryStateStore:
                             "relationship_delta_exceeded",
                             "自然对话关系变化超过 Character 审核上限。",
                         )
-                state, progress, run = self._active_scope_for_update(
+                state, progress, run = self._scope_for_update(
                     session,
                     player_id,
                     world.id,
                     story.id,
                     run_id,
                 )
-                self._require_current_content(run, world, story)
-                self._require_interaction_character(
-                    self._node_in_chapter(
+                if run.status == StoryRunStatus.ACTIVE.value:
+                    if progress.active_story_run_id != run.id:
+                        raise StoryStateError(
+                            "invalid_persisted_state",
+                            "StoryRun 与分故事活动指针不一致。",
+                        )
+                    self._require_current_content(run, world, story)
+                else:
+                    self._require_post_ending_mode(
+                        run,
+                        world,
+                        story,
+                        PostEndingMessageMode.LLM,
+                    )
+                if run.status == StoryRunStatus.ACTIVE.value:
+                    current_node = self._node_in_chapter(
                         story,
                         run.current_chapter_id,
                         run.current_node_id,
-                    ),
-                    participation.character_id,
-                )
+                    )
+                    self._require_story_interaction_character(
+                        session,
+                        run,
+                        story,
+                        current_node,
+                        participation.character_id,
+                    )
+                else:
+                    self._require_post_ending_interaction_character(
+                        session,
+                        run,
+                        story,
+                        participation.character_id,
+                    )
                 self._require_dialogue_guard(
                     session,
                     run,
+                    world,
                     story,
                     guard,
                     character_id=participation.character_id,
@@ -1040,6 +1261,123 @@ class PlayerStoryStateStore:
                 "对话事件或消息序列发生并发冲突，请重新读取。",
             ) from exc
 
+    def record_unanswered_turn(
+        self,
+        player_id: str,
+        story_world_id: str,
+        story_id: str,
+        run_id: str,
+        character_id: str,
+        player_content: str,
+        *,
+        now: datetime | None = None,
+    ) -> StoryRunAggregate:
+        """Append player text and one reviewed system reply to an unanswered ending.
+
+        The ending supplies the fixed reply. This path deliberately performs no
+        model call, memory recall/outbox write, relationship calculation, node
+        transition, flag update, or ending mutation and returns the sealed run.
+        """
+
+        player_id = _required_text(player_id, "player_id")
+        player_content = _required_text(player_content, "player_content")
+        written_at = now or datetime.utcnow()
+        try:
+            with self.database.session_scope() as session:
+                world = self._published_world_in_session(
+                    session,
+                    story_world_id,
+                    for_write=True,
+                )
+                story = self._published_story(world, story_id)
+                participation = self._participation(world, story, character_id)
+                state, progress, run = self._scope_for_update(
+                    session,
+                    player_id,
+                    world.id,
+                    story.id,
+                    run_id,
+                )
+                ending = self._require_post_ending_mode(
+                    run,
+                    world,
+                    story,
+                    PostEndingMessageMode.UNANSWERED,
+                )
+                self._require_post_ending_interaction_character(
+                    session,
+                    run,
+                    story,
+                    participation.character_id,
+                )
+                reply = _required_text(
+                    ending.unanswered_reply,
+                    "ending.unanswered_reply",
+                )
+                player_event = self._append_event(
+                    session,
+                    run,
+                    event_type="message",
+                    role="player",
+                    content=player_content,
+                    source_kind="free_input",
+                    source_id=None,
+                    rule_source="post_ending.unanswered.player",
+                    payload={
+                        "ending_id": ending.id,
+                        "visible_to_character_ids": [participation.character_id],
+                    },
+                    created_at=written_at,
+                )
+                self._append_message(
+                    session,
+                    run,
+                    player_event,
+                    role="player",
+                    character_id=None,
+                    visible_to_character_ids=(participation.character_id,),
+                    content=player_content,
+                    created_at=written_at,
+                )
+                system_event = self._append_event(
+                    session,
+                    run,
+                    event_type="message",
+                    role="system",
+                    content=reply,
+                    source_kind="authored",
+                    source_id=player_event.id,
+                    rule_source="post_ending.unanswered.system",
+                    payload={
+                        "ending_id": ending.id,
+                        "visible_to_character_ids": [participation.character_id],
+                    },
+                    created_at=written_at,
+                )
+                self._append_message(
+                    session,
+                    run,
+                    system_event,
+                    role="system",
+                    character_id=None,
+                    visible_to_character_ids=(participation.character_id,),
+                    content=reply,
+                    created_at=written_at,
+                )
+                self._touch_scope(
+                    state,
+                    progress,
+                    written_at,
+                    count_visit=False,
+                )
+                session.flush()
+                return self._aggregate(session, world, story, run)
+        except IntegrityError as exc:
+            raise StoryStateError(
+                "persistence_conflict",
+                "结局后消息发生并发冲突，请重新读取。",
+            ) from exc
+
     def apply_choice(
         self,
         player_id: str,
@@ -1082,7 +1420,6 @@ class PlayerStoryStateStore:
                     story.id,
                     run_id,
                 )
-                self._require_current_content(run, world, story)
                 prior = session.scalar(
                     select(StoryEventModel).where(
                         StoryEventModel.story_run_id == run.id,
@@ -1098,10 +1435,42 @@ class PlayerStoryStateStore:
                             "choice_idempotency_conflict",
                             "同一选择已使用不同载荷写入。",
                         )
+                    if prior.character_id != participation.character_id:
+                        raise StoryStateError(
+                            "choice_idempotency_conflict",
+                            "同一选择已由不同 Character 上下文写入。",
+                        )
+                    is_sealed_permanent_result = (
+                        self._run_has_compatible_permanent_result(
+                            run,
+                            world,
+                            story,
+                        )
+                    )
+                    if (
+                        is_sealed_permanent_result
+                        and story.focus_character_id is not None
+                        and participation.character_id != story.focus_character_id
+                    ):
+                        raise StoryStateError(
+                            "character_context_mismatch",
+                            "永久决定必须由故事的 focus Character 提交。",
+                        )
+                    if not is_sealed_permanent_result:
+                        self._require_current_content(run, world, story)
                     return self._aggregate(session, world, story, run)
 
                 if run.status != StoryRunStatus.ACTIVE.value:
+                    if (
+                        story.replay_policy is StoryReplayPolicy.PERMANENT_RESULT
+                        and run.ending_id is not None
+                    ):
+                        raise StoryStateError(
+                            "story_result_permanent",
+                            "这个故事的饮水结果已经确定，不能更换。",
+                        )
                     raise StoryStateError("run_completed", "这个故事轮次已经结束。")
+                self._require_current_content(run, world, story)
                 if progress.active_story_run_id != run.id:
                     raise StoryStateError(
                         "invalid_persisted_state",
@@ -1112,10 +1481,23 @@ class PlayerStoryStateStore:
                     run.current_chapter_id,
                     run.current_node_id,
                 )
-                self._require_interaction_character(
+                self._require_story_interaction_character(
+                    session,
+                    run,
+                    story,
                     node,
                     participation.character_id,
                 )
+                if (
+                    node.choice_presentation
+                    is StoryChoicePresentation.PERMANENT_DECISION
+                    and story.focus_character_id is not None
+                    and participation.character_id != story.focus_character_id
+                ):
+                    raise StoryStateError(
+                        "character_context_mismatch",
+                        "永久决定必须回到故事的 focus Character 面前提交。",
+                    )
                 choice = self._choice(node.choices, choice_id)
                 flags = set(_string_list(run.story_flags, "story_flags"))
                 if not set(choice.required_flags).issubset(flags) or (
@@ -1216,6 +1598,17 @@ class PlayerStoryStateStore:
                 )
                 touched_character_ids.update(decision_touched)
 
+                unlock_event = self._append_new_historical_reference_unlocks(
+                    session,
+                    run,
+                    world,
+                    story,
+                    previous_flags=flags,
+                    created_at=changed_at,
+                )
+                if unlock_event is not None:
+                    last_event = unlock_event
+
                 if target_node.ending_id is not None:
                     last_event = self._complete_run(
                         session,
@@ -1293,7 +1686,10 @@ class PlayerStoryStateStore:
                     run.current_chapter_id,
                     run.current_node_id,
                 )
-                self._require_interaction_character(
+                self._require_story_interaction_character(
+                    session,
+                    run,
+                    story,
                     node,
                     participation.character_id,
                 )
@@ -1478,6 +1874,34 @@ class PlayerStoryStateStore:
                 "player_role_id": player_role.id,
                 "entry_character_id": participation.character_id,
             },
+            created_at=started_at,
+        )
+        if self._uses_story_internal_visits(story):
+            run.story_flags = list(dict.fromkeys(participation.visit_set_flags))
+            self._append_event(
+                session,
+                run,
+                event_type="character_visit",
+                role="system",
+                character_id=participation.character_id,
+                content=participation.current_situation,
+                source_kind="authored",
+                source_id=f"visit:{participation.character_id}",
+                rule_source="story_participation.entry_visit",
+                payload={
+                    "character_id": participation.character_id,
+                    "location_label": participation.location_label,
+                    "first_visit": True,
+                    "set_flags": list(participation.visit_set_flags),
+                },
+                created_at=started_at,
+            )
+        self._append_new_historical_reference_unlocks(
+            session,
+            run,
+            world,
+            story,
+            previous_flags=None,
             created_at=started_at,
         )
         last_event = self._append_node_presentation(
@@ -1974,8 +2398,13 @@ class PlayerStoryStateStore:
         participation: StoryCharacterParticipation,
         *,
         created_at: datetime,
+        source_id: str = "opening_line",
     ) -> StoryEventModel:
-        """Keep reviewed opening source text on its event and project only quoted speech."""
+        """Append one reviewed participant opening and return its source event.
+
+        ``source_id`` distinguishes the Story entry from first supporting visits;
+        the projected Character message contains only quoted or already-pure speech.
+        """
 
         event = self._append_event(
             session,
@@ -1985,7 +2414,7 @@ class PlayerStoryStateStore:
             character_id=participation.character_id,
             content=participation.opening_line,
             source_kind="authored",
-            source_id="opening_line",
+            source_id=_required_text(source_id, "opening_source_id"),
             rule_source="story_participation.opening",
             payload={
                 "opening": True,
@@ -2055,6 +2484,88 @@ class PlayerStoryStateStore:
         session.add(event)
         session.flush()
         return event
+
+    def _append_new_historical_reference_unlocks(
+        self,
+        session: Session,
+        run: StoryRunModel,
+        world: StoryWorld,
+        story: ReviewedStory,
+        *,
+        previous_flags: set[str] | None,
+        created_at: datetime,
+    ) -> StoryEventModel | None:
+        """Snapshot newly unlocked reviewed references into the append-only run ledger."""
+
+        current_flags = set(_string_list(run.story_flags, "story_flags"))
+        entry_by_id = {entry.id: entry for entry in world.canon_entries}
+        snapshot_marker = session.scalar(
+            select(StoryEventModel.id)
+            .where(
+                StoryEventModel.story_run_id == run.id,
+                StoryEventModel.event_type == "historical_reference_snapshot",
+            )
+            .limit(1)
+        )
+        if snapshot_marker is None:
+            self._append_event(
+                session,
+                run,
+                event_type="historical_reference_snapshot",
+                role="system",
+                content="Historical reference snapshot",
+                source_kind="authored",
+                source_id=story.id,
+                rule_source="historical_reference.snapshot",
+                payload={
+                    "content_version": run.content_version,
+                    "total_count": len(story.historical_reference_unlocks),
+                },
+                created_at=created_at,
+            )
+        existing_ids = set(
+            session.scalars(
+                select(StoryEventModel.source_id).where(
+                    StoryEventModel.story_run_id == run.id,
+                    StoryEventModel.event_type == "historical_reference_unlocked",
+                    StoryEventModel.source_id.is_not(None),
+                )
+            )
+        )
+        last_event: StoryEventModel | None = None
+        for unlock in story.historical_reference_unlocks:
+            required = set(unlock.required_flags)
+            if not required.issubset(current_flags):
+                continue
+            if previous_flags is not None and required.issubset(previous_flags):
+                continue
+            if unlock.entry_id in existing_ids:
+                continue
+            entry = entry_by_id.get(unlock.entry_id)
+            if entry is None:
+                raise StoryStateError(
+                    "invalid_story_content",
+                    "历史资料解锁引用了不存在的 CanonEntry。",
+                )
+            last_event = self._append_event(
+                session,
+                run,
+                event_type="historical_reference_unlocked",
+                role="system",
+                content=entry.statement,
+                source_kind="authored",
+                source_id=entry.id,
+                rule_source="historical_reference.unlock",
+                payload={
+                    "entry_id": entry.id,
+                    "category": entry.category.value,
+                    "sources": list(entry.sources),
+                    "total_count": len(story.historical_reference_unlocks),
+                },
+                created_at=created_at,
+            )
+            existing_ids.add(entry.id)
+        return last_event
 
     def _append_message(
         self,
@@ -2368,6 +2879,80 @@ class PlayerStoryStateStore:
                 "存在没有被分故事进度指向的活动轮次。",
             )
 
+    def _require_story_allows_new_run(
+        self,
+        session: Session,
+        progress: PlayerStoryProgressModel,
+        story: ReviewedStory,
+    ) -> None:
+        """Reject a second ended run when reviewed content declares a permanent result.
+
+        ``progress`` supplies the trusted player/world/story scope and the method
+        returns without mutation. A stale unfinished run remains restartable;
+        only a completed run with an authored ending seals the Story.
+        """
+
+        if story.replay_policy is not StoryReplayPolicy.PERMANENT_RESULT:
+            return
+        completed_run = self._permanent_completed_run(
+            session,
+            progress.player_id,
+            progress.story_world_id,
+            progress.story_id,
+            story,
+            for_update=True,
+        )
+        if completed_run is not None:
+            raise StoryStateError(
+                "story_result_permanent",
+                "这个故事的饮水结果已经确定，不能重新开始。",
+            )
+
+    @staticmethod
+    def _permanent_completed_run(
+        session: Session,
+        player_id: str,
+        story_world_id: str,
+        story_id: str,
+        story: ReviewedStory,
+        *,
+        for_update: bool = False,
+    ) -> StoryRunModel | None:
+        """Return the unique sealed result required by one permanent Story.
+
+        ``for_update`` locks the candidate rows for start/restart checks. More
+        than one completed result is ambiguous legacy state and fails closed
+        instead of selecting a result by timestamp.
+        """
+
+        if story.replay_policy is not StoryReplayPolicy.PERMANENT_RESULT:
+            return None
+        statement = (
+            select(StoryRunModel)
+            .where(
+                StoryRunModel.player_id == player_id,
+                StoryRunModel.story_world_id == story_world_id,
+                StoryRunModel.story_id == story_id,
+                StoryRunModel.status == StoryRunStatus.COMPLETED.value,
+                StoryRunModel.ending_id.is_not(None),
+            )
+            .order_by(
+                StoryRunModel.completed_at.desc(),
+                StoryRunModel.started_at.desc(),
+                StoryRunModel.id.desc(),
+            )
+            .limit(2)
+        )
+        if for_update:
+            statement = statement.with_for_update()
+        completed_runs = tuple(session.scalars(statement))
+        if len(completed_runs) > 1:
+            raise StoryStateError(
+                "invalid_persisted_state",
+                "永久结果故事存在多个完成轮次，不能推断哪一个是唯一结果。",
+            )
+        return completed_runs[0] if completed_runs else None
+
     @staticmethod
     def _latest_completed_run(
         session: Session,
@@ -2504,12 +3089,13 @@ class PlayerStoryStateStore:
         self,
         session: Session,
         run: StoryRunModel,
+        world: StoryWorld,
         story: ReviewedStory,
         guard: DialogueWriteGuard,
         *,
         character_id: str,
     ) -> None:
-        """Reject a dialogue response computed from a changed run or event watermark."""
+        """Reject dialogue computed from changed run, content, or event state."""
 
         if (
             guard.story_run_id != run.id
@@ -2521,7 +3107,8 @@ class PlayerStoryStateStore:
                 "对话快照不属于当前 StoryRun。",
             )
         if (
-            guard.content_version != run.content_version
+            guard.run_content_version != run.content_version
+            or guard.reviewed_content_version != world.content_version
             or guard.current_chapter_id != run.current_chapter_id
             or guard.current_node_id != run.current_node_id
             or guard.last_event_sequence != self._latest_event_sequence(session, run.id)
@@ -2569,6 +3156,12 @@ class PlayerStoryStateStore:
         projected_run = self._run_domain(run)
         events = self._events_for_run(session, run)
         self._validate_recorded_choice_sources(projected_run, events)
+        current_node = self._current_node_for_projection(
+            session,
+            run,
+            world,
+            story,
+        )
         return StoryRunAggregate(
             story_world=world,
             story=story,
@@ -2585,6 +3178,12 @@ class PlayerStoryStateStore:
                     world,
                     story,
                 )
+            ),
+            current_node=current_node,
+            interaction_character_id=(
+                self._interaction_character_id_for_run(session, run)
+                if self._uses_story_internal_visits(story)
+                else None
             ),
         )
 
@@ -2989,7 +3588,11 @@ class PlayerStoryStateStore:
                 )
             expected_content = (
                 _opening_line_dialogue(event.content)
-                if event.source_kind == "authored" and event.source_id == "opening_line"
+                if (
+                    event.source_kind == "authored"
+                    and isinstance(event.payload, dict)
+                    and event.payload.get("opening") is True
+                )
                 else event.content
             )
             if expected_content != row.content:
@@ -3160,6 +3763,144 @@ class PlayerStoryStateStore:
                 "活动轮次锁定的故事内容已经变化，请显式重新开始。",
             )
 
+    def _run_has_compatible_permanent_result(
+        self,
+        run: StoryRunModel,
+        world: StoryWorld,
+        story: ReviewedStory,
+    ) -> bool:
+        """Validate a sealed permanent result while intentionally ignoring world version.
+
+        Persisted node presentation, choices, flags, ending ID, and summary remain
+        authoritative. Current reviewed content supplies only the retained ending
+        policy, PlayerRole, Character, and prompt boundary.
+        """
+
+        if (
+            story.replay_policy is not StoryReplayPolicy.PERMANENT_RESULT
+            or run.story_world_id != world.id
+            or run.story_id != story.id
+            or run.status != StoryRunStatus.COMPLETED.value
+            or run.ending_id is None
+            or run.ending_summary is None
+            or run.completed_at is None
+            or not any(role.id == run.player_role_id for role in world.player_roles)
+        ):
+            return False
+        try:
+            self._ending(story, run.ending_id)
+        except StoryStateError:
+            return False
+        return True
+
+    def _current_node_for_projection(
+        self,
+        session: Session,
+        run: StoryRunModel,
+        world: StoryWorld,
+        story: ReviewedStory,
+    ) -> StoryNode:
+        """Return the live node or rebuild a completed permanent node from its event."""
+
+        if self._run_uses_current_content(run, world, story):
+            return self._node_in_chapter(
+                story,
+                run.current_chapter_id,
+                run.current_node_id,
+            )
+        if self._run_has_compatible_permanent_result(run, world, story):
+            return self._sealed_story_node(session, run)
+        return self._node_in_chapter(
+            story,
+            run.current_chapter_id,
+            run.current_node_id,
+        )
+
+    @staticmethod
+    def _sealed_story_node(session: Session, run: StoryRunModel) -> StoryNode:
+        """Rebuild the terminal node from its append-only authored presentation event."""
+
+        candidates = tuple(
+            session.scalars(
+                select(StoryEventModel)
+                .where(
+                    StoryEventModel.story_run_id == run.id,
+                    StoryEventModel.source_kind == "authored",
+                    StoryEventModel.source_id == run.current_node_id,
+                )
+                .order_by(StoryEventModel.sequence.desc())
+            )
+        )
+        for event in candidates:
+            payload = event.payload if isinstance(event.payload, dict) else {}
+            if payload.get("node_id") != run.current_node_id:
+                continue
+            try:
+                presentation_kind = StoryNodePresentationKind(
+                    _required_text(
+                        payload.get("presentation_kind"),
+                        "presentation_kind",
+                    )
+                )
+            except ValueError as exc:
+                raise StoryStateError(
+                    "invalid_persisted_state",
+                    "封存节点的呈现类型无效。",
+                ) from exc
+            character_id = (
+                _required_text(event.character_id, "character_id")
+                if presentation_kind is StoryNodePresentationKind.CHARACTER
+                else None
+            )
+            if (
+                presentation_kind is not StoryNodePresentationKind.CHARACTER
+                and event.character_id is not None
+            ):
+                raise StoryStateError(
+                    "invalid_persisted_state",
+                    "封存系统节点绑定了 Character。",
+                )
+            return StoryNode(
+                id=_required_text(run.current_node_id, "current_node_id"),
+                presentation_kind=presentation_kind,
+                character_id=character_id,
+                narration=_required_text(event.content, "node.narration"),
+                choice_presentation=StoryChoicePresentation.INLINE,
+                confirmation_prompt=None,
+                choices=(),
+                ending_id=_required_text(run.ending_id, "ending_id"),
+            )
+        raise StoryStateError(
+            "invalid_persisted_state",
+            "永久结果缺少封存的终局节点事件。",
+        )
+
+    def _require_post_ending_mode(
+        self,
+        run: StoryRunModel,
+        world: StoryWorld,
+        story: ReviewedStory,
+        expected_mode: PostEndingMessageMode,
+    ) -> StoryEnding:
+        """Return a trusted ending when a sealed result permits ``expected_mode``.
+
+        This check never reopens StoryGraph choices or an active pointer. It only
+        authorizes append-only messages under the current reviewed ending policy.
+        """
+
+        if not self._run_has_compatible_permanent_result(run, world, story):
+            raise StoryStateError(
+                "run_completed",
+                "这个故事轮次已经结束。",
+            )
+        ending = self._ending(story, _required_text(run.ending_id, "ending_id"))
+        if ending.post_ending_message_mode is not expected_mode:
+            raise StoryStateError(
+                "post_ending_message_unavailable",
+                "这个结局当前无法这样回应。",
+            )
+        return ending
+
     @staticmethod
     def _validated_relationship_change(
         value: RelationshipChangeWrite | None,
@@ -3285,6 +4026,85 @@ class PlayerStoryStateStore:
             raise StoryStateError(
                 "character_context_mismatch",
                 "当前 Character 不能推进另一个 Character 的审核节点。",
+            )
+
+    @staticmethod
+    def _uses_story_internal_visits(story: ReviewedStory) -> bool:
+        """Return whether a narrative Story contains non-public visit participants."""
+
+        return (
+            story.experience_mode is StoryExperienceMode.NARRATIVE_STORY
+            and any(not participant.can_start for participant in story.participants)
+        )
+
+    @staticmethod
+    def _interaction_character_id_for_run(
+        session: Session,
+        run: StoryRunModel,
+    ) -> str | None:
+        """Return the most recent trusted story-internal visit target for one run."""
+
+        return session.scalar(
+            select(StoryEventModel.character_id)
+            .where(
+                StoryEventModel.story_run_id == run.id,
+                StoryEventModel.event_type == "character_visit",
+                StoryEventModel.character_id.is_not(None),
+            )
+            .order_by(StoryEventModel.sequence.desc())
+            .limit(1)
+        )
+
+    def _require_story_interaction_character(
+        self,
+        session: Session,
+        run: StoryRunModel,
+        story: ReviewedStory,
+        node: StoryNode,
+        character_id: str,
+    ) -> None:
+        """Validate Character context for authored nodes or story-internal visits.
+
+        Character-bound nodes retain the existing graph handoff contract. On a
+        system/action investigation hub, the latest trusted visit event owns the
+        dialogue and permanent-decision context.
+        """
+
+        self._require_interaction_character(node, character_id)
+        if (
+            node.presentation_kind is not StoryNodePresentationKind.CHARACTER
+            and self._uses_story_internal_visits(story)
+            and self._interaction_character_id_for_run(session, run) != character_id
+        ):
+            raise StoryStateError(
+                "character_context_mismatch",
+                "当前调查对象与请求中的 Character 不一致。",
+            )
+
+    def _require_post_ending_interaction_character(
+        self,
+        session: Session,
+        run: StoryRunModel,
+        story: ReviewedStory,
+        character_id: str,
+    ) -> None:
+        """Require the sealed result's reviewed focus and latest visit target."""
+
+        if (
+            story.focus_character_id is not None
+            and character_id != story.focus_character_id
+        ):
+            raise StoryStateError(
+                "character_context_mismatch",
+                "结局后只能由故事的 focus Character 回应。",
+            )
+        if (
+            self._uses_story_internal_visits(story)
+            and self._interaction_character_id_for_run(session, run) != character_id
+        ):
+            raise StoryStateError(
+                "character_context_mismatch",
+                "结局后的消息对象与最终可信走访对象不一致。",
             )
 
     @staticmethod

@@ -8,22 +8,22 @@ from collections.abc import Callable, Mapping
 from typing import Protocol, TypeVar
 
 from ..core.llm_clients import LLMConfig, LLMError, complete
-from ..content.annie_broad_street import (
-    ANNIE_REFERENCE_ENTRY_IDS_BY_STAGE,
-    ANNIE_STORY_WORLD_ID,
-)
+from ..content.annie_broad_street import ANNIE_CHARACTER_ID, ANNIE_STORY_WORLD_ID
 from ..content.palace_snow_edict import PALACE_STORY_WORLD_ID
 from ..domain.story_world import (
     CanonEntry,
     Character,
     PlayerRole,
+    PostEndingMessageMode,
     PublicationStatus,
     ReviewedStory,
     RelationshipStage,
     StoryCharacterParticipation,
     StoryChoice,
+    StoryChoicePresentation,
     StoryNode,
     StoryNodePresentationKind,
+    StoryReplayPolicy,
     StoryWorld,
 )
 from ..domain.story_state import (
@@ -97,28 +97,11 @@ def _is_story_entry_node(story: ReviewedStory, current_node: StoryNode) -> bool:
 
 def _dialogue_canon_entries(
     story_world: StoryWorld,
-    story: ReviewedStory,
-    current_node: StoryNode,
+    participation: StoryCharacterParticipation,
 ) -> tuple[CanonEntry, ...]:
-    """Return canon entries unlocked for the current dialogue stage.
+    """Return only CanonEntry values explicitly reviewed for one participant."""
 
-    Annie's opening sees only opening-stage references; later active nodes also
-    receive investigation-stage entries. Other reviewed worlds retain their full
-    canon because they do not use Annie's staged reference contract.
-    """
-
-    if story_world.id != ANNIE_STORY_WORLD_ID:
-        return tuple(story_world.canon_entries)
-    visible_stages = (
-        ("opening",)
-        if _is_story_entry_node(story, current_node)
-        else ("opening", "investigation")
-    )
-    visible_ids = {
-        entry_id
-        for stage in visible_stages
-        for entry_id in ANNIE_REFERENCE_ENTRY_IDS_BY_STAGE[stage]
-    }
+    visible_ids = set(participation.knowledge_entry_ids)
     return tuple(
         entry for entry in story_world.canon_entries if entry.id in visible_ids
     )
@@ -189,6 +172,7 @@ class StoryDialogueResponder(Protocol):
         current_node: StoryNode,
         content_version: str,
         story_flags: tuple[str, ...],
+        post_ending_context: str = "",
         relationship_reason: str = "",
         relationship_flags: tuple[str, ...] = (),
         visible_messages: tuple[StoryMessage, ...],
@@ -214,6 +198,7 @@ def _dialogue_system_message(
     current_node: StoryNode,
     content_version: str,
     story_flags: tuple[str, ...],
+    post_ending_context: str,
     relationship_reason: str,
     relationship_flags: tuple[str, ...],
     memory_context: StoryMemoryContext,
@@ -221,7 +206,7 @@ def _dialogue_system_message(
     is_historical_projection = story_world.id == PALACE_STORY_WORLD_ID
     facts = "\n".join(
         f"- [{entry.category.value}] {entry.statement}"
-        for entry in _dialogue_canon_entries(story_world, story, current_node)
+        for entry in _dialogue_canon_entries(story_world, participation)
     )
     visible_information = "\n".join(
         f"- {information}"
@@ -243,6 +228,25 @@ def _dialogue_system_message(
         else "关系只调节亲疏、称呼、坦白程度、求助意愿和合作方式；"
         "不能覆盖角色或玩家的年龄、身份、社会地位、知识边界和当前动机。\n"
     )
+    reviewed_post_ending = post_ending_context.strip()
+    post_ending_section = (
+        f"\n【结局后已审核事实】\n{reviewed_post_ending}\n"
+        if reviewed_post_ending
+        else ""
+    )
+    player_identity = (
+        f"你只知道的可观察信息：\n{visible_information}\n"
+        if story_world.id == ANNIE_STORY_WORLD_ID
+        else (
+            f"身份：{player_role.name}"
+            f"\n年龄：{player_role.age}"
+            f"\n性别设定：{player_role.gender}"
+            f"\n社会地位：{player_role.social_position}"
+            f"\n背景：{player_role.background}"
+            f"\n入场原因：{player_role.entry_reason}"
+            f"\n你当前可以知道的玩家信息：\n{visible_information}\n"
+        )
+    )
     message = (
         f"【演绎任务】\n{task_description}"
         f"\n【角色身份】"
@@ -254,14 +258,7 @@ def _dialogue_system_message(
         f"\n已审核秘密：{character.secret}（只用于塑造反应，不要主动泄露）"
         f"\n说话方式：{character.voice}"
         f"\n当前处境：{participation.current_situation}\n"
-        f"\n【玩家身份】"
-        f"\n身份：{player_role.name}"
-        f"\n年龄：{player_role.age}"
-        f"\n性别设定：{player_role.gender}"
-        f"\n社会地位：{player_role.social_position}"
-        f"\n背景：{player_role.background}"
-        f"\n入场原因：{player_role.entry_reason}"
-        f"\n你当前可以知道的玩家信息：\n{visible_information}\n"
+        f"\n【玩家身份】\n{player_identity}"
         f"\n【你与玩家的关系】"
         f"\n阶段：{relationship_stage.label}"
         f"\n当前态度：{relationship_stage.attitude}"
@@ -276,6 +273,7 @@ def _dialogue_system_message(
         f"\n已确认故事标记：{story_markers}"
         f"\n当前节点：{current_node.narration}\n"
         f"\n【已审核世界边界】\n{facts}\n"
+        f"{post_ending_section}"
         f"{StoryMemoryPromptFormatter.format(memory_context)}"
         "\n【输出规则】"
         "\n1. 先按双方年龄、身份和社会地位决定称呼、礼数，以及命令、询问或请求的力度；"
@@ -316,19 +314,30 @@ def _dialogue_system_message(
             "\n10. 输出形如："
             '{"dialogue":"我只说自己亲眼看见的事。","narration_before":"","narration_after":""}'
         )
-    if story_world.id == ANNIE_STORY_WORLD_ID:
+    if story_world.id == ANNIE_STORY_WORLD_ID and character.id == ANNIE_CHARACTER_ID:
         message += (
             "\n11. 安妮是约十岁的原创儿童历史见证者。她可以害怕、犹豫、好奇或警惕，"
             "但不能像成年人、侦探或官员一样盘问玩家。"
             "\n12. 不得加入恋爱、成人或依附诱导内容；不得声称知道现代医学结论，"
             "不得编造真实人物原话、私密动机、与安妮的接触或未提供的史料来源。"
-            "\n13. 除当前节点、角色设定和已解锁 CanonEntry 外，不得新增"
+            "\n13. 除当前节点、角色设定、已审核世界边界和结局后已审核事实（若有）外，不得新增"
             "具体人物、家庭、门牌、职业、亲属、疾病或死亡、发生先后、对话或亲眼见闻；"
             "尤其不得虚构某户取水后病倒，或安妮母亲说过开场设定以外的话。"
             "遇到未提供的细节，安妮必须直接说自己没看见、不知道或还没有说过。"
             "玩家提供的细节只能明确归因为‘你刚才说’，不得改写成安妮的亲眼见闻或事实。"
             "\n14. 每次最多说一至三句短句；可以追问眼前情况，但不得用街区概括、统计或"
             "因果判断填补缺失见闻。"
+        )
+    elif story_world.id == ANNIE_STORY_WORLD_ID:
+        message += (
+            "\n11. 你是宽街故事中的原创成年 Character，只能使用当前参与合同列出的"
+            "亲见、听说、推测与获准谎言；不得知道其他地点的私下情况或最终正确水源。"
+            "\n12. 不得声称以前见过、认识或知道玩家的姓名、职业和来历；只能依据"
+            "【玩家身份】中列出的当下可观察信息称呼这名陌生路人。"
+            "\n13. 不得编造真实人物原话、机构共犯、新受害者、现代医学结论或"
+            "未列入已审核世界边界的取水路线、容器与病例。"
+            "\n14. 条目注明交水前不得闭合的骗局，即使玩家猜中或逼问，也只能按当前"
+            "角色的局部亲见、获准谎言和审核破绽回应，不得完整承认或宣布结论。"
         )
     return message
 
@@ -351,6 +360,7 @@ class SystemStoryDialogueResponder:
         current_node: StoryNode,
         content_version: str,
         story_flags: tuple[str, ...],
+        post_ending_context: str = "",
         relationship_reason: str = "",
         relationship_flags: tuple[str, ...] = (),
         visible_messages: tuple[StoryMessage, ...],
@@ -375,6 +385,7 @@ class SystemStoryDialogueResponder:
             current_node=current_node,
             content_version=content_version,
             story_flags=story_flags,
+            post_ending_context=post_ending_context,
             relationship_reason=relationship_reason,
             relationship_flags=relationship_flags,
             memory_context=memory_context,
@@ -445,7 +456,6 @@ class StoryWorldApplicationService:
         world = self._published_world(story_world_id)
         character = self._character(world, character_id)
         stories: list[dict[str, object]] = []
-        visible_character_ids = {character.id}
         for story in world.stories:
             if story.publication_status is not PublicationStatus.PUBLISHED:
                 continue
@@ -459,22 +469,23 @@ class StoryWorldApplicationService:
             )
             if participation is None:
                 continue
-            visible_character_ids.update(
-                candidate.character_id for candidate in story.participants
-            )
             stories.append(
                 {
                     "id": story.id,
                     "title": story.title,
                     "summary": story.summary,
                     "kind": story.kind.value,
+                    "experience_mode": story.experience_mode.value,
+                    "replay_policy": story.replay_policy.value,
                     "current_situation": participation.current_situation,
                     "opening_preview": participation.opening_line,
                     "focus_character_id": story.focus_character_id,
-                    "participant_character_ids": [
-                        candidate.character_id for candidate in story.participants
-                    ],
                 }
+            )
+        if not stories:
+            raise StoryRuntimeError(
+                "character_not_found",
+                "没有找到这个公开角色。",
             )
         return {
             "story_world": {
@@ -485,11 +496,7 @@ class StoryWorldApplicationService:
                 "content_version": world.content_version,
             },
             "character": self._character_detail_projection(character),
-            "characters": [
-                self._character_detail_projection(candidate)
-                for candidate in world.characters
-                if candidate.id in visible_character_ids
-            ],
+            "characters": [self._character_detail_projection(character)],
             "stories": stories,
             "player_roles": [
                 self._player_role_projection(player_role)
@@ -516,10 +523,18 @@ class StoryWorldApplicationService:
         )
         if aggregate is None:
             return None
-        if not self._run_uses_current_content(
-            aggregate.story_world,
-            aggregate.story,
-            aggregate.run,
+        if (
+            not self._run_uses_current_content(
+                aggregate.story_world,
+                aggregate.story,
+                aggregate.run,
+            )
+            and not (
+                aggregate.run.status.value == "completed"
+                and aggregate.story.replay_policy
+                is StoryReplayPolicy.PERMANENT_RESULT
+                and aggregate.run.ending_id is not None
+            )
         ):
             return None
         return self._run_projection(character_id, aggregate)
@@ -605,6 +620,27 @@ class StoryWorldApplicationService:
         )
         return self._run_projection(character_id, aggregate)
 
+    def visit(
+        self,
+        player_id: str,
+        story_world_id: str,
+        story_id: str,
+        run_id: str,
+        character_id: str,
+    ) -> dict[str, object]:
+        """Switch to one reviewed story-internal Character and return the run."""
+
+        aggregate = self._store_call(
+            lambda: self.state_store.visit_character(
+                player_id,
+                story_world_id,
+                story_id,
+                run_id,
+                character_id,
+            )
+        )
+        return self._run_projection(character_id, aggregate)
+
     def message(
         self,
         player_id: str,
@@ -615,6 +651,42 @@ class StoryWorldApplicationService:
         player_message: str,
     ) -> dict[str, object]:
         """Apply policy, bounded recall, model response, and one guarded atomic turn."""
+
+        current = self._store_call(
+            lambda: self.state_store.get_run(
+                player_id,
+                story_world_id,
+                story_id,
+                run_id,
+            )
+        )
+        if current is None:
+            raise StoryRuntimeError("run_not_found", "没有找到这个故事轮次。")
+        if current.run.status.value == "completed":
+            ending = (
+                self._ending(current.story, current.run.ending_id)
+                if current.run.ending_id is not None
+                else None
+            )
+            if ending is None:
+                raise StoryRuntimeError("run_completed", "这个故事轮次已经结束。")
+            if ending.post_ending_message_mode is PostEndingMessageMode.UNANSWERED:
+                aggregate = self._store_call(
+                    lambda: self.state_store.record_unanswered_turn(
+                        player_id,
+                        story_world_id,
+                        story_id,
+                        run_id,
+                        character_id,
+                        player_message,
+                    )
+                )
+                return self._run_projection(character_id, aggregate)
+            if ending.post_ending_message_mode is not PostEndingMessageMode.LLM:
+                raise StoryRuntimeError(
+                    "post_ending_message_unavailable",
+                    "这个结局现在无法继续回应。",
+                )
 
         snapshot = self._store_call(
             lambda: self.state_store.get_dialogue_snapshot(
@@ -630,11 +702,19 @@ class StoryWorldApplicationService:
         participation = snapshot.participation
         character = self._character(world, participation.character_id)
         player_role = self._player_role(world, snapshot.run.player_role_id)
-        current_node = self._node(
-            story,
-            snapshot.run.current_chapter_id,
-            snapshot.run.current_node_id,
-        )
+        current_node = snapshot.current_node
+        post_ending_context = ""
+        if snapshot.run.status.value == "completed":
+            snapshot_ending = self._ending(
+                story,
+                str(snapshot.run.ending_id or ""),
+            )
+            if snapshot_ending.post_ending_message_mode is not PostEndingMessageMode.LLM:
+                raise StoryRuntimeError(
+                    "dialogue_state_changed",
+                    "结局后的回应规则已经变化，请重新读取。",
+                )
+            post_ending_context = snapshot_ending.post_ending_context or ""
         relationship_stage = self._stage_for(
             character,
             snapshot.relationship.affinity,
@@ -660,6 +740,7 @@ class StoryWorldApplicationService:
                 current_node=current_node,
                 content_version=snapshot.run.content_version,
                 story_flags=snapshot.run.story_flags,
+                post_ending_context=post_ending_context,
                 relationship_reason=snapshot.relationship.last_change_reason,
                 relationship_flags=snapshot.relationship.flags,
                 visible_messages=snapshot.visible_messages,
@@ -676,6 +757,7 @@ class StoryWorldApplicationService:
                 world.id == ANNIE_STORY_WORLD_ID
                 and _is_story_entry_node(story, current_node)
             ),
+            enforce_stranger_boundary=(world.id == ANNIE_STORY_WORLD_ID),
         )
         relationship_change = self._dialogue_relationship_change(
             player_id=player_id,
@@ -787,7 +869,11 @@ class StoryWorldApplicationService:
         )
         effect = self.dialogue_policy.relationship_effect(
             signal=signal,
-            events=[self._relationship_event_projection(event) for event in events],
+            events=[
+                self._relationship_event_projection(event)
+                for event in events
+                if event.character_id == character.id
+            ],
             current_affinity=relationship.affinity,
             highest_stage_minimum=(
                 character.relationship_rules.stages[-1].minimum_affinity
@@ -810,6 +896,7 @@ class StoryWorldApplicationService:
 
         return {
             "type": event.event_type,
+            "character_id": event.character_id,
             "source_kind": event.source_kind,
             "payload": event.payload,
         }
@@ -823,13 +910,10 @@ class StoryWorldApplicationService:
 
         world = aggregate.story_world
         story = aggregate.story
-        character = self._character(world, character_id)
+        effective_character_id = aggregate.interaction_character_id or character_id
+        character = self._character(world, effective_character_id)
         run = aggregate.run
-        current_node = self._node(
-            story,
-            run.current_chapter_id,
-            run.current_node_id,
-        )
+        current_node = aggregate.current_node
         relationship = next(
             (
                 candidate
@@ -853,6 +937,62 @@ class StoryWorldApplicationService:
             current_character_id=character.id,
             active=run.status.value == "active",
         )
+        story_internal_visits = any(
+            not participant.can_start for participant in story.participants
+        )
+        run_flags = set(run.story_flags)
+        visited_character_ids = {
+            event.character_id
+            for event in aggregate.events
+            if event.event_type == "character_visit" and event.character_id is not None
+        }
+        participants = (
+            [
+                {
+                    "id": participant.character_id,
+                    "name": self._character(world, participant.character_id).name,
+                    "portrait_url": self._character(
+                        world,
+                        participant.character_id,
+                    ).portrait_url,
+                    "location_label": participant.location_label,
+                    "is_available": (
+                        run.status.value == "active"
+                        and set(participant.visit_required_flags).issubset(run_flags)
+                    ),
+                    "is_visited": participant.character_id in visited_character_ids,
+                    "is_active": participant.character_id == effective_character_id,
+                }
+                for participant in story.participants
+            ]
+            if story_internal_visits
+            else []
+        )
+        available_choices = [
+            choice
+            for choice in current_node.choices
+            if self._choice_available(choice, run_flags)
+        ]
+        decision = (
+            {
+                "confirmation_prompt": current_node.confirmation_prompt,
+                "choices": [
+                    {"id": choice.id, "label": choice.label}
+                    for choice in available_choices
+                ],
+            }
+            if (
+                run.status.value == "active"
+                and current_node.choice_presentation
+                is StoryChoicePresentation.PERMANENT_DECISION
+                and available_choices
+                and (
+                    story.focus_character_id is None
+                    or effective_character_id == story.focus_character_id
+                )
+            )
+            else None
+        )
         return {
             "id": run.id,
             "status": run.status.value,
@@ -861,6 +1001,8 @@ class StoryWorldApplicationService:
                 "id": story.id,
                 "title": story.title,
                 "kind": story.kind.value,
+                "experience_mode": story.experience_mode.value,
+                "replay_policy": story.replay_policy.value,
             },
             "player_role": self._player_role_projection(player_role),
             "current_node": {
@@ -875,13 +1017,27 @@ class StoryWorldApplicationService:
                             "label": choice.label,
                             "is_key": choice.is_key,
                         }
-                        for choice in current_node.choices
-                        if self._choice_available(choice, set(run.story_flags))
+                        for choice in available_choices
                     ]
-                    if run.status.value == "active"
+                    if (
+                        run.status.value == "active"
+                        and current_node.choice_presentation
+                        is StoryChoicePresentation.INLINE
+                    )
                     else []
                 ),
             },
+            "participants": participants,
+            "active_character": (
+                {
+                    "id": character.id,
+                    "name": character.name,
+                    "portrait_url": character.portrait_url,
+                }
+                if story_internal_visits
+                else None
+            ),
+            "decision": decision,
             "events": self._event_projections(world, aggregate.events),
             "relationship": {
                 "id": relationship_stage.id,
@@ -889,13 +1045,23 @@ class StoryWorldApplicationService:
                 "attitude": relationship_stage.attitude,
                 "last_change_reason": relationship.last_change_reason,
             },
-            "historical_reference": self._historical_reference(world, story, run),
+            "historical_reference": self._historical_reference(
+                world,
+                story,
+                run,
+                aggregate.events,
+            ),
             "ending": (
                 {
                     "id": ending.id,
                     "title": ending.title,
                     "summary": run.ending_summary,
                 }
+                if ending is not None
+                else None
+            ),
+            "post_ending_message_mode": (
+                ending.post_ending_message_mode.value
                 if ending is not None
                 else None
             ),
@@ -919,7 +1085,9 @@ class StoryWorldApplicationService:
         projected: list[dict[str, object]] = []
         for event in events:
             event_type = (
-                "narration" if event.event_type == "action" else event.event_type
+                "narration"
+                if event.event_type in {"action", "character_visit"}
+                else event.event_type
             )
             if event_type not in {
                 "message",
@@ -1015,33 +1183,113 @@ class StoryWorldApplicationService:
         world: StoryWorld,
         story: ReviewedStory,
         run: StoryRun,
+        events: tuple[StoryEvent, ...],
     ) -> dict[str, object]:
-        """Project only the reviewed historical references unlocked by run progress."""
+        """Project sealed reference snapshots and fail closed for stale legacy runs."""
 
-        entry_chapter = next(
-            chapter
-            for chapter in story.chapters
-            if chapter.id == story.entry_chapter_id
+        marker_events = tuple(
+            event
+            for event in events
+            if event.event_type == "historical_reference_snapshot"
         )
-        stage = (
-            "outcome"
-            if run.status.value == "completed"
-            else "opening"
-            if run.current_node_id == entry_chapter.entry_node_id
-            else "investigation"
-        )
-        if world.id == ANNIE_STORY_WORLD_ID:
-            stage_order = ("opening", "investigation", "outcome")
-            unlocked_ids = {
-                entry_id
-                for candidate_stage in stage_order[: stage_order.index(stage) + 1]
-                for entry_id in ANNIE_REFERENCE_ENTRY_IDS_BY_STAGE[candidate_stage]
-            }
-            visible_entries = tuple(
-                entry for entry in world.canon_entries if entry.id in unlocked_ids
+        if len(marker_events) > 1:
+            raise StoryRuntimeError(
+                "invalid_runtime_state",
+                "封存的历史资料快照标记重复。",
             )
-        else:
-            visible_entries = world.canon_entries
+        marker_total: int | None = None
+        if marker_events:
+            marker = marker_events[0]
+            marker_total = marker.payload.get("total_count")
+            marker_version = marker.payload.get("content_version")
+            if (
+                marker.source_id != story.id
+                or marker_version != run.content_version
+                or isinstance(marker_total, bool)
+                or not isinstance(marker_total, int)
+                or marker_total < 0
+            ):
+                raise StoryRuntimeError(
+                    "invalid_runtime_state",
+                    "封存的历史资料快照标记无效。",
+                )
+        snapshots = tuple(
+            event
+            for event in events
+            if event.event_type == "historical_reference_unlocked"
+        )
+        if snapshots:
+            entries: list[dict[str, object]] = []
+            seen_ids: set[str] = set()
+            total_count = marker_total
+            for event in snapshots:
+                entry_id = event.payload.get("entry_id")
+                category = event.payload.get("category")
+                sources = event.payload.get("sources")
+                snapshot_total = event.payload.get("total_count")
+                if (
+                    not isinstance(entry_id, str)
+                    or not entry_id
+                    or entry_id in seen_ids
+                    or category not in {"fixed_fact", "needs_verification"}
+                    or not isinstance(sources, tuple)
+                    or any(not isinstance(source, str) or not source for source in sources)
+                    or isinstance(snapshot_total, bool)
+                    or not isinstance(snapshot_total, int)
+                    or snapshot_total < 0
+                    or (total_count is not None and snapshot_total != total_count)
+                ):
+                    raise StoryRuntimeError(
+                        "invalid_runtime_state",
+                        "封存的历史资料解锁记录无效。",
+                    )
+                total_count = snapshot_total
+                seen_ids.add(entry_id)
+                entries.append(
+                    {
+                        "id": entry_id,
+                        "category": category,
+                        "statement": event.content,
+                        "sources": list(sources),
+                    }
+                )
+            if total_count is None or total_count < len(entries):
+                raise StoryRuntimeError(
+                    "invalid_runtime_state",
+                    "封存的历史资料总数无效。",
+                )
+            return {
+                "unlocked_count": len(entries),
+                "total_count": total_count,
+                "entries": entries,
+            }
+
+        if marker_total is not None:
+            return {
+                "unlocked_count": 0,
+                "total_count": marker_total,
+                "entries": [],
+            }
+
+        if run.status.value != "active" or run.content_version != world.content_version:
+            return {
+                "unlocked_count": 0,
+                "total_count": 0,
+                "entries": [],
+            }
+
+        flags = set(run.story_flags)
+        unlocked_ids = {
+            unlock.entry_id
+            for unlock in story.historical_reference_unlocks
+            if set(unlock.required_flags).issubset(flags)
+        }
+        entry_by_id = {entry.id: entry for entry in world.canon_entries}
+        visible_entries = tuple(
+            entry_by_id[unlock.entry_id]
+            for unlock in story.historical_reference_unlocks
+            if unlock.entry_id in unlocked_ids
+        )
         entries = [
             {
                 "id": entry.id,
@@ -1052,9 +1300,8 @@ class StoryWorldApplicationService:
             for entry in visible_entries
         ]
         return {
-            "stage": stage,
             "unlocked_count": len(entries),
-            "total_count": len(world.canon_entries),
+            "total_count": len(story.historical_reference_unlocks),
             "entries": entries,
         }
 

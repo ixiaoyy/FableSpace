@@ -85,6 +85,24 @@ _ANNIE_UNSUPPORTED_DETAIL_PATTERNS = tuple(
     )
 )
 
+_UNSOURCED_ACQUAINTANCE_PATTERNS = tuple(
+    re.compile(pattern)
+    for pattern in (
+        r"我(?:当然|还|早就|一直|确实|的确)?(?:记得|认得|认识|熟悉)你",
+        r"我(?:好像|似乎|仿佛)?(?:见过你|看见过你|碰见过你)",
+        r"你(?:看着|瞧着)?(?:有点|有些|很|这么)?(?:眼熟|面熟)",
+        r"(?:我们|咱们).{0,12}(?:以前|之前|从前|曾经|早就|上回|上次).{0,12}"
+        r"(?<!没)(?<!未)(?<!不)(?:见过|认识|碰过面|打过交道)",
+        r"(?:以前|之前|从前|曾经|早些时候|上回|上次).{0,12}"
+        r"(?:我们|咱们|我).{0,12}(?<!没)(?<!未)(?<!不)"
+        r"(?:见过|看见过|认识|认得|碰过面|打过交道)",
+        r"(?:我们|咱们).{0,10}(?<!没)(?<!未)(?<!不)(?:见过面|碰过面|打过交道)",
+        r"我.{0,8}(?:在哪|哪里).{0,8}见过你",
+        r"(?:以前|之前|上回|上次).{0,12}(?<!没)(?<!未)(?<!不)"
+        r"看见你从.{0,16}(?:出来|经过)",
+    )
+)
+
 _RELATIONSHIP_SIGNAL_PATTERNS: tuple[
     tuple[str, str, tuple[re.Pattern[str], ...]], ...
 ] = (
@@ -146,6 +164,7 @@ _SAFE_REPLIES = {
     "history_rewrite": "我们只能做眼前能做的事，不能把还没发生的事说成已经发生。",
     "modern_medical": "这些词我听不懂。我只知道家里不让我再碰这口泵的水。",
     "unsupported_detail": "那件事我没有亲眼看见，不能替别人说。先问我眼前这一件吧。",
+    "unsourced_acquaintance": "我们以前没见过。先说眼前这件事。",
     "unsafe_output": "我只能说自己眼前看见、耳边听见的事。别替别人，也别替我补话。",
 }
 
@@ -267,12 +286,14 @@ class StoryDialoguePolicy:
         input_fallback: tuple[str, str] | None,
         historical_projection: bool = False,
         enforce_annie_opening_evidence: bool = False,
+        enforce_stranger_boundary: bool = False,
     ) -> StoryDialogueDecision:
         """Validate one reply and record which policy supplied any replacement.
 
         ``enforce_annie_opening_evidence`` enables the narrow entry-node guard;
         later reviewed nodes may contain household testimony that must not be
-        rejected solely for using the same vocabulary.
+        rejected solely for using the same vocabulary. ``enforce_stranger_boundary``
+        rejects affirmative prior-acquaintance claims for reviewed first meetings.
         """
 
         if historical_projection:
@@ -310,6 +331,23 @@ class StoryDialoguePolicy:
                 for pattern in _ANNIE_UNSUPPORTED_DETAIL_PATTERNS
             )
         )
+        unsourced_acquaintance = (
+            enforce_stranger_boundary
+            and any(
+                pattern.search(combined_output)
+                for pattern in _UNSOURCED_ACQUAINTANCE_PATTERNS
+            )
+        )
+        if unsourced_acquaintance:
+            return StoryDialogueDecision(
+                dialogue=_SAFE_REPLIES["unsourced_acquaintance"],
+                narration_before="",
+                narration_after="",
+                boundary_reason="unsourced_acquaintance",
+                model_output_replaced=True,
+                replacement_source="model_policy",
+                relationship_signal=None,
+            )
         if unsupported_detail:
             return StoryDialogueDecision(
                 dialogue=_SAFE_REPLIES["unsupported_detail"],

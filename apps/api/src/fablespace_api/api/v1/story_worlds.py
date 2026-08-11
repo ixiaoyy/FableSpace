@@ -26,6 +26,10 @@ class ChoiceRequest(BaseModel):
     choice_id: str = Field(min_length=1, max_length=128)
 
 
+class VisitRequest(BaseModel):
+    character_id: str = Field(min_length=1, max_length=128)
+
+
 def _service(request: Request) -> StoryWorldApplicationService:
     return request.app.state.story_worlds
 
@@ -56,6 +60,9 @@ def _raise_http(exc: StoryRuntimeError) -> None:
         "player_role_locked",
         "relationship_source_conflict",
         "story_content_changed",
+        "story_result_permanent",
+        "character_visit_unavailable",
+        "post_ending_message_unavailable",
     }:
         status = 409
     elif exc.code in {
@@ -63,6 +70,7 @@ def _raise_http(exc: StoryRuntimeError) -> None:
         "player_role_not_found",
         "story_not_published",
         "character_not_in_story",
+        "participant_mismatch",
     }:
         status = 422
     else:
@@ -180,6 +188,31 @@ def post_message(
                 run_id,
                 payload.character_id,
                 content,
+            )
+        }
+    except StoryRuntimeError as exc:
+        _raise_http(exc)
+
+
+@router.post("/{story_world_id}/stories/{story_id}/runs/{run_id}/visits")
+def visit_character(
+    story_world_id: str,
+    story_id: str,
+    run_id: str,
+    payload: VisitRequest,
+    request: Request,
+):
+    """Switch one authenticated run to an approved story-internal Character."""
+
+    player_id = _player_id(request)
+    try:
+        return {
+            "run": _service(request).visit(
+                player_id,
+                story_world_id,
+                story_id,
+                run_id,
+                payload.character_id,
             )
         }
     except StoryRuntimeError as exc:

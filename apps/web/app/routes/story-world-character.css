@@ -1120,25 +1120,6 @@ body:has(.annieStoryShell--chat) {
   border-top: 1px solid var(--annie-line);
 }
 
-.annieStoryReferenceNote {
-  margin: 0;
-  padding: 0.85rem 0;
-  color: var(--annie-muted);
-  font-family: system-ui, sans-serif;
-  font-size: 0.75rem;
-  line-height: 1.6;
-}
-
-.annieStoryReferenceLegend {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.45rem;
-  margin: 0 0 1rem;
-  padding: 0;
-  list-style: none;
-}
-
-.annieStoryReferenceLegend li,
 .annieStoryReferenceKind {
   display: inline-flex;
   align-items: center;
@@ -1150,10 +1131,6 @@ body:has(.annieStoryShell--chat) {
   font-size: 0.68rem;
   border: 1px solid rgba(78, 61, 87, 0.18);
   border-radius: 999px;
-}
-
-.annieStoryReferenceLegend strong {
-  font-size: 0.68rem;
 }
 
 .annieStoryReferenceEntries {
@@ -1172,20 +1149,12 @@ body:has(.annieStoryShell--chat) {
   font-weight: 800;
 }
 
-.annieStoryReferenceKind[data-category="fixed_fact"],
-.annieStoryReferenceLegend li[data-category="fixed_fact"] {
+.annieStoryReferenceKind[data-category="fixed_fact"] {
   color: #285e66;
   background: #e3f1ef;
 }
 
-.annieStoryReferenceKind[data-category="story_setting"],
-.annieStoryReferenceLegend li[data-category="story_setting"] {
-  color: #77551d;
-  background: #f7ecd2;
-}
-
-.annieStoryReferenceKind[data-category="needs_verification"],
-.annieStoryReferenceLegend li[data-category="needs_verification"] {
+.annieStoryReferenceKind[data-category="needs_verification"] {
   color: #5e4381;
   background: #eee6f7;
 }
@@ -1563,5 +1532,1050 @@ body:has(.annieStoryShell--chat) {
     scroll-behavior: auto !important;
     transition: none !important;
     animation: none !important;
+  }
+}
+
+/* Explicit Character experience groups */
+
+.annieCharacterExperiences {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: clamp(1.5rem, 4vw, 3.5rem);
+  align-items: start;
+}
+
+.annieCharacterExperienceGroup {
+  display: grid;
+  gap: 1.15rem;
+  min-width: 0;
+}
+
+.annieCharacterExperienceHeading {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding-bottom: 0.9rem;
+  border-bottom: 1px solid var(--annie-line);
+}
+
+.annieCharacterExperienceHeading > span {
+  display: grid;
+  place-items: center;
+  width: 2.65rem;
+  height: 2.65rem;
+  color: var(--annie-lavender);
+  border-radius: 50%;
+  background: rgba(114, 86, 216, 0.1);
+}
+
+.annieCharacterExperienceGroup[data-experience-mode="narrative_story"]
+  .annieCharacterExperienceHeading > span {
+  color: var(--annie-orange-strong);
+  border-radius: 0.25rem 0.75rem 0.25rem 0.25rem;
+  background: rgba(233, 119, 24, 0.1);
+}
+
+.annieCharacterExperienceHeading svg {
+  width: 1.15rem;
+}
+
+.annieCharacterExperienceHeading h2 {
+  margin: 0;
+  color: #3b2e43;
+  font-size: clamp(1.4rem, 2.5vw, 1.85rem);
+  line-height: 1.2;
+}
+
+.annieCharacterExperienceList {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.annieCharacterExperienceCard {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    "type status"
+    "title title"
+    "action action";
+  gap: 0.65rem 1rem;
+  min-width: 0;
+  padding: 1.15rem;
+  border: 1px solid var(--annie-line);
+  border-radius: 1rem;
+  background: rgba(255, 252, 244, 0.78);
+}
+
+.annieCharacterExperienceGroup[data-experience-mode="narrative_story"]
+  .annieCharacterExperienceCard {
+  border-radius: 0.3rem 1rem 0.3rem 0.3rem;
+  background:
+    linear-gradient(90deg, rgba(233, 119, 24, 0.08), transparent 0.65rem),
+    rgba(255, 252, 244, 0.84);
+}
+
+.annieCharacterExperienceType {
+  grid-area: type;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: var(--annie-muted);
+  font-family: system-ui, sans-serif;
+  font-size: 0.7rem;
+  font-weight: 800;
+}
+
+.annieCharacterExperienceType svg {
+  width: 0.9rem;
+}
+
+.annieCharacterExperienceCard h3 {
+  grid-area: title;
+  margin: 0;
+  color: var(--annie-ink);
+  font-size: clamp(1.15rem, 2vw, 1.4rem);
+  line-height: 1.45;
+  text-wrap: balance;
+}
+
+.annieCharacterExperienceCard > small {
+  grid-area: status;
+  align-self: center;
+  color: var(--annie-muted);
+  font-family: system-ui, sans-serif;
+  font-size: 0.7rem;
+  text-align: right;
+}
+
+.annieCharacterExperienceCard > a,
+.annieCharacterExperienceCard > button {
+  grid-area: action;
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  min-height: 2.85rem;
+  margin-top: 0.3rem;
+  padding: 0.6rem 0.8rem;
+  color: var(--annie-orange-strong);
+  font-family: system-ui, sans-serif;
+  font-size: 0.82rem;
+  font-weight: 800;
+  text-decoration: none;
+  border: 0;
+  border-top: 1px solid var(--annie-line);
+  background: transparent;
+  cursor: pointer;
+}
+
+.annieCharacterExperienceGroup[data-experience-mode="character_growth"]
+  .annieCharacterExperienceCard > a,
+.annieCharacterExperienceGroup[data-experience-mode="character_growth"]
+  .annieCharacterExperienceCard > button {
+  color: #57409e;
+}
+
+.annieCharacterExperienceCard > a:hover {
+  color: var(--annie-orange);
+}
+
+.annieCharacterExperienceCard > button:disabled {
+  color: var(--annie-muted);
+  cursor: not-allowed;
+  opacity: 0.58;
+}
+
+.annieCharacterExperienceCard > a svg,
+.annieCharacterExperienceCard > button svg {
+  width: 1rem;
+  transition: transform 180ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.annieCharacterExperienceCard > a:hover svg {
+  transform: translateX(0.2rem);
+}
+
+.annieCharacterExperienceCard > a:focus-visible,
+.annieGrowthHeader > a:focus-visible,
+.annieNarrativeHeader > a:focus-visible,
+.annieNarrativeParticipant:focus-visible,
+.annieNarrativeMobileToolBar button:focus-visible,
+.annieNarrativeMobileClose:focus-visible,
+.annieStoryDecision input:focus-visible + span,
+.annieStoryDecision button:focus-visible {
+  outline: 3px solid rgba(114, 86, 216, 0.55);
+  outline-offset: 3px;
+}
+
+/* Character growth: one calm conversation canvas */
+
+.annieStoryShell--growth {
+  background:
+    radial-gradient(circle at 50% -12rem, rgba(114, 86, 216, 0.12), transparent 32rem),
+    var(--annie-paper);
+}
+
+.annieGrowthHeader {
+  z-index: 10;
+  display: grid;
+  grid-template-columns: 2.5rem 2.5rem minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.75rem;
+  flex: 0 0 auto;
+  width: min(48rem, calc(100% - 2rem));
+  min-height: 4.25rem;
+  margin-inline: auto;
+  border-bottom: 1px solid var(--annie-line);
+}
+
+.annieGrowthHeader > a,
+.annieNarrativeHeader > a {
+  display: grid;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  color: var(--annie-ink);
+  border-radius: 50%;
+}
+
+.annieGrowthHeader > a:hover,
+.annieNarrativeHeader > a:hover {
+  color: var(--annie-lavender);
+  background: rgba(114, 86, 216, 0.09);
+}
+
+.annieGrowthHeader svg,
+.annieNarrativeHeader > a svg {
+  width: 1.1rem;
+}
+
+.annieGrowthHeader > img {
+  width: 2.5rem;
+  height: 2.5rem;
+  object-fit: cover;
+  object-position: center 28%;
+  border-radius: 50%;
+  background: var(--annie-paper-deep);
+}
+
+.annieGrowthHeader > strong {
+  min-width: 0;
+  overflow: hidden;
+  font-size: 1rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.annieGrowthHeader > small {
+  color: var(--annie-muted);
+  font-family: system-ui, sans-serif;
+  font-size: 0.7rem;
+}
+
+.annieGrowthChat {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  flex: 1 1 auto;
+  width: min(48rem, calc(100% - 2rem));
+  min-height: 0;
+  margin: 0.75rem auto;
+  overflow: hidden;
+  border: 1px solid rgba(78, 61, 87, 0.14);
+  border-radius: 1.1rem 1.1rem 0.4rem 0.4rem;
+  background: rgba(255, 252, 244, 0.92);
+  box-shadow: 0.7rem 0.85rem 2rem rgba(78, 53, 73, 0.08);
+  animation: annie-page-open 420ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.annieGrowthChat > .annieStoryTimeline {
+  min-height: 0;
+  max-height: none;
+  padding-inline: clamp(1rem, 6vw, 4rem);
+}
+
+.annieStoryShell--growth .annieStoryEvent {
+  max-width: min(76%, 34rem);
+}
+
+.annieStoryShell--growth .annieStoryEvent--player,
+.annieStoryShell--growth .annieStoryEvent--choice {
+  max-width: min(72%, 31rem);
+}
+
+.annieStoryShell--growth .annieStoryConversationGate {
+  grid-template-rows: minmax(0, 1fr);
+  width: min(48rem, calc(100% - 2rem));
+}
+
+/* Narrative story: participants, event ledger, and a closed reference rail */
+
+.annieStoryShell--narrative {
+  --annie-desk: #e9dcc4;
+  background:
+    linear-gradient(180deg, rgba(82, 61, 52, 0.04), transparent 7rem),
+    var(--annie-paper);
+}
+
+.annieNarrativeHeader {
+  z-index: 10;
+  display: grid;
+  grid-template-columns: 2.5rem auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.9rem;
+  flex: 0 0 auto;
+  min-height: 4.25rem;
+  padding-inline: max(1rem, 3vw);
+  border-bottom: 1px solid var(--annie-line);
+  background: rgba(255, 248, 235, 0.94);
+}
+
+.annieNarrativeHeaderMark {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  color: var(--annie-orange-strong);
+}
+
+.annieNarrativeHeaderMark svg {
+  width: 1rem;
+}
+
+.annieNarrativeHeaderMark small,
+.annieNarrativeHeader > small {
+  color: inherit;
+  font-family: system-ui, sans-serif;
+  font-size: 0.68rem;
+  font-weight: 800;
+}
+
+.annieNarrativeHeader > strong {
+  min-width: 0;
+  overflow: hidden;
+  color: #3b2e43;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.annieNarrativeHeader > small {
+  color: var(--annie-muted);
+  font-weight: 600;
+}
+
+.annieNarrativeWorkspace {
+  display: grid;
+  grid-template-columns: minmax(11.5rem, 14rem) minmax(24rem, 1fr) minmax(14rem, 17rem);
+  grid-template-areas: "participants story reference";
+  gap: clamp(0.65rem, 1.3vw, 1.15rem);
+  flex: 1 1 auto;
+  width: min(96rem, calc(100% - 1.5rem));
+  min-height: 0;
+  margin-inline: auto;
+  padding: 0.75rem 0;
+  animation: annie-page-open 420ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.annieNarrativeWorkspace[data-has-participants="false"] {
+  grid-template-columns: minmax(24rem, 1fr) minmax(14rem, 17rem);
+  grid-template-areas: "story reference";
+  width: min(74rem, calc(100% - 1.5rem));
+}
+
+.annieNarrativeParticipantRail,
+.annieNarrativeReferenceRail {
+  min-width: 0;
+  min-height: 0;
+  overflow: auto;
+  border: 1px solid rgba(78, 61, 87, 0.14);
+  background: rgba(255, 252, 244, 0.72);
+}
+
+.annieNarrativeParticipantRail {
+  grid-area: participants;
+  border-radius: 0.35rem 0.9rem 0.35rem 0.35rem;
+}
+
+.annieNarrativeParticipantRail > header,
+.annieNarrativeParticipantDrawer > header {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  min-height: 3.5rem;
+  padding: 0.75rem 0.9rem;
+  color: var(--annie-orange-strong);
+  border-bottom: 1px solid var(--annie-line);
+}
+
+.annieNarrativeParticipantRail > header svg,
+.annieNarrativeParticipantDrawer > header svg {
+  width: 1rem;
+}
+
+.annieNarrativeParticipantList {
+  display: grid;
+}
+
+.annieNarrativeParticipant {
+  position: relative;
+  display: grid;
+  grid-template-columns: 2.55rem minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.65rem;
+  width: 100%;
+  min-height: 4.25rem;
+  padding: 0.65rem 0.75rem;
+  color: var(--annie-ink);
+  text-align: left;
+  border: 0;
+  border-bottom: 1px solid rgba(78, 61, 87, 0.1);
+  background: transparent;
+  cursor: pointer;
+  transition:
+    color 180ms cubic-bezier(0.22, 1, 0.36, 1),
+    background-color 180ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.annieNarrativeParticipant:hover:not(:disabled) {
+  color: #3f2e72;
+  background: rgba(114, 86, 216, 0.07);
+}
+
+.annieNarrativeParticipant[aria-current="true"] {
+  color: var(--annie-orange-strong);
+  background: rgba(233, 119, 24, 0.09);
+}
+
+.annieNarrativeParticipant[data-visited="true"]::after {
+  position: absolute;
+  top: 0.65rem;
+  right: 0.65rem;
+  width: 0.42rem;
+  height: 0.42rem;
+  content: "";
+  border-radius: 50%;
+  background: var(--annie-lavender);
+}
+
+.annieNarrativeParticipant:disabled {
+  cursor: not-allowed;
+}
+
+.annieNarrativeParticipant:disabled:not([aria-current="true"]):not([aria-busy="true"]) {
+  opacity: 0.52;
+}
+
+.annieNarrativeParticipant > img,
+.annieNarrativeParticipantMonogram {
+  display: grid;
+  place-items: center;
+  width: 2.55rem;
+  height: 2.55rem;
+  object-fit: cover;
+  object-position: center 28%;
+  color: var(--annie-paper);
+  border-radius: 50%;
+  background: #403a49;
+  font-size: 0.85rem;
+  font-weight: 800;
+}
+
+.annieNarrativeParticipant > span:nth-child(2) {
+  display: grid;
+  gap: 0.22rem;
+  min-width: 0;
+}
+
+.annieNarrativeParticipant strong {
+  overflow: hidden;
+  font-size: 0.83rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.annieNarrativeParticipant small {
+  display: flex;
+  align-items: center;
+  gap: 0.22rem;
+  min-width: 0;
+  overflow: hidden;
+  color: var(--annie-muted);
+  font-family: system-ui, sans-serif;
+  font-size: 0.66rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.annieNarrativeParticipant small svg {
+  flex: 0 0 auto;
+  width: 0.68rem;
+}
+
+.annieNarrativeParticipant > svg {
+  width: 0.95rem;
+  color: var(--annie-orange);
+  animation: annie-story-spin 900ms linear infinite;
+}
+
+.annieNarrativeRun {
+  grid-area: story;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  border: 1px solid rgba(78, 61, 87, 0.16);
+  border-radius: 0.95rem 0.95rem 0.35rem 0.35rem;
+  background: rgba(255, 252, 244, 0.94);
+  box-shadow: 0.7rem 0.85rem 2rem rgba(78, 53, 73, 0.08);
+}
+
+.annieNarrativeActiveCharacter {
+  display: grid;
+  grid-template-columns: 2.8rem minmax(0, 1fr);
+  align-items: center;
+  gap: 0.75rem;
+  flex: 0 0 auto;
+  min-height: 4.2rem;
+  padding: 0.65rem 0.9rem;
+  border-bottom: 1px solid var(--annie-line);
+  background: rgba(245, 234, 214, 0.74);
+}
+
+.annieNarrativeActiveCharacter > img,
+.annieNarrativeActiveCharacter > .annieStoryConversationMonogram {
+  width: 2.8rem;
+  height: 2.8rem;
+  object-fit: cover;
+  object-position: center 28%;
+  border-radius: 50%;
+}
+
+.annieNarrativeActiveCharacter > div {
+  display: grid;
+  gap: 0.2rem;
+  min-width: 0;
+}
+
+.annieNarrativeActiveCharacter strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.annieNarrativeActiveCharacter small {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  color: var(--annie-muted);
+  font-family: system-ui, sans-serif;
+  font-size: 0.68rem;
+}
+
+.annieNarrativeActiveCharacter small svg {
+  width: 0.72rem;
+}
+
+.annieNarrativeRun > .annieStoryTimeline {
+  flex: 1 1 12rem;
+  min-height: 0;
+  max-height: none;
+  padding-inline: clamp(1rem, 4vw, 3rem);
+}
+
+.annieNarrativeRun > .annieStoryChoices {
+  flex: 0 0 auto;
+  padding: 0.75rem clamp(1rem, 4vw, 3rem);
+  border-top: 1px solid var(--annie-line);
+  background: rgba(250, 244, 231, 0.92);
+}
+
+.annieNarrativeReferenceRail {
+  grid-area: reference;
+  border: 0;
+  background: transparent;
+}
+
+.annieNarrativeReferenceRail .annieStoryReferences {
+  background: rgba(255, 252, 244, 0.76);
+}
+
+.annieNarrativeParticipantStrip,
+.annieNarrativeMobileTools {
+  display: none;
+}
+
+.annieStoryShell--narrative .annieStoryConversationGate {
+  grid-template-rows: minmax(0, 1fr);
+  width: min(54rem, calc(100% - 2rem));
+}
+
+/* Permanent decision */
+
+.annieStoryDecision {
+  display: grid;
+  gap: 0.8rem;
+  flex: 0 0 auto;
+  max-height: min(46dvh, 25rem);
+  padding: 1rem clamp(1rem, 4vw, 3rem);
+  overflow: auto;
+  border-top: 1px solid rgba(191, 82, 13, 0.22);
+  background: #f7ead2;
+}
+
+.annieStoryDecision fieldset {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.annieStoryDecision legend {
+  margin-bottom: 0.75rem;
+  color: #5f3726;
+  font-size: 1.15rem;
+  font-weight: 800;
+}
+
+.annieStoryDecisionChoices {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.55rem;
+}
+
+.annieStoryDecisionChoices label {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1rem minmax(0, 1fr);
+  align-items: start;
+  gap: 0.55rem;
+  min-height: 3.25rem;
+  padding: 0.7rem;
+  color: #4c3d3a;
+  font-family: system-ui, sans-serif;
+  font-size: 0.76rem;
+  line-height: 1.55;
+  border: 1px solid rgba(112, 72, 45, 0.2);
+  border-radius: 0.45rem;
+  background: rgba(255, 253, 247, 0.72);
+  cursor: pointer;
+}
+
+.annieStoryDecisionChoices label[data-selected="true"] {
+  border-color: var(--annie-orange-strong);
+  background: #fffaf0;
+  box-shadow: inset 0 0 0 1px rgba(191, 82, 13, 0.2);
+}
+
+.annieStoryDecisionChoices input {
+  width: 1rem;
+  height: 1rem;
+  margin: 0.18rem 0 0;
+  accent-color: var(--annie-orange-strong);
+}
+
+.annieStoryDecisionContinue,
+.annieStoryDecisionConfirmation button {
+  min-height: 2.65rem;
+  padding: 0.55rem 0.9rem;
+  color: #fffdf8;
+  font-family: system-ui, sans-serif;
+  font-size: 0.8rem;
+  font-weight: 800;
+  border: 0;
+  border-radius: 0.5rem;
+  background: var(--annie-orange-strong);
+  cursor: pointer;
+}
+
+.annieStoryDecisionContinue {
+  justify-self: end;
+}
+
+.annieStoryDecisionContinue:disabled,
+.annieStoryDecisionConfirmation button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.annieStoryDecisionConfirmation {
+  display: grid;
+  gap: 0.75rem;
+  padding: 0.85rem;
+  border: 1px solid rgba(191, 82, 13, 0.28);
+  background: rgba(255, 250, 240, 0.94);
+}
+
+.annieStoryDecisionConfirmation > strong {
+  color: #4c3025;
+  font-family: system-ui, sans-serif;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.annieStoryDecisionConfirmation p {
+  margin: 0;
+  color: #5f3726;
+  font-family: system-ui, sans-serif;
+  font-size: 0.82rem;
+  font-weight: 700;
+  line-height: 1.6;
+}
+
+.annieStoryDecisionConfirmation > div {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.55rem;
+}
+
+.annieStoryDecisionConfirmation button:first-child {
+  color: #5f3726;
+  border: 1px solid rgba(95, 55, 38, 0.28);
+  background: transparent;
+}
+
+.annieNarrativeRun[data-decision-active="true"] > .annieStoryTimeline {
+  flex: 0 1 10rem;
+  min-height: 5rem;
+}
+
+.annieNarrativeRun[data-decision-active="true"] > .annieStoryDecision {
+  flex: 1 1 auto;
+  min-height: 12rem;
+  max-height: none;
+}
+
+.annieNarrativeRun > .annieStoryEnding {
+  flex: 0 0 auto;
+  max-height: 42dvh;
+  overflow: auto;
+  padding: clamp(1.4rem, 4vw, 2.8rem);
+}
+
+.annieNarrativeRun > .annieStoryEnding h2 {
+  font-size: clamp(2rem, 5vw, 3.25rem);
+}
+
+.annieStoryEnding > .annieStoryActionError {
+  max-width: 38rem;
+  margin: 0 auto 1rem;
+  text-align: left;
+}
+
+.annieStoryConversationState > strong {
+  color: var(--annie-ink);
+  font-size: 1rem;
+}
+
+.annieStoryActionErrorBody > .annieStoryRecoveryButton {
+  display: inline-flex;
+  margin-top: 0.55rem;
+}
+
+@media (max-width: 1080px) {
+  .annieNarrativeWorkspace {
+    grid-template-columns: minmax(10.5rem, 12rem) minmax(22rem, 1fr) minmax(12.5rem, 14rem);
+  }
+
+  .annieStoryDecisionChoices {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 760px) {
+  .annieCharacterExperiences {
+    grid-template-columns: 1fr;
+  }
+
+  .annieCharacterExperienceGroup[data-experience-mode="character_growth"] {
+    order: 1;
+  }
+
+  .annieCharacterExperienceGroup[data-experience-mode="narrative_story"] {
+    order: 2;
+  }
+
+  .annieCharacterExperienceCard {
+    padding: 1rem;
+  }
+
+  .annieGrowthHeader {
+    width: calc(100% - 1rem);
+    min-height: 3.8rem;
+  }
+
+  .annieGrowthChat {
+    width: calc(100% - 0.75rem);
+    margin-block: 0.4rem;
+    border-radius: 0.8rem 0.8rem 0.3rem 0.3rem;
+  }
+
+  .annieStoryShell--growth .annieStoryEvent,
+  .annieStoryShell--growth .annieStoryEvent--player,
+  .annieStoryShell--growth .annieStoryEvent--choice {
+    max-width: 90%;
+  }
+
+  .annieNarrativeHeader {
+    grid-template-columns: 2.5rem auto minmax(0, 1fr);
+    min-height: 3.8rem;
+    padding-inline: 0.5rem;
+  }
+
+  .annieNarrativeHeaderMark small,
+  .annieNarrativeHeader > small {
+    display: none;
+  }
+
+  .annieNarrativeHeader > strong {
+    font-size: 0.9rem;
+  }
+
+  .annieNarrativeWorkspace {
+    position: relative;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr) auto;
+    grid-template-areas:
+      "strip"
+      "story"
+      "tools";
+    gap: 0.35rem;
+    width: 100%;
+    padding: 0.35rem;
+  }
+
+  .annieNarrativeWorkspace[data-has-participants="false"] {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr) auto;
+    grid-template-areas:
+      "story"
+      "tools";
+    width: 100%;
+  }
+
+  .annieNarrativeParticipantRail,
+  .annieNarrativeReferenceRail {
+    display: none;
+  }
+
+  .annieNarrativeParticipantStrip {
+    grid-area: strip;
+    display: flex;
+    gap: 0.4rem;
+    min-width: 0;
+    padding: 0.15rem 0.05rem 0.25rem;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .annieNarrativeParticipantStrip::-webkit-scrollbar {
+    display: none;
+  }
+
+  .annieNarrativeParticipant[data-compact="true"] {
+    grid-template-columns: 2.25rem minmax(0, 1fr) auto;
+    flex: 0 0 auto;
+    width: auto;
+    min-width: 7rem;
+    min-height: 3.35rem;
+    padding: 0.45rem 0.55rem;
+    border: 1px solid var(--annie-line);
+    border-radius: 999px;
+    background: rgba(255, 252, 244, 0.84);
+  }
+
+  .annieNarrativeParticipant[data-compact="true"] > img,
+  .annieNarrativeParticipant[data-compact="true"] > .annieNarrativeParticipantMonogram {
+    width: 2.25rem;
+    height: 2.25rem;
+  }
+
+  .annieNarrativeParticipant[data-compact="true"] strong {
+    font-size: 0.74rem;
+  }
+
+  .annieNarrativeParticipant[data-compact="true"][data-visited="true"]::after {
+    top: 0.25rem;
+    right: 0.45rem;
+  }
+
+  .annieNarrativeRun {
+    min-height: 0;
+    border-radius: 0.8rem 0.8rem 0.3rem 0.3rem;
+  }
+
+  .annieNarrativeActiveCharacter {
+    min-height: 3.65rem;
+    padding: 0.45rem 0.65rem;
+  }
+
+  .annieNarrativeActiveCharacter > img,
+  .annieNarrativeActiveCharacter > .annieStoryConversationMonogram {
+    width: 2.5rem;
+    height: 2.5rem;
+  }
+
+  .annieNarrativeRun > .annieStoryTimeline {
+    padding: 1rem 0.85rem 1.35rem;
+  }
+
+  .annieNarrativeRun > .annieStoryChoices {
+    padding: 0.65rem 0.8rem;
+  }
+
+  .annieStoryDecision {
+    max-height: min(44dvh, 22rem);
+    padding: 0.85rem;
+  }
+
+  .annieNarrativeRun[data-decision-active="true"] > .annieStoryTimeline {
+    display: none;
+  }
+
+  .annieNarrativeRun[data-decision-active="true"] > .annieStoryDecision {
+    min-height: 0;
+  }
+
+  .annieStoryDecisionChoices {
+    grid-template-columns: 1fr;
+  }
+
+  .annieStoryDecisionContinue {
+    width: 100%;
+  }
+
+  .annieStoryDecisionConfirmation > div {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .annieNarrativeMobileTools {
+    grid-area: tools;
+    position: relative;
+    z-index: 8;
+    display: block;
+  }
+
+  .annieNarrativeMobileToolBar {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    overflow: hidden;
+    border: 1px solid var(--annie-line);
+    border-radius: 0.45rem;
+    background: rgba(248, 239, 222, 0.98);
+    box-shadow: 0 -0.35rem 1rem rgba(78, 53, 73, 0.1);
+  }
+
+  .annieNarrativeMobileToolBar[data-has-participants="false"] {
+    grid-template-columns: 1fr;
+  }
+
+  .annieNarrativeMobileToolBar button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.45rem;
+    min-height: 2.85rem;
+    color: var(--annie-ink);
+    font-family: system-ui, sans-serif;
+    font-size: 0.75rem;
+    font-weight: 800;
+    border: 0;
+    border-right: 1px solid var(--annie-line);
+    background: transparent;
+  }
+
+  .annieNarrativeMobileToolBar button:last-child {
+    border-right: 0;
+  }
+
+  .annieNarrativeMobileToolBar button[aria-expanded="true"] {
+    color: var(--annie-orange-strong);
+    background: rgba(233, 119, 24, 0.08);
+  }
+
+  .annieNarrativeMobileToolBar svg {
+    width: 0.95rem;
+  }
+
+  .annieNarrativeMobilePanel {
+    position: absolute;
+    right: 0;
+    bottom: calc(100% + 0.35rem);
+    left: 0;
+    max-height: min(48dvh, 24rem);
+    padding: 0.75rem;
+    overflow: auto;
+    border: 1px solid rgba(78, 61, 87, 0.18);
+    border-radius: 0.8rem 0.8rem 0.25rem 0.25rem;
+    background: #fff9ed;
+    box-shadow: 0 -0.8rem 2rem rgba(78, 53, 73, 0.18);
+  }
+
+  .annieNarrativeMobileClose {
+    position: sticky;
+    z-index: 2;
+    top: 0;
+    display: grid;
+    place-items: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    margin: 0 0 0.5rem auto;
+    color: var(--annie-muted);
+    border: 1px solid var(--annie-line);
+    border-radius: 50%;
+    background: #fff9ed;
+  }
+
+  .annieNarrativeMobileClose svg {
+    width: 1rem;
+  }
+
+  .annieNarrativeParticipantDrawer {
+    display: block;
+  }
+
+  .annieNarrativeParticipantDrawer .annieNarrativeParticipantList {
+    border: 1px solid var(--annie-line);
+  }
+
+  .annieNarrativeMobilePanel > .annieStoryReferenceEntries {
+    padding-bottom: 0.25rem;
+  }
+
+  .annieNarrativeRun > .annieStoryEnding {
+    max-height: 40dvh;
+  }
+}
+
+@media (max-width: 430px) {
+  .annieCharacterExperienceCard {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "type"
+      "title"
+      "status"
+      "action";
+  }
+
+  .annieCharacterExperienceCard > small {
+    text-align: left;
+  }
+
+  .annieGrowthHeader {
+    grid-template-columns: 2.5rem 2.5rem minmax(0, 1fr);
+  }
+
+  .annieGrowthHeader > small {
+    display: none;
+  }
+
+  .annieStoryDecisionConfirmation > div {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .annieCharacterExperienceCard > a svg,
+  .annieNarrativeParticipant {
+    transition: none !important;
   }
 }

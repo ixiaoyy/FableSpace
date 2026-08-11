@@ -14,7 +14,9 @@ from ..domain.story_world import (
     DecisionPredicate,
     DecisionPredicateKind,
     DecisionRule,
+    HistoricalReferenceUnlock,
     PlayerRole,
+    PostEndingMessageMode,
     PredicateValue,
     PublicationStatus,
     RelationshipEffect,
@@ -24,11 +26,14 @@ from ..domain.story_world import (
     StoryChapter,
     StoryCharacterParticipation,
     StoryChoice,
+    StoryChoicePresentation,
     StoryContentValidationError,
     StoryEnding,
+    StoryExperienceMode,
     StoryKind,
     StoryNode,
     StoryNodePresentationKind,
+    StoryReplayPolicy,
     StoryWorld,
 )
 
@@ -37,6 +42,10 @@ _EnumValue = TypeVar(
     PublicationStatus,
     CanonCategory,
     StoryKind,
+    StoryExperienceMode,
+    StoryReplayPolicy,
+    StoryChoicePresentation,
+    PostEndingMessageMode,
     StoryNodePresentationKind,
     DecisionPredicateKind,
 )
@@ -113,6 +122,8 @@ def _story_to_payload(story: ReviewedStory) -> dict[str, Any]:
         "title": story.title,
         "summary": story.summary,
         "kind": story.kind.value,
+        "experience_mode": story.experience_mode.value,
+        "replay_policy": story.replay_policy.value,
         "publication_status": story.publication_status.value,
         "focus_character_id": story.focus_character_id,
         "participants": [
@@ -121,8 +132,20 @@ def _story_to_payload(story: ReviewedStory) -> dict[str, Any]:
                 "current_situation": participant.current_situation,
                 "opening_line": participant.opening_line,
                 "can_start": participant.can_start,
+                "location_label": participant.location_label,
+                "arrival_narration": participant.arrival_narration,
+                "visit_required_flags": list(participant.visit_required_flags),
+                "visit_set_flags": list(participant.visit_set_flags),
+                "knowledge_entry_ids": list(participant.knowledge_entry_ids),
             }
             for participant in story.participants
+        ],
+        "historical_reference_unlocks": [
+            {
+                "entry_id": unlock.entry_id,
+                "required_flags": list(unlock.required_flags),
+            }
+            for unlock in story.historical_reference_unlocks
         ],
         "entry_chapter_id": story.entry_chapter_id,
         "chapters": [_chapter_to_payload(chapter) for chapter in story.chapters],
@@ -131,6 +154,9 @@ def _story_to_payload(story: ReviewedStory) -> dict[str, Any]:
                 "id": ending.id,
                 "title": ending.title,
                 "summary": ending.summary,
+                "post_ending_message_mode": ending.post_ending_message_mode.value,
+                "unanswered_reply": ending.unanswered_reply,
+                "post_ending_context": ending.post_ending_context,
             }
             for ending in story.endings
         ],
@@ -153,6 +179,8 @@ def _chapter_to_payload(chapter: StoryChapter) -> dict[str, Any]:
                 "presentation_kind": node.presentation_kind.value,
                 "character_id": node.character_id,
                 "narration": node.narration,
+                "choice_presentation": node.choice_presentation.value,
+                "confirmation_prompt": node.confirmation_prompt,
                 "choices": [_choice_to_payload(choice) for choice in node.choices],
                 "ending_id": node.ending_id,
             }
@@ -437,9 +465,12 @@ def _story(raw_value: object, index: int) -> ReviewedStory:
             "title",
             "summary",
             "kind",
+            "experience_mode",
+            "replay_policy",
             "publication_status",
             "focus_character_id",
             "participants",
+            "historical_reference_unlocks",
             "entry_chapter_id",
             "chapters",
             "endings",
@@ -451,6 +482,16 @@ def _story(raw_value: object, index: int) -> ReviewedStory:
         title=_text(value["title"], f"{path}.title"),
         summary=_text(value["summary"], f"{path}.summary"),
         kind=_enum(StoryKind, value["kind"], f"{path}.kind"),
+        experience_mode=_enum(
+            StoryExperienceMode,
+            value["experience_mode"],
+            f"{path}.experience_mode",
+        ),
+        replay_policy=_enum(
+            StoryReplayPolicy,
+            value["replay_policy"],
+            f"{path}.replay_policy",
+        ),
         publication_status=_enum(
             PublicationStatus,
             value["publication_status"],
@@ -463,6 +504,15 @@ def _story(raw_value: object, index: int) -> ReviewedStory:
             _story_participant(item, participant_index, path)
             for participant_index, item in enumerate(
                 _sequence(value["participants"], f"{path}.participants")
+            )
+        ),
+        historical_reference_unlocks=tuple(
+            _historical_reference_unlock(item, unlock_index, path)
+            for unlock_index, item in enumerate(
+                _sequence(
+                    value["historical_reference_unlocks"],
+                    f"{path}.historical_reference_unlocks",
+                )
             )
         ),
         entry_chapter_id=_text(value["entry_chapter_id"], f"{path}.entry_chapter_id"),
@@ -499,7 +549,17 @@ def _story_participant(
     value = _object(
         raw_value,
         path,
-        required=("character_id", "current_situation", "opening_line", "can_start"),
+        required=(
+            "character_id",
+            "current_situation",
+            "opening_line",
+            "can_start",
+            "location_label",
+            "arrival_narration",
+            "visit_required_flags",
+            "visit_set_flags",
+            "knowledge_entry_ids",
+        ),
     )
     return StoryCharacterParticipation(
         character_id=_text(value["character_id"], f"{path}.character_id"),
@@ -508,6 +568,39 @@ def _story_participant(
         ),
         opening_line=_text(value["opening_line"], f"{path}.opening_line"),
         can_start=_boolean(value["can_start"], f"{path}.can_start"),
+        location_label=_text(value["location_label"], f"{path}.location_label"),
+        arrival_narration=_text(
+            value["arrival_narration"], f"{path}.arrival_narration"
+        ),
+        visit_required_flags=_text_tuple(
+            value["visit_required_flags"], f"{path}.visit_required_flags"
+        ),
+        visit_set_flags=_text_tuple(
+            value["visit_set_flags"], f"{path}.visit_set_flags"
+        ),
+        knowledge_entry_ids=_text_tuple(
+            value["knowledge_entry_ids"], f"{path}.knowledge_entry_ids"
+        ),
+    )
+
+
+def _historical_reference_unlock(
+    raw_value: object,
+    index: int,
+    story_path: str,
+) -> HistoricalReferenceUnlock:
+    """Decode one indexed story unlock and return its authored entry and flag IDs."""
+    path = f"{story_path}.historical_reference_unlocks[{index}]"
+    value = _object(
+        raw_value,
+        path,
+        required=("entry_id", "required_flags"),
+    )
+    return HistoricalReferenceUnlock(
+        entry_id=_text(value["entry_id"], f"{path}.entry_id"),
+        required_flags=_text_tuple(
+            value["required_flags"], f"{path}.required_flags"
+        ),
     )
 
 
@@ -541,6 +634,8 @@ def _node(raw_value: object, index: int, chapter_path: str) -> StoryNode:
             "presentation_kind",
             "character_id",
             "narration",
+            "choice_presentation",
+            "confirmation_prompt",
             "choices",
             "ending_id",
         ),
@@ -554,6 +649,14 @@ def _node(raw_value: object, index: int, chapter_path: str) -> StoryNode:
         ),
         character_id=_optional_text(value["character_id"], f"{path}.character_id"),
         narration=_text(value["narration"], f"{path}.narration"),
+        choice_presentation=_enum(
+            StoryChoicePresentation,
+            value["choice_presentation"],
+            f"{path}.choice_presentation",
+        ),
+        confirmation_prompt=_optional_text(
+            value["confirmation_prompt"], f"{path}.confirmation_prompt"
+        ),
         choices=tuple(
             _choice(item, choice_index, path)
             for choice_index, item in enumerate(
@@ -620,11 +723,33 @@ def _relationship_effect(
 
 def _ending(raw_value: object, index: int, story_path: str) -> StoryEnding:
     path = f"{story_path}.endings[{index}]"
-    value = _object(raw_value, path, required=("id", "title", "summary"))
+    value = _object(
+        raw_value,
+        path,
+        required=(
+            "id",
+            "title",
+            "summary",
+            "post_ending_message_mode",
+            "unanswered_reply",
+            "post_ending_context",
+        ),
+    )
     return StoryEnding(
         id=_text(value["id"], f"{path}.id"),
         title=_text(value["title"], f"{path}.title"),
         summary=_text(value["summary"], f"{path}.summary"),
+        post_ending_message_mode=_enum(
+            PostEndingMessageMode,
+            value["post_ending_message_mode"],
+            f"{path}.post_ending_message_mode",
+        ),
+        unanswered_reply=_optional_text(
+            value["unanswered_reply"], f"{path}.unanswered_reply"
+        ),
+        post_ending_context=_optional_trimmed_text(
+            value["post_ending_context"], f"{path}.post_ending_context"
+        ),
     )
 
 
@@ -814,6 +939,16 @@ def _optional_text(value: object, path: str) -> str | None:
     if value is None:
         return None
     return _text(value, path)
+
+
+def _optional_trimmed_text(value: object, path: str) -> str | None:
+    """Decode nullable text at path and return it only when non-empty and trimmed."""
+    if value is None:
+        return None
+    text = _text(value, path)
+    if text != text.strip():
+        _invalid(path, "不能包含首尾空白。")
+    return text
 
 
 def _text_tuple(value: object, path: str) -> tuple[str, ...]:

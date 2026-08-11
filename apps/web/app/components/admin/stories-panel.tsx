@@ -4,14 +4,18 @@ import type {
   CharacterDecision,
   DecisionPredicate,
   DecisionRule,
+  PostEndingMessageMode,
   PredicateValue,
   RelationshipEffect,
   ReviewedStory,
   StoryChapter,
   StoryChoice,
+  StoryChoicePresentation,
+  StoryExperienceMode,
   StoryKind,
   StoryNode,
   StoryNodePresentationKind,
+  StoryReplayPolicy,
   StoryWorldDocument,
 } from "../../lib/admin-content"
 import {
@@ -27,6 +31,27 @@ import {
 const STORY_KIND_LABELS: Record<StoryKind, string> = {
   growth: "成长故事",
   ensemble: "群像故事",
+}
+
+const EXPERIENCE_MODE_LABELS: Record<StoryExperienceMode, string> = {
+  character_growth: "角色成长",
+  narrative_story: "剧情故事",
+}
+
+const REPLAY_POLICY_LABELS: Record<StoryReplayPolicy, string> = {
+  replayable: "可重玩",
+  permanent_result: "永久结果",
+}
+
+const CHOICE_PRESENTATION_LABELS: Record<StoryChoicePresentation, string> = {
+  inline: "行内选择",
+  permanent_decision: "永久决定",
+}
+
+const POST_ENDING_MODE_LABELS: Record<PostEndingMessageMode, string> = {
+  llm: "角色回应",
+  unanswered: "无法答复",
+  disabled: "关闭消息",
 }
 
 const PRESENTATION_LABELS: Record<StoryNodePresentationKind, string> = {
@@ -118,6 +143,8 @@ export function StoriesPanel({
       title: "新故事",
       summary: "",
       kind: "growth",
+      experience_mode: "character_growth",
+      replay_policy: "replayable",
       publication_status: "draft",
       focus_character_id: firstCharacterId || null,
       participants: firstCharacterId ? [{
@@ -125,7 +152,13 @@ export function StoriesPanel({
         current_situation: "",
         opening_line: "",
         can_start: true,
+        location_label: "",
+        arrival_narration: "",
+        visit_required_flags: [],
+        visit_set_flags: [],
+        knowledge_entry_ids: [],
       }] : [],
+      historical_reference_unlocks: [],
       entry_chapter_id: chapterId,
       chapters: [{
         id: chapterId,
@@ -136,6 +169,8 @@ export function StoriesPanel({
           presentation_kind: "system",
           character_id: null,
           narration: "",
+          choice_presentation: "inline",
+          confirmation_prompt: null,
           choices: [],
           ending_id: null,
         }],
@@ -275,6 +310,40 @@ function StoryEditor({
               ))}
             </select>
           </Field>
+          <Field label="体验类型">
+            <select
+              onChange={(event) => onChange({
+                ...story,
+                experience_mode: event.target.value as StoryExperienceMode,
+              })}
+              value={story.experience_mode}
+            >
+              {(Object.keys(EXPERIENCE_MODE_LABELS) as StoryExperienceMode[]).map(
+                (mode) => (
+                  <option key={mode} value={mode}>
+                    {EXPERIENCE_MODE_LABELS[mode]}
+                  </option>
+                ),
+              )}
+            </select>
+          </Field>
+          <Field label="重玩策略">
+            <select
+              onChange={(event) => onChange({
+                ...story,
+                replay_policy: event.target.value as StoryReplayPolicy,
+              })}
+              value={story.replay_policy}
+            >
+              {(Object.keys(REPLAY_POLICY_LABELS) as StoryReplayPolicy[]).map(
+                (policy) => (
+                  <option key={policy} value={policy}>
+                    {REPLAY_POLICY_LABELS[policy]}
+                  </option>
+                ),
+              )}
+            </select>
+          </Field>
           <Field label="焦点角色">
             <select
               disabled={story.kind !== "growth"}
@@ -324,6 +393,11 @@ function StoryEditor({
       </section>
 
       <ParticipantsEditor story={story} storyWorld={storyWorld} onChange={onChange} />
+      <HistoricalReferenceUnlocksEditor
+        story={story}
+        storyWorld={storyWorld}
+        onChange={onChange}
+      />
       <ChaptersEditor story={story} storyWorld={storyWorld} onChange={onChange} />
       <EndingsEditor story={story} onChange={onChange} />
       <DecisionsEditor story={story} storyWorld={storyWorld} onChange={onChange} />
@@ -374,6 +448,11 @@ function ParticipantsEditor({
               current_situation: "",
               opening_line: "",
               can_start: false,
+              location_label: "",
+              arrival_narration: "",
+              visit_required_flags: [],
+              visit_set_flags: [],
+              knowledge_entry_ids: [],
             }])
           }}
           type="button"
@@ -437,6 +516,19 @@ function ParticipantsEditor({
               />
               <span>允许从此角色开始</span>
             </label>
+            <Field label="地点">
+              <input
+                onChange={(event) => {
+                  const participants = [...story.participants]
+                  participants[index] = {
+                    ...participant,
+                    location_label: event.target.value,
+                  }
+                  updateParticipants(participants)
+                }}
+                value={participant.location_label}
+              />
+            </Field>
             <Field label="当前处境" wide>
               <textarea
                 onChange={(event) => {
@@ -465,6 +557,140 @@ function ParticipantsEditor({
                 value={participant.opening_line}
               />
             </Field>
+            <Field label="到访叙事" wide>
+              <textarea
+                onChange={(event) => {
+                  const participants = [...story.participants]
+                  participants[index] = {
+                    ...participant,
+                    arrival_narration: event.target.value,
+                  }
+                  updateParticipants(participants)
+                }}
+                rows={3}
+                value={participant.arrival_narration}
+              />
+            </Field>
+            <FlagField
+              label="到访所需标记"
+              onChange={(visit_required_flags) => {
+                const participants = [...story.participants]
+                participants[index] = { ...participant, visit_required_flags }
+                updateParticipants(participants)
+              }}
+              values={participant.visit_required_flags}
+            />
+            <FlagField
+              label="到访写入标记"
+              onChange={(visit_set_flags) => {
+                const participants = [...story.participants]
+                participants[index] = { ...participant, visit_set_flags }
+                updateParticipants(participants)
+              }}
+              values={participant.visit_set_flags}
+            />
+            <FlagField
+              label="角色知识条目"
+              onChange={(knowledge_entry_ids) => {
+                const participants = [...story.participants]
+                participants[index] = { ...participant, knowledge_entry_ids }
+                updateParticipants(participants)
+              }}
+              values={participant.knowledge_entry_ids}
+            />
+          </div>
+        </article>
+      ))}
+    </section>
+  )
+}
+
+/** Render one story's unlock editor and emit complete updates through onChange. */
+function HistoricalReferenceUnlocksEditor({
+  story,
+  storyWorld,
+  onChange,
+}: {
+  story: ReviewedStory
+  storyWorld: StoryWorldDocument
+  onChange: (story: ReviewedStory) => void
+}) {
+  const referenceEntries = storyWorld.canon_entries.filter(
+    (entry) => entry.category !== "story_setting",
+  )
+  const usedEntryIds = new Set(
+    story.historical_reference_unlocks.map((unlock) => unlock.entry_id),
+  )
+  const availableEntry = referenceEntries.find(
+    (entry) => !usedEntryIds.has(entry.id),
+  )
+  const updateUnlocks = (
+    historical_reference_unlocks: ReviewedStory["historical_reference_unlocks"],
+  ) => onChange({ ...story, historical_reference_unlocks })
+
+  return (
+    <section className="admin-stack is-compact">
+      <div className="admin-section-toolbar">
+        <h2>历史资料解锁</h2>
+        <button
+          className="admin-button is-quiet"
+          disabled={!availableEntry}
+          onClick={() => {
+            if (!availableEntry) return
+            updateUnlocks([
+              ...story.historical_reference_unlocks,
+              { entry_id: availableEntry.id, required_flags: [] },
+            ])
+          }}
+          type="button"
+        >
+          <Plus aria-hidden="true" size={16} />
+          新增资料
+        </button>
+      </div>
+      {story.historical_reference_unlocks.map((unlock, index) => (
+        <article className="admin-form-card" key={unlock.entry_id}>
+          <div className="admin-card-heading">
+            <code>{unlock.entry_id}</code>
+            <ItemActions
+              index={index}
+              length={story.historical_reference_unlocks.length}
+              onDelete={() => updateUnlocks(
+                story.historical_reference_unlocks.filter(
+                  (_, unlockIndex) => unlockIndex !== index,
+                ),
+              )}
+              onMove={(from, to) => updateUnlocks(
+                moveItem(story.historical_reference_unlocks, from, to),
+              )}
+            />
+          </div>
+          <div className="admin-form-grid">
+            <Field label="资料条目">
+              <select
+                onChange={(event) => {
+                  const unlocks = [...story.historical_reference_unlocks]
+                  unlocks[index] = { ...unlock, entry_id: event.target.value }
+                  updateUnlocks(unlocks)
+                }}
+                value={unlock.entry_id}
+              >
+                {referenceEntries.flatMap((entry) => (
+                  entry.id === unlock.entry_id || !usedEntryIds.has(entry.id)
+                    ? [<option key={entry.id} value={entry.id}>{entry.id}</option>]
+                    : []
+                ))}
+              </select>
+            </Field>
+            <FlagField
+              label="解锁所需标记"
+              onChange={(required_flags) => {
+                const unlocks = [...story.historical_reference_unlocks]
+                unlocks[index] = { ...unlock, required_flags }
+                updateUnlocks(unlocks)
+              }}
+              values={unlock.required_flags}
+            />
           </div>
         </article>
       ))}
@@ -507,6 +733,8 @@ function ChaptersEditor({
         presentation_kind: "system",
         character_id: null,
         narration: "",
+        choice_presentation: "inline",
+        confirmation_prompt: null,
         choices: [],
         ending_id: story.endings[0]?.id ?? null,
       }],
@@ -588,6 +816,8 @@ function ChaptersEditor({
                   presentation_kind: "system",
                   character_id: null,
                   narration: "",
+                  choice_presentation: "inline",
+                  confirmation_prompt: null,
                   choices: [],
                   ending_id: story.endings[0]?.id ?? null,
                 }],
@@ -726,12 +956,44 @@ function NodeEditor({
               ))}
             </select>
           </Field>
+          <Field label="选择呈现">
+            <select
+              disabled={node.ending_id !== null}
+              onChange={(event) => {
+                const choicePresentation = event.target.value as StoryChoicePresentation
+                onChange({
+                  ...node,
+                  choice_presentation: choicePresentation,
+                  confirmation_prompt: choicePresentation === "permanent_decision"
+                    ? node.confirmation_prompt ?? ""
+                    : null,
+                  choices: choicePresentation === "permanent_decision"
+                    ? node.choices.map((choice) => ({ ...choice, is_key: true }))
+                    : node.choices,
+                })
+              }}
+              value={node.choice_presentation}
+            >
+              {(Object.keys(CHOICE_PRESENTATION_LABELS) as StoryChoicePresentation[])
+                .map((presentation) => (
+                  <option key={presentation} value={presentation}>
+                    {CHOICE_PRESENTATION_LABELS[presentation]}
+                  </option>
+                ))}
+            </select>
+          </Field>
           <Field label="结局">
             <select
               onChange={(event) => onChange({
                 ...node,
                 ending_id: event.target.value || null,
                 choices: event.target.value ? [] : node.choices,
+                choice_presentation: event.target.value
+                  ? "inline"
+                  : node.choice_presentation,
+                confirmation_prompt: event.target.value
+                  ? null
+                  : node.confirmation_prompt,
               })}
               value={node.ending_id ?? ""}
             >
@@ -740,6 +1002,17 @@ function NodeEditor({
                 <option key={ending.id} value={ending.id}>{ending.title}</option>
               ))}
             </select>
+          </Field>
+          <Field label="确认文案" wide>
+            <textarea
+              disabled={node.choice_presentation !== "permanent_decision"}
+              onChange={(event) => onChange({
+                ...node,
+                confirmation_prompt: event.target.value,
+              })}
+              rows={2}
+              value={node.confirmation_prompt ?? ""}
+            />
           </Field>
           <Field label="内容" wide>
             <textarea
@@ -761,7 +1034,7 @@ function NodeEditor({
                     id: newContentId("choice"),
                     label: "",
                     next_node_id: node.id,
-                    is_key: false,
+                    is_key: node.choice_presentation === "permanent_decision",
                     required_flags: [],
                     blocked_flags: [],
                     set_flags: [],
@@ -781,6 +1054,7 @@ function NodeEditor({
                   choice={choice}
                   choiceCount={node.choices.length}
                   choiceIndex={choiceIndex}
+                  isKeyLocked={node.choice_presentation === "permanent_decision"}
                   key={choice.id}
                   participantCharacterIds={participantCharacterIds}
                   storyWorld={storyWorld}
@@ -812,6 +1086,7 @@ function ChoiceEditor({
   choice,
   choiceCount,
   choiceIndex,
+  isKeyLocked,
   participantCharacterIds,
   storyWorld,
   allNodes,
@@ -822,6 +1097,7 @@ function ChoiceEditor({
   choice: StoryChoice
   choiceCount: number
   choiceIndex: number
+  isKeyLocked: boolean
   participantCharacterIds: string[]
   storyWorld: StoryWorldDocument
   allNodes: { id: string; label: string }[]
@@ -862,7 +1138,8 @@ function ChoiceEditor({
         </Field>
         <label className="admin-check-field">
           <input
-            checked={choice.is_key}
+            checked={isKeyLocked || choice.is_key}
+            disabled={isKeyLocked}
             onChange={(event) => onChange({ ...choice, is_key: event.target.checked })}
             type="checkbox"
           />
@@ -918,6 +1195,9 @@ function EndingsEditor({
             id: newContentId("ending"),
             title: "新结局",
             summary: "",
+            post_ending_message_mode: "disabled",
+            unanswered_reply: null,
+            post_ending_context: null,
           }])}
           type="button"
         >
@@ -949,6 +1229,33 @@ function EndingsEditor({
                 value={ending.title}
               />
             </Field>
+            <Field label="结局后消息">
+              <select
+                onChange={(event) => {
+                  const endings = [...story.endings]
+                  const postEndingMessageMode = event.target.value as PostEndingMessageMode
+                  endings[index] = {
+                    ...ending,
+                    post_ending_message_mode: postEndingMessageMode,
+                    unanswered_reply: postEndingMessageMode === "unanswered"
+                      ? ending.unanswered_reply ?? ""
+                      : null,
+                    post_ending_context: postEndingMessageMode === "llm"
+                      ? ending.post_ending_context
+                      : null,
+                  }
+                  updateEndings(endings)
+                }}
+                value={ending.post_ending_message_mode}
+              >
+                {(Object.keys(POST_ENDING_MODE_LABELS) as PostEndingMessageMode[])
+                  .map((mode) => (
+                    <option key={mode} value={mode}>
+                      {POST_ENDING_MODE_LABELS[mode]}
+                    </option>
+                  ))}
+              </select>
+            </Field>
             <Field label="结局摘要" wide>
               <textarea
                 onChange={(event) => {
@@ -958,6 +1265,44 @@ function EndingsEditor({
                 }}
                 rows={3}
                 value={ending.summary}
+              />
+            </Field>
+            <Field label="无法答复提示" wide>
+              <textarea
+                disabled={ending.post_ending_message_mode !== "unanswered"}
+                onChange={(event) => {
+                  const endings = [...story.endings]
+                  endings[index] = {
+                    ...ending,
+                    unanswered_reply: event.target.value,
+                  }
+                  updateEndings(endings)
+                }}
+                rows={2}
+                value={ending.unanswered_reply ?? ""}
+              />
+            </Field>
+            <Field label="结局后角色上下文" wide>
+              <textarea
+                disabled={ending.post_ending_message_mode !== "llm"}
+                onBlur={(event) => {
+                  const endings = [...story.endings]
+                  endings[index] = {
+                    ...ending,
+                    post_ending_context: event.target.value.trim() || null,
+                  }
+                  updateEndings(endings)
+                }}
+                onChange={(event) => {
+                  const endings = [...story.endings]
+                  endings[index] = {
+                    ...ending,
+                    post_ending_context: event.target.value || null,
+                  }
+                  updateEndings(endings)
+                }}
+                rows={4}
+                value={ending.post_ending_context ?? ""}
               />
             </Field>
           </div>

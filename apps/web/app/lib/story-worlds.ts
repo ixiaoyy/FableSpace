@@ -26,6 +26,12 @@ export type StoryWorldCharacterDetail = {
 
 export type StoryKind = "growth" | "ensemble"
 
+export type StoryExperienceMode = "character_growth" | "narrative_story"
+
+export type StoryReplayPolicy = "replayable" | "permanent_result"
+
+export type PostEndingMessageMode = "llm" | "unanswered" | "disabled"
+
 export type StoryNodePresentationKind = "character" | "system" | "action"
 
 export type PublishedStory = {
@@ -33,10 +39,11 @@ export type PublishedStory = {
   title: string
   summary: string
   kind: StoryKind
+  experience_mode: StoryExperienceMode
+  replay_policy: StoryReplayPolicy
   current_situation: string
   opening_preview: string
   focus_character_id: string | null
-  participant_character_ids: string[]
 }
 
 export type PlayerRole = {
@@ -60,11 +67,9 @@ export type RelationshipStage = {
 
 export type HistoricalReferenceCategory =
   | "fixed_fact"
-  | "story_setting"
   | "needs_verification"
 
 export type HistoricalReference = {
-  stage: "opening" | "investigation" | "outcome"
   unlocked_count: number
   total_count: number
   entries: Array<{
@@ -83,6 +88,8 @@ export type StoryRun = {
     id: string
     title: string
     kind: StoryKind
+    experience_mode: StoryExperienceMode
+    replay_policy: StoryReplayPolicy
   }
   player_role: PlayerRole
   current_node: {
@@ -103,6 +110,25 @@ export type StoryRun = {
   }>
   relationship: RelationshipStage
   historical_reference: HistoricalReference
+  participants: Array<{
+    id: string
+    name: string
+    portrait_url: string | null
+    location_label: string
+    is_available: boolean
+    is_visited: boolean
+    is_active: boolean
+  }>
+  active_character: {
+    id: string
+    name: string
+    portrait_url: string | null
+  } | null
+  decision: {
+    confirmation_prompt: string
+    choices: Array<{ id: string; label: string }>
+  } | null
+  post_ending_message_mode: PostEndingMessageMode | null
   ending: { id: string; title: string; summary: string } | null
   next_character: { id: string; name: string } | null
   completed_run_summaries: Array<{
@@ -221,5 +247,18 @@ export async function chooseStoryPath(
   return (await readApiJson<RunResponse>(
     `${storyRuntimeBase(storyWorldId, storyId)}/${encodeURIComponent(runId)}/choices`,
     jsonInit("POST", { character_id: characterId, choice_id: choiceId }),
+  )).run
+}
+
+/** Visit one server-authorized story participant and return the reconciled private run. */
+export async function visitStoryCharacter(
+  storyWorldId: string,
+  storyId: string,
+  runId: string,
+  characterId: string,
+) {
+  return (await readApiJson<RunResponse>(
+    `${storyRuntimeBase(storyWorldId, storyId)}/${encodeURIComponent(runId)}/visits`,
+    jsonInit("POST", { character_id: characterId }),
   )).run
 }

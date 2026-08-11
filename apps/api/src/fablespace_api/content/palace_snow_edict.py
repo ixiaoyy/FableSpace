@@ -7,7 +7,9 @@ from ..domain.story_world import (
     CanonCategory,
     CanonEntry,
     Character,
+    HistoricalReferenceUnlock,
     PlayerRole,
+    PostEndingMessageMode,
     PublicationStatus,
     RelationshipRules,
     RelationshipStage,
@@ -15,10 +17,13 @@ from ..domain.story_world import (
     StoryChapter,
     StoryCharacterParticipation,
     StoryChoice,
+    StoryChoicePresentation,
     StoryEnding,
+    StoryExperienceMode,
     StoryKind,
     StoryNode,
     StoryNodePresentationKind,
+    StoryReplayPolicy,
     StoryWorld,
 )
 
@@ -40,6 +45,19 @@ TANG_WEN_2012 = "https://www.gdwx.fudan.edu.cn/tw/list.htm"
 GAO_LISHI_STUDY = (
     "https://lishiwenhua.snnu.edu.cn/pucheng/uploadfile/2020/0422/"
     "202109282219.pdf"
+)
+
+PALACE_CANON_ENTRY_IDS = (
+    "fact_xiantian_action_date",
+    "fact_gao_lishi_participated",
+    "fact_action_route",
+    "fact_taiping_outcome",
+    "fact_power_transfer",
+    "fact_official_accusations_are_contested",
+    "setting_player_roles",
+    "setting_record_devices",
+    "setting_dramatized_projection",
+    "setting_private_endings",
 )
 
 
@@ -235,6 +253,8 @@ PALACE_CHAPTER = StoryChapter(
                 "先天二年七月三日，武德殿外传令骤密。正史后来写下太平公主一方原定次日举兵；"
                 "眼下你能核对的只有人名、门次和每句话的来源。无论你怎样选择，宫门内的先制行动已经开始。"
             ),
+            choice_presentation=StoryChoicePresentation.INLINE,
+            confirmation_prompt=None,
             choices=(
                 _choice(
                     "choice_check_gate_sequence",
@@ -265,6 +285,8 @@ PALACE_CHAPTER = StoryChapter(
                 "后来的本纪列出高力士等人出武德殿、入虔化门的路线。"
                 "你手里的门次抄本是剧情设定：它能核对先后，却不能证明每个人当时心里所想。"
             ),
+            choice_presentation=StoryChoicePresentation.INLINE,
+            confirmation_prompt=None,
             choices=(
                 _choice(
                     "choice_record_seen_only",
@@ -289,6 +311,8 @@ PALACE_CHAPTER = StoryChapter(
                 "同一阵营在不同记载里被写作“同谋”“谋废”或“作乱”。"
                 "这些字能改变后世怎样理解人，却不是一份保存完整的口供。"
             ),
+            choice_presentation=StoryChoicePresentation.INLINE,
+            confirmation_prompt=None,
             choices=(
                 _choice(
                     "choice_attribute_charge",
@@ -313,6 +337,8 @@ PALACE_CHAPTER = StoryChapter(
                 "被传唤、守门和递送抄本的普通宫人挤在一张临时名单里。"
                 "他们是剧情中的原创普通人，不该因为靠近宫门就被写成史籍中没有的同党。"
             ),
+            choice_presentation=StoryChoicePresentation.INLINE,
+            confirmation_prompt=None,
             choices=(
                 _choice(
                     "choice_separate_attendants",
@@ -337,6 +363,8 @@ PALACE_CHAPTER = StoryChapter(
                 "虔化门一线的控制已经改变，史籍记萧至忠、岑羲等随后被处置。"
                 "你不能让这一切发生或不发生，只能决定自己的抄本是否把行动、指控和未知混成同一句话。"
             ),
+            choice_presentation=StoryChoicePresentation.INLINE,
+            confirmation_prompt=None,
             choices=(
                 _choice(
                     "choice_end_sequence",
@@ -378,6 +406,8 @@ PALACE_CHAPTER = StoryChapter(
                 f"{FIXED_XIANTIAN_OUTCOME}"
                 "你没有替任何真人补写一个无人能证实的念头。"
             ),
+            choice_presentation=StoryChoicePresentation.INLINE,
+            confirmation_prompt=None,
             choices=(),
             ending_id="ending_sequence_only",
         ),
@@ -390,6 +420,8 @@ PALACE_CHAPTER = StoryChapter(
                 f"{FIXED_XIANTIAN_OUTCOME}"
                 "但定性不再冒充你亲眼见过的密谋。"
             ),
+            choice_presentation=StoryChoicePresentation.INLINE,
+            confirmation_prompt=None,
             choices=(),
             ending_id="ending_attributed_charge",
         ),
@@ -402,6 +434,8 @@ PALACE_CHAPTER = StoryChapter(
                 f"{FIXED_XIANTIAN_OUTCOME}"
                 "而后来读到这页的人仍能看见正史之外存在证据缺口。"
             ),
+            choice_presentation=StoryChoicePresentation.INLINE,
+            confirmation_prompt=None,
             choices=(),
             ending_id="ending_parallel_accounts",
         ),
@@ -414,6 +448,8 @@ PALACE_CHAPTER = StoryChapter(
                 f"{FIXED_XIANTIAN_OUTCOME}"
                 "这些原创小人物却不必被你虚构成同党。"
             ),
+            choice_presentation=StoryChoicePresentation.INLINE,
+            confirmation_prompt=None,
             choices=(),
             ending_id="ending_attendant_record",
         ),
@@ -429,7 +465,7 @@ PALACE_STORY_WORLD = StoryWorld(
     ),
     genre="历史宫廷",
     publication_status=PublicationStatus.PUBLISHED,
-    content_version="palace-xiantian-coup-2026-08-05.1",
+    content_version="palace-xiantian-coup-2026-08-10.1",
     player_roles=(PALACE_PLAYER_ROLE, PALACE_MAID_PLAYER_ROLE),
     characters=(GAO_LISHI, TAIPING_PRINCESS),
     stories=(
@@ -441,6 +477,8 @@ PALACE_STORY_WORLD = StoryWorld(
                 "玩家只能核对记录如何形成，不能改写政变结局。"
             ),
             kind=StoryKind.ENSEMBLE,
+            experience_mode=StoryExperienceMode.NARRATIVE_STORY,
+            replay_policy=StoryReplayPolicy.REPLAYABLE,
             publication_status=PublicationStatus.PUBLISHED,
             focus_character_id=None,
             participants=(
@@ -449,12 +487,54 @@ PALACE_STORY_WORLD = StoryWorld(
                     current_situation=GAO_LISHI_CURRENT_SITUATION,
                     opening_line=GAO_LISHI_OPENING_LINE,
                     can_start=True,
+                    location_label="武德殿至虔化门",
+                    arrival_narration=(
+                        "武德殿至虔化门的行动次序仍须按史籍逐项核对；"
+                        "高力士只出现在已经审核的随行范围内。"
+                    ),
+                    visit_required_flags=(),
+                    visit_set_flags=(),
+                    knowledge_entry_ids=PALACE_CANON_ENTRY_IDS,
                 ),
                 StoryCharacterParticipation(
                     character_id=TAIPING_PRINCESS_CHARACTER_ID,
                     current_situation=TAIPING_PRINCESS_CURRENT_SITUATION,
                     opening_line=TAIPING_PRINCESS_OPENING_LINE,
                     can_start=True,
+                    location_label="公主府消息线",
+                    arrival_narration=(
+                        "宫城异动的消息已经传开；太平公主的精确位置与逐句反应"
+                        "仍没有可核验的记录。"
+                    ),
+                    visit_required_flags=(),
+                    visit_set_flags=(),
+                    knowledge_entry_ids=PALACE_CANON_ENTRY_IDS,
+                ),
+            ),
+            historical_reference_unlocks=(
+                HistoricalReferenceUnlock(
+                    entry_id="fact_xiantian_action_date",
+                    required_flags=(),
+                ),
+                HistoricalReferenceUnlock(
+                    entry_id="fact_gao_lishi_participated",
+                    required_flags=(),
+                ),
+                HistoricalReferenceUnlock(
+                    entry_id="fact_action_route",
+                    required_flags=(),
+                ),
+                HistoricalReferenceUnlock(
+                    entry_id="fact_taiping_outcome",
+                    required_flags=(),
+                ),
+                HistoricalReferenceUnlock(
+                    entry_id="fact_power_transfer",
+                    required_flags=(),
+                ),
+                HistoricalReferenceUnlock(
+                    entry_id="fact_official_accusations_are_contested",
+                    required_flags=(),
                 ),
             ),
             entry_chapter_id=PALACE_CHAPTER.id,
@@ -468,6 +548,9 @@ PALACE_STORY_WORLD = StoryWorld(
                         f"{FIXED_XIANTIAN_OUTCOME}"
                         "公开历史没有改变。"
                     ),
+                    post_ending_message_mode=PostEndingMessageMode.DISABLED,
+                    unanswered_reply=None,
+                    post_ending_context=None,
                 ),
                 StoryEnding(
                     id="ending_attributed_charge",
@@ -476,6 +559,9 @@ PALACE_STORY_WORLD = StoryWorld(
                         "正史指控被保留，也被注明来源与立场。"
                         f"{FIXED_XIANTIAN_OUTCOME}"
                     ),
+                    post_ending_message_mode=PostEndingMessageMode.DISABLED,
+                    unanswered_reply=None,
+                    post_ending_context=None,
                 ),
                 StoryEnding(
                     id="ending_parallel_accounts",
@@ -484,6 +570,9 @@ PALACE_STORY_WORLD = StoryWorld(
                         "冲突记录被并列保存，没有被合成一个万能真相。"
                         f"{FIXED_XIANTIAN_OUTCOME}"
                     ),
+                    post_ending_message_mode=PostEndingMessageMode.DISABLED,
+                    unanswered_reply=None,
+                    post_ending_context=None,
                 ),
                 StoryEnding(
                     id="ending_attendant_record",
@@ -492,6 +581,9 @@ PALACE_STORY_WORLD = StoryWorld(
                         "你只保护原创普通宫人的记录，不改变任何真人行动。"
                         f"{FIXED_XIANTIAN_OUTCOME}"
                     ),
+                    post_ending_message_mode=PostEndingMessageMode.DISABLED,
+                    unanswered_reply=None,
+                    post_ending_context=None,
                 ),
             ),
             character_decisions=(),

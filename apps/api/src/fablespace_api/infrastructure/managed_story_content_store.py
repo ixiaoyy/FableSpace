@@ -12,7 +12,13 @@ from ..content.story_world_codec import (
     story_world_from_payload,
     story_world_to_payload,
 )
-from ..domain.story_world import StoryWorld, StoryWorldRegistry
+from ..domain.story_world import (
+    PublicationStatus,
+    StoryContentValidationError,
+    StoryReplayPolicy,
+    StoryWorld,
+    StoryWorldRegistry,
+)
 from .database import Database
 from .managed_content_models import (
     ManagedMediaAssetModel,
@@ -155,6 +161,7 @@ class ManagedStoryWorldStore:
             )
             if target is None:
                 raise KeyError(story_world_id)
+            previous = story_world_from_payload(target.payload_json)
             worlds = [
                 candidate
                 if row.story_world_id == story_world_id
@@ -162,6 +169,7 @@ class ManagedStoryWorldStore:
                 for row in rows
             ]
             StoryWorldRegistry(worlds)
+            _validate_permanent_story_update(previous, candidate)
             target.payload_json = story_world_to_payload(candidate)
             target.updated_at = now
             session.flush()
@@ -222,6 +230,142 @@ class ManagedMediaAssetStore:
 def _new_content_version() -> str:
     now = datetime.utcnow().strftime("%Y%m%dT%H%M%S%fZ")
     return f"admin-{now}-{uuid4().hex[:8]}"
+
+
+def _validate_permanent_story_update(
+    previous: StoryWorld,
+    candidate: StoryWorld,
+) -> None:
+    """Protect published replay policy and every retained permanent-result contract."""
+    candidate_stories = {
+        story.id: (story, story_index)
+        for story_index, story in enumerate(candidate.stories)
+    }
+    candidate_role_ids = {role.id for role in candidate.player_roles}
+    for previous_story in previous.stories:
+        current = candidate_stories.get(previous_story.id)
+        if (
+            previous_story.publication_status is not PublicationStatus.DRAFT
+            and current is not None
+            and current[0].replay_policy is not previous_story.replay_policy
+        ):
+            _, current_story_index = current
+            raise StoryContentValidationError(
+                "permanent_story_contract_changed",
+                f"story_world.stories[{current_story_index}].replay_policy",
+                f"Published or archived story {previous_story.id!r} cannot change replay policy; publish a new Story ID instead.",
+            )
+        if (
+            previous_story.publication_status is PublicationStatus.DRAFT
+            or previous_story.replay_policy is not StoryReplayPolicy.PERMANENT_RESULT
+        ):
+            continue
+        if current is None:
+            raise StoryContentValidationError(
+                "permanent_story_contract_changed",
+                "story_world.stories",
+                f"Published or archived permanent-result story {previous_story.id!r} cannot be removed or reused.",
+            )
+        current_story, current_story_index = current
+        current_story_path = f"story_world.stories[{current_story_index}]"
+        if current_story.publication_status is PublicationStatus.DRAFT:
+            raise StoryContentValidationError(
+                "permanent_story_contract_changed",
+                f"{current_story_path}.publication_status",
+                "A published or archived permanent-result story cannot return to draft.",
+            )
+        if current_story.replay_policy is not StoryReplayPolicy.PERMANENT_RESULT:
+            raise StoryContentValidationError(
+                "permanent_story_contract_changed",
+                f"{current_story_path}.replay_policy",
+                "A published or archived permanent-result story cannot become replayable.",
+            )
+        if current_story.experience_mode is not previous_story.experience_mode:
+            raise StoryContentValidationError(
+                "permanent_story_contract_changed",
+                f"{current_story_path}.experience_mode",
+                "A permanent-result story cannot change its experience mode.",
+            )
+        if current_story.kind is not previous_story.kind:
+            raise StoryContentValidationError(
+                "permanent_story_contract_changed",
+                f"{current_story_path}.kind",
+                "A permanent-result story cannot change its structural kind.",
+            )
+        if current_story.focus_character_id != previous_story.focus_character_id:
+            raise StoryContentValidationError(
+                "permanent_story_contract_changed",
+                f"{current_story_path}.focus_character_id",
+                "A permanent-result story cannot change its post-ending Character.",
+            )
+        missing_role_ids = [
+            role.id
+            for role in previous.player_roles
+            if role.id not in candidate_role_ids
+        ]
+        if missing_role_ids:
+            raise StoryContentValidationError(
+                "permanent_story_contract_changed",
+                "story_world.player_roles",
+                "PlayerRole IDs used by a permanent-result story cannot be removed.",
+            )
+        current_participants = {
+            participant.character_id: participant
+            for participant in current_story.participants
+        }
+        for previous_participant in previous_story.participants:
+            current_participant = current_participants.get(
+                previous_participant.character_id
+            )
+            if current_participant is None:
+                raise StoryContentValidationError(
+                    "permanent_story_contract_changed",
+                    f"{current_story_path}.participants",
+                    "Character participants referenced by sealed results cannot be removed.",
+                )
+            if current_participant.can_start is not previous_participant.can_start:
+                raise StoryContentValidationError(
+                    "permanent_story_contract_changed",
+                    f"{current_story_path}.participants",
+                    "A retained permanent-story participant cannot change public entry status.",
+                )
+        current_endings = {
+            ending.id: (ending, ending_index)
+            for ending_index, ending in enumerate(current_story.endings)
+        }
+        for previous_ending in previous_story.endings:
+            current_ending = current_endings.get(previous_ending.id)
+            if current_ending is None:
+                raise StoryContentValidationError(
+                    "permanent_story_contract_changed",
+                    f"{current_story_path}.endings",
+                    f"Ending {previous_ending.id!r} cannot be removed or reused after permanent results are published.",
+                )
+            ending, ending_index = current_ending
+            if (
+                ending.post_ending_message_mode
+                is not previous_ending.post_ending_message_mode
+            ):
+                raise StoryContentValidationError(
+                    "permanent_story_contract_changed",
+                    f"{current_story_path}.endings[{ending_index}].post_ending_message_mode",
+                    f"Ending {previous_ending.id!r} cannot change its post-ending message mode.",
+                )
+            if (
+                ending.title != previous_ending.title
+                or ending.summary != previous_ending.summary
+            ):
+                raise StoryContentValidationError(
+                    "permanent_story_contract_changed",
+                    f"{current_story_path}.endings[{ending_index}]",
+                    f"Ending {previous_ending.id!r} cannot be reused with a different title or summary.",
+                )
+            if ending.unanswered_reply != previous_ending.unanswered_reply:
+                raise StoryContentValidationError(
+                    "permanent_story_contract_changed",
+                    f"{current_story_path}.endings[{ending_index}].unanswered_reply",
+                    f"Ending {previous_ending.id!r} cannot change its deterministic reply.",
+                )
 
 
 __all__ = [

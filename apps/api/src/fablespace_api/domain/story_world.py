@@ -25,6 +25,27 @@ class StoryKind(str, Enum):
     ENSEMBLE = "ensemble"
 
 
+class StoryExperienceMode(str, Enum):
+    CHARACTER_GROWTH = "character_growth"
+    NARRATIVE_STORY = "narrative_story"
+
+
+class StoryReplayPolicy(str, Enum):
+    REPLAYABLE = "replayable"
+    PERMANENT_RESULT = "permanent_result"
+
+
+class StoryChoicePresentation(str, Enum):
+    INLINE = "inline"
+    PERMANENT_DECISION = "permanent_decision"
+
+
+class PostEndingMessageMode(str, Enum):
+    LLM = "llm"
+    UNANSWERED = "unanswered"
+    DISABLED = "disabled"
+
+
 class StoryNodePresentationKind(str, Enum):
     CHARACTER = "character"
     SYSTEM = "system"
@@ -122,6 +143,8 @@ class StoryNode:
     presentation_kind: StoryNodePresentationKind
     character_id: str | None
     narration: str
+    choice_presentation: StoryChoicePresentation
+    confirmation_prompt: str | None
     choices: tuple[StoryChoice, ...]
     ending_id: str | None
 
@@ -139,6 +162,9 @@ class StoryEnding:
     id: str
     title: str
     summary: str
+    post_ending_message_mode: PostEndingMessageMode
+    unanswered_reply: str | None
+    post_ending_context: str | None
 
 
 @dataclass(frozen=True, slots=True)
@@ -147,6 +173,17 @@ class StoryCharacterParticipation:
     current_situation: str
     opening_line: str
     can_start: bool
+    location_label: str
+    arrival_narration: str
+    visit_required_flags: tuple[str, ...]
+    visit_set_flags: tuple[str, ...]
+    knowledge_entry_ids: tuple[str, ...]
+
+
+@dataclass(frozen=True, slots=True)
+class HistoricalReferenceUnlock:
+    entry_id: str
+    required_flags: tuple[str, ...]
 
 
 @dataclass(frozen=True, slots=True)
@@ -186,9 +223,12 @@ class ReviewedStory:
     title: str
     summary: str
     kind: StoryKind
+    experience_mode: StoryExperienceMode
+    replay_policy: StoryReplayPolicy
     publication_status: PublicationStatus
     focus_character_id: str | None
     participants: tuple[StoryCharacterParticipation, ...]
+    historical_reference_unlocks: tuple[HistoricalReferenceUnlock, ...]
     entry_chapter_id: str
     chapters: tuple[StoryChapter, ...]
     endings: tuple[StoryEnding, ...]
@@ -362,7 +402,12 @@ def _validate_story_world(
         story_path = f"{path}.stories[{story_index}]"
         _require_instance(story, ReviewedStory, story_path)
         _record_id(story_ids, story.id, f"{story_path}.id", "ReviewedStory")
-        _validate_reviewed_story(story, character_by_id, story_path)
+        _validate_reviewed_story(
+            story,
+            character_by_id,
+            canon_entries,
+            story_path,
+        )
         if story.publication_status is PublicationStatus.PUBLISHED:
             published_story_count += 1
 
@@ -521,6 +566,7 @@ def _validate_relationship_rules(rules: RelationshipRules, path: str) -> None:
 def _validate_reviewed_story(
     story: ReviewedStory,
     character_by_id: Mapping[str, Character],
+    canon_entries: Mapping[str, tuple[CanonEntry, str]],
     path: str,
 ) -> None:
     """Validate one story as an isolated graph inside its containing world."""
@@ -532,6 +578,18 @@ def _validate_reviewed_story(
             "invalid_story_kind",
             f"{path}.kind",
             "ReviewedStory kind must be growth or ensemble.",
+        )
+    if not isinstance(story.experience_mode, StoryExperienceMode):
+        _fail(
+            "invalid_story_experience_mode",
+            f"{path}.experience_mode",
+            "ReviewedStory experience mode must be character_growth or narrative_story.",
+        )
+    if not isinstance(story.replay_policy, StoryReplayPolicy):
+        _fail(
+            "invalid_story_replay_policy",
+            f"{path}.replay_policy",
+            "ReviewedStory replay policy must be replayable or permanent_result.",
         )
     if not isinstance(story.publication_status, PublicationStatus):
         _fail(
@@ -572,6 +630,31 @@ def _validate_reviewed_story(
                 f"{participant_path}.can_start",
                 "StoryCharacterParticipation can_start must be a boolean.",
             )
+        _require_text(participant.location_label, f"{participant_path}.location_label")
+        _require_text(
+            participant.arrival_narration,
+            f"{participant_path}.arrival_narration",
+        )
+        _validate_flags(
+            participant.visit_required_flags,
+            f"{participant_path}.visit_required_flags",
+        )
+        _validate_flags(
+            participant.visit_set_flags,
+            f"{participant_path}.visit_set_flags",
+        )
+        knowledge_entry_ids = _validate_unique_ids(
+            participant.knowledge_entry_ids,
+            f"{participant_path}.knowledge_entry_ids",
+            "CanonEntry",
+        )
+        for knowledge_index, entry_id in enumerate(knowledge_entry_ids):
+            if entry_id not in canon_entries:
+                _fail(
+                    "missing_reference",
+                    f"{participant_path}.knowledge_entry_ids[{knowledge_index}]",
+                    f"Participant knowledge CanonEntry {entry_id!r} does not exist in this StoryWorld.",
+                )
         if participant.can_start:
             start_participant_count += 1
 
@@ -603,6 +686,35 @@ def _validate_reviewed_story(
             "Ensemble stories cannot define a focus Character.",
         )
 
+    unlocks = _require_tuple(
+        story.historical_reference_unlocks,
+        f"{path}.historical_reference_unlocks",
+    )
+    unlock_entry_ids: dict[str, str] = {}
+    for unlock_index, unlock in enumerate(unlocks):
+        unlock_path = f"{path}.historical_reference_unlocks[{unlock_index}]"
+        _require_instance(unlock, HistoricalReferenceUnlock, unlock_path)
+        entry_id = _record_id(
+            unlock_entry_ids,
+            unlock.entry_id,
+            f"{unlock_path}.entry_id",
+            "HistoricalReferenceUnlock",
+        )
+        canon = canon_entries.get(entry_id)
+        if canon is None:
+            _fail(
+                "missing_reference",
+                f"{unlock_path}.entry_id",
+                f"Historical reference CanonEntry {entry_id!r} does not exist in this StoryWorld.",
+            )
+        if canon[0].category is CanonCategory.STORY_SETTING:
+            _fail(
+                "invalid_historical_reference_category",
+                f"{unlock_path}.entry_id",
+                "Historical references can include only fixed_fact or needs_verification CanonEntry values.",
+            )
+        _validate_flags(unlock.required_flags, f"{unlock_path}.required_flags")
+
     _require_id(story.entry_chapter_id, f"{path}.entry_chapter_id")
     endings = _validate_endings(story.endings, path)
     (
@@ -627,12 +739,21 @@ def _validate_reviewed_story(
             f"Entry chapter {story.entry_chapter_id!r} does not exist in this ReviewedStory.",
         )
 
-    for choice_path, next_node_id in choice_targets:
+    for choice_path, next_node_id, choice_presentation in choice_targets:
         if next_node_id not in node_by_id:
             _fail(
                 "missing_reference",
                 f"{choice_path}.next_node_id",
                 f"Next node {next_node_id!r} does not exist in this ReviewedStory.",
+            )
+        if (
+            choice_presentation is StoryChoicePresentation.PERMANENT_DECISION
+            and node_by_id[next_node_id].ending_id is None
+        ):
+            _fail(
+                "permanent_decision_not_terminal",
+                f"{choice_path}.next_node_id",
+                "Every permanent_decision choice must lead directly to a terminal StoryNode.",
             )
 
     ending_ids = set(endings)
@@ -905,6 +1026,32 @@ def _validate_endings(
         _record_id(ending_ids, ending.id, f"{ending_path}.id", "StoryEnding")
         _require_text(ending.title, f"{ending_path}.title")
         _require_text(ending.summary, f"{ending_path}.summary")
+        if not isinstance(ending.post_ending_message_mode, PostEndingMessageMode):
+            _fail(
+                "invalid_post_ending_message_mode",
+                f"{ending_path}.post_ending_message_mode",
+                "Post-ending message mode must be llm, unanswered, or disabled.",
+            )
+        if ending.post_ending_message_mode is PostEndingMessageMode.UNANSWERED:
+            _require_text(ending.unanswered_reply, f"{ending_path}.unanswered_reply")
+        elif ending.unanswered_reply is not None:
+            _fail(
+                "unexpected_unanswered_reply",
+                f"{ending_path}.unanswered_reply",
+                "Only unanswered endings can define an unanswered reply.",
+            )
+        if ending.post_ending_message_mode is PostEndingMessageMode.LLM:
+            if ending.post_ending_context is not None:
+                _require_trimmed_text(
+                    ending.post_ending_context,
+                    f"{ending_path}.post_ending_context",
+                )
+        elif ending.post_ending_context is not None:
+            _fail(
+                "unexpected_post_ending_context",
+                f"{ending_path}.post_ending_context",
+                "Only llm endings can define post-ending prompt context.",
+            )
         ending_by_id[ending.id] = (ending, ending_path)
     return ending_by_id
 
@@ -954,7 +1101,7 @@ def _validate_chapters(
     tuple[StoryChapter, ...],
     dict[str, StoryNode],
     dict[str, str],
-    tuple[tuple[str, str], ...],
+    tuple[tuple[str, str, StoryChoicePresentation], ...],
     tuple[tuple[str, str], ...],
 ]:
     chapters = _require_tuple(raw_chapters, f"{story_path}.chapters")
@@ -970,7 +1117,7 @@ def _validate_chapters(
     choice_ids: dict[str, str] = {}
     node_by_id: dict[str, StoryNode] = {}
     node_paths: dict[str, str] = {}
-    choice_targets: list[tuple[str, str]] = []
+    choice_targets: list[tuple[str, str, StoryChoicePresentation]] = []
     terminal_endings: list[tuple[str, str]] = []
 
     for chapter_index, chapter in enumerate(chapters):
@@ -1016,6 +1163,29 @@ def _validate_chapters(
                     "System and action nodes cannot be bound to a Character.",
                 )
             _require_text(node.narration, f"{node_path}.narration")
+            if not isinstance(node.choice_presentation, StoryChoicePresentation):
+                _fail(
+                    "invalid_choice_presentation",
+                    f"{node_path}.choice_presentation",
+                    "StoryNode choice presentation must be inline or permanent_decision.",
+                )
+            if node.choice_presentation is StoryChoicePresentation.PERMANENT_DECISION:
+                if node.ending_id is not None:
+                    _fail(
+                        "invalid_choice_presentation",
+                        f"{node_path}.choice_presentation",
+                        "A terminal StoryNode cannot use permanent_decision presentation.",
+                    )
+                _require_text(
+                    node.confirmation_prompt,
+                    f"{node_path}.confirmation_prompt",
+                )
+            elif node.confirmation_prompt is not None:
+                _fail(
+                    "unexpected_confirmation_prompt",
+                    f"{node_path}.confirmation_prompt",
+                    "Inline StoryNodes cannot define a confirmation prompt.",
+                )
             choices = _require_tuple(node.choices, f"{node_path}.choices")
             if node.ending_id is None:
                 if not choices:
@@ -1046,6 +1216,16 @@ def _validate_chapters(
                         f"{choice_path}.is_key",
                         "StoryChoice is_key must be a boolean.",
                     )
+                if (
+                    node.choice_presentation
+                    is StoryChoicePresentation.PERMANENT_DECISION
+                    and not choice.is_key
+                ):
+                    _fail(
+                        "permanent_decision_requires_key_choice",
+                        f"{choice_path}.is_key",
+                        "Every permanent_decision choice must be a key choice.",
+                    )
                 required_flags = _validate_flags(
                     choice.required_flags,
                     f"{choice_path}.required_flags",
@@ -1074,7 +1254,9 @@ def _validate_chapters(
                         participant_ids,
                         f"{choice_path}.relationship_effects[{effect_index}]",
                     )
-                choice_targets.append((choice_path, choice.next_node_id))
+                choice_targets.append(
+                    (choice_path, choice.next_node_id, node.choice_presentation)
+                )
 
         if chapter.entry_node_id not in chapter_node_ids:
             _fail(
@@ -1204,6 +1386,23 @@ def _validate_flags(raw_flags: object, path: str) -> tuple[str, ...]:
     return flags
 
 
+def _validate_unique_ids(
+    raw_ids: object,
+    path: str,
+    entity_name: str,
+) -> tuple[str, ...]:
+    """Validate raw_ids at path as unique IDs for entity_name and return their order."""
+    identifiers = _require_tuple(raw_ids, path)
+    seen: dict[str, str] = {}
+    validated: list[str] = []
+    for identifier_index, identifier in enumerate(identifiers):
+        identifier_path = f"{path}[{identifier_index}]"
+        validated.append(
+            _record_id(seen, identifier, identifier_path, entity_name)
+        )
+    return tuple(validated)
+
+
 def _record_id(
     seen: dict[str, str],
     value: object,
@@ -1261,6 +1460,18 @@ def _require_text(value: object, path: str) -> str:
     return value
 
 
+def _require_trimmed_text(value: object, path: str) -> str:
+    """Validate value at path as trimmed non-empty text and return it unchanged."""
+    text = _require_text(value, path)
+    if text != text.strip():
+        _fail(
+            "invalid_text",
+            path,
+            "Text must not contain surrounding whitespace.",
+        )
+    return text
+
+
 def _require_number(value: object, path: str) -> int | float:
     if (
         isinstance(value, bool)
@@ -1313,7 +1524,9 @@ __all__ = [
     "DecisionPredicate",
     "DecisionPredicateKind",
     "DecisionRule",
+    "HistoricalReferenceUnlock",
     "PlayerRole",
+    "PostEndingMessageMode",
     "PredicateValue",
     "PublicationStatus",
     "RelationshipEffect",
@@ -1323,11 +1536,14 @@ __all__ = [
     "StoryChapter",
     "StoryCharacterParticipation",
     "StoryChoice",
+    "StoryChoicePresentation",
     "StoryContentValidationError",
     "StoryEnding",
+    "StoryExperienceMode",
     "StoryKind",
     "StoryNode",
     "StoryNodePresentationKind",
+    "StoryReplayPolicy",
     "StoryWorld",
     "StoryWorldRegistry",
 ]

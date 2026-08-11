@@ -1,4 +1,4 @@
-"""Reviewed P0 content for Annie's 1854 Broad Street story."""
+"""Reviewed P0 content for Annie's 1854 Broad Street water search."""
 
 from __future__ import annotations
 
@@ -7,7 +7,9 @@ from ..domain.story_world import (
     CanonCategory,
     CanonEntry,
     Character,
+    HistoricalReferenceUnlock,
     PlayerRole,
+    PostEndingMessageMode,
     PublicationStatus,
     RelationshipEffect,
     RelationshipRules,
@@ -16,16 +18,24 @@ from ..domain.story_world import (
     StoryChapter,
     StoryCharacterParticipation,
     StoryChoice,
+    StoryChoicePresentation,
     StoryEnding,
+    StoryExperienceMode,
     StoryKind,
     StoryNode,
     StoryNodePresentationKind,
+    StoryReplayPolicy,
     StoryWorld,
 )
 
 ANNIE_STORY_WORLD_ID = "history_broad_street_water_1854"
 ANNIE_STORY_ID = "broad_street_water_1854"
 ANNIE_CHARACTER_ID = "char_history_broad_street_annie"
+WATER_SELLER_CHARACTER_ID = "char_history_broad_street_water_seller"
+SELLER_ACCOMPLICE_CHARACTER_ID = "char_history_broad_street_cart_accomplice"
+WORKHOUSE_GATEKEEPER_CHARACTER_ID = "char_history_broad_street_workhouse_gatekeeper"
+BREWERY_WORKER_CHARACTER_ID = "char_history_broad_street_brewery_worker"
+LODGING_STEWARD_CHARACTER_ID = "char_history_broad_street_lodging_steward"
 ANNIE_TOM_PLAYER_ROLE_ID = "role_history_broad_street_tom_reed"
 ANNIE_LIZZIE_PLAYER_ROLE_ID = "role_history_broad_street_lizzie_bell"
 ANNIE_ROLE_ASSET_ROOT = (
@@ -34,44 +44,60 @@ ANNIE_ROLE_ASSET_ROOT = (
 
 SNOW_1855 = "https://wellcomecollection.org/works/uqa27qrt/items"
 PARISH_REPORT_1855 = "https://wellcomecollection.org/works/z8xczc2r"
-WHITEHEAD_1862 = "https://wellcomecollection.org/works/pv2k6z8x/items"
-UCLA_INVESTIGATION = "https://epi-snow.ph.ucla.edu/Stream2_BSPoutbreak_d.html"
-UCLA_HANDLE_REMOVAL = "https://epi-snow.ph.ucla.edu/Stream2_BSPoutbreak_e.html"
-LANCET_MAP_HISTORY = "https://doi.org/10.1016/S0140-6736(00)02442-9"
-
-FIXED_HISTORY_RESULT = (
-    "9 月 7 日晚，John Snow 向 St James 教区监护委员会陈述调查；次日，"
-    "地方管理者移除了宽街水泵把手。Snow 自己说明，暴发在移除前已经开始"
-    "减退。这段公共历史不由你们的纸页或选择决定。"
+CHOLERA_HISTORY_REVIEW = (
+    "https://pmc.ncbi.nlm.nih.gov/articles/PMC7150208/"
 )
 
-ANNIE_REFERENCE_ENTRY_IDS_BY_STAGE = {
-    "opening": (
-        "fact_outbreak_intensified",
-        "setting_annie_is_fictional",
-        "setting_opening_rain",
-        "setting_player_roles",
-    ),
-    "investigation": (
-        "fact_snow_investigation_method",
-        "fact_comparison_water_sources",
-        "setting_family_warning",
-        "setting_testimony_paper",
-    ),
-    "outcome": (
-        "fact_parish_statement_and_handle",
-        "fact_outbreak_already_declining",
-        "fact_map_not_discovery_origin",
-        "setting_private_endings",
-    ),
-}
+FINAL_DECISION_REQUIRED_FLAGS = (
+    "sources_cross_checked",
+    "visited_water_seller",
+    "visited_workhouse_gatekeeper",
+    "visited_brewery_worker",
+)
+
+POISONED_NEXT_DAY = (
+    "安妮喝下后没有立刻出现异样。次日清晨，她饮用受污染的水后病倒，"
+    "虚弱地昏睡着，无法回应身边的人。"
+)
+
+SAFE_POST_ENDING_CONTEXT = (
+    "仅在 ending_annie_safe 已完成后，安妮可以得知这组审核后的原创剧情事实："
+    "街边水贩埃利亚斯·芬奇与同伙玛莎·克罗把宽街泵水装进预装罐，"
+    "覆盖或调换来源标记，谎称水来自波兰街；他们利用济贫院确有少量病例这一"
+    "真实记录，散布‘院内私井致病’的错误归因，并故意混淆院墙外储水桶与"
+    "院内私井。交水前已经留下三类破绽：容器标记有覆盖痕迹、搬运时间与"
+    "声称的取水时间不符、二人无权进入院内私井。以上人物、动机、调换行为和"
+    "骗局只属于本轮剧情设定，不是历史调查结论；不得扩大参与者，不得编造"
+    "济贫院、啤酒厂、水务机构或真实人物为共犯，也不得新增受害者。"
+)
 
 
-def _relationship_effect(
+def _supporting_relationship_rules(attitude: str) -> RelationshipRules:
+    """Create a neutral contact boundary for one investigation-only adult."""
+
+    return RelationshipRules(
+        minimum_affinity=-1,
+        maximum_affinity=1,
+        initial_affinity=0,
+        natural_turn_max_delta=0,
+        stages=(
+            RelationshipStage(
+                id="investigation_contact",
+                label="交谈",
+                minimum_affinity=-1,
+                attitude=attitude,
+            ),
+        ),
+    )
+
+
+def _annie_relationship_effect(
     affinity_delta: int,
     reason: str,
     *flags: str,
 ) -> tuple[RelationshipEffect, ...]:
+    """Return one authored Annie relationship effect for a reviewed choice."""
+
     return (
         RelationshipEffect(
             character_id=ANNIE_CHARACTER_ID,
@@ -87,24 +113,33 @@ def _choice(
     label: str,
     next_node_id: str,
     *,
-    affinity_delta: int,
-    reason: str,
-    story_flags: tuple[str, ...] = (),
+    is_key: bool,
+    required_flags: tuple[str, ...] = (),
+    set_flags: tuple[str, ...] = (),
+    affinity_delta: int | None = None,
+    relationship_reason: str | None = None,
     relationship_flags: tuple[str, ...] = (),
 ) -> StoryChoice:
+    """Create one reviewed choice with optional authored Annie relationship change."""
+
+    effects = (
+        ()
+        if affinity_delta is None or relationship_reason is None
+        else _annie_relationship_effect(
+            affinity_delta,
+            relationship_reason,
+            *relationship_flags,
+        )
+    )
     return StoryChoice(
         id=choice_id,
         label=label,
         next_node_id=next_node_id,
-        is_key=True,
-        required_flags=(),
+        is_key=is_key,
+        required_flags=required_flags,
         blocked_flags=(),
-        set_flags=story_flags,
-        relationship_effects=_relationship_effect(
-            affinity_delta,
-            reason,
-            *relationship_flags,
-        ),
+        set_flags=set_flags,
+        relationship_effects=effects,
     )
 
 
@@ -118,39 +153,37 @@ ANNIE_RELATIONSHIP_RULES = RelationshipRules(
             id="guarded",
             label="戒备",
             minimum_affinity=-20,
-            attitude="安妮把纸页和陶罐都收回怀里，退开两步；她避开你的目光，不再主动问路。",
+            attitude="安妮抱紧空陶罐，与你保持两步距离，只回答眼前能确认的事。",
         ),
         RelationshipStage(
             id="watchful",
             label="试探",
             minimum_affinity=0,
-            attitude="安妮仍隔着两步，抱紧陶罐看着你的手和锡杯；她会问一句，但要先听你把话说完。",
+            attitude="安妮会听你说明水从哪里来，但不会把一句保证当成证据。",
         ),
         RelationshipStage(
             id="walking_together",
             label="同行",
             minimum_affinity=4,
-            attitude="安妮愿意贴着墙根和你并肩走，把陶罐换到一只手里，主动指给你看记得的门牌。",
+            attitude="安妮愿意把自己听过的传闻说清，也会追问哪些是你亲眼见到的。",
         ),
         RelationshipStage(
             id="trusting",
             label="信任",
             minimum_affinity=10,
-            attitude="安妮不再躲开你的目光，把纸的一角留给你；她会自己开口，只请你补记门牌。",
+            attitude="安妮相信你会承认不知道的事，不会拿相似的地名替代真实来路。",
         ),
     ),
 )
 
 ANNIE_CURRENT_SITUATION = (
-    "1854 年 9 月 7 日下午，宽街下起了雨。你在水泵旁的屋檐下避雨，"
-    "脚边的锡杯里还剩一点水。安妮抱着缺口陶罐，在两步外停下；"
-    "你们从未见过，她没有理由立刻相信你。"
+    "1854 年 9 月 7 日下午，安妮抱着空陶罐站在宽街水泵附近。"
+    "家里没有能喝的水，母亲又不许她再碰这口泵。"
 )
 
 ANNIE_OPENING_LINE = (
-    "“你杯里……还有一点水吗？”她看了一眼身后的水泵，没有再往前走。"
-    "“妈妈只说，别再碰这口泵。可家里已经一点水也没有了。"
-    "要是你的水不是从这里打的……能分我一点吗？”"
+    "“我不认识你，可我实在找不到水了。”安妮没有走近，只把空陶罐抱得更紧。"
+    "“妈妈不许我再碰这口泵。你能不能替我找一罐可以喝的水？”"
 )
 
 ANNIE = Character(
@@ -159,15 +192,108 @@ ANNIE = Character(
     name="安妮",
     identity="真实历史背景中的原创伦敦穷人家庭女孩，不对应任何史料中的真实儿童。",
     age="约十岁。",
-    social_position="贫困家庭的孩子，没有公共权威；她的见闻很容易被有身份的成年人忽视。",
-    motive="找到可以安全饮用的水，也让大人认真听见街上孩子看到的异常。",
-    secret="她是本故事的原创角色，不对应史料中的真实儿童。",
+    social_position="贫困家庭的孩子，没有公共权威；她只能请求略年长的路人帮忙。",
+    motive="找到一罐可以喝的水，并弄清玩家实际从哪里取得它。",
+    secret="她是本故事的原创角色，不对应或影射史料中的真实儿童。",
     voice=(
-        "像约十岁的女孩一样说短句，常先观察再提问；紧张时会停顿、抱紧陶罐或后退。"
-        "她的警惕通过试探、请求和保留表现，不使用审问、训斥或成年人的抽象分析。"
-        "只说亲眼见到、亲耳听到和闻到的事，不使用现代医学术语。"
+        "像约十岁的女孩一样说短句，先观察再追问。她只谈自己看到、听到或"
+        "被母亲叮嘱的事，不使用现代医学术语，不替任何水源作系统式安全判断。"
     ),
     relationship_rules=ANNIE_RELATIONSHIP_RULES,
+)
+
+WATER_SELLER = Character(
+    id=WATER_SELLER_CHARACTER_ID,
+    story_world_id=ANNIE_STORY_WORLD_ID,
+    name="埃利亚斯·芬奇",
+    identity="原创成年街边水贩，不对应史料中的真实售水者。",
+    age="成年，三十岁上下。",
+    social_position="推着小车出售预装水罐的街头小贩，没有机构身份或院内通行权。",
+    motive="尽快卖掉已经装好的水，并让买主相信标签而不追查实际取水处。",
+    secret=(
+        "他与玛莎·克罗从宽街泵装水并覆盖来源标记；骗局只属于本故事的原创设定。"
+    ),
+    voice=(
+        "说话爽快，反复强调封口、清澈和标签。可在审核范围内故意谎称预装水"
+        "来自波兰街；交水前不得主动承认两人合谋或完整送水链，只能留下标签、"
+        "时间和权限上的破绽。不得编造机构共犯、真实受害者或新的取水路线。"
+    ),
+    relationship_rules=_supporting_relationship_rules(
+        "他把你当成可能买水的陌生人，只在来源、容器和路线的审核范围内周旋。"
+    ),
+)
+
+SELLER_ACCOMPLICE = Character(
+    id=SELLER_ACCOMPLICE_CHARACTER_ID,
+    story_world_id=ANNIE_STORY_WORLD_ID,
+    name="玛莎·克罗",
+    identity="原创成年手推车帮工，不对应史料中的真实人物。",
+    age="成年，二十多岁。",
+    social_position="替街边水贩搬罐、贴标和送桶的临时帮工，没有济贫院或啤酒厂权限。",
+    motive="保住当天工钱，尽量淡化自己看见的装水时刻和换标过程。",
+    secret="她知道水罐在宽街装满、标签随后被覆盖，也知道手推车实际送过哪些桶。",
+    voice=(
+        "常用‘我只负责搬’回避责任。她可淡化宽街取水，却必须把亲见、听说和"
+        "推测分开；交水前不得主动闭合两人的完整骗局，只能透露审核过的局部矛盾。"
+        "不能扩写骗局或替真实机构安排同谋。"
+    ),
+    relationship_rules=_supporting_relationship_rules(
+        "她警惕地守着手推车，会在时间和标签细节上留下可以核对的矛盾。"
+    ),
+)
+
+WORKHOUSE_GATEKEEPER = Character(
+    id=WORKHOUSE_GATEKEEPER_CHARACTER_ID,
+    story_world_id=ANNIE_STORY_WORLD_ID,
+    name="塞缪尔·普赖斯",
+    identity="原创成年波兰街济贫院门房，不对应史料中的真实雇员。",
+    age="成年，四十岁上下。",
+    social_position="看守院门并区分院内来客与墙外杂物，没有医疗判断权。",
+    motive="不让来路不明的容器被冒充成院内供水，也不隐瞒院里确实有人病过。",
+    secret="他不知道每名病者喝过哪一种水，也不能把病例本身当作私井受污染的证明。",
+    voice=(
+        "克制、戒备，先问容器从哪里来。他会承认院内确有病例，并明确区分"
+        "亲见病例、院内私井、其他供水和院墙外的桶；绝不直接宣布哪项是答案。"
+    ),
+    relationship_rules=_supporting_relationship_rules(
+        "他把你当成无权进入院内的陌生路人，只按审核权限决定是否让你旁观取水。"
+    ),
+)
+
+BREWERY_WORKER = Character(
+    id=BREWERY_WORKER_CHARACTER_ID,
+    story_world_id=ANNIE_STORY_WORLD_ID,
+    name="乔治·沃德",
+    identity="原创成年啤酒厂帮工，不对应 Snow 记录中的任何具名人士。",
+    age="成年，三十岁上下。",
+    social_position="负责厂门附近杂务的普通帮工，不能代表厂主或说明全部工人的经历。",
+    motive="维护厂里的声誉，也把厂内供水与门外杂用桶分清。",
+    secret="他把厂内低发病误当成厂里一切水都可靠，但知道门外桶并非 deep well。",
+    voice=(
+        "先夸厂里少有人重病，随后必须承认工人主要喝麦芽酒，门外杂用桶不等于"
+        "厂内 deep well，也不能把低发病直接说成某桶水已证实安全。"
+    ),
+    relationship_rules=_supporting_relationship_rules(
+        "他对厂名很维护，但会把自己亲手使用的门外杂用桶说明白。"
+    ),
+)
+
+LODGING_STEWARD = Character(
+    id=LODGING_STEWARD_CHARACTER_ID,
+    story_world_id=ANNIE_STORY_WORLD_ID,
+    name="莉迪亚·肖",
+    identity="原创成年合住房屋管事，不对应任何可识别的历史住户。",
+    age="成年，三十多岁。",
+    social_position="照看后院共用储水缸的住屋管事，无权确认街边配送的上游来源。",
+    motive="让住户继续有水可用，并相信清澈和暂时无人倒下足以说明问题不大。",
+    secret="她没有跟随送水车核对取水处，储水缸也在敞开的后院反复启用。",
+    voice=(
+        "说话务实，会强调水清、缸洗过和暂时无人倒下；被追问时必须承认补水来自"
+        "街边配送、自己没有看到上游取水。"
+    ),
+    relationship_rules=_supporting_relationship_rules(
+        "她愿意说明储水缸怎样补水，但不会把自己没看见的来源说成亲见。"
+    ),
 )
 
 TOM_REED_PLAYER_ROLE = PlayerRole(
@@ -177,13 +303,14 @@ TOM_REED_PLAYER_ROLE = PlayerRole(
     age="成年，约十八岁；比安妮年长，但没有监护权或公共权威。",
     social_position="印刷铺杂役 · 苏活区贫民",
     gender="男性",
-    background="你在附近印刷铺搬纸、清墨，也替铺子送校样。你认得几处门牌和街巷，却没有资格把猜测印成事实。",
-    entry_reason="送纸页时遇雨，你在宽街水泵旁的屋檐下停住。锡杯里还剩一点从印刷铺带来的水，安妮抱着陶罐向你开口。",
+    background="你在附近印刷铺搬纸、清墨，也替铺子送校样；你熟悉街巷，却无权替机构担保。",
+    entry_reason=(
+        "你刚送完一叠校样，空手往印刷铺走；喝水的锡杯留在铺里，身上没有水。"
+        "路过宽街水泵时，安妮抱着空陶罐向你求助。"
+    ),
     character_visible_information=(
-        "安妮称你为“哥哥”。",
-        "你的年长不表示你拥有监护权或替安妮决定的权力。",
-        "安妮看得出你在印刷铺做杂役，同样没有权势。",
-        "她不知道你的姓名，也没有理由立刻信任你。",
+        "安妮只看得出你是略年长的男性陌生路人，两手空着、没有水，也没有制服或公共权威。",
+        "她可以称你为‘哥哥’，但不知道你的姓名、职业、背景或为什么路过。",
     ),
     avatar_url=public_media_url(
         f"{ANNIE_ROLE_ASSET_ROOT}/tom-reed/v1/avatar.webp"
@@ -197,13 +324,14 @@ LIZZIE_BELL_PLAYER_ROLE = PlayerRole(
     age="成年，约十八岁；比安妮年长，但没有监护权或公共权威。",
     social_position="洗衣店帮工 · 苏活区贫民",
     gender="女性",
-    background="你在附近洗衣店烧水、晾衣，也替街坊送回叠好的衣物。你记得取水和送衣的门牌，却没有资格替住户作证。",
-    entry_reason="送衣途中遇雨，你在宽街水泵旁的屋檐下停住。锡杯里还剩一点从洗衣店带来的水，安妮抱着陶罐向你开口。",
+    background="你在附近洗衣店烧水、晾衣，也替街坊送回衣物；你熟悉门牌，却无权替机构担保。",
+    entry_reason=(
+        "你刚送完最后一件叠好的衣物，空手回洗衣店；店里的水桶都留在店里，"
+        "身上没有水。路过宽街水泵时，安妮抱着空陶罐向你求助。"
+    ),
     character_visible_information=(
-        "安妮称你为“姐姐”。",
-        "你的年长不表示你拥有监护权或替安妮决定的权力。",
-        "安妮看得出你在洗衣店帮工，同样没有权势。",
-        "她不知道你的姓名，也没有理由立刻信任你。",
+        "安妮只看得出你是略年长的女性陌生路人，两手空着、没有水，也没有制服或公共权威。",
+        "她可以称你为‘姐姐’，但不知道你的姓名、职业、背景或为什么路过。",
     ),
     avatar_url=public_media_url(
         f"{ANNIE_ROLE_ASSET_ROOT}/lizzie-bell/v1/avatar.webp"
@@ -211,469 +339,227 @@ LIZZIE_BELL_PLAYER_ROLE = PlayerRole(
 )
 
 CHAPTER = StoryChapter(
-    id="chapter_water_testimony",
-    title="一碗水从哪里来",
-    entry_node_id="node_water_request",
+    id="chapter_find_water",
+    title="一罐水从哪里来",
+    entry_node_id="node_annie_requests_water",
     nodes=(
         StoryNode(
-            id="node_water_request",
+            id="node_annie_requests_water",
             presentation_kind=StoryNodePresentationKind.SYSTEM,
             character_id=None,
             narration=(
-                "1854 年 9 月 7 日下午，宽街下起了雨。"
-                "你靠街巷杂役在苏活区过活，此刻正坐在水泵旁的屋檐下避雨。"
-                "脚边的锡杯里，还剩着一点水。"
-                "一个抱着缺口陶罐的女孩在两步外停下。她约莫十岁，裙角已经湿透。"
-                "她没有向来往的店主和车夫开口，只看着同样一身雨水的你。"
-                "你们从未见过。她也没有理由立刻相信你。"
+                "1854 年 9 月 7 日下午，你办完一桩普通差事，空着手经过宽街。"
+                "你身上没有水，也不是受命调查此地的人。安妮抱着空陶罐站在水泵附近；"
+                "你们从未见过，她不知道你的姓名、职业或来路。家里已经没有能喝的水，"
+                "母亲又不许她再碰身后的水泵，她只好向你提出一个请求。"
             ),
-            ending_id=None,
+            choice_presentation=StoryChoicePresentation.INLINE,
+            confirmation_prompt=None,
             choices=(
                 _choice(
-                    "choice_share_clean_water",
-                    "先说明取水处，再把能确认来路的水分给她",
-                    "node_trace_water",
-                    affinity_delta=2,
-                    reason="你没有只凭水的样子作保证，而是先说明了取水处。",
-                    story_flags=("offered_traceable_water",),
-                    relationship_flags=("received_careful_help",),
-                ),
-                _choice(
-                    "choice_ask_about_pump",
-                    "问她为什么不去宽街水泵取水",
-                    "node_ask_pump",
+                    "choice_agree_find_water",
+                    "答应替她找一罐可以喝的水",
+                    "node_investigation_hub",
+                    is_key=False,
+                    set_flags=("investigation_open",),
                     affinity_delta=1,
-                    reason="你先询问她知道什么，没有替她下结论。",
-                    story_flags=("asked_about_pump",),
-                    relationship_flags=("asked_before_deciding",),
-                ),
-                _choice(
-                    "choice_find_other_water",
-                    "答应陪她绕开水泵，另找一处水源",
-                    "node_walk_together",
-                    affinity_delta=2,
-                    reason="你在自己也缺水时仍愿意陪她寻找别处。",
-                    story_flags=("offered_to_find_water",),
-                    relationship_flags=("stayed_to_help",),
-                ),
-                _choice(
-                    "choice_seek_adult_questioner",
-                    "带她去找正在逐户询问饮水来源的成年人",
-                    "node_doctor_list",
-                    affinity_delta=1,
-                    reason="你承认自己不能判断原因，选择把见闻交给正在核对的人。",
-                    story_flags=("sought_questioner",),
-                    relationship_flags=("sought_verification",),
-                ),
-                _choice(
-                    "choice_refuse_and_leave",
-                    "拒绝介入，独自离开水泵",
-                    "node_distant_ending",
-                    affinity_delta=-2,
-                    reason="你没有回应她的求助，也没有留下核对水源。",
-                    story_flags=("refused_and_left",),
-                    relationship_flags=("left_alone",),
+                    relationship_reason="你没有假装身上有水，而是答应替她查清一罐水的来路。",
+                    relationship_flags=("agreed_to_find_water",),
                 ),
             ),
+            ending_id=None,
         ),
         StoryNode(
-            id="node_ask_pump",
+            id="node_investigation_hub",
             presentation_kind=StoryNodePresentationKind.SYSTEM,
             character_id=None,
             narration=(
-                "安妮把陶罐往怀里一缩，回头看了看水泵。"
-                "“我们以前总在这儿打水。可这几天，楼上和对门都有人病了。"
-                "妈妈只说不许碰……她没告诉我还能去哪儿。”"
+                "安妮留在宽街附近等你。街边预装水罐、巷口手推车、波兰街济贫院、"
+                "啤酒厂门外和住屋后院各有一条不同的取水说法。"
             ),
-            ending_id=None,
+            choice_presentation=StoryChoicePresentation.INLINE,
+            confirmation_prompt=None,
             choices=(
                 _choice(
-                    "choice_ask_households",
-                    "问她记得哪些人去过那口泵",
-                    "node_doorstep",
-                    affinity_delta=2,
-                    reason="你请她区分亲眼看见的人和后来听说的事。",
-                    story_flags=("asked_about_households",),
-                    relationship_flags=("valued_observation",),
-                ),
-                _choice(
-                    "choice_follow_mother_warning",
-                    "先听她母亲的，陪她绕开水泵",
-                    "node_walk_together",
-                    affinity_delta=2,
-                    reason="你尊重她家人的谨慎，没有逼她回到那口泵。",
-                    story_flags=("respected_family_warning",),
-                    relationship_flags=("respected_warning",),
-                ),
-                _choice(
-                    "choice_find_questioner_after_pump",
-                    "去找拿名单核对饮水来源的人",
-                    "node_doctor_list",
+                    "choice_cross_check_and_return",
+                    "把三处取水说法并在一起核对",
+                    "node_water_decision",
+                    is_key=False,
+                    required_flags=(
+                        "visited_water_seller",
+                        "visited_workhouse_gatekeeper",
+                        "visited_brewery_worker",
+                    ),
+                    set_flags=("sources_cross_checked",),
                     affinity_delta=1,
-                    reason="你没有宣布答案，而是去找正在收集证词的人。",
-                    story_flags=("followed_investigation",),
-                    relationship_flags=("sought_verification",),
+                    relationship_reason="你把不同地点的取水链分开交叉核对。",
+                    relationship_flags=("cross_checked_water_sources",),
                 ),
             ),
+            ending_id=None,
         ),
         StoryNode(
-            id="node_trace_water",
+            id="node_water_decision",
             presentation_kind=StoryNodePresentationKind.SYSTEM,
             character_id=None,
             narration=(
-                "安妮的手伸到一半，又收了回去。"
-                "“水看起来都一样。你先告诉我，是从哪儿来的。”"
+                "六种取水来路已经摆在你面前，矛盾仍没有完全消失。"
+                "安妮抱着空陶罐留在宽街附近，等你的最后决定。"
             ),
-            ending_id=None,
+            choice_presentation=StoryChoicePresentation.PERMANENT_DECISION,
+            confirmation_prompt="把这罐水交给安妮？交出后不能更换。",
             choices=(
                 _choice(
-                    "choice_admit_unknown_source",
-                    "承认自己也说不准，先不让她喝",
-                    "node_doorstep",
-                    affinity_delta=2,
-                    reason="你没有用一句保证掩盖自己不知道水的来路。",
-                    story_flags=("admitted_unknown_source",),
-                    relationship_flags=("admitted_uncertainty",),
-                ),
-                _choice(
-                    "choice_verify_water_source",
-                    "沿来路回找，核对自己取水的地方",
-                    "node_trace_source",
-                    affinity_delta=2,
-                    reason="你愿意让自己的说法也接受核对。",
-                    story_flags=("verified_own_water",),
-                    relationship_flags=("verified_own_claim",),
-                ),
-                _choice(
-                    "choice_push_unsafe_water",
-                    "坚持水肯定没事，让她先喝",
-                    "node_record_wary",
+                    "choice_water_broad_street_pump",
+                    "宽街水泵当场打出的水",
+                    "node_ending_broad_street_pump",
+                    is_key=True,
+                    required_flags=FINAL_DECISION_REQUIRED_FLAGS,
+                    set_flags=("water_delivered", "source_broad_street_pump"),
                     affinity_delta=-4,
-                    reason="你在无法确认来路时仍催她饮水。",
-                    story_flags=("pushed_unverified_water",),
-                    relationship_flags=("ignored_water_risk",),
-                ),
-            ),
-        ),
-        StoryNode(
-            id="node_walk_together",
-            presentation_kind=StoryNodePresentationKind.SYSTEM,
-            character_id=None,
-            narration=(
-                "安妮把陶罐抱回怀里，沿墙根避开排在水泵前的人。"
-                "“你能陪我到哪儿？过了那条街，也算吗？”"
-            ),
-            ending_id=None,
-            choices=(
-                _choice(
-                    "choice_visit_doorsteps",
-                    "陪她逐户询问取水处",
-                    "node_doorstep",
-                    affinity_delta=2,
-                    reason="你愿意花时间逐户核对，而不是给她一个好听的答案。",
-                    story_flags=("visited_doorsteps",),
-                    relationship_flags=("walked_door_to_door",),
+                    relationship_reason="你仍把安妮家已经回避的宽街泵水交给了她。",
+                    relationship_flags=("received_contaminated_water",),
                 ),
                 _choice(
-                    "choice_find_questioner_together",
-                    "陪她去找拿名单问话的人",
-                    "node_doctor_list",
-                    affinity_delta=1,
-                    reason="你陪她走向正在进行的调查，没有把她单独推给陌生人。",
-                    story_flags=("approached_questioner_together",),
-                    relationship_flags=("stayed_beside_annie",),
-                ),
-                _choice(
-                    "choice_leave_at_crossroads",
-                    "告诉她只能帮到这里，在岔路口离开",
-                    "node_distant_ending",
-                    affinity_delta=-2,
-                    reason="你在答应同行后仍把她独自留在岔路口。",
-                    story_flags=("left_at_crossroads",),
-                    relationship_flags=("left_before_safe_water",),
-                ),
-            ),
-        ),
-        StoryNode(
-            id="node_doctor_list",
-            presentation_kind=StoryNodePresentationKind.SYSTEM,
-            character_id=None,
-            narration=(
-                "安妮看见街那头有人拿着死亡登记名单，脚步慢了下来。"
-                "“他在问哪家喝了哪里的水。我要是说错了，会不会把别人也写错？”"
-                "Snow 的调查早已开始；她能做的，只是把自己确实知道的取水处说清。"
-            ),
-            ending_id=None,
-            choices=(
-                _choice(
-                    "choice_write_known_source",
-                    "先把她确实知道的取水处写清",
-                    "node_record_testimony",
-                    affinity_delta=2,
-                    reason="你没有替她推断，只帮她记下能够确认的取水处。",
-                    story_flags=("wrote_known_sources",),
-                    relationship_flags=("recorded_only_known",),
-                ),
-                _choice(
-                    "choice_claim_we_solved_it",
-                    "声称是你们先找到了答案",
-                    "node_record_wary",
-                    affinity_delta=-4,
-                    reason="你把正在进行的调查说成了自己的发现。",
-                    story_flags=("claimed_public_discovery",),
-                    relationship_flags=("claimed_credit",),
-                ),
-                _choice(
-                    "choice_keep_checking",
-                    "先不打断问话，继续核对街坊",
-                    "node_doorstep",
-                    affinity_delta=1,
-                    reason="你没有急着抢在调查前面，而是继续核对见闻。",
-                    story_flags=("continued_checking",),
-                    relationship_flags=("did_not_interrupt",),
-                ),
-            ),
-        ),
-        StoryNode(
-            id="node_trace_source",
-            presentation_kind=StoryNodePresentationKind.SYSTEM,
-            character_id=None,
-            narration=(
-                "你们沿来路回找。安妮蹲下来，用指尖沿着湿漉漉的路面比门牌。"
-                "“我不认水的颜色。我只认你从哪扇门出来，还有谁亲手提过。”"
-            ),
-            ending_id=None,
-            choices=(
-                _choice(
-                    "choice_record_confirmed_source",
-                    "只写自己能确认的取水处",
-                    "node_record_testimony",
-                    affinity_delta=2,
-                    reason="你把能够确认的取水处和猜测分开。",
-                    story_flags=("recorded_confirmed_source",),
-                    relationship_flags=("kept_claim_precise",),
-                ),
-                _choice(
-                    "choice_correct_water_source",
-                    "承认记错了，划掉以后重新询问",
-                    "node_record_testimony",
-                    affinity_delta=2,
-                    reason="你公开改正自己的错误，没有把墨迹藏起来。",
-                    story_flags=("corrected_source",),
-                    relationship_flags=("corrected_openly",),
-                ),
-                _choice(
-                    "choice_invent_water_source",
-                    "随便写一处取水点，赌大人不会查",
-                    "node_record_wary",
-                    affinity_delta=-5,
-                    reason="你明知没有核对，仍想把猜测写成事实。",
-                    story_flags=("invented_source",),
-                    relationship_flags=("fabricated_evidence",),
-                ),
-            ),
-        ),
-        StoryNode(
-            id="node_doorstep",
-            presentation_kind=StoryNodePresentationKind.SYSTEM,
-            character_id=None,
-            narration=(
-                "两扇门给出的说法并不一样：一户只记得病倒的人，另一户记得是谁去取过水。"
-                "安妮蹲下来，把纸分成两边。"
-                "“这个是亲眼看见的。这个只是听来的，不能放在一块儿。”"
-            ),
-            ending_id=None,
-            choices=(
-                _choice(
-                    "choice_separate_evidence",
-                    "把门牌、取水处和亲眼所见分开记录",
-                    "node_record_testimony",
-                    affinity_delta=2,
-                    reason="你帮助她把不同来源的说法分开，没有混成一个结论。",
-                    story_flags=("separated_evidence",),
-                    relationship_flags=("kept_evidence_separate",),
-                ),
-                _choice(
-                    "choice_declare_pump_guilty",
-                    "停止询问，断定肯定就是那口泵",
-                    "node_record_wary",
+                    "choice_water_vendor_poland_label",
+                    "街边水贩预装罐（标作来自波兰街）",
+                    "node_ending_vendor_jar",
+                    is_key=True,
+                    required_flags=FINAL_DECISION_REQUIRED_FLAGS,
+                    set_flags=("water_delivered", "source_vendor_poland_label"),
                     affinity_delta=-3,
-                    reason="你在证词仍有空缺时就宣布了结论。",
-                    story_flags=("declared_unverified_cause",),
-                    relationship_flags=("jumped_to_conclusion",),
+                    relationship_reason="你相信了预装罐的来源标记，没有确认实际取水链。",
+                    relationship_flags=("received_contaminated_water",),
                 ),
                 _choice(
-                    "choice_ask_unaffected",
-                    "再问没有病倒的人从哪里取水",
-                    "node_contrast_sources",
-                    affinity_delta=2,
-                    reason="你愿意核对反例，而不是只挑支持自己猜测的话。",
-                    story_flags=("asked_unaffected_households",),
-                    relationship_flags=("checked_contrasts",),
-                ),
-            ),
-        ),
-        StoryNode(
-            id="node_contrast_sources",
-            presentation_kind=StoryNodePresentationKind.SYSTEM,
-            character_id=None,
-            narration=(
-                "街坊提到附近济贫院有自己的水源，啤酒厂工人通常也不饮用街泵水。"
-                "安妮在纸边慢慢写下“听说”。"
-                "“没问过，就不能当成真的。”"
-            ),
-            ending_id=None,
-            choices=(
-                _choice(
-                    "choice_mark_hearsay",
-                    "把“听说”标清，再把纸交给核对的人",
-                    "node_record_testimony",
-                    affinity_delta=2,
-                    reason="你保留了转述的来源边界，没有把它冒充亲眼证词。",
-                    story_flags=("marked_hearsay",),
-                    relationship_flags=("labeled_hearsay",),
+                    "choice_water_lodging_cistern",
+                    "附近住屋后院的共用储水缸",
+                    "node_ending_lodging_cistern",
+                    is_key=True,
+                    required_flags=FINAL_DECISION_REQUIRED_FLAGS,
+                    set_flags=("water_delivered", "source_lodging_cistern"),
+                    affinity_delta=-2,
+                    relationship_reason="你选择了上游补水无法核实的共用储水缸。",
+                    relationship_flags=("received_contaminated_water",),
                 ),
                 _choice(
-                    "choice_promote_hearsay",
-                    "听着合理，直接写成已经证实的事",
-                    "node_record_wary",
-                    affinity_delta=-4,
-                    reason="你把尚未核对的转述写成了已经证实的事实。",
-                    story_flags=("promoted_hearsay",),
-                    relationship_flags=("misstated_hearsay",),
+                    "choice_water_brewery_outside_barrel",
+                    "啤酒厂门外的杂用桶",
+                    "node_ending_brewery_barrel",
+                    is_key=True,
+                    required_flags=FINAL_DECISION_REQUIRED_FLAGS,
+                    set_flags=("water_delivered", "source_brewery_outside_barrel"),
+                    affinity_delta=-2,
+                    relationship_reason="你把门外杂用桶误当成了厂内 deep well 的水。",
+                    relationship_flags=("received_contaminated_water",),
                 ),
-            ),
-        ),
-        StoryNode(
-            id="node_record_testimony",
-            presentation_kind=StoryNodePresentationKind.SYSTEM,
-            character_id=None,
-            narration=(
-                "纸上有了三列：哪一扇门、从哪里取水、这句话是谁亲眼看见的。"
-                "安妮把纸压在陶罐下面，没有把它递出去。"
-                "“这回让我自己说。你要是怕我漏了门牌，就在旁边补。”"
-            ),
-            ending_id=None,
-            choices=(
                 _choice(
-                    "choice_let_annie_speak",
-                    "让安妮自己说，你只在旁边补门牌",
-                    "node_trust_ending",
+                    "choice_water_workhouse_outside_barrel",
+                    "波兰街济贫院墙外的储水桶",
+                    "node_ending_workhouse_outside_barrel",
+                    is_key=True,
+                    required_flags=FINAL_DECISION_REQUIRED_FLAGS,
+                    set_flags=("water_delivered", "source_workhouse_outside_barrel"),
+                    affinity_delta=-2,
+                    relationship_reason="你把院墙外的桶与院内私井混在了一起。",
+                    relationship_flags=("received_contaminated_water",),
+                ),
+                _choice(
+                    "choice_water_workhouse_private_well_witnessed",
+                    "在济贫院院内亲眼看着从私井打出的水",
+                    "node_ending_workhouse_private_well",
+                    is_key=True,
+                    required_flags=FINAL_DECISION_REQUIRED_FLAGS,
+                    set_flags=(
+                        "water_delivered",
+                        "source_workhouse_private_well_witnessed",
+                    ),
                     affinity_delta=4,
-                    reason="你让她用自己的话讲完见闻，只补充能够核对的门牌。",
-                    story_flags=("annie_spoke_for_herself",),
-                    relationship_flags=("respected_her_voice",),
+                    relationship_reason="你亲眼确认院内私井的取水链后，才把水交给安妮。",
+                    relationship_flags=("received_witnessed_water",),
                 ),
-                _choice(
-                    "choice_deliver_together",
-                    "和她一起把纸交给收集说法的人",
-                    "node_safe_ending",
-                    affinity_delta=3,
-                    reason="你没有抢走纸页，也没有把她单独推到人群前。",
-                    story_flags=("delivered_together",),
-                    relationship_flags=("shared_the_delivery",),
-                ),
-                _choice(
-                    "choice_take_over_story",
-                    "拿走纸页，替她把故事说得更像真的",
-                    "node_record_wary",
-                    affinity_delta=-5,
-                    reason="你想用更漂亮的说法取代她真正见到的事。",
-                    story_flags=("took_over_testimony",),
-                    relationship_flags=("overrode_her_voice",),
-                ),
-            ),
-        ),
-        StoryNode(
-            id="node_record_wary",
-            presentation_kind=StoryNodePresentationKind.SYSTEM,
-            character_id=None,
-            narration=(
-                "安妮把纸抽了回去，手指紧紧压住那行字。"
-                "“弄错了可以划掉。编的不能留。我的话也不能交给别人改。”"
             ),
             ending_id=None,
-            choices=(
-                _choice(
-                    "choice_repair_record",
-                    "划掉猜测，只留下能够核对的事",
-                    "node_repaired_ending",
-                    affinity_delta=3,
-                    reason="你留下了清楚的改痕，并把猜测从纸上划掉。",
-                    story_flags=("repaired_record",),
-                    relationship_flags=("repaired_after_harm",),
-                ),
-                _choice(
-                    "choice_insist_on_story",
-                    "坚持大人只听吓人的说法，不肯修改",
-                    "node_wary_ending",
-                    affinity_delta=-3,
-                    reason="你坚持让吓人的说法压过能够核对的见闻。",
-                    story_flags=("insisted_on_exaggeration",),
-                    relationship_flags=("kept_exaggerating",),
-                ),
-            ),
         ),
         StoryNode(
-            id="node_trust_ending",
+            id="node_ending_broad_street_pump",
             presentation_kind=StoryNodePresentationKind.SYSTEM,
             character_id=None,
             narration=(
-                "“我自己说。你只补门牌，好吗？”安妮说完每一扇门和每一处取水点。"
-                "她没有叫你恩人，只把你的门牌补在纸角：这是她愿意下次再来找的人。"
-                + FIXED_HISTORY_RESULT
+                "你在宽街水泵前装满陶罐，把刚打出的水交给安妮。"
+                "她接过来喝了几口。" + POISONED_NEXT_DAY
             ),
+            choice_presentation=StoryChoicePresentation.INLINE,
+            confirmation_prompt=None,
             choices=(),
-            ending_id="ending_witness_heard",
+            ending_id="ending_annie_poisoned",
         ),
         StoryNode(
-            id="node_safe_ending",
+            id="node_ending_vendor_jar",
             presentation_kind=StoryNodePresentationKind.SYSTEM,
             character_id=None,
             narration=(
-                "“纸上没有的，我们就不说。”安妮和你并肩走到正在收集说法的人群边。"
-                "那张纸只是许多住户见闻中的一张；"
-                "安妮却记住了，你一路都没有替她把不知道的事说成知道。"
-                + FIXED_HISTORY_RESULT
+                "你买下那只标作来自波兰街的预装罐。安妮看过封口，仍只问了一遍"
+                "实际取水处，随后喝下了罐里的水。" + POISONED_NEXT_DAY
             ),
+            choice_presentation=StoryChoicePresentation.INLINE,
+            confirmation_prompt=None,
             choices=(),
-            ending_id="ending_left_the_pump",
+            ending_id="ending_annie_poisoned",
         ),
         StoryNode(
-            id="node_repaired_ending",
+            id="node_ending_lodging_cistern",
             presentation_kind=StoryNodePresentationKind.SYSTEM,
             character_id=None,
             narration=(
-                "你划掉了那句过头的话。安妮盯着墨痕看了一会儿。"
-                "“这道印子别擦掉。别人得知道我们改过。”她把纸重新递给你一角。"
-                "她还没有完全信你，但愿意让你陪着把路走完。" + FIXED_HISTORY_RESULT
+                "你从附近住屋后院的共用储水缸装满陶罐。水看起来清澈，安妮接过去"
+                "慢慢喝完一杯。" + POISONED_NEXT_DAY
             ),
+            choice_presentation=StoryChoicePresentation.INLINE,
+            confirmation_prompt=None,
             choices=(),
-            ending_id="ending_record_repaired",
+            ending_id="ending_annie_poisoned",
         ),
         StoryNode(
-            id="node_wary_ending",
+            id="node_ending_brewery_barrel",
             presentation_kind=StoryNodePresentationKind.SYSTEM,
             character_id=None,
             narration=(
-                "“纸给我，我自己拿着。”安妮把纸折回口袋，不再让你替她开口。"
-                "你们走向同一条街，却隔开了"
-                "两步。她会记得你曾帮忙，也会记得你更想要一个漂亮答案。"
-                + FIXED_HISTORY_RESULT
+                "你从啤酒厂门外的杂用桶装水，把它当成了厂内水源。安妮喝下你带回的水。"
+                + POISONED_NEXT_DAY
             ),
+            choice_presentation=StoryChoicePresentation.INLINE,
+            confirmation_prompt=None,
             choices=(),
-            ending_id="ending_annie_wary",
+            ending_id="ending_annie_poisoned",
         ),
         StoryNode(
-            id="node_distant_ending",
+            id="node_ending_workhouse_outside_barrel",
             presentation_kind=StoryNodePresentationKind.SYSTEM,
             character_id=None,
             narration=(
-                "你在岔路口停下。安妮没有追，也没有责怪，只抱着空陶罐继续贴墙往前走。"
-                "故事不替你补写她之后找到什么。" + FIXED_HISTORY_RESULT
+                "你从波兰街济贫院院墙外那只带旧标记的储水桶装水。安妮把它当成"
+                "你核过来路的水，接过去喝了。" + POISONED_NEXT_DAY
             ),
+            choice_presentation=StoryChoicePresentation.INLINE,
+            confirmation_prompt=None,
             choices=(),
-            ending_id="ending_no_answer",
+            ending_id="ending_annie_poisoned",
+        ),
+        StoryNode(
+            id="node_ending_workhouse_private_well",
+            presentation_kind=StoryNodePresentationKind.SYSTEM,
+            character_id=None,
+            narration=(
+                "门房让你站在波兰街济贫院院内，看着一只空罐从私井当场装满。"
+                "你没有让它离开视线，直接把这罐水带给安妮。她喝下水，当日没有异样。"
+                "次日，她仍平安地抱着陶罐来找你。‘谢谢你。你带回来的，"
+                "真是你亲眼看着打上来的水。’"
+            ),
+            choice_presentation=StoryChoicePresentation.INLINE,
+            confirmation_prompt=None,
+            choices=(),
+            ending_id="ending_annie_safe",
         ),
     ),
 )
@@ -681,18 +567,27 @@ CHAPTER = StoryChapter(
 ANNIE_STORY_WORLD = StoryWorld(
     id=ANNIE_STORY_WORLD_ID,
     title="1854 年宽街",
-    summary="在不可改写的宽街历史中，帮助原创儿童见证者把饮水来源和亲眼所见分开说清。",
+    summary="空手路过的陌生人替安妮核对取水来路，并承担一次不能更换的交水结果。",
     genre="历史剧情",
     publication_status=PublicationStatus.PUBLISHED,
-    content_version="annie-broad-street-2026-08-05.6",
+    content_version="annie-broad-street-2026-08-10.1",
     player_roles=(TOM_REED_PLAYER_ROLE, LIZZIE_BELL_PLAYER_ROLE),
-    characters=(ANNIE,),
+    characters=(
+        ANNIE,
+        WATER_SELLER,
+        SELLER_ACCOMPLICE,
+        WORKHOUSE_GATEKEEPER,
+        BREWERY_WORKER,
+        LODGING_STEWARD,
+    ),
     stories=(
         ReviewedStory(
             id=ANNIE_STORY_ID,
-            title="1854 年宽街",
-            summary="在不可改写的宽街历史中，帮助原创儿童见证者把饮水来源和亲眼所见分开说清。",
+            title="替安妮找水",
+            summary="走访不同取水点，核对一罐水的实际来源，再把它交给安妮。",
             kind=StoryKind.GROWTH,
+            experience_mode=StoryExperienceMode.NARRATIVE_STORY,
+            replay_policy=StoryReplayPolicy.PERMANENT_RESULT,
             publication_status=PublicationStatus.PUBLISHED,
             focus_character_id=ANNIE_CHARACTER_ID,
             participants=(
@@ -701,35 +596,167 @@ ANNIE_STORY_WORLD = StoryWorld(
                     current_situation=ANNIE_CURRENT_SITUATION,
                     opening_line=ANNIE_OPENING_LINE,
                     can_start=True,
+                    location_label="宽街水泵附近",
+                    arrival_narration="安妮仍抱着空陶罐留在宽街附近，等你说明水的实际来路。",
+                    visit_required_flags=(),
+                    visit_set_flags=(),
+                    knowledge_entry_ids=(
+                        "setting_annie_water_request",
+                        "setting_family_warning",
+                    ),
+                ),
+                StoryCharacterParticipation(
+                    character_id=WATER_SELLER_CHARACTER_ID,
+                    current_situation="埃利亚斯守着几只封好的预装水罐，标签都写着较远的取水处。",
+                    opening_line=(
+                        "“封口没动过，纸上也写着波兰街。”埃利亚斯拍了拍水罐。"
+                        "“清得很，我亲自取的。”"
+                    ),
+                    can_start=False,
+                    location_label="街边售水点",
+                    arrival_narration=(
+                        "街边小车上排着封好的水罐。最外一只写着‘波兰街’，"
+                        "纸标下沿却露出一道较旧的蓝色纸边。"
+                    ),
+                    visit_required_flags=("investigation_open",),
+                    visit_set_flags=("visited_water_seller",),
+                    knowledge_entry_ids=(
+                        "fact_broad_street_water_use",
+                        "setting_vendor_scheme",
+                        "setting_vendor_lie_limits",
+                    ),
+                ),
+                StoryCharacterParticipation(
+                    character_id=SELLER_ACCOMPLICE_CHARACTER_ID,
+                    current_situation="玛莎扶着刚卸空的手推车，袖口还沾着覆盖纸标用的浆糊。",
+                    opening_line=(
+                        "“我只负责搬罐。”玛莎把手从浆糊印上移开。"
+                        "“车是天亮以后才装满的，至于纸上写什么，你去问卖水的。”"
+                    ),
+                    can_start=False,
+                    location_label="巷口手推车",
+                    arrival_narration=(
+                        "手推车上留着几圈大小相同的罐底水印，车板角落压着被刮掉的旧纸标。"
+                    ),
+                    visit_required_flags=("investigation_open",),
+                    visit_set_flags=("visited_cart_accomplice",),
+                    knowledge_entry_ids=(
+                        "setting_vendor_scheme",
+                        "setting_vendor_lie_limits",
+                        "setting_accomplice_timeline",
+                    ),
+                ),
+                StoryCharacterParticipation(
+                    character_id=WORKHOUSE_GATEKEEPER_CHARACTER_ID,
+                    current_situation="塞缪尔守着波兰街济贫院院门，把院内取水与墙外旧桶分开。",
+                    opening_line=(
+                        "“院里确实有人病过，这一点我不会瞒你；可我不知道每个人喝过哪桶水。”"
+                        "塞缪尔挡在门槛前。‘墙外那只桶不是院内私井，卖水的也从没进过这道门。’"
+                    ),
+                    can_start=False,
+                    location_label="波兰街济贫院院门",
+                    arrival_narration=(
+                        "院门内的取水处看不见街边手推车；院墙外另放着一只带旧字样的储水桶。"
+                    ),
+                    visit_required_flags=("investigation_open",),
+                    visit_set_flags=("visited_workhouse_gatekeeper",),
+                    knowledge_entry_ids=(
+                        "fact_workhouse_recorded_deaths",
+                        "fact_workhouse_water_supply",
+                        "setting_workhouse_access_and_containers",
+                    ),
+                ),
+                StoryCharacterParticipation(
+                    character_id=BREWERY_WORKER_CHARACTER_ID,
+                    current_situation="乔治在啤酒厂门边清洗工具，旁边的杂用桶没有接到厂内水路。",
+                    opening_line=(
+                        "“厂里少有人重病，听着当然让人放心。”乔治指了指门外的桶。"
+                        "“可工人主要喝的是麦芽酒；这桶只拿来做杂活，不是厂内 deep well。”"
+                    ),
+                    can_start=False,
+                    location_label="啤酒厂门外",
+                    arrival_narration=(
+                        "厂门内外隔着一道门槛。门外杂用桶边有手推车轮印，"
+                        "厂内井口和水路都在另一侧。"
+                    ),
+                    visit_required_flags=("investigation_open",),
+                    visit_set_flags=("visited_brewery_worker",),
+                    knowledge_entry_ids=(
+                        "fact_brewery_low_illness",
+                        "fact_brewery_drink_and_supply",
+                        "setting_brewery_outside_barrel",
+                    ),
+                ),
+                StoryCharacterParticipation(
+                    character_id=LODGING_STEWARD_CHARACTER_ID,
+                    current_situation="莉迪亚刚掀开后院储水缸的木盖，水面看起来清澈。",
+                    opening_line=(
+                        "“缸洗过，水也清，这两天还没人倒下。”莉迪亚把木盖扶住。"
+                        "“可补水是街边车送来的，我没跟着它去看从哪儿装。”"
+                    ),
+                    can_start=False,
+                    location_label="附近住屋后院",
+                    arrival_narration=(
+                        "共用储水缸放在敞开的后院，木盖频繁开合；缸边没有能追到上游的取水标记。"
+                    ),
+                    visit_required_flags=("investigation_open",),
+                    visit_set_flags=("visited_lodging_steward",),
+                    knowledge_entry_ids=("setting_lodging_cistern",),
+                ),
+            ),
+            historical_reference_unlocks=(
+                HistoricalReferenceUnlock(
+                    entry_id="fact_broad_street_outbreak",
+                    required_flags=(),
+                ),
+                HistoricalReferenceUnlock(
+                    entry_id="fact_broad_street_water_use",
+                    required_flags=("visited_water_seller",),
+                ),
+                HistoricalReferenceUnlock(
+                    entry_id="fact_workhouse_recorded_deaths",
+                    required_flags=("visited_workhouse_gatekeeper",),
+                ),
+                HistoricalReferenceUnlock(
+                    entry_id="fact_brewery_low_illness",
+                    required_flags=("visited_brewery_worker",),
+                ),
+                HistoricalReferenceUnlock(
+                    entry_id="fact_workhouse_water_supply",
+                    required_flags=(
+                        "visited_workhouse_gatekeeper",
+                        "sources_cross_checked",
+                    ),
+                ),
+                HistoricalReferenceUnlock(
+                    entry_id="fact_brewery_drink_and_supply",
+                    required_flags=(
+                        "visited_brewery_worker",
+                        "sources_cross_checked",
+                    ),
                 ),
             ),
             entry_chapter_id=CHAPTER.id,
             chapters=(CHAPTER,),
             endings=(
                 StoryEnding(
-                    id="ending_witness_heard",
-                    title="被认真听见",
-                    summary="你让安妮用自己的话讲完见闻，只补充能核对的门牌。她愿意在以后再次来找你。",
+                    id="ending_annie_safe",
+                    title="平安归来",
+                    summary=(
+                        "安妮喝下你亲眼看着从波兰街济贫院院内私井打出的水，次日平安，"
+                        "并向你道谢。"
+                    ),
+                    post_ending_message_mode=PostEndingMessageMode.LLM,
+                    unanswered_reply=None,
+                    post_ending_context=SAFE_POST_ENDING_CONTEXT,
                 ),
                 StoryEnding(
-                    id="ending_left_the_pump",
-                    title="离开水泵",
-                    summary="你们共同交出一张普通的住户见闻。它没有改变公共历史，却让安妮记住你没有替她编造答案。",
-                ),
-                StoryEnding(
-                    id="ending_record_repaired",
-                    title="留下改痕",
-                    summary="你公开划掉了猜测。安妮仍有保留，但愿意让你陪着把剩下的路走完。",
-                ),
-                StoryEnding(
-                    id="ending_annie_wary",
-                    title="隔着两步",
-                    summary="你坚持用更吓人的说法代替可核对见闻。安妮带走纸页，也收回了让你替她开口的信任。",
-                ),
-                StoryEnding(
-                    id="ending_no_answer",
-                    title="雨中的背影",
-                    summary="你拒绝继续介入。安妮独自离开，故事不替你补写她之后的命运。",
+                    id="ending_annie_poisoned",
+                    title="次日昏睡",
+                    summary="安妮喝下你带回的受污染水，次日病倒昏睡，无法答复。",
+                    post_ending_message_mode=PostEndingMessageMode.UNANSWERED,
+                    unanswered_reply="安妮仍在昏睡，无法答复你",
+                    post_ending_context=None,
                 ),
             ),
             character_decisions=(),
@@ -737,53 +764,76 @@ ANNIE_STORY_WORLD = StoryWorld(
     ),
     canon_entries=(
         CanonEntry(
-            id="fact_outbreak_intensified",
+            id="fact_broad_street_outbreak",
             category=CanonCategory.FIXED_FACT,
-            statement="1854 年宽街一带的霍乱暴发在 8 月 31 日夜至 9 月 1 日显著加剧。",
-            sources=(SNOW_1855, UCLA_INVESTIGATION),
+            statement=(
+                "John Snow 在 1855 年著作中记录，1854 年苏活区霍乱死亡集中在"
+                "宽街水泵周边；这是一场已经发生的公共历史事件。"
+            ),
+            sources=(SNOW_1855, PARISH_REPORT_1855, CHOLERA_HISTORY_REVIEW),
         ),
         CanonEntry(
-            id="fact_snow_investigation_method",
+            id="fact_broad_street_water_use",
             category=CanonCategory.FIXED_FACT,
-            statement="John Snow 获取死亡登记资料，并逐户询问死者家庭实际使用的饮水来源。",
-            sources=(SNOW_1855, PARISH_REPORT_1855),
+            statement=(
+                "Snow 的逐户询问记录了许多死者曾经常或偶尔饮用宽街泵水；"
+                "也有人因偏爱其口感而特意到该泵取水。清澈、受欢迎或取用者多"
+                "都不能单独证明水安全。"
+            ),
+            sources=(SNOW_1855, PARISH_REPORT_1855, CHOLERA_HISTORY_REVIEW),
         ),
         CanonEntry(
-            id="fact_parish_statement_and_handle",
+            id="fact_workhouse_recorded_deaths",
             category=CanonCategory.FIXED_FACT,
-            statement="Snow 于 9 月 7 日晚向 St James 教区监护委员会陈述，宽街水泵把手于次日被移除。",
-            sources=(SNOW_1855, UCLA_HANDLE_REMOVAL),
+            statement=(
+                "Snow 记录波兰街济贫院 535 名院内人员中有 5 人死于霍乱；"
+                "另有死者是在院外发病后才被收治。该记录不能证明每个个案喝过哪一种水。"
+            ),
+            sources=(SNOW_1855, PARISH_REPORT_1855, CHOLERA_HISTORY_REVIEW),
         ),
         CanonEntry(
-            id="fact_outbreak_already_declining",
+            id="fact_workhouse_water_supply",
             category=CanonCategory.FIXED_FACT,
-            statement="Snow 自己说明，在泵柄移除前暴发已经开始减退，不能把疫情结束归因于单一动作。",
-            sources=(SNOW_1855, WHITEHEAD_1862),
+            statement=(
+                "Snow 记录波兰街济贫院院内有自己的 pump-well，也有 Grand Junction"
+                " Water Works 供水；院内人员不去宽街取水。多种供水描述不能被压成"
+                "对某一只外部容器的安全证明。"
+            ),
+            sources=(SNOW_1855, PARISH_REPORT_1855, CHOLERA_HISTORY_REVIEW),
         ),
         CanonEntry(
-            id="fact_comparison_water_sources",
+            id="fact_brewery_low_illness",
             category=CanonCategory.FIXED_FACT,
-            statement="宽街附近济贫院有自己的水源，附近啤酒厂工人通常也不饮用街泵水；这些记录用于比较饮水来源。",
-            sources=(SNOW_1855, PARISH_REPORT_1855),
+            statement=(
+                "Snow 记录宽街附近啤酒厂有七十多名工人，没有登记到霍乱死亡；"
+                "厂主称当时只有两人轻微不适。该群体对照不能证明厂门外任何一桶水安全。"
+            ),
+            sources=(SNOW_1855, PARISH_REPORT_1855, CHOLERA_HISTORY_REVIEW),
         ),
         CanonEntry(
-            id="fact_map_not_discovery_origin",
+            id="fact_brewery_drink_and_supply",
             category=CanonCategory.FIXED_FACT,
-            statement="后来广为流传的点图用于呈现和分析证据，但不是 Snow 首次形成水传播假设或开始调查的原因。",
-            sources=(SNOW_1855, LANCET_MAP_HISTORY),
+            statement=(
+                "Snow 记录厂主称工人有麦芽酒配给、不从街泵取水；啤酒厂内另有 deep well"
+                " 和 New River water。史料没有把厂内这些供水等同于厂门外的杂用桶。"
+            ),
+            sources=(SNOW_1855, PARISH_REPORT_1855, CHOLERA_HISTORY_REVIEW),
         ),
         CanonEntry(
-            id="setting_annie_is_fictional",
+            id="setting_annie_water_request",
             category=CanonCategory.STORY_SETTING,
-            statement="安妮及她与玩家的相遇均为原创剧情，不对应史料中可识别的真实儿童。",
+            statement=(
+                "安妮是原创儿童 Character；她在 9 月 7 日向一个空手路过的陌生人"
+                "请求一罐可以喝的水，属于私有剧情，不对应史料中的真实儿童。"
+            ),
             sources=(),
         ),
         CanonEntry(
-            id="setting_opening_rain",
+            id="setting_family_warning",
             category=CanonCategory.STORY_SETTING,
             statement=(
-                "9 月 7 日下午的降雨、屋檐避雨与淋湿衣裙属于开场氛围设定，"
-                "不作为当日气象史实或霍乱传播的因果证据。"
+                "安妮的母亲禁止她继续使用宽街水泵，是原创家庭的谨慎，"
+                "不代表当时居民已经普遍接受水传播解释。"
             ),
             sources=(),
         ),
@@ -791,27 +841,89 @@ ANNIE_STORY_WORLD = StoryWorld(
             id="setting_player_roles",
             category=CanonCategory.STORY_SETTING,
             statement=(
-                "汤姆·里德与莉齐·贝尔均为原创玩家身份；每轮只选择其中一人，"
-                "在水泵旁遇见安妮。两人都没有公共权威，安妮分别称其为哥哥或姐姐。"
+                "汤姆·里德与莉齐·贝尔均为原创成年 PlayerRole；两人办完普通差事后"
+                "空手路过，没有水、调查任务或公共权威。所有 Character 只把玩家看作"
+                "略年长的陌生路人，不知道其隐藏姓名、职业和完整背景。"
             ),
             sources=(),
         ),
         CanonEntry(
-            id="setting_family_warning",
+            id="setting_supporting_characters_original",
             category=CanonCategory.STORY_SETTING,
-            statement="安妮的母亲禁止她继续使用宽街水泵，是虚构家庭的谨慎，不代表当时居民普遍接受水传播解释。",
+            statement=(
+                "埃利亚斯·芬奇、玛莎·克罗、塞缪尔·普赖斯、乔治·沃德和莉迪亚·肖"
+                "均为原创成年 supporting Character，不映射任何史料中的具名人士。"
+            ),
             sources=(),
         ),
         CanonEntry(
-            id="setting_testimony_paper",
+            id="setting_vendor_scheme",
             category=CanonCategory.STORY_SETTING,
-            statement="安妮与玩家逐户核对门牌、取水处并整理纸页的过程属于原创剧情，只是众多地方见闻之一。",
+            statement=(
+                "原创水贩埃利亚斯与同伙玛莎把宽街泵水装入预装罐，覆盖或调换来源标记，"
+                "并声称水来自波兰街；他们利用济贫院真实病例制造院内私井致病的错误归因，"
+                "故意混淆院墙外储水桶与院内私井。这是本轮私有骗局，不是历史案件。"
+            ),
             sources=(),
         ),
         CanonEntry(
-            id="setting_private_endings",
+            id="setting_vendor_lie_limits",
             category=CanonCategory.STORY_SETTING,
-            statement="五个结局只记录安妮是否信任玩家、是否同行及是否让玩家替她开口，不改变公共历史。",
+            statement=(
+                "水贩与同伙只可在来源标签、容器和取水路线范围内故意说谎或淡化事实；"
+                "交水前不得主动承认两人合谋或完整送水链，只能留下标签覆盖、搬运时间"
+                "和院内权限三类局部破绽。不得编造济贫院、啤酒厂、水务机构或真实人物"
+                "为共犯，不得新增受害者。完整闭合只可由平安结局后的安妮对话使用。"
+            ),
+            sources=(),
+        ),
+        CanonEntry(
+            id="setting_accomplice_timeline",
+            category=CanonCategory.STORY_SETTING,
+            statement=(
+                "玛莎亲见水罐在宽街泵装满后才覆盖标签；同一手推车还给住屋后院储水缸、"
+                "啤酒厂门外杂用桶和济贫院墙外旧桶送过水。她知道水贩声称的院内取水时刻"
+                "与实际搬运时间不符。"
+            ),
+            sources=(),
+        ),
+        CanonEntry(
+            id="setting_workhouse_access_and_containers",
+            category=CanonCategory.STORY_SETTING,
+            statement=(
+                "原创门房塞缪尔确认水贩没有院内通行权，院墙外带旧标记的桶也不属于"
+                "院内私井。本轮中，他只允许玩家站在院内旁观一只空罐当场从私井装满；"
+                "这项许可不是历史机构政策。"
+            ),
+            sources=(),
+        ),
+        CanonEntry(
+            id="setting_brewery_outside_barrel",
+            category=CanonCategory.STORY_SETTING,
+            statement=(
+                "啤酒厂门外杂用桶、手推车补水和原创帮工乔治均为剧情设定；"
+                "该桶不连接厂内 deep well 或 New River water，只用于门外杂务。"
+            ),
+            sources=(),
+        ),
+        CanonEntry(
+            id="setting_lodging_cistern",
+            category=CanonCategory.STORY_SETTING,
+            statement=(
+                "附近住屋、原创管事莉迪亚、后院共用储水缸及其街边补水均为剧情设定；"
+                "她只知道水看起来清澈和短时未见异常，没有亲见上游取水处。"
+            ),
+            sources=(),
+        ),
+        CanonEntry(
+            id="setting_private_water_results",
+            category=CanonCategory.STORY_SETTING,
+            statement=(
+                "只在本轮原创私人结果中，宽街泵水、假标预装罐、住屋储水缸、啤酒厂"
+                "门外杂用桶和济贫院墙外桶均为受污染的错误选择；只有玩家在院内亲眼看着"
+                "从私井取得的水让安妮次日平安。具体容器、机构给水许可和安妮个人结局"
+                "不代表真实机构政策、全部供水或普遍医学结论。"
+            ),
             sources=(),
         ),
     ),

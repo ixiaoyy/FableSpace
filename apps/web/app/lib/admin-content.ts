@@ -3,6 +3,10 @@ import { jsonInit, readApiJson } from "./api-client"
 export type PublicationStatus = "draft" | "published" | "archived"
 export type CanonCategory = "fixed_fact" | "story_setting" | "needs_verification"
 export type StoryKind = "growth" | "ensemble"
+export type StoryExperienceMode = "character_growth" | "narrative_story"
+export type StoryReplayPolicy = "replayable" | "permanent_result"
+export type StoryChoicePresentation = "inline" | "permanent_decision"
+export type PostEndingMessageMode = "llm" | "unanswered" | "disabled"
 export type StoryNodePresentationKind = "character" | "system" | "action"
 export type PredicateValue = string | number | boolean
 
@@ -78,6 +82,8 @@ export type StoryNode = {
   presentation_kind: StoryNodePresentationKind
   character_id: string | null
   narration: string
+  choice_presentation: StoryChoicePresentation
+  confirmation_prompt: string | null
   choices: StoryChoice[]
   ending_id: string | null
 }
@@ -93,6 +99,9 @@ export type StoryEnding = {
   id: string
   title: string
   summary: string
+  post_ending_message_mode: PostEndingMessageMode
+  unanswered_reply: string | null
+  post_ending_context: string | null
 }
 
 export type StoryCharacterParticipation = {
@@ -100,6 +109,16 @@ export type StoryCharacterParticipation = {
   current_situation: string
   opening_line: string
   can_start: boolean
+  location_label: string
+  arrival_narration: string
+  visit_required_flags: string[]
+  visit_set_flags: string[]
+  knowledge_entry_ids: string[]
+}
+
+export type HistoricalReferenceUnlock = {
+  entry_id: string
+  required_flags: string[]
 }
 
 export type DecisionPredicate =
@@ -139,9 +158,12 @@ export type ReviewedStory = {
   title: string
   summary: string
   kind: StoryKind
+  experience_mode: StoryExperienceMode
+  replay_policy: StoryReplayPolicy
   publication_status: PublicationStatus
   focus_character_id: string | null
   participants: StoryCharacterParticipation[]
+  historical_reference_unlocks: HistoricalReferenceUnlock[]
   entry_chapter_id: string
   chapters: StoryChapter[]
   endings: StoryEnding[]
