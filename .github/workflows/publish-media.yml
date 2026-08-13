@@ -4,6 +4,7 @@ on:
   repository_dispatch:
     types:
       - publish-fablespace-media
+      - publish-game-media
 
 permissions:
   contents: read
@@ -12,7 +13,9 @@ jobs:
   publish:
     name: Publish reviewed media
     runs-on: ubuntu-latest
-    if: vars.DEPLOY_CONFIGURED == 'true' && github.event.action == 'publish-fablespace-media'
+    if: >-
+      vars.DEPLOY_CONFIGURED == 'true' &&
+      (github.event.action == 'publish-fablespace-media' || github.event.action == 'publish-game-media')
     env:
       AWS_ACCESS_KEY_ID: ${{ secrets.CDN_S3_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.CDN_S3_SECRET_ACCESS_KEY }}
@@ -21,7 +24,7 @@ jobs:
       CDN_BASE_URL: ${{ secrets.CDN_BASE_URL }}
       CDN_S3_BUCKET: ${{ secrets.CDN_S3_BUCKET }}
       CDN_S3_ENDPOINT_URL: ${{ secrets.CDN_S3_ENDPOINT_URL }}
-      CDN_S3_PREFIX: ${{ vars.CDN_S3_PREFIX || 'fablespace' }}
+      CDN_S3_PREFIX: ${{ vars.CDN_S3_PREFIX || 'game' }}
       MEDIA_OBJECT_KEY: ${{ github.event.client_payload.object_key }}
       MEDIA_CONTENT_TYPE: ${{ github.event.client_payload.content_type }}
       MEDIA_EXPECTED_BYTES: ${{ github.event.client_payload.bytes }}
@@ -29,6 +32,7 @@ jobs:
       MEDIA_CONTENT_BASE64: ${{ github.event.client_payload.content_base64 }}
       MEDIA_SOURCE_URL: ${{ github.event.client_payload.source_url }}
       MEDIA_SOURCE_ENCODING: ${{ github.event.client_payload.source_encoding }}
+      MEDIA_PUBLISH_EVENT: ${{ github.event.action }}
     steps:
       - name: Validate and publish immutable object
         shell: bash
@@ -69,20 +73,41 @@ jobs:
             *) echo "::error::CDN_S3_ENDPOINT_URL must use HTTPS"; exit 1 ;;
           esac
           case "${MEDIA_OBJECT_KEY}" in
-            app/assets/story-worlds/*/player-roles/*/v[0-9]*/avatar.webp) ;;
-            app/assets/story-worlds/*/characters/*/v[0-9]*/portrait.webp) ;;
-            *) echo "::error::Object key is outside the reviewed story portrait namespaces"; exit 1 ;;
-          esac
-          case "${MEDIA_OBJECT_KEY}" in
             *..*|/*|*//*)
               echo "::error::Object key is not normalized"
               exit 1
               ;;
           esac
-          if [ "${MEDIA_CONTENT_TYPE:-}" != "image/webp" ]; then
-            echo "::error::Only reviewed WebP story portraits are accepted"
-            exit 1
-          fi
+          case "${MEDIA_OBJECT_KEY}" in
+            assets/vendor/ninja-adventure/2024-04-19/player-female.png)
+              if [ "${MEDIA_PUBLISH_EVENT}" != "publish-game-media" ]; then
+                echo "::error::The reviewed game avatar requires the game publication event"
+                exit 1
+              fi
+              if [ "${MEDIA_CONTENT_TYPE:-}" != "image/png" ]; then
+                echo "::error::The reviewed game avatar must use image/png"
+                exit 1
+              fi
+              CDN_S3_PREFIX="${CDN_S3_PREFIX#/}"
+              CDN_S3_PREFIX="${CDN_S3_PREFIX%/}"
+              if [ "${CDN_S3_PREFIX}" != "game" ]; then
+                echo "::error::The reviewed game avatar must publish under the game prefix"
+                exit 1
+              fi
+              ;;
+            app/assets/story-worlds/*/player-roles/*/v[0-9]*/avatar.webp|app/assets/story-worlds/*/characters/*/v[0-9]*/portrait.webp)
+              if [ "${MEDIA_PUBLISH_EVENT}" != "publish-fablespace-media" ]; then
+                echo "::error::Reviewed story portraits require the legacy publication event"
+                exit 1
+              fi
+              if [ "${MEDIA_CONTENT_TYPE:-}" != "image/webp" ]; then
+                echo "::error::Reviewed story portraits must use image/webp"
+                exit 1
+              fi
+              CDN_S3_PREFIX="fablespace"
+              ;;
+            *) echo "::error::Object key is outside the reviewed media allowlist"; exit 1 ;;
+          esac
           if ! [[ "${MEDIA_EXPECTED_BYTES}" =~ ^[1-9][0-9]{0,6}$ ]]; then
             echo "::error::Invalid expected byte count"
             exit 1
@@ -92,21 +117,26 @@ jobs:
             exit 1
           fi
 
-          CDN_S3_PREFIX="${CDN_S3_PREFIX#/}"
-          CDN_S3_PREFIX="${CDN_S3_PREFIX%/}"
           FULL_OBJECT_KEY="${CDN_S3_PREFIX}/media/v1/${MEDIA_OBJECT_KEY}"
-          MEDIA_FILE="/tmp/fablespace-media.webp"
-          SOURCE_FILE="/tmp/fablespace-media-source"
-          EXISTING_FILE="/tmp/fablespace-existing-media.webp"
-          DELIVERED_FILE="/tmp/fablespace-delivered-media.webp"
+          MEDIA_FILE="/tmp/reviewed-media"
+          SOURCE_FILE="/tmp/reviewed-media-source"
+          EXISTING_FILE="/tmp/existing-reviewed-media"
+          DELIVERED_FILE="/tmp/delivered-reviewed-media"
 
           if [ -n "${MEDIA_CONTENT_BASE64:-}" ]; then
             printf '%s' "${MEDIA_CONTENT_BASE64}" | base64 --decode > "${MEDIA_FILE}"
           else
-            case "${MEDIA_SOURCE_URL}" in
-              https://gist.githubusercontent.com/*) ;;
-              *) echo "::error::Source URL is outside the approved temporary GitHub host"; exit 1 ;;
-            esac
+            if [ "${MEDIA_OBJECT_KEY}" = "assets/vendor/ninja-adventure/2024-04-19/player-female.png" ]; then
+              if [ "${MEDIA_SOURCE_URL}" != "https://raw.githubusercontent.com/pixel-boy/NinjaAdventure/6ac78232d5aedcc85ce5f27d060ea92366f7c24a/content/character/samurai_green/samurai_green.png" ]; then
+                echo "::error::The game avatar source URL is not the reviewed immutable upstream object"
+                exit 1
+              fi
+            else
+              case "${MEDIA_SOURCE_URL}" in
+                https://gist.githubusercontent.com/*) ;;
+                *) echo "::error::Source URL is outside the approved temporary GitHub host"; exit 1 ;;
+              esac
+            fi
             curl \
               --fail \
               --location \
