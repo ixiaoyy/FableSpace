@@ -1441,3 +1441,38 @@ Added a guarded manual 006/008 production repair workflow, retained a verified l
 ### Next Steps
 
 - None - task complete
+
+
+## Session 44: Player onboarding and production rollout
+
+**Date**: 2026-08-13
+**Task**: Player onboarding and production rollout
+**Branch**: `main`
+
+### Summary
+
+Added simple male/female character creation and naming, safe v1-to-v2 local save migration, returning/restart flows, official female CC0 sprite publication, corrected sprite-sheet frame axes, verified gameplay and deployed the frontend to production.
+
+### Main Changes
+
+- Detailed change bullets were not supplied; see the summary above.
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `125081b1` | (see git log) |
+| `1463dea8` | (see git log) |
+| `4b3856be` | (see git log) |
+
+### Testing
+
+- Validation was not recorded for this session.
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
