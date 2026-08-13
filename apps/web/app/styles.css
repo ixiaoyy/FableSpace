@@ -1,449 +1,289 @@
-@import "tailwindcss";
-
-@theme {
-  --font-sans: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-
-  /* Legacy cyan utilities remain API-compatible, but now follow the restrained
-   * blue-violet brand ramp instead of acting as a hot-pink neon alias. */
-  --color-cyan-50: #f3f0ff;
-  --color-cyan-100: #e6def2;
-  --color-cyan-200: #d0b4e3;
-  --color-cyan-300: #aaa3df;
-  --color-cyan-400: #8e86d8;
-  --color-cyan-500: #6e78c9;
-  --color-cyan-600: #5966bb;
-  --color-cyan-700: #4e5aaa;
-  --color-cyan-800: #303861;
-  --color-cyan-900: #1b2144;
-  --color-cyan-950: #0d1226;
-
-  /* Keep existing violet and relationship-state rose utilities inside the
-   * same semantic system instead of leaking Tailwind's saturated defaults. */
-  --color-violet-50: #f3f0ff;
-  --color-violet-100: #e6def2;
-  --color-violet-200: #d0b4e3;
-  --color-violet-300: #aaa3df;
-  --color-violet-400: #8e86d8;
-  --color-violet-500: #6e78c9;
-  --color-violet-600: #5966bb;
-  --color-violet-700: #4e5aaa;
-  --color-violet-800: #303861;
-  --color-violet-900: #1b2144;
-  --color-violet-950: #0d1226;
-
-  --color-rose-50: #fff4f8;
-  --color-rose-100: #f9e3ed;
-  --color-rose-200: #f1c8db;
-  --color-rose-300: #e8a4c3;
-  --color-rose-400: #df8bb5;
-  --color-rose-500: #d977a8;
-  --color-rose-600: #c46596;
-  --color-rose-700: #a64f7e;
-  --color-rose-800: #843f66;
-  --color-rose-900: #61324d;
-  --color-rose-950: #3b1b2e;
-  
-  --color-theme-bg: var(--theme-bg);
-  --color-theme-header: var(--theme-header);
-  --color-theme-card: var(--theme-card);
-  --color-theme-primary: var(--theme-primary);
-  --color-theme-muted: var(--theme-muted);
-  --color-theme-border: var(--theme-border);
-  --color-theme-accent-bg: var(--theme-accent-bg);
-  --color-theme-accent-border: var(--theme-accent-border);
-  --color-theme-accent-text: var(--theme-accent-text);
-  
-  --color-anime-blue: #5966bb;
-  --color-anime-pink: #d977a8;
-  --color-anime-gold: oklch(0.8 0.16 82);
+:root {
+  color-scheme: dark;
+  font-family: "Courier New", "Noto Serif SC", monospace;
+  background: #151917;
+  color: #f5e8c3;
+  font-synthesis: none;
+  text-rendering: geometricPrecision;
 }
 
-@layer base {
-  :root {
-    color-scheme: dark;
+* {
+  box-sizing: border-box;
+}
 
-    /* FableSpace semantic palette: deep navy owns the surfaces, blue-violet
-     * carries interaction, lavender catches light, and romance pink stays rare. */
-    --color-bg-page: #0d1226;
-    --color-bg-sidebar: #151a38;
-    --color-bg-surface: #1b2144;
-    --color-bg-elevated: #252a52;
-    --color-bg-hover: #303861;
+html,
+body {
+  min-width: 320px;
+  min-height: 100%;
+  margin: 0;
+}
 
-    --color-primary: #5966bb;
-    --color-primary-hover: #6e78c9;
-    /* Preserve the brighter hover color for edges and highlights; this slightly
-     * darker fill keeps #f3f0ff button labels above the WCAG AA threshold. */
-    --color-primary-fill-hover: #5a67bc;
-    --color-primary-active: #4e5aaa;
-    --color-primary-soft: rgba(89, 102, 187, 0.16);
+body {
+  min-height: 100vh;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 50% 22%, rgba(123, 146, 77, 0.16), transparent 34rem),
+    linear-gradient(145deg, #1e2721 0%, #111513 58%, #080b0a 100%);
+}
 
-    --color-lavender: #8e86d8;
-    --color-lavender-light: #d0b4e3;
-    --color-lavender-soft: rgba(142, 134, 216, 0.14);
+button,
+a {
+  font: inherit;
+}
 
-    --color-romance: #d977a8;
-    --color-romance-hover: #e8a4c3;
-    --color-romance-soft: rgba(217, 119, 168, 0.14);
+.gameBoot {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  color: #e8d6aa;
+  letter-spacing: 0.08em;
+}
 
-    --color-text-primary: #f3f0ff;
-    --color-text-secondary: #d0cae5;
-    --color-text-muted: #9697b5;
-    --color-text-disabled: #6e708c;
+.gamePage {
+  position: relative;
+  isolation: isolate;
+  min-height: 100vh;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  gap: clamp(10px, 1.7vh, 18px);
+  padding: clamp(14px, 2.6vw, 32px);
+}
 
-    --color-border: rgba(174, 169, 230, 0.22);
-    --color-divider: rgba(232, 228, 255, 0.1);
-    --color-focus-ring: rgba(142, 134, 216, 0.48);
+.gamePage::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  background:
+    linear-gradient(rgba(255, 255, 255, 0.018) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.014) 1px, transparent 1px);
+  background-size: 7px 7px;
+  mask-image: linear-gradient(to bottom, black, transparent 88%);
+}
 
-    --shadow-surface: 0 16px 48px rgba(4, 7, 22, 0.42);
-    --shadow-primary-glow: 0 0 32px rgba(89, 102, 187, 0.2);
-    --shadow-romance-glow: 0 0 24px rgba(217, 119, 168, 0.14);
+.gamePage__grain {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0.17;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 128 128' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.35'/%3E%3C/svg%3E");
+}
 
-    --gradient-page:
-      radial-gradient(circle at 78% 18%, rgba(103, 113, 213, 0.32), transparent 38%),
-      radial-gradient(circle at 58% 72%, rgba(178, 123, 188, 0.12), transparent 30%),
-      linear-gradient(135deg, #0d1226 0%, #151a38 48%, #2b2e5a 100%);
-    --gradient-primary: linear-gradient(100deg, #5966bb 0%, #7c79d0 58%, #8e86d8 100%);
-    --gradient-romance: linear-gradient(100deg, #8e86d8 0%, #bd87c6 58%, #d977a8 100%);
+.gamePage__header,
+.gamePage__controls {
+  width: min(100%, 1180px);
+  margin-inline: auto;
+}
 
-    --theme-bg: var(--color-bg-page);
-    --theme-header: rgba(21, 26, 56, 0.92);
-    --theme-card: rgba(27, 33, 68, 0.86);
-    --theme-primary: var(--color-text-primary);
-    --theme-muted: var(--color-text-secondary);
-    --theme-border: var(--color-border);
-    --theme-accent-bg: var(--color-primary-soft);
-    --theme-accent-border: var(--color-focus-ring);
-    --theme-accent-text: var(--color-lavender-light);
-    --theme-glow: rgba(89, 102, 187, 0.2);
-    --theme-violet-glow: var(--color-lavender-soft);
-    --theme-shadow: rgba(4, 7, 22, 0.48);
-    
-    --btn-primary-bg: var(--color-primary);
-    --btn-primary-border: rgba(208, 180, 227, 0.2);
-    --btn-primary-text: var(--color-text-primary);
-    --btn-primary-hover: var(--color-primary-fill-hover);
-    
-    --btn-secondary-bg: var(--color-bg-elevated);
-    --btn-secondary-border: var(--color-border);
-    --btn-secondary-text: var(--color-text-secondary);
-    --btn-secondary-hover: var(--color-bg-hover);
-    
-    --btn-ghost-text: var(--color-text-secondary);
-    --btn-ghost-hover: var(--color-primary-soft);
-    
-    background: var(--theme-bg);
-    color: var(--theme-primary);
+.gamePage__header {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.gamePage__titleLockup {
+  display: grid;
+  gap: 3px;
+}
+
+.gamePage__eyebrow {
+  color: #b4c181;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+.gamePage h1 {
+  margin: 0;
+  color: #f7e9b9;
+  font-family: "Courier New", monospace;
+  font-size: clamp(23px, 3vw, 38px);
+  line-height: 0.95;
+  letter-spacing: -0.07em;
+  text-shadow: 3px 3px 0 #5e3a28;
+}
+
+.gamePage__forumLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid rgba(214, 196, 145, 0.32);
+  border-radius: 2px;
+  padding: 9px 12px 8px;
+  background: rgba(23, 28, 24, 0.82);
+  color: #e9dcae;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-decoration: none;
+  box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.35);
+  transition: transform 120ms ease, border-color 120ms ease, color 120ms ease;
+}
+
+.gamePage__forumLink:hover {
+  transform: translate(-1px, -1px);
+  border-color: #d6c491;
+  color: #fff4ca;
+}
+
+.gamePage__forumLink:focus-visible,
+.gameCanvas__retry:focus-visible {
+  outline: 3px solid #f2ce70;
+  outline-offset: 4px;
+}
+
+.gamePage__cabinet {
+  position: relative;
+  align-self: center;
+  justify-self: center;
+  width: min(100%, 1180px);
+  min-height: 0;
+  padding: clamp(9px, 1.5vw, 17px);
+  border: 1px solid #5d4b34;
+  border-radius: 5px;
+  background:
+    linear-gradient(100deg, rgba(255, 255, 255, 0.06), transparent 24%),
+    linear-gradient(135deg, #433623, #2c251b 48%, #171a16);
+  box-shadow:
+    0 24px 70px rgba(0, 0, 0, 0.55),
+    inset 0 1px rgba(255, 255, 255, 0.1),
+    inset 0 -3px rgba(0, 0, 0, 0.35);
+}
+
+.gamePage__cabinet::after {
+  content: "";
+  position: absolute;
+  inset: 7px;
+  pointer-events: none;
+  border: 1px solid rgba(233, 211, 148, 0.12);
+}
+
+.gamePage__screw {
+  position: absolute;
+  z-index: 2;
+  top: 6px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #1c1a16;
+  box-shadow: inset 1px 1px rgba(255, 255, 255, 0.12);
+}
+
+.gamePage__screw--one { left: 7px; }
+.gamePage__screw--two { right: 7px; }
+
+.gameCanvas {
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  aspect-ratio: 3 / 2;
+  max-height: calc(100vh - 175px);
+  border: 2px solid #0d100e;
+  border-radius: 2px;
+  background: #172018;
+  box-shadow:
+    inset 0 0 0 3px rgba(239, 216, 151, 0.08),
+    inset 0 0 42px rgba(0, 0, 0, 0.45);
+}
+
+.gameCanvas__stage,
+.gameCanvas__stage canvas {
+  width: 100%;
+  height: 100%;
+}
+
+.gameCanvas__stage canvas {
+  display: block;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+.gameCanvas__status {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 14px;
+  background: #172018;
+  color: #e8d6aa;
+  font-size: 13px;
+  letter-spacing: 0.08em;
+}
+
+.gameCanvas__retry {
+  border: 0;
+  border-bottom: 3px solid #6c432b;
+  border-radius: 2px;
+  padding: 8px 15px 6px;
+  background: #d58b4c;
+  color: #2f2018;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.gamePage__controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 10px 24px;
+  color: #9fa68c;
+  font-size: 11px;
+  letter-spacing: 0.05em;
+}
+
+.gamePage__controls span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+kbd {
+  min-width: 23px;
+  border: 1px solid #5b5f50;
+  border-bottom-width: 3px;
+  border-radius: 3px;
+  padding: 3px 5px 2px;
+  background: #252c27;
+  color: #e8d9ae;
+  font-family: inherit;
+  font-size: 10px;
+  line-height: 1;
+  text-align: center;
+}
+
+@media (max-width: 700px) {
+  body { overflow: auto; }
+
+  .gamePage {
+    min-height: 100svh;
+    padding: 13px 10px 16px;
   }
 
-  .light {
-    color-scheme: light;
-    --theme-bg: #f7f6fc;
-    --theme-header: rgba(243, 240, 255, 0.9);
-    --theme-card: rgba(255, 255, 255, 0.94);
-    --theme-primary: #1b2144;
-    --theme-muted: #5f617e;
-    --theme-border: rgba(75, 72, 132, 0.18);
-    --theme-accent-bg: rgba(89, 102, 187, 0.09);
-    --theme-accent-border: rgba(89, 102, 187, 0.44);
-    --theme-accent-text: #4e5aaa;
-    --theme-glow: rgba(89, 102, 187, 0.12);
-    --theme-violet-glow: rgba(142, 134, 216, 0.12);
-    --theme-shadow: rgba(27, 33, 68, 0.14);
-
-    --btn-primary-bg: #5966bb;
-    --btn-primary-border: #4e5aaa;
-    --btn-primary-text: #f3f0ff;
-    --btn-primary-hover: #4e5aaa;
-
-    --btn-secondary-bg: rgba(255, 255, 255, 0.92);
-    --btn-secondary-border: rgba(75, 72, 132, 0.24);
-    --btn-secondary-text: #303861;
-    --btn-secondary-hover: #eeeaf7;
-
-    --btn-ghost-text: #4e5aaa;
-    --btn-ghost-hover: rgba(89, 102, 187, 0.08);
-    --gradient-page:
-      radial-gradient(circle at 78% 18%, rgba(142, 134, 216, 0.16), transparent 38%),
-      linear-gradient(135deg, #f7f6fc 0%, #efedf8 52%, #e5e2f3 100%);
+  .gameCanvas {
+    max-height: none;
   }
 
-  /* ── dvh / svh CSS Custom Properties with Fallback ──
-   * Safari < 16 不支持 dvh，Safari < 15 不支持 svh
-   * 通过 CSS 变量提供统一的回退方案
-   */
-  :root {
-    --dvh: 100dvh;
-    --svh: 100svh;
-    --dvh-50: 50dvh;
-    --dvh-78: 78dvh;
-    --dvh-76: 76dvh;
-    --dvh-82: 82dvh;
-    --dvh-88: 88dvh;
-    --dvh-90: 90dvh;
-    --dvh-92: 92dvh;
-    --dvh-96: 96dvh;
-    --dvh-44: 44dvh;
-    --dvh-34: 34dvh;
-    --dvh-30: 30dvh;
+  .gamePage__forumLink {
+    padding: 8px 9px 7px;
   }
 
-  /* Fallback for browsers without dvh support (Safari < 16) */
-  @supports not (height: 100dvh) {
-    :root {
-      --dvh: 100vh;
-      --dvh-50: 50vh;
-      --dvh-78: 78vh;
-      --dvh-76: 76vh;
-      --dvh-82: 82vh;
-      --dvh-88: 88vh;
-      --dvh-90: 90vh;
-      --dvh-92: 92vh;
-      --dvh-96: 96vh;
-      --dvh-44: 44vh;
-      --dvh-34: 34vh;
-      --dvh-30: 30vh;
-    }
-  }
-
-  * {
-    box-sizing: border-box;
-  }
-
-  body {
-    margin: 0;
-    min-width: 320px;
-    min-height: 100vh;
-    background: var(--theme-bg);
-  }
-  
-  /* The same restrained, asymmetric twilight follows every route. */
-  body::before {
-    content: '';
-    position: fixed;
-    inset: 0;
-    pointer-events: none;
-    z-index: -1;
-    background: var(--gradient-page);
-  }
-  
-  .light body::before {
-    background: var(--gradient-page);
-  }
-
-  a {
-    color: inherit;
-  }
-
-  /* Shared decorative surfaces reuse the same restrained brand light. */
-  .ornate-frame {
-    @apply relative rounded-2xl border-2 border-[var(--theme-accent-border)] bg-[var(--theme-card)] shadow-[0_8px_32px_rgba(89,102,187,0.12)];
-  }
-
-  .light .ornate-frame {
-    @apply border-[#8e86d8]/40 shadow-[0_12px_40px_rgba(89,102,187,0.10)];
-    background: linear-gradient(to bottom right, #ffffff, #f5f7ff);
-  }
-
-  .ornate-corner {
-    @apply absolute h-6 w-6 border-[#8e86d8]/40;
-  }
-
-  .light .ornate-corner {
-    @apply border-[#5966bb]/50;
-  }
-
-  .sparkle-text {
-    @apply font-black tracking-tight;
-    font-family: 'Noto Serif SC', serif;
-    background: linear-gradient(135deg, #303861 0%, #5966bb 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-  }
-
-  .cursive-accent {
-    font-family: 'Dancing Script', cursive;
-  }
-
-  .magical-glow {
-    box-shadow: 0 0 40px rgba(89, 102, 187, 0.2);
-  }
-
-  .ornate-card {
-    @apply relative bg-white/80 backdrop-blur-xl border-2 border-indigo-100 rounded-[1.2rem];
-    box-shadow: 0 10px 40px rgba(89, 102, 187, 0.08);
-  }
-
-  .ornate-card::before {
-    content: '';
-    @apply absolute -inset-[2px] rounded-[1.2rem] border-2 border-transparent pointer-events-none;
-    background: linear-gradient(135deg, rgba(142, 134, 216, 0.34), rgba(208, 180, 227, 0.18)) border-box;
-    mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
-    mask-composite: exclude;
-    /* Safari < 17 fallback */
-    -webkit-mask-composite: destination-out;
+  .gamePage__controls {
+    justify-content: flex-start;
   }
 }
 
-@layer components {
-  /* Entry surfaces inherit the project palette so selection and CTA states stay
-   * blue-violet while romance pink remains a small, semantic privacy accent. */
-  .cinematic-entry {
-    --entry-canvas: var(--color-bg-page);
-    --entry-frame: var(--color-bg-sidebar);
-    --entry-surface: var(--color-bg-surface);
-    --entry-surface-raised: var(--color-bg-elevated);
-    --entry-surface-hover: var(--color-bg-hover);
-    --entry-ink: var(--color-text-primary);
-    --entry-muted: var(--color-text-secondary);
-    --entry-quiet: var(--color-text-muted);
-    --entry-disabled: var(--color-text-disabled);
-    --entry-border: var(--color-border);
-    --entry-border-strong: rgba(208, 180, 227, 0.38);
-    --entry-primary: var(--color-primary);
-    --entry-primary-hover: var(--color-primary-fill-hover);
-    --entry-primary-active: var(--color-primary-active);
-    --entry-primary-soft: var(--color-primary-soft);
-    --entry-lavender: var(--color-lavender);
-    --entry-lavender-light: var(--color-lavender-light);
-    --entry-lavender-soft: var(--color-lavender-soft);
-    --entry-romance: var(--color-romance);
-    --entry-romance-hover: var(--color-romance-hover);
-    --entry-romance-soft: var(--color-romance-soft);
-    --entry-primary-ink: var(--color-text-primary);
-    --entry-focus: var(--color-focus-ring);
-    --entry-shadow: rgba(4, 7, 22, 0.44);
-    isolation: isolate;
-    background: var(--entry-canvas);
-    color: var(--entry-ink);
-  }
-
-  .cinematic-entry__ambient {
-    background: var(--gradient-page);
-  }
-
-  .identity-onboarding__frame {
-    border-color: var(--entry-border);
-    background: var(--entry-frame);
-    box-shadow: 0 6px 8px var(--entry-shadow);
-  }
-
-  .identity-onboarding__hero-image {
-    filter: saturate(0.7) contrast(0.92) brightness(0.94);
-  }
-
-  .identity-onboarding__hero-overlay {
-    background:
-      linear-gradient(90deg, rgba(13, 18, 38, 0.96) 0%, rgba(21, 26, 56, 0.76) 46%, rgba(48, 56, 97, 0.12) 100%),
-      linear-gradient(180deg, transparent 18%, #151a38 94%);
-  }
-
-  .identity-onboarding__card-overlay {
-    background: linear-gradient(180deg, transparent 34%, rgba(13, 18, 38, 0.48) 62%, rgba(9, 13, 29, 0.98) 100%);
-  }
-
-  .identity-onboarding__footer {
-    border-color: var(--entry-border);
-    background: rgba(13, 18, 38, 0.97);
-  }
-
-  .identity-onboarding__detail-image {
-    filter: saturate(0.78) contrast(0.95) brightness(0.9);
-  }
-
-  .identity-onboarding__detail-overlay {
-    background:
-      linear-gradient(180deg, rgba(13, 18, 38, 0.04), transparent 52%, rgba(13, 18, 38, 0.76)),
-      linear-gradient(90deg, transparent 55%, rgba(21, 26, 56, 0.28));
-  }
-
-  .identity-onboarding__detail-panel {
-    background:
-      radial-gradient(circle at 18% 0%, rgba(103, 113, 213, 0.16), transparent 25rem),
-      var(--entry-frame);
-  }
-}
-
-@layer utilities {
-  /* ── backdrop-filter with -webkit prefix for Safari compatibility ── */
-  :where([style*="backdrop-filter"]) {
-    -webkit-backdrop-filter: var(--webkit-backdrop-filter, inherit);
-  }
-
-  /* Global backdrop-filter with webkit prefix */
-  .backdrop-blur-xl {
-    -webkit-backdrop-filter: blur(24px);
-  }
-  .backdrop-blur-lg {
-    -webkit-backdrop-filter: blur(16px);
-  }
-  .backdrop-blur-md {
-    -webkit-backdrop-filter: blur(12px);
-  }
-  .backdrop-blur-sm {
-    -webkit-backdrop-filter: blur(8px);
-  }
-
-  :where([class~="overflow-y-auto"], [data-discover-board-scroll]) {
-    -webkit-overflow-scrolling: touch;
-    overscroll-behavior: contain;
-    scrollbar-gutter: stable;
-  }
-
-  @media (hover: hover) and (pointer: fine) {
-    :where(
-      [data-discover-board] article,
-      [data-fable-space-discover-card="real-card"],
-      [data-fable-space-home-card="real-card"],
-      [data-chat-workbench="story"] button,
-      [data-create-wizard-step] button
-    ):is(:hover, :focus-visible, :focus-within) {
-      backface-visibility: hidden;
-      will-change: transform;
-    }
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    *,
-    *::before,
-    *::after {
-      animation-duration: 0.01ms !important;
-      animation-iteration-count: 1 !important;
-      scroll-behavior: auto !important;
-      transition-duration: 0.01ms !important;
-    }
-  }
-}
-@media (max-width: 1023px) {
-  .space-mobile-chat-first [data-chat-workbench] > div > div {
-    display: flex;
-    flex-direction: column;
-    width: 100%;
-    max-width: 100%;
-    min-width: 0;
-    overflow: hidden;
-  }
-
-  .space-mobile-chat-first [data-chat-workbench] aside[aria-label="NPC 角色与任务"],
-  .space-mobile-chat-first [data-chat-workbench] main {
-    width: 100%;
-    max-width: 100%;
-    min-width: 0;
-  }
-
-  .space-mobile-chat-first [data-chat-workbench] aside[aria-label="NPC 角色与任务"] {
-    order: 2;
-    border-top: 1px solid rgb(255 255 255 / 0.1);
-    border-bottom: 0;
-  }
-
-  .space-mobile-chat-first [data-chat-workbench] main {
-    order: 1;
-    min-height: 30rem;
-  }
-
-  .space-mobile-chat-first [data-chat-workbench] main > div:has(> [data-current-npc-stage-card]),
-  .space-mobile-chat-first [data-space-ambient-activity] {
-    display: none;
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
   }
 }

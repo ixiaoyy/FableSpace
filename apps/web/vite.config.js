@@ -9,8 +9,11 @@ export default defineConfig({
     host: '127.0.0.1',
     port: 5173,
     proxy: {
-      '/api': 'http://127.0.0.1:8950',
-      '/generated': 'http://127.0.0.1:8950',
+      '/game-media/v1': {
+        target: 'https://img.pingxingxian.space',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/game-media\/v1/, '/game/media/v1'),
+      },
     },
   },
 })

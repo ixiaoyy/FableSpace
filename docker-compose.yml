@@ -56,12 +56,9 @@ services:
       context: .
       dockerfile: apps/web/Dockerfile
       args:
-        VITE_API_BASE: ${VITE_API_BASE:-}
-        VITE_MEDIA_BASE_URL: ${VITE_MEDIA_BASE_URL:-https://img.pingxingxian.space/fablespace/media/v1}
+        VITE_MEDIA_BASE_URL: ${VITE_MEDIA_BASE_URL:-/game-media/v1}
+        VITE_FORUM_URL: ${VITE_FORUM_URL:-https://pingxingxian.space}
     image: fablespace-frontend:local
-    depends_on:
-      backend:
-        condition: service_healthy
     ports:
       - "${FABLESPACE_WEB_BIND:-3000}:80"
     logging: *default-logging

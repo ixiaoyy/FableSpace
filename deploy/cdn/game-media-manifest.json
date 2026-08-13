@@ -1,0 +1,74 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-08-13T00:00:00Z",
+  "media_base_url": "https://img.pingxingxian.space/game/media/v1",
+  "tracked_image_count": 5,
+  "tracked_image_bytes": 85694,
+  "entries": [
+    {
+      "source": "content/character/ninja_blue/sprite.png",
+      "source_url": "https://raw.githubusercontent.com/pixel-boy/NinjaAdventure/6ac78232d5aedcc85ce5f27d060ea92366f7c24a/content/character/ninja_blue/sprite.png",
+      "source_commit": "6ac78232d5aedcc85ce5f27d060ea92366f7c24a",
+      "license": "CC0-1.0",
+      "width": 64,
+      "height": 112,
+      "bytes": 6139,
+      "sha256": "f2dd61a264c251b81e63da7a28ab0fdccd261b807e5fa7d1832a468e14a21078",
+      "content_type": "image/png",
+      "object_key": "assets/vendor/ninja-adventure/2024-04-19/player.png",
+      "url": "https://img.pingxingxian.space/game/media/v1/assets/vendor/ninja-adventure/2024-04-19/player.png"
+    },
+    {
+      "source": "content/map/tileset_floor.png",
+      "source_url": "https://raw.githubusercontent.com/pixel-boy/NinjaAdventure/6ac78232d5aedcc85ce5f27d060ea92366f7c24a/content/map/tileset_floor.png",
+      "source_commit": "6ac78232d5aedcc85ce5f27d060ea92366f7c24a",
+      "license": "CC0-1.0",
+      "width": 352,
+      "height": 417,
+      "bytes": 29615,
+      "sha256": "e111065065edf806e7e893330086e68efc8755175d92f14d087b42d40a331e16",
+      "content_type": "image/png",
+      "object_key": "assets/vendor/ninja-adventure/2024-04-19/floor.png",
+      "url": "https://img.pingxingxian.space/game/media/v1/assets/vendor/ninja-adventure/2024-04-19/floor.png"
+    },
+    {
+      "source": "content/map/tileset_village_abandoned.png",
+      "source_url": "https://raw.githubusercontent.com/pixel-boy/NinjaAdventure/6ac78232d5aedcc85ce5f27d060ea92366f7c24a/content/map/tileset_village_abandoned.png",
+      "source_commit": "6ac78232d5aedcc85ce5f27d060ea92366f7c24a",
+      "license": "CC0-1.0",
+      "width": 320,
+      "height": 192,
+      "bytes": 31779,
+      "sha256": "6787c6e22a4d44ceee4f158309b2519707bdb70c59aca00b3d49006cadcca06e",
+      "content_type": "image/png",
+      "object_key": "assets/vendor/ninja-adventure/2024-04-19/village.png",
+      "url": "https://img.pingxingxian.space/game/media/v1/assets/vendor/ninja-adventure/2024-04-19/village.png"
+    },
+    {
+      "source": "content/map/tileset_interior_floor.png",
+      "source_url": "https://raw.githubusercontent.com/pixel-boy/NinjaAdventure/6ac78232d5aedcc85ce5f27d060ea92366f7c24a/content/map/tileset_interior_floor.png",
+      "source_commit": "6ac78232d5aedcc85ce5f27d060ea92366f7c24a",
+      "license": "CC0-1.0",
+      "width": 352,
+      "height": 272,
+      "bytes": 13012,
+      "sha256": "e281598e2d90f43b31fd557b94c2d2abb00d307758a053b7df301575bf535e3a",
+      "content_type": "image/png",
+      "object_key": "assets/vendor/ninja-adventure/2024-04-19/interior-floor.png",
+      "url": "https://img.pingxingxian.space/game/media/v1/assets/vendor/ninja-adventure/2024-04-19/interior-floor.png"
+    },
+    {
+      "source": "content/map/tileset_wall_simple.png",
+      "source_url": "https://raw.githubusercontent.com/pixel-boy/NinjaAdventure/6ac78232d5aedcc85ce5f27d060ea92366f7c24a/content/map/tileset_wall_simple.png",
+      "source_commit": "6ac78232d5aedcc85ce5f27d060ea92366f7c24a",
+      "license": "CC0-1.0",
+      "width": 160,
+      "height": 176,
+      "bytes": 5149,
+      "sha256": "ad5eb80ab4d5e65dbcda9dc012f9981323b277717349cdab012fc65ce06e43b2",
+      "content_type": "image/png",
+      "object_key": "assets/vendor/ninja-adventure/2024-04-19/wall.png",
+      "url": "https://img.pingxingxian.space/game/media/v1/assets/vendor/ninja-adventure/2024-04-19/wall.png"
+    }
+  ]
+}

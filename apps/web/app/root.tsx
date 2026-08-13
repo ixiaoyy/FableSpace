@@ -1,35 +1,24 @@
 import type { LinksFunction, MetaFunction } from "react-router"
-import { Links, Meta, Navigate, Outlet, Scripts, ScrollRestoration, useLocation } from "react-router"
-import { ThemeProvider } from "./hooks/useTheme"
-import { MEDIA_ORIGIN } from "./lib/media-assets"
+import { Links, Meta, Outlet, Scripts, ScrollRestoration } from "react-router"
 
-import "./styles.css"
-
-export const meta: MetaFunction = () => [
-  { title: "FableSpace｜世界的镜像面" },
-  {
-    name: "description",
-    content: "以角色、选择和长期记忆为核心的故事世界。",
-  },
-]
+import stylesheetUrl from "./styles.css?url"
 
 export const links: LinksFunction = () => [
-  {
-    rel: "icon",
-    href: "/favicon.svg",
-    type: "image/svg+xml",
-  },
-  { rel: "preconnect", href: "https://fonts.googleapis.com" },
+  { rel: "stylesheet", href: stylesheetUrl },
 ]
 
+export const meta: MetaFunction = () => [
+  { title: "苔野小屋" },
+  { name: "description", content: "一个打开即玩的俯视角像素农场生活游戏。" },
+]
+
+/** Render the minimal browser document used by the independent Phaser game. */
 export function Layout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="zh-CN">
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <link rel="preconnect" href={MEDIA_ORIGIN} crossOrigin="anonymous" />
-        <link rel="dns-prefetch" href={MEDIA_ORIGIN} />
         <Meta />
         <Links />
       </head>
@@ -42,28 +31,12 @@ export function Layout({ children }: { children: React.ReactNode }) {
   )
 }
 
+/** Render the only public game route. */
 export default function Root() {
-  const location = useLocation()
-  const canonicalPathname = location.pathname === "/"
-    ? "/"
-    : location.pathname.replace(/\/+$/, "") || "/"
-
-  if (canonicalPathname !== location.pathname) {
-    return (
-      <Navigate
-        replace
-        to={{ pathname: canonicalPathname, search: location.search, hash: location.hash }}
-      />
-    )
-  }
-
-  return (
-    <ThemeProvider>
-      <Outlet />
-    </ThemeProvider>
-  )
+  return <Outlet />
 }
 
+/** Keep the static SPA handoff visually consistent while the client bundle hydrates. */
 export function HydrateFallback() {
-  return <div className="app-loading">正在进入 FableSpace...</div>
+  return <div className="gameBoot">正在推开院门…</div>
 }

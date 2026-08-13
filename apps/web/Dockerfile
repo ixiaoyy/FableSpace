@@ -9,10 +9,10 @@ RUN npm ci
 
 COPY apps/web/ ./
 
-ARG VITE_API_BASE=
-ARG VITE_MEDIA_BASE_URL=https://img.pingxingxian.space/fablespace/media/v1
-ENV VITE_API_BASE=${VITE_API_BASE}
+ARG VITE_MEDIA_BASE_URL=/game-media/v1
+ARG VITE_FORUM_URL=https://pingxingxian.space
 ENV VITE_MEDIA_BASE_URL=${VITE_MEDIA_BASE_URL}
+ENV VITE_FORUM_URL=${VITE_FORUM_URL}
 
 RUN npm run build
 

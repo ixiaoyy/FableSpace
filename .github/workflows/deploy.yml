@@ -77,7 +77,7 @@ jobs:
           CDN_S3_ENDPOINT_URL: ${{ secrets.CDN_S3_ENDPOINT_URL }}
           CDN_S3_ACCESS_KEY_ID: ${{ secrets.CDN_S3_ACCESS_KEY_ID }}
           CDN_S3_SECRET_ACCESS_KEY: ${{ secrets.CDN_S3_SECRET_ACCESS_KEY }}
-          CDN_S3_PREFIX: ${{ vars.CDN_S3_PREFIX || 'fablespace' }}
+          CDN_S3_PREFIX: ${{ vars.CDN_S3_PREFIX || 'game' }}
           VERIFY_MEDIA: ${{ github.event_name == 'workflow_dispatch' || needs.changes.outputs.media == 'true' }}
         run: |
           set -euo pipefail
@@ -93,6 +93,14 @@ jobs:
           CDN_S3_PREFIX="${CDN_S3_PREFIX%/}"
           if [ -z "${CDN_S3_PREFIX}" ] || [[ "${CDN_S3_PREFIX}" == *".."* ]]; then
             echo "::error::CDN_S3_PREFIX must be a non-empty object-key directory"
+            exit 1
+          fi
+          if [ "${CDN_BASE_URL%/}" != "https://img.pingxingxian.space" ]; then
+            echo "::error::CDN_BASE_URL must match the reviewed game media origin"
+            exit 1
+          fi
+          if [ "${CDN_S3_PREFIX}" != "game" ]; then
+            echo "::error::CDN_S3_PREFIX must be game for the reviewed runtime proxy"
             exit 1
           fi
           if [ "${VERIFY_MEDIA}" = "true" ]; then
@@ -117,8 +125,8 @@ jobs:
           context: .
           file: apps/web/Dockerfile
           build-args: |
-            VITE_API_BASE=${{ secrets.VITE_API_BASE }}
-            VITE_MEDIA_BASE_URL=${{ steps.cdn.outputs.media_base_url }}
+            VITE_MEDIA_BASE_URL=/game-media/v1
+            VITE_FORUM_URL=${{ vars.FORUM_URL || 'https://pingxingxian.space' }}
           tags: ${{ env.FRONTEND_IMAGE }}
           load: true
           cache-from: type=gha,scope=fablespace-web
@@ -141,19 +149,15 @@ jobs:
             --bucket "${CDN_S3_BUCKET}" \
             --prefix "${CDN_S3_PREFIX}/media/v1/" \
             --endpoint-url "${CDN_S3_ENDPOINT_URL}" \
-            --output json > /tmp/fablespace-media-objects.json
+            --output json > /tmp/game-media-objects.json
           python deploy/cdn/verify_media_manifest.py \
-            --manifest deploy/cdn/media-manifest.json \
-            --objects /tmp/fablespace-media-objects.json \
+            --manifest deploy/cdn/game-media-manifest.json \
+            --objects /tmp/game-media-objects.json \
             --s3-prefix "${CDN_S3_PREFIX}/media/v1" \
-            --samples-output /tmp/fablespace-media-samples.txt
-          while IFS= read -r SAMPLE_URL; do
-            curl --fail --silent --show-error \
-              --retry 6 --retry-delay 5 --retry-all-errors \
-              --user-agent "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/126.0 Safari/537.36" \
-              --output /dev/null \
-              "${SAMPLE_URL}"
-          done < /tmp/fablespace-media-samples.txt
+            --media-base-url "${MEDIA_BASE_URL}" \
+            --samples-output /tmp/game-media-samples.txt
+          python deploy/cdn/verify_cdn_assets.py \
+            --manifest deploy/cdn/game-media-manifest.json
 
       - name: Export frontend image archive
         run: |
@@ -174,7 +178,8 @@ jobs:
     if: |
       vars.DEPLOY_ENABLED == 'true' &&
       vars.DEPLOY_CONFIGURED == 'true' &&
-      (github.event_name == 'workflow_dispatch' || needs.changes.outputs.backend == 'true' || needs.changes.outputs.infrastructure == 'true')
+      github.event_name != 'workflow_dispatch' &&
+      needs.changes.outputs.backend == 'true'
     steps:
       - name: Validate server configuration
         env:
@@ -354,14 +359,12 @@ jobs:
     needs:
       - changes
       - build-frontend
-      - deploy-backend
     if: |
       always() &&
       vars.DEPLOY_ENABLED == 'true' &&
       vars.DEPLOY_CONFIGURED == 'true' &&
       (github.event_name == 'workflow_dispatch' || needs.changes.outputs.frontend == 'true' || needs.changes.outputs.infrastructure == 'true' || needs.changes.outputs.media == 'true') &&
-      needs.build-frontend.result == 'success' &&
-      (needs.deploy-backend.result == 'success' || needs.deploy-backend.result == 'skipped')
+      needs.build-frontend.result == 'success'
     steps:
       - uses: actions/download-artifact@v4
         with:
@@ -418,27 +421,6 @@ jobs:
               echo "Workflow commit is not in the approved main history"
               exit 1
             fi
-            TARGET_SCHEMA_MARKER="$(mktemp)"
-            TARGET_RELEASE_APPROVAL="$(mktemp)"
-            trap 'rm -f "${TARGET_SCHEMA_MARKER}" "${TARGET_RELEASE_APPROVAL}"' EXIT
-            git show "${EXPECTED_SHA}:deploy/schema-revision.txt" > "${TARGET_SCHEMA_MARKER}"
-            git show "${EXPECTED_SHA}:deploy/release-approval.txt" > "${TARGET_RELEASE_APPROVAL}"
-            if [ ! -f /opt/fablespace-schema/revision ]; then
-              echo "Verified schema revision marker is missing; run the controlled 009 workflow first"
-              exit 1
-            fi
-            if ! sudo cmp -s "${TARGET_SCHEMA_MARKER}" /opt/fablespace-schema/revision; then
-              echo "Verified schema revision does not match the workflow commit; deployment is blocked"
-              exit 1
-            fi
-            if [ ! -f /opt/fablespace-schema/release-approval ]; then
-              echo "Runtime release approval is missing; the controlled 009 workflow did not complete"
-              exit 1
-            fi
-            if ! sudo cmp -s "${TARGET_RELEASE_APPROVAL}" /opt/fablespace-schema/release-approval; then
-              echo "Runtime release approval does not match the workflow commit; deployment is blocked"
-              exit 1
-            fi
             git reset --hard "${EXPECTED_SHA}"
 
             if sudo docker compose version >/dev/null 2>&1; then
@@ -452,22 +434,6 @@ jobs:
             sudo docker load -i "${IMAGE_ARCHIVE}"
             rm -f "${IMAGE_ARCHIVE}"
 
-            if ! $COMPOSE $COMPOSE_FILES ps --services --status running 2>/dev/null | grep -qx backend; then
-              $COMPOSE $COMPOSE_FILES up -d --build backend
-            fi
-            BACKEND_READY=false
-            for ATTEMPT in $(seq 1 30); do
-              if $COMPOSE $COMPOSE_FILES exec -T backend python -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/v1/health', timeout=3).read()" >/dev/null 2>&1; then
-                BACKEND_READY=true
-                break
-              fi
-              sleep 2
-            done
-            if [ "${BACKEND_READY}" != "true" ]; then
-              $COMPOSE $COMPOSE_FILES logs --tail=120 backend
-              echo "backend health check failed"
-              exit 1
-            fi
             $COMPOSE $COMPOSE_FILES up -d --no-deps --no-build --force-recreate frontend
 
             FRONTEND_READY=false
