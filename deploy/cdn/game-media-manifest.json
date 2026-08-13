@@ -2,8 +2,8 @@
   "schema_version": 1,
   "generated_at": "2026-08-13T00:00:00Z",
   "media_base_url": "https://img.pingxingxian.space/game/media/v1",
-  "tracked_image_count": 5,
-  "tracked_image_bytes": 85694,
+  "tracked_image_count": 6,
+  "tracked_image_bytes": 90478,
   "entries": [
     {
       "source": "content/character/ninja_blue/sprite.png",
@@ -17,6 +17,19 @@
       "content_type": "image/png",
       "object_key": "assets/vendor/ninja-adventure/2024-04-19/player.png",
       "url": "https://img.pingxingxian.space/game/media/v1/assets/vendor/ninja-adventure/2024-04-19/player.png"
+    },
+    {
+      "source": "content/character/samurai_green/samurai_green.png",
+      "source_url": "https://raw.githubusercontent.com/pixel-boy/NinjaAdventure/6ac78232d5aedcc85ce5f27d060ea92366f7c24a/content/character/samurai_green/samurai_green.png",
+      "source_commit": "6ac78232d5aedcc85ce5f27d060ea92366f7c24a",
+      "license": "CC0-1.0",
+      "width": 64,
+      "height": 112,
+      "bytes": 4784,
+      "sha256": "552e1af74a8d565408519ced8c5bb309d291a9d3002e4e37c881d2181f413e96",
+      "content_type": "image/png",
+      "object_key": "assets/vendor/ninja-adventure/2024-04-19/player-female.png",
+      "url": "https://img.pingxingxian.space/game/media/v1/assets/vendor/ninja-adventure/2024-04-19/player-female.png"
     },
     {
       "source": "content/map/tileset_floor.png",

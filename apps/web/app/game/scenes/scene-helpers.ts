@@ -153,8 +153,8 @@ function animationKeyForDirection(direction: PlayerDirection): string {
 function idleFrameForDirection(direction: PlayerDirection): number {
   return {
     down: 0,
-    up: 4,
-    left: 8,
-    right: 12,
+    up: 1,
+    left: 2,
+    right: 3,
   }[direction]
 }

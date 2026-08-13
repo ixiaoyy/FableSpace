@@ -18,12 +18,11 @@ function resolveGameMediaBaseUrl(): string {
 const GAME_MEDIA_BASE_URL = resolveGameMediaBaseUrl()
 
 /** Build one immutable CDN URL for a registered game asset object key. */
-function gameAssetUrl(objectKey: string): string {
+export function gameAssetUrl(objectKey: string): string {
   return `${GAME_MEDIA_BASE_URL}/${objectKey}`
 }
 
 export const GAME_ASSET_URLS = {
-  player: gameAssetUrl("assets/vendor/ninja-adventure/2024-04-19/player.png"),
   floor: gameAssetUrl("assets/vendor/ninja-adventure/2024-04-19/floor.png"),
   village: gameAssetUrl("assets/vendor/ninja-adventure/2024-04-19/village.png"),
   interiorFloor: gameAssetUrl("assets/vendor/ninja-adventure/2024-04-19/interior-floor.png"),

@@ -1,4 +1,4 @@
-import { GameCanvas } from "../game/GameCanvas"
+import { GameEntry } from "../game/GameEntry"
 
 const DEFAULT_FORUM_URL = "https://pingxingxian.space"
 
@@ -15,7 +15,7 @@ function resolveForumUrl(): string {
   }
 }
 
-/** Render the independent game and a single low-interruption community link. */
+/** Render the local character entry, independent game, and low-interruption community link. */
 export default function HomeRoute() {
   return (
     <main className="gamePage">
@@ -36,16 +36,7 @@ export default function HomeRoute() {
         </a>
       </header>
 
-      <section className="gamePage__cabinet" aria-label="苔野小屋游戏">
-        <div className="gamePage__screw gamePage__screw--one" aria-hidden="true" />
-        <div className="gamePage__screw gamePage__screw--two" aria-hidden="true" />
-        <GameCanvas />
-      </section>
-
-      <footer className="gamePage__controls" aria-label="操作方式">
-        <span><kbd>WASD</kbd><kbd>↑↓←→</kbd> 移动</span>
-        <span><kbd>E</kbd><kbd>空格</kbd> 交互</span>
-      </footer>
+      <GameEntry />
     </main>
   )
 }

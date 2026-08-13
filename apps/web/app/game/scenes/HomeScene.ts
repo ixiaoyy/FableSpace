@@ -9,8 +9,9 @@ import {
 import {
   advanceDay,
   createSceneSave,
+  decodeGameSave,
+  GAME_SAVE_REGISTRY_KEY,
   GAME_SPAWN_IDS,
-  loadGameSave,
   type GameSave,
 } from "../save"
 import {
@@ -64,7 +65,7 @@ export class HomeScene extends Phaser.Scene {
     this.controller = createPlayerController(this, spawn.x, spawn.y)
     this.physics.add.collider(this.controller.player, solids)
 
-    this.dayLabel = createHudLabel(this, 12, 12, `第 ${save.day} 天`)
+    this.dayLabel = createHudLabel(this, 12, 12, `${save.player_name} · 第 ${save.day} 天`)
     this.prompt = createHudLabel(this, 0, 286, "E 出门").setVisible(false)
     this.cameras.main.fadeIn(220, 28, 21, 25)
   }
@@ -227,7 +228,7 @@ export class HomeScene extends Phaser.Scene {
     this.inputLocked = true
     this.controller.player.setVelocity(0, 0)
     const nextSave = createSceneSave(this.currentSave(), "farm", GAME_SPAWN_IDS.farm.houseDoor)
-    this.game.registry.set("save", nextSave)
+    this.game.registry.set(GAME_SAVE_REGISTRY_KEY, nextSave)
     this.cameras.main.fadeOut(240, 28, 21, 25)
     this.time.delayedCall(240, () => {
       this.scene.start("farm", { spawnId: nextSave.spawn_id })
@@ -242,11 +243,11 @@ export class HomeScene extends Phaser.Scene {
     this.cameras.main.fadeOut(520, 28, 21, 25)
     this.time.delayedCall(640, () => {
       const nextSave = advanceDay(this.currentSave())
-      this.game.registry.set("save", nextSave)
+      this.game.registry.set(GAME_SAVE_REGISTRY_KEY, nextSave)
       const wakePoint = HOME_SPAWN_POINTS[GAME_SPAWN_IDS.home.nextDay]
       this.controller.player.body.reset(wakePoint.x, wakePoint.y)
       this.controller.lastDirection = "down"
-      this.dayLabel.setText(`第 ${nextSave.day} 天`)
+      this.dayLabel.setText(`${nextSave.player_name} · 第 ${nextSave.day} 天`)
       this.cameras.main.fadeIn(620, 244, 210, 143)
       this.time.delayedCall(620, () => {
         this.inputLocked = false
@@ -254,8 +255,10 @@ export class HomeScene extends Phaser.Scene {
     })
   }
 
-  /** Return the current validated in-memory save or recover from local storage. */
+  /** Return the current validated in-memory save without re-reading browser storage. */
   private currentSave(): GameSave {
-    return (this.game.registry.get("save") as GameSave | undefined) ?? loadGameSave()
+    const save = decodeGameSave(this.game.registry.get(GAME_SAVE_REGISTRY_KEY))
+    if (save === null) throw new Error("The in-memory home save is missing or invalid.")
+    return save
   }
 }

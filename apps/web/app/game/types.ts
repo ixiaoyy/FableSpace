@@ -1,3 +1,5 @@
+import type { GameSave } from "./save"
+
 /** Runtime events emitted by BootScene after assets either finish loading or fail. */
 export const GAME_RUNTIME_EVENTS = {
   ready: "farm-game:ready",
@@ -7,6 +9,7 @@ export const GAME_RUNTIME_EVENTS = {
 /** Callbacks and DOM parent required to create one browser-owned Phaser instance. */
 export type CreateGameOptions = {
   parent: HTMLElement
+  initialSave: GameSave
   onReady: () => void
   onError: (reason?: unknown) => void
 }

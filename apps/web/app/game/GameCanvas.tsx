@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from "react"
 
+import type { GameSave } from "./save"
+
 type GameLoadStatus = "loading" | "ready" | "error"
 
 type PhaserGameHandle = {
@@ -8,6 +10,10 @@ type PhaserGameHandle = {
 
 type SynchronousPhaserGameHandle = PhaserGameHandle & {
   runDestroy: () => void
+}
+
+type GameCanvasProps = {
+  readonly initialSave: GameSave
 }
 
 /** Log a browser runtime startup failure while keeping implementation detail out of the UI. */
@@ -34,7 +40,7 @@ function destroyGame(game: PhaserGameHandle): void {
  * Own the single Phaser canvas instance for this React mount.
  * Dynamic import cancellation and explicit destruction make StrictMode effect replay safe.
  */
-export function GameCanvas() {
+export function GameCanvas({ initialSave }: GameCanvasProps) {
   const stageRef = useRef<HTMLDivElement>(null)
   const [attempt, setAttempt] = useState(0)
   const [status, setStatus] = useState<GameLoadStatus>("loading")
@@ -52,6 +58,7 @@ export function GameCanvas() {
 
         game = createGame({
           parent: stage,
+          initialSave,
           onReady: () => {
             if (!cancelled) setStatus("ready")
           },
@@ -77,7 +84,7 @@ export function GameCanvas() {
       game = null
       stage.replaceChildren()
     }
-  }, [attempt])
+  }, [attempt, initialSave])
 
   return (
     <div className="gameCanvas" aria-busy={status === "loading"}>

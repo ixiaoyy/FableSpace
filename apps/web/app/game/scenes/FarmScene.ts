@@ -8,8 +8,9 @@ import {
 } from "../constants"
 import {
   createSceneSave,
+  decodeGameSave,
+  GAME_SAVE_REGISTRY_KEY,
   GAME_SPAWN_IDS,
-  loadGameSave,
   type GameSave,
 } from "../save"
 import {
@@ -66,7 +67,7 @@ export class FarmScene extends Phaser.Scene {
     this.cameras.main.startFollow(this.controller.player, true, 0.12, 0.12)
     this.cameras.main.setDeadzone(88, 56)
 
-    createHudLabel(this, 12, 12, `第 ${save.day} 天`)
+    createHudLabel(this, 12, 12, `${save.player_name} · 第 ${save.day} 天`)
     this.prompt = createHudLabel(this, 0, 286, "E 进入")
       .setVisible(false)
 
@@ -194,15 +195,17 @@ export class FarmScene extends Phaser.Scene {
     this.inputLocked = true
     this.controller.player.setVelocity(0, 0)
     const nextSave = createSceneSave(this.currentSave(), "home", GAME_SPAWN_IDS.home.entryDoor)
-    this.game.registry.set("save", nextSave)
+    this.game.registry.set(GAME_SAVE_REGISTRY_KEY, nextSave)
     this.cameras.main.fadeOut(240, 31, 39, 26)
     this.time.delayedCall(240, () => {
       this.scene.start("home", { spawnId: nextSave.spawn_id })
     })
   }
 
-  /** Return the current validated in-memory save or recover from local storage. */
+  /** Return the current validated in-memory save without re-reading browser storage. */
   private currentSave(): GameSave {
-    return (this.game.registry.get("save") as GameSave | undefined) ?? loadGameSave()
+    const save = decodeGameSave(this.game.registry.get(GAME_SAVE_REGISTRY_KEY))
+    if (save === null) throw new Error("The in-memory farm save is missing or invalid.")
+    return save
   }
 }

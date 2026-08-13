@@ -1,6 +1,7 @@
 import Phaser from "phaser"
 
 import { GAME_HEIGHT, GAME_WIDTH } from "./constants"
+import { GAME_SAVE_REGISTRY_KEY } from "./save"
 import { BootScene } from "./scenes/BootScene"
 import { FarmScene } from "./scenes/FarmScene"
 import { HomeScene } from "./scenes/HomeScene"
@@ -12,6 +13,7 @@ import { GAME_RUNTIME_EVENTS, type CreateGameOptions } from "./types"
  */
 export function createGame({
   parent,
+  initialSave,
   onReady,
   onError,
 }: CreateGameOptions): Phaser.Game {
@@ -40,6 +42,7 @@ export function createGame({
     callbacks: {
       /** Register startup listeners before Phaser starts the first scene. */
       preBoot(game) {
+        game.registry.set(GAME_SAVE_REGISTRY_KEY, initialSave)
         let startupSettled = false
 
         /** Accept the first successful asset-ready signal and ignore later terminal signals. */
