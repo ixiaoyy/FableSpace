@@ -1,148 +1,65 @@
-# FableSpace 图片资源规范
+# 游戏美术资源规范
 
-本文档约束 AI 生成图片、管理员提供图片、页面切图和运行时图片。核心目标：**图片二进制只存放在对象存储，代码、seed 和文档使用 HTTPS URL，来源与哈希由静态 manifest 或受控数据库记录追踪**。
+本规范覆盖当前 Web 像素游戏使用的 tileset、spritesheet、静态 UI 图像及以后单独批准的音频。核心目标是：正式二进制不进入 Git，代码只加载可追踪、不可变且允许当前用途的 CDN 对象。
 
-## 存储与引用
+## Storage and manifest
 
-- 正式媒体基址固定为 `https://img.pingxingxian.space/fablespace/media/v1`；部署可通过 `VITE_MEDIA_BASE_URL` / `FABLESPACE_MEDIA_BASE_URL` 指向同结构的其他环境。
-- 项目代码不得 import 图片文件，也不得引用 `/assets/...`、`apps/web/...png` 等仓库路径；统一使用完整 HTTPS URL 或 `mediaAssetUrl()`。
-- Git 不保存 PNG、JPG、WebP、GIF、AVIF、ICO、SVG 等图片二进制。随代码管理的静态资产由 `deploy/cdn/media-manifest.json` 保存对象 key、URL、字节数、SHA-256 和 MIME 类型。
-- 固定管理员从 Character 编辑页上传的动态图片不写 Git manifest；`managed_media_assets` 保存对象 key、URL、字节数、SHA-256、MIME、可选宽高、`user-provided` 来源和来源说明。动态记录不提供媒体库、列表或删除接口。
-- `.codex/generated_images`、系统临时目录、浏览器下载目录和聊天预览只算生成来源。被采用的图片必须先上传对象存储并进入清单；未采用的图片只标记为参考稿，不得被项目引用。
-- 替换图片时必须上传新对象并更新实际代码 URL 与清单；只生成或上传但仍引用旧 URL，视为未替换。
-- URL key 一经发布按不可变资源处理。内容变化时使用新 key，禁止原 key 覆盖后依赖清 CDN 缓存。
-- 系统密钥、访客私密信息和精确私人地址不得出现在图片或 prompt 中。
+- 新游戏上游媒体基址为 `https://img.pingxingxian.space/game/media/v1`。前端默认把 `VITE_MEDIA_BASE_URL` 设为同源 `/game-media/v1`，由 Vite 或 Nginx 代理到该 HTTPS 基址，避免 Canvas/WebGL 依赖跨域响应头。
+- 新游戏静态资源登记在 `deploy/cdn/game-media-manifest.json`。每项至少包含 `source`、`width`、`height`、`bytes`、`sha256`、`content_type`、`object_key` 和 `url`。
+- 对象 key 一经发布不可覆盖。内容或处理方式变化时使用新的版本目录或文件名。
+- 新增或替换的 PNG、JPG、WebP、GIF、AVIF、ICO、SVG、spritesheet、tileset 和音频二进制不进入 Git；现有文本型站点 favicon 不属于游戏素材，也不在首片清退范围。地图布局、frame/region 配置、来源记录和哈希可以作为文本提交。
+- 旧 `deploy/cdn/media-manifest.json` 与 `fablespace/media/v1` 只属于待清退历史资产，不得混入新游戏 manifest，也不得在本任务中静默删除。
 
-## 对象 key 约定
-
-正式故事媒体统一放在 `fablespace/media/v1/` 下：
-
-| 对象 key 前缀 | 用途 |
-|---|---|
-| `app/assets/home-story-bookshelf/v1/` | 首页故事封面与角色图 |
-| `app/assets/story-worlds/<story-id>/` | 已发布故事自己的封面、场景与角色图 |
-| `admin/<YYYY>/<MM>/<DD>/` | 固定管理员在 Character 编辑页上传的不可变原图 |
-
-示例：
+推荐对象 key：
 
 ```text
-https://img.pingxingxian.space/fablespace/media/v1/app/assets/story-worlds/story_example/characters/char_example/neutral.webp
+assets/vendor/<package>/<source-version>/<purpose>.<ext>
+assets/original/<asset-version>/<purpose>.<ext>
 ```
 
-## 静态资产上传与验证
+## Ninja Adventure
 
-1. 在仓库外准备候选图片，确认尺寸、格式和内容合规。
-2. 选择未被占用的对象 key，上传时设置 `Cache-Control: public,max-age=31536000,immutable` 和正确 `Content-Type`。
-3. 在 `deploy/cdn/media-manifest.json` 登记 URL、字节数和 SHA-256。SVG 等文本格式必须以 Git 和 Linux 部署环境使用的 LF 字节计算大小与哈希；根目录 `.gitattributes` 固定 `*.svg` 为 LF，不得直接采用 Windows CRLF 工作区的统计结果。
-4. 通过 CDN URL 读取文件，核对状态码、内容与清单记录；只有像素读取或 Canvas 导出等场景才要求 CORS。
-5. 更新代码、seed、sidecar 或文档引用；提交前确认 Git 跟踪图片数为零。
+- 首片只采用 Pixel-Boy 官方 `Ninja Adventure - Asset Pack`，正式来源为 `https://pixel-boy.itch.io/ninja-adventure-asset-pack`。
+- 采用项必须来自官方 itch 包或作者官方 GitHub 仓库的固定提交；禁止引用浮动 `main`、镜像、二次打包和预览截图裁切。
+- 授权记录为 CC0-1.0；第三方 CC0 素材不需要 prompt sidecar，但必须有文本来源记录。
+- 来源记录至少保存作者、官方 URL、固定提交或归档日期、原始相对路径、原始/归档 SHA-256、裁切/合图/转码说明和最终对象映射。
+- 不上传完整素材包；只发布当前切片实际加载的图集。
 
-部署校验脚本位于 `deploy/cdn/`。部署会逐项比较清单与桶内对象的 key 和字节数，并通过 CDN 实际读取抽样资源。
-当清单没有条目时，校验目标变为确认正式媒体命名空间不存在未登记对象。
+当前采用记录见 `docs/assets/ninja-adventure-2024-04-19.md`。
 
-`admin/` 是数据库登记的动态命名空间，不参与静态 manifest 的“空清单必须空桶”判断。
+## Project-original and generated art
 
-## Character 编辑页上传
+- Phaser Graphics 在运行时绘制的简单床、地毯、光影或 UI 图形属于代码生成的项目原创图形，不产生静态图片二进制；颜色、尺寸和用途应在代码常量中可审查。
+- 人工绘制或 AI 生成并正式采用的静态图片仍须上传对象存储、登记新游戏 manifest，并记录制作或生成来源。
+- AI 生成角色/精灵仍须保留 prompt sidecar；无法取得原 prompt 时使用 `reverse-engineered` 并明确说明。
+- `.codex/generated_images`、临时目录、浏览器下载和聊天预览只算候选来源，不能被生产代码直接引用。
 
-- 管理 API 只接受 ParallelLines 实时确认为 `role=admin` 的可信会话。
-- 只允许 PNG、JPEG 和 WebP；服务端同时核对声明 MIME 与真实图片头，并限制原始字节数。
-- 不裁剪、不缩放、不转码；每次上传使用新的 UUID 对象 key，设置 `public,max-age=31536000,immutable`。
-- 上传字节、对象存储凭据和 S3 签名只经过后端；前端只获得 HTTPS URL 和安全元数据。
-- 上传成功后将 URL 写入当前 Character 的 `portrait_url`。旧对象不覆盖、不自动删除。
-- 首页内容配置和独立媒体库不属于首版。
+## Runtime loading
 
-## Character prompt sidecar
+- 资源 URL 由 `apps/web/app/game/constants.ts` 集中生成；场景不得散落硬编码 CDN 地址。
+- 男角色使用已登记的 `ninja_blue/sprite.png`；女角色采用同一固定提交的 `samurai_green/samurai_green.png`。两者都按 16×16 frame 加载，React 预览与 Phaser 必须引用同一 avatar 注册表中的不可变对象 URL。
+- Phaser 加载前，上游资源必须可通过 HTTPS 读取。默认同源代理必须能完整回读对象；只有改为浏览器跨域直连时，才额外要求 CDN 返回 Canvas/WebGL 所需的 CORS 头。
+- 使用像素素材时开启 nearest-neighbor/pixelArt；不得通过模糊缩放掩盖尺寸不匹配。
+- 资源加载失败必须进入可重试状态，不得显示空白 canvas 或静默换成来源不明的占位图。
 
-项目生成并随代码管理的 Character 头像、立绘、精灵图和表情组必须保留 prompt sidecar。Sidecar 是文本文件，可以留在仓库；其中 `asset` 和组内图片清单必须写对象存储 URL，不写本地图片路径。
+## Publication and verification
 
-固定管理员提供的 `user-provided` 原图不是项目 AI 生成资产，不要求伪造 prompt sidecar；它必须在 `managed_media_assets` 中保留来源类型、来源说明、尺寸、字节数和哈希。
+1. 在仓库外取得官方文件或制作候选资源。
+2. 核对来源、授权、实际字节、尺寸、MIME 与 SHA-256。
+3. 选择新游戏不可变对象 key；若远端已有同 key，必须先证明哈希相同，禁止覆盖不同内容。
+4. 上传时设置正确 `Content-Type` 与 `Cache-Control: public,max-age=31536000,immutable`。
+5. 更新 `game-media-manifest.json` 和来源记录，运行时基址只映射 manifest 对应对象。
+6. 从 CDN 重新读取并核对 SHA-256 与缓存头；使用同源代理时再从代理路径回读，使用跨域直连时核对 CORS。
+7. 确认 Git 跟踪图片二进制为零，再运行前端 build。
 
-单张图片推荐：
+对象存储发布不需要数据库，也不得借发布资源连接数据库。游戏 PNG 只通过 `publish-game-media` 的精确 allowlist 发布；事件 payload 的对象 key、官方固定来源、MIME、bytes 与 SHA-256 必须全部匹配，最终仍须满足上述不可变、哈希和 CDN 回读合同。
 
-```text
-<image-stem>.prompt.md
-```
+## Delivery checklist
 
-同一角色表情组推荐：
-
-```text
-expression-set.prompt.md
-```
-
-非 NPC 的页面切图、UI 参考图、模块插画或审计截图不强制 sidecar；来源可写任务记录、manifest 或 README。
-
-### 单图 sidecar 最小格式
-
-```markdown
----
-asset: https://img.pingxingxian.space/fablespace/media/v1/app/assets/story-worlds/story_example/characters/char_example/neutral.webp
-prompt_type: original-final
-source_type: prompt-manifest
-source_manifest: docs/assets/2026-01-01-character-media/prompt-manifest.json
-character_id: char_example
-expression: neutral
-width: 256
-height: 256
-sha256: <current image sha256>
-updated_at: 2026-01-01
----
-
-## Final prompt
-
-<最终正向 prompt；反推时必须说明不是原始生成 prompt。>
-
-## Negative constraints
-
-- No readable brand text / logo / watermark.
-- No existing IP or living-artist imitation.
-- No photorealistic human / living-person or celebrity likeness / live-action cosplay / stock photo.
-- No private data / API key / exact private address.
-
-## Style recipe / source
-
-<风格来源、prompt manifest、人工反推依据或 reference-only 说明。>
-
-## Identity locks
-
-- <角色轮廓 / 主色 / 标志道具 / 表情组一致性约束>
-
-## Provenance notes
-
-<生成模型、脚本、人工处理或需复核说明。>
-```
-
-### 表情组 sidecar 规则
-
-`expression-set.prompt.md` 必须覆盖：
-
-- 组内每张图片 URL、expression、尺寸和 SHA-256。
-- prompt 类型：`original-final` / `reverse-engineered` / `reference-only`。
-- 风格来源与 identity locks。
-
-`## Final prompt` 只保留自然 / neutral 单图 prompt，不要把五个表情 prompt 全写进去，避免生图工具生成“五表情同框”。找不到原始最终 prompt 时使用 `prompt_type: reverse-engineered`，并明确标注“不是原始生成 prompt”。
-
-## Character 图片约束
-
-项目 AI 生成的 Character 资产必须是非摄影插画，不得像真人照片。原创 Character 的正向 prompt 应包含 stylized anime/game illustration、non-photoreal fictional character、original character、not a real person、no celebrity likeness 等价语义；负向约束必须排除 photorealistic human、living-person or celebrity likeness、live-action cosplay、stock photo 和 DSLR/camera-lens look。
-
-已经通过历史内容审核的已故真实人物可以使用非摄影、非复原宣称的历史化艺术形象。Prompt 与 sidecar 必须明确：这是依据时代、年龄和公开身份设计的 `historically informed artistic interpretation`，不是经鉴定的真实肖像；不得照搬影视演员、在世人物或现成艺术作品的脸，也不得用生成图证明人物相貌、服饰细节或具体行动。人物在事件发生时的大致年龄、身份层级、时代服饰与禁止采用的后世样式须进入视觉审核记录。
-
-如果结果像摄影棚人像、cosplay 照、明星脸或现实人物，不得上传到正式媒体命名空间，必须重生或标记为废稿。
-
-## 质量要求
-
-- 批量素材不能同质化；非同系列图片应区分构图、材质、色彩、光影或视觉 thesis。
-- 不接受只有“安全、合规、相关”但画面普通的默认 AI 图。
-- 页面图片必须区分静态背景和动态 DOM 文本；动态文字、数字、用户信息不要烘焙进整页截图。
-- 历史地点只能作为故事内容或场景插画呈现，不制作导航、地图或坐标类产品素材。
-
-## 交付检查清单
-
-- [ ] 图片已上传到 `fablespace/media/v1/` 的不可变对象 key。
-- [ ] 静态清单或动态数据库记录中的 URL、字节数、SHA-256 和 MIME 类型与对象一致。
-- [ ] 代码、seed、文档和 sidecar 已改为 HTTPS URL。
-- [ ] NPC 生成图已有 prompt sidecar，且清单覆盖 expression、尺寸、hash 和 prompt_type。
-- [ ] 已通过 CDN URL 做真实读取验证。
-- [ ] 已核对 `.codex/generated_images` 本轮产物，未采用的图不作为交付。
-- [ ] Git 跟踪图片数为零。
-- [ ] 如前端会加载资源，已运行 `npm --prefix .\apps\web run build`。
+- [ ] 资源来自官方或可证明的原创来源，授权允许当前用途。
+- [ ] 新游戏资源位于 `game/media/v1`，未复用旧 FableSpace 对象 key。
+- [ ] manifest 的 URL、bytes、MIME 和 SHA-256 与 CDN 实际内容一致。
+- [ ] 来源记录覆盖原始路径、固定版本和任何处理步骤。
+- [ ] Phaser 场景只通过集中常量加载采用项。
+- [ ] Git 跟踪图片二进制为零。
+- [ ] 前端 typecheck、build 与浏览器资源加载验收使用本轮新鲜结果。

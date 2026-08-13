@@ -1,165 +1,106 @@
-# FableSpace
+# Web 像素农场生活游戏
 
-FableSpace 是一个角色故事平台。玩家因想见一个角色而进入其所属的完整故事世界，通过对话和选择建立关系、经历事件，并在回访中延续彼此的故事。
+本仓库正在原地重建为一个简单、独立的桌面 Web 俯视角像素农场生活游戏。游戏无需登录：首次访问先选择男角色或女角色并命名，回访从本地进度继续；全程不依赖论坛登录、后端 API、数据库或 LLM。
 
-项目以经过策划、审核和版本化发布的系统故事为内容基础，适合自托管部署，也适合作为“角色演绎 + 人工剧情骨架 + 私有连续性”方向的开源基础工程。
+旧 FableSpace 角色故事产品已经退出当前主线。仓库中仍可见的 Character、StoryWorld、StoryRun、历史故事、聊天、后端和数据库代码只属于待精确清退的历史实现，不是新游戏的兼容合同。
 
-## 主要能力
+## 首个可玩切片
 
-- 角色优先发现：首页直接呈现角色，玩家从想见的人进入其故事世界。
-- 故事预设身份：每个故事提供一个或多个经过设计的玩家身份、背景和入场理由，每轮锁定其中一个，不使用全平台通用身份。
-- 对话与选择：玩家可以自由回应，也可以作出人工编写的关键选择；AI 在已发布剧情和正史边界内演绎角色。
-- 关系与分支：自然对话可以小幅改变好感和语气，关键选择会显著改变关系与可进入分支。
-- 私有连续性：记录玩家的故事进度、角色关系、关键选择和记忆，下次回访从已有结果继续。
-- 历史内容边界：历史故事可使用原创见证者或受来源约束的真实人物；玩家只能改变原创人物的私人经历或自己的记录方式，不能改写已经核验的史实与真人行动。
-- 自托管部署：前端、后端和持久化数据可通过 Docker Compose 一体化运行。
+```text
+打开苔野小屋
+  -> 选择男角色或女角色并写下名字
+  -> 搬进农场
+  -> 控制角色在住宅、树和石头之间移动
+  -> 进入住宅室内
+  -> 在床边睡觉
+  -> 日期增加一天并在室内醒来
+  -> 刷新页面后从本地存档恢复
+```
 
-当前 P0 包含两个系统故事：安妮在 1854 年伦敦宽街向玩家讨水，以及“先天二年·虔化门”中高力士与太平公主分处 713 年先天政变的两端。后者以史书行动顺序和公开结局为固定边界，玩家只决定自己的记录怎样区分亲见、转述与后来的政治定性。
+首片包含原创标题/入住卡、男/女两种角色外观、角色命名、继续/安全重开，一张固定农场、一个固定住宅室内、四向移动与动画、碰撞与前后遮挡、进出门、名字/`第 N 天` HUD、睡眠过渡和版本化 `localStorage` 存档。树和石头只是有碰撞的环境物件。
+
+首片不包含种地、作物、工具、砍树、碎石、掉落、NPC、对白、商店、金币、背包、体力、实时钟表、季节、天气、战斗、账号、云存档、SSO、API、数据库或 LLM。
+
+## 操作
+
+| 操作 | 按键 |
+|---|---|
+| 移动 | `WASD` 或方向键 |
+| 交互 / 进出住宅 / 睡觉 | `E` 或空格 |
+
+首发只验收桌面浏览器键盘/鼠标。移动端触控、虚拟摇杆和手柄不在当前范围。
 
 ## 技术栈
 
-- 后端：Python 3.12、FastAPI、Uvicorn、SQLAlchemy。
-- 前端：React Router、Vite、TypeScript、React 18。
-- 容器：Docker Compose，前端容器使用 nginx 托管静态构建并反向代理 API。
-- 存储：默认 SQLite；可通过 SQLAlchemy URL 配置 MySQL。其他数据库需要自行提供对应驱动。
+- React Router、Vite、TypeScript、React：应用外壳。
+- Phaser 3：游戏循环、Tilemap、动画、Arcade Physics、镜头与场景。
+- 浏览器 `localStorage`：纯本地存档，不上传服务端。
+- 对象存储 + CDN：正式图片，采用项登记在 `deploy/cdn/game-media-manifest.json`。
+
+React 只负责首次/回访入口、角色创建草稿、重开确认、挂载/销毁 Phaser canvas、加载失败状态和论坛 DOM 外链；逐帧位置、输入、动画、碰撞、场景和游戏状态由 Phaser 持有。
+
+## 本地运行
+
+```powershell
+npm --prefix .\apps\web install
+npm --prefix .\apps\web run dev
+```
+
+浏览器地址以 Vite 输出为准；不需要启动 `apps/api/` 或连接数据库。
+
+最小检查：
+
+```powershell
+npm --prefix .\apps\web run typecheck
+npm --prefix .\apps\web run build
+```
+
+## 配置
+
+前端环境示例位于 `apps/web/.env.example`。
+
+| 变量 | 用途 |
+|---|---|
+| `VITE_FORUM_URL` | 普通论坛外链；默认 `https://pingxingxian.space` |
+| `VITE_MEDIA_BASE_URL` | 游戏素材运行时基址；默认 `/game-media/v1`，由开发服务器或 Nginx 同源代理到 manifest 的 HTTPS CDN 基址 |
+
+论坛链接在新标签页打开，不读取登录状态，不触发注册，也不共享存档。
+
+## 素材
+
+首片采用 pixel-boy 官方 [Ninja Adventure - Asset Pack](https://pixel-boy.itch.io/ninja-adventure-asset-pack) 作为统一视觉基线。官方页面将该包标记为 CC0。
+
+- 只选择首片实际需要的角色、地形、树、石头、住宅、室内和家具素材。
+- 男、女角色分别使用同一官方 CC0 固定提交中已核验的 64×112 图集，并以独立不可变对象登记；两者不带职业或属性差异。
+- 不把完整素材包或图片二进制提交到 Git。
+- 采用项上传不可变对象 key，并登记 URL、字节数、MIME 与 SHA-256。
+- 地图、品牌、UI 和玩法表达不得复制《星露谷物语》或其他现有游戏的受保护内容。
+
+完整规则见 [图片与游戏美术资源规范](docs/IMAGE_ASSETS_SPEC.md)。
 
 ## 仓库结构
 
 | 路径 | 说明 |
-|------|------|
-| `apps/api/` | FastAPI 后端、配置示例、SQL 和迁移工具 |
-| `apps/web/` | React Router + Vite 前端应用 |
-| `docs/` | 产品定义、数据契约、部署和资源规范 |
-| `docker-compose.yml` | 默认自托管部署编排 |
+|---|---|
+| `apps/web/` | 当前 React Router / Vite / Phaser 游戏 |
+| `deploy/cdn/` | 对象存储媒体清单与校验工具 |
+| `docs/` | 当前产品、负面边界和资源规范 |
+| `.trellis/spec/frontend/` | 当前前端与 Phaser 运行时合同 |
+| `apps/api/` | 旧产品后端，待审计清退；新游戏不得依赖 |
 
-## Docker Compose 部署
+既有 Docker、后端和数据库部署说明仍可能描述旧产品；完成独立部署重建前，它们不是本切片的支持启动路径。
 
-准备：
-
-- Docker Desktop 或兼容的 Docker Compose 环境。
-- 如需公开到互联网，建议在外层配置 HTTPS 反向代理。
-
-Windows PowerShell：
-
-```powershell
-Copy-Item .\apps\api\.env.example .\apps\api\.env
-docker compose up --build -d
-```
-
-Linux / macOS：
-
-```bash
-cp apps/api/.env.example apps/api/.env
-docker compose up --build -d
-```
-
-默认访问地址：
-
-| 服务 | 地址 |
-|------|------|
-| Web 应用 | `http://127.0.0.1:3000/` |
-| 后端健康检查 | `http://127.0.0.1:8000/api/v1/health` |
-
-Compose 默认启动两个服务：
-
-- `frontend`：构建 `apps/web/`，由 nginx 暴露 `3000` 端口，并把 `/api`、`/generated` 反向代理到后端。
-- `backend`：运行 `uvicorn fablespace_api.main:app`，暴露 `8000` 端口，数据写入 `/data`。
-- 生产复用 ParallelLines 的 MySQL 和共享 Docker 网络时，使用 `deploy/docker-compose.shared.yml` 覆盖文件；完整初始化、迁移和 R2/CDN 配置见 [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)。
-
-查看日志：
-
-```bash
-docker compose logs -f
-```
-
-停止服务：
-
-```bash
-docker compose down
-```
-
-重新构建并启动：
-
-```bash
-docker compose up --build -d
-```
-
-## GitHub Actions 自动部署与 CDN
-
-仓库提供 `.github/workflows/deploy.yml`：推送 `main` 后按前端、后端、媒体和部署配置的实际变化选择构建范围。后端通过 SSH + Docker Compose 更新；前端图片只从 S3 兼容对象存储的稳定媒体命名空间读取。媒体/CDN 配置或部署工作流变化及手动部署会在替换服务器镜像前逐项核对媒体清单并通过 CDN 做真实读取验证，普通前端代码变更不执行全量桶扫描。
-
-部署默认受 GitHub Actions 仓库变量 `DEPLOY_ENABLED` 保护。服务器、存储桶、CDN 域名和全部 Secret 配置完成后才能启用。完整 Secret 清单、R2/CORS 设置和首次服务器准备步骤见 [自动部署与 CDN](docs/DEPLOYMENT.md)。
-
-## 配置
-
-后端环境文件位于 `apps/api/.env`，示例文件是 `apps/api/.env.example`。不要提交真实密钥。
-
-常用后端变量：
-
-| 变量 | 说明 |
-|------|------|
-| `FABLESPACE_DATABASE_URL` | 首选 SQLAlchemy 数据库 URL；留空时使用默认 SQLite |
-| `FABLESPACE_OUTPUT_ROOT` | 后端输出目录；Docker Compose 中为 `/data` |
-| `FABLESPACE_CORS_ORIGINS` | 前后端分离部署时允许的浏览器来源 |
-| `FABLESPACE_LLM_*` | 可选的 StoryWorld 系统对话覆盖组；七项必须同时提供 |
-| `FABLEMAP_DEFAULT_FREE_LLM_*` | 已有部署级公共模型路由；未配置覆盖组时由 StoryWorld 复用 |
-
-现有部署可以继续使用 `FABLEMAP_DEFAULT_FREE_LLM_BACKEND`、`FABLEMAP_DEFAULT_FREE_LLM_MODEL`、`FABLEMAP_DEFAULT_FREE_LLM_BASE_URL` 和 `FABLEMAP_DEFAULT_FREE_LLM_API_KEY_ENV`，无需复制 API Key。只有需要为 StoryWorld 显式覆盖公共路由时才设置完整七项 `FABLESPACE_LLM_*`；覆盖组部分缺失或所选来源非法时，主站与内容后台仍可启动，角色对话请求返回 `503`。
-
-前端环境示例位于 `apps/web/.env.example`。Docker 默认使用同源 `/api` 调用后端；如果你自行构建或分离部署前端，可以按需设置：
-
-| 变量 | 说明 |
-|------|------|
-| `VITE_API_BASE` | 前端构建期 API 基址，留空时使用同源 `/api` |
-| `VITE_MEDIA_BASE_URL` | 项目图片的稳定 HTTPS 基址，默认 `https://img.pingxingxian.space/fablespace/media/v1` |
-
-## 数据持久化
-
-Docker Compose 会把后端数据写入 volume `fablespace_data` 对应的数据卷。未配置外部数据库时，默认 SQLite 文件会位于容器内的 `/data/fablespace.sqlite3`。
-
-部署到生产环境时建议：
-
-- 定期备份 Compose 数据卷或外部数据库。
-- 对公开访问的站点配置 HTTPS。
-- 使用独立数据库时，把 `FABLESPACE_DATABASE_URL` 写入 `apps/api/.env`，并妥善管理数据库账号权限。
-- 升级前先备份数据，再拉取新版本并重新构建容器。
-
-## 非 Docker 运行
-
-非 Docker 模式下，Python 进程只提供 API；前端由 React Router 开发服务器单独运行。
-
-先安装依赖并启动后端：
-
-```powershell
-py -3 -m pip install -r .\apps\api\requirements.txt
-npm --prefix .\apps\web install
-
-$env:PYTHONPATH = "$PWD\apps\api\src"
-py -3 -m fablespace_api --host 127.0.0.1 --port 8950
-```
-
-另开一个 PowerShell，指向本地 API 并启动前端：
-
-```powershell
-$env:VITE_API_BASE = "http://127.0.0.1:8950"
-npm --prefix .\apps\web run dev
-```
-
-后端健康检查是 `http://127.0.0.1:8950/api/v1/health`；前端地址以开发服务器输出为准。
-
-## 项目文档
+## 当前权威文档
 
 - [文档索引](docs/INDEX.md)
-- [产品概述](docs/PRODUCT_BRIEF.md)
-- [角色故事平台设计](docs/FABLESPACE_SPACE_PLATFORM.md)
-- [故事世界数据结构](docs/WORLD_SCHEMA.md)
+- [产品简报](docs/PRODUCT_BRIEF.md)
 - [明确不做清单](docs/WHAT_NOT_TO_BUILD.md)
-- [图像资源规范](docs/IMAGE_ASSETS_SPEC.md)
-- [自动部署与 CDN](docs/DEPLOYMENT.md)
+- [图片与游戏美术资源规范](docs/IMAGE_ASSETS_SPEC.md)
+- [前端开发规范](.trellis/spec/frontend/index.md)
+- [Phaser 像素游戏运行时规范](.trellis/spec/frontend/pixel-game-runtime.md)
 
-## 安全提醒
+## 安全
 
-- 不要提交 `.env`、数据库文件、日志文件或真实 API Key。
-- 公开故事内容与玩家私有进度、对话和记忆应分开处理。
-- 公开部署时建议使用 HTTPS、强随机访问密码和受限数据库账号。
-- 对 LLM Key、对话记录和记忆写回数据按敏感数据处理。
+- 不提交 `.env`、密钥、数据库文件、日志或浏览器存档。
+- 未经明确授权不连接、迁移或删除任何旧数据库。
+- 删除旧产品代码、资源、配置或部署项前先做引用审计并确认精确范围。
