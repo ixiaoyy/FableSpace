@@ -154,38 +154,42 @@ export function GameEntry() {
     const avatar = getAvatar(inspection.save.avatar_id)
     entryContent = (
       <div className="gameEntry__screen">
-        <section className="gameEntry__panel gameEntry__panel--compact" aria-labelledby="returning-title">
-          <div className="returningCard">
+        <section className="gameEntry__panel gameEntry__panel--save" aria-labelledby="returning-title">
+          <header className="gameEntry__menuHeader">
+            <span>苔野小屋</span>
+            <h2 id="returning-title">继续游戏</h2>
+          </header>
+
+          <div className="saveSlot">
+            <span className="saveSlot__number" aria-hidden="true">1</span>
             <AvatarPreview
               avatar={avatar}
               alt={`${inspection.save.player_name}的角色外观`}
-              size="card"
+              size="slot"
             />
-            <div className="returningCard__copy">
-              <span className="gameEntry__kicker">欢迎回来</span>
-              <h2 className="gameEntry__title gameEntry__title--small returningCard__name" id="returning-title">
-                {inspection.save.player_name}
-              </h2>
-              <span className="returningCard__day">第 {inspection.save.day} 天</span>
-              <div className="gameEntry__actions">
-                <button
-                  className="gameEntry__button gameEntry__button--primary"
-                  type="button"
-                  onClick={() => {
-                    setInitialSave(inspection.save)
-                    setPhase("playing")
-                  }}
-                >
-                  继续生活
-                </button>
-                <button
-                  className="gameEntry__button gameEntry__button--quiet"
-                  type="button"
-                  onClick={() => setRestartDialogOpen(true)}
-                >
-                  重新开始
-                </button>
-              </div>
+            <div className="saveSlot__copy">
+              <strong className="saveSlot__name">{inspection.save.player_name}</strong>
+              <span className="saveSlot__place">苔野小屋</span>
+              <span className="saveSlot__day">第 {inspection.save.day} 天</span>
+            </div>
+            <div className="saveSlot__actions">
+              <button
+                className="gameEntry__button gameEntry__button--primary"
+                type="button"
+                onClick={() => {
+                  setInitialSave(inspection.save)
+                  setPhase("playing")
+                }}
+              >
+                进入农场
+              </button>
+              <button
+                className="gameEntry__button gameEntry__button--quiet"
+                type="button"
+                onClick={() => setRestartDialogOpen(true)}
+              >
+                重新开始
+              </button>
             </div>
           </div>
         </section>
@@ -194,107 +198,113 @@ export function GameEntry() {
   } else {
     const isLegacy = creationMode === "legacy" && inspection.status === "legacy"
     const isRestart = creationMode === "restart"
+    const chosenAvatar = getAvatar(avatarId)
 
     entryContent = (
-      <div className="gameEntry__screen gameEntry__screen--dense">
-        <section className="gameEntry__panel" aria-labelledby="create-character-title">
-          <span className="gameEntry__kicker">
-            {isLegacy ? "补写入住卡" : isRestart ? "新的入住卡" : "第一天 · 搬家登记"}
-          </span>
-          <h2 className="gameEntry__title gameEntry__title--small" id="create-character-title">
-            先认识一下你
-          </h2>
-          <p className="gameEntry__lead">挑一个喜欢的模样，再给角色起个名字。就这些。</p>
+      <div className="gameEntry__screen">
+        <section className="gameEntry__panel gameEntry__panel--creation" aria-labelledby="create-character-title">
+          <header className="gameEntry__menuHeader">
+            <span>{isLegacy ? "补全角色" : isRestart ? "新的生活" : "新游戏"}</span>
+            <h2 id="create-character-title">创建角色</h2>
+          </header>
 
-          {isLegacy ? (
-            <p className="gameEntry__notice" role="status">
-              旧进度还在。提交后会从第 {inspection.progress.day} 天继续。
-            </p>
-          ) : null}
-          {(inspection.status === "invalid" || inspection.status === "unavailable") && !isRestart ? (
-            <p className="gameEntry__notice" role="status">{inspection.reason}</p>
-          ) : null}
-          {isRestart ? (
-            <p className="gameEntry__notice" role="status">
-              返回不会影响现在的角色；提交这张新卡后才会覆盖旧进度。
-            </p>
-          ) : null}
-
-          <form className="gameEntry__form" onSubmit={handleCharacterSubmit} noValidate>
-            <fieldset className="avatarFieldset">
-              <legend>选择外观</legend>
-              <div className="avatarChoices">
-                {AVATAR_OPTIONS.map((avatar) => {
-                  const selected = avatar.id === avatarId
-                  return (
-                    <label className="avatarChoice" key={avatar.id}>
-                      <input
-                        className="avatarChoice__radio"
-                        type="radio"
-                        name="avatar"
-                        value={avatar.id}
-                        checked={selected}
-                        onChange={() => setAvatarId(avatar.id)}
-                      />
-                      <span className="avatarChoice__surface">
-                        <AvatarPreview avatar={avatar} alt="" />
-                        <span className="avatarChoice__copy">
-                          <span className="avatarChoice__label">{avatar.label}</span>
-                          <span className="avatarChoice__state">
-                            {selected ? "✓ 已选择" : "选择此外观"}
-                          </span>
-                        </span>
-                      </span>
-                    </label>
-                  )
-                })}
+          <form className="gameEntry__form gameEntry__form--character" onSubmit={handleCharacterSubmit} noValidate>
+            <div className="characterStage">
+              <div className="characterStage__window">
+                <AvatarPreview
+                  avatar={chosenAvatar}
+                  alt={`当前选择：${chosenAvatar.label}`}
+                  size="hero"
+                />
               </div>
-            </fieldset>
-
-            <div className="nameField">
-              <label htmlFor="player-name">
-                角色名字
-                <span className="nameField__hint" id="player-name-hint">1–12 个字符</span>
-              </label>
-              <input
-                ref={nameInputRef}
-                id="player-name"
-                name="player-name"
-                type="text"
-                value={playerName}
-                autoComplete="nickname"
-                autoFocus
-                placeholder="写下名字"
-                aria-invalid={nameError === null ? undefined : true}
-                aria-describedby={nameError === null ? "player-name-hint" : "player-name-hint player-name-error"}
-                onChange={(event) => {
-                  setPlayerName(event.currentTarget.value)
-                  if (nameError !== null) setNameError(null)
-                }}
-              />
-              {nameError === null ? null : (
-                <p className="nameField__error" id="player-name-error" role="alert">
-                  {nameError}
-                </p>
-              )}
+              <strong className="characterStage__label">{chosenAvatar.label}</strong>
             </div>
 
-            <div className="gameEntry__actions">
-              <button className="gameEntry__button gameEntry__button--primary" type="submit">
-                {isLegacy ? "保存并继续" : "搬进苔野"}
-              </button>
+            <div className="characterSettings">
+              <fieldset className="avatarFieldset">
+                <legend>选择外观</legend>
+                <div className="avatarChoices">
+                  {AVATAR_OPTIONS.map((avatar) => {
+                    const selected = avatar.id === avatarId
+                    return (
+                      <label className="avatarChoice" key={avatar.id}>
+                        <input
+                          className="avatarChoice__radio"
+                          type="radio"
+                          name="avatar"
+                          value={avatar.id}
+                          checked={selected}
+                          onChange={() => setAvatarId(avatar.id)}
+                        />
+                        <span className="avatarChoice__surface">
+                          <span aria-hidden="true">{avatar.id === "male" ? "◀" : "▶"}</span>
+                          <span className="avatarChoice__label">{avatar.label}</span>
+                        </span>
+                      </label>
+                    )
+                  })}
+                </div>
+              </fieldset>
+
+              <div className="nameField">
+                <label htmlFor="player-name">
+                  你的名字
+                  <span className="nameField__hint" id="player-name-hint">1–12 个字符</span>
+                </label>
+                <input
+                  ref={nameInputRef}
+                  id="player-name"
+                  name="player-name"
+                  type="text"
+                  value={playerName}
+                  autoComplete="nickname"
+                  autoFocus
+                  placeholder="输入名字"
+                  aria-invalid={nameError === null ? undefined : true}
+                  aria-describedby={nameError === null ? "player-name-hint" : "player-name-hint player-name-error"}
+                  onChange={(event) => {
+                    setPlayerName(event.currentTarget.value)
+                    if (nameError !== null) setNameError(null)
+                  }}
+                />
+                {nameError === null ? null : (
+                  <p className="nameField__error" id="player-name-error" role="alert">
+                    {nameError}
+                  </p>
+                )}
+              </div>
+
+              {isLegacy ? (
+                <p className="gameEntry__notice" role="status">
+                  保存后从第 {inspection.progress.day} 天继续。
+                </p>
+              ) : null}
+              {(inspection.status === "invalid" || inspection.status === "unavailable") && !isRestart ? (
+                <p className="gameEntry__notice" role="status">{inspection.reason}</p>
+              ) : null}
+              {isRestart ? (
+                <p className="gameEntry__notice" role="status">
+                  提交新角色后才会覆盖原进度。
+                </p>
+              ) : null}
+            </div>
+
+            <div className="gameEntry__actions gameEntry__actions--menu">
               {isRestart ? (
                 <button
-                  className="gameEntry__button gameEntry__button--quiet"
+                  className="gameEntry__button gameEntry__button--secondary"
                   type="button"
                   onClick={() => {
                     setNameError(null)
                     setPhase("returning")
                   }}
                 >
-                  返回原来的生活
+                  返回存档
                 </button>
-              ) : null}
+              ) : <span />}
+              <button className="gameEntry__button gameEntry__button--primary" type="submit">
+                {isLegacy ? "保存并继续" : "开始生活"}
+              </button>
             </div>
           </form>
         </section>
@@ -304,6 +314,13 @@ export function GameEntry() {
 
   return (
     <>
+      {/*
+        THESIS: a real game menu led by the player sprite, never a skinned web form.
+        OWN-WORLD: moss-green sky, honey wood frames, ink-brown type, stepped pixel edges.
+        STORY: choose one body, name it, enter the farm; returning players resume one visible save.
+        FIRST VIEWPORT: centered menu, player stage left, compact settings right, action at lower right.
+        FORM: familiar farming-RPG character and save menus, simplified to this game's real data.
+      */}
       <section className="gamePage__cabinet" aria-label="苔野小屋游戏">
         <div className="gamePage__screw gamePage__screw--one" aria-hidden="true" />
         <div className="gamePage__screw gamePage__screw--two" aria-hidden="true" />

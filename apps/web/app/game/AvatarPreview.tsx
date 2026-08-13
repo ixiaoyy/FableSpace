@@ -3,7 +3,7 @@ import type { AvatarDefinition } from "./avatars"
 type AvatarPreviewProps = {
   readonly alt: string
   readonly avatar: AvatarDefinition
-  readonly size?: "card" | "choice"
+  readonly size?: "hero" | "slot"
 }
 
 /**
@@ -13,7 +13,7 @@ type AvatarPreviewProps = {
 export function AvatarPreview({
   alt,
   avatar,
-  size = "choice",
+  size = "hero",
 }: AvatarPreviewProps) {
   const columns = avatar.texture.sheetWidth / avatar.texture.frameWidth
   const rows = avatar.texture.sheetHeight / avatar.texture.frameHeight
