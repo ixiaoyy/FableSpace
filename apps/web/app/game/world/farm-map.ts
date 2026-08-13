@@ -4,7 +4,7 @@ export type FarmPoint = { readonly x: number; readonly y: number }
 
 export const FARM_SPAWN_POINTS: Record<FarmSpawnId, FarmPoint> = {
   [GAME_SPAWN_IDS.farm.start]: { x: 268, y: 200 },
-  [GAME_SPAWN_IDS.farm.houseDoor]: { x: 320, y: 154 },
+  [GAME_SPAWN_IDS.farm.houseDoor]: { x: 320, y: 178 },
 }
 
 export const FARM_HOUSE = { x: 320, y: 92, width: 96, height: 96 } as const

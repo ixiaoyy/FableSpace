@@ -11,8 +11,7 @@ export type PlayerDirection = "down" | "up" | "left" | "right"
 export type PlayerController = {
   readonly player: Phaser.Types.Physics.Arcade.SpriteWithDynamicBody
   readonly cursors: Phaser.Types.Input.Keyboard.CursorKeys
-  readonly keys: Record<"up" | "down" | "left" | "right" | "interact" | "space", Phaser.Input.Keyboard.Key>
-  interactionQueued: boolean
+  readonly keys: Record<"up" | "down" | "left" | "right", Phaser.Input.Keyboard.Key>
   lastDirection: PlayerDirection
 }
 
@@ -39,29 +38,14 @@ export function createPlayerController(
     down: Phaser.Input.Keyboard.KeyCodes.S,
     left: Phaser.Input.Keyboard.KeyCodes.A,
     right: Phaser.Input.Keyboard.KeyCodes.D,
-    interact: Phaser.Input.Keyboard.KeyCodes.E,
-    space: Phaser.Input.Keyboard.KeyCodes.SPACE,
   }) as PlayerController["keys"]
 
   const controller: PlayerController = {
     player,
     cursors: keyboard.createCursorKeys(),
     keys,
-    interactionQueued: false,
     lastDirection: "down",
   }
-
-  /** Buffer short interaction taps so a down/up pair between render frames is not lost. */
-  const queueInteraction = (): void => {
-    controller.interactionQueued = true
-  }
-
-  keys.interact.on(Phaser.Input.Keyboard.Events.DOWN, queueInteraction)
-  keys.space.on(Phaser.Input.Keyboard.Events.DOWN, queueInteraction)
-  scene.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
-    keys.interact.off(Phaser.Input.Keyboard.Events.DOWN, queueInteraction)
-    keys.space.off(Phaser.Input.Keyboard.Events.DOWN, queueInteraction)
-  })
 
   return controller
 }
@@ -103,14 +87,6 @@ export function updatePlayerController(
   }
 
   player.setDepth(Math.round(player.y + 8))
-}
-
-/** Consume at most one buffered interaction press for the current scene. */
-export function consumeInteraction(controller: PlayerController): boolean {
-  if (!controller.interactionQueued) return false
-
-  controller.interactionQueued = false
-  return true
 }
 
 /** Return whether the player's feet are inside an authored interaction rectangle. */

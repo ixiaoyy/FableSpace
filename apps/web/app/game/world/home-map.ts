@@ -5,8 +5,8 @@ export type HomePoint = { readonly x: number; readonly y: number }
 export const HOME_ROOM = { x: 64, y: 40, width: 352, height: 240 } as const
 
 export const HOME_SPAWN_POINTS: Record<HomeSpawnId, HomePoint> = {
-  [GAME_SPAWN_IDS.home.entryDoor]: { x: 240, y: 248 },
-  [GAME_SPAWN_IDS.home.nextDay]: { x: 172, y: 132 },
+  [GAME_SPAWN_IDS.home.entryDoor]: { x: 240, y: 230 },
+  [GAME_SPAWN_IDS.home.nextDay]: { x: 190, y: 132 },
 }
 
 export const HOME_EXIT_INTERACTION = { x: 220, y: 242, width: 40, height: 38 } as const

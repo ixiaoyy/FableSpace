@@ -19,7 +19,6 @@ import { startDayClock, type DayClockController } from "./day-clock"
 import {
   createHudLabel,
   createPlayerController,
-  consumeInteraction,
   isPlayerInsideRect,
   updatePlayerController,
   type PlayerController,
@@ -39,7 +38,7 @@ type FarmSceneData = { readonly spawnId?: string }
 export class FarmScene extends Phaser.Scene {
   private controller!: PlayerController
   private inputLocked = false
-  private prompt!: Phaser.GameObjects.Text
+  private statusLabel!: Phaser.GameObjects.Text
   private clockLabel!: Phaser.GameObjects.Text
   private dayClock: DayClockController | null = null
 
@@ -77,21 +76,18 @@ export class FarmScene extends Phaser.Scene {
       .setOrigin(1, 0)
       .setAlign("right")
     this.startClock(save)
-    this.prompt = createHudLabel(this, 0, 286, "E 进入")
+    this.statusLabel = createHudLabel(this, 0, 286, "")
       .setVisible(false)
 
     this.cameras.main.fadeIn(220, 31, 39, 26)
   }
 
-  /** Advance movement, prompt visibility, and the edge-triggered house transition. */
+  /** Advance movement and enter the house once when the player reaches its doorway. */
   update(): void {
     updatePlayerController(this.controller, this.inputLocked)
-    const interactionPressed = consumeInteraction(this.controller)
     const atDoor = isPlayerInsideRect(this.controller.player, FARM_DOOR_INTERACTION)
-    this.prompt.setVisible(atDoor && !this.inputLocked)
-    this.prompt.setX(Math.round((this.scale.gameSize.width - this.prompt.width) / 2))
 
-    if (atDoor && !this.inputLocked && interactionPressed) {
+    if (atDoor && !this.inputLocked) {
       this.enterHouse()
     }
   }
@@ -234,8 +230,8 @@ export class FarmScene extends Phaser.Scene {
     this.inputLocked = true
     this.dayClock?.stop()
     this.controller.player.setVelocity(0, 0)
-    this.prompt.setText("夜深了…").setVisible(true)
-    this.prompt.setX(Math.round((this.scale.gameSize.width - this.prompt.width) / 2))
+    this.statusLabel.setText("夜深了…").setVisible(true)
+    this.statusLabel.setX(Math.round((this.scale.gameSize.width - this.statusLabel.width) / 2))
     this.cameras.main.fadeOut(520, 31, 39, 26)
     this.time.delayedCall(640, () => {
       const nextSave = advanceDay(this.currentSave())

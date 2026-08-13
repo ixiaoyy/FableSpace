@@ -334,7 +334,7 @@ export function GameEntry() {
         {isPlaying ? (
           <>
             <span><kbd>WASD</kbd><kbd>↑↓←→</kbd> 移动</span>
-            <span><kbd>E</kbd><kbd>空格</kbd> 交互</span>
+            <span>门口自动进出 · 床边确认睡觉</span>
           </>
         ) : (
           <>

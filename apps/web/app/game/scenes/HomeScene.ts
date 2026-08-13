@@ -19,7 +19,6 @@ import { startDayClock, type DayClockController } from "./day-clock"
 import {
   createHudLabel,
   createPlayerController,
-  consumeInteraction,
   isPlayerInsideRect,
   updatePlayerController,
   type PlayerController,
@@ -34,14 +33,21 @@ import {
 } from "../world/home-map"
 
 type HomeSceneData = { readonly spawnId?: string }
+type SleepChoice = "sleep" | "cancel"
 
 /** Render and run the fixed home interior with a single next-day interaction. */
 export class HomeScene extends Phaser.Scene {
   private controller!: PlayerController
   private inputLocked = false
-  private prompt!: Phaser.GameObjects.Text
+  private statusLabel!: Phaser.GameObjects.Text
   private clockLabel!: Phaser.GameObjects.Text
   private dayClock: DayClockController | null = null
+  private sleepDialog!: Phaser.GameObjects.Container
+  private sleepButton!: Phaser.GameObjects.Text
+  private cancelButton!: Phaser.GameObjects.Text
+  private sleepDialogOpen = false
+  private bedInteractionArmed = true
+  private sleepChoice: SleepChoice = "cancel"
 
   constructor() {
     super("home")
@@ -50,6 +56,9 @@ export class HomeScene extends Phaser.Scene {
   /** Build the room, original furniture, player, collisions, and minimal HUD. */
   create(data: HomeSceneData): void {
     this.inputLocked = false
+    this.sleepDialogOpen = false
+    this.bedInteractionArmed = true
+    this.sleepChoice = "cancel"
     this.physics.world.setBounds(0, 0, HOME_WORLD_WIDTH, HOME_WORLD_HEIGHT)
     this.cameras.main.setBounds(0, 0, HOME_WORLD_WIDTH, HOME_WORLD_HEIGHT)
     this.cameras.main.setBackgroundColor("#221b1a")
@@ -73,30 +82,156 @@ export class HomeScene extends Phaser.Scene {
       .setOrigin(1, 0)
       .setAlign("right")
     this.startClock(save)
-    this.prompt = createHudLabel(this, 0, 286, "E 出门").setVisible(false)
+    this.statusLabel = createHudLabel(this, 0, 286, "").setVisible(false)
+    this.createSleepDialog()
     this.cameras.main.fadeIn(220, 28, 21, 25)
   }
 
-  /** Advance movement and dispatch exactly one authored door or bed interaction. */
+  /** Advance movement and trigger one locked transition on reaching the bed or exit. */
   update(): void {
     updatePlayerController(this.controller, this.inputLocked)
-    const interactionPressed = consumeInteraction(this.controller)
     const atExit = isPlayerInsideRect(this.controller.player, HOME_EXIT_INTERACTION)
     const atBed = isPlayerInsideRect(this.controller.player, HOME_BED_INTERACTION)
 
-    this.prompt
-      .setText(atBed ? "E 睡觉" : "E 出门")
-      .setVisible(!this.inputLocked && (atBed || atExit))
-    this.prompt.setX(Math.round((this.scale.gameSize.width - this.prompt.width) / 2))
-
-    if (this.inputLocked || !interactionPressed) return
-    if (atBed) {
-      this.sleepUntilTomorrow()
+    if (!atBed) this.bedInteractionArmed = true
+    if (this.inputLocked) return
+    if (atBed && this.bedInteractionArmed) {
+      this.bedInteractionArmed = false
+      this.openSleepDialog()
       return
     }
     if (atExit) {
       this.leaveHouse()
     }
+  }
+
+  /** Build one scene-owned sleep confirmation with mouse and keyboard choices. */
+  private createSleepDialog(): void {
+    const overlay = this.add.rectangle(240, 160, 480, 320, 0x171310, 0.58)
+      .setInteractive()
+    const panel = this.add.rectangle(240, 160, 260, 112, 0x5b3d2f, 1)
+      .setStrokeStyle(4, 0xd9a85f, 1)
+    const question = this.add.text(240, 128, "现在睡觉吗？", {
+      color: "#fff1bf",
+      fontFamily: '"Courier New", monospace',
+      fontSize: "16px",
+      fontStyle: "bold",
+    }).setOrigin(0.5)
+    const buttonStyle: Phaser.Types.GameObjects.Text.TextStyle = {
+      color: "#372718",
+      fontFamily: '"Courier New", monospace',
+      fontSize: "13px",
+      fontStyle: "bold",
+      backgroundColor: "#f5d796",
+      padding: { x: 12, y: 7 },
+    }
+
+    this.sleepButton = this.add.text(184, 177, "睡觉", buttonStyle)
+      .setOrigin(0.5)
+      .setInteractive({ useHandCursor: true })
+    this.cancelButton = this.add.text(296, 177, "暂不", buttonStyle)
+      .setOrigin(0.5)
+      .setInteractive({ useHandCursor: true })
+    this.sleepDialog = this.add.container(0, 0, [
+      overlay,
+      panel,
+      question,
+      this.sleepButton,
+      this.cancelButton,
+    ])
+      .setScrollFactor(0)
+      .setDepth(12000)
+      .setVisible(false)
+
+    this.sleepButton
+      .on(Phaser.Input.Events.GAMEOBJECT_POINTER_OVER, () => this.setSleepChoice("sleep"))
+      .on(Phaser.Input.Events.GAMEOBJECT_POINTER_DOWN, (pointer: Phaser.Input.Pointer) => {
+        if (pointer.leftButtonDown()) this.confirmSleepDialog()
+      })
+    this.cancelButton
+      .on(Phaser.Input.Events.GAMEOBJECT_POINTER_OVER, () => this.setSleepChoice("cancel"))
+      .on(Phaser.Input.Events.GAMEOBJECT_POINTER_DOWN, (pointer: Phaser.Input.Pointer) => {
+        if (pointer.leftButtonDown()) this.closeSleepDialog(true)
+      })
+
+    const keyboard = this.input.keyboard
+    if (keyboard !== null) {
+      keyboard.on(Phaser.Input.Keyboard.Events.ANY_KEY_DOWN, this.handleSleepDialogKey, this)
+      this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+        keyboard.off(Phaser.Input.Keyboard.Events.ANY_KEY_DOWN, this.handleSleepDialogKey, this)
+      })
+    }
+  }
+
+  /** Pause movement and time, then show the sleep choice with the safe option selected. */
+  private openSleepDialog(): void {
+    if (this.sleepDialogOpen || this.inputLocked) return
+
+    this.sleepDialogOpen = true
+    this.inputLocked = true
+    this.dayClock?.stop()
+    this.controller.player.setVelocity(0, 0)
+    this.setSleepChoice("cancel")
+    this.sleepDialog.setVisible(true)
+  }
+
+  /** Select one sleep-dialog action and update its visible focus treatment. */
+  private setSleepChoice(choice: SleepChoice): void {
+    this.sleepChoice = choice
+    const sleepSelected = choice === "sleep"
+    this.sleepButton
+      .setBackgroundColor(sleepSelected ? "#a87345" : "#f5d796")
+      .setColor(sleepSelected ? "#fff1bf" : "#372718")
+    this.cancelButton
+      .setBackgroundColor(sleepSelected ? "#f5d796" : "#a87345")
+      .setColor(sleepSelected ? "#372718" : "#fff1bf")
+  }
+
+  /** Handle arrows, Enter, and Escape only while the Phaser sleep dialog is open. */
+  private handleSleepDialogKey(event: KeyboardEvent): void {
+    if (!this.sleepDialogOpen || event.repeat) return
+
+    if (event.key === "ArrowLeft") {
+      event.preventDefault()
+      this.setSleepChoice("sleep")
+      return
+    }
+
+    if (event.key === "ArrowRight") {
+      event.preventDefault()
+      this.setSleepChoice("cancel")
+      return
+    }
+
+    if (event.key === "Enter") {
+      event.preventDefault()
+      if (this.sleepChoice === "sleep") this.confirmSleepDialog()
+      else this.closeSleepDialog(true)
+      return
+    }
+
+    if (event.key === "Escape") {
+      event.preventDefault()
+      this.closeSleepDialog(true)
+    }
+  }
+
+  /** Hide the confirmation and either resume the paused clock or keep it stopped for sleep. */
+  private closeSleepDialog(resumeClock: boolean): void {
+    if (!this.sleepDialogOpen) return
+
+    this.sleepDialogOpen = false
+    this.sleepDialog.setVisible(false)
+    this.inputLocked = false
+    if (resumeClock) this.startClock(this.currentSave())
+  }
+
+  /** Confirm the selected sleep action and hand off to the existing single-day settlement. */
+  private confirmSleepDialog(): void {
+    if (!this.sleepDialogOpen) return
+
+    this.closeSleepDialog(false)
+    this.sleepUntilTomorrow()
   }
 
   /** Fill the room with official interior floor tiles and project-original wall panels. */
@@ -250,10 +385,10 @@ export class HomeScene extends Phaser.Scene {
     this.inputLocked = true
     this.dayClock?.stop()
     this.controller.player.setVelocity(0, 0)
-    this.prompt
+    this.statusLabel
       .setText(automatic ? "夜深了…" : "晚安…")
       .setVisible(true)
-    this.prompt.setX(Math.round((this.scale.gameSize.width - this.prompt.width) / 2))
+    this.statusLabel.setX(Math.round((this.scale.gameSize.width - this.statusLabel.width) / 2))
     this.cameras.main.fadeOut(520, 28, 21, 25)
     this.time.delayedCall(640, () => {
       const nextSave = advanceDay(this.currentSave())
@@ -261,7 +396,7 @@ export class HomeScene extends Phaser.Scene {
       const wakePoint = HOME_SPAWN_POINTS[GAME_SPAWN_IDS.home.nextDay]
       this.controller.player.body.reset(wakePoint.x, wakePoint.y)
       this.controller.lastDirection = "down"
-      this.prompt.setVisible(false)
+      this.statusLabel.setVisible(false)
       this.startClock(nextSave)
       this.cameras.main.fadeIn(620, 244, 210, 143)
       this.time.delayedCall(620, () => {
