@@ -14,6 +14,8 @@ import {
   GAME_SPAWN_IDS,
   type GameSave,
 } from "../save"
+import { formatGameTime } from "../game-time"
+import { startDayClock, type DayClockController } from "./day-clock"
 import {
   createHudLabel,
   createPlayerController,
@@ -38,7 +40,8 @@ export class HomeScene extends Phaser.Scene {
   private controller!: PlayerController
   private inputLocked = false
   private prompt!: Phaser.GameObjects.Text
-  private dayLabel!: Phaser.GameObjects.Text
+  private clockLabel!: Phaser.GameObjects.Text
+  private dayClock: DayClockController | null = null
 
   constructor() {
     super("home")
@@ -65,7 +68,11 @@ export class HomeScene extends Phaser.Scene {
     this.controller = createPlayerController(this, spawn.x, spawn.y)
     this.physics.add.collider(this.controller.player, solids)
 
-    this.dayLabel = createHudLabel(this, 12, 12, `${save.player_name} · 第 ${save.day} 天`)
+    createHudLabel(this, 12, 12, save.player_name)
+    this.clockLabel = createHudLabel(this, 468, 12, "")
+      .setOrigin(1, 0)
+      .setAlign("right")
+    this.startClock(save)
     this.prompt = createHudLabel(this, 0, 286, "E 出门").setVisible(false)
     this.cameras.main.fadeIn(220, 28, 21, 25)
   }
@@ -226,6 +233,7 @@ export class HomeScene extends Phaser.Scene {
   /** Lock input, preserve the day, save the farm-door spawn, and fade outdoors. */
   private leaveHouse(): void {
     this.inputLocked = true
+    this.dayClock?.stop()
     this.controller.player.setVelocity(0, 0)
     const nextSave = createSceneSave(this.currentSave(), "farm", GAME_SPAWN_IDS.farm.houseDoor)
     this.game.registry.set(GAME_SAVE_REGISTRY_KEY, nextSave)
@@ -236,10 +244,16 @@ export class HomeScene extends Phaser.Scene {
   }
 
   /** Lock the scene, advance one day once, then wake beside the bed after a full fade. */
-  private sleepUntilTomorrow(): void {
+  private sleepUntilTomorrow(automatic = false): void {
+    if (this.inputLocked) return
+
     this.inputLocked = true
+    this.dayClock?.stop()
     this.controller.player.setVelocity(0, 0)
-    this.prompt.setVisible(false)
+    this.prompt
+      .setText(automatic ? "夜深了…" : "晚安…")
+      .setVisible(true)
+    this.prompt.setX(Math.round((this.scale.gameSize.width - this.prompt.width) / 2))
     this.cameras.main.fadeOut(520, 28, 21, 25)
     this.time.delayedCall(640, () => {
       const nextSave = advanceDay(this.currentSave())
@@ -247,12 +261,28 @@ export class HomeScene extends Phaser.Scene {
       const wakePoint = HOME_SPAWN_POINTS[GAME_SPAWN_IDS.home.nextDay]
       this.controller.player.body.reset(wakePoint.x, wakePoint.y)
       this.controller.lastDirection = "down"
-      this.dayLabel.setText(`${nextSave.player_name} · 第 ${nextSave.day} 天`)
+      this.prompt.setVisible(false)
+      this.startClock(nextSave)
       this.cameras.main.fadeIn(620, 244, 210, 143)
       this.time.delayedCall(620, () => {
         this.inputLocked = false
       })
     })
+  }
+
+  /** Start the indoor timer and keep its fixed HUD synchronized with persisted time. */
+  private startClock(save: GameSave): void {
+    this.dayClock?.stop()
+    this.updateClockLabel(save)
+    this.dayClock = startDayClock(this, {
+      onTimeChanged: (nextSave) => this.updateClockLabel(nextSave),
+      onDayEnd: () => this.sleepUntilTomorrow(true),
+    })
+  }
+
+  /** Update the two-line day and clock label without mirroring time into React state. */
+  private updateClockLabel(save: GameSave): void {
+    this.clockLabel.setText(`第 ${save.day} 天\n${formatGameTime(save.time_minutes)}`)
   }
 
   /** Return the current validated in-memory save without re-reading browser storage. */

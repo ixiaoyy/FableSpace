@@ -1,10 +1,13 @@
 import { isAvatarId, type AvatarId } from "./avatars"
+import { GAME_DAY_START_MINUTES, isValidGameTime } from "./game-time"
 
-export const GAME_SAVE_STORAGE_KEY = "farm-game.save.v2"
+export const GAME_SAVE_STORAGE_KEY = "farm-game.save.v3"
+export const PREVIOUS_GAME_SAVE_STORAGE_KEY = "farm-game.save.v2"
 export const LEGACY_GAME_SAVE_STORAGE_KEY = "farm-game.save.v1"
 export const GAME_SAVE_REGISTRY_KEY = "save"
 
-const GAME_SAVE_SCHEMA_VERSION = 2 as const
+const GAME_SAVE_SCHEMA_VERSION = 3 as const
+const PREVIOUS_GAME_SAVE_SCHEMA_VERSION = 2 as const
 const LEGACY_GAME_SAVE_SCHEMA_VERSION = 1 as const
 const MAX_PLAYER_NAME_LENGTH = 12
 const PLAYER_NAME_CONTROL_CHARACTER = /\p{Cc}/u
@@ -31,9 +34,17 @@ type PlayerIdentity = {
   readonly avatar_id: AvatarId
 }
 
+type PreviousGameSave = PlayerIdentity & {
+  readonly schema_version: typeof PREVIOUS_GAME_SAVE_SCHEMA_VERSION
+  readonly day: number
+  readonly scene: GameScene
+  readonly spawn_id: GameSpawnId
+}
+
 export type FarmGameSave = PlayerIdentity & {
   readonly schema_version: typeof GAME_SAVE_SCHEMA_VERSION
   readonly day: number
+  readonly time_minutes: number
   readonly scene: "farm"
   readonly spawn_id: FarmSpawnId
 }
@@ -41,6 +52,7 @@ export type FarmGameSave = PlayerIdentity & {
 export type HomeGameSave = PlayerIdentity & {
   readonly schema_version: typeof GAME_SAVE_SCHEMA_VERSION
   readonly day: number
+  readonly time_minutes: number
   readonly scene: "home"
   readonly spawn_id: HomeSpawnId
 }
@@ -136,14 +148,15 @@ export function validatePlayerName(rawName: string): PlayerNameValidation {
 }
 
 /**
- * Decode an untrusted parsed value into the closed v2 save union.
- * Returns null unless identity, day, scene, and authored spawn pairing are all valid.
+ * Decode an untrusted parsed value into the closed v3 save union.
+ * Returns null unless identity, time, day, scene, and authored spawn pairing are valid.
  */
 export function decodeGameSave(value: unknown): GameSave | null {
   if (
     !isUnknownRecord(value)
     || value.schema_version !== GAME_SAVE_SCHEMA_VERSION
     || !isValidDay(value.day)
+    || !isValidGameTime(value.time_minutes)
     || typeof value.player_name !== "string"
     || !isAvatarId(value.avatar_id)
   ) {
@@ -163,6 +176,7 @@ export function decodeGameSave(value: unknown): GameSave | null {
       schema_version: GAME_SAVE_SCHEMA_VERSION,
       ...identity,
       day: value.day,
+      time_minutes: value.time_minutes,
       scene: "farm",
       spawn_id: value.spawn_id,
     }
@@ -173,12 +187,67 @@ export function decodeGameSave(value: unknown): GameSave | null {
       schema_version: GAME_SAVE_SCHEMA_VERSION,
       ...identity,
       day: value.day,
+      time_minutes: value.time_minutes,
       scene: "home",
       spawn_id: value.spawn_id,
     }
   }
 
   return null
+}
+
+/** Decode the former v2 identity-bearing save without accepting arbitrary spawn pairings. */
+function decodePreviousGameSave(value: unknown): PreviousGameSave | null {
+  if (
+    !isUnknownRecord(value)
+    || value.schema_version !== PREVIOUS_GAME_SAVE_SCHEMA_VERSION
+    || !isValidDay(value.day)
+    || typeof value.player_name !== "string"
+    || !isAvatarId(value.avatar_id)
+  ) {
+    return null
+  }
+
+  const playerName = validatePlayerName(value.player_name)
+  if (!playerName.ok) return null
+
+  const identity: PlayerIdentity = {
+    player_name: playerName.value,
+    avatar_id: value.avatar_id,
+  }
+
+  if (value.scene === "farm" && isFarmSpawnId(value.spawn_id)) {
+    return {
+      schema_version: PREVIOUS_GAME_SAVE_SCHEMA_VERSION,
+      ...identity,
+      day: value.day,
+      scene: "farm",
+      spawn_id: value.spawn_id,
+    }
+  }
+
+  if (value.scene === "home" && isHomeSpawnId(value.spawn_id)) {
+    return {
+      schema_version: PREVIOUS_GAME_SAVE_SCHEMA_VERSION,
+      ...identity,
+      day: value.day,
+      scene: "home",
+      spawn_id: value.spawn_id,
+    }
+  }
+
+  return null
+}
+
+/** Upgrade one validated v2 save in memory while preserving its identity and progress. */
+function upgradePreviousGameSave(previousSave: PreviousGameSave): GameSave {
+  const upgradedSave = decodeGameSave({
+    ...previousSave,
+    schema_version: GAME_SAVE_SCHEMA_VERSION,
+    time_minutes: GAME_DAY_START_MINUTES,
+  })
+  if (upgradedSave === null) throw new Error("The validated v2 save could not be upgraded.")
+  return upgradedSave
 }
 
 /** Decode only the former farm-game v1 shape into identity-free migration progress. */
@@ -212,7 +281,7 @@ function parseStoredJson(serializedValue: string): unknown | null {
 }
 
 /**
- * Inspect v2 first, then the exact former v1 key only when v2 is absent.
+ * Inspect v3, then v2, then the exact former v1 key while preserving invalid-key priority.
  * Returns explicit entry states and never mutates, migrates, or deletes browser storage.
  */
 export function inspectGameSave(): SaveInspection {
@@ -242,6 +311,25 @@ export function inspectGameSave(): SaveInspection {
     return { status: "current", save: currentSave }
   }
 
+  let previousSerialized: string | null
+  try {
+    previousSerialized = window.localStorage.getItem(PREVIOUS_GAME_SAVE_STORAGE_KEY)
+  } catch (error) {
+    reportSaveIssue("Previous local save could not be read.", error)
+    return { status: "unavailable", reason: storageFailureMessage("读取") }
+  }
+
+  if (previousSerialized !== null) {
+    const previousSave = decodePreviousGameSave(parseStoredJson(previousSerialized))
+    if (previousSave === null) {
+      return {
+        status: "invalid",
+        reason: "这份本地存档已损坏或来自未知版本，请创建新的生活。",
+      }
+    }
+    return { status: "current", save: upgradePreviousGameSave(previousSave) }
+  }
+
   let legacySerialized: string | null
   try {
     legacySerialized = window.localStorage.getItem(LEGACY_GAME_SAVE_STORAGE_KEY)
@@ -264,7 +352,7 @@ export function inspectGameSave(): SaveInspection {
 }
 
 /**
- * Persist one validated v2 save under the only current game key.
+ * Persist one validated v3 save under the only current game key.
  * Returns a warning result instead of stopping the in-memory session when storage fails.
  */
 export function saveGameSave(save: GameSave): SaveWriteResult {
@@ -284,6 +372,7 @@ export function saveGameSave(save: GameSave): SaveWriteResult {
       GAME_SAVE_STORAGE_KEY,
       JSON.stringify(normalizedSave),
     )
+    removeUpgradedSaveKeys()
     return { persisted: true }
   } catch (error) {
     reportSaveIssue("Local save could not be written; play will continue in memory.", error)
@@ -291,19 +380,20 @@ export function saveGameSave(save: GameSave): SaveWriteResult {
   }
 }
 
-/** Delete the former v1 key only after its upgraded v2 replacement was written successfully. */
-function removeLegacySaveAfterUpgrade(): void {
+/** Delete former v1/v2 keys only after a validated v3 replacement was written successfully. */
+function removeUpgradedSaveKeys(): void {
   if (typeof window === "undefined") return
 
   try {
+    window.localStorage.removeItem(PREVIOUS_GAME_SAVE_STORAGE_KEY)
     window.localStorage.removeItem(LEGACY_GAME_SAVE_STORAGE_KEY)
   } catch (error) {
-    reportSaveIssue("Legacy save could not be removed after a successful v2 write.", error)
+    reportSaveIssue("Upgraded save keys could not be removed after a successful v3 write.", error)
   }
 }
 
 /**
- * Create and persist a first v2 save, optionally retaining validated v1 progress.
+ * Create and persist a first v3 save, optionally retaining validated v1 progress.
  * Invalid names or avatar identifiers are programmer errors because the form validates first.
  */
 export function createNewGameSave(
@@ -326,13 +416,13 @@ export function createNewGameSave(
     player_name: playerName.value,
     avatar_id: avatarId,
     day: progress.day,
+    time_minutes: GAME_DAY_START_MINUTES,
     scene: progress.scene,
     spawn_id: progress.spawn_id,
   })
   if (save === null) throw new Error("无法创建有效的游戏存档。")
 
   const writeResult = saveGameSave(save)
-  if (writeResult.persisted) removeLegacySaveAfterUpgrade()
   return { save, ...writeResult }
 }
 
@@ -377,6 +467,7 @@ export function createSceneSave(
       schema_version: GAME_SAVE_SCHEMA_VERSION,
       ...identity,
       day: currentSave.day,
+      time_minutes: currentSave.time_minutes,
       scene,
       spawn_id: spawnId,
     }
@@ -389,10 +480,27 @@ export function createSceneSave(
       schema_version: GAME_SAVE_SCHEMA_VERSION,
       ...identity,
       day: currentSave.day,
+      time_minutes: currentSave.time_minutes,
       scene,
       spawn_id: spawnId,
     }
   }
+
+  saveGameSave(nextSave)
+  return nextSave
+}
+
+/** Persist one validated clock tick while preserving identity, day, scene, and spawn. */
+export function createTimeSave(currentSave: GameSave, timeMinutes: number): GameSave {
+  if (!isValidGameTime(timeMinutes)) {
+    throw new Error(`Invalid game time: ${timeMinutes}`)
+  }
+
+  const nextSave = decodeGameSave({
+    ...currentSave,
+    time_minutes: timeMinutes,
+  })
+  if (nextSave === null) throw new Error("The next clock save is invalid.")
 
   saveGameSave(nextSave)
   return nextSave
@@ -412,6 +520,7 @@ export function advanceDay(currentSave: GameSave): HomeGameSave {
     player_name: currentSave.player_name,
     avatar_id: currentSave.avatar_id,
     day: currentSave.day + 1,
+    time_minutes: GAME_DAY_START_MINUTES,
     scene: "home",
     spawn_id: GAME_SPAWN_IDS.home.nextDay,
   }
