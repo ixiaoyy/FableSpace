@@ -1,0 +1,13 @@
+dist
+lib
+node_modules
+pnpm-lock.yaml
+
+# Phase 1 template images are local-only until provenance, hashes, and CDN publication are approved.
+public/**/*.png
+src/**/*.png
+
+# Ignore unused RPGJS starter maps; only the reviewed spike map contract is versioned.
+src/tiled/*
+!src/tiled/simplemap.tmx
+!src/tiled/mirror-island-floor.tsx

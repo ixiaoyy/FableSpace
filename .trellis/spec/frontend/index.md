@@ -11,12 +11,13 @@
 | Guide | Use it for |
 |---|---|
 | [Pixel Game Runtime](./pixel-game-runtime.md) | Phaser 生命周期、输入、碰撞、场景、存档和游戏资源 |
+| [Mirror Island RPGJS](./mirror-island-rpgjs.md) | 新 RPGJS 应用、开源采用、Phase 1 隔离与切换门禁 |
 
 `directory-structure.md`、`component-guidelines.md`、`hook-guidelines.md`、`type-safety.md`、`quality-guidelines.md`、`ui-copy-guidelines.md` 与其他 Character/StoryRun 指南只用于定位、审计和清退旧源码，不是新游戏的实现合同。可复用的通用规则已经收敛到根 `AGENTS.md` 和本运行时指南；不得从旧指南恢复 Character 路由、API 或故事 UI。
 
 ## Pre-Development Checklist
 
-1. 读取根 `AGENTS.md`、当前任务 PRD/design/implement 和 [Pixel Game Runtime](./pixel-game-runtime.md)。
+1. 读取根 `AGENTS.md`、当前任务 PRD/design/implement；旧原型任务读 [Pixel Game Runtime](./pixel-game-runtime.md)，镜像岛任务读 [Mirror Island RPGJS](./mirror-island-rpgjs.md)。
 2. React 生命周期、组件、样式和可访问性改动均以根 `AGENTS.md` 与 [Pixel Game Runtime](./pixel-game-runtime.md) 为准。
 3. 新 helper 或配置先搜索现有实现；常量只保留一个来源。
 4. 确认本次不接入 `apps/api/`、数据库、LLM、认证或论坛接口。

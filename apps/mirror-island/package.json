@@ -1,0 +1,54 @@
+{
+  "name": "mirror-island-rpgjs-spike",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "prepare:media": "node scripts/prepare-media.mjs",
+    "predev": "npm run prepare:media",
+    "dev": "vite",
+    "predev:mmorpg": "npm run prepare:media",
+    "dev:mmorpg": "cross-env RPG_TYPE=mmorpg vite --host 0.0.0.0",
+    "prebuild": "npm run prepare:media",
+    "build": "vite build",
+    "typecheck": "tsc --noEmit",
+    "pretest": "npm run prepare:media",
+    "test": "node --experimental-strip-types --test test/*.test.mjs",
+    "pretest:production": "npm run prepare:media",
+    "test:production": "node --experimental-strip-types --test test/production-preview.test.mjs"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "description": "Disposable RPGJS multiplayer spike for Mirror Island",
+  "devDependencies": {
+    "@canvasengine/compiler": "2.2.0",
+    "@vitejs/plugin-vue": "^6.0.8",
+    "cross-env": "10.1.0",
+    "path-browserify": "^1.0.1",
+    "typescript": "6.0.3",
+    "vite": "^8.2.1"
+  },
+  "private": true,
+  "dependencies": {
+    "@canvasengine/presets": "2.2.0",
+    "@rpgjs/action-battle": "5.0.0-beta.32",
+    "@rpgjs/client": "5.0.0-beta.32",
+    "@rpgjs/common": "5.0.0-beta.30",
+    "@rpgjs/server": "5.0.0-beta.32",
+    "@rpgjs/tiledmap": "5.0.0-beta.32",
+    "@rpgjs/ui-css": "5.0.0-beta.26",
+    "@rpgjs/vite": "5.0.0-beta.32",
+    "@signe/di": "^3.1.1",
+    "canvasengine": "2.2.0",
+    "pixi.js": "^8.19.0"
+  },
+  "overrides": {
+    "@hono/node-server": "1.19.17",
+    "brace-expansion": "2.1.4",
+    "esbuild": "0.28.2",
+    "hono": "4.13.2",
+    "immutable": "5.1.9",
+    "nanoid": "3.3.18"
+  },
+  "type": "module"
+}
