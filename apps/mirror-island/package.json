@@ -4,12 +4,19 @@
   "main": "index.js",
   "scripts": {
     "prepare:media": "node scripts/prepare-media.mjs",
+    "identity:up": "docker compose -f docker-compose.identity.yml up -d keycloak",
+    "identity:configure": "node scripts/configure-keycloak-profile.mjs",
+    "identity:down": "docker compose -f docker-compose.identity.yml down",
     "predev": "npm run prepare:media",
-    "dev": "vite",
+    "dev": "cross-env RPG_TYPE=mmorpg vite --host 0.0.0.0",
     "predev:mmorpg": "npm run prepare:media",
     "dev:mmorpg": "cross-env RPG_TYPE=mmorpg vite --host 0.0.0.0",
     "prebuild": "npm run prepare:media",
     "build": "vite build",
+    "prebuild:mmorpg": "npm run prepare:media",
+    "build:mmorpg": "cross-env RPG_TYPE=mmorpg vite build",
+    "prebuild:server": "npm run prepare:media",
+    "build:server": "vite build --config vite.server.config.ts",
     "typecheck": "tsc --noEmit",
     "pretest": "npm run prepare:media",
     "test": "node --experimental-strip-types --test test/*.test.mjs",
@@ -23,6 +30,7 @@
   "devDependencies": {
     "@canvasengine/compiler": "2.2.0",
     "@vitejs/plugin-vue": "^6.0.8",
+    "@types/ws": "8.18.1",
     "cross-env": "10.1.0",
     "path-browserify": "^1.0.1",
     "typescript": "6.0.3",
@@ -40,7 +48,10 @@
     "@rpgjs/vite": "5.0.0-beta.32",
     "@signe/di": "^3.1.1",
     "canvasengine": "2.2.0",
-    "pixi.js": "^8.19.0"
+    "jose": "6.2.9",
+    "keycloak-js": "26.2.4",
+    "pixi.js": "^8.19.0",
+    "ws": "8.21.3"
   },
   "overrides": {
     "@hono/node-server": "1.19.17",

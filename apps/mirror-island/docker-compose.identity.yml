@@ -1,0 +1,18 @@
+services:
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.7.1@sha256:f1f1f01e472c8a78df40d8f2a49a925274eda4d3d80d5f6edbb5c880ee3c01c6
+    command:
+      - start-dev
+      - --import-realm
+      - --http-port=8080
+      - --health-enabled=true
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: ${MIRROR_ISLAND_KEYCLOAK_ADMIN:-admin}
+      KC_BOOTSTRAP_ADMIN_PASSWORD: ${MIRROR_ISLAND_KEYCLOAK_ADMIN_PASSWORD:-admin}
+      JAVA_OPTS_KC_HEAP: -Xms256m -Xmx640m
+    mem_limit: 768m
+    ports:
+      - "127.0.0.1:8081:8080"
+    volumes:
+      - ./keycloak/mirror-island-realm.json:/opt/keycloak/data/import/mirror-island-realm.json:ro
+      - ./keycloak/mirror-island-user-profile.json:/opt/keycloak/profile-config/mirror-island-user-profile.json:ro

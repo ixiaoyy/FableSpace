@@ -29,6 +29,14 @@ apps/web/node_modules
 apps/web/build
 apps/web/.react-router
 apps/web/dist
+apps/mirror-island/node_modules
+apps/mirror-island/dist
+apps/mirror-island/lib
+apps/mirror-island/public/**/*.png
+apps/mirror-island/src/**/*.png
+apps/mirror-island/.env
+apps/mirror-island/.env.*
+!apps/mirror-island/.env.example
 
 # Local env files and secrets
 .env

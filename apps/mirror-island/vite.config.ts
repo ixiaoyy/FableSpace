@@ -3,6 +3,7 @@ import { rpgjs, tiledMapFolderPlugin } from '@rpgjs/vite';
 import startServer from './src/server.ts';
 
 export default defineConfig({
+  base: process.env.VITE_MIRROR_BASE_PATH || "/",
   optimizeDeps: {
     include: ['pixi.js > @xmldom/xmldom']
   },

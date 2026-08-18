@@ -2,6 +2,7 @@ dist
 lib
 node_modules
 pnpm-lock.yaml
+.env.production
 
 # Phase 1 template images are local-only until provenance, hashes, and CDN publication are approved.
 public/**/*.png

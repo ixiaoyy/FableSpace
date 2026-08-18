@@ -1,0 +1,26 @@
+FROM node:22-alpine@sha256:c610fcdfb1d5b4740dd70c284ed3cb16bb857e0f7166196e36a5501df7a3aa32 AS builder
+
+WORKDIR /app
+
+COPY apps/mirror-island/package.json apps/mirror-island/package-lock.json ./
+RUN npm ci --ignore-scripts
+
+COPY apps/mirror-island/ ./
+RUN npm run build:server
+
+FROM node:22-alpine@sha256:c610fcdfb1d5b4740dd70c284ed3cb16bb857e0f7166196e36a5501df7a3aa32
+
+WORKDIR /app
+
+COPY --from=builder /app/dist/runtime ./dist/runtime
+COPY --from=builder /app/src/tiled ./src/tiled
+COPY --from=builder /app/scripts ./scripts
+COPY --from=builder /app/keycloak ./keycloak
+
+ENV NODE_ENV=production
+ENV PORT=3001
+
+USER node
+EXPOSE 3001
+
+CMD ["node", "dist/runtime/node-server.js"]

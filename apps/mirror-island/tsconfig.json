@@ -2,7 +2,7 @@
   "compilerOptions": {
     "target": "ES2020",
     "lib": ["dom", "esnext"],
-    "module": "ES2020",
+    "module": "ESNext",
     "outDir": "./lib",
     "rootDir": ".",
     "strict": true,
@@ -22,11 +22,13 @@
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
     "stripInternal": true,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "types": ["vite/client"]
   },
   "include": [
     "src/**/*.ts",
-    "vite.config.ts"
+    "vite.config.ts",
+    "vite.server.config.ts"
   ],
   "exclude": [
     "src/tiled/**/*.tsx"

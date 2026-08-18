@@ -11,7 +11,7 @@
 | Guide | Use it for |
 |---|---|
 | [Pixel Game Runtime](./pixel-game-runtime.md) | Phaser 生命周期、输入、碰撞、场景、存档和游戏资源 |
-| [Mirror Island RPGJS](./mirror-island-rpgjs.md) | 新 RPGJS 应用、开源采用、Phase 1 隔离与切换门禁 |
+| [Mirror Island RPGJS](./mirror-island-rpgjs.md) | 新 RPGJS 应用、开源采用、Keycloak/WebSocket 认证与部署门禁 |
 
 `directory-structure.md`、`component-guidelines.md`、`hook-guidelines.md`、`type-safety.md`、`quality-guidelines.md`、`ui-copy-guidelines.md` 与其他 Character/StoryRun 指南只用于定位、审计和清退旧源码，不是新游戏的实现合同。可复用的通用规则已经收敛到根 `AGENTS.md` 和本运行时指南；不得从旧指南恢复 Character 路由、API 或故事 UI。
 

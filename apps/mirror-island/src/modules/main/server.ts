@@ -1,5 +1,5 @@
 import { defineModule } from "@rpgjs/common";
-import { RpgServer } from "@rpgjs/server";
+import type { RpgServer } from "@rpgjs/server";
 import { GuideNpc } from "./event.ts";
 import { Potato } from "./items.ts";
 import { player } from "./player.ts";

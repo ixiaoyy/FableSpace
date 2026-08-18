@@ -25,12 +25,18 @@ npm run dev
 联机模式（Windows/macOS/Linux 通用）：
 
 ```bash
-npm run dev:mmorpg
+npm run identity:up
+npm run identity:configure
+npm run dev
 ```
+
+本地 Keycloak 位于 `http://localhost:8081`，首次打开游戏会跳转到登录页；注册入口只暴露用户名和密码，支持 Remember Me。Compose 中的 `admin/admin` 仅为隔离开发默认值，正式环境必须通过环境变量覆盖且不得使用 `start-dev`。
 
 靠近地图下方的引导员并执行默认确认键，可获得一个“演示土豆”、触发一块服务端地图变化，并写入仅存活于当前进程的内存存档。按 `Esc` 打开 RPGJS 自带菜单查看物品栏。
 
 尖峰采用每个浏览器标签页独立的临时连接 ID，并把相邻连接交替出生在引导员两侧，便于直接打开两个标签页验证联机同步；正式认证接入后由 Keycloak 的稳定用户身份与正常安全落点替代。
+
+Phase 2A 已改为由 Keycloak `sub` 作为稳定连接 ID；未登录或 JWT 校验失败的连接不会进入 RPGJS 世界。论坛账号桥接不在当前本地身份切片中。
 
 Navigate to [localhost:5173](http://localhost:5173). You should see your game running. Edit a file in `src`, save it, and reload the page to see your changes.
 

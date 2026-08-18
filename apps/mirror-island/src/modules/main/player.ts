@@ -1,4 +1,4 @@
-import { RpgPlayer, type RpgPlayerHooks } from "@rpgjs/server";
+import type { RpgPlayer, RpgPlayerHooks } from "@rpgjs/server";
 
 let connectionOrdinal = 0;
 

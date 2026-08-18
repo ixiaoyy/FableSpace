@@ -28,6 +28,17 @@
 2. 实现 ParallelLines 一次性 SSO 到 Keycloak 的最小桥接，并做 issuer/audience/replay 测试。
 3. RPGJS auth hook 验证 Keycloak token；无会话拒绝连接，论坛老用户与独立用户得到稳定不同 subject。
 
+### 2026-08-18 Phase 2A 实施记录
+
+- Keycloak Server 固定 `26.7.1` 多架构 digest，`keycloak-js` 固定 `26.2.4`，`jose` 固定 `6.2.9`。
+- Realm 已开启用户名注册和 Remember Me，关闭邮箱登录/验证、找回和 direct grant；用户自助资料只显示 username，密码策略只限制最大 72 字符。
+- 浏览器使用 Authorization Code + PKCE S256；token 只在 Keycloak JS 内存实例中刷新，Keycloak `sub` 作为 RPGJS 稳定连接 ID。
+- 发现 RPGJS Node transport 会打印 WebSocket query，已禁止 `?token=`；bearer token 改为第二 WebSocket 子协议，第一项固定 `mirror-island` 供服务端安全回显。真实日志只显示非秘密连接 ID。
+- 真实 Keycloak 集成验证通过：临时账号密码 `123` 获取有效 token，RPGJS 返回 `connected`，随后按精确 ID 删除临时用户与 OAuth 测试客户端。
+- 生产预览固定 `/mirror-island/`，身份入口固定 `/identity/`，WebSocket 固定 `/parties/`；旧 `/` 不切换。
+- 2核/4GB 单机新增预算：Keycloak 768MB、PostgreSQL 512MB、RPGJS 384MB。Keycloak 使用独立 PostgreSQL volume；部署升级前强制生成非空 `pg_dump`。
+- Forum SSO bridge 尚未实现；当前只完成独立账号路径。游戏世界和背包仍是内存状态，生产重启后不会保留，等待 Phase 3 Prisma SaveStorageStrategy。
+
 ## Phase 3：世界和持久化
 
 1. 仅在数据库评审批准后创建单个 Prisma migration，建立 worlds/profile/cells/chunks/houses/occupancy/inventory/saves/settlements 表。

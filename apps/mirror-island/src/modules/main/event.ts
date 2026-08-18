@@ -1,5 +1,5 @@
 import type { MapClass } from "@canvasengine/tiled";
-import { type EventDefinition, RpgMap, RpgPlayer } from "@rpgjs/server";
+import type { EventDefinition, RpgMap, RpgPlayer } from "@rpgjs/server";
 
 const DEMO_TILE = { x: 10, y: 10, layer: "Dynamic", gid: 178 } as const;
 type SpikeTiledMap = RpgMap & { tiled: MapClass };

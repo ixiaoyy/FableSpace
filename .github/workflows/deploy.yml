@@ -7,6 +7,7 @@ on:
     paths:
       - "apps/api/**"
       - "apps/web/**"
+      - "apps/mirror-island/**"
       - "deploy/**"
       - "docker-compose.yml"
       - ".github/workflows/deploy.yml"
@@ -23,6 +24,7 @@ permissions:
 
 env:
   FRONTEND_IMAGE: fablespace-frontend:local
+  MIRROR_GAME_IMAGE: mirror-island-game:local
 
 jobs:
   changes:
@@ -43,6 +45,7 @@ jobs:
               - 'apps/api/**'
             frontend:
               - 'apps/web/**'
+              - 'apps/mirror-island/**'
             infrastructure:
               - 'deploy/schema-revision.txt'
               - 'deploy/server/**'
@@ -127,10 +130,24 @@ jobs:
           build-args: |
             VITE_MEDIA_BASE_URL=/game-media/v1
             VITE_FORUM_URL=${{ vars.FORUM_URL || 'https://pingxingxian.space' }}
+            VITE_KEYCLOAK_URL=https://fable.pingxingxian.space/identity
+            VITE_KEYCLOAK_REALM=mirror-island
+            VITE_KEYCLOAK_CLIENT_ID=mirror-island-web
+            VITE_MIRROR_BASE_PATH=/mirror-island/
           tags: ${{ env.FRONTEND_IMAGE }}
           load: true
           cache-from: type=gha,scope=fablespace-web
           cache-to: type=gha,mode=max,scope=fablespace-web
+
+      - name: Build Mirror Island game server image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: apps/mirror-island/Dockerfile.server
+          tags: ${{ env.MIRROR_GAME_IMAGE }}
+          load: true
+          cache-from: type=gha,scope=mirror-island-server
+          cache-to: type=gha,mode=max,scope=mirror-island-server
 
       - name: Verify media manifest and CDN delivery
         if: github.event_name == 'workflow_dispatch' || needs.changes.outputs.media == 'true'
@@ -162,7 +179,7 @@ jobs:
       - name: Export frontend image archive
         run: |
           set -euo pipefail
-          docker save "${FRONTEND_IMAGE}" | gzip -1 > "fablespace-frontend-${GITHUB_SHA}.tar.gz"
+          docker save "${FRONTEND_IMAGE}" "${MIRROR_GAME_IMAGE}" | gzip -1 > "fablespace-frontend-${GITHUB_SHA}.tar.gz"
 
       - uses: actions/upload-artifact@v4
         with:
@@ -410,7 +427,8 @@ jobs:
               echo "Deploy must be dispatched from main"
               exit 1
             fi
-            cd "${{ vars.DEPLOY_PATH || '/opt/fablespace' }}"
+            FABLESPACE_PATH="${{ vars.DEPLOY_PATH || '/opt/fablespace' }}"
+            cd "${FABLESPACE_PATH}"
             git remote set-url origin "https://github.com/${{ github.repository }}.git"
             git fetch --prune origin main
             if ! git cat-file -e "${EXPECTED_SHA}^{commit}" 2>/dev/null; then
@@ -428,17 +446,93 @@ jobs:
             else
               COMPOSE="sudo docker-compose"
             fi
-            COMPOSE_FILES="-f docker-compose.yml -f deploy/docker-compose.shared.yml -f deploy/docker-compose.llm-proxy.yml"
+            sudo python3 deploy/server/configure_mirror_island.py
+            COMPOSE_FILES="-f docker-compose.yml -f deploy/docker-compose.shared.yml -f deploy/docker-compose.llm-proxy.yml -f deploy/docker-compose.mirror-island.yml"
 
             IMAGE_ARCHIVE="/tmp/fablespace-frontend-${{ github.sha }}.tar.gz"
             sudo docker load -i "${IMAGE_ARCHIVE}"
             rm -f "${IMAGE_ARCHIVE}"
 
+            $COMPOSE $COMPOSE_FILES pull mirror-identity-db keycloak
+            $COMPOSE $COMPOSE_FILES up -d --no-build mirror-identity-db
+
+            DATABASE_READY=false
+            for ATTEMPT in $(seq 1 20); do
+              if $COMPOSE $COMPOSE_FILES exec -T mirror-identity-db sh -ec 'pg_isready -U "$POSTGRES_USER" -d "$POSTGRES_DB"' >/dev/null 2>&1; then
+                DATABASE_READY=true
+                break
+              fi
+              sleep 2
+            done
+            if [ "${DATABASE_READY}" != "true" ]; then
+              $COMPOSE $COMPOSE_FILES logs --tail=120 mirror-identity-db
+              echo "Mirror Island identity database readiness failed"
+              exit 1
+            fi
+
+            BACKUP_DIR="${FABLESPACE_PATH}/backups/mirror-island-keycloak"
+            sudo install -d -m 0700 "${BACKUP_DIR}"
+            BACKUP_LOCAL="/tmp/mirror-island-keycloak-${EXPECTED_SHA}.sql"
+            BACKUP_TMP="${BACKUP_DIR}/keycloak-${EXPECTED_SHA}.sql"
+            if [ -f "${BACKUP_TMP}.gz" ]; then
+              echo "Mirror Island Keycloak backup retained: ${BACKUP_TMP}.gz"
+            else
+              if ! $COMPOSE $COMPOSE_FILES exec -T mirror-identity-db sh -ec 'pg_dump -U "$POSTGRES_USER" "$POSTGRES_DB"' > "${BACKUP_LOCAL}"; then
+                rm -f "${BACKUP_LOCAL}"
+                echo "Mirror Island Keycloak backup failed"
+                exit 1
+              fi
+              if [ ! -s "${BACKUP_LOCAL}" ]; then
+                rm -f "${BACKUP_LOCAL}"
+                echo "Mirror Island Keycloak backup is empty"
+                exit 1
+              fi
+              sudo mv "${BACKUP_LOCAL}" "${BACKUP_TMP}"
+              sudo gzip -f "${BACKUP_TMP}"
+              sudo chmod 0600 "${BACKUP_TMP}.gz"
+              echo "Mirror Island Keycloak backup ready: ${BACKUP_TMP}.gz"
+            fi
+
+            $COMPOSE $COMPOSE_FILES up -d --no-build keycloak mirror-game
+
+            KEYCLOAK_READY=false
+            for ATTEMPT in $(seq 1 40); do
+              if $COMPOSE $COMPOSE_FILES exec -T mirror-game node -e "fetch('http://keycloak:8080/identity/realms/mirror-island/.well-known/openid-configuration').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"; then
+                KEYCLOAK_READY=true
+                break
+              fi
+              sleep 3
+            done
+            if [ "${KEYCLOAK_READY}" != "true" ]; then
+              $COMPOSE $COMPOSE_FILES logs --tail=160 keycloak mirror-identity-db
+              echo "Mirror Island Keycloak readiness failed"
+              exit 1
+            fi
+
+            $COMPOSE $COMPOSE_FILES exec -T mirror-game node scripts/configure-keycloak-profile.mjs
+
+            MIRROR_GAME_READY=false
+            for ATTEMPT in $(seq 1 20); do
+              if $COMPOSE $COMPOSE_FILES exec -T mirror-game node -e "fetch('http://127.0.0.1:3001/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"; then
+                MIRROR_GAME_READY=true
+                break
+              fi
+              sleep 2
+            done
+            if [ "${MIRROR_GAME_READY}" != "true" ]; then
+              $COMPOSE $COMPOSE_FILES logs --tail=160 mirror-game
+              echo "Mirror Island game server health check failed"
+              exit 1
+            fi
+
             $COMPOSE $COMPOSE_FILES up -d --no-deps --no-build --force-recreate frontend
 
             FRONTEND_READY=false
             for ATTEMPT in $(seq 1 20); do
-              if $COMPOSE $COMPOSE_FILES exec -T frontend wget -qO- http://127.0.0.1/ >/dev/null 2>&1; then
+              if $COMPOSE $COMPOSE_FILES exec -T frontend sh -ec \
+                "wget -qO- http://127.0.0.1/ >/dev/null \
+                && wget -qO- http://127.0.0.1/mirror-island/ >/dev/null \
+                && wget -qO- http://127.0.0.1/identity/realms/mirror-island/.well-known/openid-configuration >/dev/null"; then
                 FRONTEND_READY=true
                 break
               fi
@@ -446,7 +540,7 @@ jobs:
             done
             if [ "${FRONTEND_READY}" != "true" ]; then
               $COMPOSE $COMPOSE_FILES logs --tail=120 frontend
-              echo "frontend health check failed"
+              echo "frontend or Mirror Island routed health check failed"
               exit 1
             fi
             sudo docker image prune -f
