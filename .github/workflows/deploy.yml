@@ -245,7 +245,7 @@ jobs:
               if $COMPOSE $COMPOSE_FILES exec -T frontend sh -ec \
                 "wget -qO- http://127.0.0.1/ | grep -q '镜像岛' \
                 && wget -qO- http://127.0.0.1/identity/realms/mirror-island/.well-known/openid-configuration >/dev/null \
-                && wget -qO- http://127.0.0.1/forum-sso/.well-known/openid-configuration \
+                && wget -qO- --header='Host: fable.pingxingxian.space' http://127.0.0.1/forum-sso/.well-known/openid-configuration \
                   | grep -q 'https://fable.pingxingxian.space/forum-sso/auth'"; then
                 FRONTEND_READY=true
                 break
