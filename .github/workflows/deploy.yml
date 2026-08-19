@@ -245,7 +245,8 @@ jobs:
               if $COMPOSE $COMPOSE_FILES exec -T frontend sh -ec \
                 "wget -qO- http://127.0.0.1/ | grep -q '镜像岛' \
                 && wget -qO- http://127.0.0.1/identity/realms/mirror-island/.well-known/openid-configuration >/dev/null \
-                && wget -qO- http://127.0.0.1/forum-sso/.well-known/openid-configuration >/dev/null"; then
+                && wget -qO- http://127.0.0.1/forum-sso/.well-known/openid-configuration \
+                  | grep -q 'https://fable.pingxingxian.space/forum-sso/auth'"; then
                 FRONTEND_READY=true
                 break
               fi
@@ -253,7 +254,8 @@ jobs:
             done
             test "${FRONTEND_READY}" = "true"
             $COMPOSE $COMPOSE_FILES exec -T frontend sh -ec \
-              "wget -S --spider http://127.0.0.1/mirror-island 2>&1 | grep -q '308 Permanent Redirect'"
+              "wget -S --spider http://127.0.0.1/mirror-island 2>&1 | grep -q '308 Permanent Redirect' \
+              && wget -S --spider http://127.0.0.1/mirror-island 2>&1 | grep -q 'Location: /'"
 
             sudo python3 deploy/server/retire_legacy_fablespace.py
             sudo python3 deploy/server/retire_legacy_fablespace.py --apply
@@ -272,15 +274,11 @@ jobs:
           CDN_S3_ENDPOINT_URL: ${{ secrets.CDN_S3_ENDPOINT_URL }}
         run: |
           set -euo pipefail
-          # Return the key count for $1 while normalizing empty S3-compatible responses to zero.
+          # Return the actual number of objects under $1 from the provider-neutral Contents array.
           prefix_key_count() {
             local prefix="$1"
-            local count
-            count="$(aws s3api list-objects-v2 --bucket "${CDN_S3_BUCKET}" --prefix "${prefix}" --endpoint-url "${CDN_S3_ENDPOINT_URL}" --query 'KeyCount' --output text)"
-            case "${count}" in
-              None|null|"") printf '0\n' ;;
-              *) printf '%s\n' "${count}" ;;
-            esac
+            aws s3api list-objects-v2 --bucket "${CDN_S3_BUCKET}" --prefix "${prefix}" --endpoint-url "${CDN_S3_ENDPOINT_URL}" --output json \
+              | python -c 'import json, sys; print(len(json.load(sys.stdin).get("Contents") or []))'
           }
           game_before="$(prefix_key_count game/)"
           legacy_before="$(prefix_key_count fablespace/)"

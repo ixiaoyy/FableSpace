@@ -30,7 +30,7 @@ test("object retirement deletes only fablespace prefix and asserts game prefix s
   assert.match(workflow, /prefix_key_count\(\)/);
   assert.match(workflow, /game_before="\$\(prefix_key_count game\/\)"/);
   assert.match(workflow, /legacy_before="\$\(prefix_key_count fablespace\/\)"/);
-  assert.match(workflow, /None\|null\|""\) printf '0\\n'/);
+  assert.match(workflow, /len\(json\.load\(sys\.stdin\)\.get\("Contents"\) or \[\]\)/);
   assert.match(workflow, /test "\$\{game_after\}" = "\$\{game_before\}"/);
   assert.doesNotMatch(workflow, /s3:\/\/\$\{CDN_S3_BUCKET\}\/game\/.*--recursive/);
 });
