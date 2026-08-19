@@ -52,6 +52,7 @@ RPGJS auth hook -> verified Keycloak sub
 - 必需 env：`MIRROR_ISLAND_PUBLIC_ORIGIN`、`MIRROR_ISLAND_FORUM_OIDC_CLIENT_ID`。
 - 探针请求：`client_id` 为论坛 bridge client，`redirect_uri` 为 Keycloak broker endpoint，`response_type=code`、`scope=openid`、`code_challenge_method=S256`。
 - 成功响应：HTTP 303，`Location` 必须以公网 `${MIRROR_ISLAND_PUBLIC_ORIGIN}/forum-sso/interaction/` 开头。
+- login interaction 必须跳到 `${PARALLELLINES_PUBLIC_BASE_URL}/play?mirror_sso=1`，由论坛登录态继续签发一次性 ticket。
 - 探针只创建短期内存 interaction，不兑换论坛 ticket，不读取数据库，不记录 query、cookie 或响应体。
 
 ### 4. Validation & Error Matrix
@@ -72,6 +73,7 @@ RPGJS auth hook -> verified Keycloak sub
 ### 6. Tests Required
 
 - `sso-contract.test.mjs` 必须用登记 client、redirect URI 和 S256 challenge 发起请求，并断言 303 + interaction path。
+- 同一测试必须携带 provider interaction cookies 继续请求，并断言论坛 `mirror_sso=1` 入口。
 - `deployment-contract.test.mjs` 必须断言生产工作流执行 `probe-forum-oidc.mjs`。
 - 生产部署后必须复测 Keycloak“使用论坛账号”，确认 `/forum-sso/auth` 不返回 `invalid_client_metadata`。
 

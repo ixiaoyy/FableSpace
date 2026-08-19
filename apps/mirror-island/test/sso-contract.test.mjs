@@ -175,6 +175,28 @@ test("the forum OIDC provider publishes endpoints and accepts the Keycloak broke
     authorization.headers.get("location"),
     /^https:\/\/fable\.example\/forum-sso\/interaction\//,
   );
+  const interactionPublicUrl = new URL(authorization.headers.get("location"));
+  const interactionLocalUrl = new URL(
+    `${interactionPublicUrl.pathname}${interactionPublicUrl.search}`,
+    `http://127.0.0.1:${address.port}`,
+  );
+  const interactionCookies = authorization.headers.getSetCookie()
+    .map((value) => value.split(";", 1)[0])
+    .join("; ");
+  const interaction = await fetch(interactionLocalUrl, {
+    redirect: "manual",
+    headers: {
+      Cookie: interactionCookies,
+      Host: "fable.example",
+      "X-Forwarded-Host": "fable.example",
+      "X-Forwarded-Proto": "https",
+    },
+  });
+  assert.equal(interaction.status, 303);
+  assert.equal(
+    interaction.headers.get("location"),
+    "https://forum.example/play?mirror_sso=1",
+  );
 });
 
 test("a direct forum ticket starts the confidential PKCE Keycloak entry flow", async () => {

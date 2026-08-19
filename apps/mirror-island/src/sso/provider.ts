@@ -172,7 +172,9 @@ export class ForumSsoBridge {
         response,
         signInteractionState(interaction.uid, this.config.cookieKeys[0]),
       );
-      response.writeHead(303, { Location: `${this.config.forumPublicBaseUrl}/play` });
+      response.writeHead(303, {
+        Location: `${this.config.forumPublicBaseUrl}/play?mirror_sso=1`,
+      });
       response.end();
       return;
     }
