@@ -1476,3 +1476,42 @@ Added simple male/female character creation and naming, safe v1-to-v2 local save
 ### Next Steps
 
 - None - task complete
+
+
+## Session 45: 镜像岛全量切换与生产部署
+
+**Date**: 2026-08-19
+**Task**: 镜像岛全量切换与生产部署
+**Branch**: `main`
+
+### Summary
+
+镜像岛新版本接管根入口，接入论坛 SSO 与 Keycloak 像素主题/中文用户名，启用独立 PostgreSQL 持久化，永久清退旧 FableSpace，并修复生产代理、Keycloak Admin 与 R2 兼容边界。
+
+### Main Changes
+
+- Detailed change bullets were not supplied; see the summary above.
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `424c5245` | (see git log) |
+| `89c16864` | (see git log) |
+| `1d52cfa0` | (see git log) |
+| `7e9b7baa` | (see git log) |
+| `ec492c99` | (see git log) |
+| `9e33a5f2` | (see git log) |
+| `8cb1973c` | (see git log) |
+
+### Testing
+
+- Validation was not recorded for this session.
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
