@@ -102,7 +102,7 @@ def remove_path(path: Path) -> None:
 
 def drop_legacy_database(parallellines_path: Path) -> None:
     """Drop only the exact FableSpace database through the existing ParallelLines DB service."""
-    sql = f"DROP DATABASE IF EXISTS `{LEGACY_DATABASE}`;"
+    sql = f"DROP DATABASE IF EXISTS {LEGACY_DATABASE};"
     subprocess.run(
         [
             "docker",

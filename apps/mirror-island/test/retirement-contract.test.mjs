@@ -16,6 +16,8 @@ test("legacy retirement is dry-run by default and protects Mirror Island data", 
   assert.match(source, /PRESERVED_BACKUP_DIRECTORIES = \{"mirror-island-keycloak", "mirror-island-game"\}/);
   assert.match(source, /parser\.add_argument\("--apply", action="store_true"\)/);
   assert.match(source, /if not args\.apply:\s+return/);
+  assert.match(source, /sql = f"DROP DATABASE IF EXISTS \{LEGACY_DATABASE\};"/);
+  assert.doesNotMatch(source, /DROP DATABASE IF EXISTS `fablespace`/);
   assert.doesNotMatch(source, /rm -rf|docker system prune|DROP USER|DROP DATABASE IF EXISTS `mirror_island/);
 });
 
