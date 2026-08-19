@@ -53,7 +53,9 @@ RPGJS auth hook -> verified Keycloak sub
 ## Deployment and verification
 
 - 顺序固定为：构建三镜像 -> 两库备份 -> migration -> Keycloak/game -> realm/profile reconcile -> frontend -> 健康验收 -> 旧系统永久清退。
+- Keycloak Admin reconcile 接受成功的空响应体；仅在响应体非空时解析 JSON，禁止把合法 `201/204` 当成部署失败。
+- Nginx 对外身份与论坛代理固定发布 HTTPS，同源旧路径只返回相对 `Location: /`；容器内验收必须携带公网 `Host` 并检查 discovery 的绝对 HTTPS endpoint。
 - 通用 `/health` 不证明数据路径；必须实际迁移隔离 PostgreSQL，并跨 Prisma client/进程重连验证存档。
 - 身份必须验收中文独立注册、论坛首次 SSO/再访直登、票据重放、同名不合并和日志无 token。
 - 主题必须验收 1280×720、390×844、200% zoom、键盘、可见焦点、错误和 reduced motion。
-- 生产清退前后必须确认论坛、`mirror_identity_db`、`mirror_game_db` 和 `game/` 完整，且旧 database/volume/backup/`fablespace/` prefix 不存在。
+- 生产清退前后必须确认论坛、`mirror_identity_db`、`mirror_game_db` 和 `game/` 完整，且旧 database/volume/backup/`fablespace/` prefix 不存在；R2 计数从实际 `Contents` 计算，清退前后 `game/` 数量必须等于媒体清单条目数且保持不变。

@@ -168,6 +168,30 @@ Before changing a deployment-level config source:
       `HTTP_PROXY` / `HTTPS_PROXY` can silently reroute authentication, storage,
       health, and other integrations; verify non-target traffic stays direct.
 
+## Public-Origin and Compatible-Provider Deployment Boundary
+
+A healthy container-local request does not prove that a reverse-proxied public
+contract is correct. The request host and scheme can change at every hop, while
+S3-compatible and Admin APIs may legitimately omit fields or bodies that an AWS
+or browser-specific implementation usually returns.
+
+- [ ] Probe identity discovery through the deployed proxy with the public
+      `Host`, then assert every published issuer and endpoint is HTTPS. A probe
+      against `127.0.0.1` without the public host validates a different origin.
+- [ ] Do not derive public redirects or OIDC endpoints from the container's
+      `$scheme`; the edge may terminate TLS before the container. Prefer an
+      explicitly trusted external scheme and relative same-origin redirects.
+- [ ] For successful Admin mutations, read the response as text first and treat
+      an empty 2xx body as success; parse JSON only when a body is present.
+- [ ] For S3-compatible storage, calculate object counts from the actual
+      `Contents` array instead of optional summary fields such as `KeyCount`.
+- [ ] Before destructive prefix cleanup, record the protected prefix count;
+      after cleanup, require the retired prefix to be empty and the protected
+      count to be unchanged.
+- [ ] Keep deployment probes discriminating and observable: log only fixed
+      non-sensitive counts/statuses, and make a failed assertion identify the
+      exact boundary without exposing response bodies or credentials.
+
 ## Cross-Platform Template Consistency
 
 In Trellis, command templates (e.g., `record-session.md`) exist in **multiple platforms** with identical or near-identical content. This is a cross-layer boundary.
