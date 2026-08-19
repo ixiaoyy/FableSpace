@@ -47,6 +47,7 @@ test("deployment backs up identity data and never transports bearer tokens in qu
   assert.match(workflow, /game-\$\{EXPECTED_SHA\}\.sql/);
   assert.match(workflow, /mirror-game-migrate/);
   assert.match(workflow, /retire_legacy_fablespace\.py --apply/);
+  assert.match(workflow, /probe-forum-oidc\.mjs/);
   assert.match(workflow, /configure-keycloak-profile\.mjs/);
   assert.match(workflow, /--header='Host: fable\.pingxingxian\.space'/);
   assert.match(workflow, /https:\/\/fable\.pingxingxian\.space\/forum-sso\/auth/);

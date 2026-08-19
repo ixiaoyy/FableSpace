@@ -237,6 +237,7 @@ jobs:
             done
             test "${SERVICES_READY}" = "true"
 
+            $COMPOSE $COMPOSE_FILES exec -T mirror-game node scripts/probe-forum-oidc.mjs
             $COMPOSE $COMPOSE_FILES exec -T mirror-game node scripts/configure-keycloak-profile.mjs
             $COMPOSE $COMPOSE_FILES up -d --no-deps --no-build --force-recreate frontend
 

@@ -121,7 +121,7 @@ test("baseline forum access may be active without an expiry timestamp", async ()
   assert.equal(identity.accessExpiresAt, null);
 });
 
-test("the forum OIDC provider publishes public endpoints without dev interactions", async () => {
+test("the forum OIDC provider publishes endpoints and accepts the Keycloak broker client", async () => {
   const bridge = await createForumSsoBridge(environment);
   const server = createServer(async (request, response) => {
     if (!(await bridge.handle(request, response))) {
@@ -149,6 +149,32 @@ test("the forum OIDC provider publishes public endpoints without dev interaction
   assert.equal(discovery.authorization_endpoint, "https://fable.example/forum-sso/auth");
   assert.equal(discovery.token_endpoint, "https://fable.example/forum-sso/token");
   assert.equal(discovery.code_challenge_methods_supported.includes("S256"), true);
+
+  const authorizationUrl = new URL(
+    `http://127.0.0.1:${address.port}/forum-sso/auth`,
+  );
+  authorizationUrl.search = new URLSearchParams({
+    client_id: environment.MIRROR_ISLAND_FORUM_OIDC_CLIENT_ID,
+    redirect_uri: "https://fable.example/identity/realms/mirror-island/broker/parallellines/endpoint",
+    response_type: "code",
+    scope: "openid",
+    state: "deployment_probe",
+    code_challenge: "c".repeat(43),
+    code_challenge_method: "S256",
+  }).toString();
+  const authorization = await fetch(authorizationUrl, {
+    redirect: "manual",
+    headers: {
+      Host: "fable.example",
+      "X-Forwarded-Host": "fable.example",
+      "X-Forwarded-Proto": "https",
+    },
+  });
+  assert.equal(authorization.status, 303);
+  assert.match(
+    authorization.headers.get("location"),
+    /^https:\/\/fable\.example\/forum-sso\/interaction\//,
+  );
 });
 
 test("a direct forum ticket starts the confidential PKCE Keycloak entry flow", async () => {

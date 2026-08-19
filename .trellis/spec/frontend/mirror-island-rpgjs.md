@@ -34,6 +34,57 @@ RPGJS auth hook -> verified Keycloak sub
 - 论坛 identity 使用 `forum:<stable-id>` subject 和 `forum_<base64url-id>` 内部用户名；不根据同名或邮箱自动合并。
 - OIDC bridge ID Token 使用首次部署生成并持久复用的 P-256/ES256 私钥；Keycloak 通过稳定 JWKS 验签，游戏进程重启不轮换签名身份。
 
+## Scenario: Keycloak broker client algorithm contract
+
+### 1. Scope / Trigger
+
+- 修改论坛 OIDC bridge 的 signing JWK、`enabledJWA`、静态 client 或 Keycloak broker 配置时触发。
+- Discovery 返回 200 只证明 endpoint 可发现，不证明静态 client 元数据能通过 authorization 校验。
+
+### 2. Signatures
+
+- Provider factory: `createForumSsoBridge(env): Promise<ForumSsoBridge>`。
+- 静态 client 必须包含 `id_token_signed_response_alg: "ES256"`。
+- 生产门禁命令：`node scripts/probe-forum-oidc.mjs`。
+
+### 3. Contracts
+
+- 必需 env：`MIRROR_ISLAND_PUBLIC_ORIGIN`、`MIRROR_ISLAND_FORUM_OIDC_CLIENT_ID`。
+- 探针请求：`client_id` 为论坛 bridge client，`redirect_uri` 为 Keycloak broker endpoint，`response_type=code`、`scope=openid`、`code_challenge_method=S256`。
+- 成功响应：HTTP 303，`Location` 必须以公网 `${MIRROR_ISLAND_PUBLIC_ORIGIN}/forum-sso/interaction/` 开头。
+- 探针只创建短期内存 interaction，不兑换论坛 ticket，不读取数据库，不记录 query、cookie 或响应体。
+
+### 4. Validation & Error Matrix
+
+| 条件 | 结果 |
+| --- | --- |
+| 仅允许 ES256，但 client 未声明 `id_token_signed_response_alg` | `400 invalid_client_metadata`，部署失败 |
+| `redirect_uri` 不等于登记的 Keycloak broker endpoint | authorization 失败，部署失败 |
+| 响应不是 303 或 `Location` 不在公网 interaction path | 探针抛出固定、无敏感内容的错误 |
+| client 元数据、PKCE 和公网 origin 全部匹配 | 303 进入 interaction |
+
+### 5. Good / Base / Bad Cases
+
+- Good：真实 authorization 请求得到公网 interaction 303，再由 interaction 转到 ParallelLines。
+- Base：Discovery issuer/endpoints 为 HTTPS，但仍必须继续跑 authorization 探针。
+- Bad：只配置 ES256 JWK/`enabledJWA`，依赖 client 的默认 RS256 元数据。
+
+### 6. Tests Required
+
+- `sso-contract.test.mjs` 必须用登记 client、redirect URI 和 S256 challenge 发起请求，并断言 303 + interaction path。
+- `deployment-contract.test.mjs` 必须断言生产工作流执行 `probe-forum-oidc.mjs`。
+- 生产部署后必须复测 Keycloak“使用论坛账号”，确认 `/forum-sso/auth` 不返回 `invalid_client_metadata`。
+
+### 7. Wrong vs Correct
+
+```typescript
+// Wrong: provider only allows ES256 while the client silently defaults to RS256.
+{ client_id, redirect_uris, response_types: ["code"] }
+
+// Correct: the registered client explicitly matches the provider signing contract.
+{ client_id, redirect_uris, response_types: ["code"], id_token_signed_response_alg: "ES256" }
+```
+
 ## Keycloak user/theme contract
 
 - 开启注册与 Remember Me，关闭邮箱登录/验证、找回和 direct grant；密码只限最大 72。

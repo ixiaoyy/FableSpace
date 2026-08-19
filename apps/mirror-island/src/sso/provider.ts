@@ -344,6 +344,7 @@ export async function createForumSsoBridge(
         redirect_uris: [config.keycloakRedirectUri],
         response_types: ["code"],
         grant_types: ["authorization_code"],
+        id_token_signed_response_alg: "ES256",
         token_endpoint_auth_method: "client_secret_basic",
       },
     ],
