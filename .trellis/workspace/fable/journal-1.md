@@ -1515,3 +1515,38 @@ Added simple male/female character creation and naming, safe v1-to-v2 local save
 ### Next Steps
 
 - None - task complete
+
+
+## Session 46: 修复论坛账号 SSO 全链路
+
+**Date**: 2026-08-19
+**Task**: 修复论坛账号 SSO 全链路
+**Branch**: `main`
+
+### Summary
+
+修复 oidc-provider ES256 client 元数据，增加真实 authorization 部署探针，并与 ParallelLines 协同实现 mirror_sso 登录续接及跨域浏览器回归。
+
+### Main Changes
+
+- Detailed change bullets were not supplied; see the summary above.
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `4e43028d` | (see git log) |
+| `7c874aba` | (see git log) |
+| `d97985f8` | (see git log) |
+
+### Testing
+
+- Validation was not recorded for this session.
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete

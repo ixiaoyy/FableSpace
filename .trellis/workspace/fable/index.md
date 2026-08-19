@@ -8,7 +8,7 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-1.md`
-- **Total Sessions**: 45
+- **Total Sessions**: 46
 - **Last Active**: 2026-08-19
 <!-- @@@/auto:current-status -->
 
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-1.md` | ~1517 | Active |
+| `journal-1.md` | ~1552 | Active |
 <!-- @@@/auto:active-documents -->
 
 ---
@@ -29,6 +29,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 46 | 2026-08-19 | 修复论坛账号 SSO 全链路 | `4e43028d`, `7c874aba`, `d97985f8` | `main` |
 | 45 | 2026-08-19 | 镜像岛全量切换与生产部署 | `424c5245`, `89c16864`, `1d52cfa0`, `7e9b7baa`, `ec492c99`, `9e33a5f2`, `8cb1973c` | `main` |
 | 44 | 2026-08-13 | Player onboarding and production rollout | `125081b1`, `1463dea8`, `4b3856be` | `main` |
 | 43 | 2026-08-05 | 完成先天政变宫廷改编与旧素材清退 | `0a73841f`, `4c908811`, `66959b13`, `ae49f426`, `fa7ba4c2` | `main` |
