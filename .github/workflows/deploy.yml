@@ -272,11 +272,22 @@ jobs:
           CDN_S3_ENDPOINT_URL: ${{ secrets.CDN_S3_ENDPOINT_URL }}
         run: |
           set -euo pipefail
-          game_before="$(aws s3api list-objects-v2 --bucket "${CDN_S3_BUCKET}" --prefix game/ --endpoint-url "${CDN_S3_ENDPOINT_URL}" --query 'KeyCount' --output text)"
-          legacy_before="$(aws s3api list-objects-v2 --bucket "${CDN_S3_BUCKET}" --prefix fablespace/ --endpoint-url "${CDN_S3_ENDPOINT_URL}" --query 'KeyCount' --output text)"
+          # Return the key count for $1 while normalizing empty S3-compatible responses to zero.
+          prefix_key_count() {
+            local prefix="$1"
+            local count
+            count="$(aws s3api list-objects-v2 --bucket "${CDN_S3_BUCKET}" --prefix "${prefix}" --endpoint-url "${CDN_S3_ENDPOINT_URL}" --query 'KeyCount' --output text)"
+            case "${count}" in
+              None|null|"") printf '0\n' ;;
+              *) printf '%s\n' "${count}" ;;
+            esac
+          }
+          game_before="$(prefix_key_count game/)"
+          legacy_before="$(prefix_key_count fablespace/)"
           aws s3 rm "s3://${CDN_S3_BUCKET}/fablespace/" --recursive --endpoint-url "${CDN_S3_ENDPOINT_URL}"
-          legacy_after="$(aws s3api list-objects-v2 --bucket "${CDN_S3_BUCKET}" --prefix fablespace/ --endpoint-url "${CDN_S3_ENDPOINT_URL}" --query 'KeyCount' --output text)"
-          game_after="$(aws s3api list-objects-v2 --bucket "${CDN_S3_BUCKET}" --prefix game/ --endpoint-url "${CDN_S3_ENDPOINT_URL}" --query 'KeyCount' --output text)"
+          legacy_after="$(prefix_key_count fablespace/)"
+          game_after="$(prefix_key_count game/)"
+          echo "legacy_objects_before=${legacy_before} legacy_objects_after=${legacy_after} game_objects_before=${game_before} game_objects_after=${game_after}"
           test "${legacy_after}" = "0"
           test "${game_after}" = "${game_before}"
           echo "retired_objects=${legacy_before} game_objects_preserved=${game_after}"

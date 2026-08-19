@@ -27,7 +27,10 @@ test("object retirement deletes only fablespace prefix and asserts game prefix s
     "utf8",
   );
   assert.match(workflow, /s3:\/\/\$\{CDN_S3_BUCKET\}\/fablespace\//);
-  assert.match(workflow, /--prefix game\//);
+  assert.match(workflow, /prefix_key_count\(\)/);
+  assert.match(workflow, /game_before="\$\(prefix_key_count game\/\)"/);
+  assert.match(workflow, /legacy_before="\$\(prefix_key_count fablespace\/\)"/);
+  assert.match(workflow, /None\|null\|""\) printf '0\\n'/);
   assert.match(workflow, /test "\$\{game_after\}" = "\$\{game_before\}"/);
   assert.doesNotMatch(workflow, /s3:\/\/\$\{CDN_S3_BUCKET\}\/game\/.*--recursive/);
 });
