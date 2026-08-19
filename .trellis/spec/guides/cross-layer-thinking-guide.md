@@ -178,6 +178,10 @@ or browser-specific implementation usually returns.
 - [ ] Probe identity discovery through the deployed proxy with the public
       `Host`, then assert every published issuer and endpoint is HTTPS. A probe
       against `127.0.0.1` without the public host validates a different origin.
+- [ ] Treat OIDC discovery as metadata health only. Send one registered-client
+      authorization request with the real redirect URI, response type, signing
+      algorithm, and PKCE contract; assert the expected interaction redirect
+      before declaring login healthy.
 - [ ] Do not derive public redirects or OIDC endpoints from the container's
       `$scheme`; the edge may terminate TLS before the container. Prefer an
       explicitly trusted external scheme and relative same-origin redirects.
