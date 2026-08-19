@@ -25,15 +25,18 @@ test("guide NPC composes inventory, dynamic tile, save, and dialogue APIs", asyn
     },
   };
 
-  const definition = GuideNpc();
+  const definition = GuideNpc(async () => {
+    calls.push(["persistTile"]);
+  });
   assert.equal(typeof definition.onAction, "function");
   await definition.onAction.call({}, player);
 
-  assert.deepEqual(calls.slice(0, 3), [
+  assert.deepEqual(calls.slice(0, 4), [
+    ["persistTile"],
     ["addItem", "Potato", 1],
     ["setTile", 10, 10, "Dynamic", { gid: 178 }],
-    ["save", 0, { label: "镜像岛尖峰存档" }, { reason: "manual", source: "guide-npc" }],
+    ["save", 0, { label: "镜像岛自动存档" }, { reason: "manual", source: "guide-npc" }],
   ]);
-  assert.equal(calls[3][0], "showText");
-  assert.match(calls[3][1], /欢迎来到镜像岛/);
+  assert.equal(calls[4][0], "showText");
+  assert.match(calls[4][1], /欢迎来到镜像岛/);
 });

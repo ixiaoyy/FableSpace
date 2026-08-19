@@ -28,4 +28,4 @@
 
 ## Project-original runtime art
 
-官方 2026-03-29 更新已包含 sleeping roll / bed / camping 图集，但公开 Godot 仓库未同步该版本，且当前未核实完整 ZIP 内的精确路径。首片的床和少量室内小物使用 Phaser Graphics 生成的项目原创像素图形：不复制其他游戏资产、不从 itch 预览图裁切，也不产生需要进入 Git 的图片二进制。取得并核验官方完整包后，可在新对象 key 下单独替换。
+官方 2026-03-29 更新已包含 sleeping roll / bed / camping 图集，但公开 Godot 仓库未同步该版本，且当前未核实完整 ZIP 内的精确路径。未核验项不进入 RPGJS 场景：不复制其他游戏资产、不从 itch 预览图裁切，也不产生需要进入 Git 的图片二进制。取得并核验官方完整包后，可在新对象 key 下单独替换。

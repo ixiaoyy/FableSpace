@@ -1,4 +1,20 @@
 services:
+  mirror-game-db:
+    image: postgres:17-alpine@sha256:18cfe3ef5e6815560c98237d6216d1e5119702fb0f3894c8785dd58b8bbe5d73
+    environment:
+      POSTGRES_DB: mirror_island_game
+      POSTGRES_USER: mirror_game
+      POSTGRES_PASSWORD: mirror_game
+    ports:
+      - "127.0.0.1:5433:5432"
+    volumes:
+      - mirror_game_dev_db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mirror_game -d mirror_island_game"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+
   keycloak:
     image: quay.io/keycloak/keycloak:26.7.1@sha256:f1f1f01e472c8a78df40d8f2a49a925274eda4d3d80d5f6edbb5c880ee3c01c6
     command:
@@ -9,6 +25,8 @@ services:
     environment:
       KC_BOOTSTRAP_ADMIN_USERNAME: ${MIRROR_ISLAND_KEYCLOAK_ADMIN:-admin}
       KC_BOOTSTRAP_ADMIN_PASSWORD: ${MIRROR_ISLAND_KEYCLOAK_ADMIN_PASSWORD:-admin}
+      MIRROR_ISLAND_FORUM_OIDC_CLIENT_SECRET: ${MIRROR_ISLAND_FORUM_OIDC_CLIENT_SECRET:-development-forum-oidc-client-secret}
+      MIRROR_ISLAND_FORUM_ENTRY_CLIENT_SECRET: ${MIRROR_ISLAND_FORUM_ENTRY_CLIENT_SECRET:-development-forum-entry-client-secret}
       JAVA_OPTS_KC_HEAP: -Xms256m -Xmx640m
     mem_limit: 768m
     ports:
@@ -16,3 +34,7 @@ services:
     volumes:
       - ./keycloak/mirror-island-realm.json:/opt/keycloak/data/import/mirror-island-realm.json:ro
       - ./keycloak/mirror-island-user-profile.json:/opt/keycloak/profile-config/mirror-island-user-profile.json:ro
+      - ./keycloak/themes/mirror-island:/opt/keycloak/themes/mirror-island:ro
+
+volumes:
+  mirror_game_dev_db:

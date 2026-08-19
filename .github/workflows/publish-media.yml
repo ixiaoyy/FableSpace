@@ -3,7 +3,6 @@ name: Publish immutable media
 on:
   repository_dispatch:
     types:
-      - publish-fablespace-media
       - publish-game-media
 
 permissions:
@@ -13,9 +12,7 @@ jobs:
   publish:
     name: Publish reviewed media
     runs-on: ubuntu-latest
-    if: >-
-      vars.DEPLOY_CONFIGURED == 'true' &&
-      (github.event.action == 'publish-fablespace-media' || github.event.action == 'publish-game-media')
+    if: vars.DEPLOY_CONFIGURED == 'true' && github.event.action == 'publish-game-media'
     env:
       AWS_ACCESS_KEY_ID: ${{ secrets.CDN_S3_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.CDN_S3_SECRET_ACCESS_KEY }}
@@ -32,7 +29,6 @@ jobs:
       MEDIA_CONTENT_BASE64: ${{ github.event.client_payload.content_base64 }}
       MEDIA_SOURCE_URL: ${{ github.event.client_payload.source_url }}
       MEDIA_SOURCE_ENCODING: ${{ github.event.client_payload.source_encoding }}
-      MEDIA_PUBLISH_EVENT: ${{ github.event.action }}
     steps:
       - name: Validate and publish immutable object
         shell: bash
@@ -80,10 +76,6 @@ jobs:
           esac
           case "${MEDIA_OBJECT_KEY}" in
             assets/vendor/ninja-adventure/2024-04-19/player-female.png)
-              if [ "${MEDIA_PUBLISH_EVENT}" != "publish-game-media" ]; then
-                echo "::error::The reviewed game avatar requires the game publication event"
-                exit 1
-              fi
               if [ "${MEDIA_CONTENT_TYPE:-}" != "image/png" ]; then
                 echo "::error::The reviewed game avatar must use image/png"
                 exit 1
@@ -94,17 +86,6 @@ jobs:
                 echo "::error::The reviewed game avatar must publish under the game prefix"
                 exit 1
               fi
-              ;;
-            app/assets/story-worlds/*/player-roles/*/v[0-9]*/avatar.webp|app/assets/story-worlds/*/characters/*/v[0-9]*/portrait.webp)
-              if [ "${MEDIA_PUBLISH_EVENT}" != "publish-fablespace-media" ]; then
-                echo "::error::Reviewed story portraits require the legacy publication event"
-                exit 1
-              fi
-              if [ "${MEDIA_CONTENT_TYPE:-}" != "image/webp" ]; then
-                echo "::error::Reviewed story portraits must use image/webp"
-                exit 1
-              fi
-              CDN_S3_PREFIX="fablespace"
               ;;
             *) echo "::error::Object key is outside the reviewed media allowlist"; exit 1 ;;
           esac

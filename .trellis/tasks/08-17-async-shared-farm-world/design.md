@@ -7,6 +7,7 @@
 | 游戏运行时 | RPGJS | `5.0.0-beta.32` / `7c7db1b...` | MIT | 地图房间、玩家同步、NPC/Event、动态 tile、物品/背包、save/auth hooks |
 | 身份 | Keycloak Server | `26.7.1` | Apache-2.0 | 独立用户名密码、Remember Me、会话、用户主体 |
 | 身份客户端 | `keycloak-js` | `26.2.4` | Apache-2.0 | 浏览器 SSO、内存 token、刷新 |
+| 论坛 OIDC 桥 | `oidc-provider` | `9.11.1` | MIT | 把现有 ParallelLines 一次性票据适配为 Keycloak 标准 OIDC broker，不接管用户库或密码 |
 | 数据访问 | Prisma / `@prisma/client` | `7.9.1` | Apache-2.0 | PostgreSQL schema、事务、OCC、迁移 |
 | 地形噪声 | `simplex-noise` | `4.0.3` | MIT | 固定 seed 基础地形生成 |
 | 地图编辑 | Tiled | 实施时固定稳定版 | GPL-2.0 工具 | 仅开发工具与导出格式，不分发编辑器 |
@@ -18,27 +19,40 @@
 - FastAPI Users：已进入维护模式，且新方向不保留 Python 游戏后端。
 - 来源不明的 Phaser 背包示例：维护与许可证证据不足；RPGJS 已有原生 Items/Inventory。
 
-RPGJS v5 仍为 beta。退出策略是固定上游提交、在 `apps/mirror-island/` 独立实现并保留旧公开应用，纵向切片失败即可删除新目录而不影响线上。
+RPGJS v5 仍为 beta，但 2026-08-19 用户明确取消旧应用回滚能力。退出路径只保留开源替换设计和 Git 历史，不在当前工作树、生产路由、镜像、数据或备份中保留旧 React/Phaser/FastAPI 系统。
 
 ## 2. 应用拓扑
 
 ```text
 Browser
-  -> Keycloak (login/register/remember-me)
+  -> / (RPGJS client)
+  -> Keycloak (pixel login/register/remember-me)
   -> RPGJS client (in-memory access token)
   -> RPGJS server rooms (auth hook validates Keycloak JWT)
   -> Prisma
        -> PostgreSQL mirror-island game database
 
 ParallelLines forum
-  -> thin SSO bridge / Keycloak identity-provider adapter
-  -> Keycloak forum identity
+  -> existing /play + one-time ticket
+  -> Mirror Island OIDC bridge
+  -> Keycloak OIDC Identity Broker
+  -> prefixed Keycloak forum identity
 ```
 
 - 新建独立 `apps/mirror-island/` RPGJS 应用，不在旧 `apps/web/app/game/` 内继续抽象。
-- Keycloak 自注册页仅用户名、密码和角色资料；关闭邮箱验证、找回密码、账号链接和游客能力，启用 Remember Me。
-- Forum SSO 需要一个最小桥接：验证 ParallelLines 一次性票据并映射稳定 forum subject 到 Keycloak。若论坛未来提供 OIDC，替换桥接为 Keycloak 标准 OIDC broker。
+- `apps/mirror-island/` 接管新静态前端镜像和 Nginx 配置，`apps/web/` 整体删除；`/mirror-island/` 只 308 到 `/`，不再构建第二份产物。
+- Keycloak 自注册页仅用户名和密码；关闭邮箱验证、找回密码、账号链接和游客能力，启用 Remember Me。
+- Forum SSO 桥使用 `oidc-provider` 向 Keycloak 提供 Authorization Code + PKCE/nonce/state 合同；桥内部只处理短期交互、兑换 ParallelLines 一次性 ticket 并回查 capability，不保存论坛密码或建立第二个用户库。
+- 论坛 subject 在 Keycloak 中使用独立 federated identity 和内部前缀用户名，防止与同名独立账号自动合并；公开角色名不等于登录用户名。
 - RPGJS `auth()` 验证 Keycloak JWT 签名、issuer、audience 和有效期，返回 stable subject 作为 `player.id`。
+
+## 2.1 Keycloak 镜像岛主题
+
+- 主题使用 Keycloak 原生 theme 扩展，父主题为 `keycloak.v2`；不引入 Keycloakify 或另一个 React 登录应用。
+- 视觉方向是“镜像岛渡口登记簿”：深湖蓝/苔藓绿背景、暖纸表单、硬边 2–4px 像素边框、小范围金色强调和现有 Ninja Adventure CC0 村落/角色精灵。
+- 主题只引用 `game/media/v1` 已登记的不可变资源，不把 PNG 复制进 Git；所有远程资源有可读的纯色/CSS 降级。
+- 同一表面显示一个主操作和一个“使用论坛账号”次操作，保留标准 label、自动填充、密码可见、键盘焦点、错误关联和 200% zoom。
+- 中文用户名通过删除 `up-username-not-idn-homograph` 开放；保留 1–32 字符与 `username-prohibited-characters`，因此汉字可用而空白、控制字符及注入高风险符号仍拒绝。
 
 ## 3. 世界与房间
 
@@ -169,16 +183,31 @@ Keycloak 使用独立数据库/Schema 并自行管理用户、凭证、会话和
 | `world_id, absolute_day` | composite PK | exactly-once settlement |
 | `settled_at` | TIMESTAMPTZ | audit |
 
-所有游戏表在同一需求版本只允许一个 Prisma migration。实现前需补充备份、部署顺序和 down/forward-fix 回滚脚本评审。
+所有游戏表在同一需求版本只允许一个 Prisma migration。实现前需同步备份、部署顺序和 forward-fix 恢复说明；不提供旧系统回滚或破坏性 down migration。
 
 ## 8. 旧原型与迁移
 
-- 首次 Keycloak 注册后，浏览器只提交已 codec 验证的 local `player_name` / `avatar_id` 作为一次性资料建议；服务端再次验证。
-- 不上传 local day/time/scene/spawn/house/crops。
-- RPGJS vertical slice 未通过前，不撤销或删除当前已暂存 Phaser 改动；切换方案确认后再决定将其提交为 rollback checkpoint 或精确丢弃。
+- 新版不读取或迁移任何旧角色/存档字段；首次加载只精确删除已审计的 `farm-game.save.v1`–`v4` 键。
+- 删除 `apps/web/` 和 `apps/api/` 前从当前完整 diff 生成清退清单；其中的旧产品未提交改动按用户“全部删除”决定一并丢弃，不使用整树 `git restore` 清理其他路径。
+- Git 已有历史不改写；删除当前工作树、部署产物、运行数据和备份，不执行破坏性 Git history rewrite。
+
+## 8.1 清退目标与保护边界
+
+| 类别 | 永久删除 | 明确保留 |
+|---|---|---|
+| 仓库 | `apps/web/`、`apps/api/`、旧 Story/Phaser 专用 docs/spec/tasks、旧 schema/LLM/media workflow 与脚本 | `apps/mirror-island/`、镜像岛规格/任务、通用工程规则、无关未提交文件 |
+| 服务 | backend、memory-worker、llm-proxy 容器/镜像与旧 frontend 产物 | 新 frontend、mirror-game、Keycloak、mirror-identity-db |
+| 共享 MySQL | 精确 database `fablespace` | ParallelLines 其他 database、账号与论坛数据 |
+| Docker data | Compose 解析后的旧 `fablespace_data` volume | `mirror_identity_db` 与新游戏 volume |
+| 对象存储 | 精确 `fablespace/` prefix（含 `media/v1`和 `admin`） | `game/` prefix 及论坛自身 prefix |
+| 主机文件 | 旧 FableSpace 备份、Schema marker/release approval、API env 与 LLM proxy 私密配置 | `backups/mirror-island-keycloak`、镜像岛 `.env.production` |
+
+清退脚本必须先从 Compose/环境解析精确绝对目标并校验其位于 `/opt/fablespace` 或命名对象前缀下；禁止对根目录、用户主目录、未解析变量或通配符执行递归删除。
 
 ## 9. 风险
 
 - RPGJS v5 为 beta：必须先做可删除 spike，验证 auth hook、room transfer、items、dynamic tile 和 save strategy 后才能承诺切换。
 - Keycloak forum bridge 是不可避免的薄适配；必须保持一次性 ticket、issuer/audience 校验和禁止自动账号合并。
+- 论坛代码不在当前工作区；实施前必须从部署主机只读核对 `/play`、ticket callback、exchange 和 introspect 的实际路径/响应，不用旧 FableSpace 客户端推测代替。
+- 旧数据、volume、媒体和备份删除无恢复路径；只能在新 `/`、独立账号、论坛 SSO、Keycloak 主题和 RPGJS 连接的生产健康检查全部通过后执行。
 - 全服 2:00 settlement 和房屋 footprint 是高风险事务；依赖唯一约束/OCC/幂等表，而不是客户端判断。

@@ -1,0 +1,155 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model World {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  slug        String   @unique @db.VarChar(64)
+  seed        BigInt
+  widthTiles  Int      @map("width_tiles")
+  heightTiles Int      @map("height_tiles")
+  chunkSize   Int      @map("chunk_size")
+  revision    Int
+  epochUtc    DateTime @map("epoch_utc") @db.Timestamptz(6)
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  cells       WorldCell[]
+  chunks      ChunkState[]
+  houses      House[]
+  settlements WorldDaySettlement[]
+
+  @@map("worlds")
+}
+
+model PlayerProfile {
+  accountId       String   @id @map("account_id") @db.VarChar(128)
+  playerName      String   @map("player_name") @db.VarChar(12)
+  avatarId        String   @map("avatar_id") @db.VarChar(64)
+  onboardingState String   @default("welcome") @map("onboarding_state") @db.VarChar(32)
+  lastChunkX      Int?     @map("last_chunk_x") @db.SmallInt
+  lastChunkY      Int?     @map("last_chunk_y") @db.SmallInt
+  lastTileX       Int?     @map("last_tile_x") @db.SmallInt
+  lastTileY       Int?     @map("last_tile_y") @db.SmallInt
+  createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  houses    House[]
+  inventory PlayerInventory[]
+  saves     PlayerSave[]
+
+  @@map("player_profiles")
+}
+
+model WorldCell {
+  worldId           String   @map("world_id") @db.Uuid
+  tileX             Int      @map("tile_x") @db.SmallInt
+  tileY             Int      @map("tile_y") @db.SmallInt
+  chunkX            Int      @map("chunk_x") @db.SmallInt
+  chunkY            Int      @map("chunk_y") @db.SmallInt
+  state              String   @db.VarChar(16)
+  cropKind           String?  @map("crop_kind") @db.VarChar(32)
+  growthStage        Int?     @map("growth_stage") @db.SmallInt
+  wateredDay         Int?     @map("watered_day")
+  version            Int      @default(1)
+  lastActorAccountId String?  @map("last_actor_account_id") @db.VarChar(128)
+  updatedAt          DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  world World @relation(fields: [worldId], references: [id], onDelete: Cascade)
+
+  @@id([worldId, tileX, tileY])
+  @@index([worldId, chunkX, chunkY])
+  @@map("world_cells")
+}
+
+model ChunkState {
+  worldId   String   @map("world_id") @db.Uuid
+  chunkX    Int      @map("chunk_x") @db.SmallInt
+  chunkY    Int      @map("chunk_y") @db.SmallInt
+  revision  Int      @default(1)
+  settledDay Int     @default(0) @map("settled_day")
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  world World @relation(fields: [worldId], references: [id], onDelete: Cascade)
+
+  @@id([worldId, chunkX, chunkY])
+  @@map("chunk_state")
+}
+
+model House {
+  id             String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  worldId        String   @map("world_id") @db.Uuid
+  ownerAccountId String   @unique @map("owner_account_id") @db.VarChar(128)
+  originX        Int      @map("origin_x") @db.SmallInt
+  originY        Int      @map("origin_y") @db.SmallInt
+  width          Int      @db.SmallInt
+  height         Int      @db.SmallInt
+  exteriorVariant String  @map("exterior_variant") @db.VarChar(64)
+  version        Int      @default(1)
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  world     World            @relation(fields: [worldId], references: [id], onDelete: Cascade)
+  owner     PlayerProfile    @relation(fields: [ownerAccountId], references: [accountId], onDelete: Cascade)
+  occupancy WorldOccupancy[]
+
+  @@index([worldId, originX, originY])
+  @@map("houses")
+}
+
+model WorldOccupancy {
+  worldId   String @map("world_id") @db.Uuid
+  tileX     Int    @map("tile_x") @db.SmallInt
+  tileY     Int    @map("tile_y") @db.SmallInt
+  entityKind String @map("entity_kind") @db.VarChar(16)
+  entityId  String @map("entity_id") @db.Uuid
+
+  house House @relation(fields: [entityId], references: [id], onDelete: Cascade)
+
+  @@id([worldId, tileX, tileY])
+  @@index([entityId])
+  @@map("world_occupancy")
+}
+
+model PlayerInventory {
+  accountId String   @map("account_id") @db.VarChar(128)
+  itemId    String   @map("item_id") @db.VarChar(64)
+  quantity  Int
+  version   Int      @default(1)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  player PlayerProfile @relation(fields: [accountId], references: [accountId], onDelete: Cascade)
+
+  @@id([accountId, itemId])
+  @@map("player_inventory")
+}
+
+model PlayerSave {
+  accountId String   @map("account_id") @db.VarChar(128)
+  slot      Int      @db.SmallInt
+  snapshot  Json     @db.JsonB
+  meta      Json     @db.JsonB
+  version   Int      @default(1)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  player PlayerProfile @relation(fields: [accountId], references: [accountId], onDelete: Cascade)
+
+  @@id([accountId, slot])
+  @@map("player_saves")
+}
+
+model WorldDaySettlement {
+  worldId     String   @map("world_id") @db.Uuid
+  absoluteDay Int      @map("absolute_day")
+  settledAt   DateTime @default(now()) @map("settled_at") @db.Timestamptz(6)
+
+  world World @relation(fields: [worldId], references: [id], onDelete: Cascade)
+
+  @@id([worldId, absoluteDay])
+  @@map("world_day_settlements")
+}

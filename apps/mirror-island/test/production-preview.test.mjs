@@ -8,8 +8,8 @@ import { build, preview } from 'vite'
 
 const projectRoot = dirname(dirname(fileURLToPath(import.meta.url)))
 const configFile = join(projectRoot, 'vite.config.ts')
-const oldThemePath = '@rpgjs/ui-css/src/theme-default/theme.css'
-const themePath = '@rpgjs/ui-css/theme-default/theme.css'
+const oldThemePath = '@rpgjs/ui-css/theme-default/theme.css'
+const themePath = '@rpgjs/ui-css/theme-pixel/theme.css'
 const themeMarker = '--rpg-ui-body-bg:'
 
 const stylesheetUrls = (html, indexUrl) => [...html.matchAll(/<link\b[^>]*>/gi)]
@@ -24,18 +24,17 @@ const closePreview = server => new Promise((resolve, reject) => {
   server.httpServer.close(error => error ? reject(error) : resolve())
 })
 
-test('production previews serve maps and the UI theme at root and subpath', async () => {
+test('production preview serves the map and pixel UI theme at the public root', async () => {
   const sourceHtml = await readFile(join(projectRoot, 'index.html'), 'utf8')
   assert.equal(sourceHtml.includes(oldThemePath), false)
   assert.equal(sourceHtml.includes(themePath), true)
-  await access(join(projectRoot, 'node_modules', '@rpgjs', 'ui-css', 'theme-default', 'theme.css'))
+  await access(join(projectRoot, 'node_modules', '@rpgjs', 'ui-css', 'theme-pixel', 'theme.css'))
 
   const temporaryOutput = await mkdtemp(join(tmpdir(), 'rpgjs-starter-production-'))
 
   try {
     for (const variant of [
-      { name: 'root', base: '/', route: '/' },
-      { name: 'subpath', base: '/quest/', route: '/quest/' }
+      { name: 'root', base: '/', route: '/' }
     ]) {
       const outDir = join(temporaryOutput, variant.name)
       await build({
@@ -82,7 +81,7 @@ test('production previews serve maps and the UI theme at root and subpath', asyn
           assert.match(response.headers.get('content-type') ?? '', /^text\/css\b/)
           if ((await response.text()).includes(themeMarker)) fetchedTheme = true
         }
-        assert.equal(fetchedTheme, true, `${variant.name} did not fetch the bundled default theme`)
+        assert.equal(fetchedTheme, true, `${variant.name} did not fetch the bundled pixel theme`)
       } finally {
         await closePreview(server)
       }

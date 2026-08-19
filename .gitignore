@@ -2,13 +2,12 @@ __pycache__/
 *.py[cod]
 
 # Node
-apps/web/node_modules/
-apps/web/dist/
-apps/web/.vite/
-apps/web/.react-router/
-apps/web/build/
+apps/mirror-island/node_modules/
+apps/mirror-island/dist/
+apps/mirror-island/lib/
+apps/mirror-island/src/generated/prisma/
 
-# Python
+# Python / verification
 .pytest_cache/
 tmp_pytest/
 tmp_pytest*/
@@ -20,11 +19,8 @@ artifacts/dev-server/
 # Artifacts / generated evidence
 artifacts/
 test-results/
-apps/web/scripts/playwright-discover-visual-audit.mjs
 
 # Generated outputs
-.fablespace-api/
-.fablemap-api/
 /项目参考/
 
 # IDE

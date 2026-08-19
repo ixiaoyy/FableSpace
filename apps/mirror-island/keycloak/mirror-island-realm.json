@@ -5,6 +5,7 @@
   "internationalizationEnabled": true,
   "supportedLocales": ["zh-CN"],
   "defaultLocale": "zh-CN",
+  "loginTheme": "mirror-island",
   "sslRequired": "external",
   "registrationAllowed": true,
   "registrationEmailAsUsername": false,
@@ -16,6 +17,38 @@
   "editUsernameAllowed": false,
   "bruteForceProtected": true,
   "passwordPolicy": "maxLength(72)",
+  "identityProviders": [
+    {
+      "alias": "parallellines",
+      "displayName": "使用论坛账号",
+      "providerId": "oidc",
+      "enabled": true,
+      "updateProfileFirstLoginMode": "off",
+      "trustEmail": false,
+      "storeToken": false,
+      "addReadTokenRoleOnCreate": false,
+      "authenticateByDefault": false,
+      "linkOnly": false,
+      "firstBrokerLoginFlowAlias": "first broker login",
+      "config": {
+        "authorizationUrl": "https://fable.pingxingxian.space/forum-sso/auth",
+        "tokenUrl": "https://fable.pingxingxian.space/forum-sso/token",
+        "userInfoUrl": "https://fable.pingxingxian.space/forum-sso/me",
+        "jwksUrl": "https://fable.pingxingxian.space/forum-sso/jwks",
+        "issuer": "https://fable.pingxingxian.space/forum-sso",
+        "clientId": "mirror-island-forum-bridge",
+        "clientSecret": "${MIRROR_ISLAND_FORUM_OIDC_CLIENT_SECRET}",
+        "clientAuthMethod": "client_secret_basic",
+        "defaultScope": "openid profile",
+        "syncMode": "IMPORT",
+        "useJwksUrl": "true",
+        "validateSignature": "true",
+        "defaultSignatureAlgorithm": "ES256",
+        "pkceEnabled": "true",
+        "pkceMethod": "S256"
+      }
+    }
+  ],
   "clients": [
     {
       "clientId": "mirror-island-web",
@@ -33,7 +66,7 @@
       "redirectUris": [
         "http://localhost:5173/*",
         "http://127.0.0.1:5173/*",
-        "https://fable.pingxingxian.space/mirror-island/*"
+        "https://fable.pingxingxian.space/*"
       ],
       "webOrigins": [
         "http://localhost:5173",
@@ -56,6 +89,26 @@
           }
         }
       ]
+    },
+    {
+      "clientId": "mirror-island-forum-entry",
+      "name": "镜像岛论坛直达引导",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "secret": "${MIRROR_ISLAND_FORUM_ENTRY_CLIENT_SECRET}",
+      "bearerOnly": false,
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
+      "redirectUris": [
+        "https://fable.pingxingxian.space/forum-sso/keycloak-callback"
+      ],
+      "webOrigins": [],
+      "attributes": {
+        "pkce.code.challenge.method": "S256"
+      }
     },
     {
       "clientId": "mirror-island-game",

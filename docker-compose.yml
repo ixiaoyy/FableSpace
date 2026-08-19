@@ -5,63 +5,16 @@ x-default-logging: &default-logging
     max-file: "5"
 
 services:
-  backend:
-    build:
-      context: .
-      dockerfile: apps/api/Dockerfile
-    image: fablespace-backend:local
-    env_file:
-      - path: ./apps/api/.env
-        required: false
-    environment:
-      FABLESPACE_OUTPUT_ROOT: /data
-      PYTHONPATH: /app/apps/api/src
-    ports:
-      - "${FABLESPACE_API_BIND:-8000}:8000"
-    volumes:
-      - fablespace_data:/data
-    logging: *default-logging
-    healthcheck:
-      test:
-        [
-          "CMD",
-          "python",
-          "-c",
-          "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/v1/health', timeout=5).read()",
-        ]
-      interval: 10s
-      timeout: 5s
-      retries: 6
-      start_period: 20s
-
-  memory-worker:
-    image: fablespace-backend:local
-    command: ["python", "-m", "fablespace_api.story_memory_worker", "--poll"]
-    depends_on:
-      backend:
-        condition: service_healthy
-    env_file:
-      - path: ./apps/api/.env
-        required: false
-    environment:
-      FABLESPACE_OUTPUT_ROOT: /data
-      PYTHONPATH: /app/apps/api/src
-    volumes:
-      - fablespace_data:/data
-    logging: *default-logging
-    restart: unless-stopped
-
   frontend:
     build:
       context: .
-      dockerfile: apps/web/Dockerfile
+      dockerfile: apps/mirror-island/Dockerfile.web
       args:
-        VITE_MEDIA_BASE_URL: ${VITE_MEDIA_BASE_URL:-/game-media/v1}
-        VITE_FORUM_URL: ${VITE_FORUM_URL:-https://pingxingxian.space}
+        VITE_KEYCLOAK_URL: ${VITE_KEYCLOAK_URL:-https://fable.pingxingxian.space/identity}
+        VITE_KEYCLOAK_REALM: ${VITE_KEYCLOAK_REALM:-mirror-island}
+        VITE_KEYCLOAK_CLIENT_ID: ${VITE_KEYCLOAK_CLIENT_ID:-mirror-island-web}
+        VITE_MIRROR_BASE_PATH: /
     image: fablespace-frontend:local
     ports:
       - "${FABLESPACE_WEB_BIND:-3000}:80"
     logging: *default-logging
-
-volumes:
-  fablespace_data:

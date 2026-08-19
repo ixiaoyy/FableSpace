@@ -8,7 +8,7 @@
 - 新游戏静态资源登记在 `deploy/cdn/game-media-manifest.json`。每项至少包含 `source`、`width`、`height`、`bytes`、`sha256`、`content_type`、`object_key` 和 `url`。
 - 对象 key 一经发布不可覆盖。内容或处理方式变化时使用新的版本目录或文件名。
 - 新增或替换的 PNG、JPG、WebP、GIF、AVIF、ICO、SVG、spritesheet、tileset 和音频二进制不进入 Git；现有文本型站点 favicon 不属于游戏素材，也不在首片清退范围。地图布局、frame/region 配置、来源记录和哈希可以作为文本提交。
-- 旧 `deploy/cdn/media-manifest.json` 与 `fablespace/media/v1` 只属于待清退历史资产，不得混入新游戏 manifest，也不得在本任务中静默删除。
+- 旧 `deploy/cdn/media-manifest.json` 已从仓库清退；`fablespace/` 对象前缀已获用户永久删除授权，不得混入或被新游戏 manifest 引用。
 
 推荐对象 key：
 
@@ -29,16 +29,16 @@ assets/original/<asset-version>/<purpose>.<ext>
 
 ## Project-original and generated art
 
-- Phaser Graphics 在运行时绘制的简单床、地毯、光影或 UI 图形属于代码生成的项目原创图形，不产生静态图片二进制；颜色、尺寸和用途应在代码常量中可审查。
+- RPGJS/Canvas/CSS 在运行时绘制的简单光影或 UI 图形属于代码生成的项目原创图形，不产生静态图片二进制；颜色、尺寸和用途应在代码或主题 token 中可审查。
 - 人工绘制或 AI 生成并正式采用的静态图片仍须上传对象存储、登记新游戏 manifest，并记录制作或生成来源。
 - AI 生成角色/精灵仍须保留 prompt sidecar；无法取得原 prompt 时使用 `reverse-engineered` 并明确说明。
 - `.codex/generated_images`、临时目录、浏览器下载和聊天预览只算候选来源，不能被生产代码直接引用。
 
 ## Runtime loading
 
-- 资源 URL 由 `apps/web/app/game/constants.ts` 集中生成；场景不得散落硬编码 CDN 地址。
-- 男角色使用已登记的 `ninja_blue/sprite.png`；女角色采用同一固定提交的 `samurai_green/samurai_green.png`。两者都按 16×16 frame 加载，React 预览与 Phaser 必须引用同一 avatar 注册表中的不可变对象 URL。
-- Phaser 加载前，上游资源必须可通过 HTTPS 读取。默认同源代理必须能完整回读对象；只有改为浏览器跨域直连时，才额外要求 CDN 返回 Canvas/WebGL 所需的 CORS 头。
+- 资源 URL 由 `deploy/cdn/game-media-manifest.json` 和 `apps/mirror-island/scripts/prepare-media.mjs` 集中管理；场景不得散落硬编码 CDN 地址。
+- 男角色使用已登记的 `ninja_blue/sprite.png`；女角色使用同一固定提交的 `samurai_green/samurai_green.png`。两者都按 16×16 frame 加载并只表示外观。
+- RPGJS 加载前，上游资源必须可通过 HTTPS 读取。默认同源代理必须能完整回读对象；只有改为浏览器跨域直连时，才额外要求 CDN 返回 Canvas/WebGL 所需的 CORS 头。
 - 使用像素素材时开启 nearest-neighbor/pixelArt；不得通过模糊缩放掩盖尺寸不匹配。
 - 资源加载失败必须进入可重试状态，不得显示空白 canvas 或静默换成来源不明的占位图。
 
@@ -60,6 +60,6 @@ assets/original/<asset-version>/<purpose>.<ext>
 - [ ] 新游戏资源位于 `game/media/v1`，未复用旧 FableSpace 对象 key。
 - [ ] manifest 的 URL、bytes、MIME 和 SHA-256 与 CDN 实际内容一致。
 - [ ] 来源记录覆盖原始路径、固定版本和任何处理步骤。
-- [ ] Phaser 场景只通过集中常量加载采用项。
+- [ ] RPGJS 场景只通过已登记和构建前核验的资源加载采用项。
 - [ ] Git 跟踪图片二进制为零。
 - [ ] 前端 typecheck、build 与浏览器资源加载验收使用本轮新鲜结果。

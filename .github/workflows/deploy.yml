@@ -1,22 +1,17 @@
-name: Deploy
+name: Deploy Mirror Island
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
     paths:
-      - "apps/api/**"
-      - "apps/web/**"
       - "apps/mirror-island/**"
       - "deploy/**"
       - "docker-compose.yml"
       - ".github/workflows/deploy.yml"
-      - ".github/workflows/repair-story-run-schema.yml"
-      - ".github/workflows/apply-multi-story-009.yml"
   workflow_dispatch:
 
 concurrency:
-  group: fablespace-production
+  group: mirror-island-production
   cancel-in-progress: false
 
 permissions:
@@ -24,133 +19,19 @@ permissions:
 
 env:
   FRONTEND_IMAGE: fablespace-frontend:local
-  MIRROR_GAME_IMAGE: mirror-island-game:local
+  GAME_IMAGE: mirror-island-game:local
+  MIGRATION_IMAGE: mirror-island-migrate:local
 
 jobs:
-  changes:
-    name: Detect deploy scope
+  build:
+    name: Build and verify Mirror Island
     runs-on: ubuntu-latest
-    outputs:
-      backend: ${{ steps.filter.outputs.backend }}
-      frontend: ${{ steps.filter.outputs.frontend }}
-      infrastructure: ${{ steps.filter.outputs.infrastructure }}
-      media: ${{ steps.filter.outputs.media }}
+    if: vars.DEPLOY_ENABLED == 'true' && vars.DEPLOY_CONFIGURED == 'true'
     steps:
       - uses: actions/checkout@v4
-      - uses: dorny/paths-filter@v3
-        id: filter
-        with:
-          filters: |
-            backend:
-              - 'apps/api/**'
-            frontend:
-              - 'apps/web/**'
-              - 'apps/mirror-island/**'
-            infrastructure:
-              - 'deploy/schema-revision.txt'
-              - 'deploy/server/**'
-              - 'deploy/docker-compose.shared.yml'
-              - 'deploy/docker-compose.llm-proxy.yml'
-              - 'docker-compose.yml'
-              - '.github/workflows/deploy.yml'
-              - '.github/workflows/repair-story-run-schema.yml'
-              - '.github/workflows/apply-multi-story-009.yml'
-            media:
-              - 'deploy/cdn/**'
-              - '.github/workflows/deploy.yml'
-
-  build-frontend:
-    name: Build frontend
-    runs-on: ubuntu-latest
-    needs: changes
-    if: |
-      vars.DEPLOY_ENABLED == 'true' &&
-      vars.DEPLOY_CONFIGURED == 'true' &&
-      (github.event_name == 'workflow_dispatch' || needs.changes.outputs.frontend == 'true' || needs.changes.outputs.infrastructure == 'true' || needs.changes.outputs.media == 'true')
-    steps:
-      - uses: actions/checkout@v4
-
       - uses: docker/setup-buildx-action@v3
 
-      - name: Validate CDN configuration
-        id: cdn
-        env:
-          CDN_BASE_URL: ${{ secrets.CDN_BASE_URL }}
-          CDN_S3_BUCKET: ${{ secrets.CDN_S3_BUCKET }}
-          CDN_S3_ENDPOINT_URL: ${{ secrets.CDN_S3_ENDPOINT_URL }}
-          CDN_S3_ACCESS_KEY_ID: ${{ secrets.CDN_S3_ACCESS_KEY_ID }}
-          CDN_S3_SECRET_ACCESS_KEY: ${{ secrets.CDN_S3_SECRET_ACCESS_KEY }}
-          CDN_S3_PREFIX: ${{ vars.CDN_S3_PREFIX || 'game' }}
-          VERIFY_MEDIA: ${{ github.event_name == 'workflow_dispatch' || needs.changes.outputs.media == 'true' }}
-        run: |
-          set -euo pipefail
-          if [ -z "${CDN_BASE_URL:-}" ]; then
-            echo "::error::Missing required GitHub Actions secret: CDN_BASE_URL"
-            exit 1
-          fi
-          case "${CDN_BASE_URL}" in
-            https://*) ;;
-            *) echo "::error::CDN_BASE_URL must use HTTPS"; exit 1 ;;
-          esac
-          CDN_S3_PREFIX="${CDN_S3_PREFIX#/}"
-          CDN_S3_PREFIX="${CDN_S3_PREFIX%/}"
-          if [ -z "${CDN_S3_PREFIX}" ] || [[ "${CDN_S3_PREFIX}" == *".."* ]]; then
-            echo "::error::CDN_S3_PREFIX must be a non-empty object-key directory"
-            exit 1
-          fi
-          if [ "${CDN_BASE_URL%/}" != "https://img.pingxingxian.space" ]; then
-            echo "::error::CDN_BASE_URL must match the reviewed game media origin"
-            exit 1
-          fi
-          if [ "${CDN_S3_PREFIX}" != "game" ]; then
-            echo "::error::CDN_S3_PREFIX must be game for the reviewed runtime proxy"
-            exit 1
-          fi
-          if [ "${VERIFY_MEDIA}" = "true" ]; then
-            for name in CDN_S3_BUCKET CDN_S3_ENDPOINT_URL CDN_S3_ACCESS_KEY_ID CDN_S3_SECRET_ACCESS_KEY; do
-              if [ -z "${!name:-}" ]; then
-                echo "::error::Missing required GitHub Actions secret for media verification: ${name}"
-                exit 1
-              fi
-            done
-            case "${CDN_S3_ENDPOINT_URL}" in
-              https://*) ;;
-              *) echo "::error::CDN_S3_ENDPOINT_URL must use HTTPS"; exit 1 ;;
-            esac
-          fi
-          MEDIA_BASE_URL="${CDN_BASE_URL%/}/${CDN_S3_PREFIX}/media/v1"
-          echo "media_base_url=${MEDIA_BASE_URL}" >> "${GITHUB_OUTPUT}"
-          echo "s3_prefix=${CDN_S3_PREFIX}" >> "${GITHUB_OUTPUT}"
-
-      - name: Build frontend image
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          file: apps/web/Dockerfile
-          build-args: |
-            VITE_MEDIA_BASE_URL=/game-media/v1
-            VITE_FORUM_URL=${{ vars.FORUM_URL || 'https://pingxingxian.space' }}
-            VITE_KEYCLOAK_URL=https://fable.pingxingxian.space/identity
-            VITE_KEYCLOAK_REALM=mirror-island
-            VITE_KEYCLOAK_CLIENT_ID=mirror-island-web
-            VITE_MIRROR_BASE_PATH=/mirror-island/
-          tags: ${{ env.FRONTEND_IMAGE }}
-          load: true
-          cache-from: type=gha,scope=fablespace-web
-          cache-to: type=gha,mode=max,scope=fablespace-web
-
-      - name: Build Mirror Island game server image
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          file: apps/mirror-island/Dockerfile.server
-          tags: ${{ env.MIRROR_GAME_IMAGE }}
-          load: true
-          cache-from: type=gha,scope=mirror-island-server
-          cache-to: type=gha,mode=max,scope=mirror-island-server
-
-      - name: Verify media manifest and CDN delivery
-        if: github.event_name == 'workflow_dispatch' || needs.changes.outputs.media == 'true'
+      - name: Verify game media
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.CDN_S3_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.CDN_S3_SECRET_ACCESS_KEY }}
@@ -158,130 +39,127 @@ jobs:
           AWS_EC2_METADATA_DISABLED: "true"
           CDN_S3_BUCKET: ${{ secrets.CDN_S3_BUCKET }}
           CDN_S3_ENDPOINT_URL: ${{ secrets.CDN_S3_ENDPOINT_URL }}
-          CDN_S3_PREFIX: ${{ steps.cdn.outputs.s3_prefix }}
-          MEDIA_BASE_URL: ${{ steps.cdn.outputs.media_base_url }}
+          MEDIA_BASE_URL: https://img.pingxingxian.space/game/media/v1
         run: |
           set -euo pipefail
+          for name in CDN_S3_BUCKET CDN_S3_ENDPOINT_URL AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY; do
+            if [ -z "${!name:-}" ]; then
+              echo "::error::Missing required game-media setting: ${name}"
+              exit 1
+            fi
+          done
           aws s3api list-objects-v2 \
             --bucket "${CDN_S3_BUCKET}" \
-            --prefix "${CDN_S3_PREFIX}/media/v1/" \
+            --prefix "game/media/v1/" \
             --endpoint-url "${CDN_S3_ENDPOINT_URL}" \
             --output json > /tmp/game-media-objects.json
           python deploy/cdn/verify_media_manifest.py \
             --manifest deploy/cdn/game-media-manifest.json \
             --objects /tmp/game-media-objects.json \
-            --s3-prefix "${CDN_S3_PREFIX}/media/v1" \
+            --s3-prefix game/media/v1 \
             --media-base-url "${MEDIA_BASE_URL}" \
             --samples-output /tmp/game-media-samples.txt
           python deploy/cdn/verify_cdn_assets.py \
             --manifest deploy/cdn/game-media-manifest.json
 
-      - name: Export frontend image archive
+      - name: Build production images
         run: |
           set -euo pipefail
-          docker save "${FRONTEND_IMAGE}" "${MIRROR_GAME_IMAGE}" | gzip -1 > "fablespace-frontend-${GITHUB_SHA}.tar.gz"
+          docker build \
+            -f apps/mirror-island/Dockerfile.web \
+            --build-arg VITE_KEYCLOAK_URL=https://fable.pingxingxian.space/identity \
+            --build-arg VITE_KEYCLOAK_REALM=mirror-island \
+            --build-arg VITE_KEYCLOAK_CLIENT_ID=mirror-island-web \
+            --build-arg VITE_MIRROR_BASE_PATH=/ \
+            -t "${FRONTEND_IMAGE}" .
+          docker build -f apps/mirror-island/Dockerfile.server -t "${GAME_IMAGE}" .
+          docker build -f apps/mirror-island/Dockerfile.migrate -t "${MIGRATION_IMAGE}" .
+
+      - name: Verify runtime image boundaries
+        run: |
+          set -euo pipefail
+          docker run --rm --entrypoint sh "${GAME_IMAGE}" -ec \
+            '! find /app -type f | grep -E "image-size|@rpgjs/vite|prisma.config"'
+          docker run --rm --entrypoint sh "${FRONTEND_IMAGE}" -ec \
+            'test -f /usr/share/nginx/html/index.html && test ! -d /usr/share/nginx/html/mirror-island'
+          docker run --rm --entrypoint sh "${MIGRATION_IMAGE}" -ec \
+            'test "$(find prisma/migrations -mindepth 1 -maxdepth 1 -type d | wc -l)" -eq 1'
+
+      - name: Export image archive
+        run: |
+          set -euo pipefail
+          docker save "${FRONTEND_IMAGE}" "${GAME_IMAGE}" "${MIGRATION_IMAGE}" \
+            | gzip -1 > "mirror-island-${GITHUB_SHA}.tar.gz"
 
       - uses: actions/upload-artifact@v4
         with:
-          name: fablespace-frontend-${{ github.sha }}
-          path: fablespace-frontend-${{ github.sha }}.tar.gz
+          name: mirror-island-${{ github.sha }}
+          path: mirror-island-${{ github.sha }}.tar.gz
           if-no-files-found: error
           retention-days: 1
 
-  deploy-backend:
-    name: Deploy backend
+  deploy:
+    name: Deploy, verify, and retire legacy runtime
     runs-on: ubuntu-latest
-    needs: changes
-    if: |
-      vars.DEPLOY_ENABLED == 'true' &&
-      vars.DEPLOY_CONFIGURED == 'true' &&
-      github.event_name != 'workflow_dispatch' &&
-      needs.changes.outputs.backend == 'true'
+    needs: build
     steps:
-      - name: Validate server configuration
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: mirror-island-${{ github.sha }}
+          path: /tmp/mirror-island-deploy
+
+      - name: Upload image archive
         env:
           DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
           DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+          DEPLOY_PORT: ${{ secrets.DEPLOY_PORT || '22' }}
           DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          ARCHIVE_PATH: /tmp/mirror-island-deploy/mirror-island-${{ github.sha }}.tar.gz
         run: |
           set -euo pipefail
           for name in DEPLOY_HOST DEPLOY_USER DEPLOY_SSH_KEY; do
             if [ -z "${!name:-}" ]; then
-              echo "::error::Missing required GitHub Actions secret: ${name}"
+              echo "::error::Missing required deploy setting: ${name}"
               exit 1
             fi
           done
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "${DEPLOY_SSH_KEY}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -p "${DEPLOY_PORT}" "${DEPLOY_HOST}" >> ~/.ssh/known_hosts 2>/dev/null
+          scp -P "${DEPLOY_PORT}" -i ~/.ssh/deploy_key \
+            "${ARCHIVE_PATH}" \
+            "${DEPLOY_USER}@${DEPLOY_HOST}:/tmp/mirror-island-${GITHUB_SHA}.tar.gz"
 
-      - name: Update backend service
+      - name: Replace production and permanently retire legacy services
         uses: appleboy/ssh-action@v1.0.3
-        env:
-          OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
-          FABLESPACE_LLM_PROXY_SUBSCRIPTION_URL: ${{ secrets.FABLESPACE_LLM_PROXY_SUBSCRIPTION_URL }}
         with:
           host: ${{ secrets.DEPLOY_HOST }}
           username: ${{ secrets.DEPLOY_USER }}
           key: ${{ secrets.DEPLOY_SSH_KEY }}
           port: ${{ secrets.DEPLOY_PORT || '22' }}
-          envs: OPENCODE_API_KEY,FABLESPACE_LLM_PROXY_SUBSCRIPTION_URL
-          command_timeout: 20m
+          command_timeout: 30m
           script: |
             set -eu
-            if [ -z "${OPENCODE_API_KEY:-}" ]; then
-              echo "Missing required GitHub Actions secret: OPENCODE_API_KEY"
-              exit 1
-            fi
-            if [ -z "${FABLESPACE_LLM_PROXY_SUBSCRIPTION_URL:-}" ]; then
-              echo "Missing required GitHub Actions secret: FABLESPACE_LLM_PROXY_SUBSCRIPTION_URL"
-              exit 1
-            fi
-            FABLESPACE_PATH="${{ vars.DEPLOY_PATH || '/opt/fablespace' }}"
             EXPECTED_SHA="${{ github.sha }}"
-            EXPECTED_REF="${{ github.ref }}"
-            if [ "${EXPECTED_REF}" != "refs/heads/main" ]; then
-              echo "Deploy must be dispatched from main"
-              exit 1
-            fi
+            FABLESPACE_PATH="${{ vars.DEPLOY_PATH || '/opt/fablespace' }}"
+            test "${{ github.ref }}" = "refs/heads/main"
             cd "${FABLESPACE_PATH}"
             git remote set-url origin "https://github.com/${{ github.repository }}.git"
             git fetch --prune origin main
-            if ! git cat-file -e "${EXPECTED_SHA}^{commit}" 2>/dev/null; then
-              echo "Workflow commit is unavailable after fetching main"
-              exit 1
-            fi
-            if ! git merge-base --is-ancestor "${EXPECTED_SHA}" origin/main; then
-              echo "Workflow commit is not in the approved main history"
-              exit 1
-            fi
-            TARGET_SCHEMA_MARKER="$(mktemp)"
-            TARGET_RELEASE_APPROVAL="$(mktemp)"
-            trap 'rm -f "${TARGET_SCHEMA_MARKER}" "${TARGET_RELEASE_APPROVAL}"' EXIT
-            git show "${EXPECTED_SHA}:deploy/schema-revision.txt" > "${TARGET_SCHEMA_MARKER}"
-            git show "${EXPECTED_SHA}:deploy/release-approval.txt" > "${TARGET_RELEASE_APPROVAL}"
-            if [ ! -f /opt/fablespace-schema/revision ]; then
-              echo "Verified schema revision marker is missing; run the controlled 009 workflow first"
-              exit 1
-            fi
-            if ! sudo cmp -s "${TARGET_SCHEMA_MARKER}" /opt/fablespace-schema/revision; then
-              echo "Verified schema revision does not match the workflow commit; deployment is blocked"
-              exit 1
-            fi
-            if [ ! -f /opt/fablespace-schema/release-approval ]; then
-              echo "Runtime release approval is missing; the controlled 009 workflow did not complete"
-              exit 1
-            fi
-            if ! sudo cmp -s "${TARGET_RELEASE_APPROVAL}" /opt/fablespace-schema/release-approval; then
-              echo "Runtime release approval does not match the workflow commit; deployment is blocked"
-              exit 1
-            fi
+            git cat-file -e "${EXPECTED_SHA}^{commit}"
+            git merge-base --is-ancestor "${EXPECTED_SHA}" origin/main
             git reset --hard "${EXPECTED_SHA}"
-            sudo install -m 0755 deploy/server/fablelog /usr/local/bin/fablelog
 
-            CONFIG_OUTPUT="$(printf '%s' "${OPENCODE_API_KEY}" | sudo python3 deploy/server/configure_shared_services.py --cors-origin https://fable.pingxingxian.space --story-llm-key-stdin)"
-            unset OPENCODE_API_KEY
+            if sudo docker compose version >/dev/null 2>&1; then
+              COMPOSE="sudo docker compose"
+            else
+              COMPOSE="sudo docker-compose"
+            fi
+            COMPOSE_FILES="-f docker-compose.yml -f deploy/docker-compose.mirror-island.yml"
+            CONFIG_OUTPUT="$(sudo python3 deploy/server/configure_mirror_island.py)"
             printf '%s\n' "${CONFIG_OUTPUT}"
-            LLM_PROXY_OUTPUT="$(printf '%s' "${FABLESPACE_LLM_PROXY_SUBSCRIPTION_URL}" | sudo python3 deploy/server/configure_llm_proxy.py --subscription-url-stdin)"
-            unset FABLESPACE_LLM_PROXY_SUBSCRIPTION_URL
-            printf '%s\n' "${LLM_PROXY_OUTPUT}"
             case "${CONFIG_OUTPUT}" in
               *parallellines_changed=true*)
                 cd /opt/parallellines
@@ -293,254 +171,112 @@ jobs:
                 $PARALLELLINES_COMPOSE up -d --no-deps --force-recreate api worker
                 PARALLELLINES_READY=false
                 for ATTEMPT in $(seq 1 30); do
-                  if $PARALLELLINES_COMPOSE exec -T api python -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/healthz', timeout=3).read()" >/dev/null 2>&1; then
+                  if $PARALLELLINES_COMPOSE exec -T api python -c \
+                    "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/healthz', timeout=3).read()" >/dev/null 2>&1; then
                     PARALLELLINES_READY=true
                     break
                   fi
                   sleep 2
                 done
-                if [ "${PARALLELLINES_READY}" != "true" ]; then
-                  $PARALLELLINES_COMPOSE logs --tail=120 api
-                  echo "ParallelLines API health check failed after SSO configuration"
-                  exit 1
-                fi
+                test "${PARALLELLINES_READY}" = "true"
                 cd "${FABLESPACE_PATH}"
                 ;;
             esac
 
-            if sudo docker compose version >/dev/null 2>&1; then
-              COMPOSE="sudo docker compose"
-            else
-              COMPOSE="sudo docker-compose"
-            fi
-
-            COMPOSE_FILES="-f docker-compose.yml -f deploy/docker-compose.shared.yml -f deploy/docker-compose.llm-proxy.yml"
-            echo "Current StoryWorld LLM failure summary (redacted):"
-            $COMPOSE $COMPOSE_FILES logs --since=24h backend 2>&1 \
-              | grep -E 'StoryWorld LLM request failed|LLM backend request failed' \
-              | tail -n 40 || true
-            $COMPOSE $COMPOSE_FILES build backend memory-worker
-            $COMPOSE $COMPOSE_FILES pull llm-proxy
-            if ! $COMPOSE $COMPOSE_FILES run --rm --no-deps llm-proxy -t -d /root/.config/mihomo >/dev/null 2>&1; then
-              echo "LLM proxy configuration validation failed"
-              exit 1
-            fi
-            $COMPOSE $COMPOSE_FILES up -d --no-deps llm-proxy
-            LLM_PROXY_READY=false
-            for ATTEMPT in $(seq 1 15); do
-              if $COMPOSE $COMPOSE_FILES run --rm --no-deps backend python -c "import socket; connection=socket.create_connection(('llm-proxy', 7890), timeout=3); connection.close()" >/dev/null 2>&1; then
-                LLM_PROXY_READY=true
-                break
-              fi
-              sleep 2
-            done
-            if [ "${LLM_PROXY_READY}" != "true" ]; then
-              echo "LLM proxy did not become reachable"
-              exit 1
-            fi
-            echo "StoryWorld LLM proxy validated"
-            $COMPOSE $COMPOSE_FILES run --rm --no-deps backend python -c "from fablespace_api.app_factory import build_system_story_llm_config; from fablespace_api.infrastructure.settings import ApiSettings; raise SystemExit(0 if build_system_story_llm_config(ApiSettings()) is not None else 1)"
-            echo "StoryWorld LLM configuration validated"
-            STORY_LLM_READY=false
-            for ATTEMPT in $(seq 1 3); do
-              if $COMPOSE $COMPOSE_FILES run --rm --no-deps backend python -m fablespace_api.story_llm_probe; then
-                STORY_LLM_READY=true
-                break
-              fi
-              sleep 10
-            done
-            if [ "${STORY_LLM_READY}" != "true" ]; then
-              echo "StoryWorld LLM provider probe failed"
-              exit 1
-            fi
-            echo "StoryWorld LLM provider call validated"
-            $COMPOSE $COMPOSE_FILES up -d --no-build backend memory-worker
-            BACKEND_READY=false
-            for ATTEMPT in $(seq 1 30); do
-              if $COMPOSE $COMPOSE_FILES exec -T backend python -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/v1/health', timeout=3).read()" >/dev/null 2>&1; then
-                BACKEND_READY=true
-                break
-              fi
-              sleep 2
-            done
-            if [ "${BACKEND_READY}" != "true" ]; then
-              $COMPOSE $COMPOSE_FILES logs --tail=120 backend
-              echo "backend health check failed"
-              exit 1
-            fi
-            sudo docker image prune -f
-
-  deploy-frontend:
-    name: Deploy frontend
-    runs-on: ubuntu-latest
-    needs:
-      - changes
-      - build-frontend
-    if: |
-      always() &&
-      vars.DEPLOY_ENABLED == 'true' &&
-      vars.DEPLOY_CONFIGURED == 'true' &&
-      (github.event_name == 'workflow_dispatch' || needs.changes.outputs.frontend == 'true' || needs.changes.outputs.infrastructure == 'true' || needs.changes.outputs.media == 'true') &&
-      needs.build-frontend.result == 'success'
-    steps:
-      - uses: actions/download-artifact@v4
-        with:
-          name: fablespace-frontend-${{ github.sha }}
-          path: /tmp/fablespace-deploy
-
-      - name: Upload frontend image archive
-        env:
-          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
-          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
-          DEPLOY_PORT: ${{ secrets.DEPLOY_PORT || '22' }}
-          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
-          ARCHIVE_PATH: /tmp/fablespace-deploy/fablespace-frontend-${{ github.sha }}.tar.gz
-        run: |
-          set -euo pipefail
-          for name in DEPLOY_HOST DEPLOY_USER DEPLOY_SSH_KEY; do
-            if [ -z "${!name:-}" ]; then
-              echo "::error::Missing required GitHub Actions secret: ${name}"
-              exit 1
-            fi
-          done
-          install -m 700 -d ~/.ssh
-          printf '%s\n' "${DEPLOY_SSH_KEY}" > ~/.ssh/deploy_key
-          chmod 600 ~/.ssh/deploy_key
-          ssh-keyscan -p "${DEPLOY_PORT}" "${DEPLOY_HOST}" >> ~/.ssh/known_hosts 2>/dev/null
-          scp -P "${DEPLOY_PORT}" -i ~/.ssh/deploy_key \
-            "${ARCHIVE_PATH}" \
-            "${DEPLOY_USER}@${DEPLOY_HOST}:/tmp/fablespace-frontend-${GITHUB_SHA}.tar.gz"
-
-      - name: Replace frontend service
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.DEPLOY_HOST }}
-          username: ${{ secrets.DEPLOY_USER }}
-          key: ${{ secrets.DEPLOY_SSH_KEY }}
-          port: ${{ secrets.DEPLOY_PORT || '22' }}
-          command_timeout: 20m
-          script: |
-            set -eu
-            EXPECTED_SHA="${{ github.sha }}"
-            EXPECTED_REF="${{ github.ref }}"
-            if [ "${EXPECTED_REF}" != "refs/heads/main" ]; then
-              echo "Deploy must be dispatched from main"
-              exit 1
-            fi
-            FABLESPACE_PATH="${{ vars.DEPLOY_PATH || '/opt/fablespace' }}"
-            cd "${FABLESPACE_PATH}"
-            git remote set-url origin "https://github.com/${{ github.repository }}.git"
-            git fetch --prune origin main
-            if ! git cat-file -e "${EXPECTED_SHA}^{commit}" 2>/dev/null; then
-              echo "Workflow commit is unavailable after fetching main"
-              exit 1
-            fi
-            if ! git merge-base --is-ancestor "${EXPECTED_SHA}" origin/main; then
-              echo "Workflow commit is not in the approved main history"
-              exit 1
-            fi
-            git reset --hard "${EXPECTED_SHA}"
-
-            if sudo docker compose version >/dev/null 2>&1; then
-              COMPOSE="sudo docker compose"
-            else
-              COMPOSE="sudo docker-compose"
-            fi
-            sudo python3 deploy/server/configure_mirror_island.py
-            COMPOSE_FILES="-f docker-compose.yml -f deploy/docker-compose.shared.yml -f deploy/docker-compose.llm-proxy.yml -f deploy/docker-compose.mirror-island.yml"
-
-            IMAGE_ARCHIVE="/tmp/fablespace-frontend-${{ github.sha }}.tar.gz"
+            IMAGE_ARCHIVE="/tmp/mirror-island-${EXPECTED_SHA}.tar.gz"
             sudo docker load -i "${IMAGE_ARCHIVE}"
             rm -f "${IMAGE_ARCHIVE}"
+            $COMPOSE $COMPOSE_FILES pull mirror-identity-db mirror-game-db keycloak
+            $COMPOSE $COMPOSE_FILES up -d --no-build mirror-identity-db mirror-game-db
 
-            $COMPOSE $COMPOSE_FILES pull mirror-identity-db keycloak
-            $COMPOSE $COMPOSE_FILES up -d --no-build mirror-identity-db
-
-            DATABASE_READY=false
-            for ATTEMPT in $(seq 1 20); do
-              if $COMPOSE $COMPOSE_FILES exec -T mirror-identity-db sh -ec 'pg_isready -U "$POSTGRES_USER" -d "$POSTGRES_DB"' >/dev/null 2>&1; then
-                DATABASE_READY=true
+            DATABASES_READY=false
+            for ATTEMPT in $(seq 1 30); do
+              if $COMPOSE $COMPOSE_FILES exec -T mirror-identity-db sh -ec \
+                'pg_isready -U "$POSTGRES_USER" -d "$POSTGRES_DB"' >/dev/null 2>&1 \
+                && $COMPOSE $COMPOSE_FILES exec -T mirror-game-db sh -ec \
+                'pg_isready -U "$MIRROR_GAME_POSTGRES_USER" -d "$MIRROR_GAME_POSTGRES_DB"' >/dev/null 2>&1; then
+                DATABASES_READY=true
                 break
               fi
               sleep 2
             done
-            if [ "${DATABASE_READY}" != "true" ]; then
-              $COMPOSE $COMPOSE_FILES logs --tail=120 mirror-identity-db
-              echo "Mirror Island identity database readiness failed"
-              exit 1
+            test "${DATABASES_READY}" = "true"
+
+            BACKUP_ROOT="${FABLESPACE_PATH}/backups"
+            sudo install -d -m 0700 \
+              "${BACKUP_ROOT}/mirror-island-keycloak" \
+              "${BACKUP_ROOT}/mirror-island-game"
+            KEYCLOAK_BACKUP="${BACKUP_ROOT}/mirror-island-keycloak/keycloak-${EXPECTED_SHA}.sql.gz"
+            GAME_BACKUP="${BACKUP_ROOT}/mirror-island-game/game-${EXPECTED_SHA}.sql.gz"
+            if [ ! -f "${KEYCLOAK_BACKUP}" ]; then
+              $COMPOSE $COMPOSE_FILES exec -T mirror-identity-db sh -ec \
+                'pg_dump -U "$POSTGRES_USER" "$POSTGRES_DB"' \
+                | gzip -1 | sudo tee "${KEYCLOAK_BACKUP}" >/dev/null
+              sudo test -s "${KEYCLOAK_BACKUP}"
+              sudo chmod 0600 "${KEYCLOAK_BACKUP}"
+            fi
+            if [ ! -f "${GAME_BACKUP}" ]; then
+              $COMPOSE $COMPOSE_FILES exec -T mirror-game-db sh -ec \
+                'pg_dump -U "$MIRROR_GAME_POSTGRES_USER" "$MIRROR_GAME_POSTGRES_DB"' \
+                | gzip -1 | sudo tee "${GAME_BACKUP}" >/dev/null
+              sudo test -s "${GAME_BACKUP}"
+              sudo chmod 0600 "${GAME_BACKUP}"
             fi
 
-            BACKUP_DIR="${FABLESPACE_PATH}/backups/mirror-island-keycloak"
-            sudo install -d -m 0700 "${BACKUP_DIR}"
-            BACKUP_LOCAL="/tmp/mirror-island-keycloak-${EXPECTED_SHA}.sql"
-            BACKUP_TMP="${BACKUP_DIR}/keycloak-${EXPECTED_SHA}.sql"
-            if [ -f "${BACKUP_TMP}.gz" ]; then
-              echo "Mirror Island Keycloak backup retained: ${BACKUP_TMP}.gz"
-            else
-              if ! $COMPOSE $COMPOSE_FILES exec -T mirror-identity-db sh -ec 'pg_dump -U "$POSTGRES_USER" "$POSTGRES_DB"' > "${BACKUP_LOCAL}"; then
-                rm -f "${BACKUP_LOCAL}"
-                echo "Mirror Island Keycloak backup failed"
-                exit 1
-              fi
-              if [ ! -s "${BACKUP_LOCAL}" ]; then
-                rm -f "${BACKUP_LOCAL}"
-                echo "Mirror Island Keycloak backup is empty"
-                exit 1
-              fi
-              sudo mv "${BACKUP_LOCAL}" "${BACKUP_TMP}"
-              sudo gzip -f "${BACKUP_TMP}"
-              sudo chmod 0600 "${BACKUP_TMP}.gz"
-              echo "Mirror Island Keycloak backup ready: ${BACKUP_TMP}.gz"
-            fi
-
+            $COMPOSE $COMPOSE_FILES --profile migration run --rm mirror-game-migrate
             $COMPOSE $COMPOSE_FILES up -d --no-build keycloak mirror-game
 
-            KEYCLOAK_READY=false
+            SERVICES_READY=false
             for ATTEMPT in $(seq 1 40); do
-              if $COMPOSE $COMPOSE_FILES exec -T mirror-game node -e "fetch('http://keycloak:8080/identity/realms/mirror-island/.well-known/openid-configuration').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"; then
-                KEYCLOAK_READY=true
+              if $COMPOSE $COMPOSE_FILES exec -T mirror-game node -e \
+                "Promise.all([fetch('http://127.0.0.1:3001/health'),fetch('http://127.0.0.1:3001/forum-sso/.well-known/openid-configuration'),fetch('http://keycloak:8080/identity/realms/mirror-island/.well-known/openid-configuration')]).then(r=>process.exit(r.every(x=>x.ok)?0:1)).catch(()=>process.exit(1))"; then
+                SERVICES_READY=true
                 break
               fi
               sleep 3
             done
-            if [ "${KEYCLOAK_READY}" != "true" ]; then
-              $COMPOSE $COMPOSE_FILES logs --tail=160 keycloak mirror-identity-db
-              echo "Mirror Island Keycloak readiness failed"
-              exit 1
-            fi
+            test "${SERVICES_READY}" = "true"
 
             $COMPOSE $COMPOSE_FILES exec -T mirror-game node scripts/configure-keycloak-profile.mjs
-
-            MIRROR_GAME_READY=false
-            for ATTEMPT in $(seq 1 20); do
-              if $COMPOSE $COMPOSE_FILES exec -T mirror-game node -e "fetch('http://127.0.0.1:3001/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"; then
-                MIRROR_GAME_READY=true
-                break
-              fi
-              sleep 2
-            done
-            if [ "${MIRROR_GAME_READY}" != "true" ]; then
-              $COMPOSE $COMPOSE_FILES logs --tail=160 mirror-game
-              echo "Mirror Island game server health check failed"
-              exit 1
-            fi
-
             $COMPOSE $COMPOSE_FILES up -d --no-deps --no-build --force-recreate frontend
 
             FRONTEND_READY=false
             for ATTEMPT in $(seq 1 20); do
               if $COMPOSE $COMPOSE_FILES exec -T frontend sh -ec \
-                "wget -qO- http://127.0.0.1/ >/dev/null \
-                && wget -qO- http://127.0.0.1/mirror-island/ >/dev/null \
-                && wget -qO- http://127.0.0.1/identity/realms/mirror-island/.well-known/openid-configuration >/dev/null"; then
+                "wget -qO- http://127.0.0.1/ | grep -q '镜像岛' \
+                && wget -qO- http://127.0.0.1/identity/realms/mirror-island/.well-known/openid-configuration >/dev/null \
+                && wget -qO- http://127.0.0.1/forum-sso/.well-known/openid-configuration >/dev/null"; then
                 FRONTEND_READY=true
                 break
               fi
               sleep 2
             done
-            if [ "${FRONTEND_READY}" != "true" ]; then
-              $COMPOSE $COMPOSE_FILES logs --tail=120 frontend
-              echo "frontend or Mirror Island routed health check failed"
-              exit 1
-            fi
+            test "${FRONTEND_READY}" = "true"
+            $COMPOSE $COMPOSE_FILES exec -T frontend sh -ec \
+              "wget -S --spider http://127.0.0.1/mirror-island 2>&1 | grep -q '308 Permanent Redirect'"
+
+            sudo python3 deploy/server/retire_legacy_fablespace.py
+            sudo python3 deploy/server/retire_legacy_fablespace.py --apply
+            $COMPOSE $COMPOSE_FILES exec -T frontend wget -qO- http://127.0.0.1/ >/dev/null
+            $COMPOSE $COMPOSE_FILES exec -T mirror-game node -e \
+              "fetch('http://127.0.0.1:3001/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
             sudo docker image prune -f
+
+      - name: Permanently delete the retired FableSpace object prefix
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.CDN_S3_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.CDN_S3_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: ${{ vars.CDN_S3_REGION || 'auto' }}
+          AWS_EC2_METADATA_DISABLED: "true"
+          CDN_S3_BUCKET: ${{ secrets.CDN_S3_BUCKET }}
+          CDN_S3_ENDPOINT_URL: ${{ secrets.CDN_S3_ENDPOINT_URL }}
+        run: |
+          set -euo pipefail
+          game_before="$(aws s3api list-objects-v2 --bucket "${CDN_S3_BUCKET}" --prefix game/ --endpoint-url "${CDN_S3_ENDPOINT_URL}" --query 'KeyCount' --output text)"
+          legacy_before="$(aws s3api list-objects-v2 --bucket "${CDN_S3_BUCKET}" --prefix fablespace/ --endpoint-url "${CDN_S3_ENDPOINT_URL}" --query 'KeyCount' --output text)"
+          aws s3 rm "s3://${CDN_S3_BUCKET}/fablespace/" --recursive --endpoint-url "${CDN_S3_ENDPOINT_URL}"
+          legacy_after="$(aws s3api list-objects-v2 --bucket "${CDN_S3_BUCKET}" --prefix fablespace/ --endpoint-url "${CDN_S3_ENDPOINT_URL}" --query 'KeyCount' --output text)"
+          game_after="$(aws s3api list-objects-v2 --bucket "${CDN_S3_BUCKET}" --prefix game/ --endpoint-url "${CDN_S3_ENDPOINT_URL}" --query 'KeyCount' --output text)"
+          test "${legacy_after}" = "0"
+          test "${game_after}" = "${game_before}"
+          echo "retired_objects=${legacy_before} game_objects_preserved=${game_after}"

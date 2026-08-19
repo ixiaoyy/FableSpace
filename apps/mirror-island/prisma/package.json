@@ -1,0 +1,9 @@
+{
+  "name": "mirror-island-migrations",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "dependencies": {
+    "prisma": "7.9.1"
+  }
+}

@@ -13,7 +13,7 @@ artifacts
 manual_tmp_test
 tmp_static_index_verify
 
-# Python caches and local runtime data
+# Python caches
 __pycache__
 *.py[cod]
 .pytest_cache
@@ -21,14 +21,8 @@ __pycache__
 .ruff_cache
 .venv
 venv
-.fablemap-api
-fablemap_data
 
-# Node/Vite/React Router generated output
-apps/web/node_modules
-apps/web/build
-apps/web/.react-router
-apps/web/dist
+# Node/Vite generated output
 apps/mirror-island/node_modules
 apps/mirror-island/dist
 apps/mirror-island/lib
@@ -41,12 +35,6 @@ apps/mirror-island/.env.*
 # Local env files and secrets
 .env
 .env.*
-apps/api/.env
-apps/api/.env.*
-!apps/api/.env.example
-apps/web/.env
-apps/web/.env.*
-!apps/web/.env.example
 
 # OS noise
 .DS_Store

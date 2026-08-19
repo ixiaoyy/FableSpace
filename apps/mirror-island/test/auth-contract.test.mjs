@@ -98,6 +98,12 @@ test("realm enables simple registration and exposes only username to self-servic
   assert.equal(realm.verifyEmail, false);
   assert.equal(realm.resetPasswordAllowed, false);
   assert.equal(realm.passwordPolicy, "maxLength(72)");
+  assert.equal(realm.loginTheme, "mirror-island");
+  assert.deepEqual(realm.identityProviders.map((provider) => provider.alias), ["parallellines"]);
+  assert.equal(realm.identityProviders[0].config.pkceMethod, "S256");
+  assert.equal(realm.identityProviders[0].config.defaultSignatureAlgorithm, "ES256");
+  assert.equal(realm.identityProviders[0].config.useJwksUrl, "true");
+  assert.equal(realm.identityProviders[0].linkOnly, false);
 
   const browserClient = realm.clients.find((client) => client.clientId === "mirror-island-web");
   assert.equal(browserClient.publicClient, true);
@@ -106,6 +112,14 @@ test("realm enables simple registration and exposes only username to self-servic
     browserClient.protocolMappers[0].config["included.client.audience"],
     audience,
   );
+  const forumEntryClient = realm.clients.find(
+    (client) => client.clientId === "mirror-island-forum-entry",
+  );
+  assert.equal(forumEntryClient.publicClient, false);
+  assert.equal(forumEntryClient.attributes["pkce.code.challenge.method"], "S256");
+  assert.deepEqual(forumEntryClient.redirectUris, [
+    "https://fable.pingxingxian.space/forum-sso/keycloak-callback",
+  ]);
 
   const profile = JSON.parse(await readFile(
     join(projectRoot, "keycloak", "mirror-island-user-profile.json"),
@@ -115,4 +129,7 @@ test("realm enables simple registration and exposes only username to self-servic
     .filter((attribute) => attribute.permissions.edit.includes("user"))
     .map((attribute) => attribute.name);
   assert.deepEqual(userEditable, ["username"]);
+  const username = profile.attributes.find((attribute) => attribute.name === "username");
+  assert.equal("up-username-not-idn-homograph" in username.validations, false);
+  assert.equal("username-prohibited-characters" in username.validations, true);
 });

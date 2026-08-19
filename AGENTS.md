@@ -1,97 +1,67 @@
-# Web 像素农场生活游戏 AI 协作约束
+# 镜像岛 AI 协作约束
 
-适用于整个仓库；更近层级的 `AGENTS.md` 优先。局部临时规则不得自动提升为全局规则。
-
-## 当前重构目标（优先于下方旧切片）
-
-- 自 2026-08-17 起，产品目标改为基于 RPGJS v5 的“镜像岛”共享世界；停止继续扩展现有 React + Phaser 纯前端原型。下方“当前可玩切片”只描述仍在线的回滚版本，不是新实现方向。
-- 新底座使用 RPGJS 的地图房间、玩家同步、NPC/Event、动态 tile、物品/背包、认证钩子和存档策略；Keycloak 负责论坛/独立账号与会话，PostgreSQL + Prisma 负责镜像岛持久化。
-- Phase 1 只允许在独立 `apps/mirror-island/` 创建可删除纵向验证：一张测试地图、两玩家同步、NPC、背包、动态 tile 和存档接口；不得修改生产 `/`、连接数据库或创建迁移。
-- 镜像岛正式目标为 512×512 瓦片、32×32 区块、RPGJS WebSocket 房间、全服统一时间、无主土地/作物争抢、迎宾 NPC 免费建房和私人住宅室内。
-- 用户已评审批准建议游戏表结构与单个 Prisma migration 范围；Phase 1 通过后才能进入 Keycloak/PostgreSQL 实施，创建迁移前仍须核对备份、部署和回滚文件。
-- 当前暂存但未提交的湖畔增量已按用户“不保留自研实现”的决定恢复到线上 HEAD；不要重新实现或恢复该 Phaser 分支。
+适用于整个仓库；更近层级的 `AGENTS.md` 优先。
 
 ## 产品主线
 
-- 当前产品是一个简单、独立、可直接游玩的桌面 Web 俯视角像素农场生活游戏。
-- 游戏公开入口是 `/`。玩家不登录即可创建本地角色或继续现有进度，再进入固定农场，在农场与住宅室内之间移动，并通过睡觉推进到下一天。
-- 论坛只通过 `VITE_FORUM_URL` 提供普通外链，在新标签页打开；论坛账号、内容和状态不得进入游戏运行时。
-- 旧 FableSpace 角色故事产品已被放弃。`Character`、`StoryWorld`、`ReviewedStory`、`StoryRun`、`PlayerRole`、历史故事、关系、记忆、回访、LLM 对话及其 API/数据库合同都不是新产品能力。
-- 旧前后端、文档、数据、配置和部署项只可视为待精确清退的历史实现，不得继续扩展、包装或建立兼容层。清退前必须完成引用审计、目标确认和回滚边界核对。
-
-## 当前可玩切片
-
-- 首次访问先进入原创标题与入住卡：选择男角色或女角色，填写 1–12 个 Unicode 字符的角色名，再进入农场；回访先显示名字、外观、天数与继续入口。
-- 一张固定农场 Tilemap：草地与路径、若干有碰撞的树和石头、一栋可进入的住宅。
-- 一个固定住宅室内 Tilemap：地板、墙体、门窗、基础家具和床。
-- 一个可见玩家角色：WASD 与方向键四向移动、四向朝向、行走/停止动画、归一化斜向速度。
-- 地图边界、树干、石头、墙体和占地家具碰撞；玩家与树冠、家具等按脚底位置正确前后遮挡。
-- 走入住宅门口或室内出口后自动切换场景；走到床边弹出“是否睡觉”选择，不要求额外交互键。睡眠确认与过渡期间锁定输入，日期只增加一次，并在住宅内从次日安全出生点醒来。
-- 只保存 `player_name`、稳定 `avatar_id`、`day`、`time_minutes`、`scene` 与稳定 `spawn_id`；使用带版本号的浏览器本地存档。合法 v2 存档补齐日内时间后继续，合法 v1 农场存档补齐身份和时间后保留进度；损坏或未知 v3 回到角色创建且不得复活旧档。
-- 回访可确认重新开始；确认只进入新角色草稿，直到新角色最终提交成功才覆盖现有存档。
-- 当前实现从早上 6:00 到凌晨 2:00 的离散日内时钟；每 7 秒推进 10 分钟，进出住宅保持时间，睡觉或到达凌晨 2:00 后进入次日 6:00。当前不做种地、作物、工具、砍树、碎石、掉落、NPC、对白、商店、金币、背包、体力、昼夜光照、天气、季节、战斗或经济系统。
-- 首发只验收桌面浏览器键盘/鼠标；移动端触控、虚拟摇杆、手柄和移动端专用布局不在本切片范围。
+- 当前唯一产品是基于 RPGJS v5 的“镜像岛”共享 Web 像素农场世界，公开入口为 `/`。
+- 旧 React/Phaser 本地农场、FastAPI、Character、StoryWorld、StoryRun、历史故事、关系/记忆、内容后台和 LLM 产品已永久退役；不从 Git 历史恢复建立兼容层或备用路由。
+- 世界目标固定为 512×512 瓦片、32×32 区块、RPGJS WebSocket room、全服时间、无主土地/作物争抢、迎宾 NPC 免费建房和私人住宅室内。
+- 论坛账号和独立用户名密码都通过 Keycloak 进入游戏；不提供游客、邮箱、找回、账号自动合并或绑定。
+- 旧 localStorage 名称、外观和进度不迁移；新客户端只精确删除 `farm-game.save.v1`–`v4`。
 
 ## 技术边界
 
-- 前端位于 `apps/web/`，采用 React Router / Vite / TypeScript 外壳与 Phaser 3 游戏运行时。
-- React 只负责根路由、首次/回访入口、角色创建表单草稿、危险重开确认、Phaser canvas 的挂载与销毁、加载失败表面和论坛 DOM 外链；不得把逐帧位置、动画、碰撞或场景状态镜像进 React state。
-- Phaser 负责资源预载、游戏循环、键盘输入、精灵动画、Tilemap、Arcade Physics、镜头、深度排序、场景切换和过渡。
-- Phaser 模块应在浏览器端加载；React StrictMode 或重复挂载不得产生多个游戏实例，组件卸载必须销毁实例并清理监听器。
-- 游戏状态只在游戏运行时和本地存档边界流动。当前产品不得调用 `apps/api/`、旧 API、数据库、LLM、认证或论坛接口。
-- React 将一次性校验后的初始存档传入 Phaser；BootScene 不得在资源加载后再次读取 localStorage。当前明确按单标签运行，不建设跨标签同步。
-- 固定、虚构的 Tilemap 游戏场景属于允许的核心实现；现实地图、经纬度、定位权限、现实 POI、附近发现、路线规划和实时导航仍然禁止。
-- 不引入通用地图编辑平台、ECS、程序生成框架、大型状态管理库或另一套物理/游戏框架，除非新需求单独论证并获批准。
-- 每个新增方法或 helper 必须有方法级注释，说明用途、关键参数、返回结果及非显而易见的约束。
-- `apps/mirror-island/` 以 RPGJS `5.0.0-beta.32`/上游提交 `7c7db1b...` 为固定验证基线；不在 Phase 1 自研游戏循环、玩家同步、通用背包或地图引擎。
-- 新应用必须与旧 `apps/web/` 并行，验收后再切换入口；不得边实现边删除线上回滚能力。
+- 唯一应用目录是 `apps/mirror-island/`，固定 RPGJS `5.0.0-beta.32`/上游提交 `7c7db1b...`。
+- RPGJS 负责地图房间、玩家同步、NPC/Event、动态 tile、Items/Inventory、auth hook 和 SaveStorageStrategy；不自研通用游戏循环、同步引擎或背包平台。
+- Keycloak `26.7.1` 管理身份与会话；`oidc-provider` `9.11.1` 只把 ParallelLines 一次性票据适配为 OIDC，不保存论坛密码或建第二个用户库。
+- 镜像岛游戏数据使用 Prisma `7.9.1` + 独立 PostgreSQL 17；Keycloak 和游戏分库、分凭据、分 volume。
+- 已评审的九表范围只允许一个基线 migration。应用启动不建表；生产使用一次性 migration 镜像执行 `prisma migrate deploy`。
+- Keycloak/RPGJS token、密码、ticket、数据库 URL、SSO secret 和 cookie key 不进 URL、浏览器存储、Git、镜像或日志。
+- 固定虚构 Tilemap 是核心能力；现实地图、经纬度、定位、现实 POI 和导航永久禁止。
+- 每个新增方法或 helper 必须有方法级注释，说明用途、关键参数、返回结果和非显而易见约束。
 
-## 权威来源与工作流
+## 开源优先
 
-### 开源优先
-
-- 新增通用能力前必须先检索并评估成熟开源方案，优先集成、适配或组合现有实现，不默认从零自研；适用于账号、会话、背包、地图分块、游戏后端、UI 组件、存储和网络同步等可复用基础能力。
-- 采用前必须核对官方来源、许可证与商用兼容性、维护活跃度、发布与安全记录、当前技术栈兼容性、依赖和前端体积、数据所有权、升级与回滚成本；不能仅因“开源”就引入无人维护、许可证不清或架构冲突的项目。
-- 优先采用边界清楚的窄集成；若一个小需求必须引入整套平台、恢复已废弃产品能力或突破已批准架构边界，仍须先单独论证并获得用户确认。
-- 对正式采用项记录仓库或官方文档、固定版本/提交、许可证、采用范围、本项目修改点和验证证据；依赖版本必须锁定，不引用漂移的主分支或来源不明镜像。
-- 只有在检索后确认没有合适方案，或接入成本和风险明确高于最小自研时，才实现项目专用薄层；任务设计中必须记录搜索结果、拒绝原因和自研边界。
-
-- 当前权威入口按需读取：`README.md`、`docs/INDEX.md`、`docs/PRODUCT_BRIEF.md`、`docs/WHAT_NOT_TO_BUILD.md`、`docs/IMAGE_ASSETS_SPEC.md`、`.trellis/spec/frontend/index.md` 和 `.trellis/spec/frontend/pixel-game-runtime.md`。
-- `docs/FABLESPACE_SPACE_PLATFORM.md`、`docs/WORLD_SCHEMA.md` 及其他 Character/StoryWorld/LLM 文档是待清退历史资料，不得作为新实现依据。未经确认不要移动、删除或重命名这些文件。
-- 聊天与当前权威文档冲突时，以用户最新明确决定为准，并先同步权威合同；权威文档互相冲突时先修正文档再实现。
-- 复杂新功能先明确目标、范围、约束和验证；Bug 先复现或定位根因。协议重置、玩法实现、素材采用和旧能力清退尽量分开。
-- 查看、分析或解释保持只读；只有用户要求修改时才变更代码、配置或数据。临时诊断代码须删除或整理为受控能力。
-- 结论只基于已检查的代码、配置、数据、日志或运行状态；证据不足时说明缺口，不用推测冒充事实。
+- 新增通用能力前必须检索成熟开源方案，核对官方来源、许可证/商用兼容、维护和安全记录、技术栈兼容、体积、数据归属、升级和退出成本。
+- 优先边界清楚的窄集成；版本/提交必须锁定，不引用漂移主分支或来源不明镜像。
+- 只有检索后没有合适方案，或接入成本/风险高于项目专用薄层时，才允许最小自研并记录拒绝原因。
 
 ## 数据库与不可逆操作
 
-- 除非用户明确授权，禁止连接任何数据库，包括只读查询、连通性测试、统计和结构探测。
-- 当前游戏不需要数据库、迁移或后端 Schema。不得为本地存档新建 API、数据库表或迁移。
-- 未来若确需数据库，先提交表结构、数据影响、迁移与回滚范围供人工评审；用户明确批准前不得创建迁移文件、建表或改表。
-- 破坏性 Git 或文件操作（如 `reset`、`clean`、删除大目录）必须由用户明确要求，并先核对精确目标。
-- 撤销前检查工作区和目标文件完整 diff，只精确撤销自己的改动；文件含他人改动时禁止整文件还原。
-- 保留脏工作区既有改动，不夹带无关格式化、重构、依赖升级或历史文件清退。不要引用不存在的模块、接口、包、脚本或资源。
+- 除非用户明确授权，禁止连接任何数据库，包括只读查询、连通性、统计和结构探测。
+- 新表/字段/migration 必须先提交结构、数据影响、部署和 forward-fix 范围并得到批准；同一需求版本最多一个 migration。
+- 破坏性 Git/文件/数据操作必须先核对精确绝对目标和完整 diff；不对根目录、主目录、未解析变量或通配递归目标执行删除。
+- 旧 FableSpace 的 `fablespace` MySQL database、`fablespace_data` volume、备份、Schema/LLM/env 和 R2 `fablespace/` prefix 已获用户永久删除授权；必须保留论坛数据、`mirror_identity_db`、`mirror_game_db` 和 `game/` prefix。
+- 撤销前检查工作区和目标文件完整 diff，只精确撤销自己的改动；不用整文件 restore 覆盖他人改动。
 
 ## 图片与第三方素材
 
-- 首个切片只采用 pixel-boy 官方 `Ninja Adventure - Asset Pack` 中实际需要的视觉素材；官方来源固定为 `https://pixel-boy.itch.io/ninja-adventure-asset-pack`，授权记录为 CC0。
-- 不得从镜像、二次打包或来源不明的仓库取材；不得把完整素材包加入项目。
-- 新增或替换的 PNG、JPG、WebP、GIF、AVIF、ICO、SVG、spritesheet 和 tileset 等图片二进制不进入 Git；现有文本型站点 favicon 不属于游戏素材，也不在首片清退范围。采用项必须上传至新游戏的不可变对象存储命名空间并登记 `deploy/cdn/game-media-manifest.json`。浏览器默认通过同源 `/game-media/v1` 代理读取 manifest 对应的 HTTPS CDN 对象；场景不得引用未登记资源。
-- 男角色使用官方 `ninja_blue/sprite.png`，女角色使用同一固定提交的官方 `samurai_green/samurai_green.png`；两项都必须上传新游戏不可变对象并登记 manifest，且只有外观差异，不带职业或属性。
-- 每个采用项须记录官方来源、下载快照或原包哈希、原包相对路径、裁切/合图/转码过程、尺寸、字节数、MIME 和 SHA-256。第三方 CC0 素材不伪造 prompt sidecar。
-- AI 生成或人工原创素材另行记录生成/制作来源；正式采用前同样先上传、登记、核验。`.codex/generated_images` 中未采用的候选图不得被项目引用。
-- 旧 `fablespace/media/v1` 对象和 manifest 条目属于待清退资产，不得被新游戏复用或静默删除。
+- 当前只采用 pixel-boy 官方 `Ninja Adventure - Asset Pack` 已登记子集，官方来源 `https://pixel-boy.itch.io/ninja-adventure-asset-pack`，授权 CC0。
+- 不从镜像、二次打包或来源不明仓库取材，不把完整素材包或图片二进制加入 Git。
+- 采用项必须先上传不可变 `game/media/v1` 对象并登记 `deploy/cdn/game-media-manifest.json`；浏览器默认通过同源 `/game-media/v1` 读取。
+- 每项记录官方来源、固定提交/快照哈希、原路径、处理、尺寸、字节、MIME 和 SHA-256；第三方 CC0 不伪造 prompt sidecar。
+- 旧 `fablespace/` 对象已授权清退，不得被镜像岛引用。
 
-## 最小验证
+## 权威来源与验证
 
-- 只改文档：核对术语、链接、文件职责及新旧权威边界，不跑构建或测试。
-- 改前端代码/样式：`npm --prefix .\apps\web run typecheck` 和 `npm --prefix .\apps\web run build`。
-- 改 React 组件或状态流：在上述命令后运行 changed-scope React Doctor（可用时），不得接受分数回退。
-- 改玩法或交互：除构建与类型检查外，在桌面浏览器人工验收首次建角、男/女外观、姓名边界、继续/重开、v1/v2 补资料、损坏 v3、移动、动画、碰撞、遮挡、日内时钟、进出住宅、睡眠与凌晨 2:00 单次结算、刷新恢复、画布缩放和论坛外链。
-- 改图片：核对 CDN URL、对象 key、尺寸、格式、字节数、MIME、SHA-256 和缓存头；跨域直连时还须核对 CORS，同源代理模式则核对代理回读。确认 Git 跟踪图片二进制为零，再运行前端构建。
-- 当前仓库没有通用测试前置要求；不得用旧输出声称本轮通过。失败须报告命令、原因和下一步。
+- 权威入口：`README.md`、`docs/INDEX.md`、`docs/PRODUCT_BRIEF.md`、`docs/WHAT_NOT_TO_BUILD.md`、`docs/IMAGE_ASSETS_SPEC.md`、`docs/DEPLOYMENT.md`、`.trellis/spec/frontend/mirror-island-rpgjs.md`。
+- 聊天与文档冲突时以用户最新明确决定为准，先同步权威合同再实现。
+- 查看/解释保持只读；只有用户要求修改才变更代码、配置或数据。
+- 结论只基于已检查代码、配置、数据、日志和运行状态；证据不足时说明缺口。
 
-## 版本控制与汇报
+最小验证：
 
-- 业务实现新增的生产代码和配置确认属于需求并完成最小验证后立即暂存；测试、文档、截图和诊断产物按任务约定处理。
-- 最终简述修改文件、原因、实际运行的验证命令与结果，以及未做事项、风险或待确认点。没有本轮新鲜验证，不得声称完成或通过。
+```powershell
+npm --prefix .\apps\mirror-island run prisma:validate
+npm --prefix .\apps\mirror-island run typecheck
+npm --prefix .\apps\mirror-island test
+npm --prefix .\apps\mirror-island run build
+npm --prefix .\apps\mirror-island run build:server
+docker compose -f docker-compose.yml -f deploy/docker-compose.mirror-island.yml config
+```
+
+- 身份/主题改动还要验收中文注册、论坛 SSO、再访、Remember Me、同名不合并、桌面/手机/200% zoom/键盘/错误状态。
+- 持久化改动要在隔离 PostgreSQL 实际应用 migration，验证存档跨 Prisma/进程重连恢复，且生产数据路径健康不能只用 `/health` 代替。
+- 改图片要核对 URL/key/尺寸/格式/字节/MIME/SHA-256/缓存头和 Git 跟踪图片二进制为零。
+- 业务实现新增生产代码/配置并通过最小验证后立即 `git add`；测试、文档、截图和诊断产物不自动暂存。

@@ -1,0 +1,323 @@
+:root {
+  --island-night: #101e2b;
+  --island-lake: #193b4a;
+  --island-moss: #426548;
+  --island-leaf: #6f8d55;
+  --island-paper: #f3dfb3;
+  --island-paper-light: #fff0c8;
+  --island-ink: #281f19;
+  --island-gold: #e4b45d;
+  --island-rust: #9c4738;
+  --island-shadow: #0a1118;
+  --island-pixel: 4px;
+}
+
+html,
+body,
+.login-pf,
+.pf-v5-c-background-image {
+  min-height: 100%;
+  background: var(--island-night);
+}
+
+body {
+  position: relative;
+  overflow-x: hidden;
+  color: var(--island-paper-light);
+  font-family: "Microsoft YaHei", "PingFang SC", "Noto Sans CJK SC", sans-serif;
+  background:
+    linear-gradient(to bottom, #142d3c 0 38%, #214a4f 38% 57%, #183b38 57% 100%);
+}
+
+body::before,
+body::after {
+  position: fixed;
+  z-index: 0;
+  content: "";
+  pointer-events: none;
+}
+
+body::before {
+  inset: 0;
+  opacity: 0.26;
+  background-image:
+    linear-gradient(90deg, rgba(255, 255, 255, 0.06) 1px, transparent 1px),
+    linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+  background-size: 16px 16px;
+  mask-image: linear-gradient(to bottom, transparent, #000 26%, #000);
+}
+
+body::after {
+  right: clamp(22px, 8vw, 130px);
+  bottom: clamp(20px, 7vh, 76px);
+  width: 64px;
+  height: 64px;
+  image-rendering: pixelated;
+  background: url("/game-media/v1/assets/vendor/ninja-adventure/2024-04-19/player.png") 0 0 / 256px 448px no-repeat;
+  filter: drop-shadow(8px 10px 0 rgba(10, 17, 24, 0.45));
+  transform: scale(1.5);
+  transform-origin: bottom right;
+}
+
+.pf-v5-c-login,
+.pf-v5-c-login__container,
+.login-pf-page {
+  position: relative;
+  z-index: 1;
+  min-height: 100vh;
+  background: transparent;
+}
+
+.pf-v5-c-login {
+  width: 100vw;
+  padding-block: 0;
+}
+
+.pf-v5-c-login__container {
+  box-sizing: border-box;
+  display: grid;
+  grid-template-areas:
+    "header"
+    "main";
+  grid-template-columns: minmax(280px, 430px);
+  grid-template-rows: max-content max-content;
+  gap: 18px;
+  align-content: center;
+  justify-content: start;
+  min-height: 100vh;
+  padding: clamp(20px, 4vw, 52px);
+}
+
+.pf-v5-c-login__header {
+  grid-area: header;
+}
+
+.pf-v5-c-login__main {
+  grid-area: main;
+  width: 100%;
+}
+
+#kc-header,
+.pf-v5-c-login__main-header {
+  color: var(--island-paper-light);
+}
+
+#kc-header {
+  margin: 0;
+}
+
+#kc-header-wrapper {
+  max-width: 430px;
+  margin: 0;
+  padding: 0;
+  color: var(--island-paper-light);
+  font-size: clamp(32px, 5vw, 56px);
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: 0.08em;
+  text-align: left;
+  text-shadow:
+    4px 0 0 var(--island-shadow),
+    0 4px 0 var(--island-shadow),
+    4px 4px 0 var(--island-shadow);
+}
+
+#kc-header-wrapper::after {
+  display: block;
+  margin-top: 12px;
+  color: var(--island-gold);
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.28em;
+  text-shadow: 2px 2px 0 var(--island-shadow);
+  content: "MIRROR ISLAND · 渡口登记处";
+}
+
+.pf-v5-c-login__main,
+.card-pf,
+#kc-content {
+  border: var(--island-pixel) solid var(--island-ink);
+  border-radius: 0;
+  background: var(--island-paper);
+  box-shadow:
+    0 0 0 var(--island-pixel) var(--island-gold),
+    12px 14px 0 var(--island-shadow);
+}
+
+.card-pf,
+#kc-content {
+  padding: 24px;
+}
+
+.pf-v5-c-login__main > .pf-v5-c-login__main-header {
+  padding: 18px 24px 8px;
+}
+
+.pf-v5-c-login__main > .pf-v5-c-login__main-body {
+  padding: 14px 24px 24px;
+}
+
+#kc-form-login {
+  row-gap: 12px;
+}
+
+.pf-v5-c-title,
+#kc-page-title,
+label,
+.pf-v5-c-form__label,
+.pf-v5-c-check__label,
+.instruction,
+#kc-info-wrapper {
+  color: var(--island-ink);
+}
+
+.pf-v5-c-title,
+#kc-page-title {
+  font-weight: 900;
+  letter-spacing: 0.08em;
+}
+
+.pf-v5-c-form-control,
+input[type="text"],
+input[type="password"] {
+  min-height: 48px;
+  border: 3px solid var(--island-ink);
+  border-radius: 0;
+  color: var(--island-ink);
+  background: var(--island-paper-light);
+  box-shadow: inset 3px 3px 0 rgba(40, 31, 25, 0.14);
+}
+
+.pf-v5-c-form-control:focus-within,
+input:focus-visible,
+button:focus-visible,
+a:focus-visible {
+  outline: 4px solid #fff;
+  outline-offset: 3px;
+  box-shadow: 0 0 0 7px var(--island-lake);
+}
+
+.pf-v5-c-button,
+button,
+input[type="submit"] {
+  min-height: 48px;
+  border: 3px solid var(--island-ink);
+  border-radius: 0;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  box-shadow: 4px 5px 0 var(--island-ink);
+  transition: transform 90ms steps(2, end), box-shadow 90ms steps(2, end);
+}
+
+.pf-v5-c-button.pf-m-primary,
+#kc-login,
+input[type="submit"] {
+  color: #fff8df;
+  background: var(--island-moss);
+}
+
+.pf-v5-c-button:hover,
+button:hover,
+input[type="submit"]:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 6px 7px 0 var(--island-ink);
+}
+
+.pf-v5-c-button:active,
+button:active,
+input[type="submit"]:active {
+  transform: translate(3px, 4px);
+  box-shadow: 1px 1px 0 var(--island-ink);
+}
+
+#kc-social-providers,
+.kc-social-section {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 3px dashed rgba(40, 31, 25, 0.46);
+}
+
+.pf-v5-c-login__main-footer-band {
+  padding: 4px 0;
+}
+
+#kc-social-providers ul {
+  margin: 0;
+  padding: 0;
+}
+
+#kc-social-providers a,
+.kc-social-item,
+.pf-v5-c-login__main-footer-links-item-link {
+  color: var(--island-paper-light);
+  border-color: var(--island-ink);
+  background: var(--island-lake);
+}
+
+#kc-social-providers svg {
+  width: 28px;
+  height: 28px;
+  flex: 0 0 28px;
+  fill: var(--island-gold);
+}
+
+.pf-v5-c-alert,
+.alert-error,
+.kc-feedback-text {
+  border: 3px solid var(--island-ink);
+  border-radius: 0;
+  color: #fff5dd;
+  background: var(--island-rust);
+  box-shadow: 4px 4px 0 var(--island-ink);
+}
+
+a {
+  color: #234c56;
+  font-weight: 800;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
+}
+
+@media (max-width: 640px) {
+  body::after {
+    right: 20px;
+    bottom: 12px;
+    transform: scale(1.05);
+  }
+
+  .pf-v5-c-login__container {
+    align-content: start;
+    padding: 28px 18px 96px;
+  }
+
+  #kc-header-wrapper {
+    font-size: 36px;
+  }
+
+  #kc-header-wrapper::after {
+    font-size: 11px;
+    letter-spacing: 0.16em;
+  }
+
+  .card-pf,
+  #kc-content {
+    padding: 22px 18px;
+  }
+
+  .pf-v5-c-login__main > .pf-v5-c-login__main-header {
+    padding: 22px 18px 8px;
+  }
+
+  .pf-v5-c-login__main > .pf-v5-c-login__main-body {
+    padding: 12px 18px 20px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition: none !important;
+  }
+}
