@@ -73,7 +73,13 @@ async function requestAdmin(accessToken, path, { method = "GET", body, allowNotF
   if (!response.ok) {
     throw new Error(`Unable to reconcile Keycloak ${path} (HTTP ${response.status}).`);
   }
-  return response.status === 204 ? null : response.json();
+  const responseText = await response.text();
+  if (responseText.trim().length === 0) return null;
+  try {
+    return JSON.parse(responseText);
+  } catch {
+    throw new Error(`Keycloak ${path} returned an invalid JSON response (HTTP ${response.status}).`);
+  }
 }
 
 /** Reconciles the pixel login theme and registration flags on an already-imported realm. */
