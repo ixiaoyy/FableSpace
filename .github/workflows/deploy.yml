@@ -79,7 +79,8 @@ jobs:
         run: |
           set -euo pipefail
           docker run --rm --entrypoint sh "${GAME_IMAGE}" -ec \
-            '! find /app -type f | grep -E "image-size|@rpgjs/vite|prisma.config"'
+            'test -f /app/node_modules/@canvasengine/tiled/dist/index.js \
+              && ! find /app -type f | grep -E "image-size|@rpgjs/vite|prisma.config"'
           docker run --rm --entrypoint sh "${FRONTEND_IMAGE}" -ec \
             'test -f /usr/share/nginx/html/index.html && test ! -d /usr/share/nginx/html/mirror-island'
           docker run --rm --entrypoint sh "${MIGRATION_IMAGE}" -ec \
