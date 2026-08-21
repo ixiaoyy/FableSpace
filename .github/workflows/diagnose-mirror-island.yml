@@ -50,7 +50,7 @@ jobs:
             LOG_FILE="$(mktemp)"
             trap 'rm -f "${LOG_FILE}"' EXIT
             chmod 0600 "${LOG_FILE}"
-            $COMPOSE $COMPOSE_FILES logs --since=30m --no-color mirror-game \
+            $COMPOSE $COMPOSE_FILES logs --since=15m --no-color mirror-game \
               >"${LOG_FILE}" 2>&1 || true
             python3 - "${LOG_FILE}" <<'PY'
             from pathlib import Path
@@ -70,10 +70,14 @@ jobs:
             map_markers = (
                 "unable to resolve tiled map",
                 "unable to load tiled map",
+                "failed initializing map for room",
                 "map stream",
             )
             database_count = sum(text.count(marker) for marker in database_markers)
             map_count = sum(text.count(marker) for marker in map_markers)
+            map_initialized_count = text.count(
+                "initialized map for room map-simplemap via post /map/update"
+            )
             unclassified_count = max(
                 0,
                 generic_count - auth_count - min(database_count, generic_count) - min(map_count, generic_count),
@@ -82,6 +86,7 @@ jobs:
             print(f"authentication_failed={auth_count}")
             print(f"database_unreachable={database_count}")
             print(f"map_stream_failed={map_count}")
+            print(f"map_room_initialized={map_initialized_count}")
             print(f"player_initialization_or_unclassified={unclassified_count}")
             print(f"websocket_failure_total={generic_count}")
             PY
