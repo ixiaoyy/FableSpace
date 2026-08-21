@@ -158,16 +158,18 @@ jobs:
               COMPOSE="sudo docker-compose"
             fi
             COMPOSE_FILES="-f docker-compose.yml -f deploy/docker-compose.mirror-island.yml"
+            cd /opt/parallellines
+            if sudo docker compose version >/dev/null 2>&1; then
+              PARALLELLINES_COMPOSE="sudo docker compose"
+            else
+              PARALLELLINES_COMPOSE="sudo docker-compose"
+            fi
+            cd "${FABLESPACE_PATH}"
             CONFIG_OUTPUT="$(sudo python3 deploy/server/configure_mirror_island.py)"
             printf '%s\n' "${CONFIG_OUTPUT}"
             case "${CONFIG_OUTPUT}" in
               *parallellines_changed=true*)
                 cd /opt/parallellines
-                if sudo docker compose version >/dev/null 2>&1; then
-                  PARALLELLINES_COMPOSE="sudo docker compose"
-                else
-                  PARALLELLINES_COMPOSE="sudo docker-compose"
-                fi
                 $PARALLELLINES_COMPOSE up -d --no-deps --force-recreate api worker
                 PARALLELLINES_READY=false
                 for ATTEMPT in $(seq 1 30); do
@@ -182,6 +184,16 @@ jobs:
                 cd "${FABLESPACE_PATH}"
                 ;;
             esac
+
+            cd /opt/parallellines
+            PARALLELLINES_API_CONTAINER="$($PARALLELLINES_COMPOSE ps -q api)"
+            test -n "${PARALLELLINES_API_CONTAINER}"
+            PARALLELLINES_DOCKER_NETWORK="$(
+              sudo docker inspect "${PARALLELLINES_API_CONTAINER}" \
+                | python3 -c 'import json, sys; networks = json.load(sys.stdin)[0]["NetworkSettings"]["Networks"]; matches = [name for name, settings in networks.items() if "api" in (settings.get("Aliases") or [])]; len(matches) == 1 or sys.exit("ParallelLines api must have exactly one Docker network alias"); print(matches[0])'
+            )"
+            export PARALLELLINES_DOCKER_NETWORK
+            cd "${FABLESPACE_PATH}"
 
             IMAGE_ARCHIVE="/tmp/mirror-island-${EXPECTED_SHA}.tar.gz"
             sudo docker load -i "${IMAGE_ARCHIVE}"
@@ -229,7 +241,7 @@ jobs:
             SERVICES_READY=false
             for ATTEMPT in $(seq 1 40); do
               if $COMPOSE $COMPOSE_FILES exec -T mirror-game node -e \
-                "Promise.all([fetch('http://127.0.0.1:3001/health'),fetch('http://127.0.0.1:3001/forum-sso/.well-known/openid-configuration'),fetch('http://keycloak:8080/identity/realms/mirror-island/.well-known/openid-configuration')]).then(r=>process.exit(r.every(x=>x.ok)?0:1)).catch(()=>process.exit(1))"; then
+                "const forumHealth=new URL('/healthz',new URL(process.env.PARALLELLINES_API_BASE_URL).origin);Promise.all([fetch('http://127.0.0.1:3001/health'),fetch('http://127.0.0.1:3001/forum-sso/.well-known/openid-configuration'),fetch('http://keycloak:8080/identity/realms/mirror-island/.well-known/openid-configuration'),fetch(forumHealth)]).then(r=>process.exit(r.every(x=>x.ok)?0:1)).catch(()=>process.exit(1))"; then
                 SERVICES_READY=true
                 break
               fi

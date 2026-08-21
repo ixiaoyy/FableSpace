@@ -96,6 +96,9 @@ services:
         condition: service_healthy
     expose:
       - "3001"
+    networks:
+      - default
+      - parallellines-api
     mem_limit: 384m
     restart: unless-stopped
     healthcheck:
@@ -133,3 +136,8 @@ services:
 volumes:
   mirror_identity_db:
   mirror_game_db:
+
+networks:
+  parallellines-api:
+    name: ${PARALLELLINES_DOCKER_NETWORK:-parallellines_default}
+    external: true

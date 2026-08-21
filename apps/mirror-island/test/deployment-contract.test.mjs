@@ -21,6 +21,15 @@ test("production topology keeps Mirror Island isolated and resource bounded", as
   assert.match(compose, /keycloak:[\s\S]*?mem_limit: 768m/);
   assert.match(compose, /mirror-game-db:[\s\S]*?mem_limit: 384m/);
   assert.match(compose, /mirror-game:[\s\S]*?mem_limit: 384m/);
+  assert.match(
+    compose,
+    /\n  mirror-game:\n[\s\S]*?networks:\n\s+- default\n\s+- parallellines-api/,
+  );
+  assert.match(
+    compose,
+    /parallellines-api:\n\s+name: \$\{PARALLELLINES_DOCKER_NETWORK:-parallellines_default\}\n\s+external: true/,
+  );
+  assert.equal(compose.match(/^\s+- parallellines-api$/gm)?.length, 1);
   assert.doesNotMatch(compose, /ports:[\s\S]*?3001/);
 });
 
@@ -49,6 +58,11 @@ test("deployment backs up identity data and never transports bearer tokens in qu
   assert.match(workflow, /retire_legacy_fablespace\.py --apply/);
   assert.match(workflow, /probe-forum-oidc\.mjs/);
   assert.match(workflow, /configure-keycloak-profile\.mjs/);
+  assert.match(workflow, /PARALLELLINES_API_CONTAINER=.*ps -q api/);
+  assert.match(workflow, /NetworkSettings.*Networks/);
+  assert.match(workflow, /settings\.get\("Aliases"\)/);
+  assert.match(workflow, /export PARALLELLINES_DOCKER_NETWORK/);
+  assert.match(workflow, /new URL\('\/healthz',new URL\(process\.env\.PARALLELLINES_API_BASE_URL\)\.origin\)/);
   assert.match(workflow, /--header='Host: fable\.pingxingxian\.space'/);
   assert.match(workflow, /https:\/\/fable\.pingxingxian\.space\/forum-sso\/auth/);
   assert.match(workflow, /Location: \//);

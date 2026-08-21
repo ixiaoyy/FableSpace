@@ -168,6 +168,24 @@ Before changing a deployment-level config source:
       `HTTP_PROXY` / `HTTPS_PROXY` can silently reroute authentication, storage,
       health, and other integrations; verify non-target traffic stays direct.
 
+## Cross-Compose Service Discovery Boundary
+
+When a runtime URL uses a bare container service name such as `http://api:8000`,
+the URL contract includes Docker network membership, not just the environment
+value:
+
+- [ ] Identify the Compose project that owns the caller and the project that
+      owns the target; separate default networks do not share service DNS.
+- [ ] Attach only the caller to the target's reviewed external network while
+      preserving the caller's own default network dependencies.
+- [ ] Resolve or validate the actual production network name instead of
+      assuming the directory-derived Compose project name.
+- [ ] Run the readiness probe from the real caller container to the target
+      service; public ingress, same-container health, and OIDC metadata do not
+      prove this internal hop.
+- [ ] Fail before traffic replacement when the target container, DNS alias,
+      network membership, or target health response is missing or ambiguous.
+
 ## Public-Origin and Compatible-Provider Deployment Boundary
 
 A healthy container-local request does not prove that a reverse-proxied public

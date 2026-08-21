@@ -103,6 +103,67 @@ RPGJS auth hook -> verified Keycloak sub
 - 地图切换和断线显式存档，不在每帧或每次 `syncChanges` 无界写库。
 - 基础地形不入库；动态格/房屋/背包/结算使用事务、唯一约束和 OCC，提交后才广播。
 
+## Scenario: Cross-Compose forum API network contract
+
+### 1. Scope / Trigger
+
+- 修改论坛 ticket exchange/introspection 的内部 URL、Compose 网络或生产身份健康门禁时触发。
+- `/opt/fablespace` 与 `/opt/parallellines` 是独立 Compose 项目；默认网络的 service DNS 不跨项目传播。
+
+### 2. Signatures
+
+- Runtime env：`PARALLELLINES_API_BASE_URL=http://api:8000/api/v1`。
+- Deploy-only env：`PARALLELLINES_DOCKER_NETWORK=<api alias 所在网络名>`。
+- Compose：`mirror-game.networks = [default, parallellines-api]`；`parallellines-api.external = true`。
+- Health boundary：从 `mirror-game` 请求 `new URL("/healthz", new URL(PARALLELLINES_API_BASE_URL).origin)`。
+
+### 3. Contracts
+
+- 生产部署从运行中的 ParallelLines `api` 容器解析网络，不固定假设 Compose project 名称。
+- 只接受网络 aliases 包含精确 `api` 的唯一网络；解析后才允许执行镜像岛 Compose `up`。
+- 只有 `mirror-game` 加入论坛外部网络；frontend、Keycloak、PostgreSQL 和 migration 保持在镜像岛默认网络。
+- 健康请求不携带 secret、ticket、Cookie、账号 ID，不读取或输出响应正文。
+
+### 4. Validation & Error Matrix
+
+| 条件 | 结果 |
+| --- | --- |
+| ParallelLines `api` 容器不存在 | 部署在启动镜像岛服务前失败 |
+| 没有 `api` alias 或匹配多个网络 | 网络解析失败，不猜测网络 |
+| 外部网络不存在 | Compose `up` 失败，不退回公网 API |
+| `mirror-game` 不能解析 `api` 或 `/healthz` 非 2xx | service readiness 失败，frontend 不替换 |
+| OIDC discovery/interaction 正常但论坛 `/healthz` 不可达 | 仍判定部署失败 |
+
+### 5. Good / Base / Bad Cases
+
+- Good：动态解析实际论坛网络，`mirror-game` 保留 `default` 并额外挂载该网络，四项服务健康请求全部成功。
+- Base：本地只运行 `docker compose config` 时使用 `parallellines_default` 默认名，验证渲染但不声称生产可达。
+- Bad：`mirror-game` 只在镜像岛默认网络，却配置 `http://api:8000`，然后把 DNS/连接失败显示成票据过期。
+
+### 6. Tests Required
+
+- `deployment-contract.test.mjs` 断言外部网络变量、`external: true`，且 `parallellines-api` 只出现在 `mirror-game` 的 service network 列表。
+- 同一测试断言 Workflow 解析 `api` 容器、检查 `NetworkSettings.Networks`/`Aliases`、导出网络名并从论坛 API origin 请求 `/healthz`。
+- `docker compose ... config` 必须显示 `mirror-game` 同时位于两个网络，其余服务不在论坛网络。
+- 生产验收必须覆盖论坛首次 SSO 与再访登录；OIDC metadata 成功不能替代这两项。
+
+### 7. Wrong vs Correct
+
+```yaml
+# Wrong: 独立 Compose 项目的默认 DNS 不可见。
+mirror-game:
+  environment:
+    PARALLELLINES_API_BASE_URL: http://api:8000/api/v1
+
+# Correct: 保留本项目网络，并显式加入已解析的论坛外部网络。
+mirror-game:
+  networks: [default, parallellines-api]
+networks:
+  parallellines-api:
+    name: ${PARALLELLINES_DOCKER_NETWORK}
+    external: true
+```
+
 ## Deployment and verification
 
 - 顺序固定为：构建三镜像 -> 两库备份 -> migration -> Keycloak/game -> realm/profile reconcile -> frontend -> 健康验收 -> 旧系统永久清退。

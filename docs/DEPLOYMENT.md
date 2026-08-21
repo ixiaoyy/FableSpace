@@ -23,6 +23,8 @@
 
 Keycloak 与游戏数据库使用不同服务、database、用户、密码和 volume。
 
+`mirror-game` 保留镜像岛默认网络，并额外连接 ParallelLines `api` 当前使用的外部 Docker 网络；只有 `mirror-game` 进入该网络。生产部署从正在运行的 `api` 容器解析带精确 `api` 别名的唯一网络，不依赖固定 Compose 项目名，也不让 frontend、Keycloak 或数据库进入论坛网络。
+
 ## 私密配置
 
 `deploy/server/configure_mirror_island.py` 在主机上生成 mode `0600` 的 `apps/mirror-island/.env.production`，并与 `/opt/parallellines/apps/api/.env` 同步现有票据密钥。输出只包含是否生成密钥和论坛 env 是否变化，不输出值。
@@ -43,7 +45,7 @@ Keycloak 与游戏数据库使用不同服务、database、用户、密码和 vo
 3. 生成/复用两套数据库和 SSO 密钥，启动两个 PostgreSQL。
 4. 对已有的 Keycloak/game database 分别生成非空 `pg_dump` gzip 备份。
 5. 运行唯一 `20260819000000_mirror_island_baseline` migration；失败时不启动新 `mirror-game`。
-6. 启动 Keycloak/mirror-game，应用 realm、主题、OIDC provider、client 和 user profile。
+6. 解析 ParallelLines `api` 的实际 Docker 网络，启动 Keycloak/mirror-game，并从 `mirror-game` 访问论坛 `/healthz` 后再应用 realm、主题、OIDC provider、client 和 user profile。
 7. 替换 frontend，验证 `/`、`/identity/`、`/forum-sso/`、`/parties/` 和 308 重定向。
 8. 只在新系统健康后执行旧 FableSpace 永久清退。
 
