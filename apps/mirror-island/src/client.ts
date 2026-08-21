@@ -22,7 +22,7 @@ function discardRetiredFarmSaves(storage: Storage = window.localStorage): void {
 try {
   discardRetiredFarmSaves();
   const keycloak = await initializeKeycloakSession();
-  startGame(
+  await startGame(
     mergeConfig(configClient, {
       providers: [
         provideMmorpg({

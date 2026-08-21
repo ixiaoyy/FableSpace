@@ -100,6 +100,7 @@ export function createKeycloakAuthModule(
         try {
           return await verifyAccessToken(accessTokenFrom(socket));
         } catch {
+          console.error("[mirror-island:auth] WebSocket authentication failed.");
           throw new Error("Authentication failed.");
         }
       },
