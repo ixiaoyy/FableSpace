@@ -61,6 +61,13 @@ jobs:
             server_started_count = text.count("mirror island rpgjs server listening")
             upgrade_request_count = text.count("websocket upgrade request:")
             lobby_request_count = text.count("room: lobby-1")
+            map_request_count = text.count("room: map-simplemap")
+            lobby_upgrade_count = text.count(
+                "websocket upgrade request: /parties/main/lobby-1"
+            )
+            map_upgrade_count = text.count(
+                "websocket upgrade request: /parties/main/map-simplemap"
+            )
             collection_error_markers = (
                 "no such service",
                 "cannot connect to the docker daemon",
@@ -99,6 +106,9 @@ jobs:
             print(f"server_started={server_started_count}")
             print(f"websocket_upgrade_requests={upgrade_request_count}")
             print(f"lobby_room_requests={lobby_request_count}")
+            print(f"map_room_requests={map_request_count}")
+            print(f"lobby_upgrade_requests={lobby_upgrade_count}")
+            print(f"map_upgrade_requests={map_upgrade_count}")
             print(f"log_collection_errors={collection_error_count}")
             print(f"authentication_failed={auth_count}")
             print(f"database_unreachable={database_count}")
