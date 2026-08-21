@@ -50,13 +50,25 @@ jobs:
             LOG_FILE="$(mktemp)"
             trap 'rm -f "${LOG_FILE}"' EXIT
             chmod 0600 "${LOG_FILE}"
-            $COMPOSE $COMPOSE_FILES logs --since=15m --no-color mirror-game \
+            $COMPOSE $COMPOSE_FILES logs --since=45m --no-color mirror-game \
               >"${LOG_FILE}" 2>&1 || true
             python3 - "${LOG_FILE}" <<'PY'
             from pathlib import Path
             import sys
 
             text = Path(sys.argv[1]).read_text(encoding="utf-8", errors="replace").lower()
+            line_count = len(text.splitlines())
+            server_started_count = text.count("mirror island rpgjs server listening")
+            upgrade_request_count = text.count("websocket upgrade request:")
+            lobby_request_count = text.count("room: lobby-1")
+            collection_error_markers = (
+                "no such service",
+                "cannot connect to the docker daemon",
+                "permission denied",
+            )
+            collection_error_count = sum(
+                text.count(marker) for marker in collection_error_markers
+            )
             auth_count = text.count("[mirror-island:auth] websocket authentication failed.")
             generic_count = text.count("error establishing websocket connection")
             database_markers = (
@@ -83,6 +95,11 @@ jobs:
                 generic_count - auth_count - min(database_count, generic_count) - min(map_count, generic_count),
             )
 
+            print(f"log_lines={line_count}")
+            print(f"server_started={server_started_count}")
+            print(f"websocket_upgrade_requests={upgrade_request_count}")
+            print(f"lobby_room_requests={lobby_request_count}")
+            print(f"log_collection_errors={collection_error_count}")
             print(f"authentication_failed={auth_count}")
             print(f"database_unreachable={database_count}")
             print(f"map_stream_failed={map_count}")
