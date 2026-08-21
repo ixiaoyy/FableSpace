@@ -1,0 +1,87 @@
+name: Diagnose Mirror Island
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/diagnose-mirror-island.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  classify-runtime-failures:
+    name: Classify runtime failures
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate server access
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+        run: |
+          set -eu
+          for name in DEPLOY_HOST DEPLOY_USER DEPLOY_SSH_KEY; do
+            if [ -z "${!name:-}" ]; then
+              echo "::error::Missing required server access setting: ${name}"
+              exit 1
+            fi
+          done
+
+      - name: Read and classify fixed failure categories
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          port: ${{ secrets.DEPLOY_PORT || '22' }}
+          command_timeout: 5m
+          script: |
+            set -eu
+            FABLESPACE_PATH="${{ vars.DEPLOY_PATH || '/opt/fablespace' }}"
+            cd "${FABLESPACE_PATH}"
+            if sudo docker compose version >/dev/null 2>&1; then
+              COMPOSE="sudo docker compose"
+            else
+              COMPOSE="sudo docker-compose"
+            fi
+            COMPOSE_FILES="-f docker-compose.yml -f deploy/docker-compose.mirror-island.yml"
+            LOG_FILE="$(mktemp)"
+            trap 'rm -f "${LOG_FILE}"' EXIT
+            chmod 0600 "${LOG_FILE}"
+            $COMPOSE $COMPOSE_FILES logs --since=30m --no-color mirror-game \
+              >"${LOG_FILE}" 2>&1 || true
+            python3 - "${LOG_FILE}" <<'PY'
+            from pathlib import Path
+            import sys
+
+            text = Path(sys.argv[1]).read_text(encoding="utf-8", errors="replace").lower()
+            auth_count = text.count("[mirror-island:auth] websocket authentication failed.")
+            generic_count = text.count("error establishing websocket connection")
+            database_markers = (
+                "prismaclientinitializationerror",
+                "can't reach database server",
+                "password authentication failed",
+                "connection terminated unexpectedly",
+                "econnrefused",
+                "p1001",
+            )
+            map_markers = (
+                "unable to resolve tiled map",
+                "unable to load tiled map",
+                "map stream",
+            )
+            database_count = sum(text.count(marker) for marker in database_markers)
+            map_count = sum(text.count(marker) for marker in map_markers)
+            unclassified_count = max(
+                0,
+                generic_count - auth_count - min(database_count, generic_count) - min(map_count, generic_count),
+            )
+
+            print(f"authentication_failed={auth_count}")
+            print(f"database_unreachable={database_count}")
+            print(f"map_stream_failed={map_count}")
+            print(f"player_initialization_or_unclassified={unclassified_count}")
+            print(f"websocket_failure_total={generic_count}")
+            PY
