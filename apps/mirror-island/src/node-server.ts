@@ -4,6 +4,8 @@ import { fileURLToPath } from "node:url";
 import { createRpgServerTransport } from "@rpgjs/server/node";
 import { WebSocketServer } from "ws";
 import { disconnectMirrorIslandPrismaClient } from "./persistence/client.ts";
+import { createPrivateInteriorPublisher } from "./private-interior-publisher.ts";
+import { registerPrivateInteriorPublisher } from "./private-interior-runtime.ts";
 import { createForumSsoBridge } from "./sso/provider.ts";
 import gameServer from "./server.ts";
 
@@ -16,6 +18,7 @@ if (!Number.isInteger(port) || port < 1 || port > 65_535) {
 const transport = createRpgServerTransport(gameServer, {
   tiledBasePaths: [join(root, "src", "tiled")],
 });
+registerPrivateInteriorPublisher(createPrivateInteriorPublisher(transport, join(root, "src", "tiled")));
 const webSocketServer = new WebSocketServer({ noServer: true });
 const forumSsoBridge = await createForumSsoBridge();
 

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="10" height="8" tilewidth="16" tileheight="16" infinite="0" backgroundcolor="#291f2f" nextlayerid="3" nextobjectid="2">
+ <tileset firstgid="1" source="mirror-island-interior-floor.tsx"/>
+ <tileset firstgid="375" source="mirror-island-wall.tsx"/>
+ <layer id="1" name="Floor" width="10" height="8">
+  <properties>
+   <property name="z" type="int" value="0"/>
+  </properties>
+  <data encoding="csv">
+1,1,1,1,1,1,1,1,1,1,
+1,47,47,47,47,47,47,47,47,1,
+1,47,47,47,47,47,47,47,47,1,
+1,47,47,47,47,47,47,47,47,1,
+1,47,47,47,47,47,47,47,47,1,
+1,47,47,47,47,47,47,47,47,1,
+1,47,47,47,47,47,47,47,47,1,
+1,1,1,1,1,1,1,1,1,1
+  </data>
+ </layer>
+ <objectgroup id="2" name="Objects">
+  <object id="1" name="start" class="start" x="64" y="80">
+   <point/>
+  </object>
+ </objectgroup>
+</map>

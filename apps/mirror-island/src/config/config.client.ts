@@ -1,6 +1,7 @@
 import { Animation, Direction } from "@rpgjs/common";
 import { provideClientGlobalConfig, provideClientModules } from "@rpgjs/client";
 import { provideTiledMap } from "@rpgjs/tiledmap/client";
+import { HOUSE_VILLAGE_TILE_FRAMES, houseTileGraphicId } from "../world/house-contract.ts";
 import { provideMain } from "../modules/main/index.ts";
 
 /** Maps the reviewed 4-column direction by 7-row action sheet into RPGJS stand/walk textures. */
@@ -43,6 +44,20 @@ function mirrorIslandSpritesheet() {
   };
 }
 
+/** Maps one reviewed village-sheet tile to an immobile RPGJS entity graphic used by houses and previews. */
+function villageTileSpritesheet(frameX: number, frameY: number) {
+  /** Returns the same single frame for stationary and incidental movement animation requests. */
+  const frame = () => [[{ time: 0, frameX, frameY }]];
+  return {
+    framesWidth: 20,
+    framesHeight: 12,
+    textures: {
+      [Animation.Stand]: { animations: frame },
+      [Animation.Walk]: { animations: frame },
+    },
+  };
+}
+
 export default {
   providers: [
     provideTiledMap({
@@ -63,6 +78,11 @@ export default {
             image: "spritesheets/female.png",
             ...mirrorIslandSpritesheet(),
           },
+          ...HOUSE_VILLAGE_TILE_FRAMES.map((frame, index) => ({
+            id: houseTileGraphicId(index),
+            image: "spritesheets/village.png",
+            ...villageTileSpritesheet(frame.frameX, frame.frameY),
+          })),
         ],
       },
     ]),

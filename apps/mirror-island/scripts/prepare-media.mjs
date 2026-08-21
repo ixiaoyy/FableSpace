@@ -27,6 +27,27 @@ const assets = [
     bytes: 29615,
     sha256: "e111065065edf806e7e893330086e68efc8755175d92f14d087b42d40a331e16",
   },
+  {
+    name: "village tileset",
+    url: `${mediaBaseUrl}/village.png`,
+    outputs: ["src/tiled/village.png", "public/spritesheets/village.png"],
+    bytes: 31779,
+    sha256: "6787c6e22a4d44ceee4f158309b2519707bdb70c59aca00b3d49006cadcca06e",
+  },
+  {
+    name: "interior floor tileset",
+    url: `${mediaBaseUrl}/interior-floor.png`,
+    output: "src/tiled/interior-floor.png",
+    bytes: 13012,
+    sha256: "e281598e2d90f43b31fd557b94c2d2abb00d307758a053b7df301575bf535e3a",
+  },
+  {
+    name: "interior wall tileset",
+    url: `${mediaBaseUrl}/wall.png`,
+    output: "src/tiled/wall.png",
+    bytes: 5149,
+    sha256: "ad5eb80ab4d5e65dbcda9dc012f9981323b277717349cdab012fc65ce06e43b2",
+  },
 ];
 
 /** Returns the lowercase SHA-256 digest for one downloaded byte buffer. */
@@ -34,7 +55,7 @@ function sha256(buffer) {
   return createHash("sha256").update(buffer).digest("hex");
 }
 
-/** Downloads one immutable asset, verifies its contract, and writes it only after validation. */
+/** Downloads one immutable asset, verifies its contract, and writes every reviewed runtime copy after validation. */
 async function downloadVerifiedAsset(asset) {
   const response = await fetch(asset.url);
   if (!response.ok) {
@@ -50,9 +71,12 @@ async function downloadVerifiedAsset(asset) {
     throw new Error(`${asset.name} SHA-256 mismatch: expected ${asset.sha256}, received ${digest}.`);
   }
 
-  const outputPath = join(root, asset.output);
-  await mkdir(dirname(outputPath), { recursive: true });
-  await writeFile(outputPath, buffer);
+  const outputs = asset.outputs ?? [asset.output];
+  await Promise.all(outputs.map(async (output) => {
+    const outputPath = join(root, output);
+    await mkdir(dirname(outputPath), { recursive: true });
+    await writeFile(outputPath, buffer);
+  }));
 }
 
 await Promise.all(assets.map(downloadVerifiedAsset));

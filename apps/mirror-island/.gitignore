@@ -11,5 +11,9 @@ src/**/*.png
 
 # Ignore unused RPGJS starter maps; only the reviewed spike map contract is versioned.
 src/tiled/*
+!src/tiled/house-interior.tmx
 !src/tiled/simplemap.tmx
 !src/tiled/mirror-island-floor.tsx
+!src/tiled/mirror-island-interior-floor.tsx
+!src/tiled/mirror-island-village.tsx
+!src/tiled/mirror-island-wall.tsx
