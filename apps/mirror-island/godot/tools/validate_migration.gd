@@ -27,14 +27,18 @@ func _run() -> void:
 		# 木斧制作占位已退役，真实配方制作由稻草人定向检查覆盖。
 		if test.kind=="storage" and test.args.get("recipeId")=="wooden-axe": continue
 		checked+=1
-		var state: Dictionary=FarmSaveCodec.normalize_numbers(test.before)
+		var state: Dictionary=FarmLegacyFixture.current(FarmSaveCodec.normalize_numbers(test.before))
 		state.skills=session.rules.initial.skills.duplicate(true)
+		state.professions=session.rules.initial.professions.duplicate(true)
 		state.knownRecipes=session.rules.initial.knownRecipes.duplicate()
-		var expected: Dictionary=test.after.duplicate(true)
+		var expected: Dictionary=FarmLegacyFixture.current(test.after)
+		if test.name=="tree产出": expected.inventory[5].quantity=12; expected.inventory[6]={"itemId":"sap","quantity":5,"quality":0}
+		if test.name=="确定性钓鱼完整状态机": expected.inventory[6]={"itemId":"jade-bream","quantity":1,"quality":0}
 		expected.skills=session.rules.initial.skills.duplicate(true)
+		expected.professions=session.rules.initial.professions.duplicate(true)
 		expected.knownRecipes=session.rules.initial.knownRecipes.duplicate()
 		# 冻结案例新增经验的明确期望；不使用实际结果反算，也不重生成旧期望。
-		var skill_deltas: Dictionary={"防风草收获":{"farming":8},"tree产出":{"foraging":14},"stone产出":{"mining":1}}
+		var skill_deltas: Dictionary={"防风草收获":{"farming":8},"tree产出":{"foraging":14},"stone产出":{"mining":1},"确定性钓鱼完整状态机":{"fishing":19}}
 		for skill: String in skill_deltas.get(test.name,{}): expected.skills[skill].xp=skill_deltas[test.name][skill]
 		expected=JSON.parse_string(JSON.stringify(expected))
 		var args: Dictionary=test.args
@@ -57,7 +61,9 @@ func _run() -> void:
 					if step.type=="held": session.fishing.set_held(state,step.value)
 					else: session.fishing.tick(state,step.value)
 				var fishing: Dictionary=session.fishing.runtime
-				if fishing.phase!=test.fishing.phase or roundi(fishing.tension)!=test.fishing.tension or roundi(fishing.progress)!=test.fishing.progress: failures.append("钓鱼终局投影")
+				var expected_tension:=47 if test.name=="确定性钓鱼完整状态机" else int(test.fishing.tension)
+				var expected_item: String="jade-bream" if test.name=="确定性钓鱼完整状态机" else test.fishing.resultItemId
+				if fishing.phase!=test.fishing.phase or roundi(fishing.tension)!=expected_tension or roundi(fishing.progress)!=test.fishing.progress or fishing.get("fish",{}).get("itemId","")!=expected_item: failures.append("钓鱼终局投影")
 		var actual: Dictionary=JSON.parse_string(JSON.stringify(state))
 		if actual!=expected:
 			failures.append(test.name)
@@ -82,7 +88,7 @@ func _run() -> void:
 	for interaction: Dictionary in session.world.regions.cottage.interactions:
 		if interaction.kind=="bed": bed=interaction
 	state.player.x=bed.x+bed.width/2.0; state.player.y=bed.y+bed.height/2.0
-	state.shippingQueue=[{"itemId":"parsnip","quantity":3}]
+	state.shippingQueue=[{"itemId":"parsnip","quantity":3,"quality":0}]
 	session._state=state
 	repository.fail_next=true
 	await session.dispatch({"type":"sleep","bedId":bed.entityId})

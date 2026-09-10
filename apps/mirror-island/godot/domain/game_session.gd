@@ -6,7 +6,7 @@ signal changed
 signal feedback(result: Dictionary)
 signal save_changed
 signal checkpoint_finished
-const SUCCESSES := ["changed","crafted","placed","collected","recovered","recovered-scarecrow","pushed","destroyed-with-drops","shipped","reclaimed","built","moved","demolished","upgraded-backpack","tilled","planted","watered","harvested","refilled","cut","mined","chopped","crop-cleared","stump-cleared","ate","bought","sold","upgraded-watering-can","talked","gift-liked","gift-neutral","gift-disliked","adopted","petted","fishing-rod-received","started","appearance-changed","milestone-acknowledged","slept","passed-out","caught","transitioned"]
+const SUCCESSES := ["changed","crafted","placed","collected","collected-double","recovered","recovered-scarecrow","pushed","destroyed-with-drops","shipped","reclaimed","built","moved","demolished","upgraded-backpack","tilled","planted","watered","harvested","harvested-double","refilled","cut","mined","branch-chopped","chopped","chopped-with-seed","crop-cleared","stump-cleared","ate","ate-zero","bought","sold","upgraded-watering-can","talked","gift-liked","gift-neutral","gift-disliked","adopted","petted","fishing-rod-received","started","appearance-changed","milestone-acknowledged","profession-selected","slept","passed-out","caught","transitioned"]
 var rules: Dictionary
 var dialogues: Dictionary
 var world: FarmWorldRules
@@ -37,7 +37,7 @@ func _ready() -> void:
 	dialogues=JSON.parse_string(FileAccess.get_file_as_string("res://data/dialogues.json"))
 	world=FarmWorldRules.new(FarmSaveCodec.normalize_numbers(JSON.parse_string(FileAccess.get_file_as_string("res://generated/catalog.json"))),rules.crops)
 	inventory=FarmInventory.new(rules.items)
-	resource_rules=FarmResourceRules.new(world,inventory)
+	resource_rules=FarmResourceRules.new(world,inventory,rules)
 	storage=FarmStorageRules.new(inventory,world,rules)
 	social=FarmSocialRules.new(rules,inventory,world)
 	fishing=FarmFishingRules.new(inventory,world,rules.fish)
@@ -120,7 +120,7 @@ func dispatch(command: Dictionary) -> Dictionary:
 		return _result("retry")
 	if not active: return _result("not-ready")
 	if busy or not _pending.is_empty(): return _result("save-pending")
-	if _state.unacknowledgedShippingReport!=null and type!="dismiss-day-settlement": return _result("day-settlement-pending")
+	if _state.unacknowledgedShippingReport!=null and type not in ["dismiss-day-settlement","choose-profession"]: return _result("day-settlement-pending")
 	if not fishing.runtime.is_empty() and type not in ["set-fishing-input","dismiss-fishing"]: return _result("fishing-active")
 	if type=="set-fishing-input":
 		fishing.set_held(_state,command.held); return {}
@@ -140,10 +140,16 @@ func dispatch(command: Dictionary) -> Dictionary:
 		"refill-watering-can": code=resource_rules.refill(candidate,command.column,command.row)
 		"eat-item":
 			var item: Dictionary=rules.items.get(command.itemId,{})
-			if item.get("staminaRestore",0)<=0: code="not-edible"
-			elif candidate.stamina>=FarmEnergyRules.MAX_STAMINA: code="stamina-full"
-			elif not inventory.consume(candidate.inventory,command.itemId,1): code="missing-item"
-			else: candidate.stamina=minf(FarmEnergyRules.MAX_STAMINA,float(candidate.stamina)+float(item.staminaRestore)); code="ate"
+			var quality: Variant=command.get("quality",0)
+			if not FarmQualityRules.valid(item,quality): return _result("invalid-quality")
+			if not item.get("edible",item.get("staminaRestore",0)>0): code="not-edible"
+			elif item.get("staminaRestore",0)>0 and candidate.stamina>=FarmEnergyRules.MAX_STAMINA: code="stamina-full"
+			elif not inventory.consume(candidate.inventory,command.itemId,1,quality): code="missing-item"
+			else:
+				var restore: float=FarmQualityRules.energy(item,quality)
+				candidate.stamina=clampf(float(candidate.stamina)+restore,0,FarmEnergyRules.MAX_STAMINA)
+				code="ate" if restore>0 else "ate-zero"
+				if restore<0: details.message="吃下后体力减少了。"
 		"buy-item","sell-item": code=_shop(candidate,actors,command)
 		"buy-coal":
 			var counter: Dictionary=world.interactions.get("blacksmith-tool-rack",{})
@@ -161,7 +167,7 @@ func dispatch(command: Dictionary) -> Dictionary:
 			else:
 				inventory.consume(candidate.inventory,"wood",15); candidate.gold-=900; candidate.wateringCanLevel=2; candidate.wateringCanWater=40; code="upgraded-watering-can"
 		"talk-to-npc": details=social.talk(candidate,_npc(actors,command.npcId)); code=details.code
-		"gift-item-to-npc": code=social.gift(candidate,actors,command.npcId,command.itemId)
+		"gift-item-to-npc": code=social.gift(candidate,actors,command.npcId,command.itemId,command.get("quality",0))
 		"claim-fishing-rod":
 			var npc:=_npc(actors,command.npcId)
 			if candidate.day<7 or npc.is_empty() or command.npcId!="town-resident-xiangzi" or npc.regionId!=candidate.player.regionId or FarmWorldRules.point(candidate.player).distance_to(FarmWorldRules.point(npc))>42: code="fishing-rod-unavailable"
@@ -177,6 +183,7 @@ func dispatch(command: Dictionary) -> Dictionary:
 				if candidate.day<milestone.unlockDay: code="milestone-not-yet-available"
 				elif command.eventId in candidate.seenEventIds: code="milestone-already-seen"
 				else: candidate.seenEventIds.append(command.eventId); code="milestone-acknowledged"
+		"choose-profession": code="profession-selected" if FarmSkillRules.choose_profession(candidate,command.get("skill",""),command.get("level",0),command.get("profession","")) else "invalid-profession-choice"
 		"start-fishing": code=fishing.start(candidate,command.zoneId)
 		"sleep":
 			var bed: Dictionary=world.interactions.get(command.bedId,{})
@@ -286,6 +293,7 @@ func _settle_day(reason: String) -> Dictionary:
 	var upgrades:=FarmSkillRules.settle_day(candidate)
 	candidate.unacknowledgedShippingReport.skillUpgrades=upgrades
 	candidate.unacknowledgedShippingReport.recipeUnlocks=FarmSkillRules.recipe_unlocks(candidate,rules.recipes)
+	candidate.unacknowledgedShippingReport.professionChoices=FarmSkillRules.profession_choices(candidate,upgrades)
 	candidate.stamina=FarmEnergyRules.MAX_STAMINA if not upgrades.is_empty() else FarmEnergyRules.after_sleep(float(candidate.stamina),int(candidate.minuteOfDay))
 	for friend: Dictionary in candidate.friendships.values():
 		if friend.lastTalkedDay!=candidate.day and friend.points>0 and friend.points<2500: friend.points=maxi(0,int(friend.points)-2)
@@ -314,22 +322,27 @@ func _settle_day(reason: String) -> Dictionary:
 func coal_price(day: int) -> int:
 	return int(rules.coalBuyPrices[0 if day<=112 else 1])
 
-## 原商店一次交易一件，必须在实际营业的华强身边。
+## 原商店一次交易一件，必须在实际营业的皮埃尔身边。
 func _shop(state: Dictionary, actors: Array, command: Dictionary) -> String:
 	var npc:=_npc(actors,"seed-keeper")
 	if npc.is_empty() or npc.interactionType!="shop" or npc.regionId!=state.player.regionId or FarmWorldRules.point(npc).distance_to(FarmWorldRules.point(state.player))>42: return "not-at-shop"
 	if command.type=="buy-item":
 		var crop: Dictionary=resource_rules.seeds.get(command.itemId,{})
-		if crop.is_empty(): return "unavailable-item"
-		if state.gold<crop.seedPrice: return "insufficient-gold"
+		var seed_price: Variant=crop.get("seedPrice")
+		if command.itemId in ["basic-fertilizer","basic-retaining-soil"] and state.day>=15: seed_price=100
+		if seed_price==null: return "unavailable-item"
+		if state.gold<int(seed_price): return "insufficient-gold"
 		if not inventory.add(state.inventory,command.itemId,1): return "inventory-full"
-		state.gold-=crop.seedPrice
+		state.gold-=int(seed_price)
 		return "bought"
 	var price: Variant=rules.prices.get(command.itemId)
+	var quality: Variant=command.get("quality",0)
+	if not FarmQualityRules.valid(rules.items.get(command.itemId,{}),quality): return "invalid-quality"
 	if not rules.items.get(command.itemId,{}).get("seedShopBuyback",true): return "unavailable-item"
 	if price==null: return "unavailable-item"
+	price=FarmQualityRules.price(int(price),quality)
 	if state.gold+price>FarmWorldRules.LIMIT: return "gold-limit"
-	if not inventory.consume(state.inventory,command.itemId,1): return "missing-item"
+	if not inventory.consume(state.inventory,command.itemId,1,quality): return "missing-item"
 	state.gold+=price
 	return "sold"
 
@@ -341,8 +354,10 @@ static func _npc(actors: Array, id: String) -> Dictionary:
 
 ## 将规则结果转换为简短可见反馈，错误码保留用于定位。
 static func _result(code: String) -> Dictionary:
-	var messages: Dictionary={"changed":"已整理好。","crafted":"制作完成。","placed":"已经摆好了。","collected":"已放入背包。","recovered":"已收回空箱。","recovered-scarecrow":"已收回稻草人。","not-at-smith-counter":"请走近铁匠铺工具架购买。","blacksmith-closed":"铁匠铺开放时间为 09:00–16:00。","pushed":"箱子已经移开。","shipped":"已投入出货箱，明早结算。","reclaimed":"已取回最后一笔出货。","built":"出货箱已建好。","moved":"建筑已移好。","demolished":"已拆除。","upgraded-backpack":"背包已扩容。","tilled":"土地已翻好。","planted":"种子已播下。","watered":"已经浇水。","harvested":"收获已放入背包。","refilled":"水壶已装满。","cut":"已清理杂草。","mined":"获得石料。","chopped":"获得木材，留下树桩。","stump-cleared":"树桩已清除。","crop-cleared":"已清除青豆植株，耕地保留。","trellis-occupied":"请站到旁边再种豆苗。","ate":"体力恢复了。","bought":"种子已放入背包。","sold":"交易完成。","upgraded-watering-can":"水壶已升级，可连续浇三格。","talked":"","gift-liked":"对方很喜欢这份礼物。","gift-neutral":"对方收下了礼物。","gift-disliked":"对方不太喜欢这份礼物。","adopted":"伙伴加入了你的家。","petted":"伙伴亲昵地蹭了蹭你。","fishing-rod-received":"领到了竹制鱼竿，去旧码头试试吧。","started":"按住蓄力，松手抛竿。","caught":"钓到了鱼！","appearance-changed":"已换上新的装扮。","milestone-acknowledged":"","transitioned":"","insufficient-stamina":"体力不足，吃点东西或回家休息。","inventory-full":"背包放不下，请先整理。","target-full":"目标格放不下产物，材料未消耗。","too-far":"走近目标再操作。","missing-item":"背包里没有所需物品。","requirements-not-met":"制作材料不足。","insufficient-gold":"金币不足。","insufficient-wood":"木材不足。","wrong-tool":"请选择合适的工具。","requires-scythe":"这种作物需要用镰刀收获。","wrong-direction":"请面向要清理的杂草。","depleted":"这里已经采完了。","inactive":"这里今天没有可采物。","waiting":"已经浇过水了。","no-effect":"当前目标无需这项操作。","missing-tile":"这里无法耕作。","empty-watering-can":"水壶空了，去水边补水。","not-at-shop":"请在营业时走到华强身边。","not-shippable":"这件物品不能出货。","invalid-transfer":"目标格无法完整接收所选物品。","unchanged":"当前无需更改。","not-empty":"箱子还有物品，不能收回。","blocked":"这里有阻挡，无法摆放。","last-shipping-bin":"农场至少保留一个出货箱。","service-unavailable":"墨子现在不在柜台提供服务。","daily-limit":"今天已经送过礼了。","weekly-limit":"这周已送过两份礼物。","fishing-rod-owned":"你已经有鱼竿了。","fishing-rod-unavailable":"Day 7 起可以找祥子领取鱼竿。","watering-upgrade-locked":"Day 3 起可找昊天升级水壶。","watering-already-upgraded":"水壶已经升级过了。","watering-upgrade-unavailable":"请在工作时间找昊天升级。","backpack-upgrade-unavailable":"请到种子店背包陈列前购买。","backpack-upgrade-insufficient-gold":"金币不足，先积攒下一档费用。","backpack-already-upgraded":"背包已扩至最大。","not-ready":"这项内容还未开放。","already-adopted":"你已经有一位伙伴了。","invalid-name":"名字需为 1 至 12 个字符，不能含控制字符。","already-petted":"今天已经陪过伙伴了。","pet-not-present":"伙伴正在另一处家园休息。","not-giftable":"这件物品不能作为礼物。","stamina-full":"体力已经满了。","not-edible":"这件物品不能食用。","empty":"没有可取回的投入。","escaped":"鱼跑掉了，再试一次吧。","missing-rod":"先向祥子领取鱼竿。","save-pending":"请先完成保存，失败时可以重试。","save-failed":"保存失败，操作尚未提交，请重试。"}
-	return {"code":code,"tone":"success" if code in SUCCESSES else "error","message":messages.get(code,"目标已变化，请重新选择。")}
+	var messages: Dictionary={"changed":"已整理好。","crafted":"制作完成。","placed":"已经摆好了。","collected":"已放入背包。","recovered":"已收回空箱。","recovered-scarecrow":"已收回稻草人。","not-at-smith-counter":"请走近铁匠铺工具架购买。","blacksmith-closed":"铁匠铺开放时间为 09:00–16:00。","pushed":"箱子已经移开。","shipped":"已投入出货箱，明早结算。","reclaimed":"已取回最后一笔出货。","built":"出货箱已建好。","moved":"建筑已移好。","demolished":"已拆除。","upgraded-backpack":"背包已扩容。","tilled":"土地已翻好。","planted":"种子已播下。","watered":"已经浇水。","harvested":"收获已放入背包。","refilled":"喷壶已装满。","cut":"已清理杂草。","mined":"获得石头。","chopped":"获得木材，留下树桩。","chopped-with-seed":"获得木材和树种，留下树桩。","branch-chopped":"已砍断树枝，获得木材。","requires-axe":"请使用斧头砍断树枝。","stump-cleared":"树桩已清除。","crop-cleared":"已清除青豆植株，耕地保留。","trellis-occupied":"请站到旁边再种青豆。","ate":"体力恢复了。","ate-zero":"已经吃下了。","bought":"种子已放入背包。","sold":"交易完成。","upgraded-watering-can":"喷壶已升级，可连续浇三格。","talked":"","gift-liked":"对方很喜欢这份礼物。","gift-neutral":"对方收下了礼物。","gift-disliked":"对方不太喜欢这份礼物。","adopted":"伙伴加入了你的家。","petted":"伙伴亲昵地蹭了蹭你。","fishing-rod-received":"领到了竹鱼竿，去旧码头试试吧。","started":"按住蓄力，松手抛竿。","caught":"钓到了鱼！","appearance-changed":"已换上新的装扮。","milestone-acknowledged":"","transitioned":"","insufficient-stamina":"体力不足，吃点东西或回家休息。","inventory-full":"背包放不下，请先整理。","target-full":"目标格放不下产物，材料未消耗。","too-far":"走近目标再操作。","missing-item":"背包里没有所需物品。","requirements-not-met":"制作材料不足。","insufficient-gold":"金币不足。","insufficient-wood":"木材不足。","wrong-tool":"请选择合适的工具。","requires-scythe":"这种作物需要用镰刀收获。","wrong-direction":"请面向要清理的杂草。","depleted":"这里已经采完了。","inactive":"这里今天没有可采物。","waiting":"已经浇过水了。","no-effect":"当前目标无需这项操作。","missing-tile":"这里无法耕作。","empty-watering-can":"喷壶空了，去水边补水。","not-at-shop":"请在营业时走到皮埃尔身边。","not-shippable":"这件物品不能出货。","invalid-transfer":"目标格无法完整接收所选物品。","unchanged":"当前无需更改。","not-empty":"箱子还有物品，不能收回。","blocked":"这里有阻挡，无法摆放。","last-shipping-bin":"农场至少保留一个出货箱。","service-unavailable":"罗宾现在不在柜台提供服务。","daily-limit":"今天已经送过礼了。","weekly-limit":"这周已送过两份礼物。","fishing-rod-owned":"你已经有鱼竿了。","fishing-rod-unavailable":"Day 7 起可以找威利领取鱼竿。","watering-upgrade-locked":"Day 3 起可找克林特升级喷壶。","watering-already-upgraded":"喷壶已经升级过了。","watering-upgrade-unavailable":"请在工作时间找克林特升级。","backpack-upgrade-unavailable":"请到种子店背包陈列前购买。","backpack-upgrade-insufficient-gold":"金币不足，先积攒下一档费用。","backpack-already-upgraded":"背包已扩至最大。","not-ready":"这项内容还未开放。","already-adopted":"你已经有一位伙伴了。","invalid-name":"名字需为 1 至 12 个字符，不能含控制字符。","already-petted":"今天已经陪过伙伴了。","pet-not-present":"伙伴正在另一处家园休息。","not-giftable":"这件物品不能作为礼物。","stamina-full":"体力已经满了。","not-edible":"这件物品不能食用。","empty":"没有可取回的投入。","escaped":"鱼跑掉了，再试一次吧。","missing-rod":"先向威利领取鱼竿。","save-pending":"请先完成保存，失败时可以重试。","save-failed":"保存失败，操作尚未提交，请重试。"}
+	messages.merge({"fertilized":"已施用初级肥料。","retaining-soil-applied":"已施用初级保湿土。","already-fertilized":"这块地已经施过肥。","fertilizer-too-late":"种子已经发芽，无法施用初级肥料。","invalid-quality":"物品品质无效，请重新选择。"})
+	messages.merge({"collected-double":"收集者生效，获得双份野采。","harvested-double":"收集者生效，获得双份野生作物。","profession-selected":"职业选择已保存。","profession-choice-required":"请先选择本次升级职业。","invalid-profession-choice":"职业选项已变化，请重新选择。"})
+	return {"code":code,"tone":"success" if code in SUCCESSES or code in ["fertilized","retaining-soil-applied"] else "error","message":messages.get(code,"目标已变化，请重新选择。")}
 
 ## 页面或窗口失焦时停止逻辑时间和输入；恢复不会补算隐藏期间的时间。
 func _notification(what: int) -> void:

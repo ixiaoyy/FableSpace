@@ -106,17 +106,15 @@ static func forage_appears(id: String, day: int) -> bool:
 	if hash_value >= 0x80000000: hash_value -= 0x100000000
 	return absi(hash_value + day) % 3 != 0
 
-## 返回当前可采集的野花、春笋和枯枝；过滤耕地、持久对象和当日已采点。
+## 返回当前四种标准春季野采与枯枝；过滤耕地、持久对象和当日已采点。
 func active_forage(state: Dictionary, region_id: String) -> Array:
 	var found: Array = []
 	for spawn: Dictionary in regions[region_id].resources:
-		if spawn.kind not in ["spring-wildflower","bamboo-shoot","fallen-branch"]: continue
+		if spawn.kind not in ["wild-horseradish","daffodil","leek","dandelion","fallen-branch"]: continue
 		var column := floori(spawn.x/16.0)
 		var row := floori(spawn.y/16.0)
 		if covers(state,region_id,column,row): continue
 		if region_id == "farm" and state.farmTiles.has("farm:%d:%d"%[column,row]): continue
-		var cycle := (int(state.day)-1)%28+1
-		if spawn.kind == "bamboo-shoot" and region_id == "foothills" and (cycle<4 or cycle>14): continue
 		var appears: bool = (forage_appears(spawn.entityId+":branch",state.day) or state.weather.current == "wind") if spawn.kind == "fallen-branch" else forage_appears(spawn.entityId,state.day)
 		if appears and spawn.entityId not in state.dailyForage.collectedIds: found.append(spawn)
 	return found

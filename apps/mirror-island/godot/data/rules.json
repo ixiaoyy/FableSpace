@@ -1,7 +1,7 @@
 {
   "sourceVersion": 13,
   "initial": {
-    "version": 20,
+    "version": 24,
     "day": 1,
     "minuteOfDay": 360,
     "worldSeed": 1296650834,
@@ -36,51 +36,63 @@
     "inventory": [
       {
         "itemId": "hoe",
-        "quantity": 1
+        "quantity": 1,
+        "quality": 0
       },
       {
         "itemId": "watering-can",
-        "quantity": 1
+        "quantity": 1,
+        "quality": 0
       },
       {
         "itemId": "axe",
-        "quantity": 1
+        "quantity": 1,
+        "quality": 0
       },
       {
         "itemId": "pickaxe",
-        "quantity": 1
+        "quantity": 1,
+        "quality": 0
       },
       {
         "itemId": "scythe",
-        "quantity": 1
+        "quantity": 1,
+        "quality": 0
       },
       {
         "itemId": "",
-        "quantity": 0
+        "quantity": 0,
+        "quality": 0
       },
       {
         "itemId": "",
-        "quantity": 0
+        "quantity": 0,
+        "quality": 0
       },
       {
         "itemId": "",
-        "quantity": 0
+        "quantity": 0,
+        "quality": 0
       },
       {
         "itemId": "",
-        "quantity": 0
+        "quantity": 0,
+        "quality": 0
       },
       {
         "itemId": "",
-        "quantity": 0
+        "quantity": 0,
+        "quality": 0
       },
       {
         "itemId": "",
-        "quantity": 0
+        "quantity": 0,
+        "quality": 0
       },
       {
         "itemId": "",
-        "quantity": 0
+        "quantity": 0,
+        "quality": 0
       }
     ],
     "inventoryCapacity": 12,
@@ -583,7 +595,18 @@
         "xp": 0,
         "level": 0,
         "reportedLevel": 0
+      },
+      "fishing": {
+        "xp": 0,
+        "level": 0,
+        "reportedLevel": 0
       }
+    },
+    "professions": {
+      "farming": [],
+      "foraging": [],
+      "mining": [],
+      "fishing": []
     },
     "knownRecipes": [
       "chest"
@@ -592,7 +615,7 @@
   "items": {
     "wood": {
       "id": "wood",
-      "name": "异星木材",
+      "name": "木材",
       "category": "resource",
       "maxStack": 999,
       "inventorySortOrder": 0,
@@ -602,7 +625,7 @@
     },
     "axe": {
       "id": "axe",
-      "name": "木斧",
+      "name": "斧头",
       "category": "tool",
       "maxStack": 1,
       "inventorySortOrder": 1,
@@ -622,7 +645,7 @@
     },
     "pickaxe": {
       "id": "pickaxe",
-      "name": "基础镐",
+      "name": "十字镐",
       "category": "tool",
       "maxStack": 1,
       "inventorySortOrder": 3,
@@ -632,7 +655,7 @@
     },
     "scythe": {
       "id": "scythe",
-      "name": "基础镰刀",
+      "name": "镰刀",
       "category": "tool",
       "maxStack": 1,
       "inventorySortOrder": 4,
@@ -642,7 +665,7 @@
     },
     "stone": {
       "id": "stone",
-      "name": "石料",
+      "name": "石头",
       "category": "resource",
       "maxStack": 999,
       "inventorySortOrder": 5,
@@ -652,7 +675,7 @@
     },
     "fiber": {
       "id": "fiber",
-      "name": "植物纤维",
+      "name": "纤维",
       "category": "resource",
       "maxStack": 999,
       "inventorySortOrder": 6,
@@ -672,7 +695,7 @@
     },
     "watering-can": {
       "id": "watering-can",
-      "name": "浇水壶",
+      "name": "喷壶",
       "category": "tool",
       "maxStack": 1,
       "inventorySortOrder": 8,
@@ -689,11 +712,13 @@
       "canShip": true,
       "shippingCategory": "farming",
       "hotbarMark": "防",
-      "staminaRestore": 25
+      "staminaRestore": 25,
+      "hasQuality": true,
+      "edibility": 10
     },
     "kale-seed": {
       "id": "kale-seed",
-      "name": "羽衣甘蓝种子",
+      "name": "甘蓝种子",
       "category": "seed",
       "maxStack": 999,
       "inventorySortOrder": 10,
@@ -703,14 +728,16 @@
     },
     "kale": {
       "id": "kale",
-      "name": "羽衣甘蓝",
+      "name": "甘蓝菜",
       "category": "crop",
       "maxStack": 999,
       "inventorySortOrder": 11,
       "canShip": true,
       "shippingCategory": "farming",
       "hotbarMark": "甘",
-      "staminaRestore": 50
+      "staminaRestore": 50,
+      "hasQuality": true,
+      "edibility": 20
     },
     "cauliflower-seed": {
       "id": "cauliflower-seed",
@@ -731,36 +758,120 @@
       "canShip": true,
       "shippingCategory": "farming",
       "hotbarMark": "椰",
-      "staminaRestore": 75
+      "staminaRestore": 75,
+      "hasQuality": true,
+      "edibility": 30
     },
-    "spring-wildflower": {
-      "id": "spring-wildflower",
-      "name": "春日野花",
+    "wild-horseradish": {
+      "id": "wild-horseradish",
+      "name": "野山葵",
       "category": "resource",
       "maxStack": 999,
       "inventorySortOrder": 14,
       "canShip": true,
       "shippingCategory": "foraging",
-      "hotbarMark": "花",
-      "staminaRestore": 6
+      "hotbarMark": "葵",
+      "staminaRestore": 13,
+      "hasQuality": true,
+      "edibility": 5
     },
-    "bamboo-shoot": {
-      "id": "bamboo-shoot",
-      "name": "春笋",
+    "daffodil": {
+      "id": "daffodil",
+      "name": "黄水仙",
       "category": "resource",
       "maxStack": 999,
       "inventorySortOrder": 15,
       "canShip": true,
       "shippingCategory": "foraging",
-      "hotbarMark": "笋",
-      "staminaRestore": 10
+      "hotbarMark": "仙",
+      "edible": true,
+      "staminaRestore": 0,
+      "hasQuality": true,
+      "edibility": 0
+    },
+    "leek": {
+      "id": "leek",
+      "name": "韭葱",
+      "category": "resource",
+      "maxStack": 999,
+      "inventorySortOrder": 16,
+      "canShip": true,
+      "shippingCategory": "foraging",
+      "hotbarMark": "葱",
+      "staminaRestore": 40,
+      "hasQuality": true,
+      "edibility": 16
+    },
+    "dandelion": {
+      "id": "dandelion",
+      "name": "蒲公英",
+      "category": "resource",
+      "maxStack": 999,
+      "inventorySortOrder": 17,
+      "canShip": true,
+      "shippingCategory": "foraging",
+      "hotbarMark": "蒲",
+      "staminaRestore": 25,
+      "hasQuality": true,
+      "edibility": 10
+    },
+    "spring-seeds": {
+      "id": "spring-seeds",
+      "name": "春季种子",
+      "category": "seed",
+      "maxStack": 999,
+      "inventorySortOrder": 18,
+      "canShip": true,
+      "shippingCategory": "foraging",
+      "hotbarMark": "野"
+    },
+    "maple-seed": {
+      "id": "maple-seed",
+      "name": "枫树种子",
+      "category": "seed",
+      "maxStack": 999,
+      "inventorySortOrder": 19,
+      "canShip": true,
+      "shippingCategory": "foraging",
+      "hotbarMark": "枫"
+    },
+    "acorn": {
+      "id": "acorn",
+      "name": "橡子",
+      "category": "seed",
+      "maxStack": 999,
+      "inventorySortOrder": 20,
+      "canShip": true,
+      "shippingCategory": "foraging",
+      "hotbarMark": "橡"
+    },
+    "pine-cone": {
+      "id": "pine-cone",
+      "name": "松果",
+      "category": "seed",
+      "maxStack": 999,
+      "inventorySortOrder": 21,
+      "canShip": true,
+      "shippingCategory": "foraging",
+      "hotbarMark": "松"
+    },
+    "field-snack": {
+      "id": "field-snack",
+      "name": "工作小食",
+      "category": "food",
+      "maxStack": 999,
+      "inventorySortOrder": 22,
+      "canShip": true,
+      "shippingCategory": "other",
+      "hotbarMark": "食",
+      "staminaRestore": 45
     },
     "bean-starter": {
       "id": "bean-starter",
-      "name": "豆苗",
+      "name": "青豆种子",
       "category": "seed",
       "maxStack": 999,
-      "inventorySortOrder": 16,
+      "inventorySortOrder": 23,
       "canShip": false,
       "shippingCategory": null,
       "hotbarMark": "豆"
@@ -770,18 +881,20 @@
       "name": "青豆",
       "category": "crop",
       "maxStack": 999,
-      "inventorySortOrder": 17,
+      "inventorySortOrder": 24,
       "canShip": true,
       "shippingCategory": "farming",
       "hotbarMark": "豆",
-      "staminaRestore": 25
+      "staminaRestore": 25,
+      "hasQuality": true,
+      "edibility": 10
     },
     "potato-seed": {
       "id": "potato-seed",
       "name": "土豆种子",
       "category": "seed",
       "maxStack": 999,
-      "inventorySortOrder": 18,
+      "inventorySortOrder": 25,
       "canShip": false,
       "shippingCategory": null,
       "hotbarMark": "薯"
@@ -791,18 +904,20 @@
       "name": "土豆",
       "category": "crop",
       "maxStack": 999,
-      "inventorySortOrder": 19,
+      "inventorySortOrder": 26,
       "canShip": true,
       "shippingCategory": "farming",
       "hotbarMark": "薯",
-      "staminaRestore": 25
+      "staminaRestore": 25,
+      "hasQuality": true,
+      "edibility": 10
     },
     "jazz-seed": {
       "id": "jazz-seed",
-      "name": "爵士种子",
+      "name": "蓝爵士种子",
       "category": "seed",
       "maxStack": 999,
-      "inventorySortOrder": 20,
+      "inventorySortOrder": 27,
       "canShip": false,
       "shippingCategory": null,
       "hotbarMark": "籽"
@@ -812,94 +927,96 @@
       "name": "蓝爵士",
       "category": "crop",
       "maxStack": 999,
-      "inventorySortOrder": 21,
+      "inventorySortOrder": 28,
       "canShip": true,
       "shippingCategory": "farming",
       "hotbarMark": "爵",
-      "staminaRestore": 45
+      "staminaRestore": 45,
+      "hasQuality": true,
+      "edibility": 18
     },
     "fishing-rod": {
       "id": "fishing-rod",
-      "name": "竹制鱼竿",
+      "name": "竹鱼竿",
       "category": "tool",
       "maxStack": 1,
-      "inventorySortOrder": 22,
+      "inventorySortOrder": 29,
       "canShip": false,
       "shippingCategory": null,
       "hotbarMark": "竿"
     },
     "lake-carp": {
       "id": "lake-carp",
-      "name": "湖鲫",
+      "name": "鲤鱼",
       "category": "fish",
       "maxStack": 999,
-      "inventorySortOrder": 23,
+      "inventorySortOrder": 30,
       "canShip": true,
       "shippingCategory": "fishing",
-      "hotbarMark": "鲫",
-      "staminaRestore": 16
+      "hotbarMark": "鲤",
+      "staminaRestore": 13
     },
     "silver-minnow": {
       "id": "silver-minnow",
-      "name": "银鲦",
+      "name": "鲢鱼",
       "category": "fish",
       "maxStack": 999,
-      "inventorySortOrder": 24,
+      "inventorySortOrder": 31,
       "canShip": true,
       "shippingCategory": "fishing",
-      "hotbarMark": "鲦",
-      "staminaRestore": 12
+      "hotbarMark": "鲢",
+      "staminaRestore": 25
     },
     "rain-loach": {
       "id": "rain-loach",
-      "name": "雨鳅",
+      "name": "西鲱",
       "category": "fish",
       "maxStack": 999,
-      "inventorySortOrder": 25,
+      "inventorySortOrder": 32,
       "canShip": true,
       "shippingCategory": "fishing",
-      "hotbarMark": "鳅",
+      "hotbarMark": "鲱",
       "staminaRestore": 18
     },
     "wind-dace": {
       "id": "wind-dace",
-      "name": "风鲌",
+      "name": "小嘴鲈鱼",
       "category": "fish",
       "maxStack": 999,
-      "inventorySortOrder": 26,
+      "inventorySortOrder": 33,
       "canShip": true,
       "shippingCategory": "fishing",
-      "hotbarMark": "鲌",
+      "hotbarMark": "鲈",
       "staminaRestore": 17
     },
     "dusk-perch": {
       "id": "dusk-perch",
-      "name": "暮鲈",
+      "name": "鲷鱼",
       "category": "fish",
       "maxStack": 999,
-      "inventorySortOrder": 27,
+      "inventorySortOrder": 34,
       "canShip": true,
       "shippingCategory": "fishing",
-      "hotbarMark": "鲈",
+      "hotbarMark": "鲷",
       "staminaRestore": 22
     },
     "jade-bream": {
       "id": "jade-bream",
-      "name": "青鳞鱼",
+      "name": "大嘴鲈鱼",
       "category": "fish",
       "maxStack": 999,
-      "inventorySortOrder": 28,
+      "inventorySortOrder": 35,
       "canShip": true,
       "shippingCategory": "fishing",
-      "hotbarMark": "鳞",
-      "staminaRestore": 28
+      "hotbarMark": "鲈",
+      "staminaRestore": 38
     },
     "chest": {
       "id": "chest",
-      "name": "普通箱",
+      "name": "宝箱",
       "category": "placeable",
       "maxStack": 999,
-      "inventorySortOrder": 29,
+      "inventorySortOrder": 36,
       "canShip": false,
       "shippingCategory": null,
       "hotbarMark": "箱",
@@ -930,7 +1047,7 @@
       "name": "煤炭",
       "category": "resource",
       "maxStack": 999,
-      "inventorySortOrder": 30,
+      "inventorySortOrder": 37,
       "canShip": true,
       "shippingCategory": "mining",
       "hotbarMark": "煤",
@@ -941,7 +1058,7 @@
       "name": "稻草人",
       "category": "placeable",
       "maxStack": 999,
-      "inventorySortOrder": 31,
+      "inventorySortOrder": 38,
       "canShip": false,
       "shippingCategory": null,
       "hotbarMark": "稻",
@@ -955,6 +1072,38 @@
           "farm"
         ]
       }
+    },
+    "sap": {
+      "id": "sap",
+      "name": "树液",
+      "category": "resource",
+      "maxStack": 999,
+      "inventorySortOrder": 39,
+      "canShip": true,
+      "shippingCategory": "foraging",
+      "hotbarMark": "液",
+      "edible": true,
+      "staminaRestore": -5
+    },
+    "basic-fertilizer": {
+      "id": "basic-fertilizer",
+      "name": "初级肥料",
+      "category": "resource",
+      "maxStack": 999,
+      "inventorySortOrder": 40,
+      "canShip": true,
+      "shippingCategory": "other",
+      "hotbarMark": "肥"
+    },
+    "basic-retaining-soil": {
+      "id": "basic-retaining-soil",
+      "name": "初级保湿土",
+      "category": "resource",
+      "maxStack": 999,
+      "inventorySortOrder": 41,
+      "canShip": true,
+      "shippingCategory": "other",
+      "hotbarMark": "湿"
     }
   },
   "crops": [
@@ -968,7 +1117,8 @@
       "seedPrice": 20,
       "sellPrice": 35,
       "harvestXp": 8,
-      "crowEdibleAfterDays": 2
+      "crowEdibleAfterDays": 2,
+      "seedStageDays": 1
     },
     {
       "cropId": "kale",
@@ -981,7 +1131,8 @@
       "sellPrice": 110,
       "harvestTool": "scythe",
       "harvestXp": 17,
-      "crowEdibleAfterDays": 3
+      "crowEdibleAfterDays": 3,
+      "seedStageDays": 1
     },
     {
       "cropId": "cauliflower",
@@ -993,7 +1144,8 @@
       "seedPrice": 80,
       "sellPrice": 175,
       "harvestXp": 23,
-      "crowEdibleAfterDays": 3
+      "crowEdibleAfterDays": 3,
+      "seedStageDays": 1
     },
     {
       "cropId": "green-bean",
@@ -1007,7 +1159,8 @@
       "sellPrice": 40,
       "isRaised": true,
       "harvestXp": 9,
-      "crowEdibleAfterDays": 2
+      "crowEdibleAfterDays": 2,
+      "seedStageDays": 1
     },
     {
       "cropId": "potato",
@@ -1020,7 +1173,8 @@
       "sellPrice": 80,
       "extraHarvestChance": 0.2,
       "harvestXp": 14,
-      "crowEdibleAfterDays": 2
+      "crowEdibleAfterDays": 2,
+      "seedStageDays": 1
     },
     {
       "cropId": "blue-jazz",
@@ -1032,13 +1186,34 @@
       "seedPrice": 30,
       "sellPrice": 50,
       "harvestXp": 10,
-      "crowEdibleAfterDays": 3
+      "crowEdibleAfterDays": 3,
+      "seedStageDays": 1
+    },
+    {
+      "cropId": "spring-forage",
+      "seedId": "spring-seeds",
+      "seasons": [
+        "spring"
+      ],
+      "growthDays": 7,
+      "seedPrice": null,
+      "sellPrice": null,
+      "harvestXp": 3,
+      "foragingHarvestXp": 2,
+      "harvestItems": [
+        "wild-horseradish",
+        "daffodil",
+        "leek",
+        "dandelion"
+      ],
+      "crowVulnerable": false,
+      "seedStageDays": 3
     }
   ],
   "recipes": {
     "chest": {
       "id": "chest",
-      "name": "普通箱",
+      "name": "宝箱",
       "ingredients": [
         {
           "itemId": "wood",
@@ -1075,6 +1250,94 @@
       "knownByDefault": false,
       "skill": "farming",
       "level": 1
+    },
+    "spring-seeds": {
+      "id": "spring-seeds",
+      "name": "野生种子（春季）",
+      "ingredients": [
+        {
+          "itemId": "wild-horseradish",
+          "quantity": 1
+        },
+        {
+          "itemId": "daffodil",
+          "quantity": 1
+        },
+        {
+          "itemId": "leek",
+          "quantity": 1
+        },
+        {
+          "itemId": "dandelion",
+          "quantity": 1
+        }
+      ],
+      "output": {
+        "itemId": "spring-seeds",
+        "quantity": 10
+      },
+      "knownByDefault": false,
+      "skill": "foraging",
+      "level": 1
+    },
+    "field-snack": {
+      "id": "field-snack",
+      "name": "工作小食",
+      "ingredients": [
+        {
+          "itemId": "acorn",
+          "quantity": 1
+        },
+        {
+          "itemId": "maple-seed",
+          "quantity": 1
+        },
+        {
+          "itemId": "pine-cone",
+          "quantity": 1
+        }
+      ],
+      "output": {
+        "itemId": "field-snack",
+        "quantity": 1
+      },
+      "knownByDefault": false,
+      "skill": "foraging",
+      "level": 1
+    },
+    "basic-fertilizer": {
+      "id": "basic-fertilizer",
+      "name": "初级肥料",
+      "ingredients": [
+        {
+          "itemId": "sap",
+          "quantity": 2
+        }
+      ],
+      "output": {
+        "itemId": "basic-fertilizer",
+        "quantity": 1
+      },
+      "knownByDefault": false,
+      "skill": "farming",
+      "level": 1
+    },
+    "basic-retaining-soil": {
+      "id": "basic-retaining-soil",
+      "name": "初级保湿土",
+      "ingredients": [
+        {
+          "itemId": "stone",
+          "quantity": 2
+        }
+      ],
+      "output": {
+        "itemId": "basic-retaining-soil",
+        "quantity": 1
+      },
+      "knownByDefault": false,
+      "skill": "farming",
+      "level": 4
     }
   },
   "prices": {
@@ -1092,8 +1355,15 @@
     "kale": 110,
     "cauliflower-seed": null,
     "cauliflower": 175,
-    "spring-wildflower": 25,
-    "bamboo-shoot": 40,
+    "wild-horseradish": 50,
+    "daffodil": 30,
+    "leek": 60,
+    "dandelion": 40,
+    "spring-seeds": 35,
+    "maple-seed": 5,
+    "acorn": 20,
+    "pine-cone": 5,
+    "field-snack": 20,
     "bean-starter": null,
     "green-bean": 40,
     "potato-seed": null,
@@ -1101,15 +1371,18 @@
     "jazz-seed": null,
     "blue-jazz": 50,
     "fishing-rod": null,
-    "lake-carp": 45,
-    "silver-minnow": 35,
+    "lake-carp": 30,
+    "silver-minnow": 50,
     "rain-loach": 70,
     "wind-dace": 65,
     "dusk-perch": 85,
-    "jade-bream": 140,
+    "jade-bream": 100,
     "chest": null,
     "coal": 15,
-    "scarecrow": null
+    "scarecrow": null,
+    "sap": 2,
+    "basic-fertilizer": 2,
+    "basic-retaining-soil": 4
   },
   "fish": [
     {
@@ -1117,44 +1390,24 @@
       "minMinute": 360,
       "maxMinute": 1560,
       "minCast": 0,
-      "pull": 8
+      "pull": 8,
+      "difficulty": 15
     },
     {
       "itemId": "silver-minnow",
       "minMinute": 360,
-      "maxMinute": 720,
-      "minCast": 15,
-      "pull": 12
-    },
-    {
-      "itemId": "rain-loach",
-      "minMinute": 360,
       "maxMinute": 1560,
-      "weather": "rain",
-      "minCast": 20,
-      "pull": 14
-    },
-    {
-      "itemId": "wind-dace",
-      "minMinute": 540,
-      "maxMinute": 1200,
-      "weather": "wind",
-      "minCast": 35,
-      "pull": 17
-    },
-    {
-      "itemId": "dusk-perch",
-      "minMinute": 1020,
-      "maxMinute": 1560,
-      "minCast": 45,
-      "pull": 20
+      "minCast": 0,
+      "pull": 12,
+      "difficulty": 35
     },
     {
       "itemId": "jade-bream",
       "minMinute": 360,
-      "maxMinute": 1560,
-      "minCast": 75,
-      "pull": 24
+      "maxMinute": 1140,
+      "minCast": 0,
+      "pull": 24,
+      "difficulty": 50
     }
   ],
   "profiles": [
@@ -1203,7 +1456,7 @@
     {
       "requestId": "shore-color-study",
       "npcId": "town-resident-alan",
-      "itemId": "spring-wildflower",
+      "itemId": "daffodil",
       "quantity": 2,
       "goldReward": 110,
       "friendshipReward": 70
@@ -1235,7 +1488,7 @@
     {
       "requestId": "dock-supper",
       "npcId": "town-resident-xiangzi",
-      "itemId": "bamboo-shoot",
+      "itemId": "leek",
       "quantity": 2,
       "goldReward": 180,
       "friendshipReward": 80
@@ -1243,7 +1496,7 @@
     {
       "requestId": "dye-swatch",
       "npcId": "town-resident-haomeili",
-      "itemId": "spring-wildflower",
+      "itemId": "daffodil",
       "quantity": 2,
       "goldReward": 120,
       "friendshipReward": 80
@@ -1293,7 +1546,7 @@
     {
       "eventId": "day-3-watering-intro",
       "unlockDay": 3,
-      "message": "昊天提起：水壶可以升级，一次浇三格。去小镇或铁匠铺找他。"
+      "message": "克林特提起：喷壶可以升级，一次浇三格。去小镇或铁匠铺找他。"
     },
     {
       "eventId": "day-5-backpack-intro",
@@ -1303,7 +1556,7 @@
     {
       "eventId": "day-7-fishing-intro",
       "unlockDay": 7,
-      "message": "从今天起可以向祥子领取竹制鱼竿，再到湖岸旧码头试钓。雨天可以去东岸民宅找他。"
+      "message": "从今天起可以向威利领取竹鱼竿，再到湖岸旧码头试钓。雨天可以去东岸民宅找他。"
     }
   ],
   "events": [
@@ -1341,8 +1594,15 @@
       "kale": "neutral",
       "cauliflower-seed": "neutral",
       "cauliflower": "liked",
-      "spring-wildflower": "neutral",
-      "bamboo-shoot": "neutral",
+      "wild-horseradish": "neutral",
+      "daffodil": "neutral",
+      "leek": "neutral",
+      "dandelion": "neutral",
+      "spring-seeds": "neutral",
+      "maple-seed": "neutral",
+      "acorn": "neutral",
+      "pine-cone": "neutral",
+      "field-snack": "neutral",
       "bean-starter": "neutral",
       "green-bean": "liked",
       "potato-seed": "neutral",
@@ -1356,7 +1616,12 @@
       "wind-dace": "neutral",
       "dusk-perch": "neutral",
       "jade-bream": "neutral",
-      "chest": "neutral"
+      "chest": "neutral",
+      "coal": "neutral",
+      "scarecrow": "neutral",
+      "sap": "disliked",
+      "basic-fertilizer": "disliked",
+      "basic-retaining-soil": "disliked"
     },
     "town-blacksmith": {
       "wood": "neutral",
@@ -1373,8 +1638,15 @@
       "kale": "neutral",
       "cauliflower-seed": "neutral",
       "cauliflower": "neutral",
-      "spring-wildflower": "disliked",
-      "bamboo-shoot": "liked",
+      "wild-horseradish": "neutral",
+      "daffodil": "disliked",
+      "leek": "liked",
+      "dandelion": "neutral",
+      "spring-seeds": "neutral",
+      "maple-seed": "neutral",
+      "acorn": "neutral",
+      "pine-cone": "neutral",
+      "field-snack": "neutral",
       "bean-starter": "neutral",
       "green-bean": "neutral",
       "potato-seed": "neutral",
@@ -1388,7 +1660,12 @@
       "wind-dace": "neutral",
       "dusk-perch": "neutral",
       "jade-bream": "neutral",
-      "chest": "neutral"
+      "chest": "neutral",
+      "coal": "neutral",
+      "scarecrow": "neutral",
+      "sap": "disliked",
+      "basic-fertilizer": "disliked",
+      "basic-retaining-soil": "disliked"
     },
     "town-resident-01": {
       "wood": "disliked",
@@ -1405,8 +1682,15 @@
       "kale": "neutral",
       "cauliflower-seed": "neutral",
       "cauliflower": "neutral",
-      "spring-wildflower": "neutral",
-      "bamboo-shoot": "neutral",
+      "wild-horseradish": "neutral",
+      "daffodil": "neutral",
+      "leek": "neutral",
+      "dandelion": "neutral",
+      "spring-seeds": "neutral",
+      "maple-seed": "neutral",
+      "acorn": "neutral",
+      "pine-cone": "neutral",
+      "field-snack": "neutral",
       "bean-starter": "neutral",
       "green-bean": "neutral",
       "potato-seed": "neutral",
@@ -1420,7 +1704,12 @@
       "wind-dace": "neutral",
       "dusk-perch": "neutral",
       "jade-bream": "neutral",
-      "chest": "neutral"
+      "chest": "neutral",
+      "coal": "neutral",
+      "scarecrow": "neutral",
+      "sap": "disliked",
+      "basic-fertilizer": "disliked",
+      "basic-retaining-soil": "disliked"
     },
     "town-resident-mozi": {
       "wood": "liked",
@@ -1437,8 +1726,15 @@
       "kale": "neutral",
       "cauliflower-seed": "neutral",
       "cauliflower": "neutral",
-      "spring-wildflower": "neutral",
-      "bamboo-shoot": "neutral",
+      "wild-horseradish": "neutral",
+      "daffodil": "neutral",
+      "leek": "neutral",
+      "dandelion": "neutral",
+      "spring-seeds": "neutral",
+      "maple-seed": "neutral",
+      "acorn": "neutral",
+      "pine-cone": "neutral",
+      "field-snack": "neutral",
       "bean-starter": "neutral",
       "green-bean": "neutral",
       "potato-seed": "neutral",
@@ -1452,7 +1748,12 @@
       "wind-dace": "neutral",
       "dusk-perch": "neutral",
       "jade-bream": "neutral",
-      "chest": "neutral"
+      "chest": "neutral",
+      "coal": "neutral",
+      "scarecrow": "neutral",
+      "sap": "disliked",
+      "basic-fertilizer": "disliked",
+      "basic-retaining-soil": "disliked"
     },
     "town-resident-haonan": {
       "wood": "neutral",
@@ -1469,8 +1770,15 @@
       "kale": "neutral",
       "cauliflower-seed": "neutral",
       "cauliflower": "disliked",
-      "spring-wildflower": "neutral",
-      "bamboo-shoot": "liked",
+      "wild-horseradish": "neutral",
+      "daffodil": "neutral",
+      "leek": "liked",
+      "dandelion": "neutral",
+      "spring-seeds": "neutral",
+      "maple-seed": "neutral",
+      "acorn": "neutral",
+      "pine-cone": "neutral",
+      "field-snack": "neutral",
       "bean-starter": "neutral",
       "green-bean": "neutral",
       "potato-seed": "neutral",
@@ -1484,7 +1792,12 @@
       "wind-dace": "liked",
       "dusk-perch": "neutral",
       "jade-bream": "neutral",
-      "chest": "neutral"
+      "chest": "neutral",
+      "coal": "neutral",
+      "scarecrow": "neutral",
+      "sap": "disliked",
+      "basic-fertilizer": "disliked",
+      "basic-retaining-soil": "disliked"
     },
     "town-resident-alan": {
       "wood": "disliked",
@@ -1501,8 +1814,15 @@
       "kale": "neutral",
       "cauliflower-seed": "neutral",
       "cauliflower": "neutral",
-      "spring-wildflower": "liked",
-      "bamboo-shoot": "neutral",
+      "wild-horseradish": "neutral",
+      "daffodil": "liked",
+      "leek": "neutral",
+      "dandelion": "neutral",
+      "spring-seeds": "neutral",
+      "maple-seed": "neutral",
+      "acorn": "neutral",
+      "pine-cone": "neutral",
+      "field-snack": "neutral",
       "bean-starter": "neutral",
       "green-bean": "neutral",
       "potato-seed": "neutral",
@@ -1516,7 +1836,12 @@
       "wind-dace": "neutral",
       "dusk-perch": "neutral",
       "jade-bream": "neutral",
-      "chest": "neutral"
+      "chest": "neutral",
+      "coal": "neutral",
+      "scarecrow": "neutral",
+      "sap": "disliked",
+      "basic-fertilizer": "disliked",
+      "basic-retaining-soil": "disliked"
     },
     "town-resident-haomeili": {
       "wood": "neutral",
@@ -1533,8 +1858,15 @@
       "kale": "neutral",
       "cauliflower-seed": "neutral",
       "cauliflower": "neutral",
-      "spring-wildflower": "liked",
-      "bamboo-shoot": "neutral",
+      "wild-horseradish": "neutral",
+      "daffodil": "liked",
+      "leek": "neutral",
+      "dandelion": "neutral",
+      "spring-seeds": "neutral",
+      "maple-seed": "neutral",
+      "acorn": "neutral",
+      "pine-cone": "neutral",
+      "field-snack": "neutral",
       "bean-starter": "neutral",
       "green-bean": "neutral",
       "potato-seed": "neutral",
@@ -1548,7 +1880,12 @@
       "wind-dace": "neutral",
       "dusk-perch": "neutral",
       "jade-bream": "neutral",
-      "chest": "neutral"
+      "chest": "neutral",
+      "coal": "neutral",
+      "scarecrow": "neutral",
+      "sap": "disliked",
+      "basic-fertilizer": "disliked",
+      "basic-retaining-soil": "disliked"
     },
     "town-resident-xiangzi": {
       "wood": "disliked",
@@ -1565,8 +1902,15 @@
       "kale": "neutral",
       "cauliflower-seed": "neutral",
       "cauliflower": "neutral",
-      "spring-wildflower": "neutral",
-      "bamboo-shoot": "neutral",
+      "wild-horseradish": "neutral",
+      "daffodil": "neutral",
+      "leek": "neutral",
+      "dandelion": "neutral",
+      "spring-seeds": "neutral",
+      "maple-seed": "neutral",
+      "acorn": "neutral",
+      "pine-cone": "neutral",
+      "field-snack": "neutral",
       "bean-starter": "neutral",
       "green-bean": "neutral",
       "potato-seed": "neutral",
@@ -1580,7 +1924,12 @@
       "wind-dace": "neutral",
       "dusk-perch": "liked",
       "jade-bream": "liked",
-      "chest": "neutral"
+      "chest": "neutral",
+      "coal": "neutral",
+      "scarecrow": "neutral",
+      "sap": "disliked",
+      "basic-fertilizer": "disliked",
+      "basic-retaining-soil": "disliked"
     }
   },
   "restDays": {
@@ -1593,6 +1942,52 @@
     "town-resident-haomeili": "sunday",
     "town-resident-xiangzi": "monday"
   },
+  "treeSpeciesById": {
+    "farm-tree-001": "maple",
+    "farm-tree-002": "oak",
+    "farm-tree-003": "pine",
+    "farm-tree-004": "maple",
+    "farm-tree-005": "oak",
+    "farm-tree-006": "pine",
+    "farm-tree-007": "maple",
+    "farm-tree-008": "oak",
+    "foothills-tree-001": "maple",
+    "foothills-tree-002": "oak",
+    "foothills-tree-003": "pine",
+    "foothills-tree-004": "maple",
+    "foothills-tree-005": "oak",
+    "foothills-tree-006": "pine",
+    "foothills-tree-007": "maple",
+    "foothills-tree-008": "oak",
+    "foothills-tree-009": "pine",
+    "foothills-tree-010": "maple",
+    "foothills-tree-011": "oak",
+    "foothills-tree-012": "pine",
+    "foothills-tree-013": "maple",
+    "foothills-tree-014": "oak",
+    "foothills-tree-015": "pine",
+    "foothills-tree-016": "maple",
+    "foothills-tree-017": "oak",
+    "foothills-tree-018": "pine",
+    "lakeshore-tree-001": "maple",
+    "lakeshore-tree-002": "oak",
+    "lakeshore-tree-003": "pine",
+    "lakeshore-tree-004": "maple",
+    "lakeshore-tree-005": "oak",
+    "lakeshore-tree-006": "pine",
+    "lakeshore-tree-007": "maple",
+    "lakeshore-tree-008": "oak",
+    "lakeshore-tree-009": "pine",
+    "lakeshore-tree-010": "maple",
+    "lakeshore-tree-011": "oak",
+    "lakeshore-tree-012": "pine"
+  },
+  "treeSeedItems": {
+    "maple": "maple-seed",
+    "oak": "acorn",
+    "pine": "pine-cone"
+  },
+  "treeSeedOnChopChance": 0.75,
   "coalBuyPrices": [
     150,
     250

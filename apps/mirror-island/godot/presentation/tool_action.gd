@@ -89,7 +89,7 @@ func _exit_tree() -> void:
 
 ## 为已成功的农具命令生成反馈并返回是否处理；节点归属当前区域，切图自动清理。
 static func impact(parent: Node2D, point: Vector2, code: String) -> bool:
-	if code not in ["tilled","watered","refilled","chopped","stump-cleared","mined","cut"]: return false
+	if code not in ["tilled","watered","refilled","chopped","chopped-with-seed","branch-chopped","stump-cleared","mined","cut"]: return false
 	var effect:=ToolImpact.new(); effect.kind=code; parent.add_child(effect); effect.global_position=point
 	return true
 
@@ -103,10 +103,10 @@ class ToolImpact extends Node2D:
 		queue_redraw()
 	## 区分土块、木屑、石屑、叶片与水滴；所有颜色和轨迹只用于渲染。
 	func _draw() -> void:
-		var color: Color={"tilled":Color("bb8555"),"watered":Color("83d6e0"),"refilled":Color("83d6e0"),"chopped":Color("e2b47a"),"stump-cleared":Color("e2b47a"),"mined":Color("bbc7bf"),"cut":Color("9bc96a")}[kind]
+		var color: Color={"tilled":Color("bb8555"),"watered":Color("83d6e0"),"refilled":Color("83d6e0"),"chopped":Color("e2b47a"),"chopped-with-seed":Color("e2b47a"),"branch-chopped":Color("e2b47a"),"stump-cleared":Color("e2b47a"),"mined":Color("bbc7bf"),"cut":Color("9bc96a")}[kind]
 		color.a=1.0-age/0.28
 		for index in range(8):
 			var angle:=float(index)*TAU/8.0
 			var travel:=Vector2(cos(angle)*22.0,-absf(sin(angle))*26.0)*age+Vector2(0,65.0*age*age)
-			draw_rect(Rect2(travel.round(),Vector2(2,1) if kind in ["cut","chopped","stump-cleared"] else Vector2(1,2)),color)
+			draw_rect(Rect2(travel.round(),Vector2(2,1) if kind in ["cut","chopped","chopped-with-seed","branch-chopped","stump-cleared"] else Vector2(1,2)),color)
 		if kind in ["watered","refilled"]: draw_arc(Vector2.ZERO,2.0+age*15.0,0,TAU,12,color,1.0)

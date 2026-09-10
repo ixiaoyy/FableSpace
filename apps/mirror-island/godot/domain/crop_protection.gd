@@ -14,7 +14,7 @@ static func settle(state: Dictionary, world: FarmWorldRules, visual_events: Arra
 	var terrain: Dictionary={}
 	for tile: Dictionary in state.farmTiles.values():
 		terrain[tile.id]=true
-		if tile.cropId!="": count+=1
+		if tile.cropId!="" and world.crops[tile.cropId].get("crowVulnerable",true): count+=1
 	var opportunities:=mini(4,floori(count/16.0))
 	if opportunities==0: return report
 	for spawn: Dictionary in world.regions.farm.resources:
@@ -28,6 +28,7 @@ static func settle(state: Dictionary, world: FarmWorldRules, visual_events: Arra
 			var tile: Dictionary=state.farmTiles.get(keys[rng.randi_range(0,keys.size()-1)],{})
 			if tile.is_empty() or tile.cropId=="": continue
 			var crop: Dictionary=world.crops[tile.cropId]
+			if not crop.get("crowVulnerable",true): continue
 			if tile.growthDays<crop.crowEdibleAfterDays: continue
 			var protected:=false
 			for object: Dictionary in state.worldObjects:

@@ -29,8 +29,8 @@ func _run() -> void:
 	var state:=session.snapshot()
 	var id: String="farm:26:17"
 	state.player.x=424; state.player.y=280
-	state.inventory[5]={"itemId":"bean-starter","quantity":6}
-	state.farmTiles[id]={"id":id,"column":26,"row":17,"phase":"tilled","cropId":"","growthDays":0,"watered":false,"plantedDay":0,"harvestCount":0}
+	state.inventory[5]={"itemId":"bean-starter","quantity":6,"quality":0}
+	state.farmTiles[id]={"id":id,"column":26,"row":17,"phase":"tilled","cropId":"","growthDays":0,"watered":false,"plantedDay":0,"harvestCount":0,"fertilizer":0}
 	session._state=state
 	var plant: Dictionary={"type":"use-item-on-tile","itemId":"bean-starter","column":26,"row":17,"facing":"right"}
 	var result:=await session.dispatch(plant)
@@ -95,7 +95,7 @@ func _check_scythe(session: FarmGameSession, repository: MemoryRepository) -> vo
 	_expect(FarmWorldRules.stable_hash(state.worldSeed,state.day,"weed-fiber:"+weed.entityId)%2==0,"本例杂草固定掉纤维")
 	for cell: Vector2i in [Vector2i(26,17),Vector2i(27,17),Vector2i(27,18)]:
 		var id: String="farm:%d:%d"%[cell.x,cell.y]
-		state.farmTiles[id]={"id":id,"column":cell.x,"row":cell.y,"phase":"mature","cropId":"kale","growthDays":6,"watered":false,"plantedDay":1,"harvestCount":0}
+		state.farmTiles[id]={"id":id,"column":cell.x,"row":cell.y,"phase":"mature","cropId":"kale","growthDays":6,"watered":false,"plantedDay":1,"harvestCount":0,"fertilizer":0}
 	_expect(session.codec.validate(state)=="","混合目标起点有效")
 	session._state=state.duplicate(true)
 	var result:=await session.dispatch({"type":"use-item-on-tile","itemId":"","column":26,"row":17})
@@ -105,11 +105,11 @@ func _check_scythe(session: FarmGameSession, repository: MemoryRepository) -> vo
 	_expect(session.resource_rules.gather(state,weed.entityId,"axe","right")=="wrong-tool","旧杂草入口不绕过工具")
 	_expect(session.resource_rules.gather(state,weed.entityId,"scythe","down")=="wrong-direction","旧杂草入口不绕过方向")
 	# 一个空格能放全部甘蓝，却不能同时放纤维；不能先清理近处作物。
-	for index in range(6,state.inventory.size()): state.inventory[index]={"itemId":"stone","quantity":999}
+	for index in range(6,state.inventory.size()): state.inventory[index]={"itemId":"stone","quantity":999,"quality":0}
 	session._state=state.duplicate(true)
 	result=await session.dispatch({"type":"sweep-scythe","facing":"right"})
 	_expect(result.code=="inventory-full" and session.snapshot()==state,"联合容量不足整次无变化")
-	state.inventory[6]={"itemId":"","quantity":0}; session._state=state.duplicate(true)
+	state.inventory[6]={"itemId":"","quantity":0,"quality":0}; session._state=state.duplicate(true)
 	repository.fail_next=true
 	await session.dispatch({"type":"sweep-scythe","facing":"right"})
 	_expect(session.save_phase=="failed" and session.snapshot()==state,"挥镰刀保存失败不提前发布")
@@ -135,7 +135,7 @@ func _check_potato(session: FarmGameSession, repository: MemoryRepository) -> vo
 	var state: Dictionary=session.rules.initial.duplicate(true)
 	state.player.x=408; state.player.y=280
 	var id: String="farm:26:17"
-	var tile: Dictionary={"id":id,"column":26,"row":17,"phase":"mature","cropId":"potato","growthDays":6,"watered":false,"plantedDay":1,"harvestCount":0}
+	var tile: Dictionary={"id":id,"column":26,"row":17,"phase":"mature","cropId":"potato","growthDays":6,"watered":false,"plantedDay":1,"harvestCount":0,"fertilizer":0}
 	state.farmTiles[id]=tile
 	var total:=0; var singles:=0; var chosen_seed: int=-1
 	for sample in range(4096):
@@ -147,12 +147,12 @@ func _check_potato(session: FarmGameSession, repository: MemoryRepository) -> vo
 	_expect(chosen_seed>=0,"额外产出不封顶三个")
 	state.worldSeed=chosen_seed
 	var amount:=session.resource_rules.harvest_amount(state,tile,session.world.crops.potato)
-	for index in range(5,state.inventory.size()): state.inventory[index]={"itemId":"stone","quantity":999}
+	for index in range(5,state.inventory.size()): state.inventory[index]={"itemId":"stone","quantity":999,"quality":0}
 	session._state=state.duplicate(true)
 	var command: Dictionary={"type":"use-item-on-tile","itemId":"","column":26,"row":17}
 	var result:=await session.dispatch(command)
 	_expect(result.code=="inventory-full" and session.snapshot()==state,"土豆满包不收获")
-	state.inventory[5]={"itemId":"","quantity":0}; session._state=state.duplicate(true)
+	state.inventory[5]={"itemId":"","quantity":0,"quality":0}; session._state=state.duplicate(true)
 	_expect(session.resource_rules.harvest_amount(state,tile,session.world.crops.potato)==amount,"整理库存不重抽")
 	repository.fail_next=true; await session.dispatch(command)
 	_expect(session.save_phase=="failed" and session.snapshot()==state,"土豆保存失败不提前发放")
@@ -175,7 +175,7 @@ func _check_skills(session: FarmGameSession, repository: MemoryRepository) -> vo
 	_expect(session.codec.validate(bad)!="","拒绝缺失技能")
 	state.skills.farming.xp=92; state.player.x=408; state.player.y=280
 	var id: String="farm:26:17"
-	state.farmTiles[id]={"id":id,"column":26,"row":17,"phase":"mature","cropId":"parsnip","growthDays":4,"watered":false,"plantedDay":1,"harvestCount":0}
+	state.farmTiles[id]={"id":id,"column":26,"row":17,"phase":"mature","cropId":"parsnip","growthDays":4,"watered":false,"plantedDay":1,"harvestCount":0,"fertilizer":0}
 	session._state=state.duplicate(true); repository.fail_next=true
 	await session.dispatch({"type":"use-item-on-tile","itemId":"","column":26,"row":17})
 	_expect(session.snapshot().skills.farming.xp==92,"保存失败不提前给经验")
@@ -217,7 +217,7 @@ func _check_skills(session: FarmGameSession, repository: MemoryRepository) -> vo
 func _check_scarecrow(session: FarmGameSession, repository: MemoryRepository) -> void:
 	var state: Dictionary=session.rules.initial.duplicate(true)
 	state.skills.farming={"xp":100,"level":1,"reportedLevel":0}
-	state.inventory[5]={"itemId":"wood","quantity":50}; state.inventory[6]={"itemId":"fiber","quantity":20}; state.inventory[7]={"itemId":"coal","quantity":1}
+	state.inventory[5]={"itemId":"wood","quantity":50,"quality":0}; state.inventory[6]={"itemId":"fiber","quantity":20,"quality":0}; state.inventory[7]={"itemId":"coal","quantity":1,"quality":0}
 	session._state=state.duplicate(true)
 	var craft: Dictionary={"type":"craft-item","recipeId":"scarecrow","quantity":1,"targetIndex":8}
 	var result:=await session.dispatch(craft)
@@ -227,11 +227,11 @@ func _check_scarecrow(session: FarmGameSession, repository: MemoryRepository) ->
 		if value.kind=="bed": bed=value; break
 	session._state.player.regionId="cottage"; session._state.player.x=bed.x+bed.width/2.0; session._state.player.y=bed.y+bed.height/2.0
 	await session.dispatch({"type":"sleep","bedId":bed.entityId})
-	_expect(session.snapshot().unacknowledgedShippingReport.recipeUnlocks==["scarecrow"] and "scarecrow" not in session.snapshot().knownRecipes,"报告含待学配方")
+	_expect(session.snapshot().unacknowledgedShippingReport.recipeUnlocks==["scarecrow","basic-fertilizer"] and "scarecrow" not in session.snapshot().knownRecipes,"报告含待学配方")
 	repository.fail_next=true; await session.dispatch({"type":"dismiss-day-settlement"})
 	_expect("scarecrow" not in session.snapshot().knownRecipes,"确认保存失败不提前学会")
 	await session.dispatch({"type":"retry-storage-save"}); await session.dispatch({"type":"retry-storage-save"})
-	_expect(session.snapshot().knownRecipes==["chest","scarecrow"],"确认重试只学习一次")
+	_expect(session.snapshot().knownRecipes==["chest","scarecrow","basic-fertilizer"],"确认重试只学习一次")
 	session._state.inventory[5].quantity=49; state=session.snapshot()
 	result=await session.dispatch(craft)
 	_expect(result.code=="requirements-not-met" and session.snapshot()==state,"材料不足不部分扣除")
@@ -249,10 +249,10 @@ func _check_scarecrow(session: FarmGameSession, repository: MemoryRepository) ->
 	for y in range(-9,10):
 		for x in range(-9,10): covered+=int(FarmCropProtection.protects(object,object.column+x,object.row+y))
 	_expect(covered==249 and FarmCropProtection.protects(object,34,21) and not FarmCropProtection.protects(object,34,22),"249格保护边界")
-	for index in range(5,session._state.inventory.size()): session._state.inventory[index]={"itemId":"stone","quantity":999}
+	for index in range(5,session._state.inventory.size()): session._state.inventory[index]={"itemId":"stone","quantity":999,"quality":0}
 	state=session.snapshot(); result=await session.dispatch({"type":"recover-scarecrow","objectId":object.id,"itemId":"axe"})
 	_expect(result.code=="inventory-full" and session.snapshot()==state,"满包不移除稻草人")
-	session._state.inventory[5]={"itemId":"","quantity":0}; session._state.worldObjects.back().scaredCount=5
+	session._state.inventory[5]={"itemId":"","quantity":0,"quality":0}; session._state.worldObjects.back().scaredCount=5
 	await session.dispatch({"type":"recover-scarecrow","objectId":object.id,"itemId":"axe"})
 	await session.dispatch({"type":"place-world-object","inventoryIndex":5,"column":26,"row":17})
 	_expect(session.snapshot().worldObjects.back().scaredCount==0,"回收重新摆放重置计数")
@@ -281,7 +281,7 @@ func _check_crows(session: FarmGameSession, repository: MemoryRepository, bed: D
 			if state.farmTiles.size()>=16: break
 			if (x==26 and y==17) or not session.world.mask("farm","tillableTiles",x,y) or session.world.blocked(state,"farm",Vector2(x*16+8,y*16+8)): continue
 			var id: String="farm:%d:%d"%[x,y]
-			state.farmTiles[id]={"id":id,"column":x,"row":y,"phase":"mature","cropId":"parsnip","growthDays":4,"watered":false,"plantedDay":1,"harvestCount":0}
+			state.farmTiles[id]={"id":id,"column":x,"row":y,"phase":"mature","cropId":"parsnip","growthDays":4,"watered":false,"plantedDay":1,"harvestCount":0,"fertilizer":0}
 	_expect(state.farmTiles.size()==16,"乌鸦检查有16株合法作物")
 	var seed_found: int=-1; var loss_count:=0
 	for seed in range(256):

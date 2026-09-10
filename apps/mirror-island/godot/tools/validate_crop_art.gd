@@ -22,7 +22,7 @@ func _run() -> void:
 	for crop: Dictionary in session.rules.crops:
 		var id: String=crop.cropId
 		var definition: Dictionary=assets.media.crops[id]
-		var tile: Dictionary={"id":"farm:26:17","column":26,"row":17,"phase":"growing","cropId":id,"growthDays":0,"watered":false,"plantedDay":1,"harvestCount":0}
+		var tile: Dictionary={"id":"farm:26:17","column":26,"row":17,"phase":"growing","cropId":id,"growthDays":0,"watered":false,"plantedDay":1,"harvestCount":0,"fertilizer":0}
 		var state: Dictionary={"farmTiles":{tile.id:tile}}
 		var texture:=assets.crop_texture(tile)
 		var stage:=0
@@ -38,8 +38,12 @@ func _run() -> void:
 				if stage<definition.stageDays.size(): boundary+=int(definition.stageDays[stage])
 			texture=next
 		_expect(tile.phase=="mature",id+" 领域确认成熟")
-		_expect(not _same(texture,assets.icon(id)),id+" 收获图标与植株分离")
-		_expect(assets.badge(crop.seedId)==assets.icon(id),id+" 种子徽记复用收获图标")
+		if crop.has("harvestItems"):
+			for output: String in crop.harvestItems: _expect(assets.icon(output)!=null,id+" 混合产物图标 "+output)
+			_expect(assets.badge(crop.seedId)==null,id+" 混合种子不伪装成单一产物")
+		else:
+			_expect(not _same(texture,assets.icon(id)),id+" 收获图标与植株分离")
+			_expect(assets.badge(crop.seedId)==assets.icon(id),id+" 种子徽记复用收获图标")
 		if id=="green-bean":
 			var mature:=texture
 			tile.phase="growing"; tile.harvestCount=1; tile.growthDays=7
@@ -49,7 +53,7 @@ func _run() -> void:
 			for day in range(3):
 				tile.watered=true; session.resource_rules.settle_crops(state)
 				_expect(_same(assets.crop_texture(tile),mature if day==2 else regrowing),"三天复收纹理")
-	if failures.is_empty(): print("Crop art: six daily growth sequences, dry days, badges and bean regrowth PASS")
+	if failures.is_empty(): print("Crop art: seven daily growth sequences, dry days, badges and bean regrowth PASS")
 	else:
 		for failure: String in failures: push_error(failure)
 	quit(0 if failures.is_empty() else 1)

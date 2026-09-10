@@ -18,7 +18,7 @@
     "speaker": "山路木牌",
     "lines": [
       "向北：旧矿洞。向东：泉眼林地。雨后石阶湿滑。",
-      "每轮春季第 4～14 天是山坡采笋时节。其他时日，也可去院边、镇上或湖边找找嫩笋。"
+      "春天散步时留意地上的黄水仙、蒲公英、韭葱和野山葵；各地出现的种类不同。"
     ]
   },
   "foothills-mine-mouth": {
@@ -170,14 +170,14 @@
   },
   "seed-keeper-welcome": {
     "id": "seed-keeper-welcome",
-    "speaker": "华强",
+    "speaker": "皮埃尔",
     "lines": [
       "防风草种子还压着半箱。今天种下的话，别忘了浇水。"
     ]
   },
   "activity:seed-keeper:morning:0": {
     "id": "activity:seed-keeper:morning:0",
-    "speaker": "华强",
+    "speaker": "皮埃尔",
     "lines": [
       "天还没亮透，我先把受潮的种袋挑出来。",
       "柜台九点后才开，早一点来只能陪我理货。"
@@ -185,7 +185,7 @@
   },
   "activity:seed-keeper:morning:1": {
     "id": "activity:seed-keeper:morning:1",
-    "speaker": "华强",
+    "speaker": "皮埃尔",
     "lines": [
       "今早的清单比昨天短，防风草种子还够。",
       "等我把木牌翻到营业那面，再进来慢慢挑。"
@@ -193,21 +193,21 @@
   },
   "activity:seed-keeper:day:0": {
     "id": "activity:seed-keeper:day:0",
-    "speaker": "华强",
+    "speaker": "皮埃尔",
     "lines": [
       "防风草种子还压着半箱。今天种下的话，别忘了浇水。"
     ]
   },
   "activity:seed-keeper:day:1": {
     "id": "activity:seed-keeper:day:1",
-    "speaker": "华强",
+    "speaker": "皮埃尔",
     "lines": [
       "今天新拆了一捆防风草种子，二十金一袋，还是老价钱。"
     ]
   },
   "activity:seed-keeper:evening:0": {
     "id": "activity:seed-keeper:evening:0",
-    "speaker": "华强",
+    "speaker": "皮埃尔",
     "lines": [
       "柜台已经收了，剩下的种袋要重新扎口。",
       "明早晒过一遍，纸袋才不会返潮。"
@@ -215,7 +215,7 @@
   },
   "activity:seed-keeper:evening:1": {
     "id": "activity:seed-keeper:evening:1",
-    "speaker": "华强",
+    "speaker": "皮埃尔",
     "lines": [
       "今天的账刚对完，架上那排空位也该擦一擦。",
       "要买种子，明天白天再来。"
@@ -223,7 +223,7 @@
   },
   "activity:seed-keeper:night:0": {
     "id": "activity:seed-keeper:night:0",
-    "speaker": "华强",
+    "speaker": "皮埃尔",
     "lines": [
       "这个点不看账了，眼睛比算盘先累。",
       "明早还得把门前落下的种壳扫干净。"
@@ -231,7 +231,7 @@
   },
   "activity:seed-keeper:night:1": {
     "id": "activity:seed-keeper:night:1",
-    "speaker": "华强",
+    "speaker": "皮埃尔",
     "lines": [
       "夜里听见纸袋响，多半是风从门缝钻进来。",
       "等我压好窗角，也该休息了。"
@@ -239,73 +239,73 @@
   },
   "personality:seed-keeper:0": {
     "id": "personality:seed-keeper:0",
-    "speaker": "华强",
+    "speaker": "皮埃尔",
     "lines": [
       "种袋最怕潮气，我每天都要摸一遍封口。"
     ]
   },
   "personality:seed-keeper:1": {
     "id": "personality:seed-keeper:1",
-    "speaker": "华强",
+    "speaker": "皮埃尔",
     "lines": [
       "账本上的数字不会发芽，但能让我知道明天该补什么货。"
     ]
   },
   "personality:seed-keeper:2": {
     "id": "personality:seed-keeper:2",
-    "speaker": "华强",
+    "speaker": "皮埃尔",
     "lines": [
       "镇上谁家第一次种地，我通常看鞋底就知道。"
     ]
   },
   "routine:seed-keeper:rain": {
     "id": "routine:seed-keeper:rain",
-    "speaker": "华强",
+    "speaker": "皮埃尔",
     "lines": [
       "雨天种子要放干燥些，柜台照常开着。"
     ]
   },
   "routine:seed-keeper:rest": {
     "id": "routine:seed-keeper:rest",
-    "speaker": "华强",
+    "speaker": "皮埃尔",
     "lines": [
       "周三盘货，今天不营业。陪我聊两句倒是有空。"
     ]
   },
   "relationship:seed-keeper:familiar": {
     "id": "relationship:seed-keeper:familiar",
-    "speaker": "华强",
+    "speaker": "皮埃尔",
     "lines": [
       "你来得正好，我给你留了一袋干燥些的种子。"
     ]
   },
   "relationship:seed-keeper:friendly": {
     "id": "relationship:seed-keeper:friendly",
-    "speaker": "华强",
+    "speaker": "皮埃尔",
     "lines": [
       "你的田我大概记住了，缺什么先来跟我说。"
     ]
   },
   "blacksmith-intro": {
     "id": "blacksmith-intro",
-    "speaker": "昊天",
+    "speaker": "克林特",
     "lines": [
       "炉子还没正式开张。",
       "不过东边最近总有人捡回带蓝光的石头，普通锤子敲不动。",
-      "我妹妹昊美丽住在铁匠巷，她补的围裙比我打的铁耐用。"
+      "我妹妹艾米丽住在铁匠巷，她补的围裙比我打的铁耐用。"
     ]
   },
   "activity:town-blacksmith:morning:0": {
     "id": "activity:town-blacksmith:morning:0",
-    "speaker": "昊天",
+    "speaker": "克林特",
     "lines": [
-      "昊美丽昨晚把围裙的扣带补好了。",
+      "艾米丽昨晚把围裙的扣带补好了。",
       "我趁炉火没起，先把今天要用的钳子排顺。"
     ]
   },
   "activity:town-blacksmith:morning:1": {
     "id": "activity:town-blacksmith:morning:1",
-    "speaker": "昊天",
+    "speaker": "克林特",
     "lines": [
       "早上的铁砧最凉，落锤前得先把手腕活动开。",
       "工坊里那桶清水也要换新的。"
@@ -313,7 +313,7 @@
   },
   "activity:town-blacksmith:day:0": {
     "id": "activity:town-blacksmith:day:0",
-    "speaker": "昊天",
+    "speaker": "克林特",
     "lines": [
       "今天只处理镇里的门扣和农具修补。",
       "火候到了，锤声自然会稳下来。"
@@ -321,7 +321,7 @@
   },
   "activity:town-blacksmith:day:1": {
     "id": "activity:town-blacksmith:day:1",
-    "speaker": "昊天",
+    "speaker": "克林特",
     "lines": [
       "风箱刚顺起来，炉膛里的颜色正合适。",
       "你站远半步，火星落不到鞋面上。"
@@ -329,15 +329,15 @@
   },
   "activity:town-blacksmith:evening:0": {
     "id": "activity:town-blacksmith:evening:0",
-    "speaker": "昊天",
+    "speaker": "克林特",
     "lines": [
       "最后一块铁已经回火，剩下的是收钳子和扫铁屑。",
-      "昊美丽总说我收工比开炉还慢。"
+      "艾米丽总说我收工比开炉还慢。"
     ]
   },
   "activity:town-blacksmith:evening:1": {
     "id": "activity:town-blacksmith:evening:1",
-    "speaker": "昊天",
+    "speaker": "克林特",
     "lines": [
       "炉火看着还亮，其实已经不能再添料了。",
       "把余温留到明早，工坊不会一下冷透。"
@@ -345,7 +345,7 @@
   },
   "activity:town-blacksmith:night:0": {
     "id": "activity:town-blacksmith:night:0",
-    "speaker": "昊天",
+    "speaker": "克林特",
     "lines": [
       "手上的铁味洗两遍也散不掉。",
       "今晚先歇着，明早再听第一声锤响。"
@@ -353,89 +353,89 @@
   },
   "activity:town-blacksmith:night:1": {
     "id": "activity:town-blacksmith:night:1",
-    "speaker": "昊天",
+    "speaker": "克林特",
     "lines": [
-      "昊美丽把灯芯剪短了，说我夜里不该再摸工具。",
+      "艾米丽把灯芯剪短了，说我夜里不该再摸工具。",
       "她说得对，困的时候连钳口都看不准。"
     ]
   },
   "personality:town-blacksmith:0": {
     "id": "personality:town-blacksmith:0",
-    "speaker": "昊天",
+    "speaker": "克林特",
     "lines": [
       "铁的颜色比钟表准，亮到哪一步就该落哪一锤。"
     ]
   },
   "personality:town-blacksmith:1": {
     "id": "personality:town-blacksmith:1",
-    "speaker": "昊天",
+    "speaker": "克林特",
     "lines": [
       "农具握柄顺不顺手，比刃口亮不亮更重要。"
     ]
   },
   "personality:town-blacksmith:2": {
     "id": "personality:town-blacksmith:2",
-    "speaker": "昊天",
+    "speaker": "克林特",
     "lines": [
       "炉火熄了以后，工坊才会慢慢说出今天哪里没做好。"
     ]
   },
   "routine:town-blacksmith:rain": {
     "id": "routine:town-blacksmith:rain",
-    "speaker": "昊天",
+    "speaker": "克林特",
     "lines": [
-      "雨天我在工坊里干活，要升级水壶就在这里找我。"
+      "雨天我在工坊里干活，要升级喷壶就在这里找我。"
     ]
   },
   "routine:town-blacksmith:rest": {
     "id": "routine:town-blacksmith:rest",
-    "speaker": "昊天",
+    "speaker": "克林特",
     "lines": [
       "今天让炉火歇歇，工具改天再调。"
     ]
   },
   "relationship:town-blacksmith:familiar": {
     "id": "relationship:town-blacksmith:familiar",
-    "speaker": "昊天",
+    "speaker": "克林特",
     "lines": [
       "你的工具握痕我认得，放到架上就行。"
     ]
   },
   "relationship:town-blacksmith:friendly": {
     "id": "relationship:town-blacksmith:friendly",
-    "speaker": "昊天",
+    "speaker": "克林特",
     "lines": [
       "下次开炉早点来，我让你看看火候怎么分。"
     ]
   },
   "town-resident-pink-tree": {
     "id": "town-resident-pink-tree",
-    "speaker": "阿禾",
+    "speaker": "艾芙琳",
     "lines": [
       "这棵粉花树总比别处早开几天。",
       "镇上的人懒得记日子，就拿它当春天的钟。",
-      "我和姐姐阿澜住在河边，她画的岸线图比路牌还准。"
+      "我和姐姐莉亚住在河边，她画的岸线图比路牌还准。"
     ]
   },
   "activity:town-resident-01:morning:0": {
     "id": "activity:town-resident-01:morning:0",
-    "speaker": "阿禾",
+    "speaker": "艾芙琳",
     "lines": [
-      "姐姐阿澜起得比我早，已经去看过河面的颜色了。",
+      "姐姐莉亚起得比我早，已经去看过河面的颜色了。",
       "我把窗边的小苗浇完才出门。"
     ]
   },
   "activity:town-resident-01:morning:1": {
     "id": "activity:town-resident-01:morning:1",
-    "speaker": "阿禾",
+    "speaker": "艾芙琳",
     "lines": [
       "清晨的粉花落得慢，扫起来反而费时间。",
-      "阿澜说风向变了，今天河边会更凉。"
+      "莉亚说风向变了，今天河边会更凉。"
     ]
   },
   "activity:town-resident-01:day:0": {
     "id": "activity:town-resident-01:day:0",
-    "speaker": "阿禾",
+    "speaker": "艾芙琳",
     "lines": [
       "这棵粉花树总比别处早开几天。",
       "我把树脚的土松开，雨水才不会积成一圈。"
@@ -443,7 +443,7 @@
   },
   "activity:town-resident-01:day:1": {
     "id": "activity:town-resident-01:day:1",
-    "speaker": "阿禾",
+    "speaker": "艾芙琳",
     "lines": [
       "今天落下的花瓣很完整，我挑几片夹进旧账本里。",
       "等叶子长密了，这里会比街口凉快。"
@@ -451,15 +451,15 @@
   },
   "activity:town-resident-01:evening:0": {
     "id": "activity:town-resident-01:evening:0",
-    "speaker": "阿禾",
+    "speaker": "艾芙琳",
     "lines": [
       "湖边的风把衣角都吹凉了。",
-      "阿澜在看岸线，我替她记哪盏屋灯最先亮。"
+      "莉亚在看岸线，我替她记哪盏屋灯最先亮。"
     ]
   },
   "activity:town-resident-01:evening:1": {
     "id": "activity:town-resident-01:evening:1",
-    "speaker": "阿禾",
+    "speaker": "艾芙琳",
     "lines": [
       "太阳落到水面时，粉花树的影子会刚好碰到桥头。",
       "从这里看，回家的路很清楚。"
@@ -467,15 +467,15 @@
   },
   "activity:town-resident-01:night:0": {
     "id": "activity:town-resident-01:night:0",
-    "speaker": "阿禾",
+    "speaker": "艾芙琳",
     "lines": [
-      "阿澜还在整理今天画的岸线，我先把茶温着。",
+      "莉亚还在整理今天画的岸线，我先把茶温着。",
       "窗外安静下来，才能听见河水碰桥桩。"
     ]
   },
   "activity:town-resident-01:night:1": {
     "id": "activity:town-resident-01:night:1",
-    "speaker": "阿禾",
+    "speaker": "艾芙琳",
     "lines": [
       "夜里别把窗开得太大，水汽会落到桌面上。",
       "明早我还要去看看粉花树有没有折枝。"
@@ -483,56 +483,56 @@
   },
   "personality:town-resident-01:0": {
     "id": "personality:town-resident-01:0",
-    "speaker": "阿禾",
+    "speaker": "艾芙琳",
     "lines": [
       "我喜欢记哪朵花先开，可从来记不住账本放在哪。"
     ]
   },
   "personality:town-resident-01:1": {
     "id": "personality:town-resident-01:1",
-    "speaker": "阿禾",
+    "speaker": "艾芙琳",
     "lines": [
-      "阿澜看水色，我看树影，我们常常得到同一个答案。"
+      "莉亚看水色，我看树影，我们常常得到同一个答案。"
     ]
   },
   "personality:town-resident-01:2": {
     "id": "personality:town-resident-01:2",
-    "speaker": "阿禾",
+    "speaker": "艾芙琳",
     "lines": [
       "镇口风大，站一会儿就能听见每条街不同的声音。"
     ]
   },
   "routine:town-resident-01:rain": {
     "id": "routine:town-resident-01:rain",
-    "speaker": "阿禾",
+    "speaker": "艾芙琳",
     "lines": [
       "雨替你浇了田，今天可以多歇一会儿。"
     ]
   },
   "routine:town-resident-01:rest": {
     "id": "routine:town-resident-01:rest",
-    "speaker": "阿禾",
+    "speaker": "艾芙琳",
     "lines": [
       "今天不急着出门，窗边的花也值得看看。"
     ]
   },
   "relationship:town-resident-01:familiar": {
     "id": "relationship:town-resident-01:familiar",
-    "speaker": "阿禾",
+    "speaker": "艾芙琳",
     "lines": [
       "今天树影挪得早，我猜你也会经过这里。"
     ]
   },
   "relationship:town-resident-01:friendly": {
     "id": "relationship:town-resident-01:friendly",
-    "speaker": "阿禾",
+    "speaker": "艾芙琳",
     "lines": [
-      "我替你记了一朵最早开的花，别告诉阿澜。"
+      "我替你记了一朵最早开的花，别告诉莉亚。"
     ]
   },
   "resident-mozi-home": {
     "id": "resident-mozi-home",
-    "speaker": "墨子",
+    "speaker": "罗宾",
     "lines": [
       "西街的屋顶最怕河风，我每年都要重新压一遍瓦。",
       "门窗若是发涩，别硬推，木头也有自己的脾气。",
@@ -541,7 +541,7 @@
   },
   "activity:town-resident-mozi:morning:0": {
     "id": "activity:town-resident-mozi:morning:0",
-    "speaker": "墨子",
+    "speaker": "罗宾",
     "lines": [
       "早上的木头最诚实，哪块受潮一敲就听得出来。",
       "我先把钉袋和尺子数一遍再出门。"
@@ -549,7 +549,7 @@
   },
   "activity:town-resident-mozi:morning:1": {
     "id": "activity:town-resident-mozi:morning:1",
-    "speaker": "墨子",
+    "speaker": "罗宾",
     "lines": [
       "昨夜河风不小，西街的檐角得挨家看过去。",
       "工具少一件，走到半路才发现最耽误事。"
@@ -557,7 +557,7 @@
   },
   "activity:town-resident-mozi:day:0": {
     "id": "activity:town-resident-mozi:day:0",
-    "speaker": "墨子",
+    "speaker": "罗宾",
     "lines": [
       "这块门板只是合页松了，不用整扇换掉。",
       "旧木料修得好，也能再挡几年风。"
@@ -565,7 +565,7 @@
   },
   "activity:town-resident-mozi:day:1": {
     "id": "activity:town-resident-mozi:day:1",
-    "speaker": "墨子",
+    "speaker": "罗宾",
     "lines": [
       "西街的屋顶怕河风，钉得太死反而容易裂。",
       "留一点伸缩的位置，木头才住得安稳。"
@@ -573,7 +573,7 @@
   },
   "activity:town-resident-mozi:evening:0": {
     "id": "activity:town-resident-mozi:evening:0",
-    "speaker": "墨子",
+    "speaker": "罗宾",
     "lines": [
       "收工前还要绕一遍主街，看看白天补的地方有没有走样。",
       "太阳斜着照，木缝最容易看清。"
@@ -581,7 +581,7 @@
   },
   "activity:town-resident-mozi:evening:1": {
     "id": "activity:town-resident-mozi:evening:1",
-    "speaker": "墨子",
+    "speaker": "罗宾",
     "lines": [
       "今天的刨花够装一小袋，带回去引火正好。",
       "尺子我已经收了，锤子还得再擦一遍。"
@@ -589,7 +589,7 @@
   },
   "activity:town-resident-mozi:night:0": {
     "id": "activity:town-resident-mozi:night:0",
-    "speaker": "墨子",
+    "speaker": "罗宾",
     "lines": [
       "屋里一安静，就能听见哪块地板在轻响。",
       "那不是坏事，木头也在跟着夜气伸缩。"
@@ -597,7 +597,7 @@
   },
   "activity:town-resident-mozi:night:1": {
     "id": "activity:town-resident-mozi:night:1",
-    "speaker": "墨子",
+    "speaker": "罗宾",
     "lines": [
       "壁炉边这把椅子修过三次，坐起来倒比新的稳。",
       "今晚不动工具，让手也歇一歇。"
@@ -605,65 +605,65 @@
   },
   "personality:town-resident-mozi:0": {
     "id": "personality:town-resident-mozi:0",
-    "speaker": "墨子",
+    "speaker": "罗宾",
     "lines": [
       "好木头不怕旧，怕的是没人知道它该往哪里受力。"
     ]
   },
   "personality:town-resident-mozi:1": {
     "id": "personality:town-resident-mozi:1",
-    "speaker": "墨子",
+    "speaker": "罗宾",
     "lines": [
       "修东西前先听一听，松动和开裂的声音完全不同。"
     ]
   },
   "personality:town-resident-mozi:2": {
     "id": "personality:town-resident-mozi:2",
-    "speaker": "墨子",
+    "speaker": "罗宾",
     "lines": [
       "我留下每块还能用的边角料，总有一天会碰上合适的位置。"
     ]
   },
   "routine:town-resident-mozi:rain": {
     "id": "routine:town-resident-mozi:rain",
-    "speaker": "墨子",
+    "speaker": "罗宾",
     "lines": [
       "木料不能淋雨，今天就在家里整理。"
     ]
   },
   "routine:town-resident-mozi:rest": {
     "id": "routine:town-resident-mozi:rest",
-    "speaker": "墨子",
+    "speaker": "罗宾",
     "lines": [
       "今天把工具收好了，手也该歇一歇。"
     ]
   },
   "relationship:town-resident-mozi:familiar": {
     "id": "relationship:town-resident-mozi:familiar",
-    "speaker": "墨子",
+    "speaker": "罗宾",
     "lines": [
       "你家哪处门窗不顺，路过时告诉我一声。"
     ]
   },
   "relationship:town-resident-mozi:friendly": {
     "id": "relationship:town-resident-mozi:friendly",
-    "speaker": "墨子",
+    "speaker": "罗宾",
     "lines": [
       "我留了块纹理很稳的木料，觉得你以后用得上。"
     ]
   },
   "resident-haonan-home": {
     "id": "resident-haonan-home",
-    "speaker": "浩南",
+    "speaker": "德米特里厄斯",
     "lines": [
       "我每天看山泉的水色，就知道山路是不是好走。",
       "矿口还不安全，看到新落下的碎石就别往里钻。",
-      "回镇时替我看看北街木牌，有松动就告诉墨子。"
+      "回镇时替我看看北街木牌，有松动就告诉罗宾。"
     ]
   },
   "activity:town-resident-haonan:morning:0": {
     "id": "activity:town-resident-haonan:morning:0",
-    "speaker": "浩南",
+    "speaker": "德米特里厄斯",
     "lines": [
       "上山前先看云脚，再看泉水。",
       "两样都清，今天的石阶就不会太滑。"
@@ -671,7 +671,7 @@
   },
   "activity:town-resident-haonan:morning:1": {
     "id": "activity:town-resident-haonan:morning:1",
-    "speaker": "浩南",
+    "speaker": "德米特里厄斯",
     "lines": [
       "灯油、绳子和干布都带齐了。",
       "山里不缺路，缺的是出发前多想一步。"
@@ -679,7 +679,7 @@
   },
   "activity:town-resident-haonan:day:0": {
     "id": "activity:town-resident-haonan:day:0",
-    "speaker": "浩南",
+    "speaker": "德米特里厄斯",
     "lines": [
       "山泉今天很清，靠北那段路却有新落下的碎石。",
       "沿木牌走就好，封着的地方别翻过去。"
@@ -687,7 +687,7 @@
   },
   "activity:town-resident-haonan:day:1": {
     "id": "activity:town-resident-haonan:day:1",
-    "speaker": "浩南",
+    "speaker": "德米特里厄斯",
     "lines": [
       "我刚巡过泉眼，浅沟没有堵。",
       "再往高处风更硬，听见树枝连响就该往回走。"
@@ -695,15 +695,15 @@
   },
   "activity:town-resident-haonan:evening:0": {
     "id": "activity:town-resident-haonan:evening:0",
-    "speaker": "浩南",
+    "speaker": "德米特里厄斯",
     "lines": [
       "回镇前我会把山路木牌再扶正一次。",
-      "墨子看见松动的榫口，明天就知道带什么工具。"
+      "罗宾看见松动的榫口，明天就知道带什么工具。"
     ]
   },
   "activity:town-resident-haonan:evening:1": {
     "id": "activity:town-resident-haonan:evening:1",
-    "speaker": "浩南",
+    "speaker": "德米特里厄斯",
     "lines": [
       "今天没有人越过旧栅栏，这就是好消息。",
       "鞋底的泥在街口刮干净，再回家喝茶。"
@@ -711,7 +711,7 @@
   },
   "activity:town-resident-haonan:night:0": {
     "id": "activity:town-resident-haonan:night:0",
-    "speaker": "浩南",
+    "speaker": "德米特里厄斯",
     "lines": [
       "夜里不进山，熟路也会被影子变成另一条路。",
       "我把明天的天气记在茶桌那张纸上了。"
@@ -719,7 +719,7 @@
   },
   "activity:town-resident-haonan:night:1": {
     "id": "activity:town-resident-haonan:night:1",
-    "speaker": "浩南",
+    "speaker": "德米特里厄斯",
     "lines": [
       "山风停了以后，窗边反而会更冷。",
       "灯留一盏就够，明早还得早起。"
@@ -727,73 +727,73 @@
   },
   "personality:town-resident-haonan:0": {
     "id": "personality:town-resident-haonan:0",
-    "speaker": "浩南",
+    "speaker": "德米特里厄斯",
     "lines": [
       "山路不会突然变坏，它总会提前留下几处小迹象。"
     ]
   },
   "personality:town-resident-haonan:1": {
     "id": "personality:town-resident-haonan:1",
-    "speaker": "浩南",
+    "speaker": "德米特里厄斯",
     "lines": [
       "我出门带的东西不多，但绳子和干布从不落下。"
     ]
   },
   "personality:town-resident-haonan:2": {
     "id": "personality:town-resident-haonan:2",
-    "speaker": "浩南",
+    "speaker": "德米特里厄斯",
     "lines": [
       "巡山最重要的不是走得远，是知道什么时候该回来。"
     ]
   },
   "routine:town-resident-haonan:rain": {
     "id": "routine:town-resident-haonan:rain",
-    "speaker": "浩南",
+    "speaker": "德米特里厄斯",
     "lines": [
       "山路湿滑，今天不巡山。你也小心脚下。"
     ]
   },
   "routine:town-resident-haonan:rest": {
     "id": "routine:town-resident-haonan:rest",
-    "speaker": "浩南",
+    "speaker": "德米特里厄斯",
     "lines": [
       "今天轮休，山里的事明天再说。"
     ]
   },
   "relationship:town-resident-haonan:familiar": {
     "id": "relationship:town-resident-haonan:familiar",
-    "speaker": "浩南",
+    "speaker": "德米特里厄斯",
     "lines": [
       "看见你来，我就知道镇口那段路有人照应了。"
     ]
   },
   "relationship:town-resident-haonan:friendly": {
     "id": "relationship:town-resident-haonan:friendly",
-    "speaker": "浩南",
+    "speaker": "德米特里厄斯",
     "lines": [
       "哪天想看山泉最清的时候，我带你走一段。"
     ]
   },
   "resident-alan-home": {
     "id": "resident-alan-home",
-    "speaker": "阿澜",
+    "speaker": "莉亚",
     "lines": [
-      "阿禾喜欢守着粉花树，我更习惯沿河记颜色。",
+      "艾芙琳喜欢守着粉花树，我更习惯沿河记颜色。",
       "这些布样都是用岸边植物染的，同一片叶子也会有深浅。",
-      "南湖的旧码头我画进图里了，祥子说潮线还要再改。"
+      "南湖的旧码头我画进图里了，威利说潮线还要再改。"
     ]
   },
   "activity:town-resident-alan:morning:0": {
     "id": "activity:town-resident-alan:morning:0",
-    "speaker": "阿澜",
+    "speaker": "莉亚",
     "lines": [
-      "阿禾已经在给窗边的小苗浇水了。",
+      "艾芙琳已经在给窗边的小苗浇水了。",
       "我先把空白纸压平，等河雾散一点再出门。"
     ]
   },
   "activity:town-resident-alan:morning:1": {
     "id": "activity:town-resident-alan:morning:1",
-    "speaker": "阿澜",
+    "speaker": "莉亚",
     "lines": [
       "晨光偏冷，画出来的水色容易比实际更蓝。",
       "所以我总带一小块昨天的布样作比较。"
@@ -801,7 +801,7 @@
   },
   "activity:town-resident-alan:day:0": {
     "id": "activity:town-resident-alan:day:0",
-    "speaker": "阿澜",
+    "speaker": "莉亚",
     "lines": [
       "今天岸边的浅绿比昨天多了一层灰。",
       "风从东边来，水纹会把颜色切得很碎。"
@@ -809,23 +809,23 @@
   },
   "activity:town-resident-alan:day:1": {
     "id": "activity:town-resident-alan:day:1",
-    "speaker": "阿澜",
+    "speaker": "莉亚",
     "lines": [
       "我在等云影离开码头，再补最后一段岸线。",
-      "祥子说那块圆石昨晚又被水推偏了。"
+      "威利说那块圆石昨晚又被水推偏了。"
     ]
   },
   "activity:town-resident-alan:evening:0": {
     "id": "activity:town-resident-alan:evening:0",
-    "speaker": "阿澜",
+    "speaker": "莉亚",
     "lines": [
       "站在桥边回看，镇上的灯色比湖面更暖。",
-      "阿禾喜欢数哪一盏先亮，我只记它们落在水里的位置。"
+      "艾芙琳喜欢数哪一盏先亮，我只记它们落在水里的位置。"
     ]
   },
   "activity:town-resident-alan:evening:1": {
     "id": "activity:town-resident-alan:evening:1",
-    "speaker": "阿澜",
+    "speaker": "莉亚",
     "lines": [
       "傍晚的颜色留不久，慢一会儿就会完全变样。",
       "今天这张图先停在这里，明早再对照。"
@@ -833,15 +833,15 @@
   },
   "activity:town-resident-alan:night:0": {
     "id": "activity:town-resident-alan:night:0",
-    "speaker": "阿澜",
+    "speaker": "莉亚",
     "lines": [
       "纸已经收进柜里，夜里的水色不用追着画。",
-      "阿禾温着茶，我们会把今天的记录对一遍。"
+      "艾芙琳温着茶，我们会把今天的记录对一遍。"
     ]
   },
   "activity:town-resident-alan:night:1": {
     "id": "activity:town-resident-alan:night:1",
-    "speaker": "阿澜",
+    "speaker": "莉亚",
     "lines": [
       "窗台有一点潮，我拿圆石压住了画纸四角。",
       "等墨迹干透，明天才能带回湖边。"
@@ -849,73 +849,73 @@
   },
   "personality:town-resident-alan:0": {
     "id": "personality:town-resident-alan:0",
-    "speaker": "阿澜",
+    "speaker": "莉亚",
     "lines": [
       "同一片水每天都有不同的灰，我还没画到满意过。"
     ]
   },
   "personality:town-resident-alan:1": {
     "id": "personality:town-resident-alan:1",
-    "speaker": "阿澜",
+    "speaker": "莉亚",
     "lines": [
       "布样晒久一点，颜色会比刚染出来诚实。"
     ]
   },
   "personality:town-resident-alan:2": {
     "id": "personality:town-resident-alan:2",
-    "speaker": "阿澜",
+    "speaker": "莉亚",
     "lines": [
       "我画地图不是为了把路框死，是怕人错过沿途的变化。"
     ]
   },
   "routine:town-resident-alan:rain": {
     "id": "routine:town-resident-alan:rain",
-    "speaker": "阿澜",
+    "speaker": "莉亚",
     "lines": [
       "雨把湖边的颜色洗淡了，我在屋里补画。"
     ]
   },
   "routine:town-resident-alan:rest": {
     "id": "routine:town-resident-alan:rest",
-    "speaker": "阿澜",
+    "speaker": "莉亚",
     "lines": [
       "今天在家理画稿，不去湖边了。"
     ]
   },
   "relationship:town-resident-alan:familiar": {
     "id": "relationship:town-resident-alan:familiar",
-    "speaker": "阿澜",
+    "speaker": "莉亚",
     "lines": [
       "我在图上添了你常走的那条小路。"
     ]
   },
   "relationship:town-resident-alan:friendly": {
     "id": "relationship:town-resident-alan:friendly",
-    "speaker": "阿澜",
+    "speaker": "莉亚",
     "lines": [
       "这张湖岸草图给你看，很多地方我还没给别人看过。"
     ]
   },
   "resident-haomeili-home": {
     "id": "resident-haomeili-home",
-    "speaker": "昊美丽",
+    "speaker": "艾米丽",
     "lines": [
-      "昊天负责把铁烧红，我负责让他别把围裙烧穿。",
+      "克林特负责把铁烧红，我负责让他别把围裙烧穿。",
       "工坊的手套、布袋和护袖都在这张针线桌上修。",
       "他嘴上说不用帮忙，少一根扣带却能找我半天。"
     ]
   },
   "activity:town-resident-haomeili:morning:0": {
     "id": "activity:town-resident-haomeili:morning:0",
-    "speaker": "昊美丽",
+    "speaker": "艾米丽",
     "lines": [
-      "昊天又把围裙扣反了，我出门前还得替他重系一次。",
+      "克林特又把围裙扣反了，我出门前还得替他重系一次。",
       "针线盒倒是齐的，今天不用回头找。"
     ]
   },
   "activity:town-resident-haomeili:morning:1": {
     "id": "activity:town-resident-haomeili:morning:1",
-    "speaker": "昊美丽",
+    "speaker": "艾米丽",
     "lines": [
       "早上光线好，深色布上的细裂口最容易看见。",
       "我先把工坊要用的护袖挑出来。"
@@ -923,23 +923,23 @@
   },
   "activity:town-resident-haomeili:day:0": {
     "id": "activity:town-resident-haomeili:day:0",
-    "speaker": "昊美丽",
+    "speaker": "艾米丽",
     "lines": [
-      "锤子和钳子分开挂，昊天忙起来才不会抓错。",
+      "锤子和钳子分开挂，克林特忙起来才不会抓错。",
       "这只布袋刚换过底，装铁件也不会漏。"
     ]
   },
   "activity:town-resident-haomeili:day:1": {
     "id": "activity:town-resident-haomeili:day:1",
-    "speaker": "昊美丽",
+    "speaker": "艾米丽",
     "lines": [
       "工坊里最容易坏的不是铁器，是绑带和手套。",
-      "趁昊天看炉火，我把磨破的边都收好。"
+      "趁克林特看炉火，我把磨破的边都收好。"
     ]
   },
   "activity:town-resident-haomeili:evening:0": {
     "id": "activity:town-resident-haomeili:evening:0",
-    "speaker": "昊美丽",
+    "speaker": "艾米丽",
     "lines": [
       "收工后衣服上全是细灰，拍得太重反而往布里钻。",
       "我在街口吹一会儿风再回家。"
@@ -947,15 +947,15 @@
   },
   "activity:town-resident-haomeili:evening:1": {
     "id": "activity:town-resident-haomeili:evening:1",
-    "speaker": "昊美丽",
+    "speaker": "艾米丽",
     "lines": [
       "今天补了两只手套和一条围裙带。",
-      "昊天说这不算锻造，我说少了它们他也开不了炉。"
+      "克林特说这不算锻造，我说少了它们他也开不了炉。"
     ]
   },
   "activity:town-resident-haomeili:night:0": {
     "id": "activity:town-resident-haomeili:night:0",
-    "speaker": "昊美丽",
+    "speaker": "艾米丽",
     "lines": [
       "针线桌只剩这道短边，缝完就收灯。",
       "夜里眼睛累，针脚歪了明天还得拆。"
@@ -963,73 +963,73 @@
   },
   "activity:town-resident-haomeili:night:1": {
     "id": "activity:town-resident-haomeili:night:1",
-    "speaker": "昊美丽",
+    "speaker": "艾米丽",
     "lines": [
-      "昊天把明天要穿的围裙搭在椅背上了。",
+      "克林特把明天要穿的围裙搭在椅背上了。",
       "总算有一次不用我提醒。"
     ]
   },
   "personality:town-resident-haomeili:0": {
     "id": "personality:town-resident-haomeili:0",
-    "speaker": "昊美丽",
+    "speaker": "艾米丽",
     "lines": [
       "针脚藏在背面，穿的人看不见，它也得一样整齐。"
     ]
   },
   "personality:town-resident-haomeili:1": {
     "id": "personality:town-resident-haomeili:1",
-    "speaker": "昊美丽",
+    "speaker": "艾米丽",
     "lines": [
-      "昊天总把修补说成小事，真少了扣带又第一个来找我。"
+      "克林特总把修补说成小事，真少了扣带又第一个来找我。"
     ]
   },
   "personality:town-resident-haomeili:2": {
     "id": "personality:town-resident-haomeili:2",
-    "speaker": "昊美丽",
+    "speaker": "艾米丽",
     "lines": [
       "布料和人一样，拉得太紧反而更容易裂。"
     ]
   },
   "routine:town-resident-haomeili:rain": {
     "id": "routine:town-resident-haomeili:rain",
-    "speaker": "昊美丽",
+    "speaker": "艾米丽",
     "lines": [
       "雨声正好伴着针线，今天就做些细活。"
     ]
   },
   "routine:town-resident-haomeili:rest": {
     "id": "routine:town-resident-haomeili:rest",
-    "speaker": "昊美丽",
+    "speaker": "艾米丽",
     "lines": [
       "今天不去工坊，给自己留点闲工夫。"
     ]
   },
   "relationship:town-resident-haomeili:familiar": {
     "id": "relationship:town-resident-haomeili:familiar",
-    "speaker": "昊美丽",
+    "speaker": "艾米丽",
     "lines": [
       "你的袖口有点松，下次带来我顺手补好。"
     ]
   },
   "relationship:town-resident-haomeili:friendly": {
     "id": "relationship:town-resident-haomeili:friendly",
-    "speaker": "昊美丽",
+    "speaker": "艾米丽",
     "lines": [
       "我给你留了更结实的线，农活时不容易磨断。"
     ]
   },
   "resident-xiangzi-home": {
     "id": "resident-xiangzi-home",
-    "speaker": "祥子",
+    "speaker": "威利",
     "lines": [
       "东岸风小的时候，我会去码头重系一遍绳结。",
       "湖面看着平，木板底下的水一直在推。",
-      "阿澜的地图很细，我只负责告诉她哪块岸石又挪了位置。"
+      "莉亚的地图很细，我只负责告诉她哪块岸石又挪了位置。"
     ]
   },
   "activity:town-resident-xiangzi:morning:0": {
     "id": "activity:town-resident-xiangzi:morning:0",
-    "speaker": "祥子",
+    "speaker": "威利",
     "lines": [
       "风还没起来，正适合检查绳结有没有返松。",
       "我带一块干布，码头的木板清早总有水汽。"
@@ -1037,7 +1037,7 @@
   },
   "activity:town-resident-xiangzi:morning:1": {
     "id": "activity:town-resident-xiangzi:morning:1",
-    "speaker": "祥子",
+    "speaker": "威利",
     "lines": [
       "出门前先看窗台那几块圆石，潮气重不重一眼就知道。",
       "今天湖面应该不会太急。"
@@ -1045,7 +1045,7 @@
   },
   "activity:town-resident-xiangzi:day:0": {
     "id": "activity:town-resident-xiangzi:day:0",
-    "speaker": "祥子",
+    "speaker": "威利",
     "lines": [
       "旧码头今天很稳，最东边那块板还是别踩边角。",
       "绳结我重系过了，风大一点也不会散。"
@@ -1053,7 +1053,7 @@
   },
   "activity:town-resident-xiangzi:day:1": {
     "id": "activity:town-resident-xiangzi:day:1",
-    "speaker": "祥子",
+    "speaker": "威利",
     "lines": [
       "湖面看着平，木板底下的水一直在推。",
       "站久了就能听出哪根桩受力最重。"
@@ -1061,15 +1061,15 @@
   },
   "activity:town-resident-xiangzi:evening:0": {
     "id": "activity:town-resident-xiangzi:evening:0",
-    "speaker": "祥子",
+    "speaker": "威利",
     "lines": [
       "晚风一转向，靠岸的水声就会变。",
-      "阿澜等我报完潮线，才肯收起今天的图。"
+      "莉亚等我报完潮线，才肯收起今天的图。"
     ]
   },
   "activity:town-resident-xiangzi:evening:1": {
     "id": "activity:town-resident-xiangzi:evening:1",
-    "speaker": "祥子",
+    "speaker": "威利",
     "lines": [
       "最后一圈绳已经盘好，码头边没有落下东西。",
       "等天色再暗一点，我就沿湖岸回去。"
@@ -1077,7 +1077,7 @@
   },
   "activity:town-resident-xiangzi:night:0": {
     "id": "activity:town-resident-xiangzi:night:0",
-    "speaker": "祥子",
+    "speaker": "威利",
     "lines": [
       "夜里听不见码头的木响，反而有点不习惯。",
       "明早我会先去看东边那根系船桩。"
@@ -1085,7 +1085,7 @@
   },
   "activity:town-resident-xiangzi:night:1": {
     "id": "activity:town-resident-xiangzi:night:1",
-    "speaker": "祥子",
+    "speaker": "威利",
     "lines": [
       "窗台的信纸已经晾干了，圆石也该放回原位。",
       "今晚风小，可以睡得安稳些。"
@@ -1093,224 +1093,224 @@
   },
   "personality:town-resident-xiangzi:0": {
     "id": "personality:town-resident-xiangzi:0",
-    "speaker": "祥子",
+    "speaker": "威利",
     "lines": [
       "码头的绳结每天都一样打，受力的位置却天天不同。"
     ]
   },
   "personality:town-resident-xiangzi:1": {
     "id": "personality:town-resident-xiangzi:1",
-    "speaker": "祥子",
+    "speaker": "威利",
     "lines": [
       "湖面越安静，我越会多看两眼木桩下面。"
     ]
   },
   "personality:town-resident-xiangzi:2": {
     "id": "personality:town-resident-xiangzi:2",
-    "speaker": "祥子",
+    "speaker": "威利",
     "lines": [
       "我习惯把信压在窗边，等水汽退了再读第二遍。"
     ]
   },
   "routine:town-resident-xiangzi:rain": {
     "id": "routine:town-resident-xiangzi:rain",
-    "speaker": "祥子",
+    "speaker": "威利",
     "lines": [
-      "雨天有雨鳅，想钓鱼就去旧码头，别站太靠边。"
+      "雨天也能在旧码头钓到鱼，木板湿滑，别站太靠边。"
     ]
   },
   "routine:town-resident-xiangzi:rest": {
     "id": "routine:town-resident-xiangzi:rest",
-    "speaker": "祥子",
+    "speaker": "威利",
     "lines": [
       "今天在家理鱼线，竹竿的事照样可以问我。"
     ]
   },
   "relationship:town-resident-xiangzi:familiar": {
     "id": "relationship:town-resident-xiangzi:familiar",
-    "speaker": "祥子",
+    "speaker": "威利",
     "lines": [
       "今天湖风稳，你来了正好一起听听木桩的声音。"
     ]
   },
   "relationship:town-resident-xiangzi:friendly": {
     "id": "relationship:town-resident-xiangzi:friendly",
-    "speaker": "祥子",
+    "speaker": "威利",
     "lines": [
       "码头最安静的时辰我只告诉熟人，你算一个。"
     ]
   },
   "request:seed-rack-repair:missing": {
     "id": "request:seed-rack-repair:missing",
-    "speaker": "华强",
+    "speaker": "皮埃尔",
     "lines": [
-      "还差 6 份异星木材，不用着急，今天带来就好。"
+      "还差 6 份木材，不用着急，今天带来就好。"
     ]
   },
   "request:seed-rack-repair:thanks": {
     "id": "request:seed-rack-repair:thanks",
-    "speaker": "华强",
+    "speaker": "皮埃尔",
     "lines": [
-      "正是我需要的异星木材，这些帮了大忙。"
+      "正是我需要的木材，这些帮了大忙。"
     ]
   },
   "request:shore-color-study:missing": {
     "id": "request:shore-color-study:missing",
-    "speaker": "阿澜",
+    "speaker": "莉亚",
     "lines": [
-      "还差 2 份春日野花，不用着急，今天带来就好。"
+      "还差 2 份黄水仙，不用着急，今天带来就好。"
     ]
   },
   "request:shore-color-study:thanks": {
     "id": "request:shore-color-study:thanks",
-    "speaker": "阿澜",
+    "speaker": "莉亚",
     "lines": [
-      "正是我需要的春日野花，这些帮了大忙。"
+      "正是我需要的黄水仙，这些帮了大忙。"
     ]
   },
   "request:west-street-repair:missing": {
     "id": "request:west-street-repair:missing",
-    "speaker": "墨子",
+    "speaker": "罗宾",
     "lines": [
-      "还差 9 份异星木材，不用着急，今天带来就好。"
+      "还差 9 份木材，不用着急，今天带来就好。"
     ]
   },
   "request:west-street-repair:thanks": {
     "id": "request:west-street-repair:thanks",
-    "speaker": "墨子",
+    "speaker": "罗宾",
     "lines": [
-      "正是我需要的异星木材，这些帮了大忙。"
+      "正是我需要的木材，这些帮了大忙。"
     ]
   },
   "request:pink-tree-lunch:missing": {
     "id": "request:pink-tree-lunch:missing",
-    "speaker": "阿禾",
+    "speaker": "艾芙琳",
     "lines": [
       "还差 2 份防风草，不用着急，今天带来就好。"
     ]
   },
   "request:pink-tree-lunch:thanks": {
     "id": "request:pink-tree-lunch:thanks",
-    "speaker": "阿禾",
+    "speaker": "艾芙琳",
     "lines": [
       "正是我需要的防风草，这些帮了大忙。"
     ]
   },
   "request:forge-handle-stock:missing": {
     "id": "request:forge-handle-stock:missing",
-    "speaker": "昊天",
+    "speaker": "克林特",
     "lines": [
-      "还差 15 份异星木材，不用着急，今天带来就好。"
+      "还差 15 份木材，不用着急，今天带来就好。"
     ]
   },
   "request:forge-handle-stock:thanks": {
     "id": "request:forge-handle-stock:thanks",
-    "speaker": "昊天",
+    "speaker": "克林特",
     "lines": [
-      "正是我需要的异星木材，这些帮了大忙。"
+      "正是我需要的木材，这些帮了大忙。"
     ]
   },
   "request:dock-supper:missing": {
     "id": "request:dock-supper:missing",
-    "speaker": "祥子",
+    "speaker": "威利",
     "lines": [
-      "还差 2 份春笋，不用着急，今天带来就好。"
+      "还差 2 份韭葱，不用着急，今天带来就好。"
     ]
   },
   "request:dock-supper:thanks": {
     "id": "request:dock-supper:thanks",
-    "speaker": "祥子",
+    "speaker": "威利",
     "lines": [
-      "正是我需要的春笋，这些帮了大忙。"
+      "正是我需要的韭葱，这些帮了大忙。"
     ]
   },
   "request:dye-swatch:missing": {
     "id": "request:dye-swatch:missing",
-    "speaker": "昊美丽",
+    "speaker": "艾米丽",
     "lines": [
-      "还差 2 份春日野花，不用着急，今天带来就好。"
+      "还差 2 份黄水仙，不用着急，今天带来就好。"
     ]
   },
   "request:dye-swatch:thanks": {
     "id": "request:dye-swatch:thanks",
-    "speaker": "昊美丽",
+    "speaker": "艾米丽",
     "lines": [
-      "正是我需要的春日野花，这些帮了大忙。"
+      "正是我需要的黄水仙，这些帮了大忙。"
     ]
   },
   "request:trail-marker-repair:missing": {
     "id": "request:trail-marker-repair:missing",
-    "speaker": "浩南",
+    "speaker": "德米特里厄斯",
     "lines": [
-      "还差 12 份异星木材，不用着急，今天带来就好。"
+      "还差 12 份木材，不用着急，今天带来就好。"
     ]
   },
   "request:trail-marker-repair:thanks": {
     "id": "request:trail-marker-repair:thanks",
-    "speaker": "浩南",
+    "speaker": "德米特里厄斯",
     "lines": [
-      "正是我需要的异星木材，这些帮了大忙。"
+      "正是我需要的木材，这些帮了大忙。"
     ]
   },
   "request:fresh-catch-supper:missing": {
     "id": "request:fresh-catch-supper:missing",
-    "speaker": "祥子",
+    "speaker": "威利",
     "lines": [
-      "还差 2 份湖鲫，不用着急，今天带来就好。"
+      "还差 2 份鲤鱼，不用着急，今天带来就好。"
     ]
   },
   "request:fresh-catch-supper:thanks": {
     "id": "request:fresh-catch-supper:thanks",
-    "speaker": "祥子",
+    "speaker": "威利",
     "lines": [
-      "正是我需要的湖鲫，这些帮了大忙。"
+      "正是我需要的鲤鱼，这些帮了大忙。"
     ]
   },
   "request:spring-pea-basket:missing": {
     "id": "request:spring-pea-basket:missing",
-    "speaker": "华强",
+    "speaker": "皮埃尔",
     "lines": [
       "还差 2 份青豆，不用着急，今天带来就好。"
     ]
   },
   "request:spring-pea-basket:thanks": {
     "id": "request:spring-pea-basket:thanks",
-    "speaker": "华强",
+    "speaker": "皮埃尔",
     "lines": [
       "正是我需要的青豆，这些帮了大忙。"
     ]
   },
   "request:potato-work-lunch:missing": {
     "id": "request:potato-work-lunch:missing",
-    "speaker": "昊天",
+    "speaker": "克林特",
     "lines": [
       "还差 2 份土豆，不用着急，今天带来就好。"
     ]
   },
   "request:potato-work-lunch:thanks": {
     "id": "request:potato-work-lunch:thanks",
-    "speaker": "昊天",
+    "speaker": "克林特",
     "lines": [
       "正是我需要的土豆，这些帮了大忙。"
     ]
   },
   "request:golden-flower-vase:missing": {
     "id": "request:golden-flower-vase:missing",
-    "speaker": "阿澜",
+    "speaker": "莉亚",
     "lines": [
       "还差 2 份蓝爵士，不用着急，今天带来就好。"
     ]
   },
   "request:golden-flower-vase:thanks": {
     "id": "request:golden-flower-vase:thanks",
-    "speaker": "阿澜",
+    "speaker": "莉亚",
     "lines": [
       "正是我需要的蓝爵士，这些帮了大忙。"
     ]
   },
   "event:seed-keeper-two-heart": {
     "id": "event:seed-keeper-two-heart",
-    "speaker": "华强",
+    "speaker": "皮埃尔",
     "lines": [
       "等等，这本旧种植簿借你。",
       "空白处不少，正好记你自己的田。",
@@ -1319,7 +1319,7 @@
   },
   "event:blacksmith-two-heart": {
     "id": "event:blacksmith-two-heart",
-    "speaker": "昊天",
+    "speaker": "克林特",
     "lines": [
       "听这一下，声音比昨天稳。",
       "工具顺手不是因为它新，是因为有人认真用。",

@@ -21,11 +21,11 @@
   "children": [],
   "parent": "09-04-pre-pivot-life-sim-foundation",
   "relatedFiles": [],
-  "notes": "S2-B 稻草人配方学习、煤炭柜台、制作/摆放/回收、乌鸦保护和持久报告已接入；封套8/状态20。最小检查、隔离浏览器制作/摆放检查、两端导出通过。其余配方、品质、职业、钓鱼与真人验收继续补齐。",
+  "notes": "S2-K 已接入第四条钓鱼技能：湖岸只启用鲤鱼、鲢鱼、大嘴鲈鱼并对齐普通数据、难度与8/14/19经验，鱼竿每级节省0.1体力；封套12/状态24。专项32项及既有回归、两端导出通过；河流鱼、品质、完美、宝箱及职业仍待后续，真人验收待完成。用户已要求第一阶段完整闭合后将全部阶段一改动提交并推送main；当前不提前提交、推送或部署。",
   "meta": {
-    "currentBatch": "S2-B-scarecrow-reward",
+    "currentBatch": "S2-K-lakeshore-fishing-skill",
     "batchStatus": "implemented-awaiting-user-validation",
-    "verification": "verification-s2b.md",
+    "verification": "verification-s2k.md",
     "temporaryExceptions": [
       "T-SCYTHE-01",
       "T-SCYTHE-02"

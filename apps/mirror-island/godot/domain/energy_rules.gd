@@ -7,7 +7,7 @@ const LOW_STAMINA := 20.0
 const TOOL_COSTS := {"hoe":2.0,"axe":2.0,"pickaxe":2.0,"watering-can":2.0,"fishing-rod":8.0}
 const LATE_PENALTIES := [0.0,0.025,0.05,0.075,0.10,0.125,0.25,0.275,0.30,0.325,0.35,0.375,0.50]
 
-## 返回给定工具单次成本；只读取已接入技能，钓鱼等未接入来源保持基础耗能。
+## 返回给定已知工具的单次成本；只读取技能表映射，未映射的工具保持基础耗能。
 static func unit_cost(state: Dictionary, tool: String) -> float:
 	var skill: String=FarmSkillRules.TOOL_SKILLS.get(tool,"")
 	return float(TOOL_COSTS[tool])-(0.0 if skill=="" else 0.1*int(state.skills[skill].level))

@@ -1488,63 +1488,144 @@
       }
     },
     "axe": {
-      "kind": "atlas",
-      "url": "/game-media/v1/assets/vendor/ivoryred/gardens-2026-08-27/original/all-the-icons-gardens.png?v=de4dbbb5",
-      "sourceWidth": 160,
-      "sourceHeight": 176,
-      "x": 0,
-      "y": 160,
-      "width": 16,
-      "height": 16
+      "kind": "pixels",
+      "art": {
+        "rows": [
+          "................",
+          "........ddd.....",
+          ".......dhhhdd...",
+          "......dmhhhhhd..",
+          ".....dsmhhhhd...",
+          ".....dwsmmmd....",
+          "....dswdddd.....",
+          "....dwd.........",
+          "...dswd.........",
+          "..dswd..........",
+          ".dswd...........",
+          ".dwd............",
+          "..d.............",
+          "................",
+          "................",
+          "................"
+        ],
+        "palette": {
+          "d": "#52686a",
+          "m": "#86aaa8",
+          "h": "#d2e7dc",
+          "w": "#cda574",
+          "s": "#93714f"
+        }
+      },
+      "grip": {
+        "x": 3,
+        "y": 11
+      },
+      "heldSize": 16
     },
     "hoe": {
-      "kind": "atlas",
-      "url": "/game-media/v1/assets/vendor/ivoryred/gardens-2026-08-27/original/all-the-icons-gardens.png?v=de4dbbb5",
-      "sourceWidth": 160,
-      "sourceHeight": 176,
-      "x": 0,
-      "y": 32,
-      "width": 16,
-      "height": 16
+      "kind": "pixels",
+      "art": {
+        "rows": [
+          "................",
+          ".........ddd....",
+          "........dhhd....",
+          ".......dhhmd....",
+          "......dhhmd.....",
+          ".....ddmmd......",
+          "......dsd.......",
+          ".....dswd.......",
+          "....dswd........",
+          "...dswd.........",
+          "..dswd..........",
+          ".dswd...........",
+          ".dwd............",
+          "..d.............",
+          "................",
+          "................"
+        ],
+        "palette": {
+          "d": "#52686a",
+          "m": "#86aaa8",
+          "h": "#d2e7dc",
+          "w": "#cda574",
+          "s": "#93714f"
+        }
+      },
+      "grip": {
+        "x": 3,
+        "y": 11
+      },
+      "heldSize": 16
     },
     "pickaxe": {
-      "kind": "atlas",
-      "url": "/game-media/v1/assets/vendor/ivoryred/gardens-2026-08-27/original/all-the-icons-gardens.png?v=de4dbbb5",
-      "sourceWidth": 160,
-      "sourceHeight": 176,
-      "x": 96,
-      "y": 16,
-      "width": 16,
-      "height": 16
+      "kind": "pixels",
+      "art": {
+        "rows": [
+          "................",
+          ".....dddd.......",
+          "...ddhhhddd.....",
+          "..dhhmmmhhhd....",
+          ".dmmddswddhhd...",
+          "..dd.dwd..dmd...",
+          "....dswd...dd...",
+          "....dwd.........",
+          "...dswd.........",
+          "..dswd..........",
+          ".dswd...........",
+          ".dwd............",
+          "..d.............",
+          "................",
+          "................",
+          "................"
+        ],
+        "palette": {
+          "d": "#52686a",
+          "m": "#86aaa8",
+          "h": "#d2e7dc",
+          "w": "#cda574",
+          "s": "#93714f"
+        }
+      },
+      "grip": {
+        "x": 3,
+        "y": 11
+      },
+      "heldSize": 16
     },
     "scythe": {
       "kind": "pixels",
       "art": {
         "rows": [
-          ".........oooo...",
-          ".......oohhho...",
-          "......ohsssso...",
-          "......ossooo....",
-          "......oo........",
-          ".....obo........",
-          "....obbo........",
-          "...obbo.........",
-          "..obbo..........",
-          ".obbo...........",
-          "obbo............",
-          ".bo.............",
-          "obo.............",
-          "bo..............",
-          "o...............",
+          "................",
+          ".......ddddd....",
+          ".....ddhhhhhd...",
+          "....dhhmmmddmd..",
+          "...dhhmdd...dmd.",
+          "...dhmd......dd.",
+          "....dsd.........",
+          "...dswd.........",
+          "...dwd..........",
+          "..dswd..........",
+          "..dwd...........",
+          ".dswd...........",
+          ".dwd............",
+          "..d.............",
+          "................",
           "................"
         ],
         "palette": {
-          "o": "#405052",
-          "h": "#dce6df",
-          "s": "#8fa19e",
-          "b": "#a66d3f"
+          "d": "#52686a",
+          "m": "#86aaa8",
+          "h": "#d2e7dc",
+          "w": "#cda574",
+          "s": "#93714f"
         }
-      }
+      },
+      "grip": {
+        "x": 3,
+        "y": 11
+      },
+      "heldSize": 16
     },
     "stone": {
       "kind": "pixels",
@@ -1617,14 +1698,39 @@
       "height": 16
     },
     "watering-can": {
-      "kind": "atlas",
-      "url": "/game-media/v1/assets/vendor/ivoryred/gardens-2026-08-27/original/all-the-icons-gardens.png?v=de4dbbb5",
-      "sourceWidth": 160,
-      "sourceHeight": 176,
-      "x": 0,
-      "y": 80,
-      "width": 16,
-      "height": 16
+      "kind": "pixels",
+      "art": {
+        "rows": [
+          "................",
+          ".....ddddd......",
+          "....d.....d.....",
+          "....d.....d.....",
+          ".....ddddd......",
+          "....ddddddd.....",
+          "...dhhhhhmmd....",
+          "...dhhmmmmmd.dd.",
+          "...dhmmmmmmdhhd.",
+          "...dmmmmmmmhmd..",
+          "...dmmmmmmmmdd..",
+          "....dmmmmmdd....",
+          ".....ddddd......",
+          "................",
+          "................",
+          "................"
+        ],
+        "palette": {
+          "d": "#52686a",
+          "m": "#86aaa8",
+          "h": "#d2e7dc",
+          "w": "#cda574",
+          "s": "#93714f"
+        }
+      },
+      "grip": {
+        "x": 7,
+        "y": 4
+      },
+      "heldSize": 14
     },
     "parsnip": {
       "kind": "pixels",
@@ -1739,61 +1845,349 @@
         }
       }
     },
-    "spring-wildflower": {
+    "wild-horseradish": {
       "kind": "pixels",
       "art": {
         "rows": [
           "................",
-          ".........pp.....",
-          "....pp..ppyp....",
-          "...ppyp..pp.....",
-          "....pp....g.....",
-          ".....g....g.....",
-          "..pp.g...gg.....",
-          ".ppypg..glg.....",
-          "..pp.gg.gg......",
-          "...g..ggg.......",
-          "...gl.ggg.ll....",
-          "....glgg.ll.....",
-          ".....gggg.......",
+          ".....g...l......",
+          "....gg..ll......",
+          ".....ggll.......",
           "......gg........",
+          "......gg........",
+          ".....gbbg.......",
+          "....bbbbbb......",
+          "...bbbbbbbb.....",
+          "...bbbhbbbb.....",
+          "....bbbbbb......",
+          ".....bbbb.......",
+          "......bb........",
+          "......b.........",
           "................",
           "................"
         ],
         "palette": {
-          "p": "#ce7e98",
-          "y": "#f3d791",
-          "g": "#4f7045",
-          "l": "#94ae62"
+          "g": "#476b3e",
+          "l": "#8eae58",
+          "b": "#b69061",
+          "h": "#dfbd86"
         }
       }
     },
-    "bamboo-shoot": {
+    "daffodil": {
       "kind": "pixels",
       "art": {
         "rows": [
           "................",
-          ".......o........",
-          "......ogo.......",
-          "......oggo......",
-          ".....ogggo......",
-          ".....olgggo.....",
-          "....olllsgo.....",
-          "....olsssggo....",
-          "...ollllssgo....",
-          "...olsssssgo....",
-          "..olllllssggo...",
-          "..osssssssggo...",
-          "...ollllllgo....",
-          "....ooooooo.....",
+          "......yyy.......",
+          ".....yywyy......",
+          ".....ywywy......",
+          "......yyy.......",
+          ".......g........",
+          ".......g..l.....",
+          ".....l.ggll.....",
+          "......ggl.......",
+          "....l.ggl.......",
+          ".....lgg........",
+          "......gg........",
+          "......gg........",
+          ".......g........",
           "................",
           "................"
         ],
         "palette": {
-          "o": "#4a5638",
-          "g": "#7d9850",
-          "s": "#a28b50",
-          "l": "#ddc989"
+          "y": "#f0c84b",
+          "w": "#fff1bd",
+          "g": "#4c7041",
+          "l": "#8eb75b"
+        }
+      }
+    },
+    "leek": {
+      "kind": "pixels",
+      "art": {
+        "rows": [
+          "................",
+          ".....g.....l....",
+          ".....gg...ll....",
+          "......gg.ll.....",
+          "......ggll......",
+          ".......gg.......",
+          "......lgg.......",
+          "......lgg.......",
+          "......wgw.......",
+          "......www.......",
+          "......www.......",
+          ".....wwwww......",
+          ".....wwwww......",
+          "......ooo.......",
+          "................",
+          "................"
+        ],
+        "palette": {
+          "g": "#47703f",
+          "l": "#8dbb5e",
+          "w": "#e9e5c5",
+          "o": "#b58b61"
+        }
+      }
+    },
+    "dandelion": {
+      "kind": "pixels",
+      "art": {
+        "rows": [
+          "................",
+          "......yyy.......",
+          "....yyyyyyy.....",
+          "...yyyyyyyyy....",
+          "....yyyyyyy.....",
+          "......yyy.......",
+          ".......g........",
+          "...l...g...l....",
+          "....l..g..l.....",
+          ".....l.g.l......",
+          "......ggg.......",
+          "....l.ggg.l.....",
+          ".....l.g.l......",
+          "......ggg.......",
+          "................",
+          "................"
+        ],
+        "palette": {
+          "y": "#e7bd3f",
+          "g": "#4b7040",
+          "l": "#90b55c"
+        }
+      }
+    },
+    "spring-seeds": {
+      "kind": "pixels",
+      "art": {
+        "rows": [
+          "................",
+          ".....tttttt.....",
+          "....tcccccct....",
+          "....tcayccct....",
+          "....tcsvccct....",
+          "....tculccct....",
+          "....tcccccct....",
+          ".....tcccct.....",
+          ".....tcccct.....",
+          ".....tcccct.....",
+          ".....tcccct.....",
+          ".....tcccct.....",
+          "......tttt......",
+          "................",
+          "................",
+          "................"
+        ],
+        "palette": {
+          "t": "#936941",
+          "c": "#e4cf9d",
+          "a": "#b58b61",
+          "y": "#e7bd3f",
+          "s": "#47703f",
+          "v": "#8b6ca8",
+          "u": "#69a1bd",
+          "l": "#8dbb5e"
+        }
+      }
+    },
+    "maple-seed": {
+      "kind": "pixels",
+      "art": {
+        "rows": [
+          "................",
+          "......tt........",
+          ".....taat.......",
+          "....taaatt......",
+          "...taaaat.......",
+          "....taat........",
+          ".....tt.........",
+          "......t.........",
+          ".....tbt........",
+          "....tbbbt.......",
+          "...tbbbbbt......",
+          "....tbbbt.......",
+          ".....ttt........",
+          "................",
+          "................",
+          "................"
+        ],
+        "palette": {
+          "t": "#765139",
+          "a": "#d1a66f",
+          "b": "#a87548"
+        }
+      }
+    },
+    "acorn": {
+      "kind": "pixels",
+      "art": {
+        "rows": [
+          "................",
+          ".......t........",
+          "......ttt.......",
+          ".....ttttt......",
+          "....tdddddt.....",
+          "....tdddddt.....",
+          ".....bbbbb......",
+          "....bbbbbbb.....",
+          "....bbbbbbb.....",
+          ".....bbbbb......",
+          "......bbb.......",
+          ".......b........",
+          "................",
+          "................",
+          "................",
+          "................"
+        ],
+        "palette": {
+          "t": "#6f4c34",
+          "d": "#9c7047",
+          "b": "#c49355"
+        }
+      }
+    },
+    "pine-cone": {
+      "kind": "pixels",
+      "art": {
+        "rows": [
+          "................",
+          ".......t........",
+          "......tbt.......",
+          ".....tbbbt......",
+          "....tbbhbbt.....",
+          ".....tbbbt......",
+          "....tbbhbbt.....",
+          "...tbbbhbbbt....",
+          "....tbbhbbt.....",
+          ".....tbbbt......",
+          "......tbt.......",
+          ".......t........",
+          "................",
+          "................",
+          "................",
+          "................"
+        ],
+        "palette": {
+          "t": "#654732",
+          "b": "#9c6f45",
+          "h": "#c49358"
+        }
+      }
+    },
+    "sap": {
+      "kind": "pixels",
+      "art": {
+        "rows": [
+          "................",
+          "................",
+          ".......d........",
+          "......dad.......",
+          ".....daaad......",
+          ".....daaahd.....",
+          "....daaahhad....",
+          "....daaaahad....",
+          "....daaaaaad....",
+          ".....daaaad.....",
+          "......dddd......",
+          "................",
+          "................",
+          "................",
+          "................",
+          "................"
+        ],
+        "palette": {
+          "d": "#9d6826",
+          "a": "#dea93c",
+          "h": "#ffe1a0"
+        }
+      }
+    },
+    "basic-fertilizer": {
+      "kind": "pixels",
+      "art": {
+        "rows": [
+          "................",
+          ".....dddddd.....",
+          "....dbbbbbbd....",
+          "....dbbbbbbd....",
+          "....dbllllbd....",
+          "....dblgglbd....",
+          "....dbllllbd....",
+          "....dbbbbbbd....",
+          "....dbbbbbbd....",
+          "....dbbbbbbd....",
+          "....dbbbbbbd....",
+          ".....dddddd.....",
+          "................",
+          "................",
+          "................",
+          "................"
+        ],
+        "palette": {
+          "d": "#815b38",
+          "b": "#c0925e",
+          "l": "#f2deb4",
+          "g": "#668850"
+        }
+      }
+    },
+    "fertilizer-soil": {
+      "kind": "pixels",
+      "art": {
+        "rows": [
+          "................",
+          "..d........d....",
+          "................",
+          "......d.........",
+          ".............d..",
+          "...d............",
+          ".........d......",
+          "................",
+          ".d..............",
+          "......d.....d...",
+          "................",
+          "...d.....d......",
+          ".............d..",
+          ".......d........",
+          "................",
+          "................"
+        ],
+        "palette": {
+          "d": "#e0b377"
+        }
+      }
+    },
+    "field-snack": {
+      "kind": "pixels",
+      "art": {
+        "rows": [
+          "................",
+          "................",
+          "...gg...........",
+          "..glg...........",
+          "...ggtttttttt...",
+          "....tcccccccct..",
+          "...tcaabaabcct..",
+          "...tcbbabbccct..",
+          "...tcaabaabcct..",
+          "...tcccccccct...",
+          "....tttttttt....",
+          "..........gg....",
+          ".........glg....",
+          "..........gg....",
+          "................",
+          "................"
+        ],
+        "palette": {
+          "t": "#76513a",
+          "c": "#e4c983",
+          "a": "#b7824d",
+          "b": "#8f5e3c",
+          "g": "#58804b",
+          "l": "#91b462"
         }
       }
     },
@@ -2213,6 +2607,61 @@
           "w": "#94704e"
         }
       }
+    },
+    "basic-retaining-soil": {
+      "kind": "pixels",
+      "art": {
+        "rows": [
+          "................",
+          ".....dddddd.....",
+          "....dbbbbbbd....",
+          "....dbbbbbbd....",
+          "....dbllllbd....",
+          "....dblgglbd....",
+          "....dbllllbd....",
+          "....dbbbbbbd....",
+          "....dbbbbbbd....",
+          "....dbbbbbbd....",
+          "....dbbbbbbd....",
+          ".....dddddd.....",
+          "................",
+          "................",
+          "................",
+          "................"
+        ],
+        "palette": {
+          "d": "#526e75",
+          "b": "#83b9bf",
+          "l": "#e1f4e7",
+          "g": "#4988ad"
+        }
+      }
+    },
+    "retaining-soil-ground": {
+      "kind": "pixels",
+      "art": {
+        "rows": [
+          "................",
+          "..d........d....",
+          "................",
+          "......d.........",
+          ".............d..",
+          "...d............",
+          ".........d......",
+          "................",
+          ".d..............",
+          "......d.....d...",
+          "................",
+          "...d.....d......",
+          ".............d..",
+          ".......d........",
+          "................",
+          "................"
+        ],
+        "palette": {
+          "d": "#99c4ce"
+        }
+      }
     }
   },
   "badges": {
@@ -2239,8 +2688,15 @@
       "itemId": "cauliflower"
     },
     "cauliflower": null,
-    "spring-wildflower": null,
-    "bamboo-shoot": null,
+    "wild-horseradish": null,
+    "daffodil": null,
+    "leek": null,
+    "dandelion": null,
+    "spring-seeds": null,
+    "maple-seed": null,
+    "acorn": null,
+    "pine-cone": null,
+    "field-snack": null,
     "bean-starter": {
       "kind": "item",
       "itemId": "green-bean"
@@ -2338,7 +2794,7 @@
           },
           "town-resident-haonan": {
             "name": "vectoraith-npc-haonan",
-            "x": 128,
+            "x": 16,
             "y": 0,
             "width": 16,
             "height": 32
@@ -2352,15 +2808,15 @@
           },
           "town-resident-haomeili": {
             "name": "vectoraith-npc-haomeili",
-            "x": 48,
-            "y": 128,
+            "x": 64,
+            "y": 0,
             "width": 16,
             "height": 32
           },
           "town-resident-xiangzi": {
             "name": "vectoraith-npc-xiangzi",
             "x": 160,
-            "y": 192,
+            "y": 0,
             "width": 16,
             "height": 32
           }
@@ -2439,7 +2895,7 @@
           },
           "town-resident-haonan": {
             "name": "vectoraith-npc-haonan",
-            "x": 128,
+            "x": 16,
             "y": 0,
             "width": 16,
             "height": 32
@@ -2453,15 +2909,15 @@
           },
           "town-resident-haomeili": {
             "name": "vectoraith-npc-haomeili",
-            "x": 48,
-            "y": 128,
+            "x": 64,
+            "y": 0,
             "width": 16,
             "height": 32
           },
           "town-resident-xiangzi": {
             "name": "vectoraith-npc-xiangzi",
             "x": 160,
-            "y": 192,
+            "y": 0,
             "width": 16,
             "height": 32
           }
@@ -2508,20 +2964,40 @@
         }
       },
       "forage": {
-        "spring-wildflower": {
-          "textureKey": "item-original-spring-wildflower",
+        "wild-horseradish": {
+          "textureKey": "item-original-wild-horseradish",
           "frame": {
-            "name": "spring-wildflower",
+            "name": "wild-horseradish",
             "x": 0,
             "y": 0,
             "width": 16,
             "height": 16
           }
         },
-        "bamboo-shoot": {
-          "textureKey": "item-original-bamboo-shoot",
+        "daffodil": {
+          "textureKey": "item-original-daffodil",
           "frame": {
-            "name": "bamboo-shoot",
+            "name": "daffodil",
+            "x": 0,
+            "y": 0,
+            "width": 16,
+            "height": 16
+          }
+        },
+        "leek": {
+          "textureKey": "item-original-leek",
+          "frame": {
+            "name": "leek",
+            "x": 0,
+            "y": 0,
+            "width": 16,
+            "height": 16
+          }
+        },
+        "dandelion": {
+          "textureKey": "item-original-dandelion",
+          "frame": {
+            "name": "dandelion",
             "x": 0,
             "y": 0,
             "width": 16,
@@ -2562,7 +3038,7 @@
           },
           "town-resident-haonan": {
             "name": "vectoraith-npc-haonan",
-            "x": 128,
+            "x": 16,
             "y": 0,
             "width": 16,
             "height": 32
@@ -2576,15 +3052,15 @@
           },
           "town-resident-haomeili": {
             "name": "vectoraith-npc-haomeili",
-            "x": 48,
-            "y": 128,
+            "x": 64,
+            "y": 0,
             "width": 16,
             "height": 32
           },
           "town-resident-xiangzi": {
             "name": "vectoraith-npc-xiangzi",
             "x": 160,
-            "y": 192,
+            "y": 0,
             "width": 16,
             "height": 32
           }
@@ -2631,20 +3107,40 @@
         }
       },
       "forage": {
-        "spring-wildflower": {
-          "textureKey": "item-original-spring-wildflower",
+        "wild-horseradish": {
+          "textureKey": "item-original-wild-horseradish",
           "frame": {
-            "name": "spring-wildflower",
+            "name": "wild-horseradish",
             "x": 0,
             "y": 0,
             "width": 16,
             "height": 16
           }
         },
-        "bamboo-shoot": {
-          "textureKey": "item-original-bamboo-shoot",
+        "daffodil": {
+          "textureKey": "item-original-daffodil",
           "frame": {
-            "name": "bamboo-shoot",
+            "name": "daffodil",
+            "x": 0,
+            "y": 0,
+            "width": 16,
+            "height": 16
+          }
+        },
+        "leek": {
+          "textureKey": "item-original-leek",
+          "frame": {
+            "name": "leek",
+            "x": 0,
+            "y": 0,
+            "width": 16,
+            "height": 16
+          }
+        },
+        "dandelion": {
+          "textureKey": "item-original-dandelion",
+          "frame": {
+            "name": "dandelion",
             "x": 0,
             "y": 0,
             "width": 16,
@@ -2685,7 +3181,7 @@
           },
           "town-resident-haonan": {
             "name": "vectoraith-npc-haonan",
-            "x": 128,
+            "x": 16,
             "y": 0,
             "width": 16,
             "height": 32
@@ -2699,15 +3195,15 @@
           },
           "town-resident-haomeili": {
             "name": "vectoraith-npc-haomeili",
-            "x": 48,
-            "y": 128,
+            "x": 64,
+            "y": 0,
             "width": 16,
             "height": 32
           },
           "town-resident-xiangzi": {
             "name": "vectoraith-npc-xiangzi",
             "x": 160,
-            "y": 192,
+            "y": 0,
             "width": 16,
             "height": 32
           }
@@ -2754,20 +3250,40 @@
         }
       },
       "forage": {
-        "spring-wildflower": {
-          "textureKey": "item-original-spring-wildflower",
+        "wild-horseradish": {
+          "textureKey": "item-original-wild-horseradish",
           "frame": {
-            "name": "spring-wildflower",
+            "name": "wild-horseradish",
             "x": 0,
             "y": 0,
             "width": 16,
             "height": 16
           }
         },
-        "bamboo-shoot": {
-          "textureKey": "item-original-bamboo-shoot",
+        "daffodil": {
+          "textureKey": "item-original-daffodil",
           "frame": {
-            "name": "bamboo-shoot",
+            "name": "daffodil",
+            "x": 0,
+            "y": 0,
+            "width": 16,
+            "height": 16
+          }
+        },
+        "leek": {
+          "textureKey": "item-original-leek",
+          "frame": {
+            "name": "leek",
+            "x": 0,
+            "y": 0,
+            "width": 16,
+            "height": 16
+          }
+        },
+        "dandelion": {
+          "textureKey": "item-original-dandelion",
+          "frame": {
+            "name": "dandelion",
             "x": 0,
             "y": 0,
             "width": 16,
@@ -2808,7 +3324,7 @@
           },
           "town-resident-haonan": {
             "name": "vectoraith-npc-haonan",
-            "x": 128,
+            "x": 16,
             "y": 0,
             "width": 16,
             "height": 32
@@ -2822,15 +3338,15 @@
           },
           "town-resident-haomeili": {
             "name": "vectoraith-npc-haomeili",
-            "x": 48,
-            "y": 128,
+            "x": 64,
+            "y": 0,
             "width": 16,
             "height": 32
           },
           "town-resident-xiangzi": {
             "name": "vectoraith-npc-xiangzi",
             "x": 160,
-            "y": 192,
+            "y": 0,
             "width": 16,
             "height": 32
           }
@@ -2909,7 +3425,7 @@
           },
           "town-resident-haonan": {
             "name": "vectoraith-npc-haonan",
-            "x": 128,
+            "x": 16,
             "y": 0,
             "width": 16,
             "height": 32
@@ -2923,15 +3439,15 @@
           },
           "town-resident-haomeili": {
             "name": "vectoraith-npc-haomeili",
-            "x": 48,
-            "y": 128,
+            "x": 64,
+            "y": 0,
             "width": 16,
             "height": 32
           },
           "town-resident-xiangzi": {
             "name": "vectoraith-npc-xiangzi",
             "x": 160,
-            "y": 192,
+            "y": 0,
             "width": 16,
             "height": 32
           }
@@ -3010,7 +3526,7 @@
           },
           "town-resident-haonan": {
             "name": "vectoraith-npc-haonan",
-            "x": 128,
+            "x": 16,
             "y": 0,
             "width": 16,
             "height": 32
@@ -3024,15 +3540,15 @@
           },
           "town-resident-haomeili": {
             "name": "vectoraith-npc-haomeili",
-            "x": 48,
-            "y": 128,
+            "x": 64,
+            "y": 0,
             "width": 16,
             "height": 32
           },
           "town-resident-xiangzi": {
             "name": "vectoraith-npc-xiangzi",
             "x": 160,
-            "y": 192,
+            "y": 0,
             "width": 16,
             "height": 32
           }
@@ -3111,7 +3627,7 @@
           },
           "town-resident-haonan": {
             "name": "vectoraith-npc-haonan",
-            "x": 128,
+            "x": 16,
             "y": 0,
             "width": 16,
             "height": 32
@@ -3125,15 +3641,15 @@
           },
           "town-resident-haomeili": {
             "name": "vectoraith-npc-haomeili",
-            "x": 48,
-            "y": 128,
+            "x": 64,
+            "y": 0,
             "width": 16,
             "height": 32
           },
           "town-resident-xiangzi": {
             "name": "vectoraith-npc-xiangzi",
             "x": 160,
-            "y": 192,
+            "y": 0,
             "width": 16,
             "height": 32
           }
@@ -3212,7 +3728,7 @@
           },
           "town-resident-haonan": {
             "name": "vectoraith-npc-haonan",
-            "x": 128,
+            "x": 16,
             "y": 0,
             "width": 16,
             "height": 32
@@ -3226,15 +3742,15 @@
           },
           "town-resident-haomeili": {
             "name": "vectoraith-npc-haomeili",
-            "x": 48,
-            "y": 128,
+            "x": 64,
+            "y": 0,
             "width": 16,
             "height": 32
           },
           "town-resident-xiangzi": {
             "name": "vectoraith-npc-xiangzi",
             "x": 160,
-            "y": 192,
+            "y": 0,
             "width": 16,
             "height": 32
           }
@@ -3313,7 +3829,7 @@
           },
           "town-resident-haonan": {
             "name": "vectoraith-npc-haonan",
-            "x": 128,
+            "x": 16,
             "y": 0,
             "width": 16,
             "height": 32
@@ -3327,15 +3843,15 @@
           },
           "town-resident-haomeili": {
             "name": "vectoraith-npc-haomeili",
-            "x": 48,
-            "y": 128,
+            "x": 64,
+            "y": 0,
             "width": 16,
             "height": 32
           },
           "town-resident-xiangzi": {
             "name": "vectoraith-npc-xiangzi",
             "x": 160,
-            "y": 192,
+            "y": 0,
             "width": 16,
             "height": 32
           }
@@ -3414,7 +3930,7 @@
           },
           "town-resident-haonan": {
             "name": "vectoraith-npc-haonan",
-            "x": 128,
+            "x": 16,
             "y": 0,
             "width": 16,
             "height": 32
@@ -3428,15 +3944,15 @@
           },
           "town-resident-haomeili": {
             "name": "vectoraith-npc-haomeili",
-            "x": 48,
-            "y": 128,
+            "x": 64,
+            "y": 0,
             "width": 16,
             "height": 32
           },
           "town-resident-xiangzi": {
             "name": "vectoraith-npc-xiangzi",
             "x": 160,
-            "y": 192,
+            "y": 0,
             "width": 16,
             "height": 32
           }
@@ -3483,20 +3999,40 @@
         }
       },
       "forage": {
-        "spring-wildflower": {
-          "textureKey": "item-original-spring-wildflower",
+        "wild-horseradish": {
+          "textureKey": "item-original-wild-horseradish",
           "frame": {
-            "name": "spring-wildflower",
+            "name": "wild-horseradish",
             "x": 0,
             "y": 0,
             "width": 16,
             "height": 16
           }
         },
-        "bamboo-shoot": {
-          "textureKey": "item-original-bamboo-shoot",
+        "daffodil": {
+          "textureKey": "item-original-daffodil",
           "frame": {
-            "name": "bamboo-shoot",
+            "name": "daffodil",
+            "x": 0,
+            "y": 0,
+            "width": 16,
+            "height": 16
+          }
+        },
+        "leek": {
+          "textureKey": "item-original-leek",
+          "frame": {
+            "name": "leek",
+            "x": 0,
+            "y": 0,
+            "width": 16,
+            "height": 16
+          }
+        },
+        "dandelion": {
+          "textureKey": "item-original-dandelion",
+          "frame": {
+            "name": "dandelion",
             "x": 0,
             "y": 0,
             "width": 16,
@@ -3537,7 +4073,7 @@
           },
           "town-resident-haonan": {
             "name": "vectoraith-npc-haonan",
-            "x": 128,
+            "x": 16,
             "y": 0,
             "width": 16,
             "height": 32
@@ -3551,15 +4087,15 @@
           },
           "town-resident-haomeili": {
             "name": "vectoraith-npc-haomeili",
-            "x": 48,
-            "y": 128,
+            "x": 64,
+            "y": 0,
             "width": 16,
             "height": 32
           },
           "town-resident-xiangzi": {
             "name": "vectoraith-npc-xiangzi",
             "x": 160,
-            "y": 192,
+            "y": 0,
             "width": 16,
             "height": 32
           }
@@ -4806,6 +5342,92 @@
         "...tb..gg..tb...",
         "...tb..gg..tb...",
         "................"
+      ]
+    },
+    "spring-forage": {
+      "stageDays": [
+        3,
+        4
+      ],
+      "stages": [
+        [
+          "................",
+          "................",
+          "................",
+          "................",
+          "................",
+          "................",
+          "................",
+          "................",
+          "................",
+          "................",
+          "................",
+          "................",
+          "................",
+          "................",
+          "................",
+          "................",
+          "................",
+          "................",
+          ".......g........",
+          "......glg.......",
+          ".....gghgg......",
+          ".......g........",
+          ".......b........",
+          "................"
+        ],
+        [
+          "................",
+          "................",
+          "................",
+          "................",
+          "................",
+          "................",
+          "................",
+          "................",
+          "................",
+          "................",
+          "................",
+          "................",
+          "................",
+          "................",
+          "....g.....l.....",
+          ".....g...l......",
+          ".....gg.ll......",
+          "......ggl.......",
+          "...l..ggg..g....",
+          "....lgggggg.....",
+          ".....gggg.......",
+          "......gg........",
+          "......bb........",
+          "................"
+        ],
+        [
+          "................",
+          "................",
+          "................",
+          "................",
+          "................",
+          "................",
+          "................",
+          "................",
+          "................",
+          "................",
+          "................",
+          ".....g..l.......",
+          "....gg..ll......",
+          ".....ggll.......",
+          "..l...gg...g....",
+          "...l.gggg.g.....",
+          "....gggggg......",
+          "..g..gggg..l....",
+          "...gggggggg.....",
+          "....gggggg......",
+          ".....gggg.......",
+          "......gg........",
+          "......bb........",
+          "................"
+        ]
       ]
     }
   },

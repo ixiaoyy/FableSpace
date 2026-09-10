@@ -37,6 +37,7 @@
     "typecheck": "npm run typecheck:client && tsc --noEmit -p tsconfig.server.json",
     "test:godot": "node scripts/godot.mjs parity",
     "test:energy": "node scripts/godot.mjs energy",
+    "test:fishing": "node scripts/godot.mjs fishing",
     "test:identity": "node --experimental-strip-types --test test/sso-contract.test.mjs test/retirement-contract.test.mjs",
     "test:oidc": "node --experimental-strip-types --test test/sso-contract.test.mjs"
   },

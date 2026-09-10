@@ -76,9 +76,10 @@ static func prune(memory: Dictionary, day: int) -> void:
 	memory.recent=memory.recent.filter(func(entry:Dictionary)->bool:return entry.day>=day-3 and entry.day<=day).slice(-12)
 
 ## 送礼保持每人每日一份、周日重置的每周两份，不设置全镇限额。
-func gift(state: Dictionary, npcs: Array, npc_id: String, item_id: String) -> String:
+func gift(state: Dictionary, npcs: Array, npc_id: String, item_id: String, quality: Variant = 0) -> String:
 	if not rules.items.has(item_id) or rules.items[item_id].category in ["tool","seed"]: return "not-giftable"
-	if inventory.quantity(state.inventory,item_id)<1: return "missing-item"
+	if not FarmQualityRules.valid(rules.items[item_id],quality): return "invalid-quality"
+	if inventory.quantity(state.inventory,item_id,quality)<1: return "missing-item"
 	var npc: Dictionary={}
 	for entry: Dictionary in npcs:
 		if entry.npcId==npc_id: npc=entry; break
@@ -90,8 +91,8 @@ func gift(state: Dictionary, npcs: Array, npc_id: String, item_id: String) -> St
 	if friendship.lastGiftDay==state.day: return "daily-limit"
 	if count>=2: return "weekly-limit"
 	var preference: String=rules.giftPreferences[npc_id][item_id]
-	inventory.consume(state.inventory,item_id,1)
-	friendship.points=clampi(int(friendship.points)+int({"liked":45,"neutral":20,"disliked":-20}[preference]),0,2500)
+	inventory.consume(state.inventory,item_id,1,quality)
+	friendship.points=clampi(int(friendship.points)+FarmQualityRules.friendship(int({"liked":45,"neutral":20,"disliked":-20}[preference]),quality),0,2500)
 	friendship.lastGiftDay=state.day; friendship.giftWeekIndex=week; friendship.giftsThisWeek=count+1
 	return "gift-"+preference
 

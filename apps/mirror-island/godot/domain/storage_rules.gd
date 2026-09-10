@@ -58,12 +58,13 @@ func apply(state: Dictionary, npcs: Array, command: Dictionary) -> String:
 		for drop: Dictionary in state.worldDrops:
 			if drop.id!=command.dropId: continue
 			if drop.regionId!=state.player.regionId or FarmWorldRules.point(state.player).distance_to(Vector2(drop.originX,drop.originY))>48: return "too-far"
-			if not inventory.add(state.inventory,drop.stack.itemId,drop.stack.quantity): return "inventory-full"
+			if not inventory.add(state.inventory,drop.stack.itemId,drop.stack.quantity,drop.stack.quality): return "inventory-full"
 			state.worldDrops.erase(drop)
 			return "collected"
 		return "missing-drop"
 	if kind=="dismiss-day-settlement":
 		if state.unacknowledgedShippingReport==null: return "no-effect"
+		if not state.unacknowledgedShippingReport.professionChoices.is_empty(): return "profession-choice-required"
 		for id: String in state.unacknowledgedShippingReport.recipeUnlocks:
 			if id not in state.knownRecipes: state.knownRecipes.append(id)
 		state.unacknowledgedShippingReport=null
@@ -83,7 +84,7 @@ func apply(state: Dictionary, npcs: Array, command: Dictionary) -> String:
 		if kind=="reclaim-last-shipment":
 			if state.shippingQueue.is_empty(): return "empty"
 			var last: Dictionary=state.shippingQueue.back()
-			if not inventory.add(state.inventory,last.itemId,last.quantity): return "inventory-full"
+			if not inventory.add(state.inventory,last.itemId,last.quantity,last.quality): return "inventory-full"
 			state.shippingQueue.pop_back()
 			return "reclaimed"
 		var index:=int(command.sourceIndex)
@@ -91,7 +92,7 @@ func apply(state: Dictionary, npcs: Array, command: Dictionary) -> String:
 		var slot: Dictionary=state.inventory[index]
 		if not rules.items.get(slot.itemId,{}).get("canShip",false) or command.quantity not in ["one","stack"]: return "not-shippable"
 		var amount:=1 if command.quantity=="one" else int(slot.quantity)
-		state.shippingQueue.append({"itemId":slot.itemId,"quantity":amount})
+		state.shippingQueue.append({"itemId":slot.itemId,"quantity":amount,"quality":slot.quality})
 		inventory.consume_at(state.inventory,index,amount)
 		return "shipped"
 	if object.kind!="chest": return "missing-chest"
@@ -125,12 +126,12 @@ func apply(state: Dictionary, npcs: Array, command: Dictionary) -> String:
 			for slot: Dictionary in state.inventory:
 				if not rules.items.has(slot.itemId): continue
 				for target: Dictionary in object.slots:
-					if slot.itemId!=target.itemId or slot.quantity<=0: continue
+					if slot.itemId!=target.itemId or slot.quality!=target.quality or slot.quantity<=0: continue
 					var amount:=mini(int(slot.quantity),int(rules.items[slot.itemId].maxStack-target.quantity))
 					if amount<=0: continue
 					target.quantity+=amount
 					slot.quantity-=amount
-					if slot.quantity==0: slot.itemId=""
+					if slot.quantity==0: slot.itemId=""; slot.quality=0
 					changed=true
 			return "changed" if changed else "unchanged"
 	return "invalid-transfer"
@@ -197,9 +198,11 @@ func settle_shipping(state: Dictionary) -> bool:
 	for deposit: Dictionary in state.shippingQueue:
 		var price: Variant=rules.prices.get(deposit.itemId)
 		if price==null or not rules.items[deposit.itemId].canShip: return false
-		var amount:=int(grouped.get(deposit.itemId,{}).get("quantity",0))+int(deposit.quantity)
-		if amount*int(price)>FarmWorldRules.LIMIT: return false
-		grouped[deposit.itemId]={"itemId":deposit.itemId,"quantity":amount,"unitPrice":price,"totalGold":amount*int(price)}
+		price=FarmQualityRules.price(int(price),int(deposit.quality))
+		var key: String=deposit.itemId+":"+str(deposit.quality)
+		var amount:=int(grouped.get(key,{}).get("quantity",0))+int(deposit.quantity)
+		if amount>FarmWorldRules.LIMIT/maxi(1,int(price)): return false
+		grouped[key]={"itemId":deposit.itemId,"quality":deposit.quality,"quantity":amount,"unitPrice":price,"totalGold":amount*int(price)}
 	var categories: Array=[]
 	var total:=0
 	for category in ["farming","foraging","fishing","mining","other"]:
@@ -208,7 +211,7 @@ func settle_shipping(state: Dictionary) -> bool:
 		for entry: Dictionary in grouped.values():
 			if rules.items[entry.itemId].shippingCategory==category:
 				entries.append(entry); subtotal+=int(entry.totalGold)
-		entries.sort_custom(func(a:Dictionary,b:Dictionary)->bool:return rules.items[a.itemId].inventorySortOrder<rules.items[b.itemId].inventorySortOrder)
+		entries.sort_custom(func(a:Dictionary,b:Dictionary)->bool:return a.quality<b.quality if a.itemId==b.itemId else rules.items[a.itemId].inventorySortOrder<rules.items[b.itemId].inventorySortOrder)
 		if not entries.is_empty(): categories.append({"category":category,"entries":entries,"totalGold":subtotal})
 		total+=subtotal
 	if state.gold+total>FarmWorldRules.LIMIT: return false

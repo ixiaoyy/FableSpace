@@ -2,8 +2,8 @@ class_name FarmSaveCodec
 extends RefCounted
 ## 独立 Godot 存档合同，严格拒绝旧版本、坏字段与不一致世界，不回填或静默覆盖。
 
-const VERSION := 8
-const STATE_VERSION := 20
+const VERSION := 12
+const STATE_VERSION := 24
 const MAX_BYTES := 8 * 1024 * 1024
 var rules: Dictionary
 var dialogues: Dictionary
@@ -64,6 +64,7 @@ func slots(value: Variant, size: int) -> bool:
 	if not value is Array or value.size()!=size: return false
 	for slot: Variant in value:
 		if not slot is Dictionary: return false
+		if not FarmQualityRules.valid(rules.items.get(slot.get("itemId"),{}),slot.get("quality")): return false
 		if slot.get("itemId")=="" and slot.get("quantity")==0: continue
 		if not rules.items.has(slot.get("itemId")) or not number(slot.get("quantity"),1,rules.items[slot.itemId].maxStack): return false
 	return true
@@ -91,6 +92,13 @@ func validate(raw: Variant) -> String:
 	for id: String in FarmSkillRules.NAMES:
 		var skill: Variant=state.skills.get(id)
 		if not skill is Dictionary or not number(skill.get("xp"),0,FarmWorldRules.LIMIT) or not number(skill.get("level"),0,10) or skill.level!=FarmSkillRules.level_for(int(skill.xp)) or not number(skill.get("reportedLevel"),0,skill.level): return "技能经验与等级不一致。"
+	if not state.professions is Dictionary or state.professions.size()!=FarmSkillRules.NAMES.size(): return "职业集合无效。"
+	for id: String in FarmSkillRules.NAMES:
+		var selected: Variant=state.professions.get(id)
+		if not selected is Array or selected.size()>1: return "职业集合无效。"
+		for profession: Variant in selected:
+			if not profession is String or profession not in FarmSkillRules.PROFESSION_DETAILS or id!="foraging": return "职业重复或未知。"
+		if not selected.is_empty() and state.skills[id].reportedLevel<5: return "职业等级条件不满足。"
 	if not state.knownRecipes is Array or state.knownRecipes.size()>rules.recipes.size(): return "已知配方集合无效。"
 	var known: Dictionary={}
 	for id: Variant in state.knownRecipes:
@@ -119,6 +127,7 @@ func validate(raw: Variant) -> String:
 		if id!="farm:%d:%d"%[tile.column,tile.row] or tile.get("id")!=id or tile.get("phase") not in ["tilled","growing","mature"] or not tile.get("watered") is bool: return "农田状态无效。"
 		if not world.mask("farm","tillableTiles",tile.column,tile.row): return "农田越出可耕范围。"
 		if not number(tile.get("growthDays"),0,FarmWorldRules.LIMIT) or not number(tile.get("plantedDay"),0,state.day) or not number(tile.get("harvestCount"),0,FarmWorldRules.LIMIT): return "作物计数无效。"
+		if not number(tile.get("fertilizer"),0,2): return "农田肥料无效。"
 		var crop: Dictionary={}
 		for definition: Dictionary in rules.crops:
 			if definition.cropId==tile.get("cropId"): crop=definition; break
@@ -141,7 +150,7 @@ func validate(raw: Variant) -> String:
 	if not state.dailyForage is Dictionary or state.dailyForage.get("day")!=state.day or not state.dailyForage.get("collectedIds") is Array or state.dailyForage.collectedIds.size()>world.resources.size(): return "野采日期无效。"
 	var collected: Dictionary={}
 	for id: Variant in state.dailyForage.collectedIds:
-		if not world.resources.has(id) or collected.has(id) or world.resources[id].kind not in ["spring-wildflower","bamboo-shoot","fallen-branch"]: return "野采记录无效。"
+		if not world.resources.has(id) or collected.has(id) or world.resources[id].kind not in ["wild-horseradish","daffodil","leek","dandelion","fallen-branch"]: return "野采记录无效。"
 		collected[id]=true
 	if state.day==1:
 		if state.dailyRequest!=null: return "首日委托无效。"
@@ -200,7 +209,9 @@ func _storage(state: Dictionary) -> String:
 	for entry: Variant in state.shippingQueue:
 		if not slots([entry],1) or not rules.items.get(entry.itemId,{}).get("canShip",false): return "出货队列无效。"
 	var report: Variant=state.unacknowledgedShippingReport
-	if report==null: return ""
+	if report==null:
+		if state.skills.foraging.reportedLevel>=5 and state.professions.foraging.is_empty(): return "采集五级职业尚未选择。"
+		return ""
 	if not report is Dictionary or not number(report.get("settledDay"),1,state.day-1) or not number(report.get("totalGold"),0,FarmWorldRules.LIMIT) or not report.get("categories") is Array: return "出货报告无效。"
 	if not report.get("skillUpgrades") is Array or report.skillUpgrades.size()>FarmSkillRules.NAMES.size(): return "技能升级报告无效。"
 	var skill_ids: Dictionary={}
@@ -215,6 +226,17 @@ func _storage(state: Dictionary) -> String:
 		var recipe: Dictionary=rules.recipes[id]
 		if recipe.knownByDefault or state.skills[recipe.skill].level<recipe.level: return "待学配方条件不满足。"
 		recipe_ids[id]=true
+	if not report.get("professionChoices") is Array or report.professionChoices.size()>1: return "职业选择报告无效。"
+	var pending_foraging:=false
+	for choice: Variant in report.professionChoices:
+		if not choice is Dictionary or choice.get("skill")!="foraging" or choice.get("level")!=5 or choice.get("options")!=FarmSkillRules.PROFESSION_OPTIONS.foraging[5]: return "职业选择报告无效。"
+		if not state.professions.foraging.is_empty(): return "职业选择状态重复。"
+		var crossed:=false
+		for upgrade: Dictionary in report.skillUpgrades:
+			if upgrade.skill=="foraging" and upgrade.from<5 and upgrade.to>=5: crossed=true
+		if not crossed: return "职业选择缺少对应升级。"
+		pending_foraging=true
+	if state.skills.foraging.reportedLevel>=5 and state.professions.foraging.is_empty() and not pending_foraging: return "采集五级职业尚未选择。"
 	var crows: Variant=report.get("crows")
 	if not crows is Dictionary or not crows.get("lost") is Array or crows.lost.size()>4 or not number(crows.get("scared"),0,4-crows.lost.size()): return "乌鸦报告无效。"
 	var lost_ids: Dictionary={}
@@ -228,8 +250,12 @@ func _storage(state: Dictionary) -> String:
 		category_ids[category.category]=true
 		var subtotal:=0
 		for entry: Variant in category.entries:
-			if not entry is Dictionary or not rules.items.has(entry.get("itemId")) or item_ids.has(entry.itemId) or rules.items[entry.itemId].shippingCategory!=category.category or not number(entry.get("quantity"),1,FarmWorldRules.LIMIT) or entry.get("unitPrice")!=rules.prices[entry.itemId] or entry.get("totalGold")!=entry.quantity*entry.unitPrice: return "出货金额不一致。"
-			subtotal+=int(entry.totalGold); item_ids[entry.itemId]=true
+			if not entry is Dictionary or not rules.items.has(entry.get("itemId")): return "出货物品无效。"
+			if not FarmQualityRules.valid(rules.items[entry.itemId],entry.get("quality")) or rules.prices.get(entry.itemId)==null: return "出货品质无效。"
+			var key: String=entry.itemId+":"+str(entry.quality)
+			var price: int=FarmQualityRules.price(int(rules.prices[entry.itemId]),entry.quality)
+			if item_ids.has(key) or rules.items[entry.itemId].shippingCategory!=category.category or not number(entry.get("quantity"),1,FarmWorldRules.LIMIT/maxi(1,price)) or entry.get("unitPrice")!=price or entry.get("totalGold")!=entry.quantity*price: return "出货金额不一致。"
+			subtotal+=int(entry.totalGold); item_ids[key]=true
 		if category.get("totalGold")!=subtotal: return "出货分类金额不一致。"
 		total+=subtotal
 	return "" if total==report.totalGold else "出货总金额不一致。"

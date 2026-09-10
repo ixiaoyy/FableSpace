@@ -34,24 +34,27 @@ func _run() -> void:
 	var state: Dictionary=session.snapshot()
 	state.player.regionId="farm"; state.player.x=304; state.player.y=256
 	session._state=state; scene._project()
-	var menus: Array[String]=["inventory","crafting","menu","social","calendar","requests","adoption","appearance","audio","building","backpack-upgrade","credits"]
+	var menus: Array[String]=["inventory","crafting","skills","menu","social","calendar","requests","adoption","appearance","audio","building","backpack-upgrade","credits"]
 	for mode: String in menus:
 		scene.ui.inspect_id="seed-shop-backpack-display"
 		scene.ui._open(mode)
 		await process_frame
 		if not scene.ui.dialog.visible: print("VIEW CHECK FAILED: menu ",mode); quit(1); return
+		if mode=="skills" and not scene.ui.body.find_children("*","Label",true,false).any(func(node:Node)->bool:return node.text.begins_with("钓鱼 · 0 级")): print("VIEW CHECK FAILED: fishing skill label"); quit(1); return
 		count+=1
 	var fixture_path:=ProjectSettings.globalize_path("res://../test/fixtures/godot-migration.json")
 	var fixtures: Dictionary=JSON.parse_string(FileAccess.get_file_as_string(fixture_path))
 	for fixture: Dictionary in fixtures.cases:
 		if fixture.name=="摆放普通箱":
-			session._state=FarmSaveCodec.normalize_numbers(fixture.after); scene._project(); scene.ui.open_container("world-1"); await process_frame; count+=1
+			session._state=FarmLegacyFixture.current(FarmSaveCodec.normalize_numbers(fixture.after)); scene._project(); scene.ui.open_container("world-1"); await process_frame; count+=1
 	scene.ui.open_container("farm-shipping-bin-default"); await process_frame; count+=1
 	scene.ui.show_dialogue({"npcId":"seed-keeper","dialogueId":"activity:seed-keeper:day:0","shopAvailable":true}); await process_frame; count+=1
 	scene.ui.request_placement({"type":"build-shipping-bin","interactionId":"town-house-west-carpenter-counter"}); await process_frame; scene.ui.close(); await process_frame; count+=1
-	session._state.unacknowledgedShippingReport={"settledDay":1,"categories":[],"totalGold":0}; scene.ui._open("report"); await process_frame; count+=1
+	session._state.unacknowledgedShippingReport={"settledDay":1,"categories":[],"totalGold":0,"skillUpgrades":[{"skill":"fishing","from":0,"to":1}],"recipeUnlocks":[],"professionChoices":[],"crows":{"scared":0,"lost":[]}}; scene.ui._open("report"); await process_frame
+	if not scene.ui.body.find_children("*","Label",true,false).any(func(node:Node)->bool:return node.text=="钓鱼提升：0 → 1 级"): print("VIEW CHECK FAILED: fishing report label"); quit(1); return
+	count+=1
 	session._state.unacknowledgedShippingReport=null
-	session.fishing.runtime={"phase":"casting","zoneId":"test","held":false,"elapsedMs":0.0,"biteAtMs":2000,"castPower":0.0,"tension":50.0,"progress":0.0,"fish":null,"attempt":1,"failureReason":null}
+	session.fishing.runtime={"phase":"casting","zoneId":"lakeshore-old-dock-fishing","held":false,"elapsedMs":0.0,"biteAtMs":2000,"castPower":0.0,"tension":50.0,"progress":0.0,"fish":null,"attempt":1,"failureReason":null}
 	scene.ui.show_fishing(); await process_frame; count+=1
 	session.fishing.runtime.clear(); scene.ui.mode=""
 	session._state.weather.current="rain"; scene._project(); await process_frame; count+=1

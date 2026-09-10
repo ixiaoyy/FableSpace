@@ -865,7 +865,7 @@
         {
           "height": 0,
           "id": 163,
-          "name": "Spring Wildflower",
+          "name": "Wild Horseradish",
           "opacity": 1,
           "point": true,
           "properties": [
@@ -877,7 +877,7 @@
             {
               "name": "resourceKind",
               "type": "string",
-              "value": "spring-wildflower"
+              "value": "wild-horseradish"
             }
           ],
           "rotation": 0,
@@ -890,7 +890,7 @@
         {
           "height": 0,
           "id": 164,
-          "name": "Bamboo Shoot",
+          "name": "Leek",
           "opacity": 1,
           "point": true,
           "properties": [
@@ -902,7 +902,7 @@
             {
               "name": "resourceKind",
               "type": "string",
-              "value": "bamboo-shoot"
+              "value": "leek"
             }
           ],
           "rotation": 0,

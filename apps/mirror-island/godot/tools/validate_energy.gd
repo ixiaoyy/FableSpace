@@ -37,15 +37,15 @@ func _run() -> void:
 	root.add_child(scene); await process_frame; session.rules.milestones.clear()
 	_expect(await session.new_game(session.rules.initial.player.appearance),"新建")
 	scene.set_process(false); scene.set_physics_process(false)
-	_expect(session.snapshot().stamina==270 and session.snapshot().version==20,"新档体力与状态版本")
+	_expect(session.snapshot().stamina==270 and session.snapshot().version==24,"新档体力与状态版本")
 	var base:=session.snapshot(); base.stamina=37.75
 	var decoded:=session.codec.decode(FarmSaveCodec.encode(base))
 	_expect(not decoded.has("error") and decoded.state.stamina==37.75,"小数封套往返")
 	for bad in [-0.01,270.01,INF,NAN,"37.75",null]:
 		var invalid:=base.duplicate(true); invalid.stamina=bad
 		_expect(session.codec.validate(invalid)!="","拒绝非法体力 "+str(bad))
-	var old:=base.duplicate(true); old.version=19
-	var old_payload:=JSON.stringify({"engine":"godot","version":7,"updatedAt":1,"state":old})
+	var old:=base.duplicate(true); old.version=23
+	var old_payload:=JSON.stringify({"engine":"godot","version":11,"updatedAt":1,"state":old})
 	repository.payload=old_payload
 	var writes_before:=repository.writes
 	_expect(not await session.continue_game(),"旧版本拒绝")
@@ -55,7 +55,7 @@ func _run() -> void:
 	for fixture: Dictionary in fixtures.cases:
 		if fixture.name=="锄地": tilling=fixture
 		if fixture.kind=="fishing": casting=fixture
-	var state: Dictionary=FarmSaveCodec.normalize_numbers(tilling.before); state.version=FarmSaveCodec.STATE_VERSION; state.skills=base.skills.duplicate(true); state.knownRecipes=base.knownRecipes.duplicate(); state.stamina=4.75
+	var state: Dictionary=FarmLegacyFixture.current(FarmSaveCodec.normalize_numbers(tilling.before)); state.version=FarmSaveCodec.STATE_VERSION; state.skills=base.skills.duplicate(true); state.professions=base.professions.duplicate(true); state.knownRecipes=base.knownRecipes.duplicate(); state.stamina=4.75
 	_reset(session,state); repository.fail_next=true
 	var command: Dictionary={"type":"use-item-on-tile","itemId":"hoe","column":26,"row":17,"facing":"up"}
 	await session.dispatch(command)
@@ -71,7 +71,7 @@ func _run() -> void:
 	state.player.x=408; state.player.y=280
 	for column in range(26,29):
 		var id: String="farm:%d:17"%column
-		state.farmTiles[id]={"id":id,"column":column,"row":17,"phase":"tilled","cropId":"","growthDays":0,"watered":false,"plantedDay":0,"harvestCount":0}
+		state.farmTiles[id]={"id":id,"column":column,"row":17,"phase":"tilled","cropId":"","growthDays":0,"watered":false,"plantedDay":0,"harvestCount":0,"fertilizer":0}
 	for sample in [[5.5,10,2,1.5,8],[10.25,1,1,8.25,0],[10.25,3,3,4.25,0],[1.75,3,0,1.75,3]]:
 		state.stamina=sample[0]; state.wateringCanWater=sample[1]; _reset(session,state)
 		await session.dispatch({"type":"use-item-on-tile","itemId":"watering-can","column":26,"row":17,"facing":"right"})
@@ -81,7 +81,7 @@ func _run() -> void:
 	# 旧钓鱼案例只验证领域函数；真实会话需要同时满足第七天的日历和委托校验。
 	state=base.duplicate(true); state.day=7; state.weather.day=7; state.dailyForage.day=7
 	state.dailyRequest={"day":7,"requestId":session.social.request_for_day(7).requestId,"completed":false}
-	state.player=casting.before.player.duplicate(true); state.inventory=FarmSaveCodec.normalize_numbers(casting.before.inventory)
+	state.player=casting.before.player.duplicate(true); state.inventory=FarmLegacyFixture.current(FarmSaveCodec.normalize_numbers(casting.before.inventory))
 	state.stamina=8.5; _reset(session,state)
 	_expect(session.codec.validate(state)=="","钓鱼会话起点有效")
 	await session.dispatch({"type":"start-fishing","zoneId":casting.args.zoneId})
@@ -89,7 +89,7 @@ func _run() -> void:
 	var cast_count: int=session.snapshot().fishingCastCount
 	await session.dispatch({"type":"start-fishing","zoneId":casting.args.zoneId})
 	_expect(session.snapshot().stamina==0.5 and session.snapshot().fishingCastCount==cast_count,"重复抛竿不再扣费")
-	state=base.duplicate(true); state.stamina=37.75; state.inventory[5]={"itemId":"parsnip","quantity":3}; _reset(session,state)
+	state=base.duplicate(true); state.stamina=37.75; state.inventory[5]={"itemId":"parsnip","quantity":3,"quality":0}; _reset(session,state)
 	await session.dispatch({"type":"eat-item","itemId":"parsnip"})
 	_expect(session.snapshot().stamina==62.75 and session.snapshot().inventory[5].quantity==2,"食用保留小数")
 	session._state.stamina=269.75; await session.dispatch({"type":"eat-item","itemId":"parsnip"})
@@ -113,7 +113,8 @@ func _run() -> void:
 	_expect(scene.ui.stamina_bar.max_value==270 and scene.ui.stamina_label.text=="263","HUD 仅显示取整")
 	await session.dispatch({"type":"dismiss-day-settlement"})
 	scene.ui._open("skills")
-	_expect(scene.ui.title.text=="生活技能" and scene.ui.body.get_children().any(func(node:Node)->bool:return node is Label and node.text.begins_with("种植")),"技能页实际实例化")
+	var skill_labels: Array[Node]=scene.ui.body.find_children("*","Label",true,false)
+	_expect(scene.ui.title.text=="技能" and skill_labels.any(func(node:Node)->bool:return node.text.begins_with("耕种")) and skill_labels.any(func(node:Node)->bool:return node.text.begins_with("钓鱼")),"四技能页实际实例化")
 	var directory:=ProjectSettings.globalize_path("res://../../../artifacts/energy-s0-2026-09-08")
 	DirAccess.make_dir_recursive_absolute(directory)
 	var file:=FarmSaveRepository.new(directory+"/roundtrip.json")

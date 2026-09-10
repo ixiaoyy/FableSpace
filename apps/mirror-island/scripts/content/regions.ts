@@ -44,7 +44,7 @@ export interface ExitDefinition extends WorldRect {
 export interface ResourceSpawnDefinition extends WorldPoint {
   readonly entityId: string;
   readonly regionId: string;
-  readonly kind: "tree" | "stone" | "weed" | "spring-wildflower" | "bamboo-shoot" | "fallen-branch";
+  readonly kind: "tree" | "stone" | "weed" | "wild-horseradish" | "daffodil" | "leek" | "dandelion" | "fallen-branch";
 }
 
 export interface FishingZoneDefinition extends WorldRect {

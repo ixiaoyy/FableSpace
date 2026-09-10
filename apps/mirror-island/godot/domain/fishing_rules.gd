@@ -7,11 +7,11 @@ var inventory: FarmInventory
 var world: FarmWorldRules
 var fish: Array
 
-## 绑定旧鱼种表、库存和已登记钓位。
+## 绑定当前活动鱼表、库存和已登记钓位。
 func _init(items: FarmInventory, catalog: FarmWorldRules, definitions: Array) -> void:
 	inventory=items; world=catalog; fish=definitions
 
-## 按统一基础耗能开始抛竿，保留小数余量；仍按已保存尝试次数决定后续鱼种。
+## 按钓鱼熟练度耗能开始抛竿，保留小数余量；仍按已保存尝试次数决定后续鱼种。
 func start(state: Dictionary, zone_id: String) -> String:
 	if not runtime.is_empty(): return "already-fishing"
 	if state.day<7 or state.minuteOfDay>=1560: return "not-ready"
@@ -19,7 +19,7 @@ func start(state: Dictionary, zone_id: String) -> String:
 	var zone: Dictionary=world.zones.get(zone_id,{})
 	if zone.is_empty() or zone.regionId!=state.player.regionId: return "missing-zone"
 	if FarmWorldRules.point(state.player).distance_to(Vector2(zone.x+zone.width/2.0,zone.y+zone.height/2.0))>52: return "too-far"
-	if state.stamina<FarmEnergyRules.TOOL_COSTS["fishing-rod"]: return "insufficient-stamina"
+	if state.stamina<FarmEnergyRules.unit_cost(state,"fishing-rod"): return "insufficient-stamina"
 	if state.fishingCastCount>=FarmWorldRules.LIMIT: return "not-ready"
 	if not FarmEnergyRules.spend(state,"fishing-rod"): return "insufficient-stamina"
 	state.fishingCastCount+=1
@@ -57,7 +57,9 @@ func tick(state: Dictionary, elapsed: float) -> String:
 			if runtime.tension<=0 or runtime.tension>=100:
 				runtime.phase="escaped"; runtime.failureReason="line-broke" if runtime.tension>=100 else "slack-line"; return "escaped"
 			if runtime.progress>=100:
-				if not inventory.add(state.inventory,runtime.fish.itemId,1): runtime.phase="inventory-full"; return "inventory-full"
+				var quality:=0
+				if not inventory.add(state.inventory,runtime.fish.itemId,1,quality): runtime.phase="inventory-full"; return "inventory-full"
+				FarmSkillRules.gain(state,"fishing",FarmSkillRules.fishing_xp(quality,int(runtime.fish.difficulty)))
 				runtime.phase="caught"; return "caught"
 	return ""
 

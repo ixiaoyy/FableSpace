@@ -148,7 +148,14 @@ func _load_region(id: String) -> void:
 		for crow: Node in crow_actors.get_children(): crow_actors.remove_child(crow); crow.queue_free()
 	for child in region_root.get_children(): region_root.remove_child(child); child.queue_free()
 	for node: Node in dynamic.values(): node.get_parent().remove_child(node); node.queue_free()
-	dynamic.clear(); region_root.add_child(packed.instantiate()); display_region=id
+	dynamic.clear()
+	var scene:=packed.instantiate()
+	region_root.add_child(scene); display_region=id
+	if id in ["farm","town"]:
+		for layer: Node in scene.find_children("Ground","TileMapLayer",true,false):
+			var material:=ShaderMaterial.new()
+			material.shader=load("res://presentation/pastoral_grass.gdshader")
+			layer.material=material
 	if session.active: audio.enter_region(id)
 	var region: Dictionary=session.world.regions[id]
 	var fixed: bool=region.get("cameraAnchorId")!=null or (ui!=null and ui.mode=="placement" and state.player.regionId!=id)
@@ -181,6 +188,9 @@ func _project_dynamic() -> void:
 		for tile: Dictionary in state.farmTiles.values():
 			var soil:=_sprite(tile.id,assets.entity_frame(profile.farmSoil.textureKey,profile.farmSoil.frame),Vector2(0.5,0.5))
 			soil.position=Vector2(tile.column*16+8,tile.row*16+8); soil.modulate=Color("ad9a81") if tile.watered else Color.WHITE; keep[tile.id]=true
+			if tile.fertilizer>0:
+				var fertilizer:=_sprite(tile.id+":fertilizer",assets.icon("retaining-soil-ground" if tile.fertilizer==2 else "fertilizer-soil"),Vector2(0.5,0.5))
+				fertilizer.position=soil.position; keep[tile.id+":fertilizer"]=true
 			if tile.cropId!="":
 				var crop:=_sprite(tile.id+":crop",assets.crop_texture(tile),Vector2(0.5,1))
 				crop.position=soil.position+Vector2(0,3); keep[tile.id+":crop"]=true
@@ -206,7 +216,7 @@ func _project_dynamic() -> void:
 		var label:=_world_label(npc.entityId+":label",_npc_name(npc.npcId)); label.position=node.position+Vector2(-18,-39); label.visible=state.player.regionId==display_region and FarmWorldRules.point(state.player).distance_to(node.position)<=48; keep[npc.entityId+":label"]=true
 		if npc.activity!=null:
 			var activity:=_world_label(npc.entityId+":activity",{"serve":"迎","forge":"锻","tend":"护","repair":"修","mountain-patrol":"巡","observe":"望","organize":"理","dock-watch":"守","stock":"备","close":"收","prepare":"备","tea":"茶","record":"记","sew":"缝","rope-check":"绳"}.get(npc.activity,""))
-			activity.position=node.position+Vector2(8,-20); activity.visible=label.visible and npc.motion=="idle"; activity.modulate.a=0.6+0.3*npc.activityPhase; keep[npc.entityId+":activity"]=true
+			activity.position=node.position+Vector2(16,-24); activity.visible=label.visible and npc.motion=="idle"; activity.modulate.a=0.6+0.3*npc.activityPhase; keep[npc.entityId+":activity"]=true
 	if state.pet!=null and state.pet.regionId==display_region:
 		var pet:=_sprite("home-pet",assets.pet_texture(state.pet,elapsed),Vector2(0.5,0.8)); pet.position=FarmWorldRules.point(state.pet); keep["home-pet"]=true
 	for interaction: Dictionary in region.interactions:
@@ -394,7 +404,7 @@ func _interact(target: Vector2) -> void:
 			"backpack-display": ui.inspect_id=interaction.entityId; ui._open("backpack-upgrade")
 			"building-service":
 				if session.storage.carpenter_available(state,session.npcs.snapshot(),interaction.entityId): ui._open("building")
-				else: ui._feedback({"tone":"error","message":"墨子现在不在柜台提供服务。"})
+				else: ui._feedback({"tone":"error","message":"罗宾现在不在柜台提供服务。"})
 			"inspect": ui.inspect(interaction.entityId)
 		return
 
@@ -405,12 +415,15 @@ func _object_at(target: Vector2) -> Dictionary:
 		if Rect2(object.column*16,object.row*16-16,32 if object.kind=="shipping-bin" else 16,32).has_point(target): return object
 	return {}
 
-## 按当前点击范围查询工具对应资源，不在整个区域中自动跳选。
+## 按点击位置和资源种类返回最近目标；斧头的树木查询包含当前可见枯枝，无命中返回空字典。
 func _resource_at(target: Vector2, kind: String) -> Dictionary:
 	var found: Dictionary={}; var best:=INF
+	var forage: Array=session.world.active_forage(state,display_region) if kind=="tree" else []
 	for spawn: Dictionary in session.world.regions[display_region].resources:
-		if spawn.kind!=kind or state.resources[spawn.entityId].phase=="cleared": continue
-		var size:=Vector2(48,48) if kind=="tree" else Vector2(48,32) if kind=="stone" else Vector2(20,20)
+		if spawn.kind=="fallen-branch" and kind=="tree":
+			if spawn not in forage: continue
+		elif spawn.kind!=kind or state.resources[spawn.entityId].phase=="cleared": continue
+		var size:=Vector2(48,48) if spawn.kind=="tree" else Vector2(48,32) if spawn.kind=="stone" else Vector2(20,20)
 		if not Rect2(Vector2(spawn.x-size.x/2,spawn.y-size.y),size+Vector2(0,8)).has_point(target): continue
 		var distance:=target.distance_to(FarmWorldRules.point(spawn))
 		if distance<best: found=spawn; best=distance
@@ -462,7 +475,7 @@ func _feedback(result: Dictionary) -> void:
 		crow_events=result.daySummary.get("crowEvents",[]).duplicate(true)
 		var committed:=session.snapshot()
 		crow_day=int(committed.day); crow_seed=int(committed.worldSeed)
-	var mapping: Dictionary={"tilled":"hoe","watered":"watering","refilled":"watering","chopped":"axe","stump-cleared":"axe","mined":"stone","cut":"harvest","harvested":"harvest","collected":"pickup","caught":"pickup","bought":"buy","sold":"sell","talked":"dialogue-page","transitioned":"door","slept":"sleep"}
+	var mapping: Dictionary={"tilled":"hoe","watered":"watering","refilled":"watering","chopped":"axe","chopped-with-seed":"axe","branch-chopped":"axe","stump-cleared":"axe","mined":"stone","cut":"harvest","harvested":"harvest","harvested-double":"harvest","collected":"pickup","collected-double":"pickup","caught":"pickup","bought":"buy","sold":"sell","talked":"dialogue-page","transitioned":"door","slept":"sleep"}
 	if mapping.has(result.code): audio.cue(mapping[result.code])
 
 ## 当天第一次回到农场时消费已提交的临时事件；换天或新农场丢弃，重复投影不会重播。
