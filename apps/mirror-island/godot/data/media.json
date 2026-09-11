@@ -2530,6 +2530,38 @@
         }
       }
     },
+    "bullhead": {
+      "kind": "pixels",
+      "art": {
+        "rows": [
+          "................",
+          "................",
+          "................",
+          "........oo......",
+          ".......offo.....",
+          ".....ooohhho....",
+          "...oobhhhhhhbo..",
+          "..obhhhhhhhhwebo",
+          ".ofoobbbbbbbsbo.",
+          "oo.obbssssssbbo.",
+          "..oobssssbbbboo.",
+          "....ooffo.......",
+          ".....oo.........",
+          "................",
+          "................",
+          "................"
+        ],
+        "palette": {
+          "o": "#354a48",
+          "e": "#202e2f",
+          "b": "#7d6751",
+          "s": "#4f5944",
+          "h": "#b89e78",
+          "f": "#956749",
+          "w": "#f1e6bf"
+        }
+      }
+    },
     "chest": {
       "kind": "atlas",
       "url": "/game-media/v1/assets/vendor/vectoraith/farming-sim-v1.08/original/16x16/tilesets-compact/vectoraith_tileset_farmingsims_buildings.png?v=cf4670e0",
@@ -2605,6 +2637,125 @@
           "s": "#efd4a5",
           "t": "#77a791",
           "w": "#94704e"
+        }
+      }
+    },
+    "wood-fence": {
+      "kind": "pixels",
+      "art": {
+        "rows": [
+          "................",
+          "................",
+          "....ww....ww....",
+          "....ww....ww....",
+          "....ww....ww....",
+          ".llllllllllllll.",
+          ".osssssssssssso.",
+          "....ww....ww....",
+          "....ww....ww....",
+          ".llllllllllllll.",
+          ".osssssssssssso.",
+          "....ww....ww....",
+          "....ww....ww....",
+          "....dd....dd....",
+          "................",
+          "................"
+        ],
+        "palette": {
+          "o": "#4b3325",
+          "w": "#9b6d43",
+          "l": "#d39a61",
+          "s": "#7b5135",
+          "d": "#5e3b29"
+        }
+      }
+    },
+    "gate": {
+      "kind": "pixels",
+      "art": {
+        "rows": [
+          "................",
+          "................",
+          "..ww........ww..",
+          "..wwllllllllww..",
+          "..wwssssssssww..",
+          "..wwlwwwwwwlww..",
+          "..wwlwwwwwwlww..",
+          "..wwlwwkkwwlww..",
+          "..wwlwwkkwwlww..",
+          "..wwlwwwwwwlww..",
+          "..wwlwwwwwwlww..",
+          "..wwssssssssww..",
+          "..wwllllllllww..",
+          "..dd........dd..",
+          "................",
+          "................"
+        ],
+        "palette": {
+          "w": "#9b6d43",
+          "l": "#d39a61",
+          "s": "#7b5135",
+          "d": "#5e3b29",
+          "k": "#f0d39a"
+        }
+      }
+    },
+    "gate-open": {
+      "kind": "pixels",
+      "art": {
+        "rows": [
+          "................",
+          "................",
+          "..ww............",
+          "..wwllllll......",
+          "..wwssllllll....",
+          "..ww..ssllllll..",
+          "..ww....ssllww..",
+          "..ww......kkww..",
+          "..ww......kkww..",
+          "..ww....ssllww..",
+          "..ww..ssllllll..",
+          "..wwssllllll....",
+          "..wwllllll......",
+          "..dd............",
+          "................",
+          "................"
+        ],
+        "palette": {
+          "w": "#9b6d43",
+          "l": "#d39a61",
+          "s": "#7b5135",
+          "d": "#5e3b29",
+          "k": "#f0d39a"
+        }
+      }
+    },
+    "stone-fence": {
+      "kind": "pixels",
+      "art": {
+        "rows": [
+          "................",
+          "................",
+          "..oooo....oooo..",
+          ".ohhho..ohhho...",
+          ".ohhho..ohhho...",
+          ".ossto..ossto...",
+          ".ossto..ossto...",
+          ".ohhho..ohhho...",
+          ".ohhho..ohhho...",
+          ".ossto..ossto...",
+          ".ossto..ossto...",
+          ".ohhho..ohhho...",
+          ".ohhho..ohhho...",
+          ".ossto..ossto...",
+          "................",
+          "................"
+        ],
+        "palette": {
+          "o": "#354a48",
+          "h": "#b5e0be",
+          "s": "#427d72",
+          "t": "#75b8a2"
         }
       }
     },
@@ -2719,6 +2870,7 @@
     "wind-dace": null,
     "dusk-perch": null,
     "jade-bream": null,
+    "bullhead": null,
     "chest": null
   },
   "regions": {

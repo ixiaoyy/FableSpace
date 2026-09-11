@@ -20,15 +20,15 @@ func _run() -> void:
 		"parsnip-seed":"防风草种子","parsnip":"防风草","kale-seed":"甘蓝种子","kale":"甘蓝菜","cauliflower-seed":"花椰菜种子","cauliflower":"花椰菜",
 		"wild-horseradish":"野山葵","daffodil":"黄水仙","leek":"韭葱","dandelion":"蒲公英","spring-seeds":"春季种子","maple-seed":"枫树种子","acorn":"橡子","pine-cone":"松果","field-snack":"工作小食",
 		"bean-starter":"青豆种子","green-bean":"青豆","potato-seed":"土豆种子","potato":"土豆","jazz-seed":"蓝爵士种子","blue-jazz":"蓝爵士","fishing-rod":"竹鱼竿",
-		"lake-carp":"鲤鱼","silver-minnow":"鲢鱼","rain-loach":"西鲱","wind-dace":"小嘴鲈鱼","dusk-perch":"鲷鱼","jade-bream":"大嘴鲈鱼","chest":"宝箱","coal":"煤炭","scarecrow":"稻草人","sap":"树液","basic-fertilizer":"初级肥料","basic-retaining-soil":"初级保湿土",
+		"lake-carp":"鲤鱼","silver-minnow":"鲢鱼","rain-loach":"西鲱","wind-dace":"小嘴鲈鱼","dusk-perch":"鲷鱼","jade-bream":"大嘴鲈鱼","bullhead":"大头鱼","chest":"宝箱","coal":"煤炭","scarecrow":"稻草人","wood-fence":"木围栏","stone-fence":"石围栏","gate":"大门","sap":"树液","basic-fertilizer":"初级肥料","basic-retaining-soil":"初级保湿土",
 	}
 	for id: String in items: expect(rules.items[id].name==items[id],"物品 "+id)
-	var recipes: Dictionary={"chest":"宝箱","scarecrow":"稻草人","spring-seeds":"野生种子（春季）","field-snack":"工作小食","basic-fertilizer":"初级肥料","basic-retaining-soil":"初级保湿土"}
+	var recipes: Dictionary={"chest":"宝箱","scarecrow":"稻草人","wood-fence":"木围栏","stone-fence":"石围栏","gate":"大门","spring-seeds":"野生种子（春季）","field-snack":"工作小食","basic-fertilizer":"初级肥料","basic-retaining-soil":"初级保湿土"}
 	for id: String in recipes: expect(rules.recipes[id].name==recipes[id],"配方 "+id)
 	expect(FarmSkillRules.NAMES=={"farming":"耕种","foraging":"采集","mining":"采矿","fishing":"钓鱼"},"技能名称")
 	expect(FarmSkillRules.PROFESSION_DETAILS.forester.name=="护林人" and FarmSkillRules.PROFESSION_DETAILS.gatherer.name=="收集者","职业名称")
 	expect(FarmQualityRules.LABELS=={0:"普通",1:"银星",2:"金星",4:"铱星"},"品质名称")
-	var legacy: Array[String]=["异星木材","石料","植物纤维","木斧","基础镐","基础镰刀","水壶","竹制鱼竿","普通箱","羽衣甘蓝","野外小吃","基础肥料","豆苗","湖鲫","银鲦","雨鳅","风鲌","暮鲈","青鳞鱼","采集者","生活技能"]
+	var legacy: Array[String]=["异星木材","石料","植物纤维","木斧","基础镐","基础镰刀","水壶","竹制鱼竿","普通箱","羽衣甘蓝","野外小吃","基础肥料","豆苗","湖鲫","银鲦","雨鳅","风鲌","暮鲈","青鳞鱼","采集者","生活技能","石栅栏","木栅栏"]
 	var current_text: String=""
 	for path: String in ["res://data/rules.json","res://data/dialogues.json","res://domain/game_session.gd","res://domain/resource_rules.gd","res://ui/game_ui.gd"]: current_text+=FileAccess.get_file_as_string(path)
 	for term: String in legacy: expect(term not in current_text,"旧显示名 "+term)

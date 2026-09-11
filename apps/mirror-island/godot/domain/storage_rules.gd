@@ -2,6 +2,7 @@ class_name FarmStorageRules
 extends RefCounted
 ## 制作、仓储、摆放与隔夜出货；只修改传入候选，保存由 GameSession 统一负责。
 
+const FarmFenceRules = preload("res://domain/fence_rules.gd")
 const COLORS := ["default","red","orange","yellow","lime","green","teal","cyan","sky","blue","indigo","purple","violet","magenta","pink","rose","tan","brown","gray","black","white"]
 var inventory: FarmInventory
 var world: FarmWorldRules
@@ -42,15 +43,18 @@ func apply(state: Dictionary, npcs: Array, command: Dictionary) -> String:
 	if kind=="craft-item": return craft(state,command.recipeId,command.quantity,command.targetIndex)
 	if kind=="place-world-object":
 		var index := int(command.inventoryIndex)
-		if index<0 or index>=state.inventory.size() or state.inventory[index].itemId not in ["chest","scarecrow"]: return "missing-item"
+		if index<0 or index>=state.inventory.size(): return "missing-item"
 		var item_id: String=state.inventory[index].itemId
+		if item_id not in ["chest","scarecrow"] and not FarmFenceRules.is_fence(item_id): return "missing-item"
 		if FarmWorldRules.point(state.player).distance_to(Vector2(command.column*16+8,command.row*16+8))>48: return "too-far"
 		var plan := world.placement(state,item_id,state.player.regionId,command.column,command.row,"",npcs)
 		if not plan.allowed or state.nextWorldEntitySequence>=FarmWorldRules.LIMIT: return "blocked"
 		inventory.consume_at(state.inventory,index,1)
+		FarmWorldRules.apply_placement(state,plan)
 		var object: Dictionary={"id":allocate(state),"kind":item_id,"regionId":state.player.regionId,"column":command.column,"row":command.row}
 		if item_id=="chest": object.merge({"colorId":"default","slots":FarmInventory.empty_slots(36)})
-		else: object.scaredCount=0
+		elif item_id=="scarecrow": object.scaredCount=0
+		elif FarmFenceRules.is_fence(item_id): FarmFenceRules.apply_placed_fields(object,state)
 		state.worldObjects.append(object)
 		return "placed"
 	if kind=="buy-backpack-upgrade": return backpack(state,command.interactionId)
@@ -79,6 +83,36 @@ func apply(state: Dictionary, npcs: Array, command: Dictionary) -> String:
 		if not inventory.add(state.inventory,"scarecrow",1): return "inventory-full"
 		state.worldObjects.erase(object)
 		return "recovered-scarecrow"
+	if kind=="recover-stone-fence":
+		if object.kind!="stone-fence": return "missing-object"
+		if command.get("itemId")!="pickaxe" or inventory.quantity(state.inventory,"pickaxe")<1: return "wrong-tool"
+		if bool(object.get("damaged",false)):
+			state.worldObjects.erase(object)
+			return "removed-damaged-fence"
+		if not inventory.add(state.inventory,"stone-fence",1): return "inventory-full"
+		state.worldObjects.erase(object)
+		return "recovered-stone-fence"
+	if kind=="recover-fence":
+		if not FarmFenceRules.is_fence(str(object.kind)): return "missing-object"
+		if command.get("itemId")!="pickaxe" or inventory.quantity(state.inventory,"pickaxe")<1: return "wrong-tool"
+		if bool(object.get("damaged",false)):
+			state.worldObjects.erase(object)
+			return "removed-damaged-fence"
+		if not inventory.add(state.inventory,str(object.kind),1): return "inventory-full"
+		state.worldObjects.erase(object)
+		return "recovered-fence"
+	if kind=="toggle-gate":
+		if object.kind!="gate": return "missing-object"
+		if bool(object.get("open",false)):
+			var tile := Vector2i(int(object.column),int(object.row))
+			if state.player.regionId==object.regionId and FarmWorldRules.feet_overlap(FarmWorldRules.point(state.player),tile,Vector2(5,4)): return "blocked"
+			for npc: Dictionary in npcs:
+				if npc.regionId==object.regionId and FarmWorldRules.feet_overlap(FarmWorldRules.point(npc),tile,Vector2(5,3)): return "blocked"
+			if state.pet!=null and state.pet.regionId==object.regionId and FarmWorldRules.feet_overlap(FarmWorldRules.point(state.pet),tile,Vector2(4,3)): return "blocked"
+			object.open=false
+			return "gate-closed"
+		object.open=true
+		return "gate-opened"
 	if kind in ["ship-item","reclaim-last-shipment"]:
 		if object.kind!="shipping-bin": return "missing-object"
 		if kind=="reclaim-last-shipment":

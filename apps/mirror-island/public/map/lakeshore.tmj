@@ -905,6 +905,16 @@
               "name": "fishingZoneId",
               "type": "string",
               "value": "lakeshore-old-dock-fishing"
+            },
+            {
+              "name": "fishHabitat",
+              "type": "string",
+              "value": "mountain-lake"
+            },
+            {
+              "name": "maxQualityDistance",
+              "type": "int",
+              "value": 5
             }
           ],
           "rotation": 0,

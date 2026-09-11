@@ -6,6 +6,9 @@ var rules: Dictionary
 var inventory: FarmInventory
 var world: FarmWorldRules
 
+## 当前内容表允许的礼物偏好及其基础好感；负向偏好不参与品质倍率。
+const GIFT_POINTS: Dictionary={"liked":45,"neutral":20,"disliked":-20,"hated":-40}
+
 ## 绑定源内容与共享领域服务，不持有界面状态。
 func _init(content: Dictionary, items: FarmInventory, catalog: FarmWorldRules) -> void:
 	rules=content; inventory=items; world=catalog
@@ -90,9 +93,10 @@ func gift(state: Dictionary, npcs: Array, npc_id: String, item_id: String, quali
 	var count:=int(friendship.giftsThisWeek) if friendship.giftWeekIndex==week else 0
 	if friendship.lastGiftDay==state.day: return "daily-limit"
 	if count>=2: return "weekly-limit"
-	var preference: String=rules.giftPreferences[npc_id][item_id]
+	var preference: String=rules.giftPreferences[npc_id].get(item_id,"")
+	if not GIFT_POINTS.has(preference): return "invalid-gift-preference"
 	inventory.consume(state.inventory,item_id,1,quality)
-	friendship.points=clampi(int(friendship.points)+FarmQualityRules.friendship(int({"liked":45,"neutral":20,"disliked":-20}[preference]),quality),0,2500)
+	friendship.points=clampi(int(friendship.points)+FarmQualityRules.friendship(int(GIFT_POINTS[preference]),quality),0,2500)
 	friendship.lastGiftDay=state.day; friendship.giftWeekIndex=week; friendship.giftsThisWeek=count+1
 	return "gift-"+preference
 

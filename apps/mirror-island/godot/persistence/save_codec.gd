@@ -2,8 +2,9 @@ class_name FarmSaveCodec
 extends RefCounted
 ## 独立 Godot 存档合同，严格拒绝旧版本、坏字段与不一致世界，不回填或静默覆盖。
 
-const VERSION := 12
-const STATE_VERSION := 24
+const FarmFenceRules = preload("res://domain/fence_rules.gd")
+const VERSION := 13
+const STATE_VERSION := 25
 const MAX_BYTES := 8 * 1024 * 1024
 var rules: Dictionary
 var dialogues: Dictionary
@@ -192,8 +193,16 @@ func _storage(state: Dictionary) -> String:
 		elif entity.get("kind")!="shipping-bin": return "默认出货箱标识无效。"
 		ids[entity.id]=true
 	for object: Variant in state.worldObjects:
-		if object.get("kind") not in ["chest","shipping-bin","scarecrow"] or not number(object.get("column"),0,world.regions[object.regionId].collision.columns-1) or not number(object.get("row"),0,world.regions[object.regionId].collision.rows-1): return "世界物件位置无效。"
+		var object_kind := str(object.get("kind",""))
+		if object_kind not in ["chest","shipping-bin","scarecrow"] and not FarmFenceRules.is_fence(object_kind): return "世界物件位置无效。"
+		if not number(object.get("column"),0,world.regions[object.regionId].collision.columns-1) or not number(object.get("row"),0,world.regions[object.regionId].collision.rows-1): return "世界物件位置无效。"
 		if object.kind=="scarecrow" and (object.regionId!="farm" or not number(object.get("scaredCount"),0,FarmWorldRules.LIMIT)): return "稻草人状态无效。"
+		if FarmFenceRules.is_fence(object_kind):
+			if object.regionId!="farm" or not number(object.get("placedDay"),1,state.day) or not object.get("damaged") is bool: return "围栏状态无效。"
+			if object.kind=="gate":
+				if not object.get("open") is bool: return "大门状态无效。"
+			elif object.has("open"):
+				return "围栏状态无效。"
 		if object.kind=="chest" and (object.get("colorId") not in FarmStorageRules.COLORS or not slots(object.get("slots"),36)): return "箱子内容无效。"
 		if object.kind=="shipping-bin":
 			if object.regionId!="farm": return "出货箱区域无效。"

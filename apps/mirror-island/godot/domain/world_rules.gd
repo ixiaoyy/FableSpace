@@ -2,6 +2,7 @@ class_name FarmWorldRules
 extends RefCounted
 ## 共享地图、确定性选择与占用规则；调用者只传入当前会话或隔离候选状态。
 
+const FarmFenceRules = preload("res://domain/fence_rules.gd")
 const LIMIT := 9007199254740991
 const VECTORS := {"up":Vector2.UP, "down":Vector2.DOWN, "left":Vector2.LEFT, "right":Vector2.RIGHT}
 var regions: Dictionary = {}
@@ -60,12 +61,18 @@ static func object_by_id(state: Dictionary, id: String) -> Dictionary:
 		if object.id == id: return object
 	return {}
 
-## 检查一个格子是否被箱子/建筑占用；移动时只忽略指定对象。
-static func covers(state: Dictionary, region: String, column: int, row: int, ignored: String = "") -> bool:
+## 查询指定格子的持久对象；找不到时返回空字典，不合并打开的大门通行规则。
+static func object_at_cell(state: Dictionary, region: String, column: int, row: int, ignored: String = "") -> Dictionary:
 	for object: Dictionary in state.worldObjects:
 		if object.id == ignored or object.regionId != region or object.row != row: continue
-		if column >= object.column and column < object.column + (2 if object.kind == "shipping-bin" else 1): return true
-	return false
+		if column >= object.column and column < object.column + (2 if object.kind == "shipping-bin" else 1): return object
+	return {}
+
+## 检查一个格子是否被箱子/建筑占用；移动时可允许打开的大门通行。
+static func covers(state: Dictionary, region: String, column: int, row: int, ignored: String = "", open_gate_blocks: bool = true) -> bool:
+	var object := object_at_cell(state, region, column, row, ignored)
+	if object.is_empty(): return false
+	return open_gate_blocks or not FarmFenceRules.is_gate(str(object.kind)) or not bool(object.get("open", false))
 
 ## 从地图掩码读取一个合法格子，越界统一返回 false。
 func mask(region_id: String, name: String, column: int, row: int) -> bool:
@@ -89,7 +96,7 @@ func blocked(state: Dictionary, region_id: String, position: Vector2, half_size:
 	if position.x - half_size.x < 0 or position.y - half_size.y < 0 or position.x + half_size.x >= region.widthPixels or position.y + half_size.y >= region.heightPixels: return true
 	for row in range(floori((position.y-half_size.y)/16), floori((position.y+half_size.y)/16)+1):
 		for column in range(floori((position.x-half_size.x)/16), floori((position.x+half_size.x)/16)+1):
-			if mask(region_id,"blocked",column,row) or covers(state,region_id,column,row,ignored): return true
+			if mask(region_id,"blocked",column,row) or covers(state,region_id,column,row,ignored,false): return true
 			if region_id=="farm":
 				var tile: Dictionary=state.farmTiles.get("farm:%d:%d"%[column,row],{})
 				if crops.get(tile.get("cropId",""),{}).get("isRaised",false): return true
@@ -125,13 +132,19 @@ static func feet_overlap(position: Vector2, tile: Vector2i, half_size: Vector2) 
 
 ## 预检整块摆放位置，返回待清空地与宠物迁移；没有写入副作用。
 func placement(state: Dictionary, kind: String, region_id: String, column: int, row: int, ignored: String = "", npcs: Array = []) -> Dictionary:
-	var result := {"allowed":false,"clear":[],"pet":null,"message":"这个位置有阻挡。"}
-	if not regions.has(region_id) or (kind in ["shipping-bin","scarecrow"] and region_id != "farm"): return result
+	var result := {"allowed":false,"clear":[],"pet":null,"replace":"","message":"这个位置有阻挡。"}
+	if not regions.has(region_id) or ((kind in ["shipping-bin","scarecrow"] or FarmFenceRules.is_fence(kind)) and region_id != "farm"): return result
 	var width := 2 if kind == "shipping-bin" else 1
 	var needs_pet := false
 	var forage := active_forage(state,region_id)
 	for x in range(column,column+width):
-		if not mask(region_id,"buildableTiles" if kind == "shipping-bin" else "placeableTiles",x,row) or mask(region_id,"blocked",x,row) or mask(region_id,"waterTiles",x,row) or not exit_at(region_id,Vector2(x*16+8,row*16+8)).is_empty() or covers(state,region_id,x,row,ignored): return result
+		if not mask(region_id,"buildableTiles" if kind == "shipping-bin" else "placeableTiles",x,row) or mask(region_id,"blocked",x,row) or mask(region_id,"waterTiles",x,row) or not exit_at(region_id,Vector2(x*16+8,row*16+8)).is_empty(): return result
+		var existing_object := object_at_cell(state,region_id,x,row,ignored)
+		if not existing_object.is_empty():
+			if width == 1 and FarmFenceRules.can_replace(kind,existing_object):
+				result.replace = str(existing_object.id)
+			else:
+				return result
 		for spawn: Dictionary in regions[region_id].resources:
 			if floori(spawn.x/16.0)!=x or floori(spawn.y/16.0)!=row: continue
 			if state.resources.has(spawn.entityId) and state.resources[spawn.entityId].phase!="cleared": return result
@@ -160,12 +173,15 @@ func placement(state: Dictionary, kind: String, region_id: String, column: int, 
 					result.pet={"regionId":region_id,"x":destination.x,"y":destination.y}
 		if result.pet==null: return result
 	result.allowed=true
-	result.message="可以摆放。" if result.clear.is_empty() and not needs_pet else "可以摆放；将整理空耕地或移动伙伴。"
+	result.message="可以摆放。" if result.clear.is_empty() and not needs_pet and result.replace == "" else "可以摆放；将整理空耕地、移动伙伴或替换围栏。"
 	return result
 
 ## 应用刚预检的建筑副作用，调用者必须在同一候选状态中收费并保存。
 static func apply_placement(state: Dictionary, result: Dictionary) -> void:
 	for id: String in result.clear: state.farmTiles.erase(id)
+	if str(result.get("replace","")) != "":
+		var object := object_by_id(state, str(result.replace))
+		if not object.is_empty(): state.worldObjects.erase(object)
 	if result.pet!=null:
 		state.pet.merge(result.pet,true)
 		state.pet.motion="idle"

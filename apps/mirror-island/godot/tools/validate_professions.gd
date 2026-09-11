@@ -18,7 +18,7 @@ func _run() -> void:
 	root.add_child(session)
 	expect(await session.new_game(session.rules.initial.player.appearance),"新建职业档")
 	var base:=session.snapshot()
-	expect(base.version==24 and FarmSaveCodec.VERSION==12 and base.professions=={"farming":[],"foraging":[],"mining":[],"fishing":[]},"版本与空职业")
+	expect(base.version==25 and FarmSaveCodec.VERSION==13 and base.professions=={"farming":[],"foraging":[],"mining":[],"fishing":[]},"版本与空职业")
 	var damaged:=base.duplicate(true); damaged.erase("professions")
 	expect(session.codec.validate(damaged)!="","缺职业集合拒绝")
 	damaged=base.duplicate(true); damaged.professions.foraging=["unknown"]

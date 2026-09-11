@@ -1,7 +1,7 @@
 {
   "sourceVersion": 13,
   "initial": {
-    "version": 24,
+    "version": 25,
     "day": 1,
     "minuteOfDay": 360,
     "worldSeed": 1296650834,
@@ -609,7 +609,9 @@
       "fishing": []
     },
     "knownRecipes": [
-      "chest"
+      "chest",
+      "wood-fence",
+      "gate"
     ]
   },
   "items": {
@@ -954,7 +956,9 @@
       "canShip": true,
       "shippingCategory": "fishing",
       "hotbarMark": "鲤",
-      "staminaRestore": 13
+      "staminaRestore": 13,
+      "hasQuality": true,
+      "edibility": 5
     },
     "silver-minnow": {
       "id": "silver-minnow",
@@ -965,7 +969,9 @@
       "canShip": true,
       "shippingCategory": "fishing",
       "hotbarMark": "鲢",
-      "staminaRestore": 25
+      "staminaRestore": 25,
+      "hasQuality": true,
+      "edibility": 10
     },
     "rain-loach": {
       "id": "rain-loach",
@@ -976,7 +982,9 @@
       "canShip": true,
       "shippingCategory": "fishing",
       "hotbarMark": "鲱",
-      "staminaRestore": 18
+      "staminaRestore": 25,
+      "hasQuality": true,
+      "edibility": 10
     },
     "wind-dace": {
       "id": "wind-dace",
@@ -987,7 +995,9 @@
       "canShip": true,
       "shippingCategory": "fishing",
       "hotbarMark": "鲈",
-      "staminaRestore": 17
+      "staminaRestore": 25,
+      "hasQuality": true,
+      "edibility": 10
     },
     "dusk-perch": {
       "id": "dusk-perch",
@@ -998,7 +1008,9 @@
       "canShip": true,
       "shippingCategory": "fishing",
       "hotbarMark": "鲷",
-      "staminaRestore": 22
+      "staminaRestore": 13,
+      "hasQuality": true,
+      "edibility": 5
     },
     "jade-bream": {
       "id": "jade-bream",
@@ -1009,14 +1021,29 @@
       "canShip": true,
       "shippingCategory": "fishing",
       "hotbarMark": "鲈",
-      "staminaRestore": 38
+      "staminaRestore": 38,
+      "hasQuality": true,
+      "edibility": 15
+    },
+    "bullhead": {
+      "id": "bullhead",
+      "name": "大头鱼",
+      "category": "fish",
+      "maxStack": 999,
+      "inventorySortOrder": 36,
+      "canShip": true,
+      "shippingCategory": "fishing",
+      "hotbarMark": "头",
+      "staminaRestore": 25,
+      "hasQuality": true,
+      "edibility": 10
     },
     "chest": {
       "id": "chest",
       "name": "宝箱",
       "category": "placeable",
       "maxStack": 999,
-      "inventorySortOrder": 36,
+      "inventorySortOrder": 37,
       "canShip": false,
       "shippingCategory": null,
       "hotbarMark": "箱",
@@ -1047,7 +1074,7 @@
       "name": "煤炭",
       "category": "resource",
       "maxStack": 999,
-      "inventorySortOrder": 37,
+      "inventorySortOrder": 38,
       "canShip": true,
       "shippingCategory": "mining",
       "hotbarMark": "煤",
@@ -1058,7 +1085,7 @@
       "name": "稻草人",
       "category": "placeable",
       "maxStack": 999,
-      "inventorySortOrder": 38,
+      "inventorySortOrder": 39,
       "canShip": false,
       "shippingCategory": null,
       "hotbarMark": "稻",
@@ -1073,12 +1100,72 @@
         ]
       }
     },
+    "wood-fence": {
+      "id": "wood-fence",
+      "name": "木围栏",
+      "category": "placeable",
+      "maxStack": 999,
+      "inventorySortOrder": 43,
+      "canShip": true,
+      "shippingCategory": "other",
+      "hotbarMark": "围",
+      "placement": {
+        "kind": "wood-fence",
+        "footprint": {
+          "width": 1,
+          "height": 1
+        },
+        "allowedRegions": [
+          "farm"
+        ]
+      }
+    },
+    "gate": {
+      "id": "gate",
+      "name": "大门",
+      "category": "placeable",
+      "maxStack": 999,
+      "inventorySortOrder": 44,
+      "canShip": true,
+      "shippingCategory": "other",
+      "hotbarMark": "门",
+      "placement": {
+        "kind": "gate",
+        "footprint": {
+          "width": 1,
+          "height": 1
+        },
+        "allowedRegions": [
+          "farm"
+        ]
+      }
+    },
+    "stone-fence": {
+      "id": "stone-fence",
+      "name": "石围栏",
+      "category": "placeable",
+      "maxStack": 999,
+      "inventorySortOrder": 45,
+      "canShip": true,
+      "shippingCategory": "other",
+      "hotbarMark": "围",
+      "placement": {
+        "kind": "stone-fence",
+        "footprint": {
+          "width": 1,
+          "height": 1
+        },
+        "allowedRegions": [
+          "farm"
+        ]
+      }
+    },
     "sap": {
       "id": "sap",
       "name": "树液",
       "category": "resource",
       "maxStack": 999,
-      "inventorySortOrder": 39,
+      "inventorySortOrder": 40,
       "canShip": true,
       "shippingCategory": "foraging",
       "hotbarMark": "液",
@@ -1090,7 +1177,7 @@
       "name": "初级肥料",
       "category": "resource",
       "maxStack": 999,
-      "inventorySortOrder": 40,
+      "inventorySortOrder": 41,
       "canShip": true,
       "shippingCategory": "other",
       "hotbarMark": "肥"
@@ -1100,7 +1187,7 @@
       "name": "初级保湿土",
       "category": "resource",
       "maxStack": 999,
-      "inventorySortOrder": 41,
+      "inventorySortOrder": 42,
       "canShip": true,
       "shippingCategory": "other",
       "hotbarMark": "湿"
@@ -1251,6 +1338,53 @@
       "skill": "farming",
       "level": 1
     },
+    "stone-fence": {
+      "id": "stone-fence",
+      "name": "石围栏",
+      "ingredients": [
+        {
+          "itemId": "stone",
+          "quantity": 2
+        }
+      ],
+      "output": {
+        "itemId": "stone-fence",
+        "quantity": 1
+      },
+      "knownByDefault": false,
+      "skill": "farming",
+      "level": 2
+    },
+    "wood-fence": {
+      "id": "wood-fence",
+      "name": "木围栏",
+      "ingredients": [
+        {
+          "itemId": "wood",
+          "quantity": 2
+        }
+      ],
+      "output": {
+        "itemId": "wood-fence",
+        "quantity": 1
+      },
+      "knownByDefault": true
+    },
+    "gate": {
+      "id": "gate",
+      "name": "大门",
+      "ingredients": [
+        {
+          "itemId": "wood",
+          "quantity": 10
+        }
+      ],
+      "output": {
+        "itemId": "gate",
+        "quantity": 1
+      },
+      "knownByDefault": true
+    },
     "spring-seeds": {
       "id": "spring-seeds",
       "name": "野生种子（春季）",
@@ -1373,16 +1507,20 @@
     "fishing-rod": null,
     "lake-carp": 30,
     "silver-minnow": 50,
-    "rain-loach": 70,
-    "wind-dace": 65,
-    "dusk-perch": 85,
+    "rain-loach": 60,
+    "wind-dace": 50,
+    "dusk-perch": 45,
     "jade-bream": 100,
+    "bullhead": 75,
     "chest": null,
     "coal": 15,
     "scarecrow": null,
     "sap": 2,
     "basic-fertilizer": 2,
-    "basic-retaining-soil": 4
+    "basic-retaining-soil": 4,
+    "wood-fence": 1,
+    "gate": 4,
+    "stone-fence": 2
   },
   "fish": [
     {
@@ -1391,7 +1529,8 @@
       "maxMinute": 1560,
       "minCast": 0,
       "pull": 8,
-      "difficulty": 15
+      "difficulty": 15,
+      "habitats": ["mountain-lake"]
     },
     {
       "itemId": "silver-minnow",
@@ -1399,7 +1538,8 @@
       "maxMinute": 1560,
       "minCast": 0,
       "pull": 12,
-      "difficulty": 35
+      "difficulty": 35,
+      "habitats": ["mountain-lake"]
     },
     {
       "itemId": "jade-bream",
@@ -1407,7 +1547,45 @@
       "maxMinute": 1140,
       "minCast": 0,
       "pull": 24,
-      "difficulty": 50
+      "difficulty": 50,
+      "habitats": ["mountain-lake"]
+    },
+    {
+      "itemId": "bullhead",
+      "minMinute": 360,
+      "maxMinute": 1560,
+      "minCast": 0,
+      "pull": 14,
+      "difficulty": 46,
+      "habitats": ["mountain-lake"]
+    },
+    {
+      "itemId": "rain-loach",
+      "minMinute": 540,
+      "maxMinute": 1560,
+      "weather": "rain",
+      "minCast": 0,
+      "pull": 14,
+      "difficulty": 45,
+      "habitats": ["town-river"]
+    },
+    {
+      "itemId": "wind-dace",
+      "minMinute": 360,
+      "maxMinute": 1560,
+      "minCast": 0,
+      "pull": 17,
+      "difficulty": 28,
+      "habitats": ["town-river"]
+    },
+    {
+      "itemId": "dusk-perch",
+      "minMinute": 1080,
+      "maxMinute": 1560,
+      "minCast": 0,
+      "pull": 20,
+      "difficulty": 35,
+      "habitats": ["town-river"]
     }
   ],
   "profiles": [
@@ -1616,9 +1794,13 @@
       "wind-dace": "neutral",
       "dusk-perch": "neutral",
       "jade-bream": "neutral",
+      "bullhead": "hated",
       "chest": "neutral",
       "coal": "neutral",
       "scarecrow": "neutral",
+      "wood-fence": "disliked",
+      "stone-fence": "disliked",
+      "gate": "disliked",
       "sap": "disliked",
       "basic-fertilizer": "disliked",
       "basic-retaining-soil": "disliked"
@@ -1660,9 +1842,13 @@
       "wind-dace": "neutral",
       "dusk-perch": "neutral",
       "jade-bream": "neutral",
+      "bullhead": "disliked",
       "chest": "neutral",
       "coal": "neutral",
       "scarecrow": "neutral",
+      "wood-fence": "disliked",
+      "stone-fence": "disliked",
+      "gate": "disliked",
       "sap": "disliked",
       "basic-fertilizer": "disliked",
       "basic-retaining-soil": "disliked"
@@ -1704,9 +1890,13 @@
       "wind-dace": "neutral",
       "dusk-perch": "neutral",
       "jade-bream": "neutral",
+      "bullhead": "hated",
       "chest": "neutral",
       "coal": "neutral",
       "scarecrow": "neutral",
+      "wood-fence": "disliked",
+      "stone-fence": "disliked",
+      "gate": "disliked",
       "sap": "disliked",
       "basic-fertilizer": "disliked",
       "basic-retaining-soil": "disliked"
@@ -1748,9 +1938,13 @@
       "wind-dace": "neutral",
       "dusk-perch": "neutral",
       "jade-bream": "neutral",
+      "bullhead": "disliked",
       "chest": "neutral",
       "coal": "neutral",
       "scarecrow": "neutral",
+      "wood-fence": "disliked",
+      "stone-fence": "disliked",
+      "gate": "disliked",
       "sap": "disliked",
       "basic-fertilizer": "disliked",
       "basic-retaining-soil": "disliked"
@@ -1792,9 +1986,13 @@
       "wind-dace": "liked",
       "dusk-perch": "neutral",
       "jade-bream": "neutral",
+      "bullhead": "neutral",
       "chest": "neutral",
       "coal": "neutral",
       "scarecrow": "neutral",
+      "wood-fence": "disliked",
+      "stone-fence": "disliked",
+      "gate": "disliked",
       "sap": "disliked",
       "basic-fertilizer": "disliked",
       "basic-retaining-soil": "disliked"
@@ -1836,9 +2034,13 @@
       "wind-dace": "neutral",
       "dusk-perch": "neutral",
       "jade-bream": "neutral",
+      "bullhead": "disliked",
       "chest": "neutral",
       "coal": "neutral",
       "scarecrow": "neutral",
+      "wood-fence": "disliked",
+      "stone-fence": "disliked",
+      "gate": "disliked",
       "sap": "disliked",
       "basic-fertilizer": "disliked",
       "basic-retaining-soil": "disliked"
@@ -1880,9 +2082,13 @@
       "wind-dace": "neutral",
       "dusk-perch": "neutral",
       "jade-bream": "neutral",
+      "bullhead": "disliked",
       "chest": "neutral",
       "coal": "neutral",
       "scarecrow": "neutral",
+      "wood-fence": "disliked",
+      "stone-fence": "disliked",
+      "gate": "disliked",
       "sap": "disliked",
       "basic-fertilizer": "disliked",
       "basic-retaining-soil": "disliked"
@@ -1924,9 +2130,13 @@
       "wind-dace": "neutral",
       "dusk-perch": "liked",
       "jade-bream": "liked",
+      "bullhead": "neutral",
       "chest": "neutral",
       "coal": "neutral",
       "scarecrow": "neutral",
+      "wood-fence": "disliked",
+      "stone-fence": "disliked",
+      "gate": "disliked",
       "sap": "disliked",
       "basic-fertilizer": "disliked",
       "basic-retaining-soil": "disliked"

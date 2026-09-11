@@ -1,6 +1,7 @@
 extends Node2D
 ## 场景投影会话快照，输入只发送意图；规则、交易和保存由 GDScript 领域负责。
 
+const FarmFenceRules = preload("res://domain/fence_rules.gd")
 const COLORS := {"default":"ffffff","red":"f07669","orange":"f0a15b","yellow":"f4d87a","lime":"c2df80","green":"85bd80","teal":"77b4a2","cyan":"92d8d2","sky":"94cdeb","blue":"84a7d7","indigo":"9994cb","purple":"b692cc","violet":"c9a0e2","magenta":"d890bf","pink":"f0b4c4","rose":"d69098","tan":"e4c392","brown":"b48c69","gray":"b0b7b4","black":"74767b","white":"fff6df"}
 @onready var session: FarmGameSession=$Session
 @onready var player: CharacterBody2D=$Actors/Islander
@@ -196,14 +197,16 @@ func _project_dynamic() -> void:
 				crop.position=soil.position+Vector2(0,3); keep[tile.id+":crop"]=true
 	for object: Dictionary in state.worldObjects:
 		if object.regionId!=display_region: continue
-		var image: Texture2D=assets.icon("scarecrow" if object.kind=="scarecrow" else "chest")
+		var icon_id := str(object.kind)
+		if object.kind=="gate" and bool(object.get("open",false)): icon_id="gate-open"
+		var image: Texture2D=assets.icon(icon_id if icon_id in ["chest","scarecrow","wood-fence","stone-fence","gate","gate-open"] else "chest")
 		if object.kind=="shipping-bin":
 			var nearby: bool=state.player.regionId==display_region and session.storage.reachable(state,object)
 			image=assets.frame(assets.media.textures.buildings,{"x":80,"y":32 if nearby else 0,"width":32,"height":32})
 		var node:=_sprite(object.id,image,Vector2(0.5,0.75 if object.kind=="chest" else 0.875))
 		node.scale=Vector2.ONE*(32.0 if object.kind=="shipping-bin" else 16.0)/image.get_width()
 		node.position=Vector2(object.column*16+(16 if object.kind=="shipping-bin" else 8),object.row*16+12)
-		node.modulate=Color(COLORS[object.colorId]) if object.kind=="chest" else Color.WHITE; keep[object.id]=true
+		node.modulate=Color(COLORS[object.colorId]) if object.kind=="chest" else Color("c9a27f") if FarmFenceRules.is_fence(str(object.kind)) and bool(object.get("damaged",false)) else Color.WHITE; keep[object.id]=true
 	for drop: Dictionary in state.worldDrops:
 		if drop.regionId!=display_region: continue
 		var node:=_sprite(drop.id,assets.icon(drop.stack.itemId),Vector2(0.5,1)); node.position=Vector2(drop.originX,drop.originY); node.scale=Vector2.ONE*16.0/maxi(1,node.texture.get_width()); keep[drop.id]=true
@@ -309,10 +312,12 @@ func _perform(tool: bool, target: Vector2) -> void:
 	var item:=_held()
 	if not tool or item=="": await _interact(target); return
 	var cell:=Vector2i(floori(target.x/16.0),floori(target.y/16.0))
-	if item in ["chest","scarecrow"]: ui.request_placement({"type":"place-world-object","inventoryIndex":ui.selected_index}); aim=target; pointer_aim=true; return
+	if item in ["chest","scarecrow"] or FarmFenceRules.is_fence(item): ui.request_placement({"type":"place-world-object","inventoryIndex":ui.selected_index}); aim=target; pointer_aim=true; return
 	var object:=_object_at(target)
 	if object.get("kind")=="scarecrow" and item in ["axe","pickaxe","hoe"]:
 		await _tool_command({"type":"recover-scarecrow","objectId":object.id,"itemId":item},target); return
+	if FarmFenceRules.is_fence(str(object.get("kind",""))) and item=="pickaxe":
+		await _tool_command({"type":"recover-fence","objectId":object.id,"itemId":item},target); return
 	if not object.is_empty() and object.kind=="chest":
 		var empty: bool=object.slots.all(func(slot:Dictionary)->bool:return slot.itemId=="")
 		if empty: await _tool_command({"type":"recover-empty-chest","objectId":object.id,"itemId":item},target); return
@@ -381,8 +386,16 @@ func _exit_tree() -> void:
 func _interact(target: Vector2) -> void:
 	var object:=_object_at(target)
 	if not object.is_empty():
-		if session.storage.reachable(state,object): ui.open_container(object.id)
-		else: ui._feedback({"tone":"error","message":"走近箱子再操作。"})
+		if not session.storage.reachable(state,object):
+			ui._feedback({"tone":"error","message":"走近目标再操作。"})
+			return
+		if object.kind=="gate":
+			await session.dispatch({"type":"toggle-gate","objectId":object.id})
+			return
+		if FarmFenceRules.is_fence(str(object.kind)):
+			ui._feedback({"tone":"error","message":"使用十字镐可以回收围栏。"})
+			return
+		ui.open_container(object.id)
 		return
 	var cell:=Vector2i(floori(target.x/16.0),floori(target.y/16.0))
 	var tile: Dictionary=state.farmTiles.get("farm:%d:%d"%[cell.x,cell.y],{})

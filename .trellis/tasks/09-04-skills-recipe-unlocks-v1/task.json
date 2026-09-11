@@ -21,11 +21,11 @@
   "children": [],
   "parent": "09-04-pre-pivot-life-sim-foundation",
   "relatedFiles": [],
-  "notes": "S2-K 已接入第四条钓鱼技能：湖岸只启用鲤鱼、鲢鱼、大嘴鲈鱼并对齐普通数据、难度与8/14/19经验，鱼竿每级节省0.1体力；封套12/状态24。专项32项及既有回归、两端导出通过；河流鱼、品质、完美、宝箱及职业仍待后续，真人验收待完成。用户已要求第一阶段完整闭合后将全部阶段一改动提交并推送main；当前不提前提交、推送或部署。",
+  "notes": "S2-Q 已补春季深山湖最后一条普通鱼大头鱼：全天任意天气、75g、25体力、难度46、普通经验18，复用现有湖岸品质/完美/候选保存、出货、食用和礼物链；8 位居民偏好与 16×16 图标已接入，领域补齐 hated=-40、未知偏好消费前拒绝和成功反馈。封套13/状态25不变。test:fishing 73/73、命名81/81、typecheck:client、test:godot、build:client 通过；真人钓获、真实存档介质、绿藻、传说之鱼、夏季虹鳟、完整权重和最终美术待后续。当前不提交、推送或部署。",
   "meta": {
-    "currentBatch": "S2-K-lakeshore-fishing-skill",
+    "currentBatch": "S2-Q-mountain-lake-bullhead",
     "batchStatus": "implemented-awaiting-user-validation",
-    "verification": "verification-s2k.md",
+    "verification": "verification-s2q.md",
     "temporaryExceptions": [
       "T-SCYTHE-01",
       "T-SCYTHE-02"

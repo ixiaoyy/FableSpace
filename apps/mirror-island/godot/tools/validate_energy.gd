@@ -37,7 +37,7 @@ func _run() -> void:
 	root.add_child(scene); await process_frame; session.rules.milestones.clear()
 	_expect(await session.new_game(session.rules.initial.player.appearance),"新建")
 	scene.set_process(false); scene.set_physics_process(false)
-	_expect(session.snapshot().stamina==270 and session.snapshot().version==24,"新档体力与状态版本")
+	_expect(session.snapshot().stamina==270 and session.snapshot().version==25,"新档体力与状态版本")
 	var base:=session.snapshot(); base.stamina=37.75
 	var decoded:=session.codec.decode(FarmSaveCodec.encode(base))
 	_expect(not decoded.has("error") and decoded.state.stamina==37.75,"小数封套往返")

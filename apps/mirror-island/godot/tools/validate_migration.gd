@@ -38,7 +38,7 @@ func _run() -> void:
 		expected.professions=session.rules.initial.professions.duplicate(true)
 		expected.knownRecipes=session.rules.initial.knownRecipes.duplicate()
 		# 冻结案例新增经验的明确期望；不使用实际结果反算，也不重生成旧期望。
-		var skill_deltas: Dictionary={"防风草收获":{"farming":8},"tree产出":{"foraging":14},"stone产出":{"mining":1},"确定性钓鱼完整状态机":{"fishing":19}}
+		var skill_deltas: Dictionary={"防风草收获":{"farming":8},"tree产出":{"foraging":14},"stone产出":{"mining":1},"确定性钓鱼完整状态机":{"fishing":45}}
 		for skill: String in skill_deltas.get(test.name,{}): expected.skills[skill].xp=skill_deltas[test.name][skill]
 		expected=JSON.parse_string(JSON.stringify(expected))
 		var args: Dictionary=test.args

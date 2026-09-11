@@ -6,7 +6,8 @@ signal changed
 signal feedback(result: Dictionary)
 signal save_changed
 signal checkpoint_finished
-const SUCCESSES := ["changed","crafted","placed","collected","collected-double","recovered","recovered-scarecrow","pushed","destroyed-with-drops","shipped","reclaimed","built","moved","demolished","upgraded-backpack","tilled","planted","watered","harvested","harvested-double","refilled","cut","mined","branch-chopped","chopped","chopped-with-seed","crop-cleared","stump-cleared","ate","ate-zero","bought","sold","upgraded-watering-can","talked","gift-liked","gift-neutral","gift-disliked","adopted","petted","fishing-rod-received","started","appearance-changed","milestone-acknowledged","profession-selected","slept","passed-out","caught","transitioned"]
+const FarmFenceRules = preload("res://domain/fence_rules.gd")
+const SUCCESSES := ["changed","crafted","placed","collected","collected-double","recovered","recovered-scarecrow","recovered-stone-fence","recovered-fence","removed-damaged-fence","gate-opened","gate-closed","pushed","destroyed-with-drops","shipped","reclaimed","built","moved","demolished","upgraded-backpack","tilled","planted","watered","harvested","harvested-double","refilled","cut","mined","branch-chopped","chopped","chopped-with-seed","crop-cleared","stump-cleared","ate","ate-zero","bought","sold","upgraded-watering-can","talked","gift-liked","gift-neutral","gift-disliked","adopted","petted","fishing-rod-received","started","appearance-changed","milestone-acknowledged","profession-selected","slept","passed-out","caught","transitioned"]
 var rules: Dictionary
 var dialogues: Dictionary
 var world: FarmWorldRules
@@ -301,6 +302,7 @@ func _settle_day(reason: String) -> Dictionary:
 	var crow_events: Array=[]
 	candidate.unacknowledgedShippingReport.crows=FarmCropProtection.settle(candidate,world,crow_events)
 	candidate.day+=1
+	var fence_events:=FarmFenceRules.settle_day(candidate)
 	for memory: Dictionary in candidate.npcDialogue.values(): FarmSocialRules.prune(memory,candidate.day)
 	resource_rules.regenerate(candidate)
 	candidate.weather={"day":candidate.day,"current":candidate.weather.next,"next":FarmWorldRules.weather_at(candidate.worldSeed,int(candidate.day)+1)}
@@ -315,7 +317,7 @@ func _settle_day(reason: String) -> Dictionary:
 	fishing.runtime.clear()
 	var result:=_result(reason)
 	result.message="新的一天开始了，体力 %d。%s"%[roundi(candidate.stamina),"送回家花费 %dg。"%loss if loss>0 else ""]
-	result.daySummary={"reason":reason,"goldLost":loss,"nextStamina":candidate.stamina,"crowEvents":crow_events}
+	result.daySummary={"reason":reason,"goldLost":loss,"nextStamina":candidate.stamina,"crowEvents":crow_events,"fenceEvents":fence_events}
 	return result if await _commit(candidate,result) else _result("save-failed")
 
 ## 返回给定总天数的煤炭买价；一年112天，价表由当前内容持有，不接受客户端报价。
@@ -356,8 +358,10 @@ static func _npc(actors: Array, id: String) -> Dictionary:
 static func _result(code: String) -> Dictionary:
 	var messages: Dictionary={"changed":"已整理好。","crafted":"制作完成。","placed":"已经摆好了。","collected":"已放入背包。","recovered":"已收回空箱。","recovered-scarecrow":"已收回稻草人。","not-at-smith-counter":"请走近铁匠铺工具架购买。","blacksmith-closed":"铁匠铺开放时间为 09:00–16:00。","pushed":"箱子已经移开。","shipped":"已投入出货箱，明早结算。","reclaimed":"已取回最后一笔出货。","built":"出货箱已建好。","moved":"建筑已移好。","demolished":"已拆除。","upgraded-backpack":"背包已扩容。","tilled":"土地已翻好。","planted":"种子已播下。","watered":"已经浇水。","harvested":"收获已放入背包。","refilled":"喷壶已装满。","cut":"已清理杂草。","mined":"获得石头。","chopped":"获得木材，留下树桩。","chopped-with-seed":"获得木材和树种，留下树桩。","branch-chopped":"已砍断树枝，获得木材。","requires-axe":"请使用斧头砍断树枝。","stump-cleared":"树桩已清除。","crop-cleared":"已清除青豆植株，耕地保留。","trellis-occupied":"请站到旁边再种青豆。","ate":"体力恢复了。","ate-zero":"已经吃下了。","bought":"种子已放入背包。","sold":"交易完成。","upgraded-watering-can":"喷壶已升级，可连续浇三格。","talked":"","gift-liked":"对方很喜欢这份礼物。","gift-neutral":"对方收下了礼物。","gift-disliked":"对方不太喜欢这份礼物。","adopted":"伙伴加入了你的家。","petted":"伙伴亲昵地蹭了蹭你。","fishing-rod-received":"领到了竹鱼竿，去旧码头试试吧。","started":"按住蓄力，松手抛竿。","caught":"钓到了鱼！","appearance-changed":"已换上新的装扮。","milestone-acknowledged":"","transitioned":"","insufficient-stamina":"体力不足，吃点东西或回家休息。","inventory-full":"背包放不下，请先整理。","target-full":"目标格放不下产物，材料未消耗。","too-far":"走近目标再操作。","missing-item":"背包里没有所需物品。","requirements-not-met":"制作材料不足。","insufficient-gold":"金币不足。","insufficient-wood":"木材不足。","wrong-tool":"请选择合适的工具。","requires-scythe":"这种作物需要用镰刀收获。","wrong-direction":"请面向要清理的杂草。","depleted":"这里已经采完了。","inactive":"这里今天没有可采物。","waiting":"已经浇过水了。","no-effect":"当前目标无需这项操作。","missing-tile":"这里无法耕作。","empty-watering-can":"喷壶空了，去水边补水。","not-at-shop":"请在营业时走到皮埃尔身边。","not-shippable":"这件物品不能出货。","invalid-transfer":"目标格无法完整接收所选物品。","unchanged":"当前无需更改。","not-empty":"箱子还有物品，不能收回。","blocked":"这里有阻挡，无法摆放。","last-shipping-bin":"农场至少保留一个出货箱。","service-unavailable":"罗宾现在不在柜台提供服务。","daily-limit":"今天已经送过礼了。","weekly-limit":"这周已送过两份礼物。","fishing-rod-owned":"你已经有鱼竿了。","fishing-rod-unavailable":"Day 7 起可以找威利领取鱼竿。","watering-upgrade-locked":"Day 3 起可找克林特升级喷壶。","watering-already-upgraded":"喷壶已经升级过了。","watering-upgrade-unavailable":"请在工作时间找克林特升级。","backpack-upgrade-unavailable":"请到种子店背包陈列前购买。","backpack-upgrade-insufficient-gold":"金币不足，先积攒下一档费用。","backpack-already-upgraded":"背包已扩至最大。","not-ready":"这项内容还未开放。","already-adopted":"你已经有一位伙伴了。","invalid-name":"名字需为 1 至 12 个字符，不能含控制字符。","already-petted":"今天已经陪过伙伴了。","pet-not-present":"伙伴正在另一处家园休息。","not-giftable":"这件物品不能作为礼物。","stamina-full":"体力已经满了。","not-edible":"这件物品不能食用。","empty":"没有可取回的投入。","escaped":"鱼跑掉了，再试一次吧。","missing-rod":"先向威利领取鱼竿。","save-pending":"请先完成保存，失败时可以重试。","save-failed":"保存失败，操作尚未提交，请重试。"}
 	messages.merge({"fertilized":"已施用初级肥料。","retaining-soil-applied":"已施用初级保湿土。","already-fertilized":"这块地已经施过肥。","fertilizer-too-late":"种子已经发芽，无法施用初级肥料。","invalid-quality":"物品品质无效，请重新选择。"})
+	messages.merge({"recovered-stone-fence":"已收回石围栏。","recovered-fence":"已收回围栏。","removed-damaged-fence":"已清理损坏的围栏。","gate-opened":"大门已打开。","gate-closed":"大门已关上。"})
 	messages.merge({"collected-double":"收集者生效，获得双份野采。","harvested-double":"收集者生效，获得双份野生作物。","profession-selected":"职业选择已保存。","profession-choice-required":"请先选择本次升级职业。","invalid-profession-choice":"职业选项已变化，请重新选择。"})
-	return {"code":code,"tone":"success" if code in SUCCESSES or code in ["fertilized","retaining-soil-applied"] else "error","message":messages.get(code,"目标已变化，请重新选择。")}
+	messages.merge({"gift-hated":"对方很讨厌这份礼物。","invalid-gift-preference":"这件礼物的偏好配置无效。"})
+	return {"code":code,"tone":"success" if code in SUCCESSES or code in ["fertilized","retaining-soil-applied","gift-hated"] else "error","message":messages.get(code,"目标已变化，请重新选择。")}
 
 ## 页面或窗口失焦时停止逻辑时间和输入；恢复不会补算隐藏期间的时间。
 func _notification(what: int) -> void:

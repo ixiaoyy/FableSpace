@@ -19,9 +19,10 @@ static func level_for(xp: int) -> int:
 		level+=1
 	return level
 
-## 按原作基础公式计算一次鱼获经验；加成结果尚未接入时，调用方传实际普通品质 0。
-static func fishing_xp(quality: int, difficulty: int) -> int:
-	return floori(float((quality+1)*3)+float(difficulty)/3.0)
+## 按原始品质和难度计算鱼获经验；完美捕获乘 2.4，品质提升不反向改变 XP 基数。
+static func fishing_xp(quality: int, difficulty: int, perfect: bool = false) -> int:
+	var base:=floori(float((quality+1)*3)+float(difficulty)/3.0)
+	return floori(base*2.4) if perfect else base
 
 ## 给成功劳动的同一候选增加经验并即时升级；调用方负责完整产物检查和候选保存。
 static func gain(state: Dictionary, skill: String, amount: int) -> void:

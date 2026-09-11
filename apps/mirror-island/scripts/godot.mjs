@@ -61,7 +61,7 @@ if(action==='setup'){
     const templates=await download(`https://downloads.godotengine.org/?flavor=stable&platform=templates&slug=export_templates.tpz&version=${version}`,lock.templates_archive,'sha512',lock.templates_sha512);
     extract(templates,path.join(runtime,'templates'),['templates/web_nothreads_debug.zip','templates/web_nothreads_release.zip','templates/windows_debug_x86_64.exe','templates/windows_release_x86_64.exe']);
   }else throw new Error('当前构建脚本支持 Windows 与 Linux；macOS 工具链需单独接入。');
-}else if(['check','web','windows','run','editor','parity','energy','fishing'].includes(action)){
+}else if(['check','web','windows','run','editor','parity','energy','fishing','fence','views'].includes(action)){
   try{await access(executable);}catch{throw new Error('请先运行 npm run godot:setup 准备固定版本引擎。');}
   if(action==='check'){
     execute(executable,['--headless','--editor','--path',project,'--import']);
@@ -72,6 +72,8 @@ if(action==='setup'){
   }else if(action==='parity')execute(executable,['--headless','--path',project,'--script','res://tools/validate_migration.gd','--quit-after','300']);
   else if(action==='energy')execute(executable,['--headless','--path',project,'--script','res://tools/validate_energy.gd','--max-fps','60','--quit-after','900']);
   else if(action==='fishing')execute(executable,['--headless','--path',project,'--script','res://tools/validate_fishing_skill.gd','--quit-after','300']);
+  else if(action==='fence')execute(executable,['--headless','--path',project,'--script','res://tools/validate_stone_fence.gd','--quit-after','300']);
+  else if(action==='views')execute(executable,['--headless','--path',project,'--script','res://tools/validate_views.gd','--quit-after','300']);
   else{
     const child=spawn(executable,[...(action==='editor'?['--editor']:[]),'--path',project],{cwd:app,stdio:'inherit',windowsHide:true});
     child.on('error',error=>{process.stderr.write(error.message);process.exitCode=1;});

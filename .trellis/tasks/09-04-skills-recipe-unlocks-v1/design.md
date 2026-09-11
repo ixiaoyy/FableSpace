@@ -1,5 +1,67 @@
 # 技能任务设计：先处理体力前置
 
+## S2-Q 春季深山湖大头鱼合同（2026-09-11）
+
+`rules.json` 新增 `bullhead` 鱼类物品、75g 普通价格与湖岸鱼定义 `{itemId:"bullhead", minMinute:360, maxMinute:1560, minCast:0, pull:14, difficulty:46, habitats:["mountain-lake"]}`。物品沿用 `category:"fish"`、`shippingCategory:"fishing"`、`hasQuality:true`、`staminaRestore:25` 和 `edibility:10`，因此无需新增领域命令；`FarmFishingRules._eligible()` 已按 `fishHabitat` 过滤，成功收线会自动复用品质、完美、库存、经验、出货和食用链。
+
+`bullhead` 采用当前本地 16×16 矩阵图标，物品排序插入现有鱼类末尾，后续 `chest` 至 `stone-fence` 的排序值顺延以保持连续唯一。`giftPreferences` 为八位当前映射居民补全键：皮埃尔 / 艾芙琳讨厌，克林特 / 罗宾 / 莉亚 / 艾米丽不喜欢，德米特里厄斯 / 威利为普通反应。`FarmSocialRules.GIFT_POINTS` 集中拥有 `liked:45 / neutral:20 / disliked:-20 / hated:-40`；送礼在消费库存前拒绝未知偏好，`gift-hated` 是成功反馈。该内容扩展不改变 `GameState` shape，封套 13 / 状态 25 不变；当前开发存档可继续读取，旧运行时不承诺解释含新物品的档案。
+
+项目尚无真实鱼类行为模型，因此 `pull=14` 是当前张力小游戏的项目参数，不与原作大头鱼 Smooth 行为或难度混用。绿藻需要独立的非鱼直获物和 3 XP 结算；传说之鱼依赖专用深山湖近木头钓位和 10 级门槛；两者都不进入本批。
+
+## S2-P 围栏寿命与大门合同（2026-09-11）
+
+内容层新增 `wood-fence` 与 `gate` 两个摆放物和配方，并校正 `stone-fence` 显示名为 `石围栏`。`wood-fence` 默认已知，材料 `wood × 2`、输出 1、售价 1g、寿命 48–52 天；`gate` 默认已知，材料 `wood × 10`、输出 1、售价 4g、寿命 360 天；`stone-fence` 保留 `farming/2` 待学，材料 `stone × 2`、售价 2g、寿命 106–109 天。三类物品作为礼物按当前官方页面统一登记为不喜欢，避免可携带物品缺少偏好配置。
+
+领域层新增 `FarmFenceRules`，集中处理围栏 kind 判断、寿命稳定抽取、摆放初始字段、损坏替换和隔夜老化。围栏对象写入 `{placedDay:int, damaged:bool}`，大门额外写入 `{open:bool}`；寿命由 `worldSeed + placedDay + kind + object.id` 稳定确定。`GameSession._settle_day()` 在 `candidate.day += 1` 后调用围栏老化，因此玩家醒来的新一天即可看到寿命结束对象变为损坏；损坏状态再经过一次新日结消失。日结摘要只记录 `fenceEvents` 数量，不写入持久报告。
+
+`FarmWorldRules.covers()` 保持默认占用语义，新增参数只在移动碰撞时允许打开的大门通行，避免野采、摆放或作物判断把打开大门当成空地。`placement()` 返回可选 `replace` 对象 ID：任意新围栏可替换损坏围栏，`gate` 可替换未损坏普通围栏。`apply_placement()` 负责删除被替换对象、清空耕地和迁移伙伴，`storage_rules.gd` 放置命令统一调用它后再追加新世界物件。
+
+回收入口保留旧 `recover-stone-fence`，并新增通用 `recover-fence` 供表现层使用。完整围栏或大门使用十字镐回收时先检查背包容量并返还同名物品；损坏对象只删除不返还，满包不影响清理。`toggle-gate` 只处理可达大门：打开时立即放行，关闭时如果角色、居民或伙伴脚点与门格重叠则返回 `blocked`，避免把实体锁进封闭格。
+
+存档封套升级为 13、状态版本升级为 25；`FarmSaveCodec` 严格校验围栏区域、`placedDay`、`damaged` 和大门 `open`，旧封套直接拒绝，不迁移上一批缺字段的开发对象。展示层用 `media.json` 的 16×16 矩阵图标区分木围栏、石围栏、关闭大门和打开大门；损坏对象仅用调色提示，最终围栏连接和美术仍留给后续批次。
+
+## S2-O 耕种 2 级石围栏合同（2026-09-11）
+
+内容层新增 `stone-fence` 物品与 `stone-fence` 配方：物品为不可堆叠限制之外的普通可堆叠摆放物，售价 2g、分类 `other`，配方材料为 `stone × 2`，输出 `stone-fence × 1`，`knownByDefault=false`、`skill=farming`、`level=2`。初始状态不直接学习该配方；沿用 `FarmSkillRules.recipe_unlocks()` 和日结报告的 `recipeUnlocks`，确认报告后才写入 `knownRecipes`。
+
+领域摆放命令仍为 `place-world-object`，只允许活动背包中的 `stone-fence`、农场区域和一格 `placeableTiles`。`FarmWorldRules.placement()` 复用箱子 / 稻草人的格子、资源、出口、玩家、NPC、宠物和作物占用检查；`FarmWorldRules.covers()` 无需另设分支，因此石围栏会参与移动阻挡。`storage_rules.gd` 先完整预检库存和位置，再在同一候选中扣 1 个石围栏并追加 `{kind:"stone-fence"}` 世界物件。
+
+回收命令新增 `recover-stone-fence`，只接受十字镐且先完整预检背包容量；成功后从候选世界物件删除并加入 1 个石围栏，保存失败复用原候选。存档校验将 `stone-fence` 纳入世界物件有限集合，不新增字段或版本；S2-O 不写耐久 / 损坏日期，因此不实现原作 106–109 天衰减、损坏替换或围栏门。
+
+展示层使用 `media.json` 中的本地 16×16 像素石围栏图标；世界投影按一格物件绘制，UI 只展示制作、摆放和回收意图，不直接消费材料。石围栏名称与配方名称加入官方简体中文名称检查。
+
+## S2-N 完美捕获与鱼获品质提升合同（2026-09-11）
+
+当前小游戏没有原作鱼条的独立位置状态，因此沿用已有张力区间作为本地可实现的完美判定：从 `waiting` 咬钩进入 `reeling` 时设为可完美，收线每个内部 50ms 步长只要张力不在 `22–78`（含边界）就永久取消本次资格。进度满时先由 S2-M 的 `catch_quality()` 计算原始品质，再由完美资格把 `1→2`、`2→4`，普通 `0` 和铱 `4` 保持不变；这里的 `4` 复用 `FarmQualityRules.VALUES` 的铱星档，不新增品质枚举。
+
+经验必须使用完美前的原始品质：`FarmSkillRules.fishing_xp(baseQuality, difficulty, perfect)` 先计算 `floor((baseQuality + 1) * 3 + difficulty / 3)`，完美时再对基础结果乘 `2.4` 并向下取整。库存写入最终品质，经验与库存仍写入同一个 `GameSession.tick()` 候选；背包满发生在经验之前，保存失败后的 `retry-fishing-save` 只提交已生成候选，不重新判定完美或品质。
+
+运行态新增 `perfect` 仅供 `FarmFishingRules` 和成功提示使用，开始抛竿时为假，咬钩进入收线时为真，离开安全张力后只能变为假。UI 读取 `runtime.quality` 与 `runtime.perfect` 展示结果，不参与品质或经验计算。没有持久字段变化，封套 12 / 状态 24 不变。
+
+本批把当前张力模型作为过渡判定，并不宣称已复刻原作鱼条位置、宝箱期间的完美规则或挑战鱼饵；后续引入真实鱼条时，只替换完美资格入口和保持条件，不改变品质、经验、库存和保存边界。
+
+## S2-M 鱼获基础品质合同（2026-09-11）
+
+依据 Stardew 1.6.15 对照页，鱼品质受离岸距离、钓鱼等级和 90–110 随机因子影响，普通 / 银星 / 金星阈值分别按 `<0.33`、`0.33–0.66`、`>=0.66` 判断；S2-M 只实现完美前的原始品质 0 / 1 / 2。完美提升与经验倍率由 S2-N 单独接入，避免在原始品质抽取中重复消费随机结果。
+
+内容准备层在 `FishingZoneDefinition` 上新增 `maxQualityDistance: 1..5`。`decodeFishingZones` 从源 TMJ 强制读取并校验该属性；湖岸旧码头为 5，镇河桥位为 3。当前没有真实 bobber 落点，`FarmFishingRules._quality_distance()` 用 `castPower` 在钓位上限内折算本次 1–5 离岸距离；后续做落点几何时只替换该入口，不改库存或经验链。
+
+`FarmFishingRules.catch_quality()` 在成功收线到 100 后、库存入包前计算一次原始品质。技能采样按原作偶数口径：十级固定 10，十级前从当前偶数等级到 10 的候选集中用世界种子、日期、钓位、尝试序号和鱼种稳定抽取；90–110 随机因子使用独立稳定键。S2-N 再按运行态完美资格提升最终库存品质，经验仍传原始品质与完美标记。满包发生在加经验前；保存失败仍重试同一候选，不重算品质或完美。
+
+六条当前鱼类物品声明 `hasQuality:true` 与对应 `edibility`，普通品质食用恢复保持旧值，银星 / 金星自动复用现有 `FarmQualityRules` 的价格、恢复、名称、礼物与出货合同。空格、工具和非品质物品的校验不变。没有新增持久字段、没有新的内容版本字段消费方，封套 12 / 状态 24 保持不变；旧普通鱼存档继续合法。
+
+UI 不决定品质，只在钓鱼面板的成功提示中读取 `runtime.quality` 和完美标记显示品质名与完美捕获；背包、出货和食用详情已经由 S2-H 的通用品质 UI 覆盖。本批不处理鱼尺寸显示、训练竿、鱼饵、浮标、宝箱、传奇倍率、蟹笼、职业或完整鱼池权重。
+
+## S2-L 河流钓位与河鱼合同（2026-09-11）
+
+内容准备层扩展 `FishingZoneDefinition`，每个 `FishingZones` 对象必须提供 `fishHabitat`。当前允许 `lakeshore/mountain-lake` 与 `town/town-river` 两组真实可达水域；`decodeFishingZones` 继续在构建期拒绝未知区域、未知水域、重复 ID 和越界矩形。源 TMJ 是唯一编辑入口，`godot/generated/catalog.json` 和区域场景由 `godot:prepare` 再生。
+
+`FarmWorldRules` 无需新状态，只把生成 catalog 中的钓位完整索引到 `zones`。`FarmFishingRules._eligible` 在原有时段、天气和抛竿强度前增加水域过滤：运行态 `zoneId` → `world.zones[zoneId].fishHabitat` → `rules.fish[*].habitats`。湖岸旧码头仍用同一稳定哈希选鱼；因为湖鱼顺序和候选集保持不变，S2-K 的存档、保存失败和经验原子性不变。
+
+河鱼数据依据 Stardew 1.6.15 对照页记录普通售价、恢复、难度、时间和基础 XP：西鲱对应 Shad，镇河雨天 09:00–02:00；小嘴鲈鱼对应 Smallmouth Bass，镇河春季全天任意天气；鲷鱼对应 Bream，河流 18:00–02:00 任意天气。当前没有季节字段，春季本地试玩不额外写入无消费者的 season 规则。
+
+UI 只根据当前钓位水域显示 `湖岸垂钓` 或 `河畔垂钓`，不参与鱼池判断。`pull` 保持项目张力节奏参数；鱼品质仍固定 0，经验仍用 `FarmSkillRules.fishing_xp(quality, difficulty)` 的基础公式，不提前实现尺寸、完美、宝箱、传奇或鱼饵倍率。
+
 ## S2-K 基础钓鱼技能（2026-09-10）
 
 `FarmSkillRules.NAMES` 新增 `fishing: 钓鱼`，`TOOL_SKILLS` 将 `fishing-rod` 映射到该技能。初始 `skills` / `professions` 同步增加第四键；职业选择表保持只有采集 5 级，避免为尚无蟹笼等消费者的分支创建空效果。状态结构变化使用封套 12 / 状态 24，codec 继续按 `NAMES` 的完整键集和等级阈值严格校验。

@@ -44,7 +44,7 @@ func _run() -> void:
 	root.add_child(session)
 	expect(await session.new_game(session.rules.initial.player.appearance),"新建当前品质档")
 	var base:=session.snapshot(); var inv:=session.inventory
-	expect(base.version==24 and FarmSaveCodec.VERSION==12,"版本24/12")
+	expect(base.version==25 and FarmSaveCodec.VERSION==13,"版本25/13")
 	var slots:=FarmInventory.empty_slots(12)
 	for q: int in [0,1,2,4]: expect(inv.add(slots,"parsnip",3,q),"创建品质"+str(q))
 	expect(slots.slice(0,4).map(func(s:Dictionary)->int:return s.quality)==[0,1,2,4],"四品质独立堆叠")
@@ -80,7 +80,7 @@ func _run() -> void:
 	expect(session._shop(state,[keeper],{"type":"sell-item","itemId":"parsnip","quality":4})=="sold" and state.gold==170 and state.inventory[6].quantity==1 and state.inventory[5].quantity==2,"店内准确出售铱品质70")
 	state=base.duplicate(true); state.inventory[5]=stack("cauliflower",2,1); state.inventory[6]=stack("cauliflower",2,2)
 	expect(session.social.gift(state,[keeper],"seed-keeper","cauliflower",2)=="gift-liked" and state.friendships["seed-keeper"].points==56 and state.inventory[6].quantity==1 and state.inventory[5].quantity==2,"喜欢的金礼物56好感且准确扣除")
-	expect(FarmQualityRules.friendship(20,4)==20 and FarmQualityRules.friendship(-20,4)==-20,"中性讨厌礼物无品质加成")
+	expect(FarmQualityRules.friendship(20,4)==20 and FarmQualityRules.friendship(-20,4)==-20 and FarmQualityRules.friendship(-40,4)==-40,"中性负向礼物无品质加成")
 	state=base.duplicate(true); state.player.x=376; state.player.y=232
 	state.inventory[5]=stack("parsnip",2,1); state.inventory[6]=stack("parsnip",1,4)
 	var ship: Dictionary={"type":"ship-item","objectId":"farm-shipping-bin-default","sourceIndex":5,"quantity":"stack"}

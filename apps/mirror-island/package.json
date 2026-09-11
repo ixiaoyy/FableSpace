@@ -38,6 +38,8 @@
     "test:godot": "node scripts/godot.mjs parity",
     "test:energy": "node scripts/godot.mjs energy",
     "test:fishing": "node scripts/godot.mjs fishing",
+    "test:stone-fence": "node scripts/godot.mjs fence",
+    "test:views": "node scripts/godot.mjs views",
     "test:identity": "node --experimental-strip-types --test test/sso-contract.test.mjs test/retirement-contract.test.mjs",
     "test:oidc": "node --experimental-strip-types --test test/sso-contract.test.mjs"
   },

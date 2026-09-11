@@ -22,6 +22,11 @@ func _run() -> void:
 	root.add_child(scene)
 	await process_frame
 	if not await session.new_game(session.rules.initial.player.appearance): print("VIEW CHECK FAILED: new game"); quit(1); return
+	if scene.ui.selected_index!=0: print("VIEW CHECK FAILED: hotbar default selection ",scene.ui.selected_index); quit(1); return
+	scene.ui._select(6)
+	if scene.ui.selected_index!=0: print("VIEW CHECK FAILED: empty hotbar selection ",scene.ui.selected_index); quit(1); return
+	scene.ui._select(0)
+	if scene.ui.selected_index!=-1: print("VIEW CHECK FAILED: hotbar deselect ",scene.ui.selected_index); quit(1); return
 	var count:=0
 	for region_id: String in session.world.regions:
 		var region: Dictionary=session.world.regions[region_id]

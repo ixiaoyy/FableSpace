@@ -2,6 +2,7 @@ class_name FarmGameUI
 extends CanvasLayer
 ## Godot 原生游戏界面；显示防御性快照，所有库存、交易和存档操作只发会话命令。
 
+const FarmFenceRules = preload("res://domain/fence_rules.gd")
 signal selected(index: int)
 signal action_requested(tool: bool)
 signal movement_requested(direction: Vector2)
@@ -13,6 +14,7 @@ var assets: FarmAssets
 var audio: FarmAudio
 var mode: String="start"
 var selected_index: int=-1
+var _selection_initialized:=false
 var container_id: String=""
 var selected_source: Dictionary={}
 var transfer_amount: String="stack"
@@ -134,7 +136,9 @@ func _process(_delta: float) -> void:
 		fish_progress.value=fishing.castPower if fishing.phase=="casting" else fishing.progress
 		fish_tension.value=clampf(fishing.tension,0,100)
 		var caught_id: String=fishing.fish.itemId if fishing.fish!=null else ""
-		var texts: Dictionary={"casting":"按住蓄力，松手抛竿。","waiting":"等待浮漂动静……","reeling":"按住收线，松手降张力；保持在 22–78。","caught":"钓到了 %s。"%session.rules.items.get(caught_id,{}).get("name","鱼"),"escaped":"鱼跑掉了。","inventory-full":"背包已满，没能装下鱼获。"}
+		var caught_name:=FarmQualityRules.name(session.rules.items.get(caught_id,{}).get("name","鱼"),int(fishing.get("quality",0)))
+		var perfect_suffix: String="，完美捕获" if bool(fishing.get("perfect",false)) else ""
+		var texts: Dictionary={"casting":"按住蓄力，松手抛竿。","waiting":"等待浮漂动静……","reeling":"按住收线，松手降张力；保持在 22–78。","caught":"钓到了 %s%s。"%[caught_name,perfect_suffix],"escaped":"鱼跑掉了。","inventory-full":"背包已满，没能装下鱼获。"}
 		fish_label.text="咬钩了，按下收线！" if session.fishing.bite() else texts[fishing.phase]
 		if fishing.phase=="caught" and (session.busy or session.save_phase!="idle"): fish_label.text="鱼获尚未保存，请等待或完成保存重试。"
 
@@ -152,6 +156,15 @@ func _open(next_mode: String) -> void:
 	if next_mode=="shipping" and transfer_amount=="half": transfer_amount="stack"
 	dialog_feedback.visible=false
 	mode=next_mode; selected_source={}; _render(); _resize()
+	_focus_dialog.call_deferred()
+
+## 面板打开后聚焦首个可用按钮；无参数和返回值，保存失败时保留重试框焦点。
+func _focus_dialog() -> void:
+	if not dialog.visible or session.busy or session.save_phase=="failed": return
+	for node: Node in body.find_children("*","Button",true,false):
+		if node.is_visible_in_tree() and not node.disabled:
+			node.grab_focus(); return
+	if close_button.is_visible_in_tree() and not close_button.disabled: close_button.grab_focus()
 
 ## 关闭前先取消暂存选择；报告与失败保存不能用 Esc 跳过。
 func close() -> void:
@@ -169,6 +182,7 @@ func close() -> void:
 func open_container(id: String) -> void:
 	container_id=id
 	var object:=FarmWorldRules.object_by_id(session.snapshot(),id)
+	if object.is_empty() or FarmFenceRules.is_fence(str(object.get("kind",""))): return
 	_open("scarecrow" if object.get("kind")=="scarecrow" else "shipping" if object.get("kind")=="shipping-bin" else "chest")
 
 ## 展示已经执行过交谈的结果，不再重复发交谈命令。
@@ -337,6 +351,12 @@ func _build_hotbar() -> void:
 
 ## 将当前背包首排投影到既有槽位，显示数量、水量与所选名称，不重建控件或写入库存。
 func _render_hotbar(state: Dictionary) -> void:
+	if not _selection_initialized:
+		_selection_initialized=true
+		selected_index=_first_non_empty_slot(state)
+	elif selected_index>=0 and (selected_index>=state.inventory.size() or state.inventory[selected_index].itemId==""):
+		selected_index=-1
+		selected.emit(-1)
 	for index in range(12):
 		var slot: Dictionary=state.inventory[index]
 		var controls: Dictionary=hotbar_slots[index]
@@ -357,9 +377,17 @@ func _render_hotbar(state: Dictionary) -> void:
 	held_label.tooltip_text=held_label.text
 	hotbar_row_button.visible=state.inventoryCapacity>12
 
-## 选择活动行槽位，再次选择同一格收起手持物，不移动库存。
+## 返回首个非空快捷槽，首次进入时给玩家一个可立即操作的工具。
+func _first_non_empty_slot(state: Dictionary) -> int:
+	for index in range(mini(12,state.inventory.size())):
+		if state.inventory[index].itemId!="": return index
+	return -1
+
+## 选择活动行非空槽位；空槽不改变当前工具，再次选择同一格收起手持物。
 func _select(index: int) -> void:
 	if session.busy: return
+	var state:=session.snapshot()
+	if index<0 or index>=state.inventory.size() or state.inventory[index].itemId=="": return
 	selected_index=-1 if selected_index==index else index
 	selected.emit(selected_index); _inventory_key=""; _render_hotbar(session.snapshot())
 	get_viewport().gui_release_focus()
@@ -401,7 +429,7 @@ func _render() -> void:
 			start.add_theme_color_override("font_color",Color("294b3b"))
 			var button:=_button("继续游戏",body,_continue); button.disabled=not save_exists or session.error!=""
 			button.add_theme_color_override("font_disabled_color",Color("566159"))
-			var note:=_label("进度保存在本机。清除站点数据会丢失网页进度，不会自动同步到其他设备。\n旧开发档保留，但无法在此版本继续。",body)
+			var note:=_label("进度保存在本机。清除站点数据会丢失网页进度，不会自动同步到其他设备。",body)
 			note.add_theme_font_size_override("font_size",14)
 			if session.error!="": _label(session.error,body)
 		"confirm-new":
@@ -617,7 +645,9 @@ func _inventory_details(state: Dictionary) -> void:
 		_command_button("食用" if restore==0 else "食用 %+d 体力"%restore,controls,{"type":"eat-item","itemId":slot.itemId,"quality":slot.quality})
 	if slot.itemId=="basic-fertilizer": _label("拿在手上，对空耕地或尚未发芽的种子使用。",details)
 	if slot.itemId=="basic-retaining-soil": _label("对耕地使用，作物生长期间也可施用。已浇水的土地隔夜约有三分之一概率保水，不能与其他肥料叠加。",details)
-	if slot.itemId in ["chest","scarecrow"]: _button("摆放"+item.name,controls,request_placement.bind({"type":"place-world-object","inventoryIndex":selected_source.index}))
+	if slot.itemId in ["wood-fence","stone-fence"]: _label("摆放在农场阻挡通行，损坏后可用新围栏替换，使用十字镐可以回收。",details)
+	if slot.itemId=="gate": _label("摆放在农场后可开合，打开时可以通行，使用十字镐可以回收。",details)
+	if slot.itemId in ["chest","scarecrow"] or FarmFenceRules.is_fence(slot.itemId): _button("摆放"+item.name,controls,request_placement.bind({"type":"place-world-object","inventoryIndex":selected_source.index}))
 
 ## 创建响应式槽位列表，保持槽位编号和当前容量。
 func _grid(slots: Array, grid_id: String) -> void:
@@ -782,6 +812,9 @@ func _report(state: Dictionary) -> void:
 		var summary: Dictionary=session.day_summary
 		_label(("02:00 已被送回家。" if summary.reason=="passed-out" else "睡醒了，新的一天开始。")+" 体力 %d/%d。"%[roundi(summary.nextStamina),int(FarmEnergyRules.MAX_STAMINA)],body)
 		if summary.goldLost>0: _label("送回家花费 %dg。"%summary.goldLost,body)
+		var fence_events: Dictionary=summary.get("fenceEvents",{})
+		if int(fence_events.get("damaged",0))>0: _label("%d 段围栏已经损坏。"%int(fence_events.damaged),body)
+		if int(fence_events.get("vanished",0))>0: _label("%d 段损坏围栏消失了。"%int(fence_events.vanished),body)
 	var names: Dictionary={"farming":"农产","foraging":"采集","fishing":"渔获","mining":"矿产","other":"其他"}
 	for category: Dictionary in state.unacknowledgedShippingReport.categories:
 		_label("%s · %dg"%[names[category.category],category.totalGold],body)
@@ -861,7 +894,7 @@ func _adopt(species: OptionButton, name: LineEdit) -> void:
 
 ## 构建钓鱼控制，按钮释放与失焦都停止收线输入。
 func _fishing_menu() -> void:
-	title.text="湖岸垂钓"
+	title.text=_fishing_title()
 	fish_label=_label("按住蓄力，松手抛竿。",body)
 	fish_progress=ProgressBar.new(); fish_progress.custom_minimum_size.y=18; body.add_child(fish_progress)
 	_label("鱼线张力 · 安全范围 22–78",body)
@@ -869,6 +902,12 @@ func _fishing_menu() -> void:
 	var button:=_button("按住 / 松开",body,func():pass)
 	button.custom_minimum_size.y=48
 	button.button_down.connect(_fish_held.bind(true)); button.button_up.connect(_fish_held.bind(false)); button.focus_exited.connect(_fish_held.bind(false))
+
+## 根据当前钓位水域返回菜单标题；未知水域保留旧湖岸文案。
+func _fishing_title() -> String:
+	if session==null or session.fishing.runtime.is_empty(): return "湖岸垂钓"
+	var zone: Dictionary=session.world.zones.get(session.fishing.runtime.get("zoneId",""),{})
+	return "河畔垂钓" if zone.get("fishHabitat","")=="town-river" else "湖岸垂钓"
 
 ## 钓鱼按住状态只进入临时状态机，不触发多次扣体力。
 func _fish_held(held: bool) -> void:
@@ -889,6 +928,7 @@ func _command(command: Dictionary) -> void:
 ## 创建可键盘聚焦的文字按钮；回调必须由调用方明确提供。
 func _button(text: String, parent: Node, callback: Callable) -> Button:
 	var button:=Button.new(); button.text=text; button.custom_minimum_size.y=42; button.size_flags_vertical=Control.SIZE_SHRINK_CENTER; parent.add_child(button); button.pressed.connect(callback)
+	button.focus_mode=Control.FOCUS_ALL
 	return button
 
 ## 创建可换行标签，避免手机长文本撑宽弹窗。
@@ -909,6 +949,8 @@ func _theme() -> Theme:
 	var hover:=paper.duplicate(); hover.bg_color=Color("e8f1de"); result.set_stylebox("hover","Button",hover)
 	var pressed:=paper.duplicate(); pressed.bg_color=Color("467d5e"); result.set_stylebox("pressed","Button",pressed)
 	result.set_stylebox("hover_pressed","Button",pressed)
+	var focus:=StyleBoxFlat.new(); focus.bg_color=Color.TRANSPARENT; focus.border_color=Color("294b3b"); focus.set_border_width_all(3); focus.set_corner_radius_all(5)
+	for type in ["Button","OptionButton","LineEdit"]: result.set_stylebox("focus",type,focus)
 	for type in ["Label","Button","OptionButton","LineEdit"]: result.set_color("font_color",type,Color("304d3f"))
 	result.set_color("font_hover_color","Button",Color("304d3f")); result.set_color("font_focus_color","Button",Color("304d3f"))
 	result.set_color("font_pressed_color","Button",Color("fffdf4"))
@@ -972,6 +1014,8 @@ func _resize() -> void:
 		lines+=report.get("skillUpgrades",[]).size()+report.get("recipeUnlocks",[]).size()+report.get("professionChoices",[]).size()*4
 		var crow_report: Dictionary=report.get("crows",{})
 		lines+=int(crow_report.get("scared",0)>0)+int(not crow_report.get("lost",[]).is_empty())
+		var fence_events: Dictionary=session.day_summary.get("fenceEvents",{}) if not session.day_summary.is_empty() else {}
+		lines+=int(int(fence_events.get("damaged",0))>0)+int(int(fence_events.get("vanished",0))>0)
 		preferred_width=760; preferred_height=minf(620,220+lines*28)
 	var dialog_size:=Vector2(minf(preferred_width,size.x-(12 if inventory_surface else 20)),minf(preferred_height,size.y-24))
 	var dialog_position: Vector2=(size-dialog_size)/2

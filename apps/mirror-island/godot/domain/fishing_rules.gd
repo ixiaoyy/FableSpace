@@ -23,7 +23,7 @@ func start(state: Dictionary, zone_id: String) -> String:
 	if state.fishingCastCount>=FarmWorldRules.LIMIT: return "not-ready"
 	if not FarmEnergyRules.spend(state,"fishing-rod"): return "insufficient-stamina"
 	state.fishingCastCount+=1
-	runtime={"phase":"casting","zoneId":zone_id,"held":false,"elapsedMs":0.0,"biteAtMs":0,"castPower":0.0,"tension":50.0,"progress":0.0,"fish":null,"attempt":state.fishingCastCount,"failureReason":null}
+	runtime={"phase":"casting","zoneId":zone_id,"held":false,"elapsedMs":0.0,"biteAtMs":0,"castPower":0.0,"tension":50.0,"progress":0.0,"fish":null,"quality":0,"perfect":false,"attempt":state.fishingCastCount,"failureReason":null}
 	return "started"
 
 ## 接收按下/释放；抛竿蓄力后释放或咬钩时按下推进相应阶段。
@@ -33,7 +33,7 @@ func set_held(state: Dictionary, held: bool) -> void:
 	runtime.held=held
 	if runtime.phase=="casting" and previous and not held and runtime.castPower>0: _commit_cast(state)
 	elif runtime.phase=="waiting" and not previous and held and bite():
-		runtime.phase="reeling"; runtime.elapsedMs=0.0; runtime.held=true
+		runtime.phase="reeling"; runtime.elapsedMs=0.0; runtime.held=true; runtime.perfect=true
 
 ## 在每次最多一秒、内部五十毫秒的步长下推进，返回终局结果或空字符串。
 func tick(state: Dictionary, elapsed: float) -> String:
@@ -53,13 +53,17 @@ func tick(state: Dictionary, elapsed: float) -> String:
 			var pulse: int=(floori(runtime.elapsedMs/450.0)+int(runtime.fish.pull))%3-1
 			runtime.tension+=(28 if runtime.held else -22)*seconds+pulse*runtime.fish.pull*seconds
 			var safe: bool=runtime.tension>=22 and runtime.tension<=78
+			if not safe: runtime.perfect=false
 			runtime.progress=clampf(runtime.progress+(30 if safe else -12)*seconds,0,100)
 			if runtime.tension<=0 or runtime.tension>=100:
 				runtime.phase="escaped"; runtime.failureReason="line-broke" if runtime.tension>=100 else "slack-line"; return "escaped"
 			if runtime.progress>=100:
-				var quality:=0
+				var base_quality:=catch_quality(state)
+				var perfect: bool=bool(runtime.get("perfect",false))
+				var quality:=_perfect_quality(base_quality)
 				if not inventory.add(state.inventory,runtime.fish.itemId,1,quality): runtime.phase="inventory-full"; return "inventory-full"
-				FarmSkillRules.gain(state,"fishing",FarmSkillRules.fishing_xp(quality,int(runtime.fish.difficulty)))
+				runtime.quality=quality
+				FarmSkillRules.gain(state,"fishing",FarmSkillRules.fishing_xp(base_quality,int(runtime.fish.difficulty),perfect))
 				runtime.phase="caught"; return "caught"
 	return ""
 
@@ -71,6 +75,40 @@ func terminal() -> bool:
 func bite() -> bool:
 	return not runtime.is_empty() and runtime.phase=="waiting" and runtime.elapsedMs>=runtime.biteAtMs and runtime.elapsedMs<=runtime.biteAtMs+900
 
+## 按当前项目已有的抛竿力度和钓位深度计算完美前的原始鱼获品质；不包含宝箱或鱼漂加成。
+func catch_quality(state: Dictionary) -> int:
+	if runtime.is_empty() or runtime.get("fish")==null: return 0
+	var distance:=_quality_distance()
+	var skill:=_quality_skill(state)
+	var random_factor:=90+FarmWorldRules.stable_hash(state.worldSeed,state.day,"%s:quality-random:%d:%s"%[runtime.zoneId,int(runtime.attempt),runtime.fish.itemId])%21
+	var score:=clampf(float(distance)/5.0*float(skill+2)/10.0*float(random_factor)/100.0,0.0,1.0)
+	if score>=0.66: return 2
+	if score>=0.33: return 1
+	return 0
+
+## 把完美收线的银星或金星鱼提升一档；普通鱼不提升，金星可进入铱星。
+func _perfect_quality(base_quality: int) -> int:
+	if not bool(runtime.get("perfect",false)) or base_quality<1: return base_quality
+	var index: int=FarmQualityRules.VALUES.find(base_quality)
+	if index<1: return base_quality
+	return int(FarmQualityRules.VALUES[mini(index+1,FarmQualityRules.VALUES.size()-1)])
+
+## 使用钓位标定的最大离岸距离和当前抛竿力度，返回 1–5 的本次品质距离。
+func _quality_distance() -> int:
+	var zone: Dictionary=world.zones.get(runtime.get("zoneId",""),{})
+	var maximum:=clampi(int(zone.get("maxQualityDistance",1)),1,5)
+	var power:=clampf(float(runtime.get("castPower",0.0)),0.0,100.0)
+	return clampi(ceili(float(maximum)*power/100.0),1,maximum)
+
+## 复用原作的偶数技能抽样口径；十级固定为 10，十级前从当前偶数等级到 10 中稳定抽取。
+func _quality_skill(state: Dictionary) -> int:
+	var level:=clampi(int(state.skills.fishing.level),0,10)
+	if level>=10: return 10
+	var minimum:=level-level%2
+	var count:=floori(float(10-minimum)/2.0)+1
+	var index:=FarmWorldRules.stable_hash(state.worldSeed,state.day,"%s:quality-skill:%d:%s"%[runtime.zoneId,int(runtime.attempt),runtime.fish.itemId])%count
+	return minimum+index*2
+
 ## 按时段、天气和抛竿强度选择旧鱼种表中的稳定候选。
 func _commit_cast(state: Dictionary) -> void:
 	runtime.castPower=maxi(5,roundi(runtime.castPower))
@@ -81,6 +119,8 @@ func _commit_cast(state: Dictionary) -> void:
 	runtime.phase="waiting"; runtime.held=false; runtime.elapsedMs=0.0
 	runtime.biteAtMs=1800+FarmWorldRules.stable_hash(state.worldSeed,state.day,"%s:bite:%d"%[runtime.zoneId,runtime.attempt])%2200
 
-## 过滤鱼种，不在迁移时改变窗口截止的严格小于语义。
+## 过滤当前钓位水域内的鱼种，不在迁移时改变窗口截止的严格小于语义。
 func _eligible(state: Dictionary, strength: int) -> Array:
-	return fish.filter(func(item:Dictionary)->bool:return state.minuteOfDay>=item.minMinute and state.minuteOfDay<item.maxMinute and (not item.has("weather") or item.weather==state.weather.current) and strength>=item.minCast)
+	var zone: Dictionary=world.zones.get(runtime.get("zoneId",""),{})
+	var habitat: String=zone.get("fishHabitat","")
+	return fish.filter(func(item:Dictionary)->bool:return item.get("habitats",[]).has(habitat) and state.minuteOfDay>=item.minMinute and state.minuteOfDay<item.maxMinute and (not item.has("weather") or item.weather==state.weather.current) and strength>=item.minCast)

@@ -47,9 +47,13 @@ export interface ResourceSpawnDefinition extends WorldPoint {
   readonly kind: "tree" | "stone" | "weed" | "wild-horseradish" | "daffodil" | "leek" | "dandelion" | "fallen-branch";
 }
 
+export type FishingHabitat = "mountain-lake" | "town-river";
+
 export interface FishingZoneDefinition extends WorldRect {
   readonly id: string;
   readonly regionId: string;
+  readonly fishHabitat: FishingHabitat;
+  readonly maxQualityDistance: 1 | 2 | 3 | 4 | 5;
 }
 
 export interface StandardInteractionDefinition extends WorldRect {

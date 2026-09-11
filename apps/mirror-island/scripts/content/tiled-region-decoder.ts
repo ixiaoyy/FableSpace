@@ -3,6 +3,7 @@ import {
   assertStableId,
   type CollisionGrid,
   type ExitDefinition,
+  type FishingHabitat,
   type FishingZoneDefinition,
   type InteractionDefinition,
   type NpcSpawnDefinition,
@@ -29,6 +30,8 @@ const REQUIRED_OBJECT_LAYERS = [
 ] as const;
 const OPTIONAL_OBJECT_LAYERS = ["FishingZones"] as const;
 const OPTIONAL_TILE_LAYERS = ["Tillable", "Placeable", "Buildable"] as const;
+const FISHING_ZONE_REGIONS = ["lakeshore", "town"] as const;
+const FISHING_HABITATS = ["mountain-lake", "town-river"] as const;
 
 /** 将原始 Tiled JSON 解析为 Godot 内容准备使用的区域数据；仅接受固定的有限 16 像素地图。 */
 export function decodeTiledRegion(value: unknown, mapKey: string): RegionDefinition {
@@ -248,15 +251,32 @@ function decodeFishingZones(
   regionId: string,
 ): readonly FishingZoneDefinition[] {
   if (!layer) return [];
-  if (regionId !== "lakeshore") throw new Error("Fishing zones must belong to Lakeshore.");
+  if (!FISHING_ZONE_REGIONS.includes(regionId as typeof FISHING_ZONE_REGIONS[number])) {
+    throw new Error("Fishing zones must belong to a fishing-enabled region.");
+  }
   const seen = new Set<string>();
   return objectRecords(layer).map((object) => {
     if (object.type !== "fishing-zone") throw new Error("FishingZones contains an invalid object.");
-    const id = requiredString(propertyRecord(object.properties), "fishingZoneId");
+    const properties = propertyRecord(object.properties);
+    const id = requiredString(properties, "fishingZoneId");
+    const fishHabitat = requiredString(properties, "fishHabitat");
+    const maxQualityDistance = positiveInteger(properties.maxQualityDistance, "Fishing zone quality distance is invalid.");
     assertStableId(id, "Behavior zone ID");
+    if (!FISHING_HABITATS.includes(fishHabitat as FishingHabitat)) {
+      throw new Error("Fishing zone habitat is invalid.");
+    }
+    if (![1, 2, 3, 4, 5].includes(maxQualityDistance)) {
+      throw new Error("Fishing zone quality distance is invalid.");
+    }
     if (seen.has(id)) throw new Error(`Duplicate behavior zone ID: ${id}.`);
     seen.add(id);
-    return { id, regionId, ...rectFrom(object) };
+    return {
+      id,
+      regionId,
+      fishHabitat: fishHabitat as FishingHabitat,
+      maxQualityDistance: maxQualityDistance as FishingZoneDefinition["maxQualityDistance"],
+      ...rectFrom(object),
+    };
   });
 }
 

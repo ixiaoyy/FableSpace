@@ -2,6 +2,101 @@
 
 用户于 2026-09-07 明确要求完整迁移。当前本地客户端为 Godot/GDScript，原玩法已接入，npm 默认入口已切换；真人完整验收和公开部署仍需分别完成。真实城市和新玩法不属于本轮范围；物品、配方、技能与职业显示名按用户最新要求使用星露谷官方简体中文名，地图、角色和游戏标题仍保留当前项目身份。
 
+## Scenario: 春季深山湖大头鱼
+
+### 1. Scope / Trigger
+
+- `lakeshore-old-dock-fishing` 的 `fishHabitat` 为 `mountain-lake`；当前春季普通鱼已含鲤鱼、鲢鱼、大嘴鲈鱼，补入同水域的大头鱼。
+- 该批只扩内容数据与像素图标，复用已有钓鱼候选、品质、完美、库存、出货、食用和礼物入口，不新增 `GameState` 字段、命令或存档版本。
+
+### 2. Signatures
+
+- 鱼定义：`{itemId:"bullhead", minMinute:360, maxMinute:1560, minCast:0, pull:14, difficulty:46, habitats:["mountain-lake"]}`。
+- 物品：`items.bullhead={category:"fish", shippingCategory:"fishing", staminaRestore:25, hasQuality:true, edibility:10}`；`prices.bullhead=75`。
+- 筛选入口：`FarmFishingRules._eligible(state, strength) -> Array`，必须读取当前钓位 `fishHabitat`。
+
+### 3. Contracts
+
+- 大头鱼为全天、任意天气、全季深山湖鱼；当前春季世界无季节字段，因此不添加不存在的季节过滤。
+- 普通品质经验按 `floor(3 + 46 / 3)=18`，品质与完美仍复用 `FarmSkillRules.fishing_xp()`；`pull=14` 只控制当前简化张力，不能当作原作 Smooth 行为或难度。
+- 当前八位居民必须都有 `bullhead` 礼物偏好，图标必须是 `media.items.bullhead` 的 16×16 矩阵；物品排序连续唯一。`FarmSocialRules.GIFT_POINTS` 固定为 `liked:45 / neutral:20 / disliked:-20 / hated:-40`，负向偏好不受品质倍率。
+- 封套 13 / 状态 25 不变。不得为新增内容虚构开发档迁移或宣称旧运行时可读取含大头鱼的存档。
+
+### 4. Validation & Error Matrix
+
+- 镇河钓位 → 大头鱼不在候选池。
+- 满包、逃脱或保存失败 → 大头鱼和 18 XP 均不发布；`retry-fishing-save` 只提交原候选。
+- 任一当前居民缺少 `bullhead` 偏好或图标行数/宽度不是 16 → 内容检查失败，不能交付。
+- `hated` → 返回 `gift-hated`、扣 40 好感并消费一件；未知偏好 → `invalid-gift-preference`，库存与好感均不变。
+
+### 5. Good / Base / Bad Cases
+
+- Good：在湖岸旧码头收线大头鱼，库存增加 1 条、钓鱼经验增加 18，后续可出货、食用或送礼。
+- Base：同一时段镇河只从河鱼池选择，湖岸雨天仍可选择大头鱼。
+- Bad：把夏季虹鳟、绿藻或传说之鱼当作本批普通鱼，或给大头鱼另设 UI 发奖路径。
+
+### 6. Tests Required
+
+- `test:fishing` 逐项断言大头鱼水域、时段、价格、体力、难度、XP、当前 `pull`、八位偏好与真实收线结果。
+- 命名检查断言 `bullhead` 显示 `大头鱼`；`typecheck:client` 和 `build:client` 校验 JSON、16×16 图标、内容准备和 Web 导出。
+- `test:godot` 保留既有确定性钓鱼 fixture；新增鱼池后先复算其索引，再更新期望，禁止用实际结果反推不相关字段。
+
+### 7. Wrong vs Correct
+
+Wrong：只把 `bullhead` 加到 `rules.fish`，遗漏 item、price、media 或任一居民偏好，或把 `pull` 当作原作难度。
+
+Correct：在同一内容表补全物品、价格、鱼池、素材和偏好，由既有 `FarmFishingRules` 统一结算品质、XP 和保存。
+
+## Scenario: 围栏寿命与大门
+
+### 1. Scope / Trigger
+
+- 当前围栏体系包含 `wood-fence`、`stone-fence` 和 `gate`，只允许在农场合法 `placeableTiles` 上摆放。
+- 关闭的大门与普通围栏一样阻挡移动；打开的大门允许通行，但仍然占用格子，不能被野采、作物或其它物件覆盖。
+
+### 2. Signatures
+
+- 状态：普通围栏对象为 `{id, kind, regionId:"farm", column, row, placedDay:int, damaged:bool}`。
+- 状态：大门对象额外带 `{open:bool}`。
+- 命令：`place-world-object`、`recover-fence`、兼容旧入口 `recover-stone-fence`、`toggle-gate`。
+- 规则：`FarmFenceRules.durability_days(state, object) -> int` 与 `FarmFenceRules.settle_day(state) -> {damaged, vanished}`。
+
+### 3. Contracts
+
+- `wood-fence` 默认已知，2 木材制作 1 个，1g 出货，寿命 48–52 天；`gate` 默认已知，10 木材制作 1 个，4g 出货，寿命 360 天；`stone-fence` 为耕种 2 级确认后解锁，2 石头制作 1 个，2g 出货，寿命 106–109 天。
+- 放置成功必须在同一候选中扣物品、应用预检副作用、写入 `placedDay/damaged/open` 并追加世界对象；保存失败不能发布半状态。
+- `GameSession._settle_day()` 在天数加一后结算围栏老化：寿命结束的新一天先标记损坏，损坏状态再过一天消失。`fenceEvents` 只放在 UI 日结摘要，不持久化到出货报告。
+- 完整围栏和大门用十字镐回收时先检查背包容量并返还同名物品；损坏对象只清理不返还物品。错误工具不能回收完整围栏。
+- 任意新围栏可替换损坏围栏；大门可替换未损坏普通围栏。替换发生在 `FarmWorldRules.apply_placement()`，避免放置层和世界层各删一次。
+- `toggle-gate` 只处理可达大门。打开直接成功；关闭前必须确认玩家、居民和伙伴脚点不与门格重叠。
+- 封套 13 / 状态 25 严格校验围栏区域、坐标、`placedDay`、`damaged` 和大门 `open`；缺字段或旧封套直接拒绝，不迁移开发档。
+
+### 4. Validation & Error Matrix
+
+- 非农场、地图阻挡、水面、出口、资源、作物、其它物件或实体占用 → `blocked`，不扣围栏。
+- 未确认耕种 2 级石围栏配方 → `unknown-recipe`，不扣石头。
+- 完整围栏回收时工具不是十字镐 → `wrong-tool`；背包满 → `inventory-full`，世界物件保留。
+- 大门关闭且门格有人或伙伴 → `blocked`，保持打开。
+- 存档缺 `placedDay`、`damaged` 或大门 `open` → 拒绝，不补默认值。
+
+### 5. Good / Base / Bad Cases
+
+- Good：放置石围栏后睡到寿命结束的新一天，报告提示围栏损坏；再睡一天对象消失。
+- Base：木围栏和大门新档即可制作；大门关闭阻挡，打开后同一格移动不再被 `covers()` 拦截。
+- Bad：把打开的大门当空地刷野采、回收损坏围栏返还物品、保存失败后仍删除围栏，或允许角色站在门格上关门，均违反合同。
+
+### 6. Tests Required
+
+- 围栏专项覆盖三类配方、价格、图标、礼物偏好、石围栏升级解锁、摆放原子性、碰撞、回收、替换、老化和存档字段。
+- 命名检查断言 `木围栏`、`石围栏`、`大门`，并拒绝运行时残留 `木栅栏` / `石栅栏`。
+- 运行 `typecheck:client`、`test:godot`、`test:energy`、`test:fishing`、`test:views` 和 `build:client`，确认版本升级与 UI 入口未破坏既有链路。
+
+### 7. Wrong vs Correct
+
+Wrong：直接让 `covers()` 对打开大门返回 false 并复用于所有系统，会导致野采、摆放和作物把门格误判为空。
+
+Correct：`covers()` 默认保持占用语义，只在移动碰撞调用时传入打开大门可通行参数。
+
 ## Scenario: 湖岸基础钓鱼经验与熟练度
 
 ### 1. Scope / Trigger
@@ -123,8 +218,8 @@ Correct：日结保存 `professionChoices`，`choose-profession` 修改 GameSess
 - `game_session.gd` 为唯一可变状态所有者；关键命令在隔离候选里执行并保存成功后发布。普通移动检查点不冻结输入，关键保存等其完成后再写，失败重试使用同一候选。
 - `data/*.json` 为物品、配方、鱼种、对话、日程和美术元数据，是直接维护的权威内容。旧客户端和旧 TS 玩法已删除，不再生成跨引擎快照。`scripts/content/` 只做 Tiled 构建期校验；`tools/interior-atlases.json` 为室内绘图源，由原生工具重建，不随游戏发布。
 - Godot JSON 整数会读成 float；规范化安全整数后再做封闭枚举校验。规范化前限制未知输入嵌套和节点数，保存字段仍逐层严格验证。
-- 当前封套版本为 12，状态版本为 24。S1-A 将 `turnip/turnip-seed` 替换为 `parsnip/parsnip-seed`，防风草生长 4 天、种价 20、普通售价 35、普通食用恢复 25；花椰菜生长 12 天、种价 80、普通售价 175、普通食用恢复 75。`items/crops/prices` 与对话、委托、礼物和素材映射同步，现有素材仍是临时外观，不添加旧 ID alias。
-- 体力允许有限小数，当前范围 0–270；上限、基础工具耗能和正常/晚睡恢复由 FarmEnergyRules 统一提供。UI 只用 roundi 显示，不能把显示取整写回存档。`FarmSaveCodec.decode()` 只接受封套 12 / 状态 24；旧开发版本拒绝且原记录保留，不自动迁移或覆盖。不能仅提升版本号后用新内容解释旧物品。
+- 当前封套版本为 13，状态版本为 25。S1-A 将 `turnip/turnip-seed` 替换为 `parsnip/parsnip-seed`，防风草生长 4 天、种价 20、普通售价 35、普通食用恢复 25；花椰菜生长 12 天、种价 80、普通售价 175、普通食用恢复 75。`items/crops/prices` 与对话、委托、礼物和素材映射同步，现有素材仍是临时外观，不添加旧 ID alias。
+- 体力允许有限小数，当前范围 0–270；上限、基础工具耗能和正常/晚睡恢复由 FarmEnergyRules 统一提供。UI 只用 roundi 显示，不能把显示取整写回存档。`FarmSaveCodec.decode()` 只接受封套 13 / 状态 25；旧开发版本拒绝且原记录保留，不自动迁移或覆盖。不能仅提升版本号后用新内容解释旧物品。
 - S2-H 品质为必填整数 `0/1/2/4`，空槽 / 固定品质物品只能为 0；合并键为物品 ID + 品质。背包、箱子、出货队列、掉落和日结报告保持该键。配方 / 委托默认从低品质消耗，指定出售 / 食用 / 礼物只消费所选品质。售价、原始食用值与礼物倍率统一由 FarmQualityRules 提供，禁止 UI 重算后写入状态。
 - 每块耕地必填 `fertilizer=0/1/2`；初级肥料仅在空地或 `growthDays < seedStageDays` 使用，重复施用拒绝。普通作物首个产物按动作前等级与肥料判品质，额外土豆普通；春季野种 / 地面野采按采集等级，不受肥料影响。当前只自然生成普通 / 银星 / 金星，铱星品质获得条件仍待后续职业等批次。
 - 本节为当前合同；下文 S2-G 及更早批次的版本和缺口是历史记录，品质 / 初级肥料 / 树液内容以 S2-H 及后续更新为准。历史 fixture 补字段仅供 tools 检查使用，生产解码器不得引用 FarmLegacyFixture。
@@ -133,6 +228,7 @@ Correct：日结保存 `professionChoices`，`choose-profession` 修改 GameSess
 - 工具、交互、菜单、数量选择和拖放由原生控件发送明确意图；界面不得自行扣材料、加金币或结算日期。
 - 快捷栏在配置时创建固定十二个槽位，后续只投影图标、数量、水量和选中状态，不通过销毁按钮刷新选择。槽号显示真实快捷键 `1–0、-、=`；Tab/Shift+Tab 沿用领域的背包行轮换。
 - 快捷栏采用浅木色直角边框与桃橙选中框；选中物品名称置于上方，水壶细水量条仅投影当前水量和已有等级容量。窄于 680 的视口使用两排六格，横竖屏切换必须重新应用容器尺寸；最窄已检查 320 像素，每格宽度至少 44。
+- 快捷栏首次投影自动选中首个非空槽；数字键或点击空槽不改变当前选择，已选物品被消耗后清除选择，避免标题投影为 `空槽` 却继续向世界发送旧工具意图。再次选择当前非空槽仍可主动收起手持物。
 - 背包复用同一槽位样式，显示已占用格数和实际容量；物品详情与现有操作集中显示，价格、水量和可出货性读取当前规则。数量模式必须显示选中状态；制作不展示无效的转移数量，出货仅展示整组/单件。12/24/36 格均保留桌面十二列、窄屏六列，长内容允许纵向滚动。
 - HUD 右上只读显示日期、天气、时间和金币，右下竖向体力条同时显示当前数值。低于 FarmEnergyRules.LOW_STAMINA 的体力与午夜后的时钟只改变提示颜色，不改变规则。窄屏左上收为背包/菜单，制作保留在菜单内；移动按钮保持原四方向意图。
 - 菜单打开时隐藏移动/使用/交互按钮并释放触屏移动意图；摆放确认按钮不得覆盖工具栏。临时反馈有独立底色，常规提示三秒收起；摆放提示保留至结束，退出摆放后清理已过期提示。
@@ -405,6 +501,54 @@ Spring Seeds 跨越技能日结奖励、制作、种子店、农田、生长素�
 ### 禁止的替代实现
 
 不从库存入包、动画或反馈文本补经验，不按额外产物倍增经验，不把日结已展示视为职业或配方已领取；不能用三技能前置完成替代整个技能任务。
+
+## S2-O 石栅栏配方合同
+
+### 1. Scope / Trigger
+
+- 耕种达到 2 级并完成夜间报告确认后，开放当前唯一已接入的耕种 2 级围栏配方；配方学习、制作、摆放、阻挡、回收和出货必须形成真实闭环。
+- 本批只接入静态一格石栅栏，不创建耐久、损坏、围栏门或动物路径字段；原作 106–109 天寿命另由围栏寿命批次接入。
+
+### 2. Signatures
+
+- 内容：`rules.items["stone-fence"]` 为可摆放、可出货物品，`rules.prices["stone-fence"] = 2`；`rules.recipes["stone-fence"]` 为 `stone × 2 -> stone-fence × 1`、`skill=farming`、`level=2`、`knownByDefault=false`。
+- 摆放命令：`{type:"place-world-object", inventoryIndex, column, row}`；只接受背包中的 `stone-fence`。
+- 回收命令：`{type:"recover-stone-fence", objectId, itemId:"pickaxe"}`；成功返回 `recovered-stone-fence`。
+- 世界物件：`{id, kind:"stone-fence", regionId:"farm", column, row}`，占用一格，不含耐久字段。
+
+### 3. Contracts
+
+- `knownRecipes` 是唯一配方门禁；耕种 2 级只在睡眠候选的 `recipeUnlocks` 中待学，`dismiss-day-settlement` 保存成功后才写入。
+- `FarmWorldRules.placement()` 复用 `placeableTiles`、静态阻挡、资源、出口、作物、玩家、NPC 和宠物检查；石栅栏只允许 `farm`，`covers()` 将其作为一格物件参与移动阻挡。
+- 制作与摆放都先在候选状态完整预检，保存失败保留候选；十字镐回收先预检背包容量，再删除物件并加入一件石栅栏。出货沿用 `other` 分类和 2g 单价。
+- `FarmSaveCodec` 世界物件白名单允许 `stone-fence`，并拒绝非农场区域；同版本 12 / 24 不新增字段或迁移。
+
+### 4. Validation & Error Matrix
+
+- 未学习或技能不足 → `unknown-recipe` / 存档配方条件错误；不消费石头。
+- 材料不足或目标格无法完整接收 → `requirements-not-met` / `target-full`；候选库存保持不变。
+- 非农场、地图阻挡、作物、资源、角色或其它物件占用 → `blocked`；不扣石栅栏。
+- 回收错误物件或错误工具 → `missing-object` / `wrong-tool`；物件保持。
+- 回收时背包无空位 → `inventory-full`；物件保持。
+- 任一制作、摆放或回收保存失败 → `save-failed`；公开状态和原记录保持，重试只能提交原候选。
+
+### 5. Good / Base / Bad Cases
+
+- Good：耕种 2 级过夜确认后学会配方，2 石制作 1 栅栏，农场空格摆放后角色无法穿过，十字镐回收返还 1 件。
+- Base：有等级但未确认日结时配方仍不可制作；石栅栏不在农场外显示为合法放置。
+- Bad：UI 直接扣石头、把石栅栏放到镇区、用斧头回收、背包满时先删世界物件，或保存重试再次生成栅栏，均违反合同。
+
+### 6. Tests Required
+
+- `validate_stone_fence.gd` 断言二级配方门禁、夜间待学/确认、2 石制作、目标格和保存失败原子性。
+- 断言农场区域、一格 `blocked()`、十字镐回收、错误工具、满包、2g 出货和同版本 codec 往返。
+- `typecheck:client`、`test:stone-fence`、`test:godot`、`test:fishing`、Web / Windows 导出通过；真人布局、耐久和最终美术单独验收。
+
+### 7. Wrong vs Correct
+
+Wrong：只在制作菜单显示石栅栏，或回收时先删除世界物件再尝试放回库存。
+
+Correct：领域从 `knownRecipes` 和 `rules.items` 读取门禁，在候选中完整预检材料/容量/位置，成功后才写 `worldObjects`，由 `GameSession` 原子保存并发布。
 
 ## S2-B 稻草人配方合同
 
