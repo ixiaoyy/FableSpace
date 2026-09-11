@@ -1,6 +1,6 @@
 # 游戏美术资源规范
 
-2026-09-08 状态：旧 Phaser/Vue 客户端与 `?toolArt=preview` 入口已清理。下文 2026-09-06 的 DEV 样板说明保留为历史来源，不能用于当前 Godot 预览。当前室内绘图源为 `apps/mirror-island/godot/tools/interior-atlases.json`；五件新基础工具已完成透明切片并接入显式 Godot 本地美术构建，见 [接入记录](assets/pastoral-tools-local-2026-09-08.md)。金属升级稿仍为后续外观方案，工具图片尚未上传 CDN。素材来源、许可证、不可变对象、署名与验收规则继续有效。
+2026-09-11 状态：五件清新田园基础工具已上传不可变 CDN 对象并登记，普通 Godot 构建统一使用正式 PNG；旧工具像素定义、候选覆盖和专用美术命令已删除，见 [正式采用记录](assets/pastoral-tools-published-2026-09-11.md)。旧 Phaser/Vue 与 `?toolArt=preview` 入口已清理，下方 2026-09-06 样板描述仅保留历史来源。当前室内绘图源为 `apps/mirror-island/godot/tools/interior-atlases.json`；金属升级稿仍是后续外观方案，未作为基础工具发布。素材来源、许可证、不可变对象、署名与验收规则继续有效。
 
 本规范覆盖当前 Web 像素游戏使用的 tileset、spritesheet、静态 UI 图像及以后单独批准的音频。核心目标是：正式二进制不进入 Git，代码只加载可追踪、不可变且允许当前用途的 CDN 对象。
 

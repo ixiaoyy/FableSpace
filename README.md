@@ -8,18 +8,18 @@
 
 RPGJS 和 Phaser/Colyseus 多人技术切片均已封存，不再是活跃运行时。公开根入口 `/` 只服务镜像岛单人主线。
 
-已迁移内容包括 12 个区域、六种春作、五件基础工具、12/24/36 格背包与快捷行、制作、箱子存取/摆放/推移、共享出货与日结报告、木匠服务、买卖与升级、时间/体力/天气、钓鱼、八名 NPC 日程/对话/送礼/委托、猫狗与分层角色外观。
+当前 Godot 内容包括 12 个区域、六种普通春作与春季野种、五件基础工具、12/24/36 格背包与快捷行、制作、箱子存取 / 摆放 / 推移、共享出货与日结报告、木匠服务、四项生活技能、首批职业与配方、品质肥料、围栏、湖河钓鱼、时间 / 体力 / 天气、八名 NPC 日程 / 对话 / 送礼 / 委托、猫狗与分层角色外观。
 
 地表工具、小屋与两处商店精修均已提交并进入本地 `main`。春季 v10 有历史真人通过记录；后续批次的真人反馈和当前部署需分别核验，详见 [当前状态](docs/CURRENT_STATE.md)。
 
-**当前：完成 Godot 迁移的真人验收与发布准备。** 旧阶段验收不代替新引擎验收，后续功能不在本轮自动启动。历史基础盘规划见 [开发计划](docs/DEVELOPMENT_PLAN.md)。
+**当前：浅层矿洞、铜冶炼与铜工具 v1 的 MINE-0 合同已完成。** 下一批是第 1–5 层、楼梯、电梯、重置和存档底座；生产代码尚未开始，随后再接熔炉与铜工具。既有真人验收尾项和完整计划见 [开发计划](docs/DEVELOPMENT_PLAN.md)。
 
 ## 新主线底座
 
 - Godot `4.7.2` 标准版 + GDScript：原生场景、界面、输入、声音和游戏规则。
 - `godot/domain` 的 GameSession：唯一可变状态所有者，关键操作先保存候选再发布。
 - Web 使用独立 IndexedDB 槽，Windows 使用原子文件保存；不迁移或覆盖旧 Phaser 开发档。
-- Node.js/TypeScript 保留为构建工具和独立服务端；旧 `client/`、`domain/` 是内容转换与规则对照来源，不再作为游戏运行入口。
+- Node.js / TypeScript 保留为内容准备、构建工具和独立服务端；旧客户端与 TypeScript 玩法已清理，历史规则只从归档规范与 Git 历史查证。
 - Keycloak `26.7.1`：保留的身份与论坛 OIDC 代理基础设施；当前试玩客户端不接入。
 - `oidc-provider` `9.11.1`：将 ParallelLines 现有一次性票据适配为标准 OIDC。
 - Prisma `7.9.1` + PostgreSQL 17：保留已评审的后端数据基础设施，未来云能力另行评审；当前本地玩法不接入。
@@ -60,5 +60,5 @@ npm --prefix .\apps\mirror-island run build:server
 - [Town 后续开发路线图](docs/TOWN_ROADMAP.md)
 - [现阶段精细化验收门禁](docs/CURRENT_SLICE_POLISH_GATE.md)
 - [生产部署](docs/DEPLOYMENT.md)
-- [Godot 单人运行时规范](.trellis/spec/frontend/godot-singleplayer-migration.md)
-- [Phaser 历史规则来源](.trellis/spec/frontend/mirror-island-phaser-singleplayer.md)
+- [Godot 单人运行时规范](docs/architecture/GODOT_RUNTIME.md)
+- [Phaser 历史规则来源](docs/architecture/PHASER_RUNTIME_ARCHIVE.md)

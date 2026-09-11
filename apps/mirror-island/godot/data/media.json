@@ -1488,142 +1488,62 @@
       }
     },
     "axe": {
-      "kind": "pixels",
-      "art": {
-        "rows": [
-          "................",
-          "........ddd.....",
-          ".......dhhhdd...",
-          "......dmhhhhhd..",
-          ".....dsmhhhhd...",
-          ".....dwsmmmd....",
-          "....dswdddd.....",
-          "....dwd.........",
-          "...dswd.........",
-          "..dswd..........",
-          ".dswd...........",
-          ".dwd............",
-          "..d.............",
-          "................",
-          "................",
-          "................"
-        ],
-        "palette": {
-          "d": "#52686a",
-          "m": "#86aaa8",
-          "h": "#d2e7dc",
-          "w": "#cda574",
-          "s": "#93714f"
-        }
-      },
+      "kind": "atlas",
+      "url": "/game-media/v1/assets/original/pastoral-tools/2026-09-08-v1/tools-runtime-v1.png",
+      "sourceWidth": 320,
+      "sourceHeight": 64,
+      "x": 128,
+      "y": 0,
+      "width": 64,
+      "height": 64,
       "grip": {
-        "x": 3,
-        "y": 11
+        "x": 11,
+        "y": 50
       },
-      "heldSize": 16
+      "heldSize": 18
     },
     "hoe": {
-      "kind": "pixels",
-      "art": {
-        "rows": [
-          "................",
-          ".........ddd....",
-          "........dhhd....",
-          ".......dhhmd....",
-          "......dhhmd.....",
-          ".....ddmmd......",
-          "......dsd.......",
-          ".....dswd.......",
-          "....dswd........",
-          "...dswd.........",
-          "..dswd..........",
-          ".dswd...........",
-          ".dwd............",
-          "..d.............",
-          "................",
-          "................"
-        ],
-        "palette": {
-          "d": "#52686a",
-          "m": "#86aaa8",
-          "h": "#d2e7dc",
-          "w": "#cda574",
-          "s": "#93714f"
-        }
-      },
+      "kind": "atlas",
+      "url": "/game-media/v1/assets/original/pastoral-tools/2026-09-08-v1/tools-runtime-v1.png",
+      "sourceWidth": 320,
+      "sourceHeight": 64,
+      "x": 0,
+      "y": 0,
+      "width": 64,
+      "height": 64,
       "grip": {
-        "x": 3,
-        "y": 11
+        "x": 8,
+        "y": 52
       },
-      "heldSize": 16
+      "heldSize": 18
     },
     "pickaxe": {
-      "kind": "pixels",
-      "art": {
-        "rows": [
-          "................",
-          ".....dddd.......",
-          "...ddhhhddd.....",
-          "..dhhmmmhhhd....",
-          ".dmmddswddhhd...",
-          "..dd.dwd..dmd...",
-          "....dswd...dd...",
-          "....dwd.........",
-          "...dswd.........",
-          "..dswd..........",
-          ".dswd...........",
-          ".dwd............",
-          "..d.............",
-          "................",
-          "................",
-          "................"
-        ],
-        "palette": {
-          "d": "#52686a",
-          "m": "#86aaa8",
-          "h": "#d2e7dc",
-          "w": "#cda574",
-          "s": "#93714f"
-        }
-      },
+      "kind": "atlas",
+      "url": "/game-media/v1/assets/original/pastoral-tools/2026-09-08-v1/tools-runtime-v1.png",
+      "sourceWidth": 320,
+      "sourceHeight": 64,
+      "x": 192,
+      "y": 0,
+      "width": 64,
+      "height": 64,
       "grip": {
-        "x": 3,
-        "y": 11
+        "x": 10,
+        "y": 53
       },
-      "heldSize": 16
+      "heldSize": 18
     },
     "scythe": {
-      "kind": "pixels",
-      "art": {
-        "rows": [
-          "................",
-          ".......ddddd....",
-          ".....ddhhhhhd...",
-          "....dhhmmmddmd..",
-          "...dhhmdd...dmd.",
-          "...dhmd......dd.",
-          "....dsd.........",
-          "...dswd.........",
-          "...dwd..........",
-          "..dswd..........",
-          "..dwd...........",
-          ".dswd...........",
-          ".dwd............",
-          "..d.............",
-          "................",
-          "................"
-        ],
-        "palette": {
-          "d": "#52686a",
-          "m": "#86aaa8",
-          "h": "#d2e7dc",
-          "w": "#cda574",
-          "s": "#93714f"
-        }
-      },
+      "kind": "atlas",
+      "url": "/game-media/v1/assets/original/pastoral-tools/2026-09-08-v1/tools-runtime-v1.png",
+      "sourceWidth": 320,
+      "sourceHeight": 64,
+      "x": 256,
+      "y": 0,
+      "width": 64,
+      "height": 64,
       "grip": {
-        "x": 3,
-        "y": 11
+        "x": 18,
+        "y": 50
       },
       "heldSize": 16
     },
@@ -1698,37 +1618,17 @@
       "height": 16
     },
     "watering-can": {
-      "kind": "pixels",
-      "art": {
-        "rows": [
-          "................",
-          ".....ddddd......",
-          "....d.....d.....",
-          "....d.....d.....",
-          ".....ddddd......",
-          "....ddddddd.....",
-          "...dhhhhhmmd....",
-          "...dhhmmmmmd.dd.",
-          "...dhmmmmmmdhhd.",
-          "...dmmmmmmmhmd..",
-          "...dmmmmmmmmdd..",
-          "....dmmmmmdd....",
-          ".....ddddd......",
-          "................",
-          "................",
-          "................"
-        ],
-        "palette": {
-          "d": "#52686a",
-          "m": "#86aaa8",
-          "h": "#d2e7dc",
-          "w": "#cda574",
-          "s": "#93714f"
-        }
-      },
+      "kind": "atlas",
+      "url": "/game-media/v1/assets/original/pastoral-tools/2026-09-08-v1/tools-runtime-v1.png",
+      "sourceWidth": 320,
+      "sourceHeight": 64,
+      "x": 64,
+      "y": 0,
+      "width": 64,
+      "height": 64,
       "grip": {
-        "x": 7,
-        "y": 4
+        "x": 26,
+        "y": 18
       },
       "heldSize": 14
     },

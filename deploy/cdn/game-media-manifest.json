@@ -1,9 +1,9 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-09-06T17:01:46.354Z",
+  "generated_at": "2026-09-11T09:57:39.449880Z",
   "media_base_url": "https://img.pingxingxian.space/game/media/v1",
-  "tracked_image_count": 21,
-  "tracked_image_bytes": 3418682,
+  "tracked_image_count": 22,
+  "tracked_image_bytes": 3434452,
   "tracked_audio_count": 19,
   "tracked_audio_bytes": 7806934,
   "entries": [
@@ -528,6 +528,23 @@
       "content_type": "image/webp",
       "object_key": "assets/original/mirror-island-home/2026-09-07/home-hero-desktop.webp",
       "url": "https://img.pingxingxian.space/game/media/v1/assets/original/mirror-island-home/2026-09-07/home-hero-desktop.webp"
+    },
+    {
+      "source": "artifacts/tool-materials-2026-09-08/tools-candidate-v2.png",
+      "source_url": "docs/assets/pastoral-tools-local-2026-09-08.md",
+      "source_sha256": "6fa232dc5e6b55f75272b4adcd4c0e0ff8d4e01cfc99a35e16a45483da712330",
+      "license": "Project-original AI-generated art",
+      "creator": "Mirror Island project; OpenAI built-in image_gen, Codex mechanical preparation",
+      "prompt_source": "docs/assets/pastoral-tools-local-2026-09-08.prompts.json",
+      "processing_source": "docs/assets/pastoral-tools-local-2026-09-08.metadata.json",
+      "transformation": "边缘四连通去除浅色中性棋盘背景；水壶两个开口额外设种子；裁取 alpha 包围盒，以最近邻缩放到最长边 56，再居中放入 64 像素格。未重绘工具。",
+      "width": 320,
+      "height": 64,
+      "bytes": 15770,
+      "sha256": "367ed6a3d822a2e652a46ac5e595aefa344d3828976568b500c8efc1cda4f55b",
+      "content_type": "image/png",
+      "object_key": "assets/original/pastoral-tools/2026-09-08-v1/tools-runtime-v1.png",
+      "url": "https://img.pingxingxian.space/game/media/v1/assets/original/pastoral-tools/2026-09-08-v1/tools-runtime-v1.png"
     }
   ]
 }

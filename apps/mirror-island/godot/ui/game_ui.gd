@@ -1,6 +1,9 @@
 class_name FarmGameUI
 extends CanvasLayer
 ## Godot 原生游戏界面；显示防御性快照，所有库存、交易和存档操作只发会话命令。
+## 视觉约定：世界优先，菜单是一册暖白农场手册；林绿指示操作，蜜金标出收获。
+## 常驻信息分居屏幕两角，底部十二格工具盘保持真实顺序；打开手册后背景收暗。
+## 标题、内容、操作提示各自独立，窄屏保持原生文字尺寸和可滚动内容。
 
 const FarmFenceRules = preload("res://domain/fence_rules.gd")
 signal selected(index: int)
@@ -66,6 +69,16 @@ var preview_direction: String="down"
 var preview_walking:=false
 var _inventory_key: String=""
 var message_lifetime:=0.0
+var backdrop: ColorRect
+var dialog_scroll: ScrollContainer
+var dialog_kicker: Label
+var dialog_footer: Label
+var dialog_actions: HBoxContainer
+var location_label: Label
+var _rendered_mode: String=""
+var _dialog_tween: Tween
+var recipe_list_scroll: ScrollContainer
+var _body_revision:=0
 
 ## 组合原生控件和统一主题，绑定会话信号后检查唯一新引擎存档。
 func configure(owner_session: FarmGameSession, asset_library: FarmAssets, sound: FarmAudio) -> void:
@@ -84,7 +97,7 @@ func configure(owner_session: FarmGameSession, asset_library: FarmAssets, sound:
 		button.button_down.connect(_move.bind(pair[1])); button.button_up.connect(_move.bind(Vector2.ZERO)); button.mouse_exited.connect(_move.bind(Vector2.ZERO))
 	actions=VBoxContainer.new(); root.add_child(actions)
 	_button("使用 C",actions,_action.bind(true)); _button("交互 X",actions,_action.bind(false))
-	for area in [hud_menu,touch,actions]:
+	for area in [touch,actions]:
 		for child: Node in area.get_children():
 			if not child is Button: continue
 			var button:=child as Button
@@ -93,16 +106,24 @@ func configure(owner_session: FarmGameSession, asset_library: FarmAssets, sound:
 			if area==actions: button.custom_minimum_size.x=80
 	message_panel=PanelContainer.new(); message_panel.mouse_filter=Control.MOUSE_FILTER_IGNORE; message_panel.add_theme_stylebox_override("panel",_hotbar_style("fff8e8","aa8559",2)); root.add_child(message_panel); message_panel.visible=false
 	message=_label("",message_panel); message.mouse_filter=Control.MOUSE_FILTER_IGNORE; message.add_theme_font_size_override("font_size",14)
+	backdrop=ColorRect.new(); backdrop.color=Color(0.08,0.17,0.14,0.48); backdrop.mouse_filter=Control.MOUSE_FILTER_STOP; root.add_child(backdrop)
 	dialog=PanelContainer.new(); root.add_child(dialog)
 	var margin:=MarginContainer.new(); margin.add_theme_constant_override("margin_left",16); margin.add_theme_constant_override("margin_right",16); margin.add_theme_constant_override("margin_top",12); margin.add_theme_constant_override("margin_bottom",12); dialog.add_child(margin)
 	dialog_margin=margin
-	var content:=VBoxContainer.new(); content.add_theme_constant_override("separation",10); margin.add_child(content)
+	var content:=VBoxContainer.new(); content.add_theme_constant_override("separation",12); margin.add_child(content)
+	dialog_kicker=_label("镜像岛  /  农场手册",content); dialog_kicker.add_theme_font_size_override("font_size",12); dialog_kicker.add_theme_color_override("font_color",Color("65735a"))
 	var heading:=HBoxContainer.new(); content.add_child(heading)
 	title=_label("",heading); title.size_flags_horizontal=Control.SIZE_EXPAND_FILL
 	close_button=_button("返回 Esc",heading,close)
+	close_button.add_theme_font_size_override("font_size",13)
+	content.add_child(HSeparator.new())
 	dialog_feedback=_label("",content); dialog_feedback.add_theme_font_size_override("font_size",14); dialog_feedback.visible=false
 	var scroll:=ScrollContainer.new(); scroll.size_flags_vertical=Control.SIZE_EXPAND_FILL; scroll.horizontal_scroll_mode=ScrollContainer.SCROLL_MODE_DISABLED; scroll.follow_focus=true; content.add_child(scroll)
+	dialog_scroll=scroll
 	body=VBoxContainer.new(); body.size_flags_horizontal=Control.SIZE_EXPAND_FILL; body.add_theme_constant_override("separation",10); scroll.add_child(body)
+	content.add_child(HSeparator.new())
+	dialog_actions=HBoxContainer.new(); content.add_child(dialog_actions); dialog_actions.visible=false
+	dialog_footer=_label("",content); dialog_footer.add_theme_font_size_override("font_size",12); dialog_footer.add_theme_color_override("font_color",Color("65735a"))
 	saving=PanelContainer.new(); root.add_child(saving); saving.visible=false
 	placement_controls=HBoxContainer.new(); root.add_child(placement_controls); placement_controls.visible=false
 	_button("确认摆放",placement_controls,func():placement_confirmed.emit()); _button("取消摆放",placement_controls,close)
@@ -161,7 +182,8 @@ func _open(next_mode: String) -> void:
 ## 面板打开后聚焦首个可用按钮；无参数和返回值，保存失败时保留重试框焦点。
 func _focus_dialog() -> void:
 	if not dialog.visible or session.busy or session.save_phase=="failed": return
-	for node: Node in body.find_children("*","Button",true,false):
+	var candidates:=body.find_children("*","Button",true,false)+dialog_actions.find_children("*","Button",true,false)
+	for node: Node in candidates:
 		if node.is_visible_in_tree() and not node.disabled:
 			node.grab_focus(); return
 	if close_button.is_visible_in_tree() and not close_button.disabled: close_button.grab_focus()
@@ -226,7 +248,8 @@ func _changed() -> void:
 		status.text="第 %d 天 · 周%s"%[state.day,["一","二","三","四","五","六","日"][(int(state.day)-1)%7]]
 		clock_label.text="%02d:%02d"%[floori(minute/60.0)%24,minute%60]
 		clock_label.add_theme_color_override("font_color",Color("9c522d") if minute>=1440 else Color("304d3f"))
-		weather_label.text={"sunny":"晴天","rain":"下雨","wind":"有风"}[state.weather.current]
+		weather_label.text={"sunny":"☀ 晴天","rain":"☂ 下雨","wind":"≈ 有风"}[state.weather.current]
+		location_label.text="镜像岛  /  "+str(session.world.regions[state.player.regionId].displayName)
 		gold_label.text=str(int(state.gold)); gold_label.tooltip_text="金币 %d"%state.gold
 		stamina_bar.value=state.stamina; stamina_label.text=str(roundi(state.stamina))
 		stamina_fill.bg_color=Color("c5794c") if state.stamina<FarmEnergyRules.LOW_STAMINA else Color("76a078")
@@ -281,25 +304,31 @@ func _feedback(result: Dictionary) -> void:
 ## 创建只读状态面板和原有菜单入口；字体层级区分时间、资源与辅助信息。
 func _build_hud() -> void:
 	header=Control.new(); header.mouse_filter=Control.MOUSE_FILTER_IGNORE; root.add_child(header)
-	hud_menu=GridContainer.new(); hud_menu.columns=3; hud_menu.add_theme_constant_override("h_separation",5); hud_menu.add_theme_constant_override("v_separation",5); header.add_child(hud_menu)
-	_button("背包 E",hud_menu,_open.bind("inventory")); _button("制作",hud_menu,_open.bind("crafting")); _button("菜单 Esc",hud_menu,_open.bind("menu"))
-	status_panel=PanelContainer.new(); status_panel.add_theme_stylebox_override("panel",_hotbar_style("fff8e8","aa8559",2)); header.add_child(status_panel)
-	var content:=VBoxContainer.new(); content.add_theme_constant_override("separation",3); status_panel.add_child(content)
-	var calendar:=HBoxContainer.new(); content.add_child(calendar)
-	status=_label("",calendar); status.add_theme_font_size_override("font_size",12); status.autowrap_mode=TextServer.AUTOWRAP_OFF; status.text_overrun_behavior=TextServer.OVERRUN_TRIM_ELLIPSIS
-	weather_label=Label.new(); weather_label.add_theme_font_size_override("font_size",12); calendar.add_child(weather_label)
-	var numbers:=HBoxContainer.new(); numbers.add_theme_constant_override("separation",12); content.add_child(numbers)
-	clock_label=_label("06:00",numbers); clock_label.autowrap_mode=TextServer.AUTOWRAP_OFF; clock_label.add_theme_font_size_override("font_size",28)
-	var wallet:=VBoxContainer.new(); wallet.custom_minimum_size.x=74; wallet.size_flags_horizontal=Control.SIZE_EXPAND_FILL; numbers.add_child(wallet)
-	var caption:=_label("金币",wallet); caption.autowrap_mode=TextServer.AUTOWRAP_OFF; caption.add_theme_font_size_override("font_size",10)
-	gold_label=_label("0",wallet); gold_label.autowrap_mode=TextServer.AUTOWRAP_OFF; gold_label.text_overrun_behavior=TextServer.OVERRUN_TRIM_ELLIPSIS; gold_label.add_theme_font_size_override("font_size",17); gold_label.add_theme_color_override("font_color",Color("916037"))
+	hud_menu=GridContainer.new(); hud_menu.columns=3; hud_menu.add_theme_constant_override("h_separation",6); hud_menu.add_theme_constant_override("v_separation",6); header.add_child(hud_menu)
+	for entry in [["背包  E","inventory","chest"],["制作","crafting","wood"],["手册  Esc","menu",""]]:
+		var button:=_button(entry[0],hud_menu,_open.bind(entry[1]))
+		button.add_theme_font_size_override("font_size",14); button.custom_minimum_size.y=44
+		button.icon=assets.icon(entry[2]); button.expand_icon=true; button.add_theme_constant_override("icon_max_width",22)
+	location_label=_label("",header); location_label.add_theme_font_size_override("font_size",13)
+	location_label.add_theme_color_override("font_color",Color("fff9eb")); location_label.add_theme_color_override("font_shadow_color",Color("274d40")); location_label.add_theme_constant_override("shadow_offset_y",2)
+	status_panel=PanelContainer.new(); status_panel.add_theme_stylebox_override("panel",FarmUITheme.surface("fff9eb","849772",2,10)); header.add_child(status_panel)
+	var content:=VBoxContainer.new(); content.add_theme_constant_override("separation",4); status_panel.add_child(content)
+	var calendar:=HBoxContainer.new(); calendar.add_theme_constant_override("separation",10); content.add_child(calendar)
+	status=_label("",calendar); status.add_theme_font_size_override("font_size",13); status.autowrap_mode=TextServer.AUTOWRAP_OFF
+	weather_label=Label.new(); weather_label.add_theme_font_size_override("font_size",13); weather_label.add_theme_color_override("font_color",Color("785b30")); calendar.add_child(weather_label)
+	content.add_child(HSeparator.new())
+	var numbers:=HBoxContainer.new(); numbers.add_theme_constant_override("separation",16); content.add_child(numbers)
+	clock_label=_label("06:00",numbers); clock_label.autowrap_mode=TextServer.AUTOWRAP_OFF; clock_label.add_theme_font_size_override("font_size",30)
+	var wallet:=VBoxContainer.new(); wallet.size_flags_horizontal=Control.SIZE_EXPAND_FILL; wallet.add_theme_constant_override("separation",0); numbers.add_child(wallet)
+	var caption:=_label("持有金币",wallet); caption.autowrap_mode=TextServer.AUTOWRAP_OFF; caption.add_theme_font_size_override("font_size",10); caption.horizontal_alignment=HORIZONTAL_ALIGNMENT_RIGHT
+	gold_label=_label("0",wallet); gold_label.autowrap_mode=TextServer.AUTOWRAP_OFF; gold_label.horizontal_alignment=HORIZONTAL_ALIGNMENT_RIGHT; gold_label.text_overrun_behavior=TextServer.OVERRUN_TRIM_ELLIPSIS; gold_label.add_theme_font_size_override("font_size",19); gold_label.add_theme_color_override("font_color",Color("885a29"))
 	energy_panel=PanelContainer.new(); root.add_child(energy_panel)
-	var meter_style:=_hotbar_style("fff8e8","aa8559",2); meter_style.content_margin_left=4; meter_style.content_margin_right=4; meter_style.content_margin_top=4; meter_style.content_margin_bottom=4; energy_panel.add_theme_stylebox_override("panel",meter_style)
-	var energy:=VBoxContainer.new(); energy.add_theme_constant_override("separation",3); energy_panel.add_child(energy)
+	energy_panel.add_theme_stylebox_override("panel",FarmUITheme.surface("fff9eb","849772",1,5))
+	var energy:=VBoxContainer.new(); energy.add_theme_constant_override("separation",4); energy_panel.add_child(energy)
 	var energy_caption:=Label.new(); energy_caption.text="体力"; energy_caption.add_theme_font_size_override("font_size",11); energy.add_child(energy_caption)
 	stamina_bar=ProgressBar.new(); stamina_bar.show_percentage=false; stamina_bar.max_value=FarmEnergyRules.MAX_STAMINA; stamina_bar.fill_mode=ProgressBar.FILL_BOTTOM_TO_TOP; stamina_bar.size_flags_horizontal=Control.SIZE_SHRINK_CENTER; stamina_bar.custom_minimum_size=Vector2(10,62); stamina_bar.size_flags_vertical=Control.SIZE_EXPAND_FILL; energy.add_child(stamina_bar)
-	var track:=StyleBoxFlat.new(); track.bg_color=Color("dae1cb"); track.content_margin_top=0; track.content_margin_bottom=0; stamina_bar.add_theme_stylebox_override("background",track)
-	stamina_fill=StyleBoxFlat.new(); stamina_fill.bg_color=Color("76a078"); stamina_bar.add_theme_stylebox_override("fill",stamina_fill)
+	var track:=StyleBoxFlat.new(); track.bg_color=Color("dce4cc"); track.set_corner_radius_all(2); stamina_bar.add_theme_stylebox_override("background",track)
+	stamina_fill=StyleBoxFlat.new(); stamina_fill.bg_color=Color("668f61"); stamina_fill.set_corner_radius_all(2); stamina_bar.add_theme_stylebox_override("fill",stamina_fill)
 	stamina_label=Label.new(); stamina_label.horizontal_alignment=HORIZONTAL_ALIGNMENT_CENTER; stamina_label.add_theme_font_size_override("font_size",11); energy.add_child(stamina_label)
 
 ## 创建工具栏与背包共用的直角样式；固定留白避免选中时挤动图标。
@@ -307,22 +336,24 @@ func _hotbar_style(background: String, border: String, border_width: int=2) -> S
 	var style:=StyleBoxFlat.new()
 	style.bg_color=Color(background); style.border_color=Color(border); style.set_border_width_all(border_width)
 	style.content_margin_left=6; style.content_margin_right=6; style.content_margin_top=6; style.content_margin_bottom=6
+	style.set_corner_radius_all(3)
 	return style
 
 ## 一次创建十二个原生槽位及状态标签；此后只更新内容，保留节点、焦点与输入连接。
 func _build_hotbar() -> void:
 	toolbar=PanelContainer.new(); root.add_child(toolbar)
-	var frame:=_hotbar_style("e7c99a","99734c",3)
+	var frame:=FarmUITheme.surface("e4cfa7","907854",2,8)
+	frame.shadow_color=Color(0.10,0.19,0.13,0.24); frame.shadow_size=6; frame.shadow_offset=Vector2(0,3)
 	frame.content_margin_left=8; frame.content_margin_right=8; frame.content_margin_top=8; frame.content_margin_bottom=8
 	toolbar.add_theme_stylebox_override("panel",frame)
 	var content:=VBoxContainer.new(); content.add_theme_constant_override("separation",4); toolbar.add_child(content)
 	var heading:=HBoxContainer.new(); heading.add_theme_constant_override("separation",8); content.add_child(heading)
-	held_label=_label("选择工具",heading); held_label.autowrap_mode=TextServer.AUTOWRAP_OFF; held_label.text_overrun_behavior=TextServer.OVERRUN_TRIM_ELLIPSIS; held_label.add_theme_font_size_override("font_size",14); held_label.add_theme_color_override("font_color",Color("493b2b"))
+	held_label=_label("随身工具",heading); held_label.autowrap_mode=TextServer.AUTOWRAP_OFF; held_label.text_overrun_behavior=TextServer.OVERRUN_TRIM_ELLIPSIS; held_label.add_theme_font_size_override("font_size",14); held_label.add_theme_color_override("font_color",Color("493b2b"))
 	hotbar_hint=Label.new(); hotbar_hint.text="数字键 / 滚轮"; hotbar_hint.add_theme_font_size_override("font_size",12); hotbar_hint.add_theme_color_override("font_color",Color("665039")); heading.add_child(hotbar_hint)
 	hotbar_row_button=Button.new(); hotbar_row_button.text="换排 Tab"; hotbar_row_button.custom_minimum_size=Vector2(80,24); hotbar_row_button.add_theme_font_size_override("font_size",12); hotbar_row_button.tooltip_text="切换背包工具排 · Tab；Shift+Tab 反向切换"; heading.add_child(hotbar_row_button)
 	hotbar_row_button.pressed.connect(_command.bind({"type":"rotate-hotbar-row","direction":1}))
 	hotbar=GridContainer.new(); hotbar.columns=12; hotbar.add_theme_constant_override("h_separation",3); hotbar.add_theme_constant_override("v_separation",3); content.add_child(hotbar)
-	var styles: Dictionary={"normal":_hotbar_style("f5e4c6","b99565"),"hover":_hotbar_style("fff2d8","95754f"),"pressed":_hotbar_style("fff3d6","c66b3e",3),"disabled":_hotbar_style("e4d5ba","b3a181")}
+	var styles: Dictionary={"normal":_hotbar_style("f7ecd5","b5a17a",1),"hover":_hotbar_style("fff9e8","6e8b64",2),"pressed":_hotbar_style("e4eed4","53794e",3),"disabled":_hotbar_style("e7dfcb","bdad90",1)}
 	styles.hover_pressed=styles.pressed
 	var focus:=_hotbar_style("00000000","446d60",2)
 	focus.expand_margin_left=2; focus.expand_margin_right=2; focus.expand_margin_top=2; focus.expand_margin_bottom=2
@@ -410,39 +441,39 @@ func _render() -> void:
 		for button: Node in area.find_children("*","Button",true,false): button.disabled=mode!="" or session.busy or session.save_phase=="failed"
 	placement_controls.visible=mode=="placement"
 	dialog.visible=mode!="" and mode!="placement"
-	if not dialog.visible: return
+	backdrop.visible=dialog.visible and mode!="fishing"
+	if not dialog.visible:
+		_rendered_mode=mode
+		return
 	if mode=="fishing" and is_instance_valid(fish_progress): return
-	_clear(body); fish_progress=null; character_preview=null
-	title.add_theme_font_size_override("font_size",32 if mode=="start" else 16)
-	body.add_theme_constant_override("separation",6 if mode=="fishing" else 10)
+	var same_page:=_rendered_mode==mode
+	var old_scroll:=dialog_scroll.scroll_vertical if same_page else 0
+	var old_recipe_scroll:=recipe_list_scroll.scroll_vertical if same_page and is_instance_valid(recipe_list_scroll) else 0
+	var focus_key:=_focused_control_key() if same_page else ""
+	_body_revision+=1
+	_rendered_mode=mode
+	_clear(body); fish_progress=null; character_preview=null; recipe_list_scroll=null
+	_clear(dialog_actions); dialog_actions.visible=false
+	title.add_theme_font_size_override("font_size",40 if mode=="start" else 26)
+	body.add_theme_constant_override("separation",8 if mode=="fishing" else 12 if mode=="crafting" else 14)
 	close_button.visible=session.active and mode!="report" or mode in ["appearance-new","confirm-new"]
 	var state:=session.snapshot()
-	if mode in ["inventory","chest","shipping","crafting"]: dialog.add_theme_stylebox_override("panel",_hotbar_style("fff8e8","aa8559",3))
-	else: dialog.remove_theme_stylebox_override("panel")
+	dialog.add_theme_stylebox_override("panel",FarmUITheme.surface("fff9eb","8f9b76",2,6))
+	dialog_kicker.text="镜像岛  /  从一方小院开始" if mode=="start" else "镜像岛  /  农场手册"
+	dialog_footer.text="进度仅保存在本机" if not session.active else "时间已暂停  ·  Esc 返回农场"
+	if mode=="fishing": dialog_footer.text="按住收线，松手降张力"
+	elif mode=="report": dialog_footer.text="确认今日收获后，开始新的一天"
+	elif mode=="crafting": dialog_footer.text="选择配方，再点击背包目标格完成制作"
+	elif mode in ["inventory","chest"]: dialog_footer.text="拖动物品移动  ·  右键单件  ·  Shift + 右键半组"
 	match mode:
-		"start":
-			title.text="镜像岛"
-			_label("从一方小院开始",body).add_theme_font_size_override("font_size",20)
-			_label("播种、收获、采集，慢慢经营岛上生活。",body)
-			var start:=_button("开始新生活",body,_begin_new)
-			start.add_theme_stylebox_override("normal",_hotbar_style("dcebdc","83a28b",2))
-			start.add_theme_color_override("font_color",Color("294b3b"))
-			var button:=_button("继续游戏",body,_continue); button.disabled=not save_exists or session.error!=""
-			button.add_theme_color_override("font_disabled_color",Color("566159"))
-			var note:=_label("进度保存在本机。清除站点数据会丢失网页进度，不会自动同步到其他设备。",body)
-			note.add_theme_font_size_override("font_size",14)
-			if session.error!="": _label(session.error,body)
+		"start": _start_menu()
 		"confirm-new":
 			title.text="开始新的农场？"
 			_label("确认后将替换这台设备的 Godot 本地农场，旧进度无法恢复。",body)
 			_button("确认重新开始",body,_appearance_new)
 		"appearance-new","appearance": _appearance_menu()
 		"inventory","chest","shipping","crafting": _inventory_menu(state)
-		"menu":
-			title.text="岛上生活"
-			for pair in [["背包","inventory"],["制作","crafting"],["日历","calendar"],["技能","skills"],["居民名册","social"],["今日目标 / 委托","requests"],["外观","appearance"],["声音","audio"],["鸣谢与许可证","credits"]]: _button(pair[0],body,_open.bind(pair[1]))
-			if state.day>=2 and state.pet==null: _button("领养伙伴",body,_open.bind("adoption"))
-			_label("当前进度自动保存在本机。",body)
+		"menu": FarmJournalPages.menu(self,state)
 		"report": _report(state)
 		"skills": _skills_menu(state)
 		"scarecrow":
@@ -453,17 +484,8 @@ func _render() -> void:
 		"sleep":
 			title.text="今天就休息了吗？"; _label("睡觉后作物生长、资源恢复，出货收入在次日结算。",body)
 			_command_button("睡到明天",body,{"type":"sleep","bedId":inspect_id})
-		"social":
-			title.text="居民名册"
-			for profile: Dictionary in session.rules.profiles:
-				var friendship: Dictionary=state.friendships[profile.npcId]
-				var name: String=session.dialogues[profile.baseDialogueId].speaker
-				_label("%s · 好感 %.1f / 10 · 本周礼物 %d / 2"%[name,friendship.points/250.0,friendship.giftsThisWeek if friendship.giftWeekIndex==floorf(state.day/7.0) else 0],body)
-		"calendar":
-			title.text="日历"
-			_label("第 %d 天 · 周%s\n当前可玩内容为春季，Day 28 后可以继续。\n明日天气：%s"%[state.day,["一","二","三","四","五","六","日"][(int(state.day)-1)%7],{"sunny":"晴","rain":"雨","wind":"风"}[state.weather.next]],body)
-			var grid:=GridContainer.new(); grid.columns=7; body.add_child(grid)
-			for day in range(1,29): _label(str(day)+(" · 今天" if day==(int(state.day)-1)%28+1 else ""),grid)
+		"social": FarmJournalPages.social(self,state)
+		"calendar": FarmJournalPages.calendar(self,state)
 		"requests": _requests(state)
 		"adoption": _adoption()
 		"fishing": _fishing_menu()
@@ -501,6 +523,54 @@ func _render() -> void:
 			var licenses:=Engine.get_license_info()
 			for name: String in licenses: _label(name+"\n"+str(licenses[name]),body)
 	_resize()
+	_restore_body_position.call_deferred(old_scroll,focus_key,old_recipe_scroll,_body_revision)
+	if not same_page:
+		_animate_dialog.call_deferred(); _focus_dialog.call_deferred()
+
+
+## 构建启动页；仅展示现有物品图标与真实存档状态，按钮仍进入原新建或继续流程。
+func _start_menu() -> void:
+	title.text="镜像岛"
+	var welcome:=PanelContainer.new(); welcome.add_theme_stylebox_override("panel",FarmUITheme.surface("dce8d5","9dad88",0,18)); body.add_child(welcome)
+	var content:=VBoxContainer.new(); content.add_theme_constant_override("separation",12); welcome.add_child(content)
+	var harvest:=HBoxContainer.new(); harvest.add_theme_constant_override("separation",18); content.add_child(harvest)
+	for item_id: String in ["watering-can","parsnip","wood","fishing-rod"]:
+		var icon:=TextureRect.new(); icon.texture=assets.icon(item_id); icon.expand_mode=TextureRect.EXPAND_IGNORE_SIZE; icon.stretch_mode=TextureRect.STRETCH_KEEP_ASPECT_CENTERED; icon.custom_minimum_size=Vector2(44,48); icon.texture_filter=CanvasItem.TEXTURE_FILTER_NEAREST; harvest.add_child(icon)
+	_label("把日子，种成喜欢的样子。",content).add_theme_font_size_override("font_size",22)
+	_label("播种、收获、采集，慢慢经营岛上生活。",content).add_theme_font_size_override("font_size",14)
+	var resume:=_button("继续我的农场" if save_exists else "暂无本机农场",body,_continue)
+	resume.disabled=not save_exists or session.error!=""; resume.custom_minimum_size.y=52
+	var start:=_button("开始新生活",body,_begin_new); start.custom_minimum_size.y=52
+	var primary:=resume if save_exists and session.error=="" else start
+	primary.add_theme_stylebox_override("normal",FarmUITheme.surface("365f49","274d40",1,12)); primary.add_theme_color_override("font_color",Color("fff9eb")); primary.add_theme_color_override("font_focus_color",Color("fff9eb"))
+	var note:=_label("进度保存在本机。清除站点数据会丢失网页进度，不会自动同步到其他设备。",body); note.add_theme_font_size_override("font_size",12); note.add_theme_color_override("font_color",Color("65735a"))
+	if session.error!="": _label(session.error,body).add_theme_color_override("font_color",Color("9a4834"))
+
+## 读取当前内容按钮的稳定标识；返回空字符串表示焦点不在内容区，不干预标题按钮。
+func _focused_control_key() -> String:
+	var focused:=get_viewport().gui_get_focus_owner()
+	if focused==null or not body.is_ancestor_of(focused): return ""
+	if focused is FarmSlotButton: return "slot:%s:%d"%[focused.grid_id,focused.slot_index]
+	if focused is Button: return str(focused.get_meta("focus_key",focused.text))
+	return ""
+
+## 按旧滚动位置和控件标识恢复内容；revision 排除过期回调，保存期间只恢复滚动，不抢重试焦点。
+func _restore_body_position(scroll_y: int, focus_key: String, recipe_scroll_y: int, revision: int) -> void:
+	if not dialog.visible or revision!=_body_revision: return
+	if focus_key!="" and not session.busy and session.save_phase!="failed":
+		for node: Node in body.find_children("*","Button",true,false):
+			var key: String="slot:%s:%d"%[node.grid_id,node.slot_index] if node is FarmSlotButton else str(node.get_meta("focus_key",node.text))
+			if key==focus_key and not node.disabled:
+				node.grab_focus(); break
+	dialog_scroll.set_deferred("scroll_vertical",scroll_y)
+	if is_instance_valid(recipe_list_scroll): recipe_list_scroll.set_deferred("scroll_vertical",recipe_scroll_y)
+
+## 仅在切换页面时播放短暂淡入；无参数与返回值，不移动命中区域或反复动画状态更新。
+func _animate_dialog() -> void:
+	if not dialog.visible: return
+	if _dialog_tween!=null and _dialog_tween.is_valid(): _dialog_tween.kill()
+	dialog.modulate=Color(1,1,1,0.78)
+	_dialog_tween=create_tween(); _dialog_tween.tween_property(dialog,"modulate",Color.WHITE,0.16).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 
 ## 新游戏已有存档时先确认覆盖，首次新建直接进入外观选择。
 func _begin_new() -> void:
@@ -523,7 +593,7 @@ func _appearance_menu() -> void:
 	var row:=HBoxContainer.new(); body.add_child(row)
 	var preview:=Control.new(); preview.custom_minimum_size=Vector2(108,220); row.add_child(preview)
 	character_preview=load("res://scenes/islander.tscn").instantiate(); character_preview.position=Vector2(54,195); character_preview.scale=Vector2(6,6); character_preview.collision_layer=0; character_preview.collision_mask=0; preview.add_child(character_preview)
-	var options:=GridContainer.new(); options.columns=2; options.size_flags_horizontal=Control.SIZE_EXPAND_FILL; options.add_theme_constant_override("v_separation",8); row.add_child(options)
+	var options:=GridContainer.new(); options.set_meta("appearance_options",true); options.columns=4 if root.size.x>=800 else 2; options.size_flags_horizontal=Control.SIZE_EXPAND_FILL; options.add_theme_constant_override("v_separation",8); row.add_child(options)
 	var choices: Dictionary={"gender":["性别",["male","female"],["男","女"]],"head":["发型",["short","bob","ponytail"],["清爽短发","柔软短波波","轻快马尾"]],"top":["上装",["shirt","overalls","jacket"],["日常衬衫","农场背带装","轻便外套"]],"bottom":["下装",["trousers","shorts","skirt"],["直筒长裤","夏日短裤","田园短裙"]],"skinTone":["肤色",["peach","tan","umber"],["浅桃","暖棕","深褐"]],"hairColor":["发色",["chestnut","black","gold"],["栗棕","墨黑","亚麻金"]],"topColor":["衣服颜色",["cream","mint","coral","sky"],["暖白","薄荷绿","珊瑚橙","晴空蓝"]],"bottomColor":["下装颜色",["denim","sand","forest"],["牛仔蓝","浅沙色","森林绿"]]}
 	for key: String in choices:
 		var label:=_label(choices[key][0],options); label.size_flags_horizontal=Control.SIZE_SHRINK_BEGIN; label.custom_minimum_size.x=68
@@ -531,7 +601,7 @@ func _appearance_menu() -> void:
 		for name: String in choices[key][2]: picker.add_item(name)
 		picker.select(choices[key][1].find(appearance_value[key])); picker.item_selected.connect(_appearance_select.bind(key,choices[key][1]))
 	_apply_preview()
-	var directions:=HBoxContainer.new(); body.add_child(directions)
+	var directions:=HFlowContainer.new(); body.add_child(directions)
 	for direction in [["正面","down"],["左侧","left"],["右侧","right"],["背面","up"]]: _button(direction[0],directions,_preview_face.bind(direction[1]))
 	var walking:=CheckButton.new(); walking.text="看看走路"; walking.button_pressed=preview_walking; directions.add_child(walking); walking.toggled.connect(_preview_walk)
 	_button("开始新生活" if mode=="appearance-new" else "保存外观",body,_save_appearance)
@@ -566,35 +636,18 @@ func _save_appearance() -> void:
 ## 构建背包、容器、出货和制作菜单，共用同一槽位控件和数量选择。
 func _inventory_menu(state: Dictionary) -> void:
 	title.text={"inventory":"随身背包","chest":"宝箱","shipping":"出货箱","crafting":"制作"}[mode]
+	if mode in ["inventory","crafting"]:
+		var tabs:=HBoxContainer.new(); body.add_child(tabs)
+		for entry in [["随身物品","inventory"],["制作配方","crafting"]]:
+			var tab:=_button(entry[0],tabs,_open.bind(entry[1])); tab.toggle_mode=true; tab.button_pressed=mode==entry[1]; tab.size_flags_horizontal=Control.SIZE_EXPAND_FILL
 	var options:=HFlowContainer.new(); body.add_child(options)
 	for pair in [["整组","stack"],["单件","one"],["半组","half"]]:
 		if mode=="crafting" or (mode=="shipping" and pair[1]=="half"): continue
 		var button:=_button(pair[0],options,_amount.bind(pair[1])); button.toggle_mode=true; button.button_pressed=transfer_amount==pair[1]
 		button.tooltip_text="选择本次移动的数量"
-	_command_button("整理背包",options,{"type":"sort-inventory"})
-	if mode=="crafting":
-		if recipe_id not in state.knownRecipes: recipe_id=""
-		var quantities:=HBoxContainer.new(); body.add_child(quantities)
-		_label("制作数量",quantities)
-		for amount in [1,5,25]:
-			var amount_button:=_button("×%d"%amount,quantities,_craft_amount.bind(amount)); amount_button.toggle_mode=true; amount_button.button_pressed=craft_amount==amount
-		for recipe: Dictionary in session.rules.recipes.values():
-			if recipe.id not in state.knownRecipes: continue
-			var card:=_information_card(body)
-			var recipe_button:=_button("%s ×%d%s"%[recipe.name,craft_amount*int(recipe.output.quantity)," · 已选" if recipe_id==recipe.id else ""],card,_choose_recipe.bind(recipe.id))
-			recipe_button.icon=assets.icon(recipe.output.itemId); recipe_button.expand_icon=true; recipe_button.add_theme_constant_override("icon_max_width",28)
-			recipe_button.toggle_mode=true; recipe_button.button_pressed=recipe_id==recipe.id
-			var materials:=HFlowContainer.new(); materials.add_theme_constant_override("h_separation",12); card.add_child(materials)
-			for ingredient: Dictionary in recipe.ingredients:
-				var row:=HBoxContainer.new(); materials.add_child(row)
-				var icon:=TextureRect.new(); icon.texture=assets.icon(ingredient.itemId); icon.expand_mode=TextureRect.EXPAND_IGNORE_SIZE; icon.stretch_mode=TextureRect.STRETCH_KEEP_ASPECT_CENTERED; icon.custom_minimum_size=Vector2(20,20); row.add_child(icon)
-				var owned:=session.inventory.quantity(state.inventory,ingredient.itemId)
-				var required:=int(ingredient.quantity)*craft_amount
-				var material:=_label("%s %d/%d%s"%[session.rules.items[ingredient.itemId].name,owned,required," · 缺 %d"%(required-owned) if owned<required else ""],row)
-				material.autowrap_mode=TextServer.AUTOWRAP_OFF; material.add_theme_font_size_override("font_size",14)
-				material.add_theme_color_override("font_color",Color("a3543c") if owned<required else Color("416b50"))
-		_label("材料数量：持有 / 需要",body).add_theme_font_size_override("font_size",12)
-		_label("已选 %s，点背包目标格完成制作。"%session.rules.recipes[recipe_id].name if recipe_id!="" else "先选配方，再选背包目标格。",body)
+	if mode!="crafting": _command_button("整理背包",options,{"type":"sort-inventory"})
+	else: options.visible=false
+	if mode=="crafting": _crafting_recipes(state)
 	if mode=="chest":
 		var chest:=FarmWorldRules.object_by_id(state,container_id)
 		if chest.is_empty(): return
@@ -619,18 +672,56 @@ func _inventory_menu(state: Dictionary) -> void:
 	if mode=="inventory": _inventory_details(state)
 	elif mode=="chest": _label("点选来源，再点目标格存取；也可以直接拖动。",body)
 
+## 展示紧凑配方选择与当前材料明细；只读数量，制作仍由玩家点击背包目标格触发。
+func _crafting_recipes(state: Dictionary) -> void:
+	if recipe_id not in state.knownRecipes: recipe_id=""
+	var quantities:=HBoxContainer.new(); body.add_child(quantities)
+	_label("制作数量",quantities).add_theme_font_size_override("font_size",14)
+	for amount: int in [1,5,25]:
+		var amount_button:=_button("×%d"%amount,quantities,_craft_amount.bind(amount)); amount_button.toggle_mode=true; amount_button.button_pressed=craft_amount==amount
+	var sort_button:=_command_button("整理",quantities,{"type":"sort-inventory"}); sort_button.tooltip_text="整理背包"
+	var recipe_scroll:=ScrollContainer.new(); recipe_scroll.custom_minimum_size.y=148; recipe_scroll.horizontal_scroll_mode=ScrollContainer.SCROLL_MODE_DISABLED; recipe_scroll.follow_focus=true; body.add_child(recipe_scroll)
+	recipe_list_scroll=recipe_scroll
+	var recipes:=GridContainer.new(); recipes.columns=2 if root.size.x>=620 else 1; recipes.set_meta("responsive_columns",true); recipes.size_flags_horizontal=Control.SIZE_EXPAND_FILL; recipe_scroll.add_child(recipes)
+	for recipe: Dictionary in session.rules.recipes.values():
+		if recipe.id not in state.knownRecipes: continue
+		var enough:=true
+		for ingredient: Dictionary in recipe.ingredients:
+			if session.inventory.quantity(state.inventory,ingredient.itemId)<int(ingredient.quantity)*craft_amount: enough=false
+		var button:=_button("%s ×%d  ·  %s"%[recipe.name,craft_amount*int(recipe.output.quantity),"材料足够" if enough else "缺少材料"],recipes,_choose_recipe.bind(recipe.id))
+		button.set_meta("focus_key","recipe:"+recipe.id); button.size_flags_horizontal=Control.SIZE_EXPAND_FILL; button.alignment=HORIZONTAL_ALIGNMENT_LEFT; button.add_theme_font_size_override("font_size",14); button.text_overrun_behavior=TextServer.OVERRUN_TRIM_ELLIPSIS
+		button.icon=assets.icon(recipe.output.itemId); button.expand_icon=true; button.add_theme_constant_override("icon_max_width",28)
+		button.toggle_mode=true; button.button_pressed=recipe_id==recipe.id
+	if recipe_id=="":
+		_label("选择一张配方，查看材料和制作数量。",body).add_theme_font_size_override("font_size",14)
+		return
+	var chosen: Dictionary=session.rules.recipes[recipe_id]
+	var detail:=_information_card(body)
+	_label("%s ×%d"%[chosen.name,craft_amount*int(chosen.output.quantity)],detail).add_theme_font_size_override("font_size",19)
+	var materials:=HFlowContainer.new(); materials.add_theme_constant_override("h_separation",16); detail.add_child(materials)
+	for ingredient: Dictionary in chosen.ingredients:
+		var row:=HBoxContainer.new(); materials.add_child(row)
+		var icon:=TextureRect.new(); icon.texture=assets.icon(ingredient.itemId); icon.expand_mode=TextureRect.EXPAND_IGNORE_SIZE; icon.stretch_mode=TextureRect.STRETCH_KEEP_ASPECT_CENTERED; icon.custom_minimum_size=Vector2(22,22); row.add_child(icon)
+		var owned:=session.inventory.quantity(state.inventory,ingredient.itemId)
+		var required:=int(ingredient.quantity)*craft_amount
+		var material:=_label("%s %d/%d%s"%[session.rules.items[ingredient.itemId].name,owned,required," · 缺 %d"%(required-owned) if owned<required else ""],row)
+		material.autowrap_mode=TextServer.AUTOWRAP_OFF; material.add_theme_font_size_override("font_size",14); material.add_theme_color_override("font_color",Color("98462f") if owned<required else Color("365f49"))
+	_label("材料：持有 / 需要。点击下方背包目标格，放入成品。",detail).add_theme_font_size_override("font_size",12)
+
 ## 集中显示当前物品和原有操作；只读取定义与快照，不复制消费、售价或放置规则。
 func _inventory_details(state: Dictionary) -> void:
-	var panel:=PanelContainer.new(); panel.custom_minimum_size.y=108; panel.add_theme_stylebox_override("panel",_hotbar_style("f4e6cd","d4bb94",1)); body.add_child(panel)
+	var panel:=PanelContainer.new(); panel.custom_minimum_size.y=126; panel.add_theme_stylebox_override("panel",FarmUITheme.surface("e8eddb","bccbad",0,16)); body.add_child(panel)
 	if selected_source.is_empty():
-		_label("点选物品查看详情，拖动或再点目标格移动。\n右键移动单件，Shift+右键移动半组。",panel)
+		var empty:=VBoxContainer.new(); empty.add_theme_constant_override("separation",8); panel.add_child(empty)
+		_label("带上工具，出发吧。",empty).add_theme_font_size_override("font_size",20)
+		_label("点选物品查看详情，拖动或再点目标格移动。",empty).add_theme_font_size_override("font_size",14)
 		return
 	var slot: Dictionary=state.inventory[selected_source.index]
 	var item: Dictionary=session.rules.items[slot.itemId]
 	var row:=HBoxContainer.new(); row.add_theme_constant_override("separation",12); panel.add_child(row)
-	var icon:=TextureRect.new(); icon.texture=assets.icon(slot.itemId); icon.expand_mode=TextureRect.EXPAND_IGNORE_SIZE; icon.stretch_mode=TextureRect.STRETCH_KEEP_ASPECT_CENTERED; icon.custom_minimum_size=Vector2(52,52); icon.size_flags_vertical=Control.SIZE_SHRINK_CENTER; row.add_child(icon)
+	var icon:=TextureRect.new(); icon.texture=assets.icon(slot.itemId); icon.expand_mode=TextureRect.EXPAND_IGNORE_SIZE; icon.stretch_mode=TextureRect.STRETCH_KEEP_ASPECT_CENTERED; icon.custom_minimum_size=Vector2(64,72); icon.texture_filter=CanvasItem.TEXTURE_FILTER_NEAREST; icon.size_flags_vertical=Control.SIZE_SHRINK_CENTER; row.add_child(icon)
 	var details:=VBoxContainer.new(); details.size_flags_horizontal=Control.SIZE_EXPAND_FILL; row.add_child(details)
-	var name_label:=_label("%s ×%d"%[FarmQualityRules.name(item.name,slot.quality),slot.quantity],details); name_label.add_theme_font_size_override("font_size",18)
+	var name_label:=_label("%s ×%d"%[FarmQualityRules.name(item.name,slot.quality),slot.quantity],details); name_label.add_theme_font_size_override("font_size",21)
 	var information: Array[String]=[]
 	if item.category=="tool": information.append("工具")
 	if not item.get("canShip",false): information.append("不可出货")
@@ -670,7 +761,7 @@ func _slot_labels(button: Button, index: int, count: int, item_id: String) -> vo
 	var badge_texture:=assets.badge(item_id)
 	if badge_texture!=null:
 		var badge:=TextureRect.new(); badge.texture=badge_texture; badge.expand_mode=TextureRect.EXPAND_IGNORE_SIZE; badge.stretch_mode=TextureRect.STRETCH_KEEP_ASPECT_CENTERED; badge.mouse_filter=Control.MOUSE_FILTER_IGNORE; button.add_child(badge); badge.set_anchors_and_offsets_preset(Control.PRESET_CENTER); badge.offset_left=1; badge.offset_top=0; badge.offset_right=13; badge.offset_bottom=12
-	var number:=Label.new(); number.text=str(index+1); number.position=Vector2(4,0); number.add_theme_font_size_override("font_size",10); number.mouse_filter=Control.MOUSE_FILTER_IGNORE; button.add_child(number)
+	var number:=Label.new(); number.add_theme_color_override("font_color",Color("70694f")); number.text=str(index+1); number.position=Vector2(4,0); number.add_theme_font_size_override("font_size",10); number.mouse_filter=Control.MOUSE_FILTER_IGNORE; button.add_child(number)
 	if count>1:
 		var quantity:=Label.new(); quantity.text=str(count); quantity.add_theme_font_size_override("font_size",12); quantity.add_theme_color_override("font_outline_color",Color("fff8e6")); quantity.add_theme_constant_override("outline_size",3); quantity.horizontal_alignment=HORIZONTAL_ALIGNMENT_RIGHT; quantity.mouse_filter=Control.MOUSE_FILTER_IGNORE; button.add_child(quantity); quantity.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_WIDE); quantity.offset_left=3; quantity.offset_right=-3; quantity.offset_top=-19; quantity.offset_bottom=-2
 
@@ -808,6 +899,11 @@ func _demolish() -> void:
 ## 显示出货分类与总额，确认动作也必须先持久化。
 func _report(state: Dictionary) -> void:
 	title.text="第 %d 天日结"%state.unacknowledgedShippingReport.settledDay
+	var receipt:=PanelContainer.new(); receipt.add_theme_stylebox_override("panel",FarmUITheme.surface("365f49","274d40",0,18)); body.add_child(receipt)
+	var total:=VBoxContainer.new(); total.add_theme_constant_override("separation",4); receipt.add_child(total)
+	_label("今日出货收入",total).add_theme_color_override("font_color",Color("e6ecd4"))
+	var earned:=_label("%d g"%state.unacknowledgedShippingReport.totalGold,total); earned.add_theme_font_size_override("font_size",32); earned.add_theme_color_override("font_color",Color("f4dc9e"))
+	var wallet:=_label("当前金币 %d g"%state.gold,total); wallet.add_theme_font_size_override("font_size",13); wallet.add_theme_color_override("font_color",Color("fff9eb"))
 	if not session.day_summary.is_empty():
 		var summary: Dictionary=session.day_summary
 		_label(("02:00 已被送回家。" if summary.reason=="passed-out" else "睡醒了，新的一天开始。")+" 体力 %d/%d。"%[roundi(summary.nextStamina),int(FarmEnergyRules.MAX_STAMINA)],body)
@@ -817,9 +913,14 @@ func _report(state: Dictionary) -> void:
 		if int(fence_events.get("vanished",0))>0: _label("%d 段损坏围栏消失了。"%int(fence_events.vanished),body)
 	var names: Dictionary={"farming":"农产","foraging":"采集","fishing":"渔获","mining":"矿产","other":"其他"}
 	for category: Dictionary in state.unacknowledgedShippingReport.categories:
-		_label("%s · %dg"%[names[category.category],category.totalGold],body)
-		for entry: Dictionary in category.entries: _label("%s ×%d  %dg"%[FarmQualityRules.name(session.rules.items[entry.itemId].name,entry.quality),entry.quantity,entry.totalGold],body)
-	_label("合计 %dg · 当前金币 %dg"%[state.unacknowledgedShippingReport.totalGold,state.gold],body)
+		var heading:=HBoxContainer.new(); body.add_child(heading)
+		_label(names[category.category],heading).add_theme_font_size_override("font_size",19)
+		var subtotal:=_label("%d g"%category.totalGold,heading); subtotal.horizontal_alignment=HORIZONTAL_ALIGNMENT_RIGHT; subtotal.add_theme_color_override("font_color",Color("885a29"))
+		for entry: Dictionary in category.entries:
+			var row:=HBoxContainer.new(); body.add_child(row)
+			_label("%s ×%d"%[FarmQualityRules.name(session.rules.items[entry.itemId].name,entry.quality),entry.quantity],row)
+			var price:=_label("%d g"%entry.totalGold,row); price.horizontal_alignment=HORIZONTAL_ALIGNMENT_RIGHT
+		body.add_child(HSeparator.new())
 	for upgrade: Dictionary in state.unacknowledgedShippingReport.skillUpgrades:
 		_label("%s提升：%d → %d 级"%[FarmSkillRules.NAMES[upgrade.skill],upgrade.from,upgrade.to],body)
 	for id: String in state.unacknowledgedShippingReport.recipeUnlocks: _label("新配方："+session.rules.recipes[id].name,body)
@@ -833,33 +934,20 @@ func _report(state: Dictionary) -> void:
 	var crows: Dictionary=state.unacknowledgedShippingReport.crows
 	if crows.scared>0: _label("稻草人驱赶了 %d 只乌鸦。"%crows.scared,body)
 	if not crows.lost.is_empty(): _label("乌鸦吃掉了 %d 株作物。"%crows.lost.size(),body)
-	if state.unacknowledgedShippingReport.professionChoices.is_empty(): _command_button("开始新的一天",body,{"type":"dismiss-day-settlement"})
+	# 日结必须确认，固定在滚动区外；职业尚未选择时不提供跳过入口。
+	if state.unacknowledgedShippingReport.professionChoices.is_empty():
+		dialog_actions.visible=true
+		var acknowledge:=_command_button("开始新的一天",dialog_actions,{"type":"dismiss-day-settlement"}); acknowledge.size_flags_horizontal=Control.SIZE_EXPAND_FILL
+		acknowledge.add_theme_stylebox_override("normal",FarmUITheme.surface("365f49","274d40",1,12)); acknowledge.add_theme_color_override("font_color",Color("fff9eb")); acknowledge.add_theme_color_override("font_focus_color",Color("fff9eb"))
 
 ## 展示当前已接入技能的真实等级、经验和来源；界面不修改成长或展示无实际效果的奖励。
 func _skills_menu(state: Dictionary) -> void:
-	title.text="技能"
-	var sources: Dictionary={"farming":"收获作物 · 提高锄头与喷壶熟练度","foraging":"地面野采、野种收获、伐木与清理树桩 · 提高斧头熟练度","mining":"开采地表石块 · 提高十字镐熟练度","fishing":"成功钓获 · 提高竹鱼竿熟练度"}
-	for id: String in FarmSkillRules.NAMES:
-		var skill: Dictionary=state.skills[id]
-		var card:=_information_card(body)
-		var heading:=HBoxContainer.new(); card.add_child(heading)
-		var icon:=TextureRect.new(); icon.texture=assets.icon({"farming":"watering-can","foraging":"axe","mining":"pickaxe","fishing":"fishing-rod"}[id]); icon.expand_mode=TextureRect.EXPAND_IGNORE_SIZE; icon.stretch_mode=TextureRect.STRETCH_KEEP_ASPECT_CENTERED; icon.custom_minimum_size=Vector2(28,28); heading.add_child(icon)
-		_label("%s · %d 级"%[FarmSkillRules.NAMES[id],skill.level],heading).add_theme_font_size_override("font_size",18)
-		var base:=0 if skill.level==0 else int(FarmSkillRules.THRESHOLDS[skill.level-1])
-		var target:=int(FarmSkillRules.THRESHOLDS[skill.level]) if skill.level<10 else base
-		var progress:=ProgressBar.new(); progress.custom_minimum_size.y=12; progress.show_percentage=false
-		progress.max_value=maxi(1,target-base); progress.value=int(skill.xp)-base if skill.level<10 else progress.max_value
-		progress.add_theme_stylebox_override("background",_hotbar_style("e5dbc5","d4c4a4",1)); progress.add_theme_stylebox_override("fill",_hotbar_style("8ab58d","6f9973",1)); card.add_child(progress)
-		_label("本级经验 %d / %d · 还需 %d"%[int(skill.xp)-base,target-base,target-int(skill.xp)] if skill.level<10 else "已达 10 级 · 累计经验 %d"%skill.xp,card).add_theme_font_size_override("font_size",14)
-		_label(sources[id],card).add_theme_font_size_override("font_size",14)
-		if not state.professions[id].is_empty():
-			var profession: Dictionary=FarmSkillRules.PROFESSION_DETAILS[state.professions[id][0]]
-			_label("职业：%s · %s"%[profession.name,profession.description],card).add_theme_font_size_override("font_size",14)
+	FarmJournalPages.skills(self,state)
 
 ## 为配方材料和技能进度提供一致的浅木色信息块，返回可添加原生控件的内容列。
 func _information_card(parent: Control) -> VBoxContainer:
 	var panel:=PanelContainer.new()
-	var style:=_hotbar_style("f6ecd8","d4bc95",1)
+	var style:=FarmUITheme.surface("eef0de","c4ccb0",0,12)
 	style.content_margin_left=10; style.content_margin_right=10; style.content_margin_top=8; style.content_margin_bottom=8
 	panel.add_theme_stylebox_override("panel",style); parent.add_child(panel)
 	var content:=VBoxContainer.new(); content.add_theme_constant_override("separation",6); panel.add_child(content)
@@ -872,13 +960,21 @@ func _requests(state: Dictionary) -> void:
 	if state.wateringCanLevel==2: hints[2]="Lv2 喷壶已能朝面向方向一次浇三格。"
 	if state.friendships.values().any(func(friend:Dictionary)->bool:return friend.points>=250): hints[3]="有人已经把你当成熟悉的邻居，再交谈会听见新的话。"
 	hints[4]="背包已扩至 36 格，可以轮换三行快捷栏。" if state.inventoryCapacity==36 else "种子店背包陈列可花 %dg 扩到 %d 格，Tab 可以轮换快捷行。"%[2000 if state.inventoryCapacity==12 else 10000,state.inventoryCapacity+12]
-	_label(hints[state.day-1] if state.day<=7 else "继续经营农场、完成每日委托，为下一次升级储蓄。",body)
+	var suggestion:=_information_card(body)
+	_label("今天可以做什么",suggestion).add_theme_font_size_override("font_size",20)
+	_label(hints[state.day-1] if state.day<=7 else "继续经营农场、完成每日委托，为下一次升级储蓄。",suggestion)
 	var request:=session.social.request_for_day(state.day)
 	if request.is_empty(): return
 	var name: String=request.npcId
 	for profile: Dictionary in session.rules.profiles:
 		if profile.npcId==request.npcId: name=session.dialogues[profile.baseDialogueId].speaker
-	_label("%s需要 %s ×%d\n报酬 %dg · 好感 +%d\n%s"%[name,session.rules.items[request.itemId].name,request.quantity,request.goldReward,request.friendshipReward,"已完成" if state.dailyRequest.completed else "与目标居民交谈即可提交"],body)
+	_label("今日委托",body).add_theme_font_size_override("font_size",20)
+	var task:=HBoxContainer.new(); task.add_theme_constant_override("separation",16); body.add_child(task)
+	var icon:=TextureRect.new(); icon.texture=assets.icon(request.itemId); icon.expand_mode=TextureRect.EXPAND_IGNORE_SIZE; icon.stretch_mode=TextureRect.STRETCH_KEEP_ASPECT_CENTERED; icon.custom_minimum_size=Vector2(56,64); icon.size_flags_vertical=Control.SIZE_SHRINK_CENTER; task.add_child(icon)
+	var details:=VBoxContainer.new(); details.size_flags_horizontal=Control.SIZE_EXPAND_FILL; task.add_child(details)
+	_label("%s需要 %s ×%d"%[name,session.rules.items[request.itemId].name,request.quantity],details)
+	_label("报酬 %d g · 好感 +%d"%[request.goldReward,request.friendshipReward],details).add_theme_color_override("font_color",Color("885a29"))
+	_label("已完成" if state.dailyRequest.completed else "与目标居民交谈即可提交",details).add_theme_font_size_override("font_size",14)
 
 ## 使用真实宠物图集展示选项，领养确认后不可替换伙伴。
 func _adoption() -> void:
@@ -942,41 +1038,36 @@ func _clear(parent: Node) -> void:
 
 ## 统一清新田园主题，图标仍使用原素材；中文明确绑定字体。
 func _theme() -> Theme:
-	var result:=Theme.new(); result.default_font=load("res://media/NotoSansCJKsc-Regular.otf"); result.default_font_size=16
-	var paper:=StyleBoxFlat.new(); paper.bg_color=Color("fffdf4"); paper.border_color=Color("a6bc92"); paper.set_border_width_all(2); paper.set_corner_radius_all(5); paper.content_margin_left=8; paper.content_margin_right=8; paper.content_margin_top=6; paper.content_margin_bottom=6
-	result.set_stylebox("panel","PanelContainer",paper)
-	result.set_stylebox("normal","Button",paper)
-	var hover:=paper.duplicate(); hover.bg_color=Color("e8f1de"); result.set_stylebox("hover","Button",hover)
-	var pressed:=paper.duplicate(); pressed.bg_color=Color("467d5e"); result.set_stylebox("pressed","Button",pressed)
-	result.set_stylebox("hover_pressed","Button",pressed)
-	var focus:=StyleBoxFlat.new(); focus.bg_color=Color.TRANSPARENT; focus.border_color=Color("294b3b"); focus.set_border_width_all(3); focus.set_corner_radius_all(5)
-	for type in ["Button","OptionButton","LineEdit"]: result.set_stylebox("focus",type,focus)
-	for type in ["Label","Button","OptionButton","LineEdit"]: result.set_color("font_color",type,Color("304d3f"))
-	result.set_color("font_hover_color","Button",Color("304d3f")); result.set_color("font_focus_color","Button",Color("304d3f"))
-	result.set_color("font_pressed_color","Button",Color("fffdf4"))
-	result.set_color("font_hover_pressed_color","Button",Color("fffdf4"))
-	return result
+	return FarmUITheme.create()
 
 ## 在桌面和手机保留可点击区域与独立滚动，不缩小整个游戏画布。
 func _resize() -> void:
 	_update_touch_controls()
 	if root==null: return
 	root.size=get_viewport().get_visible_rect().size
+	backdrop.size=root.size
 	var size:=root.size
+	dialog_kicker.visible=size.y>=500
+	title.add_theme_font_size_override("font_size",(40 if size.y>=500 else 30) if mode=="start" else (26 if size.y>=500 else 22))
+	dialog_margin.add_theme_constant_override("margin_top",12 if size.y>=500 else 6); dialog_margin.add_theme_constant_override("margin_bottom",12 if size.y>=500 else 6)
 	var inventory_surface:=mode in ["inventory","chest","shipping","crafting"]
-	var side_margin:=4 if inventory_surface and size.x<360 else 8 if inventory_surface and size.x<800 else 16
+	var side_margin:=4 if inventory_surface and size.x<360 else 8 if inventory_surface and size.x<800 else 24
 	dialog_margin.add_theme_constant_override("margin_left",side_margin); dialog_margin.add_theme_constant_override("margin_right",side_margin)
 	for grid: Node in body.find_children("*","GridContainer",true,false):
 		if grid.has_meta("slot_grid"): grid.columns=12 if size.x>=800 else 6
+		elif grid.has_meta("responsive_columns"): grid.columns=2 if size.x>=620 else 1
+		elif grid.has_meta("appearance_options"): grid.columns=4 if size.x>=800 else 2
+	if is_instance_valid(recipe_list_scroll): recipe_list_scroll.custom_minimum_size.y=minf(156,maxf(48,ceili(float(session.snapshot().knownRecipes.size())/(2 if size.x>=620 else 1))*50))
 	header.size=Vector2(size.x,112)
 	var compact_hud:=size.x<680
 	var status_width:=minf(220,size.x-110) if compact_hud else 220.0
 	status_panel.position=Vector2(size.x-status_width-12,12)
 	if mode=="fishing" and size.x>=800 and size.y<560: status_panel.position=Vector2(12,12)
-	status_panel.size=Vector2(status_width,84)
-	status_panel.set_deferred("size",Vector2(status_width,84))
+	status_panel.size=Vector2(status_width,102)
+	status_panel.set_deferred("size",Vector2(status_width,102))
 	hud_menu.position=Vector2(12,12); hud_menu.columns=1 if compact_hud else 3; hud_menu.get_child(1).visible=not compact_hud
 	hud_menu.set_deferred("size",Vector2.ZERO)
+	location_label.position=Vector2(16,112 if compact_hud else 64); location_label.size=Vector2(200,24); location_label.visible=not compact_hud
 	var compact:=size.x<680
 	hotbar.columns=6 if compact else 12; hotbar_hint.visible=not compact
 	var bar_width:=minf(366 if compact else 676,size.x-24)
@@ -993,20 +1084,25 @@ func _resize() -> void:
 	var preferred_width:=1000.0
 	var preferred_height:=620.0
 	if mode in ["start","confirm-new","confirm-demolish","sleep","gift","adoption","backpack-upgrade","audio"]: preferred_width=640; preferred_height=360
-	if mode=="start": preferred_width=560; preferred_height=370
-	elif mode in ["appearance-new","appearance"]: preferred_width=760; preferred_height=560
+	if mode=="start": preferred_width=540; preferred_height=600
+	elif mode=="menu": preferred_width=720; preferred_height=630
+	elif mode=="calendar": preferred_width=680; preferred_height=590
+	elif mode=="social": preferred_width=740; preferred_height=650
+	elif mode in ["appearance-new","appearance"]: preferred_width=850; preferred_height=560 if size.x>=800 else 740
 	elif mode=="scarecrow": preferred_width=460; preferred_height=220
-	elif mode=="skills": preferred_width=620; preferred_height=500
+	elif mode=="skills": preferred_width=760; preferred_height=620
+	elif mode=="requests": preferred_width=680; preferred_height=520
+	elif mode=="audio": preferred_height=450
 	elif mode=="dialogue":
 		preferred_width=680
 		preferred_height=620 if dialogue_result.get("shopAvailable",false) else 520 if inspect_id.contains("notice") or inspect_id.contains("board") else 300
 	elif mode=="crafting":
-		preferred_width=760
-		preferred_height=minf(660,280+session.snapshot().knownRecipes.size()*100+ceili(float(session.snapshot().inventoryCapacity)/(12 if size.x>=800 else 6))*55)
+		preferred_width=850
+		preferred_height=minf(700,280+session.snapshot().knownRecipes.size()*100+ceili(float(session.snapshot().inventoryCapacity)/(12 if size.x>=800 else 6))*55)
 	elif mode=="fishing": preferred_width=330 if size.x>=800 and size.y<560 else 520; preferred_height=300
 	elif mode=="inventory":
 		var columns:=12 if size.x>=800 else 6
-		preferred_width=760; preferred_height=310+ceili(float(session.snapshot().get("inventoryCapacity",12))/columns)*55
+		preferred_width=850; preferred_height=530+ceili(float(session.snapshot().get("inventoryCapacity",12))/columns)*55
 	elif mode=="report":
 		var report: Dictionary=session.snapshot().get("unacknowledgedShippingReport",{})
 		var lines:=0
@@ -1016,7 +1112,7 @@ func _resize() -> void:
 		lines+=int(crow_report.get("scared",0)>0)+int(not crow_report.get("lost",[]).is_empty())
 		var fence_events: Dictionary=session.day_summary.get("fenceEvents",{}) if not session.day_summary.is_empty() else {}
 		lines+=int(int(fence_events.get("damaged",0))>0)+int(int(fence_events.get("vanished",0))>0)
-		preferred_width=760; preferred_height=minf(620,220+lines*28)
+		preferred_width=760; preferred_height=minf(660,410+lines*28)
 	var dialog_size:=Vector2(minf(preferred_width,size.x-(12 if inventory_surface else 20)),minf(preferred_height,size.y-24))
 	var dialog_position: Vector2=(size-dialog_size)/2
 	if mode=="fishing": dialog_position=Vector2(size.x-dialog_size.x-12,12) if size.x>=800 and size.y<560 else Vector2((size.x-dialog_size.x)/2,size.y-dialog_size.y-12)

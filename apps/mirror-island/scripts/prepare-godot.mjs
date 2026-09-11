@@ -146,22 +146,4 @@ for (const entry of manifest.entries) {
 }
 await writeFile(path.join(output,'generated/asset-paths.json'), JSON.stringify(assetPaths,null,2));
 await writeFile(path.join(output,'generated/media-provenance.json'), JSON.stringify(records,null,2));
-// 仅显式本地美术构建采用未发布候选；普通构建清理候选，不能冒用正式 CDN 登记。
-const toolPreviewPath = path.join(output, 'generated/tool-art-preview.json');
-const toolPreviewImage = path.join(output, 'media/tools-pastoral-preview-v1.png');
-if (process.argv.includes('--tool-art-preview')) {
-  const preview = JSON.parse(await readFile(new URL('./content/tool-art-preview.json', import.meta.url), 'utf8'));
-  const bytes = await readFile(path.join(root, preview.path));
-  if (bytes.length !== preview.bytes || sha256(bytes) !== preview.sha256
-      || bytes.readUInt32BE(16) !== preview.width || bytes.readUInt32BE(20) !== preview.height) throw new Error('本地工具图集尺寸或哈希不匹配');
-  await writeFile(toolPreviewImage, bytes);
-  await writeFile(toolPreviewPath, JSON.stringify({items: preview.items, key: preview.key, path: 'res://media/tools-pastoral-preview-v1.png', sha256: preview.sha256}, null, 2));
-  records.push({name:'tools-pastoral-preview-v1.png', sha256:preview.sha256, bytes:bytes.length, source:preview.path, provenance:{kind:'local-original-preview', version:preview.version}});
-  await writeFile(path.join(output,'generated/media-provenance.json'), JSON.stringify(records,null,2));
-  console.log('本地工具美术已接入：五件基础工具，未发布到 CDN。');
-} else {
-  await rm(toolPreviewPath, {force:true});
-  await rm(toolPreviewImage, {force:true});
-  await rm(toolPreviewImage + '.import', {force:true});
-}
 console.log(`Godot 已准备 ${regions.length} 张地图、${records.length} 张源图；YATI ${lock.yati.version} 已校验。`);

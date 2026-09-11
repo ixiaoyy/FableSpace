@@ -1,6 +1,0 @@
-{"file":"AGENTS.md","reason":"Repository boundaries and minimal validation"}
-{"file":".trellis/spec/frontend/mirror-island-phaser-singleplayer.md","reason":"Current v13 session and persistence contracts"}
-{"file":".trellis/tasks/09-04-storage-shipping-placement-v1/prd.md","reason":"Confirmed storage and shipping scope"}
-{"file":".trellis/tasks/09-04-storage-shipping-placement-v1/design.md","reason":"Actual owners and candidate-save architecture"}
-{"file":".trellis/tasks/09-04-storage-shipping-placement-v1/research/stardew-storage-1.6.15.md","reason":"Pinned behavioral evidence and version inference boundary"}
-{"file":".trellis/tasks/09-04-storage-shipping-placement-v1/research/resource-regeneration-occupancy.md","reason":"Resource refresh occupancy decisions"}

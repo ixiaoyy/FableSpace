@@ -45,7 +45,7 @@ func _run() -> void:
 		scene.ui._open(mode)
 		await process_frame
 		if not scene.ui.dialog.visible: print("VIEW CHECK FAILED: menu ",mode); quit(1); return
-		if mode=="skills" and not scene.ui.body.find_children("*","Label",true,false).any(func(node:Node)->bool:return node.text.begins_with("钓鱼 · 0 级")): print("VIEW CHECK FAILED: fishing skill label"); quit(1); return
+		if mode=="skills" and not scene.ui.body.find_children("*","Label",true,false).any(func(node:Node)->bool:return node.text=="钓鱼"): print("VIEW CHECK FAILED: fishing skill label"); quit(1); return
 		count+=1
 	var fixture_path:=ProjectSettings.globalize_path("res://../test/fixtures/godot-migration.json")
 	var fixtures: Dictionary=JSON.parse_string(FileAccess.get_file_as_string(fixture_path))

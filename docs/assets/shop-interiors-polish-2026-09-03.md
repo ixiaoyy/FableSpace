@@ -22,5 +22,5 @@
 
 ## 验证与证据
 
-类型、构建、地图/日程/路径以及柜台/查看/往返记录见 `.trellis/tasks/09-03-shop-interiors-polish-v1/verification.md`。
+类型、构建、地图/日程/路径以及柜台/查看/往返结果保留在本批提交历史中。
 截图保留在 ignored `artifacts/shop-interiors-polish-v1/`。真人最终审美仍待用户反馈。

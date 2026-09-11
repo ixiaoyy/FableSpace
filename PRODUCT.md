@@ -20,14 +20,14 @@ web
 
 ## Operating Context
 
-公开 `/` 是唯一入口。玩家选择新游戏或继续游戏，经角色创建后进入 Phaser 世界；玩法状态由纯 TypeScript GameSession 管理并通过 IndexedDB 保存。当前主要使用桌面浏览器，也必须支持手机触控与高倍缩放。
+公开 `/` 是唯一入口。玩家选择新游戏或继续游戏，经角色创建后进入 Godot 世界；玩法状态由 GDScript GameSession 管理。Web 通过 IndexedDB 保存，Windows 使用原子文件；桌面正式版优先，同工程 Web 试玩仍须支持手机触控与高倍缩放。
 
 ## Capabilities and Constraints
 
-- 当前可玩范围包含农场、小镇、住宅与商店区域，支持采集、背包、制作、种田、春季日历、时间、NPC 日程、对话与基础好感。
+- 当前可玩范围包含 12 个农场、小镇、住宅与商店区域，支持采集、背包、制作、种田、仓储出货、四项生活技能、品质肥料、围栏、湖河钓鱼、春季日历、时间、NPC 日程、对话与基础好感。
 - 试玩版无账号、无 Keycloak/OIDC 客户端请求、无实时后端、无多人和云存档。
 - 同一浏览器 profile 只有一个固定本地存档；清除站点数据会丢失进度，且不跨设备同步。
-- Phaser/Vue 只发送命令并渲染 snapshot；domain、client、server 边界不得为视觉工作改变。
+- Godot 场景和界面只发送命令并渲染 snapshot；`domain`、`persistence`、`presentation` 与 `ui` 边界不得为视觉工作改变。
 - 游戏图片通过不可变 `game/media/v1` 对象和 manifest 交付，Git 不跟踪正式图片二进制。
 
 ## Brand Commitments
@@ -39,7 +39,7 @@ web
 ## Evidence on Hand
 
 - 产品与范围：`docs/PRODUCT_BRIEF.md`、`docs/WHAT_NOT_TO_BUILD.md`。
-- 运行时与持久化：`.trellis/spec/frontend/mirror-island-phaser-singleplayer.md`。
+- 运行时与持久化：`docs/architecture/GODOT_RUNTIME.md`；历史 Phaser 规则见 `docs/architecture/PHASER_RUNTIME_ARCHIVE.md`。
 - 媒体规范：`docs/IMAGE_ASSETS_SPEC.md` 与 `deploy/cdn/game-media-manifest.json`。
 - 用户提供一张东方田园画卷式首页参考图，只作为构图与气质参考，不作为生产素材直接复制。
 

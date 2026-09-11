@@ -1,8 +1,0 @@
-{"file":".trellis/tasks/09-08-secret-garden-manor-story/prd.md","reason":"核对用户决定、R/AC/O 编号和 planning-only 状态"}
-{"file":".trellis/tasks/09-08-secret-garden-manor-story/story.md","reason":"核对完整八章、人物职责和未定玩家视角"}
-{"file":".trellis/tasks/09-08-secret-garden-manor-story/design.md","reason":"核对状态归属、原子保存、动态门与原居民隔离"}
-{"file":".trellis/tasks/09-08-secret-garden-manor-story/implement.md","reason":"区分本轮文档检查、未来自动检查、真人验收和发布"}
-{"file":".trellis/tasks/09-08-secret-garden-manor-story/research/evidence.md","reason":"核对源代码证据、资料来源与未完成研究的说明"}
-{"file":".trellis/spec/frontend/godot-singleplayer-migration.md","reason":"当前引擎、生成目录与存档政策"}
-{"file":"docs/WHAT_NOT_TO_BUILD.md","reason":"现有产品边界的定向例外，不恢复已否决能力"}
-{"file":"docs/IMAGE_ASSETS_SPEC.md","reason":"正式素材和视觉验收不能用占位或构建替代"}

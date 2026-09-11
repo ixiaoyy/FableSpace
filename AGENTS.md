@@ -2,10 +2,11 @@
 
 ## 2026-09-07 引擎迁移决定
 
-- 用户已明确批准迁移到 Godot + GDScript：桌面正式版优先，Web 保留试玩；当前任务为 `.trellis/tasks/09-07-godot-engine-migration/`。
+- 用户已明确批准迁移到 Godot + GDScript：桌面正式版优先，Web 保留试玩；迁移实现与待验收项以 `docs/CURRENT_STATE.md` 为准。
 - 当前开发和构建入口已切换到 `apps/mirror-island/godot/`，现有玩法已接入 GDScript；旧 Phaser/Vue 客户端及 TypeScript 玩法已清理。地图构建工具位于 `scripts/content/`，室内绘图源位于 `godot/tools/interior-atlases.json`；不得恢复旧运行时。代码迁移、真人验收和公开部署必须分别报告，不能据自动检查代签真人通过。
 - 当前名称不变；真实城市/路网设想尚未进入实现，禁止在引擎任务中自动接入 OSM 或定位。
 - 数据库、论坛、身份、媒体授权和远程操作边界继续有效。引擎迁移不授权提交、推送或部署。
+- 2026-09-11 用户决定移除 Trellis；不得恢复 `.trellis/`、Trellis 技能、钩子或任务流程。项目计划、状态和运行时规范直接维护在 `docs/` 与本文件中。
 
 适用于整个仓库；更近层级的 `AGENTS.md` 优先。
 
@@ -85,7 +86,7 @@
 
 ## 权威来源与验证
 
-- 权威入口：`README.md`、`docs/INDEX.md`、`docs/PRODUCT_BRIEF.md`、`docs/WHAT_NOT_TO_BUILD.md`、`docs/TOWN_ROADMAP.md`、`docs/IMAGE_ASSETS_SPEC.md`、`docs/DEPLOYMENT.md`、`.trellis/spec/frontend/mirror-island-phaser-singleplayer.md`。
+- 权威入口：`README.md`、`docs/INDEX.md`、`docs/PRODUCT_BRIEF.md`、`docs/WHAT_NOT_TO_BUILD.md`、`docs/TOWN_ROADMAP.md`、`docs/IMAGE_ASSETS_SPEC.md`、`docs/DEPLOYMENT.md`、`docs/architecture/GODOT_RUNTIME.md`、`docs/architecture/PHASER_RUNTIME_ARCHIVE.md`。
 - 聊天与文档冲突时以用户最新明确决定为准，先同步权威合同再实现。
 - 查看/解释保持只读；只有用户要求修改才变更代码、配置或数据。
 - 结论只基于已检查代码、配置、数据、日志和运行状态；证据不足时说明缺口。

@@ -1,8 +1,0 @@
-{"file":".trellis/tasks/09-08-secret-garden-manor-story/prd.md","reason":"完整故事范围、待决定项与只规划不实施的授权边界"}
-{"file":".trellis/tasks/09-08-secret-garden-manor-story/story.md","reason":"人物、八章内容、空间和美术清单"}
-{"file":".trellis/tasks/09-08-secret-garden-manor-story/design.md","reason":"未来领域状态、命令、演出和恢复方案；仍待评审"}
-{"file":".trellis/tasks/09-08-secret-garden-manor-story/implement.md","reason":"未来阶段与验收路线，不提供任务启动授权"}
-{"file":".trellis/tasks/09-08-secret-garden-manor-story/research/evidence.md","reason":"代码与官方来源初查及尚未验证的选型事项"}
-{"file":".trellis/spec/frontend/godot-singleplayer-migration.md","reason":"唯一 GameSession、当前本地存档与 Godot 工程合同"}
-{"file":"docs/IMAGE_ASSETS_SPEC.md","reason":"已选清新田园方向、素材来源与发布边界"}
-{"file":"docs/EXPLORATION_DESIGN_PRINCIPLES.md","reason":"环境线索、可重试探索与固定虚构地图约束"}
