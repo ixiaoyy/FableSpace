@@ -190,6 +190,20 @@ jobs:
                 exit 1
               fi
               ;;
+            assets/original/pastoral-tools/2026-09-08-v1/tools-runtime-v1.png)
+              if [ "${MEDIA_CONTENT_TYPE:-}" != "image/png" ] || \
+                 [ "${MEDIA_EXPECTED_BYTES}" != "15770" ] || \
+                 [ "${MEDIA_EXPECTED_SHA256}" != "367ed6a3d822a2e652a46ac5e595aefa344d3828976568b500c8efc1cda4f55b" ]; then
+                echo "::error::Pastoral tools must match the reviewed PNG and SHA-256"
+                exit 1
+              fi
+              CDN_S3_PREFIX="${CDN_S3_PREFIX#/}"
+              CDN_S3_PREFIX="${CDN_S3_PREFIX%/}"
+              if [ "${CDN_S3_PREFIX}" != "game" ]; then
+                echo "::error::Pastoral tools must publish under the game prefix"
+                exit 1
+              fi
+              ;;
             assets/original/mirror-island-home/2026-08-31/mirror-island-home-hero.png|\
             assets/original/islander/2026-09-07-v3/character-layers-v3.png|\
             assets/original/islander/2026-09-07-v3/character-materials-v3.png)
